@@ -399,3 +399,112 @@ Rust as is. Differences:
 None of these changes touches the forward, transpose or backward counts. With 1 and 2 applied, the cost
 model's interactive gradient phase is `(n2-1) + (n1-1) + 2 m log2(B')` rotations and `m` relins,
 which equals `sim_outer_batchsum`. The spike itself is not edited (project rule).
+
+## 6. Compact re-packing for bootstrapping (M3, Task 40)
+
+Bootstrapping refreshes a whole ciphertext, so the cost of a non-interactive update is the
+number of ciphertexts that hold the weights. The `m` diagonals of §2 are each replicated over
+`S/L` positions (`S = slots`, `L = max(n_out, n_in)`): `B` lanes times the `S / (L B)` copies of
+the `L`-periodic feature index. One copy of each is enough. The compact form puts
+`cap = S / L` diagonals into one ciphertext, so a layer needs `ceil(m / cap)` bootstraps
+instead of `m`. This is premise 1 of the M0 cost model (`spikes/costmodel/costmodel.py`,
+`_diag_batched`, `compact=True`). `crates/hekit-nn/src/compact.rs` implements this section.
+
+### 6.1 Plan and offsets
+
+```
+CompactPlan { d_out, d_in, batch = B, diags_per_ct = cap = S / L, lane_shift = log B }
+n_ct = ceil(m / cap)                   ciphertexts (= bootstraps) per layer
+diagonal c (entry index, BSGS order) -> ciphertext i = c div cap, position t = c mod cap
+o(t) = (t mod B) + (t >> lane_shift) * L * B          the slot offset of position t
+```
+
+The low `log B` bits of `t` choose a lane, the higher bits a copy of the `L`-period. Compact
+ciphertext `i` holds, for `j < L` and `t < n_i` (`n_i = min(cap, m - i cap)` diagonals):
+
+```
+slot o(t) + j B   holds   P_{i cap + t}[j]        (0 in every other slot)
+```
+
+The positions `{o(t) + j B}` of different `t` are disjoint and cover all `S` slots when
+`n_i = cap`. The entries `P_c` are kept pre-rotated (§2), and the re-packing treats each one as an
+opaque `L`-periodic feature vector, so the pre-rotation passes through unchanged.
+
+`o(t)` is linear in the bits of `t`: `o(t) = sum_k bit_k(t) * step_k` with
+
+```
+step_k = 2^k                         for k < log B           (lane bits)
+step_k = L B 2^(k - log B)           for log B <= k < log cap (copy bits)
+```
+
+So the shifts can be done as a binary tree over the bits of `t`, with one rotation per merge.
+
+### 6.2 Pack (consumes 1 level, 0 relins)
+
+Let `mask0[s] = [s < L B and s mod B == 0]`: lane 0 of the first `L`-period (`L` ones). For each
+compact ciphertext `i`:
+
+1. `x_t = rescale(mul_plain_to_scale(P_{i cap + t}, mask0, scale(P)))` for `t < n_i`
+   (1 ct-pt and 1 rescale per diagonal). This is exactly `scale(P)` on level `l - 1`.
+2. A tree over the bits of `t`, from bit 0 up: merge the groups `{bit_k(t) = 0}` and
+   `{bit_k(t) = 1}` (equal higher bits) as `left + rot(right, -step_k)`. A group without a
+   right half passes up unchanged.
+
+The result is `sum_t rot(x_t, -o(t))`, the compact ciphertext of §6.1. Every merge joins two
+nonempty groups, so `n_i - 1` rotations per ciphertext and **`m - n_ct` rotations** per layer.
+That is the cost model's "1 lane shift per diagonal into compact ciphertexts (m - nW
+rotations)". The tree uses only the `log2(min(m, cap))` steps `-step_k`, not `cap - 1` distinct
+shifts.
+
+The mask reads only lane 0 of the first period (slots `j B`, `j < L`). So pack also accepts an
+input that is valid only there, e.g. the reduce-only gradient of §3 (the cost model packs the
+reduced gradient, sharing this mask with the batch-sum mask). With a replicated input the block
+copies and lanes it drops can carry any drift: unpack rebuilds them from one copy (§6.4).
+
+### 6.3 Unpack (consumes 1 level, 0 relins)
+
+For each compact ciphertext `i` (on level `l'`, e.g. the bootstrap output):
+
+1. A tree over the bits of `t`, from the top bit down. The group with offset base `a` holds
+   `rot(packed_i, a)`. It splits into the half with `bit_k = 0` (the same ciphertext) and the half
+   with `bit_k = 1`, which is `rot(·, +step_k)` and exists only if some `t < n_i` lies in it.
+   Leaf `t` is `rot(packed_i, o(t))`, which has `P_{i cap + t}[j]` on slot `j B`. That is
+   `n_i - 1` rotations.
+2. `y_t = rescale(mul_plain_to_scale(leaf_t, mask0, scale(packed)))` (1 ct-pt, 1 level). Only
+   slots `j B`, `j < L`, survive.
+3. Replicate: `for k < log cap: y = y + rot(y, -step_k)`. The lane bits fill the `B` lanes and the
+   copy bits fill the `S / (L B)` copies. After these `log2(S / L)` rotations slot
+   `j B + b + p L B` holds `P[j]` for every lane `b` and copy `p`: the replicated, pre-rotated
+   diagonal of §2.
+
+Rotations: **`(m - n_ct) + m log2(S / L)`**, ct-pt `m`, relins 0, levels 1. This is the cost
+model's unpack, "per diagonal 1 mask + 1 lane shift (m - nW rotations) + log2(S/L) replication
+rotations". The replication writes every lane and every block copy from one slot. So the output
+is block-periodic by construction, which is what `BootstrapRefresher` cannot provide for a
+replicated layout (ruling R-M3-3; its `bind_layout` still refuses such layouts).
+
+### 6.4 Exact scale, levels and keys
+
+- Both masks are encoded at `target_plain_scale(ct, scale(ct))` on the ciphertext's level
+  (§3.1: a 0/1 mask cannot be encoded at scale 1), so each rescale returns **exactly** the input
+  scale. Rotations and additions keep scales. Pack output: level `l - 1` at `scale(P)`. Unpack
+  output: level `l' - 1` at `scale(packed)`.
+- A round trip pack, then bootstrap (to `levels_after_boot`, 16 on n16_boot, at `Delta`), then
+  unpack costs `+2` levels per update. Weights refreshed this way arrive on level `16 - 1 = 15`
+  of n16_boot: `Refresher::output_level` for the bootstrap minus the unpack level.
+- Galois steps (`compact_rotation_steps`), one key per distinct element:
+  `{-step_k : k < log cap}` (pack tree and replication) and `{+step_k : k < log2 min(m, cap)}`
+  (unpack tree). That is `log2(S/L) + log2(min(m, S/L))` keys. In a single-block layout
+  (`d B = S`) with `L = d`, `cap = B` and all steps are lane steps `±2^k`: exactly the batch
+  reduce/replicate keys the training step already has (§3), so **no new keys**.
+
+| layer (preset) | S | L, m | B | cap | n_ct = boots | pack rot | unpack rot | keys |
+|---|---|---|---|---|---|---|---|---|
+| 32 x 1024 (n16_boot) | 2^15 | 1024, 32 | 32 | 32 | 1 | 31 | 31 + 32·5 = 191 | 10 |
+| eMLP-1 W1 32 x 784 (n16_boot) | 2^15 | 1024, 32 | 32 | 32 | 1 | 31 | 191 | 10 |
+| eMLP-1 W2 10 x 32 (n16_boot, d = 1024) | 2^15 | 32, 16 | 32 | 1024 | 1 | 15 | 15 + 16·10 = 175 | 14 |
+
+The rotation counts and `n_ct` are the cost model's `gradient` lane shifts (`194 - 163 = 31`
+against `interactive=True`), its `update` rotations (191 and 175) and its `weight_ciphertexts`,
+for the same `(d_in, d_out, batch, slots)`. The test `compact_round_trip_n16_boot` checks the
+first row on the real n16_boot preset.

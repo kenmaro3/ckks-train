@@ -25,7 +25,9 @@
 //! 4. the optimizer steps (`W' = W - dW` for SGD; NAG's scaled-velocity form) and
 //!    `b' = b - db`; all at exactly the old scales;
 //! 5. the refresh: every weight diagonal, every bias and every optimizer state (the NAG
-//!    velocity) goes through the [`Refresher`] back to the top level at its exact scale.
+//!    velocity) goes through the [`Refresher`] to its [`Refresher::output_level`]
+//!    ([`Trainer::refresh_level`]: the top level for [`crate::refresh::ClientRefresher`], the
+//!    bootstrap output level for [`crate::refresh::BootstrapRefresher`]) at its exact scale.
 //!
 //! On seal_2020 the Task 30 network (4 → 8 → 2, Square, batch 8) uses exactly the 9 levels:
 //! `W1'` lands on level 0 before the refresh ([`Trainer::trace`] records the level of every
@@ -84,8 +86,8 @@ pub trait LayerOptimizer: Optimizer {
     fn bias_grad_scale(&self) -> f64;
 
     /// Refreshes the optimizer's encrypted state (e.g. the NAG velocity, which lands on the
-    /// gradient's level) to the top level; returns the number of ciphertexts refreshed. On an
-    /// error the state is unchanged.
+    /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
+    /// of ciphertexts refreshed. On an error the state is unchanged.
     fn refresh_state(&mut self, refresher: &mut dyn Refresher) -> Result<usize>;
 }
 
@@ -560,6 +562,12 @@ impl<'a> Trainer<'a> {
         &self.trace
     }
 
+    /// The level of every weight, bias and optimizer state after a step: the refresher's
+    /// [`Refresher::output_level`] (`max_level` for the interactive client refresh).
+    pub fn refresh_level(&self) -> usize {
+        self.refresher.output_level()
+    }
+
     /// Ciphertexts refreshed so far.
     pub fn refreshes(&self) -> usize {
         self.refreshes
@@ -576,8 +584,8 @@ impl<'a> Trainer<'a> {
     /// One training step (see the [module docs](self)) on a batch whose first `n_valid` lanes
     /// are samples: `x` and `y` encrypted as [`BatchSpec::encrypt`] does. The gradients are
     /// means over the `n_valid` samples; the padded lanes are masked out of the derivative
-    /// factor (0 extra levels). Afterwards every weight, bias and optimizer state is on the
-    /// top level at its old exact scale.
+    /// factor (0 extra levels). Afterwards every weight, bias and optimizer state is on
+    /// [`Trainer::refresh_level`] at its old exact scale.
     ///
     /// Errors, reported before anything is written (the network and the optimizers are
     /// unchanged): `InvalidParams` if the network is empty, there is not one optimizer per

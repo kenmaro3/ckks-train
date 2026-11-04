@@ -268,6 +268,11 @@ fn train_batch_matches_sim_and_fits_seal_2020() {
     }
     let w1 = trace.iter().find(|(l, _)| l == "W1'").unwrap().1;
     assert_eq!(w1, 0, "W1' on level 0: 9 levels, zero margin, no error");
+    assert_eq!(
+        trainer.refresh_level(),
+        top,
+        "the client refreshes to the top level"
+    );
     assert_fresh(&c, &mlp, &bias_scales);
     assert_eq!(
         trainer.refreshes(),
@@ -431,7 +436,8 @@ fn client_refresher_restores_level_and_scale() {
         .enc
         .encrypt(&c.encoder.encode(&v, scale, 2).unwrap(), &mut r);
     let fresh = client.refresh(&ct).unwrap();
-    assert_eq!(fresh.level(), c.params.max_level());
+    assert_eq!(client.output_level(), c.params.max_level());
+    assert_eq!(fresh.level(), client.output_level());
     assert_eq!(fresh.scale(), scale, "exactly the old scale");
     let e = vec_diff(&c.encoder.decode(&c.dec.decrypt(&fresh)), &v);
     eprintln!("refresh error 2^{:.2}", e.log2());
@@ -484,7 +490,7 @@ fn client_refresher_with_layout_averages_the_blocks() {
         .enc
         .encrypt(&c.encoder.encode(&noisy, scale, 3).unwrap(), &mut r);
     let fresh = client.refresh(&ct).unwrap();
-    assert_eq!(fresh.level(), c.params.max_level());
+    assert_eq!(fresh.level(), client.output_level());
     assert_eq!(fresh.scale(), scale);
     let got = c.encoder.decode(&c.dec.decrypt(&fresh));
     let want: Vec<f64> = (0..c.params.slots()).map(|s| mean[s % bk]).collect();

@@ -2,6 +2,7 @@
 #![deny(missing_docs)]
 
 pub mod activation;
+pub mod compact;
 pub mod dense;
 pub mod layout;
 pub mod layout_reboot;

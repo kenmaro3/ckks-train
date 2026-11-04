@@ -2,8 +2,10 @@
 //!
 //! A training step consumes the whole modulus chain (`docs/layout.md` §4: on seal_2020 the
 //! Task 30 step ends with `W1'` on level 0). Before the next step every weight, bias and
-//! optimizer state must be back on the top level. [`Refresher`] is that operation; the
-//! [`crate::trainer::Trainer`] calls it on every ciphertext the next step consumes.
+//! optimizer state must be back on a high level ([`Refresher::output_level`]: the top level
+//! for the client, the bootstrap output level for bootstrapping). [`Refresher`] is that
+//! operation; the [`crate::trainer::Trainer`] calls it on every ciphertext the next step
+//! consumes.
 //!
 //! [`ClientRefresher`] is the **interactive mode** of M2 (spec §4.3.1, the development stage;
 //! not used for the paper's claims): the server sends the ciphertexts to the key owner, who
@@ -74,6 +76,12 @@ pub trait Refresher {
     /// Errors: `InvalidParams` if `layout` does not fit the refresher's parameters, or if the
     /// refresher cannot re-lay a replicated layout (see the trait docs).
     fn bind_layout(&mut self, layout: &Layout) -> Result<()>;
+
+    /// The level of every [`Refresher::refresh`] output: `max_level` for
+    /// [`ClientRefresher`], [`Bootstrapper::output_level`] (`levels_after_boot`, 16 on
+    /// n16_boot) for [`BootstrapRefresher`]. Code that consumes refreshed values must start
+    /// its level chain here, not at `max_level`.
+    fn output_level(&self) -> usize;
 }
 
 /// The interactive refresh: decrypt → decode → re-encode → encrypt on `max_level` (see the
@@ -206,6 +214,11 @@ impl Refresher for ClientRefresher {
         self.block = Some(layout.block());
         Ok(())
     }
+
+    /// The top level, `max_level`: the client encrypts afresh.
+    fn output_level(&self) -> usize {
+        self.encoder.params().max_level()
+    }
 }
 
 /// The non-interactive refresh (M3, Task 38): every [`Refresher::refresh`] drops the
@@ -291,6 +304,11 @@ impl Refresher for BootstrapRefresher<'_> {
         }
         Ok(())
     }
+
+    /// [`Bootstrapper::output_level`] (`levels_after_boot`, 16 on n16_boot).
+    fn output_level(&self) -> usize {
+        self.bs.output_level()
+    }
 }
 
 #[cfg(test)]
@@ -350,7 +368,8 @@ mod tests {
             let ct = enc.encrypt(&pt, &mut r);
             let before = ev.counter().bootstraps;
             let out = rf.refresh(&ct).unwrap();
-            assert_eq!((out.level(), out.scale()), (bs.output_level(), scale));
+            assert_eq!(rf.output_level(), bs.output_level());
+            assert_eq!((out.level(), out.scale()), (rf.output_level(), scale));
             assert_eq!(ev.counter().bootstraps, before + 1);
             let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
             assert!(bits >= 16.0, "level {level}: {bits}");
