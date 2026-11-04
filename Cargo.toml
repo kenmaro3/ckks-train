@@ -12,3 +12,7 @@ exclude = ["spikes"]
 edition = "2024"
 rust-version = "1.85"
 license = "MIT"
+
+# Later tasks run N = 2^16 tests; keep debug-assertions and overflow-checks (default for test).
+[profile.test]
+opt-level = 3

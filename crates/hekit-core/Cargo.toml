@@ -8,3 +8,6 @@ publish = false
 description = "hekit-core (temporary name)"
 
 [dependencies]
+
+[dev-dependencies]
+proptest = "1"
