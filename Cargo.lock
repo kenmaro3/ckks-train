@@ -251,6 +251,11 @@ dependencies = [
 [[package]]
 name = "hekit-nn"
 version = "0.0.0"
+dependencies = [
+ "hekit-ckks",
+ "hekit-core",
+ "ndarray",
+]
 
 [[package]]
 name = "hermit-abi"

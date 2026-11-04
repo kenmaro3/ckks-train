@@ -8,3 +8,6 @@ publish = false
 description = "hekit-nn (temporary name)"
 
 [dependencies]
+hekit-core = { path = "../hekit-core" }
+hekit-ckks = { path = "../hekit-ckks" }
+ndarray = "0.16"
