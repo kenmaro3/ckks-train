@@ -6,3 +6,4 @@ spikes/**/build/
 __pycache__/
 .pytest_cache/
 tools/**/_ext/
+tools/**/build/

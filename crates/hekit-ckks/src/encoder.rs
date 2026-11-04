@@ -722,7 +722,8 @@ mod tests {
 
     /// Known-answer tests generated with Microsoft SEAL 4.1.2 `CKKSEncoder::encode`
     /// (CoeffModulus::Create(N, {60, 40, 60}), scale 2^30, first_parms_id; centered
-    /// coefficients of limb 0 after `inverse_ntt_negacyclic_harvey`).
+    /// coefficients of limb 0 after `inverse_ntt_negacyclic_harvey`). Generator and
+    /// build/run instructions: `tools/seal-kat/encoder_kat/` (`kat.cpp`, `README.md`).
     #[test]
     #[allow(clippy::excessive_precision)] // inputs are SEAL's %.17g printout, verbatim
     fn matches_seal_4_1_encoder() {
