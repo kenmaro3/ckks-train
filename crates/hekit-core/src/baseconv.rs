@@ -138,6 +138,23 @@ impl BaseConverter {
     /// # Panics
     /// If `input.len() != from.len()`.
     pub fn convert(&self, input: &[Vec<u64>]) -> Vec<Vec<u64>> {
+        self.convert_inner(input, false)
+    }
+
+    /// [`BaseConverter::convert`] with the overflow `e` removed: output `t` is
+    /// `[x]_Q mod p_t` (the representative in `[0, Q)`), as in HPS-style exact conversion.
+    ///
+    /// `e = floor(sum_j y_j / q_j)` (`y_j` as in the module docs) is evaluated in `f64`;
+    /// the sum equals `e + [x]_Q / Q`, so the result is exact unless `[x]_Q / Q` lies within
+    /// about `k * 2^-52` of 0 or 1 (`k = from.len()`), where it may be off by `+-Q`.
+    ///
+    /// # Panics
+    /// If `input.len() != from.len()`.
+    pub fn convert_exact(&self, input: &[Vec<u64>]) -> Vec<Vec<u64>> {
+        self.convert_inner(input, true)
+    }
+
+    fn convert_inner(&self, input: &[Vec<u64>], exact: bool) -> Vec<Vec<u64>> {
         assert_eq!(
             input.len(),
             self.from.len(),
@@ -160,7 +177,18 @@ impl BaseConverter {
                     .collect()
             })
             .collect();
-        // out_t = sum_j y_j * (Q/q_j) mod p_t; Shoup products accept unreduced y_j < q_j.
+        // e = floor(sum_j y_j / q_j) (exact conversion only).
+        let overflow: Option<Vec<u64>> = exact.then(|| {
+            let inv: Vec<f64> = self.from.iter().map(|m| 1.0 / m.value() as f64).collect();
+            (0..n)
+                .map(|c| {
+                    let f: f64 = y.iter().zip(&inv).map(|(yj, &w)| yj[c] as f64 * w).sum();
+                    f.floor() as u64
+                })
+                .collect()
+        });
+        // out_t = sum_j y_j * (Q/q_j) - e * Q mod p_t; Shoup products accept unreduced
+        // y_j < q_j.
         self.to
             .iter()
             .zip(&self.q_hat_mod_p)
@@ -171,6 +199,16 @@ impl BaseConverter {
                     out.iter_mut()
                         .zip(yj)
                         .for_each(|(o, &v)| *o = p.add(*o, p.mul_shoup(v, &s)));
+                }
+                if let Some(e) = &overflow {
+                    let q_mod_p = self
+                        .from
+                        .iter()
+                        .fold(1 % p.value(), |acc, m| p.mul(acc, m.value() % p.value()));
+                    let s = p.shoup(q_mod_p);
+                    out.iter_mut()
+                        .zip(e)
+                        .for_each(|(o, &v)| *o = p.sub(*o, p.mul_shoup(v, &s)));
                 }
                 out
             })
@@ -387,9 +425,16 @@ impl RnsPoly {
     ///
     /// `special` is the `P` part (its active limbs define `P`) and must be in the same form
     /// as `self`; the form is preserved. With `X` in `[0, Q_l * P)` the result is
-    /// `floor((X + h) / P) - e = round(X / P) - e` with `0 <= e <= k - 1` (`k` = number of
-    /// special primes; exact rounding for `k = 1`) — the error comes from the approximate
-    /// conversion of `[X + h]_P`.
+    /// `floor((X + h) / P) = round(X / P)`: `[X + h]_P` is converted with
+    /// [`BaseConverter::convert_exact`], so the rounding is exact for any number `k` of
+    /// special primes, except when `X / P` lies within about `k * 2^-52` of a tie
+    /// `n + 1/2`, where it may round to either neighbour (rounding error `<= 1/2 + k 2^-52`).
+    ///
+    /// (With the plain fast conversion the result would be `round(X / P) - e`,
+    /// `0 <= e <= k - 1`; that biased `e` multiplies the secret key in encryption and key
+    /// switching and, being a nonzero-mean constant, concentrates in the slots near
+    /// `zeta = 1`: n16_train (`k = 4`) public-key encryption measured `2^-21` slot error
+    /// instead of `2^-25.8`.)
     ///
     /// # Panics
     /// If a special prime divides some `q_i` of `self` (no `P^{-1} mod q_i`).
@@ -425,7 +470,7 @@ impl RnsPoly {
         }
         let from: Vec<u64> = ps.iter().map(Modulus::value).collect();
         let to: Vec<u64> = qs.iter().map(Modulus::value).collect();
-        let converted = BaseConverter::new(&from, &to).convert(&src);
+        let converted = BaseConverter::new(&from, &to).convert_exact(&src);
         for (i, (limb, mut t)) in self.limbs_mut().iter_mut().zip(converted).enumerate() {
             let m = &qs[i];
             let p_mod = ps
@@ -580,6 +625,40 @@ mod tests {
             "convert e distribution over {} values: {seen_e:?}",
             xs.len()
         );
+    }
+
+    /// `convert_exact` returns `[x]_Q` itself (no overflow multiple) for random `x in [0, Q)`
+    /// over 1, 2 and 3 source primes; within `2^-40 * Q` of 0 or `Q` it may be off by `Q`.
+    #[test]
+    fn convert_exact_removes_the_overflow() {
+        let to = ntt_primes(60, 16, 2).unwrap();
+        let mut rng = ChaCha20Rng::seed_from_u64(1310);
+        for k in [1usize, 2, 3] {
+            let from = ntt_primes(30, 16, k).unwrap();
+            let q = product(&from);
+            let pt = product(&to);
+            assert!(pt > 2 * q);
+            let bc = BaseConverter::new(&from, &to);
+            let mut xs: Vec<u128> = vec![0, 1, q / 2, q / 2 + 1, q - 1, q - 2];
+            xs.extend((0..2000).map(|_| rand_u128(&mut rng, q)));
+            let input: Vec<Vec<u64>> = from
+                .iter()
+                .map(|&qj| xs.iter().map(|&x| (x % qj as u128) as u64).collect())
+                .collect();
+            let out = bc.convert_exact(&input);
+            let mut edges = 0;
+            for (c, &x) in xs.iter().enumerate() {
+                let r = crt(&[out[0][c], out[1][c]], &to);
+                if r != x {
+                    let edge = q >> 40;
+                    let ok = (x < edge && r == x + q) || (x > q - edge && r == pt - (q - x));
+                    assert!(ok, "k={k} x={x}: got {r}");
+                    edges += 1;
+                }
+            }
+            assert_eq!(crt(&[out[0][0], out[1][0]], &to), 0);
+            eprintln!("convert_exact k={k}: {edges} edge values off by Q");
+        }
     }
 
     /// The output is exactly SEAL's `fast_convert_array` formula, evaluated here with exact
@@ -935,10 +1014,11 @@ mod tests {
     // ---------------------------------------------------------------- mod_down
 
     /// `mod_down` on random `X in [0, Q_l * P)` (exact `u128` reference): the result is
-    /// `floor((X + (P-1)/2) / P) - e` with `0 <= e <= k - 1`, exact for `k = 1`; NTT form
-    /// agrees with coefficient form. Level 1 of a 3-prime basis.
+    /// exactly `floor((X + (P-1)/2) / P)` for `k = 1, 2`, except possibly off by one when
+    /// `[X + h]_P / P` is within `2^-40` of 0 or 1 (a rounding tie; boundary values
+    /// included); NTT form agrees with coefficient form. Level 1 of a 3-prime basis.
     #[test]
-    fn mod_down_rounds_with_error_below_k() {
+    fn mod_down_rounds_exactly() {
         let n = 16;
         let qs_all = ntt_primes(28, n, 3).unwrap();
         let b = RnsBasis::new(n, &qs_all).unwrap();
@@ -951,7 +1031,7 @@ mod tests {
             let sp = RnsBasis::new(n, &ps).unwrap();
             let p = product(&ps);
             let h = (p - 1) / 2;
-            let mut seen_e = [0usize; 2];
+            let mut ties = 0usize;
             for trial in 0..50 {
                 let mut xs: Vec<u128> = (0..n).map(|_| rand_u128(&mut rng, q * p)).collect();
                 if trial == 0 {
@@ -977,22 +1057,27 @@ mod tests {
                 for (c, &x) in xs.iter().enumerate() {
                     let got = crt(&[r.limbs()[0][c], r.limbs()[1][c]], qs);
                     let want = ((x + h) / p) % q;
-                    let e = ((want + q - got) % q) as usize;
-                    assert!(e < k, "k={k} x={x}: e = {e}");
-                    seen_e[e] += 1;
+                    if got != want {
+                        let f = (x + h) % p;
+                        let edge = p >> 40;
+                        let near_tie = (f < edge && (want + q - 1) % q == got)
+                            || (f > p - edge && (want + 1) % q == got);
+                        assert!(near_tie, "k={k} x={x}: got {got}, want {want}");
+                        ties += 1;
+                    }
                 }
                 let mut f = ntt_of(&xq);
                 f.mod_down(&ntt_of(&xp));
                 assert!(f.is_ntt_form());
                 assert_eq!(coeff_of(&f).limbs(), r.limbs(), "k={k}");
             }
-            eprintln!("mod_down k={k} e distribution: {seen_e:?}");
+            eprintln!("mod_down k={k}: {ties} tie values rounded the other way");
         }
     }
 
     /// Key-switching shaped input: `X = P*x + E` with small `|E| < 2^50` and `x` uniform in
     /// `Q_l` (60/40-bit primes, `N = 1024`, `k = 2`, level 2 of 4). `mod_down` returns
-    /// `x - e`, `e in {0, 1}`, consistently across limbs; NTT form agrees.
+    /// exactly `x` (`X / P` is within `2^-70` of `x`, far from a tie); NTT form agrees.
     #[test]
     fn mod_down_divides_p_times_x_plus_small_noise() {
         let n = 1024;
@@ -1016,11 +1101,8 @@ mod tests {
             let mut r = xq.clone();
             r.mod_down(&xp);
             for c in 0..n {
-                let m0 = b.moduli()[0];
-                let e = m0.sub(x.limbs()[0][c], r.limbs()[0][c]);
-                assert!(e <= 1, "c={c}: e = {e}");
-                for (i, m) in b.moduli()[..=level].iter().enumerate() {
-                    assert_eq!(r.limbs()[i][c], m.sub(x.limbs()[i][c], e), "c={c} i={i}");
+                for i in 0..=level {
+                    assert_eq!(r.limbs()[i][c], x.limbs()[i][c], "c={c} i={i}");
                 }
             }
             let mut f = ntt_of(&xq);
@@ -1029,9 +1111,8 @@ mod tests {
         }
     }
 
-    /// `mod_down(P * (x, mod_up(x)))` recovers `x` up to a constant `e0 in [0, k)` (the `P`
-    /// part of `P * lift` is zero, so every coefficient sees the same conversion of
-    /// `(P-1)/2`); for `k = 1` exactly `x`.
+    /// `mod_down(P * (x, mod_up(x)))` recovers exactly `x` for `k = 1, 2, 3` (the `P` part of
+    /// `P * lift` is zero, so `[X + h]_P = h`, far from a tie).
     #[test]
     fn mod_down_inverts_p_times_mod_up() {
         let n = 256;
@@ -1053,10 +1134,7 @@ mod tests {
                 let (xc, rc) = (coeff_of(&x), coeff_of(&lq));
                 let m0 = b.moduli()[0];
                 let e0 = m0.sub(xc.limbs()[0][0], rc.limbs()[0][0]);
-                assert!((e0 as usize) < k, "k={k}: e0 = {e0}");
-                if k == 1 {
-                    assert_eq!(e0, 0);
-                }
+                assert_eq!(e0, 0, "k={k}");
                 for (i, m) in b.moduli().iter().enumerate() {
                     for c in 0..n {
                         assert_eq!(rc.limbs()[i][c], m.sub(xc.limbs()[i][c], e0));
