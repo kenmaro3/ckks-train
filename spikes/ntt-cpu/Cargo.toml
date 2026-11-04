@@ -1,0 +1,26 @@
+[package]
+name = "ntt-cpu"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+publish = false
+
+# Independent of the hekit workspace (spike code, disposable).
+[workspace]
+
+[dependencies]
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+rand = "0.8"
+rand_chacha = "0.3"
+
+[[bench]]
+name = "ntt"
+harness = false
+
+[profile.bench]
+opt-level = 3
+lto = true
+codegen-units = 1
