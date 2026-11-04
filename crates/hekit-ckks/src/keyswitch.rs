@@ -164,14 +164,31 @@ fn lift_digit_exact(poly: &RnsPoly, digit: Range<usize>, basis_p: &Arc<RnsBasis>
         .map(|&i| (&qs[i], &tables[i]))
         .chain(basis_p.moduli().iter().zip(basis_p.ntt_tables()))
         .collect();
-    let from: Vec<u64> = digit_moduli.iter().map(Modulus::value).collect();
-    let to: Vec<u64> = targets.iter().map(|(m, _)| m.value()).collect();
-    let mut out = BaseConverter::new(&from, &to).convert_exact(&src);
-    for (a, (m, t)) in out.iter_mut().zip(&targets) {
-        let h = half_mod(digit_moduli, m);
-        a.iter_mut().for_each(|x| *x = m.sub(*x, h));
-        t.forward(a);
-    }
+    let mut out = if digit.len() == 1 {
+        // One-prime digit: src[0] = [x + h]_{q_D} is already the conversion's `y`, and its
+        // output for target r is `y mod r - h mod r` (one fused pass, then the NTT).
+        let y = &src[0];
+        targets
+            .iter()
+            .map(|(m, t)| {
+                let one = m.shoup(1);
+                let h = half_mod(digit_moduli, m);
+                let mut a: Vec<u64> = y.iter().map(|&v| m.sub(m.mul_shoup(v, &one), h)).collect();
+                t.forward(&mut a);
+                a
+            })
+            .collect()
+    } else {
+        let from: Vec<u64> = digit_moduli.iter().map(Modulus::value).collect();
+        let to: Vec<u64> = targets.iter().map(|(m, _)| m.value()).collect();
+        let mut out = BaseConverter::new(&from, &to).convert_exact(&src);
+        for (a, (m, t)) in out.iter_mut().zip(&targets) {
+            let h = half_mod(digit_moduli, m);
+            a.iter_mut().for_each(|x| *x = m.sub(*x, h));
+            t.forward(a);
+        }
+        out
+    };
     let p_limbs = out.split_off(others.len());
     let mut converted = out.into_iter();
     let q_limbs = (0..=l)
