@@ -9,7 +9,7 @@
 //! The same as the M0 SEAL reproduction (`spikes/seal-2020`, `spikes/RESULTS.md` "Task 4"), for
 //! comparability:
 //! - `data/iris.csv` is that spike's file (Fisher's Iris, UCI CC BY 4.0, via scikit-learn's copy;
-//!   attribution in this crate's README);
+//!   attribution in the repository's root `README.md`, "Data");
 //! - `data/iris_split_seed2020.txt` is that spike's 80:20 split for its default seed 2020
 //!   (120 train / 30 test indices, exported from its `split_80_20`, `std::mt19937_64`);
 //! - inputs are z-scored with the training-set mean and population standard deviation;
@@ -119,7 +119,7 @@ impl Default for Opts {
 
 fn usage() -> ! {
     eprintln!(
-        "usage: iris [--epochs E] [--batch B] [--preset seal_2020|seal_2020_l10] [--seed S] \
+        "usage: iris [--epochs E] [--batch B] [--preset seal_2020] [--seed S] \
          [--lr LR] [--optimizer sgd|nag] [--momentum MU] [--sigma SIG] [--time-iters K] \
          [--warmup W] [--out PATH] [--data PATH] [--split PATH] [--checkpoint-every E]"
     );
@@ -444,7 +444,12 @@ fn optims(o: &Opts, lr_eff: f64) -> Vec<Box<dyn LayerOptimizer>> {
         .collect()
 }
 
+/// The 1-, 5- and 15-minute load averages: `/proc/loadavg` on Linux, `sysctl vm.loadavg` on
+/// macOS; `""` if neither is available.
 fn load_avg() -> String {
+    if let Ok(s) = std::fs::read_to_string("/proc/loadavg") {
+        return s.split_whitespace().take(3).collect::<Vec<_>>().join(" ");
+    }
     std::process::Command::new("sysctl")
         .args(["-n", "vm.loadavg"])
         .output()
@@ -556,7 +561,8 @@ fn config_json(o: &Opts, s: &Setup, lr_eff: f64, data: &Data) -> String {
         o.batch,
         s.lanes,
         s.layout.d,
-        o.epochs,
+        // Timing mode runs single iterations, no epochs.
+        if o.time_iters > 0 { 0 } else { o.epochs },
         o.seed,
         o.sigma,
         jstr(&o.preset),
@@ -634,7 +640,6 @@ fn main() -> Result<()> {
             &mut twin,
             &mut shuffle_rng,
             &mut enc_rng,
-            lr_eff,
         )?
     } else {
         let mut epochs_json = Vec::new();
@@ -814,7 +819,6 @@ fn timing(
     twin: &mut Net,
     shuffle_rng: &mut Rng,
     enc_rng: &mut Rng,
-    _lr_eff: f64,
 ) -> Result<String> {
     let c = &s.client;
     let mut order = data.train.clone();
