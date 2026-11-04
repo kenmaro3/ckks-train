@@ -57,8 +57,9 @@ pub fn is_prime_u64(n: u64) -> bool {
 /// `skip` largest ones.
 ///
 /// Splitting the stream with `skip` lets callers reproduce SEAL's
-/// `CoeffModulus::Create`, which takes all primes of one bit size in descending
-/// order and hands them out in order of appearance.
+/// `CoeffModulus::Create`, which generates the needed primes of one bit size in
+/// descending order and hands them out from the smallest (`pop_back`) in order of
+/// appearance.
 ///
 /// Fails with `InvalidParams` if `bits` is not in `2..=60`, `n` is not a power of
 /// two, or fewer than `skip + count` such primes exist.

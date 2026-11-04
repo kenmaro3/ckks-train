@@ -37,8 +37,12 @@ pub struct CkksParams {
 
 impl CkksParams {
     /// Builds parameters. Primes are NTT-friendly (`q = 1 mod 2N`) and generated jointly,
-    /// SEAL-compatibly: for each distinct bit size `b`, the largest primes of that size are
-    /// assigned in order of appearance across `q_bits ++ p_bits`.
+    /// exactly as SEAL 4.1's `CoeffModulus::Create(N, q_bits ++ p_bits)`: for each distinct
+    /// bit size `b` occurring `c` times, the `c` largest primes of that size are generated in
+    /// descending order and handed out **from the smallest** (SEAL's `pop_back`) in order of
+    /// appearance, so the first `b`-bit entry gets the `c`-th largest prime and the last one
+    /// the largest. (seal_2020: `q_0` is the second-largest 60-bit prime, the special prime
+    /// the largest; the 40-bit primes ascend.)
     ///
     /// Errors (`InvalidParams`): `log_n` outside `[MIN_LOG_N, MAX_LOG_N]`, empty `q_bits` or
     /// `p_bits`, any bit size outside `2..=60`, `dnum` zero or not dividing `q_bits.len()`,
@@ -90,7 +94,9 @@ impl CkksParams {
             .iter()
             .map(|&b| {
                 let i = pools.iter().position(|(pb, _)| *pb == b).unwrap();
-                let v = pools[i].1[next[i]];
+                // SEAL: `prime_table[size].back()` then `pop_back()`.
+                let pool = &pools[i].1;
+                let v = pool[pool.len() - 1 - next[i]];
                 next[i] += 1;
                 v
             })
@@ -219,12 +225,37 @@ mod tests {
         assert_eq!(p.basis_p().len(), 1);
     }
 
+    /// The exact list printed by SEAL 4.1.2 for `CoeffModulus::Create(32768, {60, 40 x 9, 60})`
+    /// (`tools/seal-kat/interop`, `values.json` field `coeff_modulus`).
     #[test]
     fn seal_2020_matches_seal_primes() {
         let p = CkksParams::seal_2020();
-        assert_eq!(p.q()[0], 1152921504606584833);
-        assert_eq!(p.p()[0], 1152921504598720513);
-        assert!(p.q()[1..].windows(2).all(|w| w[0] > w[1]));
+        let seal: [u64; 11] = [
+            1152921504598720513,
+            1099501731841,
+            1099502518273,
+            1099502714881,
+            1099503370241,
+            1099503894529,
+            1099504549889,
+            1099506515969,
+            1099507695617,
+            1099510054913,
+            1152921504606584833,
+        ];
+        assert_eq!(p.q(), &seal[..10]);
+        assert_eq!(p.p(), &seal[10..]);
+    }
+
+    /// SEAL hands out each bit size's primes from the smallest of the generated (largest)
+    /// primes upwards: `{58, 58, 58}` gets the third, second and first largest 58-bit primes.
+    #[test]
+    fn prime_assignment_follows_seal() {
+        let p = CkksParams::new(12, &[58, 40, 58], &[58], 40, 3).unwrap();
+        let p58 = ntt_primes(58, 1 << 12, 3).unwrap();
+        let p40 = ntt_primes(40, 1 << 12, 1).unwrap();
+        assert_eq!(p.q(), &[p58[2], p40[0], p58[1]]);
+        assert_eq!(p.p(), &[p58[0]]);
     }
 
     #[test]
@@ -258,8 +289,7 @@ mod tests {
     #[test]
     fn digit_bits_within_log_p() {
         for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
-            // Nominal bit sizes: SEAL's p[0] is the second-largest 60-bit prime, so exact
-            // log2 sums can differ from the digit's by ~1e-11.
+            // Nominal bit sizes: exact log2 sums of equal-size primes differ by ~1e-11.
             let log_p: u32 = p.p_bits().iter().sum();
             for d in p.q_bits().chunks(p.alpha()) {
                 assert!(
