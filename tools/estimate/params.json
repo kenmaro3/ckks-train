@@ -6,7 +6,7 @@
       "log_q": 419.9999,
       "log_p": 60.0000,
       "log_pq": 479.9999,
-      "secret": "ternary_uniform",
+      "secret": "ternary_default",
       "sigma": 3.2
     },
     {
@@ -15,7 +15,7 @@
       "log_q": 1359.9996,
       "log_p": 232.0000,
       "log_pq": 1591.9996,
-      "secret": "ternary_uniform",
+      "secret": "ternary_default",
       "sigma": 3.2
     }
   ]

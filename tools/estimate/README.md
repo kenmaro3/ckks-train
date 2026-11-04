@@ -1,7 +1,7 @@
 # Security estimate (dev tool)
 
 Runs [malb/lattice-estimator](https://github.com/malb/lattice-estimator) on the hekit-ckks presets.
-It needs SageMath, is a development tool only, and nothing from it is vendored or committed
+It needs SageMath, is a development tool only, and `_ext/` (Sage, estimator) is not committed
 (`_ext/` is gitignored).
 
 ## Setup (macOS arm64, no system Sage)
@@ -17,7 +17,9 @@ It needs SageMath, is a development tool only, and nothing from it is vendored o
 
     cargo run -p hekit-ckks --example export_params > params.json
     _ext/sage-env/bin/python estimate.py                       # BDGL16 cost model
-    _ext/sage-env/bin/python estimate.py --cost-model default  # estimator default (lower = more conservative)
+    _ext/sage-env/bin/python estimate.py --cost-model matzov   # estimator default
+    _ext/sage-env/bin/python estimate.py --cost-model adps16   # Core-SVP
     _ext/sage-env/bin/python estimate.py --rough               # crude screening only
 
 Results and interpretation: `docs/security.md`.
+Options: `--m oo`, `--hamming-weight h` (sparse secret; enables hybrid attacks, slow).
