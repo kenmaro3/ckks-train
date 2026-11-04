@@ -65,9 +65,10 @@
 //!
 //! Noise note: [`RnsPoly::mod_up_digit`] lifts the digit's representative in `[0, Q_j)`, so
 //! `d_j` has mean `Q_j / 2`. When `Q_j ~ P` (seal_2020: digit 0 is the 60-bit `q_0`, `P` one
-//! 60-bit prime) that mean concentrates in the slots near `zeta = 1` and the key-switch
-//! error is ~`2^-19.8 * Delta`; a centered lift (`(-Q_j/2, Q_j/2]`) measured `2^-22.7`.
-//! Task 17 should lift centered digits (or otherwise account for this).
+//! 60-bit prime) the mean adds `(q_0 / 2P) * S(X) * e_0` (`S = 1 + X + ... + X^{N-1}`, `e_0`
+//! the error of key part 0): `|S(zeta)| ~ 2N/pi` at slot 0, so the key-switch error is
+//! `~ 2^-18 * |N(0,1)| * Delta`, concentrated at slot 0 (a fixed draw per key). A centered
+//! lift (`(-Q_j/2, Q_j/2]`, Task 17) gives `~ 2^-22.6`.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -167,8 +168,15 @@ pub(crate) fn truncated(poly: &RnsPoly, level: usize) -> RnsPoly {
 }
 
 /// The secret key `s` over `Q * P`, NTT form (see the module docs).
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SecretKey(QpPoly);
+
+/// Redacts the secret coefficients.
+impl std::fmt::Debug for SecretKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SecretKey(<redacted>)")
+    }
+}
 
 impl SecretKey {
     /// `s` as an element of `R_{QP}` (NTT form).
@@ -283,11 +291,21 @@ impl GaloisKeys {
 }
 
 /// Generates the secret key on construction, then public and key-switching keys on demand.
-#[derive(Debug)]
 pub struct KeyGenerator {
     params: Arc<CkksParams>,
     sk: SecretKey,
     rng: Rng,
+}
+
+/// Redacts the secret key and the RNG state.
+impl std::fmt::Debug for KeyGenerator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("KeyGenerator")
+            .field("params", &self.params)
+            .field("sk", &self.sk)
+            .field("rng", &"<redacted>")
+            .finish()
+    }
 }
 
 impl KeyGenerator {
@@ -536,6 +554,24 @@ mod tests {
         let params = Arc::new((*params).clone().with_hamming_weight(16));
         let kg = KeyGenerator::new(params, rng(1)).unwrap();
         assert!(secret_coeffs(&kg.secret_key()).iter().all(|c| c.abs() == 1));
+    }
+
+    #[test]
+    fn debug_redacts_secrets() {
+        let params = Arc::new(CkksParams::new(4, &[30, 20], &[30], 20, 1).unwrap());
+        let kg = KeyGenerator::new(Arc::clone(&params), rng(1)).unwrap();
+        let sk = kg.secret_key();
+        let dec = Decryptor::new(Arc::clone(&params), sk.clone());
+        let enc = Encryptor::with_secret_key(params, sk.clone());
+        for s in [
+            format!("{sk:?}"),
+            format!("{kg:?}"),
+            format!("{dec:?}"),
+            format!("{enc:?}"),
+        ] {
+            assert!(s.contains("<redacted>"), "{s}");
+            assert!(!s.contains("limbs"), "{s}");
+        }
     }
 
     #[test]
@@ -788,12 +824,17 @@ mod tests {
                     params.log_n(),
                     e.log2()
                 );
-                // seal_2020's digit 0 is q_0 (60 bits) ~ P, and `mod_up_digit` lifts the
-                // non-centered representative in [0, q_0): the mean q_0/2 makes the key-switch
-                // noise ~ 2^-19.8 * Delta in slots (2^-22.7 with a centered lift; measured
-                // during Task 16, carried to Task 17). The layout itself is pinned by the
-                // N = 2^12 case (alpha = 2, k = 2, digit P-ratio 2^-20).
-                let bound = if params.log_n() == 15 { -18 } else { -24 };
+                // seal_2020: digit 0 is q_0 (60 bits) ~ P and `mod_up_digit` lifts the
+                // non-centered representative in [0, q_0), adding (q_0/2P) S(X) e_0 with
+                // S = sum X^i, e_0 the key's part-0 error. At slot 0, |S(zeta)| ~ 2N/pi and
+                // Re e_0(zeta) ~ N(0, sigma^2 N/2), so the slot error is
+                // 0.5 * (2N/pi) * sigma sqrt(N/2) / Delta * |N(0,1)| ~ 2^-17.97 * |N(0,1)|
+                // (a fixed draw per key seed). 2^-15 is ~7.9 standard deviations, so the
+                // bound still catches any layout error (which gives O(1) errors) without
+                // being seed-lucky. Task 17's centered lift brings this to ~2^-22.6. The
+                // layout is pinned tightly by the N = 2^12 case (alpha = 2, k = 2, digit
+                // P-ratio 2^-20).
+                let bound = if params.log_n() == 15 { -15 } else { -24 };
                 assert!(e < 2f64.powi(bound), "rotation error {e:e}");
             }
         }

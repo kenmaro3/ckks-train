@@ -213,10 +213,13 @@ mod tests {
 
     /// Public-key bound. The brief asks for 2^-25, but SEAL-style public-key encryption
     /// (divide by `P` after encrypting over `Q_l P`) leaves the noise `r_0 + r_1 s`, `r_i`
-    /// the rounding errors; its slot values are products `r_1(zeta) s(zeta)` with heavy
-    /// tails, and at seal_2020 (dense s, N = 2^15, Delta = 2^40) the maximum slot error
-    /// measured 2^-24.72 .. 2^-25.21 over 18 runs (6 key seeds x 3 encryptions). This is
-    /// intrinsic to the scheme (SEAL's denser `s` is worse), so the test uses 2^-24.
+    /// the rounding errors (uniform in `[-1/2, 1/2]`). In the slots `r_1(zeta) s(zeta)` is a
+    /// product of two near-Gaussians, RMS `~ N / sqrt(24)` (dense `s`, variance 1/2), with
+    /// Laplace-like tails: the maximum over `N/2` slots is `~ 0.5 ln(N/2) * RMS`. At
+    /// seal_2020 (N = 2^15, Delta = 2^40) that puts the median max error at `~ 2^-25.0`
+    /// (measured 2^-24.72 .. 2^-25.21 over 18 runs), so 2^-25 is a coin flip; the
+    /// false-failure probability at 2^-24 is `~ 6e-5`. Intrinsic to the scheme (SEAL's
+    /// denser `s` is worse).
     const PK_BOUND: f64 = 5.960464477539063e-8; // 2^-24
 
     #[test]
