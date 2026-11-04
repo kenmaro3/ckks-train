@@ -36,4 +36,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          command: check licenses
+          # licenses: allow-list in deny.toml; bans: tfhe* / concrete* (Zama) are forbidden.
+          command: check licenses bans

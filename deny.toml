@@ -3,6 +3,9 @@ all-features = true
 
 [licenses]
 version = 2
+# cargo-deny v2 has no explicit deny list: every license NOT in `allow` is rejected. That is how
+# GPL-* (all versions, incl. LGPL/AGPL) and BSD-3-Clause-Clear are refused (project rule: MIT /
+# Apache-2.0 / BSD only). Do not add them here.
 allow = [
     "MIT",
     "Apache-2.0",
@@ -15,6 +18,7 @@ allow = [
 confidence-threshold = 0.8
 
 [bans]
+# Zama crates are banned outright (project rule), whatever their license.
 multiple-versions = "warn"
 wildcards = "allow"
 deny = [
@@ -24,4 +28,9 @@ deny = [
     { crate = "concrete-ntt" },
     { crate = "concrete-fft" },
     { crate = "concrete-csprng" },
+    { crate = "tfhe-fft" },
+    { crate = "tfhe-ntt" },
+    { crate = "tfhe-cuda-backend" },
+    { crate = "tfhe-zk-pok" },
+    { crate = "tfhe-versionable" },
 ]
