@@ -6,8 +6,14 @@
 //!
 //! # Side channels
 //!
-//! The samplers are **not constant-time** (rejection sampling, data-dependent branches). This
-//! is acceptable for a research library but must be revisited before production use.
+//! The samplers are **not constant-time** (rejection sampling, data-dependent branches, and
+//! a binary search over the Gaussian CDT). This is acceptable for a research library but
+//! must be revisited before production use.
+//!
+//! # Streams
+//!
+//! [`Rng`] is not `Clone` (a clone would replay the stream and reuse encryption
+//! randomness); [`Rng::fork`] derives an independent child generator.
 
 use std::sync::Arc;
 
@@ -21,7 +27,7 @@ use crate::rns::RnsBasis;
 const TAIL_SIGMAS: f64 = 6.0;
 
 /// Cryptographically secure random number generator (ChaCha20) with polynomial samplers.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Rng(ChaCha20Rng);
 
 impl Rng {
@@ -36,6 +42,23 @@ impl Rng {
     /// If the OS entropy source is unavailable.
     pub fn from_entropy() -> Rng {
         Rng(ChaCha20Rng::from_os_rng())
+    }
+
+    /// An independent child generator, seeded with 32 fresh bytes of this one's output (four
+    /// [`Rng::next_u64`] words, little-endian). The parent advances past those bytes, so
+    /// parent and child never share stream material.
+    ///
+    /// `Rng` deliberately does not implement `Clone`: a clone would replay the same ChaCha
+    /// stream, so two encryptions with the "two" generators would reuse their randomness
+    /// (`u`, `e0`, `e1`) and the difference of the ciphertexts would reveal `m - m'`. Use
+    /// `fork` when a second generator is needed, or [`Rng::from_seed`] twice with the same
+    /// seed when a test needs two identical streams.
+    pub fn fork(&mut self) -> Rng {
+        let mut seed = [0u8; 32];
+        for chunk in seed.chunks_exact_mut(8) {
+            chunk.copy_from_slice(&self.0.next_u64().to_le_bytes());
+        }
+        Rng(ChaCha20Rng::from_seed(seed))
     }
 
     /// Next raw 64-bit output.
@@ -117,38 +140,43 @@ impl Rng {
     }
 
     /// Discrete Gaussian polynomial with standard deviation `sigma`, tails cut at
-    /// `|x| <= 6 sigma`. Coefficient form.
+    /// `|x| <= B = floor(6 sigma)`. Coefficient form.
     ///
-    /// Method: inversion with a cumulative distribution table (CDT). The weights
-    /// `exp(-x^2 / (2 sigma^2))` of `x in [-B, B]`, `B = floor(6 sigma)`, are normalised and
-    /// accumulated into 64-bit thresholds once per call; each coefficient is the first `x`
-    /// whose threshold exceeds one uniform 64-bit draw. This is the truncated discrete
-    /// Gaussian with probabilities exact up to `f64` rounding (~2^-53 relative), using one
-    /// draw per coefficient (rejection sampling needed about ten).
+    /// Method: inversion with a cumulative distribution table (the private `cdt_table`, built
+    /// once per call); each coefficient is the first `x` whose threshold exceeds one uniform
+    /// 64-bit draw, so one draw per coefficient (rejection sampling needed about ten).
+    ///
+    /// Accuracy: the thresholds are `floor(2^64 * F(x))` (truncation, `as u64`) of the
+    /// normalised cumulative weights `F` computed in `f64`, so each threshold is within about
+    /// `2^-53` (absolute) of the exact truncated-Gaussian CDF. For `sigma = 3.2` (computed
+    /// against a 60-digit reference) this gives bucket probabilities within `2^-52.7`
+    /// absolute, up to about `2^-28.7` *relative* on the tail probabilities (the smallest,
+    /// `x = +-B = +-19`, is ~`2^-28.4`), and a statistical distance of about `2^-50.7` from
+    /// the exact truncated discrete Gaussian. The test `cdt_table_is_exact_to_2_pow_minus_50`
+    /// pins every bucket within `2^-50` for several `sigma`.
+    ///
+    /// Not constant-time: the bucket is found by binary search (`partition_point`), whose
+    /// memory accesses depend on the sample (see the module docs).
     ///
     /// # Panics
-    /// If `level >= basis.len()` or `sigma` is not finite and positive.
+    /// If `level >= basis.len()`; `sigma` not finite and positive; `sigma >`
+    /// [`MAX_GAUSSIAN_SIGMA`] (caps the table at `2 * floor(6 sigma) + 1` entries, ~200 MB);
+    /// or `6 sigma` not below the smallest prime `q_0..=q_level` (the tail must embed
+    /// as `x mod q_i` without wrapping).
     pub fn gaussian_poly(&mut self, basis: &Arc<RnsBasis>, level: usize, sigma: f64) -> RnsPoly {
         assert!(level < basis.len(), "level out of range");
-        assert!(sigma.is_finite() && sigma > 0.0, "sigma must be positive");
-        let bound = (TAIL_SIGMAS * sigma).floor() as i64;
-        let denom = 2.0 * sigma * sigma;
-        let weights: Vec<f64> = (-bound..=bound)
-            .map(|x| (-(x as f64) * (x as f64) / denom).exp())
-            .collect();
-        let total: f64 = weights.iter().sum();
-        // cdt[i] = round(2^64 * P(X <= x_i)); the last threshold is u64::MAX, so every draw
-        // falls in some bucket (r = u64::MAX, probability 2^-64, lands in the last one).
-        let mut acc = 0.0;
-        let mut cdt: Vec<u64> = weights
+        let cdt = cdt_table(sigma);
+        let bound = (cdt.len() / 2) as i64;
+        let min_q = basis.moduli()[..=level]
             .iter()
-            .map(|w| {
-                acc += w;
-                // `as` saturates at u64::MAX for values >= 2^64.
-                (acc / total * 18_446_744_073_709_551_616.0) as u64
-            })
-            .collect();
-        *cdt.last_mut().expect("bound >= 0") = u64::MAX;
+            .map(|m| m.value())
+            .min()
+            .expect("level >= 0");
+        assert!(
+            TAIL_SIGMAS * sigma < min_q as f64,
+            "tail cut 6 sigma = {} must lie below the smallest prime {min_q}",
+            TAIL_SIGMAS * sigma
+        );
         let last = cdt.len() - 1;
         let coeffs: Vec<i64> = (0..basis.n())
             .map(|_| {
@@ -158,6 +186,43 @@ impl Rng {
             .collect();
         signed_to_poly(basis, level, &coeffs)
     }
+}
+
+/// Largest `sigma` accepted by [`Rng::gaussian_poly`], `2^20`: caps its CDT at
+/// `2 * floor(6 * 2^20) + 1` (about 12.6 million) 64-bit entries.
+pub const MAX_GAUSSIAN_SIGMA: f64 = (1u64 << 20) as f64;
+
+/// The CDT of the discrete Gaussian with standard deviation `sigma` cut at
+/// `|x| <= B = floor(6 sigma)`: entry `i` (for `x = i - B`) is
+/// `floor(2^64 * sum_{y <= x} w(y) / sum_y w(y))` with `w(y) = exp(-y^2 / (2 sigma^2))` in
+/// `f64` (truncated by `as u64`, which also saturates at `u64::MAX`), and the last entry is
+/// set to `u64::MAX` so every 64-bit draw falls in some bucket (`r = u64::MAX`, probability
+/// `2^-64`, lands in the last one). Non-decreasing; `2B + 1` entries.
+///
+/// # Panics
+/// If `sigma` is not finite and positive, or `sigma > MAX_GAUSSIAN_SIGMA`.
+fn cdt_table(sigma: f64) -> Vec<u64> {
+    assert!(sigma.is_finite() && sigma > 0.0, "sigma must be positive");
+    assert!(
+        sigma <= MAX_GAUSSIAN_SIGMA,
+        "sigma {sigma} exceeds MAX_GAUSSIAN_SIGMA = 2^20"
+    );
+    let bound = (TAIL_SIGMAS * sigma).floor() as i64;
+    let denom = 2.0 * sigma * sigma;
+    let weights: Vec<f64> = (-bound..=bound)
+        .map(|x| (-(x as f64) * (x as f64) / denom).exp())
+        .collect();
+    let total: f64 = weights.iter().sum();
+    let mut acc = 0.0;
+    let mut cdt: Vec<u64> = weights
+        .iter()
+        .map(|w| {
+            acc += w;
+            (acc / total * 18_446_744_073_709_551_616.0) as u64
+        })
+        .collect();
+    *cdt.last_mut().expect("bound >= 0") = u64::MAX;
+    cdt
 }
 
 /// Embeds small signed integers into every limb (`x mod q_i`), coefficient form.
@@ -286,6 +351,57 @@ mod tests {
         );
     }
 
+    /// `Rng` must not be `Clone`: a clone replays the ChaCha stream and so reuses encryption
+    /// randomness. (Inherent associated consts win over the blanket trait one only when the
+    /// `T: Clone` bound holds.)
+    #[test]
+    fn rng_is_not_clone() {
+        trait NotClone {
+            const IS_CLONE: bool = false;
+        }
+        struct Probe<T>(std::marker::PhantomData<T>);
+        impl<T> NotClone for Probe<T> {}
+        #[allow(dead_code)]
+        impl<T: Clone> Probe<T> {
+            const IS_CLONE: bool = true;
+        }
+        let (u8_clone, rng_clone) =
+            std::hint::black_box((Probe::<u8>::IS_CLONE, Probe::<Rng>::IS_CLONE));
+        assert!(u8_clone, "probe detects Clone");
+        assert!(!rng_clone, "Rng must not implement Clone");
+    }
+
+    /// `fork` reseeds a child from 32 fresh parent bytes: deterministic for a fixed seed,
+    /// advances the parent by exactly those bytes, and the child's stream is neither the
+    /// parent's continuation nor a replay of the parent's start.
+    #[test]
+    fn fork_is_fresh_and_deterministic() {
+        let mut a = rng();
+        let mut child = a.fork();
+        // Same seed, same fork.
+        let mut b = rng();
+        let mut child_b = b.fork();
+        let xs: Vec<u64> = (0..8).map(|_| child.next_u64()).collect();
+        assert_eq!(xs, (0..8).map(|_| child_b.next_u64()).collect::<Vec<_>>());
+        // The parent consumed exactly 32 bytes (4 words) for the child's seed.
+        let mut reference = rng();
+        let seed_words: Vec<u64> = (0..4).map(|_| reference.next_u64()).collect();
+        assert_eq!(a.next_u64(), reference.next_u64());
+        // The child's seed is those 4 words (little-endian).
+        let mut seed = [0u8; 32];
+        for (chunk, w) in seed.chunks_exact_mut(8).zip(&seed_words) {
+            chunk.copy_from_slice(&w.to_le_bytes());
+        }
+        let mut expect_child = Rng::from_seed(seed);
+        assert_eq!(xs[0], expect_child.next_u64());
+        // Not a replay of the parent's stream from the start, nor its continuation.
+        let mut fresh = rng();
+        let start: Vec<u64> = (0..8).map(|_| fresh.next_u64()).collect();
+        assert_ne!(xs, start);
+        let cont: Vec<u64> = (0..8).map(|_| a.next_u64()).collect();
+        assert_ne!(xs, cont);
+    }
+
     #[test]
     fn entropy_rngs_differ() {
         let b = basis(1 << 6);
@@ -338,6 +454,64 @@ mod tests {
             let se = (p * (1.0 - p) / n as f64).sqrt();
             assert!((f - p).abs() < 5.0 * se, "x = {x}: freq {f}, pmf {p}");
         }
+    }
+
+    /// Deterministic check of the CDT itself (T24-2): monotone, last threshold `u64::MAX`,
+    /// one bucket per `x in [-B, B]`, and every bucket probability `(cdt[i] - cdt[i-1]) /
+    /// 2^64` within `2^-50` of the pmf `w(x) / sum w` (reference: `f64` with the total summed
+    /// exactly-rounded by compensated (Neumaier) summation, error ~2^-53 relative).
+    #[test]
+    fn cdt_table_is_exact_to_2_pow_minus_50() {
+        for sigma in [0.5, 1.0, 3.2, 10.5, 100.0] {
+            let cdt = cdt_table(sigma);
+            let bound = (TAIL_SIGMAS * sigma).floor() as i64;
+            assert_eq!(cdt.len() as i64, 2 * bound + 1, "sigma {sigma}");
+            assert_eq!(*cdt.last().unwrap(), u64::MAX, "sigma {sigma}");
+            assert!(
+                cdt.windows(2).all(|w| w[0] <= w[1]),
+                "sigma {sigma}: not monotone"
+            );
+            let w = |x: i64| (-(x as f64) * (x as f64) / (2.0 * sigma * sigma)).exp();
+            let (mut total, mut comp) = (0.0f64, 0.0f64);
+            for x in -bound..=bound {
+                let (v, t) = (w(x), total + w(x));
+                comp += if total.abs() >= v.abs() {
+                    (total - t) + v
+                } else {
+                    (v - t) + total
+                };
+                total = t;
+            }
+            let total = total + comp;
+            let two64 = 2f64.powi(64);
+            let mut worst = 0.0f64;
+            for (i, x) in (-bound..=bound).enumerate() {
+                let lo = if i == 0 { 0 } else { cdt[i - 1] };
+                // The last bucket also takes r = u64::MAX.
+                let width = (cdt[i] - lo) as f64 + if i == cdt.len() - 1 { 1.0 } else { 0.0 };
+                let err = (width / two64 - w(x) / total).abs();
+                worst = worst.max(err);
+            }
+            eprintln!("sigma {sigma}: max bucket error 2^{:.2}", worst.log2());
+            assert!(worst < 2f64.powi(-50), "sigma {sigma}: 2^{}", worst.log2());
+        }
+    }
+
+    /// The tail cut must fit below every prime (T24-3).
+    #[test]
+    #[should_panic(expected = "below the smallest prime")]
+    fn gaussian_tail_must_fit_below_q() {
+        let b = RnsBasis::new(64, &ntt_primes(10, 64, 1).unwrap()).unwrap();
+        // 6 * 200 = 1200 >= q (a 10-bit prime).
+        rng().gaussian_poly(&b, 0, 200.0);
+    }
+
+    /// The table size is capped (T24-3): sigma above `MAX_GAUSSIAN_SIGMA` panics.
+    #[test]
+    #[should_panic(expected = "MAX_GAUSSIAN_SIGMA")]
+    fn gaussian_sigma_is_capped() {
+        let b = basis(1 << 6);
+        rng().gaussian_poly(&b, 0, MAX_GAUSSIAN_SIGMA * 1.5);
     }
 
     #[test]
