@@ -100,6 +100,12 @@ impl RnsPoly {
         &self.limbs
     }
 
+    /// Mutable limbs for in-crate algorithms (`baseconv`); the number of limbs is fixed and
+    /// callers must keep every entry reduced modulo its prime.
+    pub(crate) fn limbs_mut(&mut self) -> &mut [Vec<u64>] {
+        &mut self.limbs
+    }
+
     /// `self += other`, limb-wise. See the module docs for the preconditions.
     pub fn add_assign(&mut self, other: &RnsPoly) {
         self.debug_check_compatible(other);
