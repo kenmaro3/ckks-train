@@ -145,9 +145,49 @@ no masks and no levels.** It works because every diagonal is stored `L`-periodic
 every lane, so a rotation by a multiple of `B` is a cyclic feature rotation. For these BSGS splits
 exactly `m - 1` amounts are nonzero. `a_0 = 0`. In the square and tall cases `t ≡ i`, so
 `a_i = (i mod g) + g floor(c/g)`, which is at most `m - 1 < L`. It is nonzero when
-`i mod g != 0`. For `i = g k1` (`k1 >= 1`), `c = m - g k1 >= g`, so `floor(c/g) >= 1`. The wide
-case (`t = -c`) is enumerated by the tests. `transpose_is_rotation_only_and_exact` checks this for 7 shapes and 2 batches. Every combination closes with rotations only, so the cost
-model needs no change for the transpose.
+`i mod g != 0`. For `i = g k1` (`k1 >= 1`), `c = m - g k1 >= g`, so `floor(c/g) >= 1`. In the
+wide case `t = -c`. Write `i = g k1 + k2`. For `k2 = 0`, `a = -i`. For `k2 > 0`,
+`c = m - i` gives `a = k2 - g(k1 + 1)`, which lies in `(-L, 0)`. So `a = 0 (mod L)` only when
+`i = 0`. `transpose_is_rotation_only_and_exact` checks the count for 7 shapes and 2 batches.
+Every combination closes with rotations only, so the cost model needs no change to its transpose
+rotation count.
+
+#### Galois-key cost of the transpose
+
+The amounts `a_i * B` are mostly steps that no other op uses, so each one needs its own Galois
+key. One key costs ≈ 302 MB on n16_train (`docs/m1-report.md` §7: dnum 8 × 2 × 36 limbs ×
+2^16 × 8 B) and ≈ 58 MB on seal_2020 (10 × 2 × 11 × 2^15 × 8 B). These are the distinct rotation
+keys of one full training step: forward and backward BSGS, folds, transpose, gradient giants
+`-g k1 B`, and batch reduce/replicate `±2^t`.
+
+| network | lanes B | keys, full step | keys used only by the transpose | rotation-key memory |
+|---|---|---|---|---|
+| Iris (Task 30), 4 → 8 → 2, seal_2020 | 8 | 11 | 1 | ≈ 0.6 GB |
+| Iris (Task 31), 4 → 8 → 3, seal_2020 | 32 | 17 | 3 | ≈ 1.0 GB |
+| eMLP-1, 784 → 32 → 10, n16_train (2^15 slots) | 32 | 45 | 14 | ≈ 13.6 GB (4.2 GB for the transpose-only keys) |
+
+For eMLP-1 the W2 transpose (`10 x 32`, padded `16 x 32`, wide) uses steps `{17..31} * B`. 14 of
+them are new keys. On the 36 GB machine this matters.
+
+**Zero-new-key alternative.** Rotate twice with keys the step already has.
+- Square or tall: `a_i B = (i mod g) B + g floor(c/g) B`, one baby key and one giant key of the
+  matvec.
+- Wide: `a_i B = k2 B + (-g (k1 + 1)) B`, a baby key and a negative giant key of the gradient. For
+  `k2 = 0`, `a_i B = -g k1 B` is one gradient key. Combinations with fold keys cover the rest.
+
+This takes 2 rotations instead of 1 for most entries, and 0 new keys. A breadth-first search over
+the existing keys gives these transpose totals:
+
+| network | new keys | rotations per transpose |
+|---|---|---|
+| Iris 4→8→2 | 1 → 0 | 1 → 2 |
+| Iris 4→8→3 | 3 → 0 | 3 → 5 |
+| eMLP-1 W2 | 14 → 0 (−4.2 GB) | 15 → 27 |
+
+The transpose runs once per update, so the extra rotations are small next to the per-update
+total. Default in `rotations_for_transpose`: one rotation per entry (fewest key switches,
+matching the cost model). Tasks 27, 30 and 32 should pick the two-rotation form when key memory
+binds (eMLP-1 on n16_train). The key-switch delta is `+12` per update for eMLP-1.
 
 ## 3. Gradients: outer product and batch sum
 
@@ -173,22 +213,43 @@ Rotations: `(baby - 1) + (giant - 1) + 2 m log B`. Tensors: `m`. Relins: `m`. ct
 Levels: 2. The bias gradient `sim_batchsum(dz)` is steps 3–5: `2 log B` rotations, 1 ct-pt and
 1 level.
 
-**The mask is unavoidable for a replicated result.** Rotations, additions and scalar (constant)
+**The mask costs exactly one level.**
+- The constant `c` does not need it. `c = lr / n_valid` (SGD) or `(1 + mu) lr / n_valid` (NAG)
+  folds for free into the exact-scale plaintext of the top derivative factor
+  `s_L = z_L * (2 c valid)`. Better, it can go into that plaintext's target scale, so the message
+  magnitude, and therefore the precision, is unchanged. That plaintext is needed anyway and sits
+  off the critical path.
+- Every backward op is linear in `dz`, so all `dz_l`, all `dW_l` and all bias gradients carry `c`.
+  Each layer's `s_l` plaintext is a free scale knob for matching `scale(W_l)` exactly at the update.
+  The bias gradient can also take its own `mul_scalar` off the critical path.
+- `sim_train_step_sgd` puts `c` into `mask0` instead. Both placements give the same values and the
+  same count of 1 ct-pt per diagonal.
+- So step 4 exists only for the lane-0 mask, which costs **+1 level**.
+
+**It is unavoidable without extra products.** Rotations, additions and scalar (constant)
 multiplications only produce circulant maps, since they commute with `rot(·, 1)`. "Sum the `B`
 lanes of each feature and write the sum to every lane" does not commute with `rot(·, 1)` in the
-feature-major layout, so any rotation-and-add circuit needs one non-constant plaintext. The
-design therefore folds the mask into the multiplication that is needed anyway, the constant
-`c = lr / n_valid` (SGD) or `(1 + mu) lr / n_valid` (NAG, §4). The mask then costs **no extra
-level**.
+feature-major layout, so any circuit of rotations, additions and constants needs a non-constant
+plaintext. One way around it spends products instead of the level: mask the lane-rotated copies
+of `A` on the input side, off the critical path, and sum the lane-shifted products. That costs
+about `B` times more tensors and relins per diagonal. It is not used.
 
-Mask-free alternative (cost model `interactive=True`): stop after step 3. The server applies `c`
-with `mul_scalar` (1 level, so the level count is the same) and updates `W` with a gradient that
-is valid only in lane 0. The client refresh then has to read lane 0 and re-replicate the weights.
-That saves `m log B` rotations per layer and update, but the refresh is no longer a pure
-decrypt/re-encrypt. M3's bootstrap refresh could not do it, and Task 30's `Refresher::refresh(ct)`
-does not have that signature. `sim_batch_reduce` alone is this variant. **Default: steps 1–5
-(replicated `dW`, pure refresh).** This is a choice for Task 32 to revisit if RQ1 wants the cheaper
-count.
+**Reduce-only variant (cost model `interactive=True`).** Stop after step 3, with `c` folded into
+`s_L` as above. The server updates `W` with a gradient that is valid only in lane 0, and the
+other lanes carry partial sums. The client refresh then has to read lane 0 and re-replicate the
+weights.
+- It saves `m log B` rotations, `m` ct-pt and **one level** per layer and update.
+- But the refresh is no longer a pure decrypt/re-encrypt. M3's bootstrap refresh could not do it,
+  and Task 30's `Refresher::refresh(ct)` does not have that signature.
+- `sim_batch_reduce` alone is this variant.
+
+| gradient variant | rotations per layer per update | levels on the gradient path | training-step depth |
+|---|---|---|---|
+| replicated (default, steps 1–5) | `(baby-1) + (giant-1) + 2 m log B` | 2 | `4L + 1` |
+| reduce-only (lane 0, re-laying client refresh) | `(baby-1) + (giant-1) + m log B` | 1 | `4L` |
+
+**Default: steps 1–5 (replicated `dW`, pure refresh).** Task 30 and Task 32 should revisit this
+if the level margin or RQ1's rotation count matters more than a pure refresh.
 
 ### 3.1 Are the masks integral? (research-lead ruling, item 1)
 
@@ -207,7 +268,7 @@ Masks in this design:
 | transpose | — | none (rotations only, §2.3) |
 | fold | — | none (§2.2) |
 | replicate (tall layer) | — | none (canonical form) |
-| batch-sum lane-0 `mask0` | steps 4 of §3 | unavoidable; folded with the constant `c` into the one ct-pt multiply that `c` needs anyway: 0 extra levels |
+| batch-sum lane-0 `mask0` | step 4 of §3 | unavoidable for a replicated `dW` without about `B` times more products: **+1 level** (the constant `c` folds for free into `s_L`). The reduce-only variant has no mask |
 | valid lanes (`n_valid < B`) | `z * (2 * valid)` for Square' | folded with the derivative constant 2. It runs on `z`, off the critical path: 0 extra levels (§4) |
 
 Masks are encoded at exact scale. The plaintext scale is `s_target * q_l / s_ct`, then the product
@@ -235,7 +296,7 @@ encoding.
 | transpose `W^T` (rotations only) | 0 |
 | backward input `W^T dz` (matvec + fold + rescale) | 1 |
 | weight gradient: outer product (tensor + relin + rescale) | 1 |
-| batch sum with `mask0 * c` (`c = lr / n_valid`, constant folded) | 1 |
+| batch sum with `mask0` (replicated variant only; `c` folded into `s_L` or here) | 1 (0 reduce-only) |
 | update `W - c dW` (scales equal by construction) | 0 |
 
 **Task 30 network, 4 → 8 → 2, Square, batch 8, seal_2020 (`max_level` 9).** This is the
@@ -261,20 +322,25 @@ critical path. The test `train_step_level_table` checks every row with `sim_trai
 | 15 | ĝ1, W1' = W1 − ĝ1 | **0** |
 | 16 | b1' | 1 |
 
-**Verdict for seal_2020: exactly 9 levels, so no client refresh is needed inside the iteration.**
-Task 30 refreshes all weights after the update, as specified (W1' is at level 0). The margin is
-**zero**. One extra multiplication on the layer-1 gradient path pushes it to 10 levels. That
-happens with any of the following:
+**Verdict for seal_2020.**
+- **Replicated design (default):** exactly 9 levels (`4L + 1`), so no client refresh is needed
+  inside the iteration. Task 30 refreshes all weights after the update, as specified (W1' is at
+  level 0). The margin is **zero**.
+- **Reduce-only variant:** 8 levels (`4L`), so W1' ends at level 1 with one level of margin. The
+  cost is a client refresh that re-lays lane 0.
+
+In the replicated design, one extra multiplication on the layer-1 gradient path pushes it to 10
+levels. That happens with any of the following:
 - a separate `lr` multiply (Task 28's literal API: `weight_grad` returns `dW / batch`, then
   `Sgd::step` calls `mul_scalar(lr)`);
 - a separate `1/batch`;
-- a separate mask level;
 - NAG done as a multiply on the gradient.
 
-So the constants must be folded (ruling item 2). The gradient constant `c` goes into the `mask0`
-plaintext of step 4. NAG (`g = G/n + decay W`, `V' = mu V + g`, `W' = W - lr(1+mu) g - mu² lr V`)
+So the constants must be folded (ruling item 2). The gradient constant `c` goes into `s_L` (or
+into the target scale of its plaintext), or into the `mask0` plaintext of step 4, as the simulator
+does. NAG (`g = G/n + decay W`, `V' = mu V + g`, `W' = W - lr(1+mu) g - mu² lr V`)
 is rewritten with the scaled velocity `U = lr(1+mu)V`:
-- `h = lr(1+mu)/n * G`, with the mask folded, plus `lr(1+mu) decay * W` (a scalar on the fresh `W`);
+- `h = lr(1+mu)/n * G`, with the constant folded into `s_L` or `mask0`, plus `lr(1+mu) decay * W` (a scalar on the fresh `W`);
 - `U' = mu U + h`;
 - `W' = W - h - (mu²/(1+mu)) U`.
 
@@ -285,11 +351,12 @@ depth is 10: use `seal_2020_l10` for Task 31's batch-20 run only, or refresh `dz
 layer-1 gradient.
 
 General depth for an `L`-layer MLP with one-level activations: `2L` (forward) `+ 1` (the top `dz`)
-`+ 2(L-1)` (`W^T` and `dz` per lower layer) `+ 2` (gradient and masked constant) `= 4L + 1`.
+`+ 2(L-1)` (`W^T` and `dz` per lower layer) `+ 2` (outer product and lane-0 mask) `= 4L + 1`.
+The reduce-only variant drops the mask level and needs `4L`.
 
 **eMLP-1, 784 → 32 → 10, z² + z, n16_train (`max_level` 31).** `d = 1024` and `B <= 32` lanes. The
-structure is the same as above with `L = 2`: depth 9 fused, 10 or 11 unfused. Both are far below
-31, so there is **no mid-iteration refresh**. That leaves room for about 5 more layers at 4 levels
+structure is the same as above with `L = 2`: depth 9 when constants are folded (8 reduce-only),
+10 or 11 unfused. All are far below 31, so there is **no mid-iteration refresh**. That leaves room for about 5 more layers at 4 levels
 each.
 
 ## 5. Differences from the M0 spike (`spikes/costmodel/slotsim.py`) and the cost-model change Task 32 needs
@@ -301,9 +368,11 @@ Rust as is. Differences:
 1. **Batch sum and replication.** The spike's `interactive=True` (the variant Task 32 compares
    against) reduces only. Its gradient costs `m log B'` rotations, with no mask and no replication,
    and the client re-encodes from lane 0. This design replicates on the server: `+ m log B`
-   rotations and `+ m` ct-pt per layer per update, at no extra level. Task 32's cost model must
-   add `m * log2(B')` rotations to the gradient phase in interactive mode (or Task 28 must adopt
-   the lane-0 variant of §3 together with a re-laying refresh).
+   rotations, `+ m` ct-pt and **+1 level** (the lane-0 mask) per layer per update. The step depth
+   is `4L + 1` instead of `4L`, which is 9 vs 8 on seal_2020. Task 32's cost model must add
+   `m * log2(B')` rotations to the gradient phase in interactive mode and note the extra level.
+   Alternatively, Task 28 can adopt the reduce-only variant of §3 together with a re-laying
+   refresh.
 2. **Baby rotations of the layer input in the gradient.** The spike reuses the forward pass's baby
    rotations `rot(A, k2 B)`. M1's `matvec_enc` does not return them, so the gradient recomputes
    them: `+ (baby - 1)` hoisted rotations per layer per update. Task 32: add `n1 - 1` per layer to
@@ -315,6 +384,11 @@ Rust as is. Differences:
 4. **Lazy relin over ciphertexts.** The spike sums gradient products over several ciphertexts
    (`k > 1`) before one relin. Here `B` lanes fit in one ciphertext (`k = 1`), so this is the same.
 
-Neither change touches the forward, transpose or backward counts. With 1 and 2 applied, the cost
+5. **Galois keys.** The cost model counts key switches, not keys. The rotation-only transpose
+   needs up to `m - 1` extra keys per transposed layer (14 keys ≈ 4.2 GB for eMLP-1 on n16_train,
+   §2.3). The zero-new-key form costs `+12` transpose rotations per update for eMLP-1. Task 32
+   should report which form it measured.
+
+None of these changes touches the forward, transpose or backward counts. With 1 and 2 applied, the cost
 model's interactive gradient phase is `(n2-1) + (n1-1) + 2 m log2(B')` rotations and `m` relins,
 which equals `sim_outer_batchsum`. The spike itself is not edited (project rule).
