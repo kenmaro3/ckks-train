@@ -1,4 +1,19 @@
 {
+  "provenance": {
+    "note": "Not the raw output of the binary. The file was written by target/release/mnist built from 693040a (before 6f9fa6f), then re-serialized by Python json (indent 2) when hand-added fields were merged, so number formatting and array layout differ from the binary output, and a rerun of the HEAD binary produces a different file (the HEAD binary also renames/adds the prediction fields below and writes its own memory/build blocks). Every other field is the binary output unchanged in value.",
+    "hand_added_fields": {
+      "memory": "/usr/bin/time -l (maximum resident set size, peak memory footprint, swaps) in results/logs/mnist_emlp1.log",
+      "time_s.process_real": "/usr/bin/time -l \"real\" line in results/logs/mnist_emlp1.log",
+      "machine.build": "the shell command used to build the binary (cargo build --release)",
+      "machine.load_note": "per-batch load averages printed in results/logs/mnist_emlp1.log",
+      "measured.per_sample.rotations_per_sample, measured.per_sample.relins_per_sample, prediction_per_update.{cost_model_interactive,exact}.{rotations,relins}_per_sample": "computed by Python from fields the binary wrote (rotations / samples); the HEAD binary emits them",
+      "prediction_per_update.pre_registered_adjusted_key_switches, measured_over_pre_registered_adjusted": "fix round 1 (review Minor 1): cost model + docs/layout.md section 5 items 1, 2, 5 = 349 + 240 + 14 + 12 = 615; the HEAD binary emits them"
+    },
+    "renamed_fields": {
+      "prediction_per_update.documented_adjusted_key_switches -> replication_adjusted_key_switches": "fix round 1 (only section 5 item 1 is applied)",
+      "measured_over_documented_adjusted -> measured_over_replication_adjusted": "fix round 1"
+    }
+  },
   "task": "Task 32: MNIST eMLP-1 interactive training (RQ1 counts)",
   "network": "784 -> 32 (z^2 + z) -> 10 (linear), MSE, NAG (biases SGD)",
   "setup": {
@@ -107,7 +122,8 @@
       "bsgs_split": -2,
       "transpose_beyond_m_minus_1": 12
     },
-    "documented_adjusted_key_switches": 589,
+    "replication_adjusted_key_switches": 589,
+    "pre_registered_adjusted_key_switches": 615,
     "cost_model_plus_all_corrections": 633,
     "exact": {
       "rotations": 571,
@@ -118,7 +134,8 @@
       "key_switches_per_sample": 19.78125
     }
   },
-  "measured_over_documented_adjusted": 1.0747028862478778,
+  "measured_over_replication_adjusted": 1.0747028862478778,
+  "measured_over_pre_registered_adjusted": 1.0292682926829269,
   "measured_over_cost_model_interactive": 1.813753581661891,
   "time_s": {
     "keygen": 17.44734375,
@@ -187,7 +204,11 @@
     "load_end": "{ 2.82 2.85 3.01 }",
     "threads": "single (the library is single-threaded)",
     "build": "cargo build --release (opt-level 3, no LTO), Apple M3 Pro",
-    "load_note": "1-min load 2.4-5.3 during the run (other sessions active, no other heavy job)"
+    "load_note": "1-min load 2.26-5.34 during the run (per-batch load averages in the run log; other sessions active, no other heavy job)",
+    "provenance": {
+      "build": "typed by hand from the shell command used (cargo build --release); the binary now records a build block itself",
+      "load_note": "added by hand from the per-batch load averages in results/logs/mnist_emlp1.log"
+    }
   },
   "memory": {
     "peak_rss_bytes": 17759485952,
@@ -196,6 +217,7 @@
     "peak_footprint_gb": 18.618791256,
     "swaps": 0,
     "source": "/usr/bin/time -l",
-    "machine_ram_gb": 36
+    "machine_ram_gb": 36,
+    "provenance": "added by hand from the /usr/bin/time -l output at the end of results/logs/mnist_emlp1.log (the run binary did not record memory; the binary now records peak_rss_bytes via getrusage)"
   }
 }
