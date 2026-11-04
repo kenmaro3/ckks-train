@@ -503,48 +503,60 @@ mod tests {
 
     /// The exact centered lift against a CRT reference (u128, digits of up to 2 primes):
     /// every converted limb is `x_c mod r` for `x_c` the centered digit value, and the
-    /// digit limbs are copied.
+    /// digit limbs are copied. Covers `alpha = 2` (full digits, and a level-clipped
+    /// one-prime last digit) and `alpha = 1` (T24-4: every digit one prime, one special
+    /// prime).
     #[test]
     fn exact_lift_matches_crt_reference() {
-        let params = small_params(); // digits {60, 40}, {40, 40}, {40, 40}
-        let level = params.max_level();
-        let mut d = rng(13).uniform_poly(params.basis_q(), level);
-        d.to_ntt();
-        let mut d_coeff = d.clone();
-        d_coeff.to_coeff();
-        let qs = params.basis_q().moduli();
-        for (dig, range) in decompose(&params, &d)
-            .iter()
-            .zip(digit_ranges(&params, level))
-        {
-            let (mut q, mut p) = (dig.q().clone(), dig.p().clone());
-            q.to_coeff();
-            p.to_coeff();
-            let (m0, m1) = (&qs[range.start], &qs[range.start + 1]);
-            let (q0, q1) = (m0.value() as u128, m1.value() as u128);
-            let q0_inv = m1.inv(m0.value() % m1.value()).unwrap() as u128;
-            let big_q = q0 * q1;
-            for c in 0..params.n() {
-                let (x0, x1) = (
-                    d_coeff.limbs()[range.start][c] as u128,
-                    d_coeff.limbs()[range.start + 1][c] as u128,
-                );
-                // Garner: x = x0 + q0 * ((x1 - x0) q0^{-1} mod q1), in [0, Q_D).
-                let t = (x1 + q1 - x0 % q1) % q1 * q0_inv % q1;
-                let x = x0 + q0 * t;
-                let residue = |r: u64| {
-                    let r = r as u128;
-                    if x <= (big_q - 1) / 2 {
-                        (x % r) as u64
-                    } else {
-                        ((r - (big_q - x) % r) % r) as u64
+        let alpha1 = Arc::new(CkksParams::new(12, &[60, 40, 40, 40], &[60], 40, 4).unwrap());
+        assert_eq!(alpha1.alpha(), 1);
+        // small_params: digits {60, 40}, {40, 40}, {40, 40}.
+        for (params, level) in [(small_params(), 5), (small_params(), 4), (alpha1, 3)] {
+            let mut d = rng(13).uniform_poly(params.basis_q(), level);
+            d.to_ntt();
+            let mut d_coeff = d.clone();
+            d_coeff.to_coeff();
+            let qs = params.basis_q().moduli();
+            let ranges = digit_ranges(&params, level);
+            assert!(ranges.iter().all(|r| (1..=2).contains(&r.len())));
+            for (dig, range) in decompose(&params, &d).iter().zip(ranges) {
+                let (mut q, mut p) = (dig.q().clone(), dig.p().clone());
+                q.to_coeff();
+                p.to_coeff();
+                assert_eq!(q.level(), level);
+                let m0 = &qs[range.start];
+                let q0 = m0.value() as u128;
+                // Garner for 2 primes: x = x0 + q0 * ((x1 - x0) q0^{-1} mod q1), in [0, Q_D).
+                let second = (range.len() == 2).then(|| {
+                    let m1 = &qs[range.start + 1];
+                    let q0_inv = m1.inv(m0.value() % m1.value()).unwrap() as u128;
+                    (m1.value() as u128, q0_inv)
+                });
+                let big_q = second.map_or(q0, |(q1, _)| q0 * q1);
+                for c in 0..params.n() {
+                    let x0 = d_coeff.limbs()[range.start][c] as u128;
+                    let x = match second {
+                        None => x0,
+                        Some((q1, q0_inv)) => {
+                            let x1 = d_coeff.limbs()[range.start + 1][c] as u128;
+                            x0 + q0 * ((x1 + q1 - x0 % q1) % q1 * q0_inv % q1)
+                        }
+                    };
+                    let residue = |r: u64| {
+                        let r = r as u128;
+                        if x <= (big_q - 1) / 2 {
+                            (x % r) as u64
+                        } else {
+                            ((r - (big_q - x) % r) % r) as u64
+                        }
+                    };
+                    for (i, (limb, m)) in q.limbs().iter().zip(qs).enumerate() {
+                        let a = params.alpha();
+                        assert_eq!(limb[c], residue(m.value()), "alpha {a} q_{i} coeff {c}");
                     }
-                };
-                for (i, (limb, m)) in q.limbs().iter().zip(qs).enumerate() {
-                    assert_eq!(limb[c], residue(m.value()), "q_{i} coeff {c}");
-                }
-                for (t, m) in params.basis_p().moduli().iter().enumerate() {
-                    assert_eq!(p.limbs()[t][c], residue(m.value()), "p_{t} coeff {c}");
+                    for (t, m) in params.basis_p().moduli().iter().enumerate() {
+                        assert_eq!(p.limbs()[t][c], residue(m.value()), "p_{t} coeff {c}");
+                    }
                 }
             }
         }
