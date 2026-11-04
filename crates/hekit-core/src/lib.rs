@@ -7,9 +7,11 @@ pub mod ntt;
 pub mod poly;
 pub mod primes;
 pub mod rns;
+pub mod sampler;
 
 pub use error::{HekitError, Result};
 pub use modulus::{Modulus, Shoup};
 pub use ntt::NttTable;
 pub use poly::RnsPoly;
 pub use rns::RnsBasis;
+pub use sampler::Rng;
