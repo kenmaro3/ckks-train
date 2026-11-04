@@ -31,7 +31,7 @@ SEAL is pulled with `FetchContent` (tag `v4.1.2`, MIT). CMake flags set in
 | `build/he_train --check --dims 6,3,1` | the paper's Table-2 network (synthetic data) for op counts |
 | `build/he_train --plain-train [--batch 20 --epochs 400 --seeds 10]` | plaintext training, accuracy |
 | `build/seal_ntt_bench 1000` | SEAL forward Harvey NTT, N = 2^16, 60-bit q |
-| `scripts/run_timed.sh` | all timed runs under the shared bench lock, logs into `results/` |
+| `scripts/run_timed.sh [run-name]` | all timed runs under a bench lock, logs into `results/<run-name>/`. Lock dir: `$BENCH_LOCK`, default `build/bench.lock` (gitignored; parent created). Fails fast if `build/` binaries are missing |
 
 Fixed seeds: split / weight init seed `2020` (`--seed`); sample order of the
 timed iterations and epoch shuffling use `seed*7919+1`. All RNG is

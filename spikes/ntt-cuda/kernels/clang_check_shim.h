@@ -8,6 +8,7 @@ typedef __SIZE_TYPE__ size_t;
 #define __device__ __attribute__((device))
 #define __shared__ __attribute__((shared))
 #define __forceinline__ __inline__ __attribute__((always_inline))
+#define __launch_bounds__(...) __attribute__((launch_bounds(__VA_ARGS__)))
 static __device__ __forceinline__ unsigned long long __umul64hi(unsigned long long a,
                                                                  unsigned long long b) {
     return __nvvm_mulhi_ull(a, b);

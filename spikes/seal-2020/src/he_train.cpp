@@ -888,8 +888,8 @@ static int run_he(const Opts &o) {
             t_enc_in.push_back(te);
             for (int q = 0; q < NPHASE; ++q) t_phase[size_t(q)].push_back(be.sec[size_t(q)]);
         }
-        // SEAL builds with tc128 and the parameters above; keep the reference in
-        // lock-step with the decrypted HE model so errors do not compound silently.
+        // The reference is trained on its own (it is NOT reset to the decrypted HE model),
+        // so `worst` is the drift compounded over all chained iterations.
     }
     std::printf("[seal] updated-weight ciphertext levels after one iteration: W1 %zu, W2 %zu (0 = last prime)\n",
                 final_level_W1, final_level_W2);

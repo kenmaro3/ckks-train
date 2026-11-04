@@ -3,6 +3,12 @@
 Status: **build OK, eMLP-1 does NOT run to completion on this machine (36 GB RAM): the CKKS context alone needs ~44 GB.
 No epoch time / accuracy could be measured.** Paper's own numbers are recorded below for reference.
 
+**License: ReBoot is GPL-3.0** (`_ext/ReBoot/LICENSE`). It is a run-only baseline: it is cloned into the gitignored
+`_ext/`, built and run there, and **no ReBoot code is copied into hekit** (the build patches below live only in the
+gitignored `_ext/logs/reboot_patches.diff` and are not committed). The cost model (`spikes/costmodel/`) cites ReBoot
+files only to say where an op count was read. **M2 Task 33 must re-implement ReBoot's layout from the paper
+(arXiv:2506.19693 §3, eq. 4–5), not from its code.**
+
 ## Environment
 - Machine: Apple M3 Pro, 12 cores, 36 GB RAM (38,654,705,664 B), macOS 26 (Darwin 25.3), arm64.
 - Compiler: Apple clang 21.0.0 (clang-2100.1.1.101) + Homebrew libomp (already installed; nothing newly brewed).
@@ -32,11 +38,13 @@ OMP_NUM_THREADS=12 REBOOT_DATA=_ext/data PYTHONPATH=_ext/ReBoot DYLD_LIBRARY_PAT
 (ReBoot's protocol: 4800-sample MNIST subsample, batch 48 -> 100 iterations/epoch; full MNIST would be 1250 it/epoch. The script prints *training* loss/accuracy only; test accuracy is computed in the paper with the plaintext twin.)
 
 ## Result: out of memory
-- Full-size runs (batch 48 x 12 threads; also batch 4/12 x 12 threads, batch 4 x 4 threads) were SIGKILLed or aborted during the first training iteration, in the weight-bootstrapping step (`model.bootstrap`, 64 ciphertexts = weights + velocities, `#pragma omp parallel for`), after forward/backward had finished. Batch 1 x 1 thread was stopped by me after >10 min without finishing the step (swapping).
+- Full-size runs (batch 48 x 12 threads; also batch 4/12 x 12 threads, batch 4 x 4 threads) were SIGKILLed or aborted during the first training iteration, in the weight-bootstrapping step (`model.bootstrap`: the weights and velocities, one ciphertext each per trainable layer, i.e. 4 ciphertexts for eMLP-1 = 2 W + 2 V, `lib/models/models.py:121-133`, bootstrapped in a `#pragma omp parallel for`; the cost model also uses 4), after forward/backward had finished. Batch 1 x 1 thread was stopped by me after >10 min without finishing the step (swapping).
 - Root cause measured with `footprint` (RSS is misleading because macOS compresses/swaps): **right after `CryptoContext(...)` construction (keygen + `EvalBootstrapSetup/KeyGen` + sum keys) the process footprint is 44 GB** (all MALLOC_SMALL; N=2^16, l=24, 32768 slots, level budget [2,2]). Even with `OMP_NUM_THREADS=1`, batch 1, a single `EvalBootstrap` took 161-178 s while swapping (swap 15-35 GB used, free memory ~0), and a full step never completed.
 - This matches the paper: eMLP-1 peak memory 76.07 GB (eMLP-2 181.45 GB, eMLP-3 213.63 GB) on 2x Xeon Gold 5318S / 384 GB RAM. 36 GB cannot hold the eMLP-1 key material plus working set. No upstream issue exists for this (it is hardware, not a bug); not pursued further per the failure ruling (~1 h of attempts).
 - The timed-run lock (`bench.lock`) was acquired once for a run that crashed at import (libomp) and released immediately; no timed measurement is reported, so no contention caveat applies to any number below.
-- Not measured: epoch time, accuracy, peak memory of a full run. The only measured memory figure is the 44 GB context footprint (lower bound for peak).
+- Not measured: epoch time, accuracy, peak memory of a full run. Measured memory figures (all lower bounds for the peak of a full run):
+  - the 44 GB context footprint above, read interactively with `footprint` (that reading was not logged);
+  - `/usr/bin/time -l` "peak memory footprint" of the four aborted runs, **51.2–54.0 GB** (max RSS 14.7–21.6 GB, misleading under compression). Our own `time -l` summary lines are committed in `spikes/reboot/logs-summary.txt`; the full logs stay in the gitignored `_ext/logs/`.
 - Possible follow-ups (not done, would change the benchmark): reduce ring/levels, run on a larger-RAM host.
 
 ## Reference numbers from the paper (not measured here)
@@ -46,6 +54,8 @@ OMP_NUM_THREADS=12 REBOOT_DATA=_ext/data PYTHONPATH=_ext/ReBoot DYLD_LIBRARY_PAT
 
 ## Step 3: config transcription (`crates/hekit-bench/configs/reboot_emlp{1,2,3}.json`)
 Sources: Table 3 (N, l, Delta, widths), Table 8 (lr gamma, weight decay eta, batch b; MNIST/ReBoot row), Appendix A (momentum 0.9).
+- **Table 8's hyperparameters (lr, batch, weight decay) belong to the paper's Table 4 plaintext-twin accuracy experiments.** The paper does not say that the 190.32 s timing run (Table 6) used the same values, so they may differ from it.
+- **eMLP-2/3 are NOT faithful in these JSONs.** Paper Table 3 defines eMLP-2 = RE-Block(64) → CE-Block(32) and eMLP-3 = RE-Block(128) → CE-Block(64) → RE-Block(32). Each block trains with its own local classifier (a CE-FC / RE-FC head and a local loss), and no gradient flows between blocks. `reboot_emlp2.json` / `reboot_emlp3.json` encode only the plain backprop shapes 784-64-32-10 / 784-128-64-32-10, because the fixed schema has no block fields. Treat them as eMLP-2/3 only once the schema gains block (local-classifier) fields. **eMLP-1 is unaffected:** it is a single RE-Block(32) whose local classifier is the 32 → 10 output layer, so 784-32-10 with plain backprop is exact.
 
 | | log_n | levels l (= tau_ReBoot + tau_bs) | scale_bits | hidden widths | lr | batch |
 |---|---|---|---|---|---|---|

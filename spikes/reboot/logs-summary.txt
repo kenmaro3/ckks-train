@@ -1,0 +1,37 @@
+# ReBoot (Task 5) run evidence: our own /usr/bin/time -l summary lines only (macOS, Apple M3 Pro, 36 GB RAM).
+# Extracted 2026-11-04 from the gitignored logs in spikes/reboot/_ext/logs/ (no ReBoot program output included).
+# Settings per log (smoke = run.sh as committed; the probe settings are inferred from the file names and
+# match the configurations RUN.md lists): smoke = batch 48 x 12 threads;
+# probe_bs12 = batch 12 x 12 threads; probe_bs4 = batch 4 x 12 threads; probe_t4 = batch 4 x 4 threads;
+# emlp1_epoch = first attempt, aborted at import (duplicate libomp), before any CKKS work.
+# Units: seconds; bytes. 'terminated abnormally' = killed/aborted before the first training step finished.
+
+[smoke.log]
+time: command terminated abnormally
+69.25 real       363.98 user        22.38 sys
+14745108480  maximum resident set size
+52491998528  peak memory footprint
+
+[probe_bs12.log]
+time: command terminated abnormally
+100.38 real       413.38 user        29.69 sys
+21594669056  maximum resident set size
+51153342704  peak memory footprint
+
+[probe_bs4.log]
+time: command terminated abnormally
+72.74 real       263.58 user        24.47 sys
+19461603328  maximum resident set size
+53972867280  peak memory footprint
+
+[probe_t4.log]
+time: command terminated abnormally
+92.43 real       205.06 user        17.52 sys
+18844778496  maximum resident set size
+53693077448  peak memory footprint
+
+[emlp1_epoch.log]
+time: command terminated abnormally
+28.08 real         1.46 user         0.35 sys
+280641536  maximum resident set size
+212648680  peak memory footprint

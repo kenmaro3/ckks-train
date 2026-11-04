@@ -50,7 +50,9 @@ __device__ __forceinline__ u64 reduce_4q(u64 r, u64 q, u64 two_q) {
     return r;
 }
 
-// One global-memory stage (m, t = 2^log_t, requires t >= blockDim.x so a block shares a twiddle).
+// One global-memory stage (m, t = 2^log_t). Correct for any blockDim.x: each thread loads its own
+// twiddle roots[m + i]. Performance only: when t >= blockDim.x every thread of a block has the same
+// group i, so the twiddle load is a broadcast (the host uses this kernel only for t >= 2048).
 // grid = (ceil((N/2) / blockDim.x), batch), one thread per butterfly.
 extern "C" __global__ void ntt_fwd_global_stage(u64 *a, const u64 *__restrict__ roots,
                                                 const u64 *__restrict__ roots_shoup, u64 q,
@@ -74,10 +76,11 @@ extern "C" __global__ void ntt_fwd_global_stage(u64 *a, const u64 *__restrict__ 
 // The last log_chunk stages (m = m0, 2*m0, ..., N/2 with m0 = N >> log_chunk) on one aligned
 // chunk of 2^log_chunk coefficients, then the final reduction to [0, q).
 // grid = (N >> log_chunk, batch), block = 2^(log_chunk - 1) threads,
-// dynamic shared memory = 2^log_chunk * 8 bytes.
-extern "C" __global__ void ntt_fwd_shared(u64 *a, const u64 *__restrict__ roots,
-                                          const u64 *__restrict__ roots_shoup, u64 q, u32 log_n,
-                                          u32 m0, u32 log_chunk) {
+// dynamic shared memory = 2^log_chunk * 8 bytes. __launch_bounds__(1024): the host launches up to
+// 1024-thread blocks (log_chunk = 11), so registers must be capped for that block size.
+extern "C" __global__ void __launch_bounds__(1024)
+ntt_fwd_shared(u64 *a, const u64 *__restrict__ roots, const u64 *__restrict__ roots_shoup, u64 q,
+               u32 log_n, u32 m0, u32 log_chunk) {
     extern __shared__ u64 smem[];
     const u32 half = 1u << (log_chunk - 1);
     const u32 tid = threadIdx.x;                            // [S1] in [0, half)
