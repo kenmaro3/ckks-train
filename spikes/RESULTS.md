@@ -15,6 +15,7 @@ Crate: `spikes/ntt-cpu` (scalar Harvey NTT, Shoup precomputation, lazy reduction
 | q (60-bit, q ≡ 1 mod 2N) | 1152921504606584833 |
 | forward NTT, median | **416.4 µs** (95% CI of median 416.2 – 416.5 µs; criterion mean CI 417.7 – 418.9 µs) |
 | inverse NTT (incl. N^-1 scaling), median | 385.5 µs (95% CI 385.4 – 385.6 µs) |
+| **idle-machine rerun** (2026-11-04 16:17, load avg 1-min 2.97 → 3.20; run by Task 4, `cargo bench`, same binary) | forward median **417.8 µs** (CI 416.6 – 419.2; mean 424.0; min sample-mean 413.8), inverse median **408.9 µs** (CI 401.3 – 414.4; min sample-mean 384.8). Log: `spikes/seal-2020/results/run3_idle/rust_ntt_cpu_cargo_bench.txt` |
 | plan target band (1 Apple M-core) | 200 – 400 µs |
 | inside band? | **No, slightly above (~4% over the upper edge)**; same order of magnitude, scalar code only |
 
@@ -138,8 +139,29 @@ W2 diagonals are mod-switched down to the level where W2ᵀ is used *before* tra
 
 ### Timing (Apple M3 Pro, single thread — SEAL is single-threaded; 1 warm-up + 10 timed iterations)
 
-Machine was shared with other agents' jobs: load average **67.7 → 31.4** (1-min) during run 1; run 2 (load 17–37) was noisier
-and is in `results/run2/`. Numbers below are run 1, mean ± sd over 10 iterations (seconds).
+**Idle-machine rerun (run 3, `results/run3_idle/`, headline):** load average (1-min) **3.61 → 2.97** (waited until ≤ 4).
+Mean ± sd over 10 iterations (s):
+
+| phase (ours) | alg5, exact keys | alg4, exact keys | alg5, pow2 keys |
+|---|---|---|---|
+| Feedforward | 0.689 ± 0.022 | 0.730 ± 0.005 | 0.800 ± 0.002 |
+| Transition | 0.024 ± 0.002 | 0.085 ± 0.001 | 0.037 ± 0.000 |
+| Backpropagation (incl. ΔW, Δb) | 0.269 ± 0.004 | 0.197 ± 0.002 | 0.316 ± 0.002 |
+| SGD update | 0.015 ± 0.001 | 0.015 ± 0.000 | 0.015 ± 0.000 |
+| **server iteration** | **0.997 ± 0.027** | 1.027 ± 0.006 | 1.168 ± 0.002 |
+| Repacking (client) | 0.334 ± 0.001 | 0.335 ± 0.002 | 0.336 ± 0.002 |
+| client encryption of x, y | 0.038 | 0.038 | 0.038 |
+| **server + repacking + client enc** | **1.369** | 1.400 | 1.542 |
+| paper stated total 9.25 s / ours | **6.8×** | 6.6× | 6.0× |
+
+Idle, without client encryption: alg5 1.331 s → 7.0× vs 9.25 s. Indicative phase-sum ratios (idle, alg5): 8.60 / 0.997 =
+8.6× (server phases), 9.10 / 1.331 = 6.8× (incl. repacking). Max |W_he − W_ref| over 11 chained iterations in run 3:
+1.4e-5 (alg5), 3.6e-5 (alg4), 1.2e-4 (pow2), all < 1e-3. The error depends on the encryption randomness, so it varies
+between runs.
+
+**Under load (earlier runs, kept for reference):** the machine was shared with other agents' jobs. Load average (1-min)
+was **67.7 → 31.4** during run 1; run 2 (load 17–37) was noisier and is in `results/run2/`. Numbers below are
+run 1 **under load**, mean ± sd over 10 iterations (seconds).
 
 Paper Table 4, every row exactly as printed (seconds, batch 1, i7-8700K, SEAL 3.4), next to our measurements and the
 phase of ours each row is compared with:
@@ -158,9 +180,9 @@ phase of ours each row is compared with:
 Diagonal: stated 9.25 vs phase sum 9.10 (+0.15 s). Row: stated 28.47 vs phase sum 26.01 (+2.46 s). We don't guess
 what the gap is. No server-side figure is derived by subtracting from the stated total.
 
-Headline comparison, against the paper's **stated total** (9.25 s, diagonal):
+Comparison against the paper's **stated total** (9.25 s, diagonal), run 1 **under load** (idle numbers above):
 
-| ours (run 1) | what it includes | value | paper stated total / ours |
+| ours (run 1, under load) | what it includes | value | paper stated total / ours |
 |---|---|---|---|
 | alg5, exact keys | server iteration + repacking + client encryption of x, y | 1.031 + 0.345 + 0.039 = **1.415 s** | **6.5×** |
 | alg4, exact keys | same | 1.097 + 0.345 + 0.040 = 1.482 s | 6.2× |
@@ -174,7 +196,7 @@ Repacking = 9.10 s vs our 1.376 s (≈ 6.6×).
 
 Row packing (not implemented here): printed server-side rows sum to 25.39 s, all printed rows to 26.01 s.
 (Run 2, noisier: alg5-exact server 1.166 ± 0.219 s, server + repacking 1.574 s.)
-→ About 6.5× faster than the paper's stated total (ours = server iteration + repacking + client encryption of x, y; what the paper's total contains beyond its phases is unknown). All per-phase comparisons are **indicative**: our BP includes the gradient outer products, and the paper doesn't say whether its "Backpropagation" or its "SGD Update" (0.23 s) contains them. The paper's
+→ Idle: about **6.8×** faster than the paper's stated total (under load: 6.5×; ours = server iteration + repacking + client encryption of x, y; what the paper's total contains beyond its phases is unknown). All per-phase comparisons are **indicative**: our BP includes the gradient outer products, and the paper doesn't say whether its "Backpropagation" or its "SGD Update" (0.23 s) contains them. The paper's
 2.15 s transition is ~90× our 0.025 s. We can't tell which of these explains it: hardware, SEAL 3.4 → 4.1, keys,
 transposing at the top level, or transposing both layers (the paper doesn't give enough detail). pow2 keys only cost
 +14 %, so the key set alone doesn't explain it.
@@ -230,15 +252,21 @@ Rule inferred from Table 2 for a cost model: Dense(a→b) = a mult, b rot; squar
 ### SEAL NTT (for Task 2's ratio)
 
 `seal_ntt_bench`: `seal::util::ntt_negacyclic_harvey`, N = 2^16, q = 1152921504606584833 (accepted, 60-bit), 1000 reps,
-input copy excluded, single thread. Same load conditions as above.
+input copy excluded, single thread. Runs 1–2 under load (as above); run 3 idle (load 3.61 → 2.97).
 
-| | run 1 before / after | run 2 before / after |
-|---|---|---|
-| forward (fully reduced output), median | **368.0** / 364.2 µs | 376.4 / 379.1 µs |
-| forward lazy (`_lazy`, output in [0,4q)), median | 330.3 / 331.0 µs | 335.9 / 334.0 µs |
-| inverse (incl. N⁻¹), median | 355.1 / 357.2 µs | 362.3 / 356.7 µs |
+| | run 1 before / after (under load) | run 2 before / after (under load) | **run 3 before / after (idle)** |
+|---|---|---|---|
+| forward (fully reduced output), median | 368.0 / 364.2 µs | 376.4 / 379.1 µs | **373.7** / 376.5 µs |
+| forward (fully reduced output), min | 358.2 / 358.0 µs | 358.0 / 359.4 µs | **334.4** / 339.5 µs |
+| forward lazy (`_lazy`, output in [0,4q)), median | 330.3 / 331.0 µs | 335.9 / 334.0 µs | 332.3 / 363.9 µs |
+| inverse (incl. N⁻¹), median | 355.1 / 357.2 µs | 362.3 / 356.7 µs | 356.0 / 356.5 µs |
 
-**Ratio Rust (416.4 µs) / SEAL (368.0 µs) = 1.13** (vs SEAL lazy: 1.26; range over runs 1.10 – 1.14 for the non-lazy one).
+**Idle ratio (Rust and SEAL both rerun idle, ~1 min apart):**
+- median-based: Rust forward median 417.8 µs / SEAL forward median 373.7 µs = **1.12**. Against the "after" SEAL run (376.5 µs) it is 1.11.
+- min-based: Rust 413.8 µs / SEAL 334.4 µs = **1.24**. Criterion's min is the fastest *sample mean* (each sample averages many calls), whereas SEAL's min is a single call, so this ratio is biased upward.
+- vs the SEAL lazy forward (median 332.3 µs): 1.26. Inverse medians: 408.9 / 356.0 = 1.15.
+
+Under load (earlier): Rust (416.4 µs) / SEAL (368.0 µs) = 1.13; range over runs 1–2 is 1.10 – 1.14, and 1.26 vs SEAL lazy.
 SEAL 4.1 on arm64 has no SIMD NTT path either (HEXL is x86-only), so this is scalar vs scalar.
 
 ### Plaintext training (400 epochs, same network/hyperparameters, `he_train --plain-train`)

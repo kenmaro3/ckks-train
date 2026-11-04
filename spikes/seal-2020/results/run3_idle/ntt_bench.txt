@@ -1,0 +1,4 @@
+# SEAL 4.1.2 NTT bench: N = 2^16, q = 1152921504606584833 (60 bits), single thread
+forward ntt_negacyclic_harvey      reps 1000  median 373.7 us  mean 383.4 us  min 334.4 us  p90 407.8 us
+forward ntt_negacyclic_harvey_lazy reps 1000  median 332.3 us  mean 335.9 us  min 306.0 us  p90 345.1 us
+inverse_ntt_negacyclic_harvey      reps 1000  median 356.0 us  mean 363.6 us  min 329.4 us  p90 384.5 us
