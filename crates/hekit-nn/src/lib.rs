@@ -5,4 +5,5 @@ pub mod activation;
 pub mod dense;
 pub mod layout;
 pub mod loss;
+pub mod optim;
 pub mod sim;

@@ -1,4 +1,5 @@
-//! Encrypted dense layer, forward pass (Task 26; layout in `docs/layout.md` §2).
+//! Encrypted dense layer: forward (Task 26), transpose and backward (Task 27), weight and
+//! bias gradients (Task 28); layout in `docs/layout.md` §2–§3.
 //!
 //! # Op sequence (= [`crate::sim::sim_dense_forward`], op for op)
 //!
@@ -47,9 +48,10 @@
 
 use std::borrow::Cow;
 use std::collections::VecDeque;
+use std::sync::Arc;
 
 use hekit_ckks::linalg::{Diagonals, bsgs_rotation_steps};
-use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor, Evaluator};
+use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor, Evaluator, Plaintext};
 use hekit_core::error::{HekitError, Result};
 use hekit_core::sampler::Rng;
 use ndarray::Array2;
@@ -205,8 +207,10 @@ impl EncWeights {
     /// Wraps encrypted pre-rotated diagonals of a `d_out x d_in` layer (e.g. weights updated by
     /// the training step, or produced by the transpose).
     ///
-    /// Errors (`InvalidParams`): the layer does not fit `layout`, `diags.d() != m` or
-    /// `diags.stride() != layout.batch`.
+    /// Errors: `InvalidParams` if the layer does not fit `layout`, `diags.d() != m` or
+    /// `diags.stride() != layout.batch`; `LevelMismatch` / `ScaleMismatch` unless all entries
+    /// share one level and exactly one scale ([`EncWeights::level`] and
+    /// [`EncWeights::scale`] read entry 0; [`Diagonals::entries_mut`] can break this).
     pub fn from_diagonals(
         diags: Diagonals<Ciphertext>,
         d_out: usize,
@@ -224,6 +228,7 @@ impl EncWeights {
                 layout.batch
             )));
         }
+        check_uniform(&diags)?;
         Ok(EncWeights { diags, d_out, d_in })
     }
 
@@ -675,5 +680,298 @@ impl Dense {
     /// If the layer does not fit `layout`.
     pub fn backward_rotation_steps(&self, layout: &Layout) -> Vec<i32> {
         backward_rotation_steps(self.w.d_out, self.w.d_in, layout)
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Task 28: weight and bias gradients (`docs/layout.md` §3).
+// ---------------------------------------------------------------------------------------------
+
+/// `LevelMismatch` / `ScaleMismatch` unless all entries share one level and exactly one scale.
+pub(crate) fn check_uniform(diags: &Diagonals<Ciphertext>) -> Result<()> {
+    let first = &diags.entries()[0];
+    for e in diags.entries() {
+        if e.level() != first.level() {
+            return Err(HekitError::LevelMismatch);
+        }
+        if e.scale() != first.scale() {
+            return Err(HekitError::ScaleMismatch);
+        }
+    }
+    Ok(())
+}
+
+impl EncWeights {
+    /// Replaces the diagonals by `diags` of the same shape (an optimizer update).
+    ///
+    /// Errors: `InvalidParams` if `d` or the stride differ; as [`check_uniform`].
+    pub(crate) fn set_diagonals(&mut self, diags: Diagonals<Ciphertext>) -> Result<()> {
+        self.check_same_shape(&diags)?;
+        check_uniform(&diags)?;
+        self.diags = diags;
+        Ok(())
+    }
+
+    /// `InvalidParams` unless `other` has the shape (`d`, stride) of these diagonals.
+    pub(crate) fn check_same_shape(&self, other: &Diagonals<Ciphertext>) -> Result<()> {
+        if other.d() != self.diags.d() || other.stride() != self.diags.stride() {
+            return Err(HekitError::InvalidParams(format!(
+                "diagonals (d = {}, stride = {}) for weights with d = {}, stride = {}",
+                other.d(),
+                other.stride(),
+                self.diags.d(),
+                self.diags.stride()
+            )));
+        }
+        Ok(())
+    }
+}
+
+/// `InvalidParams` unless `ct` is a 2-component ciphertext over the evaluator's data basis
+/// (what the rotations and products of the gradient need), checked before any work.
+fn check_input(ev: &Evaluator, ct: &Ciphertext) -> Result<()> {
+    let ours = ct
+        .polys()
+        .iter()
+        .all(|p| Arc::ptr_eq(p.basis(), ev.params().basis_q()));
+    if !ours || ct.len() != 2 {
+        return Err(HekitError::InvalidParams(format!(
+            "gradient inputs must be 2-component ciphertexts over the evaluator's basis \
+             (got {} components{})",
+            ct.len(),
+            if ours { "" } else { ", foreign basis" }
+        )));
+    }
+    Ok(())
+}
+
+/// The lane steps of the batch sum: reduce `2^t` and replicate `-2^t`, `t < log2(batch)`.
+fn lane_steps(layout: &Layout) -> (Vec<i32>, Vec<i32>) {
+    let reduce: Vec<i32> = (0..layout.log_batch()).map(|t| 1 << t).collect();
+    let replicate = reduce.iter().map(|s| -s).collect();
+    (reduce, replicate)
+}
+
+/// The Galois steps of [`Dense::bias_grad`], sorted: the batch reduce `2^t` and replicate
+/// `-2^t`, `t < log2(batch)` (none for `batch = 1`).
+pub fn bias_grad_rotation_steps(layout: &Layout) -> Vec<i32> {
+    let (mut steps, rep) = lane_steps(layout);
+    steps.extend(rep);
+    steps.sort_unstable();
+    steps
+}
+
+/// The Galois steps of [`Dense::weight_grad`] (and [`Dense::bias_grad`]) for a `d_out x d_in`
+/// layer, sorted and distinct: the hoisted baby rotations of the layer input `k2 batch`
+/// (`1 <= k2 < baby`), the giant rotations of `delta` `-g k1 batch` (`1 <= k1 < giant`,
+/// `g = baby`) and [`bias_grad_rotation_steps`].
+///
+/// # Panics
+/// If the layer does not fit the layout ([`LayerShape::new`]).
+pub fn grad_rotation_steps(d_out: usize, d_in: usize, layout: &Layout) -> Vec<i32> {
+    let sh = LayerShape::new(d_out, d_in, layout);
+    let b = layout.batch;
+    let mut steps: Vec<i32> = (1..sh.baby).map(|k2| (k2 * b) as i32).collect();
+    steps.extend((1..sh.giant).map(|k1| -((sh.baby * k1 * b) as i32)));
+    steps.extend(bias_grad_rotation_steps(layout));
+    steps.sort_unstable();
+    steps.dedup();
+    steps
+}
+
+/// Steps 3–5 of the batch sum (`docs/layout.md` §3, [`crate::sim::sim_batchsum`]) of `v`
+/// (2 components, level `l >= 1`): reduce (`log2 B` rotations), multiply by the lane-0 mask
+/// `mask` (encoded at [`Evaluator::target_plain_scale`]`(v_reduced, target)`; the folded
+/// constant is inside it) and rescale (1 ct-pt, 1 level), replicate (`log2 B` rotations). The
+/// result is at level `l - 1` with scale exactly `target`.
+fn batch_sum(
+    ev: &Evaluator,
+    v: &Ciphertext,
+    mask: &Plaintext,
+    target: f64,
+    layout: &Layout,
+) -> Result<Ciphertext> {
+    let (reduce, replicate) = lane_steps(layout);
+    let mut v = v.clone();
+    for s in reduce {
+        let r = ev.rotate(&v, s)?;
+        v = ev.add(&v, &r)?;
+    }
+    let mut v = ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?;
+    for s in replicate {
+        let r = ev.rotate(&v, s)?;
+        v = ev.add(&v, &r)?;
+    }
+    Ok(v)
+}
+
+/// `c * lane0_mask` encoded at `scale` and `level`.
+fn lane0_plaintext(
+    ev: &Evaluator,
+    layout: &Layout,
+    c: f64,
+    scale: f64,
+    level: usize,
+) -> Result<Plaintext> {
+    if !c.is_finite() {
+        return Err(HekitError::InvalidParams(format!(
+            "gradient constant {c} must be finite"
+        )));
+    }
+    let mask: Vec<f64> = (0..layout.slots)
+        .map(|s| if s % layout.batch == 0 { c } else { 0.0 })
+        .collect();
+    Encoder::new(Arc::clone(ev.params())).encode(&mask, scale, level)
+}
+
+impl Dense {
+    /// The Galois steps [`Dense::weight_grad`] needs: [`grad_rotation_steps`] of this layer.
+    ///
+    /// # Panics
+    /// If the layer does not fit `layout`.
+    pub fn grad_rotation_steps(&self, layout: &Layout) -> Vec<i32> {
+        grad_rotation_steps(self.w.d_out, self.w.d_in, layout)
+    }
+
+    /// The weight gradient `delta^T A / batch` (the mean over the `B = layout.batch` lanes) as
+    /// pre-rotated, replicated diagonals: [`Dense::weight_grad_scaled`] with `c = 1 / B`.
+    ///
+    /// Errors as [`Dense::weight_grad_scaled`].
+    pub fn weight_grad(
+        &self,
+        ev: &Evaluator,
+        delta: &Ciphertext,
+        a_prev: &Ciphertext,
+        layout: &Layout,
+    ) -> Result<Diagonals<Ciphertext>> {
+        self.weight_grad_scaled(ev, delta, a_prev, layout, 1.0 / layout.batch as f64)
+    }
+
+    /// The weight gradient `c * delta^T A` (`d_out x d_in`, summed over the lanes) of this
+    /// layer, op for op [`crate::sim::sim_outer_batchsum`] (`docs/layout.md` §3). `delta` is
+    /// canonical with period `n_out` (the layer's `dz`), `a_prev` with period `n_in` (the
+    /// layer input). The constant `c` (e.g. `lr / n` for SGD, [`crate::optim::Optimizer::grad_scale`]
+    /// `/ n` in general, or 1 when the caller folded it into the derivative factor `s_L`) is
+    /// folded into the lane-0 mask plaintext: **it costs no level**.
+    ///
+    /// For `c = g k1 + k2`, entry `k1 baby + k2` is
+    /// `batchsum(rot(delta, -g k1 B) * rot(A, k2 B))`:
+    /// 1. both inputs are switched down (free) to the lower of their levels `l`; `baby - 1`
+    ///    hoisted rotations of `A` and `giant - 1` hoisted rotations of `delta`;
+    /// 2. per diagonal `mul` (1 tensor, 1 relin) and `rescale` (level `l - 1`);
+    /// 3. reduce `v += rot(v, 2^t)`, `t < log2 B`;
+    /// 4. [`Evaluator::mul_plain_to_scale`] by `c * lane0_mask` (encoded at
+    ///    [`Evaluator::target_plain_scale`], target `self.w.scale()`) and `rescale`
+    ///    (level `l - 2`, scale **exactly** `self.w.scale()`);
+    /// 5. replicate `v += rot(v, -2^t)`.
+    ///
+    /// Costs `(baby - 1) + (giant - 1) + 2 m log2 B` rotations, `m` tensors, `m` relins, `m`
+    /// ct-pt and `2 m` rescales (2 levels). The result is in exactly the packed, pre-rotated,
+    /// replicated form of [`EncWeights`] ([`crate::layout::pack_weight_diagonals`] of
+    /// `c delta^T A` in every lane), at level `l - 2` and scale `self.w.scale()`: the update
+    /// `W - dW` is a plain `sub` of identical scales after switching `W` down (free).
+    ///
+    /// An [`Encoder`] for the mask is built per call (`O(N)` tables, small next to the
+    /// rotations).
+    ///
+    /// Errors, all reported before any homomorphic work (the counter does not move):
+    /// `InvalidParams` if `layout` is not the weights' (slot count, batch), a key of
+    /// [`grad_rotation_steps`] or the relinearization key is missing, `c` is not finite, or
+    /// the inputs are not 2-component ciphertexts over the evaluator's basis; `NoLevelsLeft`
+    /// if `min(delta.level(), a_prev.level()) < 2`; `ScaleMismatch` if `self.w.scale()` is
+    /// not reachable by a rescale from level `l - 1`
+    /// ([`Evaluator::exact_product_scale`]; never for power-of-two weight scales).
+    pub fn weight_grad_scaled(
+        &self,
+        ev: &Evaluator,
+        delta: &Ciphertext,
+        a_prev: &Ciphertext,
+        layout: &Layout,
+        c: f64,
+    ) -> Result<Diagonals<Ciphertext>> {
+        let sh = self.w.shape(layout)?;
+        check_slots(layout, ev.params().slots())?;
+        self.w.check_batch(layout)?;
+        check_keys(ev, &grad_rotation_steps(sh.d_out, sh.d_in, layout))?;
+        if ev.relin_key().is_none() {
+            return Err(HekitError::InvalidParams(
+                "evaluator has no relinearization key".into(),
+            ));
+        }
+        for ct in [delta, a_prev] {
+            check_input(ev, ct)?;
+        }
+        let level = delta.level().min(a_prev.level());
+        if level < 2 {
+            return Err(HekitError::NoLevelsLeft);
+        }
+        // The scale of every product after its rescale (rotations keep scales), and the
+        // mask plaintext that lands it exactly on the weights' scale.
+        let prod_scale = delta.scale() * a_prev.scale() / ev.params().q()[level] as f64;
+        let target = self.w.scale();
+        let mask_scale = ev.exact_product_scale(level - 1, target)? / prod_scale;
+        let mask = lane0_plaintext(ev, layout, c, mask_scale, level - 1)?;
+
+        let b = layout.batch;
+        let delta = ev.mod_switch_to_level(delta, level)?;
+        let a = ev.mod_switch_to_level(a_prev, level)?;
+        let a_steps: Vec<i32> = (0..sh.baby).map(|k2| (k2 * b) as i32).collect();
+        let d_steps: Vec<i32> = (0..sh.giant)
+            .map(|k1| -((sh.baby * k1 * b) as i32))
+            .collect();
+        let a_rot = ev.hoisted_rotate(&a, &a_steps)?;
+        let d_rot = ev.hoisted_rotate(&delta, &d_steps)?;
+        let entries = (0..sh.m)
+            .map(|e| {
+                let p = ev.rescale(&ev.mul(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?)?;
+                batch_sum(ev, &p, &mask, target, layout)
+            })
+            .collect::<Result<Vec<_>>>()?;
+        Diagonals::from_prerotated(sh.m, b, entries)
+    }
+
+    /// The bias gradient `sum_b delta_b / batch` in canonical form (every lane):
+    /// [`Dense::bias_grad_scaled`] with `c = 1 / layout.batch`.
+    ///
+    /// Errors as [`Dense::bias_grad_scaled`].
+    pub fn bias_grad(
+        &self,
+        ev: &Evaluator,
+        delta: &Ciphertext,
+        layout: &Layout,
+    ) -> Result<Ciphertext> {
+        self.bias_grad_scaled(ev, delta, layout, 1.0 / layout.batch as f64)
+    }
+
+    /// The bias gradient `c * sum_b delta_b` (`d_out` values) in canonical form, replicated in
+    /// every lane, op for op [`crate::sim::sim_batchsum`]: reduce (`log2 B` rotations),
+    /// [`Evaluator::mul_plain_to_scale`] by `c * lane0_mask` with target `self.b.scale()` and
+    /// `rescale` (1 ct-pt, 1 level), replicate (`log2 B` rotations). The result is at
+    /// `delta.level() - 1` with scale **exactly** `self.b.scale()`, so `b - db` (after
+    /// switching `b` down) is a plain `sub` and the updated bias still has the exact scale
+    /// [`Dense::forward`] requires. `c` folds at no level, as in [`Dense::weight_grad_scaled`].
+    ///
+    /// Errors, all before any homomorphic work: `InvalidParams` if `layout` is not the
+    /// weights', a key of [`bias_grad_rotation_steps`] is missing, `c` is not finite or
+    /// `delta` is not a 2-component ciphertext over the evaluator's basis; `NoLevelsLeft` at
+    /// level 0; `ScaleMismatch` if `self.b.scale()` is not reachable by a rescale from
+    /// `delta.level()` ([`Evaluator::exact_product_scale`]; possible but rare for a bias
+    /// encrypted for a rescaled input scale: switch `delta` down a level and retry).
+    pub fn bias_grad_scaled(
+        &self,
+        ev: &Evaluator,
+        delta: &Ciphertext,
+        layout: &Layout,
+        c: f64,
+    ) -> Result<Ciphertext> {
+        self.w.shape(layout)?;
+        check_slots(layout, ev.params().slots())?;
+        self.w.check_batch(layout)?;
+        check_keys(ev, &bias_grad_rotation_steps(layout))?;
+        check_input(ev, delta)?;
+        let target = self.b.scale();
+        let mask_scale = ev.target_plain_scale(delta, target)?;
+        let mask = lane0_plaintext(ev, layout, c, mask_scale, delta.level())?;
+        batch_sum(ev, delta, &mask, target, layout)
     }
 }
