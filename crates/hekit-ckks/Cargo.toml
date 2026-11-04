@@ -1,0 +1,10 @@
+[package]
+name = "hekit-ckks"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "hekit-ckks (temporary name)"
+
+[dependencies]

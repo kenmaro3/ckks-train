@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/hekit-core",
+    "crates/hekit-ckks",
+    "crates/hekit-nn",
+    "crates/hekit-bench",
+]
+exclude = ["spikes"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
