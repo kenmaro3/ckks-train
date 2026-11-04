@@ -8,15 +8,21 @@ use crate::params::{
     CkksParams, N16_BOOT_CTOS_LEVELS, N16_BOOT_EVALMOD_LEVELS, N16_BOOT_STOC_LEVELS,
 };
 
+/// Ephemeral Hamming weight h' of [`BootParams::default_n16`]: sparse-secret encapsulation
+/// (Bossuat, Troncoso-Pastoriza, Hubaux, ACNS 2022) switches to an h' = 32 key for the mod-raise
+/// (controller ruling R-M3-5, docs/bootstrap.md §7).
+pub const N16_EPHEMERAL_HW: usize = 32;
 /// EvalMod interval `K` of [`BootParams::default_n16`]: the polynomial is accurate on
-/// `x = t / q_0` in `[-K, K]` (covers `|I| <= K - 1`). 13 gives a failure probability of
-/// 2^-39.7 per bootstrap **only if the mod-raise runs under a sparse h' = 32 key**
-/// (sparse-secret encapsulation, docs/bootstrap.md §3, §7); a dense key needs K ~ 420.
+/// `x = t / q_0` in `[-K, K]` (covers `|I| <= K - 1`). **Assumes SSE with h' = 32**: then 13
+/// gives a failure probability of 2^-39.7 per bootstrap (docs/bootstrap.md §3); a mod-raise under
+/// the dense key itself would need K ~ 420 and 12 EvalMod levels.
 pub const N16_K_INTERVALS: usize = 13;
-/// Chebyshev degree of [`BootParams::default_n16`]: 127, i.e. ceil(log2(128)) = 7 levels;
-/// sine error 2^-43.8 at K = 13 after one double angle (docs/bootstrap.md §4).
+/// Chebyshev degree of [`BootParams::default_n16`] (assumes SSE with h' = 32, K = 13): 127, i.e.
+/// ceil(log2(128)) = 7 levels; sine error 2^-43.8 at K = 13 after one double angle
+/// (docs/bootstrap.md §4).
 pub const N16_CHEB_DEGREE: usize = 127;
-/// Double-angle steps of [`BootParams::default_n16`]: 1 level, 7 + 1 = 8 = EvalMod band.
+/// Double-angle steps of [`BootParams::default_n16`] (assumes SSE with h' = 32): 1 level,
+/// 7 + 1 = 8 = EvalMod band.
 pub const N16_DOUBLE_ANGLE: usize = 1;
 
 /// Bootstrapping parameters. The bands are consumed from the top of the modulus chain:
@@ -38,18 +44,21 @@ pub struct BootParams {
     pub cheb_degree: usize,
     /// Number `r` of double-angle steps `c <- 2c^2 - 1` after the Chebyshev evaluation.
     pub double_angle: usize,
-    /// Hamming weight of the secret the mod-raise sees; `None` = dense ternary (hekit default).
+    /// Hamming weight of the main secret key; `None` = dense ternary (hekit default, -1/0/1 with
+    /// probability 1/4, 1/2, 1/4, so h ~ N/2).
     pub sparse_hw: Option<usize>,
+    /// Hamming weight h' of the ephemeral key of sparse-secret encapsulation: the ciphertext is
+    /// switched to it at level 0, mod-raised under it, and switched back to the main key at the
+    /// top level. `None` = mod-raise under the main key.
+    pub ephemeral_hw: Option<usize>,
 }
 
 impl BootParams {
-    /// Full-slot parameters for [`CkksParams::n16_boot`]: CoeffToSlot 4, EvalMod 8, SlotToCoeff 3,
-    /// K = 13, degree 127, r = 1, dense secret (`sparse_hw = None`).
-    ///
-    /// The EvalMod constants assume sparse-secret encapsulation to h' = 32 before the mod-raise,
-    /// which the plan does not have yet: with the dense key itself no 8-level EvalMod exists,
-    /// and at q_0/Delta = 2^16 the predicted precision is 14.4 bits (< 16). See
-    /// docs/bootstrap.md §5-§7 before using these values.
+    /// Full-slot parameters for [`CkksParams::n16_boot`] (ruling R-M3-5): CoeffToSlot 4,
+    /// EvalMod 8, SlotToCoeff 3, dense main key (`sparse_hw = None`), sparse-secret encapsulation
+    /// to `ephemeral_hw = Some(32)`, and K = 13, degree 127, r = 1. The EvalMod constants assume
+    /// that SSE: they are sized for an h' = 32 mod-raise key (docs/bootstrap.md §3, §4).
+    /// Predicted precision 18.4 bits at q_0/Delta = 2^12 (docs/bootstrap.md §6).
     pub fn default_n16() -> BootParams {
         BootParams {
             log_slots: 15,
@@ -60,7 +69,26 @@ impl BootParams {
             cheb_degree: N16_CHEB_DEGREE,
             double_angle: N16_DOUBLE_ANGLE,
             sparse_hw: None,
+            ephemeral_hw: Some(N16_EPHEMERAL_HW),
         }
+    }
+
+    /// Hamming weight of the key the mod-raise runs under: `ephemeral_hw`, else `sparse_hw`,
+    /// else `N / 2` (the expected weight of the dense ternary key).
+    pub fn mod_raise_hw(&self, params: &CkksParams) -> usize {
+        self.ephemeral_hw
+            .or(self.sparse_hw)
+            .unwrap_or(params.n() / 2)
+    }
+
+    /// Coarse lower bound on `k_intervals`: `7 sigma_I + 1/2` with
+    /// `sigma_I = sqrt((h + 1) / 12)` for the mod-raise key weight `h` (docs/bootstrap.md §3).
+    /// A 7-sigma Gaussian tail is about 2^-22.5 per bootstrap at N = 2^16, so this is necessary,
+    /// not sufficient; the document sizes K for 2^-30 (13 for h' = 32, 32 for h = 192, ~420 for
+    /// the dense key).
+    pub fn min_k_intervals(&self, params: &CkksParams) -> usize {
+        let h = self.mod_raise_hw(params) as f64;
+        (7.0 * ((h + 1.0) / 12.0).sqrt() + 0.5).ceil() as usize
     }
 
     /// Levels EvalMod consumes: `ceil(log2(cheb_degree + 1)) + double_angle` (baby-step
@@ -73,7 +101,9 @@ impl BootParams {
     /// Checks the parameters against `params`. Errors (`InvalidParams`): `log_slots` outside
     /// `1..=log_n - 1`; a band of zero levels; the three bands not leaving at least one compute
     /// level above the base; `k_intervals` or `cheb_degree` zero; [`Self::evalmod_depth`] above
-    /// `evalmod_levels`; `sparse_hw > N`.
+    /// `evalmod_levels`; `sparse_hw` or `ephemeral_hw` outside `1..=N`; `ephemeral_hw` not below
+    /// the main key's weight (`sparse_hw`, or `N / 2` for the dense key); `k_intervals` below
+    /// [`Self::min_k_intervals`] (for example the SSE constants without SSE).
     pub fn validate(&self, params: &CkksParams) -> Result<()> {
         let bad = |m: String| Err(HekitError::InvalidParams(m));
         if !(1..params.log_n()).contains(&self.log_slots) {
@@ -107,10 +137,32 @@ impl BootParams {
                 self.evalmod_levels
             ));
         }
-        if let Some(h) = self.sparse_hw {
-            if h > params.n() {
-                return bad(format!("sparse_hw {h} exceeds N = {}", params.n()));
+        let n = params.n();
+        for (name, hw) in [
+            ("sparse_hw", self.sparse_hw),
+            ("ephemeral_hw", self.ephemeral_hw),
+        ] {
+            if let Some(h) = hw {
+                if !(1..=n).contains(&h) {
+                    return bad(format!("{name} {h} outside 1..={n}"));
+                }
             }
+        }
+        if let Some(e) = self.ephemeral_hw {
+            let main = self.sparse_hw.unwrap_or(n / 2);
+            if e >= main {
+                return bad(format!(
+                    "ephemeral_hw {e} must be below the main key weight {main}"
+                ));
+            }
+        }
+        let min_k = self.min_k_intervals(params);
+        if self.k_intervals < min_k {
+            return bad(format!(
+                "k_intervals {} below {min_k} = 7 sigma_I + 1/2 for a mod-raise key of weight {}",
+                self.k_intervals,
+                self.mod_raise_hw(params)
+            ));
         }
         Ok(())
     }
@@ -142,6 +194,28 @@ mod tests {
         assert_eq!(bp.cheb_degree, N16_CHEB_DEGREE);
         assert_eq!(bp.double_angle, N16_DOUBLE_ANGLE);
         assert_eq!(bp.sparse_hw, None);
+        assert_eq!(bp.ephemeral_hw, Some(32));
+        assert_eq!(bp.ephemeral_hw, Some(N16_EPHEMERAL_HW));
+    }
+
+    #[test]
+    fn min_k_follows_mod_raise_key() {
+        let p = CkksParams::n16_boot();
+        let d = BootParams::default_n16();
+        assert_eq!(d.mod_raise_hw(&p), 32);
+        assert_eq!(d.min_k_intervals(&p), 13);
+        let h192 = BootParams {
+            sparse_hw: Some(192),
+            ephemeral_hw: None,
+            ..d.clone()
+        };
+        assert_eq!(h192.min_k_intervals(&p), 29);
+        let dense = BootParams {
+            ephemeral_hw: None,
+            ..d
+        };
+        assert_eq!(dense.mod_raise_hw(&p), 1 << 15);
+        assert_eq!(dense.min_k_intervals(&p), 367);
     }
 
     #[test]
@@ -269,6 +343,39 @@ mod tests {
                 sparse_hw: Some((1 << 16) + 1),
                 ..d.clone()
             },
+            BootParams {
+                sparse_hw: Some(0),
+                ..d.clone()
+            },
+            BootParams {
+                ephemeral_hw: Some(0),
+                ..d.clone()
+            },
+            BootParams {
+                ephemeral_hw: Some((1 << 16) + 1),
+                ..d.clone()
+            },
+            BootParams {
+                ephemeral_hw: Some(1 << 15),
+                ..d.clone()
+            },
+            BootParams {
+                sparse_hw: Some(16),
+                ..d.clone()
+            },
+            BootParams {
+                ephemeral_hw: None,
+                ..d.clone()
+            },
+            BootParams {
+                k_intervals: 12,
+                ..d.clone()
+            },
+            BootParams {
+                sparse_hw: Some(192),
+                ephemeral_hw: None,
+                ..d.clone()
+            },
         ];
         for bp in bad {
             assert!(
@@ -283,5 +390,15 @@ mod tests {
         };
         ok.validate(&p).unwrap();
         assert_eq!(levels_after_boot(&p, &ok), 1);
+        // The h = 192 alternative of docs/bootstrap.md §4 (no SSE): K = 32, degree 255, r = 0.
+        let h192 = BootParams {
+            sparse_hw: Some(192),
+            ephemeral_hw: None,
+            k_intervals: 32,
+            cheb_degree: 255,
+            double_angle: 0,
+            ..BootParams::default_n16()
+        };
+        h192.validate(&p).unwrap();
     }
 }

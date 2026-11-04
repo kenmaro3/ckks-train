@@ -28,21 +28,22 @@ pub const N16_BOOT_STOC_LEVELS: usize = 3;
 pub const N16_BOOT_EVALMOD_LEVELS: usize = 8;
 /// `n16_boot` CoeffToSlot levels (42-bit primes, levels 28..=31).
 pub const N16_BOOT_CTOS_LEVELS: usize = 4;
-/// `n16_boot` special-prime count (58-bit each, log P = 232 >= the largest digit).
+/// `n16_boot` special-prime count (60-bit each: log P = 240 exceeds the largest digit, 4 x 58 =
+/// 232, by 8 bits, so the key-error term of the EvalMod digits is negligible; ruling R-M3-5).
 pub const N16_BOOT_K: usize = 4;
 /// `n16_boot` digit count (32 q primes, 4 per digit).
 pub const N16_BOOT_DNUM: usize = 8;
 
 /// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
-/// `[58, 42 x 16 (compute), 42 x 3 (SlotToCoeff), 58 x 8 (EvalMod), 42 x 4 (CoeffToSlot)]`,
-/// p is `[58 x 4]`.
+/// `[54, 42 x 16 (compute), 42 x 3 (SlotToCoeff), 58 x 8 (EvalMod), 42 x 4 (CoeffToSlot)]`,
+/// p is `[60 x 4]`. The 54-bit base gives q_0 / Delta = 2^12 (docs/bootstrap.md §6).
 pub fn n16_boot_bits() -> (Vec<u32>, Vec<u32>) {
-    let mut q = vec![58];
+    let mut q = vec![54];
     q.extend(vec![42; N16_BOOT_COMPUTE_LEVELS]);
     q.extend(vec![42; N16_BOOT_STOC_LEVELS]);
     q.extend(vec![58; N16_BOOT_EVALMOD_LEVELS]);
     q.extend(vec![42; N16_BOOT_CTOS_LEVELS]);
-    (q, vec![58; N16_BOOT_K])
+    (q, vec![60; N16_BOOT_K])
 }
 
 /// CKKS parameters: ring degree, RNS moduli Q (data) and P (special), scale, key-switch digits.
@@ -161,7 +162,7 @@ impl CkksParams {
     }
 
     /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
-    /// 31, log PQ = 1720), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
+    /// 31, log PQ = 1724), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
     /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`; the
     /// 128-bit security estimate is Task 39's.
     pub fn n16_boot() -> CkksParams {
@@ -366,7 +367,7 @@ mod tests {
         let p = CkksParams::n16_boot();
         assert_eq!(p.n(), 1 << 16);
         assert_eq!(p.max_level(), 31);
-        assert!((p.log_pq() - 1720.0).abs() <= 2.0, "{}", p.log_pq());
+        assert!((p.log_pq() - 1724.0).abs() <= 2.0, "{}", p.log_pq());
         assert!(p.log_pq() <= 1750.0, "{}", p.log_pq());
         assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
         assert_eq!(p.scale(), 2f64.powi(42));
@@ -379,12 +380,12 @@ mod tests {
     fn n16_boot_bands() {
         let p = CkksParams::n16_boot();
         let q = p.q_bits();
-        assert_eq!(q[0], 58);
+        assert_eq!(q[0], 54);
         assert!(q[1..=16].iter().all(|&b| b == 42), "compute band");
         assert!(q[17..=19].iter().all(|&b| b == 42), "SlotToCoeff band");
         assert!(q[20..=27].iter().all(|&b| b == 58), "EvalMod band");
         assert!(q[28..=31].iter().all(|&b| b == 42), "CoeffToSlot band");
-        assert_eq!(p.p_bits(), &[58; 4]);
+        assert_eq!(p.p_bits(), &[60; 4]);
     }
 
     #[test]
@@ -427,15 +428,15 @@ mod tests {
         assert!(CkksParams::new(16, &q_bits, &p_bits, 42, 7).is_err());
     }
 
-    /// Exact (not nominal) digit sizes: the two all-58-bit EvalMod digits stay below P because
-    /// SEAL-style assignment gives P the four largest 58-bit primes.
+    /// Exact (not nominal) digit sizes: every digit, including the two all-58-bit EvalMod
+    /// digits, is at least 8 bits below log P = 4 x 60.
     #[test]
     fn n16_boot_digits_below_p_exactly() {
         let p = CkksParams::n16_boot();
         let log_p: f64 = p.p().iter().map(|&m| (m as f64).log2()).sum();
         for d in p.q().chunks(p.alpha()) {
             let bits: f64 = d.iter().map(|&m| (m as f64).log2()).sum();
-            assert!(bits < log_p, "digit {bits} >= log P {log_p}");
+            assert!(bits <= log_p - 7.99, "digit {bits} vs log P {log_p}");
         }
     }
 

@@ -10,7 +10,9 @@ Sections:
      cos(2 pi (x - 1/4) / 2^r) on [-K, K] of degree 2^(8 - r) - 1, then r double angles,
      measured at the points x = I + delta (|I| <= K - 1, |delta| <= 2^-20) that occur.
   3. Smallest EvalMod depth for the dense key (K = 400, 420).
-  4. Predicted bootstrap precision (bits, max over 2^15 slots) for the candidate designs.
+  4. Predicted bootstrap precision (bits, max over 2^15 slots) for the candidate designs,
+     including the chosen design of controller ruling R-M3-5 (dense key + SSE h' = 32,
+     q0 = 54 bits so q0/Delta = 2^12, P = 4 x 60 bits).
 """
 import math
 from fractions import Fraction
@@ -72,10 +74,22 @@ def slot_noise(h):
     return math.hypot(rs, ks)
 
 
-def predict(K, r, d, h_noise, log_ratio, log_scale=58, levels=8):
-    """Predicted precision bits and the three terms (input noise, internal noise, approximation)."""
+def digit_noise(log_qd_over_p, ndigits=2):
+    """Worst-case key-error term of a key switch: sum over the digits whose modulus Q_d is close
+    to P of [c]_{Q_d} e_d / P, coefficient std (Q_d/P) * 3.2 * sqrt(N/12), in slot rms.
+    n16_boot has two all-58-bit digits (4 x 58 = 232 bits): Q_d/P ~ 2^0 with P = 4 x 58 and
+    2^-8 with P = 4 x 60. Counted at the working scale of the CtS output (pessimistic)."""
+    return math.sqrt(N / 2) * math.sqrt(ndigits) * 2.0**log_qd_over_p * 3.2 * math.sqrt(N / 12)
+
+
+def predict(K, r, d, h_noise, log_ratio, log_scale=58, levels=8, log_qd_over_p=None):
+    """Predicted precision bits and the three terms (input noise, internal noise, approximation).
+    With `log_qd_over_p`, the worst-case digit term is added to the CtS output noise."""
     s = 2.0**log_scale
-    sig_in = slot_noise(h_noise) / s  # y = x / K units, CtS output
+    noise_in = slot_noise(h_noise)
+    if log_qd_over_p is not None:
+        noise_in = math.hypot(noise_in, digit_noise(log_qd_over_p))
+    sig_in = noise_in / s  # y = x / K units, CtS output
     err, amp = sin_error(K, r, d)
     sig_int = math.sqrt(levels) * slot_noise(h_noise) / s * amp  # sin units
     to_bits = lambda sig_x: -math.log2(MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio * sig_x)
@@ -134,6 +148,15 @@ def main():
         for name, K, r, d, h in designs:
             bits, (t_in, t_int, t_apx) = predict(K, r, d, h, log_ratio)
             print(f"  {name:44s} {bits:5.1f}  [input {t_in:5.1f}, internal {t_int:5.1f}, approx {t_apx:5.1f}]")
+    print("\n## 5. chosen design (ruling R-M3-5): dense + SSE h'=32, K=13, r=1, d=127, q0/Delta = 2^12")
+    for label, lq in [("P = 4 x 60 (chosen), digit term 2^-8", -8.0), ("P = 4 x 58, digit term 2^0", 0.0)]:
+        bits, terms = predict(13, 1, 127, 32768, 12, log_qd_over_p=lq)
+        print(f"  {label:38s} {bits:5.1f}  [input {terms[0]:5.1f}]  digit noise 2^{math.log2(digit_noise(lq)):.1f}")
+    bits, _ = predict(13, 1, 127, 32768, 10, log_qd_over_p=-8.0)
+    print(f"  fallback q0 = 52 bits (q0/Delta = 2^10), P = 4 x 60: {bits:.1f}")
+    print(f"  uncorrected sine-vs-mod term at 2^12: {sine_vs_mod_bits(12):.1f} bits "
+          f"(|m| <= 8: {sine_vs_mod_bits(12) - 9:.1f})")
+    print()
     bits, _ = predict(13, 1, 127, 32768, 16, log_scale=60)
     print(f"dense + SSE, K=13, r=1, q0/Delta = 2^16, EvalMod primes 60-bit: {bits:.1f}")
     for log_ratio in [16, 8]:
