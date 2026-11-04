@@ -9,3 +9,8 @@ description = "hekit-ckks (temporary name)"
 
 [dependencies]
 hekit-core = { path = "../hekit-core" }
+num-complex = "0.4"
+
+[dev-dependencies]
+rand_chacha = "0.9"
+rand_core = "0.9"
