@@ -130,24 +130,48 @@ def _select_layers(log_slots: int, budget: int) -> tuple[int, int, int]:
     return layers, rows, rem
 
 
-def _lt_rotations(slots: int, budget: int) -> int:
-    """Key switches of one CoeffsToSlots / SlotsToCoeffs (OpenFHE GetCollapsedFFTParams with
-    dim1 = 0, EvalCoeffsToSlots): per level g-1 hoisted baby rotations (one of the g offsets is 0)
-    + b-1 giant rotations; `budget - 1` full levels (if a remainder level exists) + the remainder."""
+def _collapsed_fft_params(slots: int, budget: int) -> dict:
+    """Port of OpenFHE ckksrns-utils.cpp GetCollapsedFFTParams(slots, levelBudget, dim1 = 0)."""
     log_slots = max(1, log2i(slots))
-    layers_collapse, _rows, rem_collapse = _select_layers(log_slots, budget)
+    lc, _rows, rc = _select_layers(log_slots, budget)
 
-    def gb(collapse: int) -> tuple[int, int]:
+    def gb(collapse: int) -> tuple[int, int, int]:
         num_rot = (1 << (collapse + 1)) - 1
         g = 1 << (collapse // 2 + (2 if num_rot > 7 else 1))
-        return g, (num_rot + 1) // g
+        return num_rot, g, (num_rot + 1) // g
 
-    g, b = gb(layers_collapse)
-    full_levels = budget - 1 if rem_collapse else budget
-    total = full_levels * ((g - 1) + (b - 1))
-    if rem_collapse:
-        g_r, b_r = gb(rem_collapse)
-        total += (g_r - 1) + (b_r - 1)
+    nr, g, b = gb(lc)
+    nrr, gr, br = gb(rc) if rc else (0, 0, 0)
+    return dict(lc=lc, rc=rc, nr=nr, g=g, b=b, nrr=nrr, gr=gr, br=br)
+
+
+def _lt_rotations(slots: int, budget: int, kind: str = "enc") -> int:
+    """Key switches of one CoeffsToSlots ("enc") / SlotsToCoeffs ("dec"), counted by enumerating the
+    rotation offsets exactly as OpenFHE 1.2.1 ckksrns-fhe.cpp builds them (EvalCoeffsToSlots
+    rot_in / rot_out ~l.1698-1716, EvalSlotsToCoeffs ~l.1907-1930): per level, one hoisted
+    EvalFastRotationExt per non-zero baby offset (j - (numRot+1)/2 + 1) * 2^shift, j < g (these are
+    centred, so none is zero for full packing) and one per non-zero giant offset g*i*2^shift, i < b
+    (i = 0 is skipped). Full packing (slots = M/4), so both offsets are reduced mod `slots`."""
+    p = _collapsed_fft_params(slots, budget)
+    flag = 1 if p["rc"] else 0
+    total = 0
+
+    def level(nr, g, b, shift):
+        baby = sum(((j - (nr + 1) // 2 + 1) * shift) % slots != 0 for j in range(g))
+        giant = sum((g * i * shift) % slots != 0 for i in range(1, b))
+        return baby + giant
+
+    if kind == "enc":
+        for s in range(budget - 1, flag - 1, -1):  # s > stop, stop = 0 if remainder else -1
+            total += level(p["nr"], p["g"], p["b"], 1 << ((s - flag) * p["lc"] + p["rc"]))
+        if flag:
+            total += level(p["nrr"], p["gr"], p["br"], 1)
+    else:
+        for s in range(budget - flag):
+            total += level(p["nr"], p["g"], p["b"], 1 << (s * p["lc"]))
+        if flag:
+            s = budget - flag
+            total += level(p["nrr"], p["gr"], p["br"], 1 << (s * p["lc"]))
     return total
 
 
@@ -166,12 +190,14 @@ def bootstrap_key_switches(slots: int, level_budget=(2, 2), iterations: int = 2)
     with ReBoot's settings (experiments/config/fhe_config_mlp1.yaml: level_budget [2, 2],
     SPARSE_TERNARY, num_iterations 2 -> Meta-BTS = two full bootstraps, ckksrns-fhe.cpp:366-378).
 
-    Per bootstrap: CoeffsToSlots + SlotsToCoeffs rotations (exact, from the code), 1 conjugation
+    Per bootstrap: CoeffsToSlots + SlotsToCoeffs rotations (counted from the code's offset tables,
+    see _lt_rotations: 2 x 109 at 2^15 slots, 2 x 141 at 2^16; one giant offset per transform wraps
+    to 0 mod slots and is skipped by OpenFHE), 1 conjugation
     (full packing), and two EvalMod evaluations (real and imaginary part, ckksrns-fhe.cpp:572-588),
     each = Chebyshev series of degree 44 (estimate via OpenFHE's own PS mult formula) + R_SPARSE = 3
     double-angle squarings. The EvalMod part is an ESTIMATE (~13% of the total).
     """
-    lt = _lt_rotations(slots, level_budget[0]) + _lt_rotations(slots, level_budget[1])
+    lt = _lt_rotations(slots, level_budget[0], "enc") + _lt_rotations(slots, level_budget[1], "dec")
     conj = 1
     evalmod = 2 * (_ps_mults(44) + 3)
     one = lt + conj + evalmod
@@ -239,6 +265,7 @@ def _diag_batched(
     momentum=True,
     decay=True,
     samples_per_ct=None,
+    compact=True,
 ):
     """Batched diagonal packing (this work). Layout invariant: an activation vector of dimension d
     for B' samples is stored S-periodically, slot s holds sample (s mod B') feature
@@ -268,6 +295,10 @@ def _diag_batched(
              the NAG velocity V; NAG = scalar mults only; bootstrap W and V (2*nW per update).
              Unpack for the next forward: per diagonal 1 mask + 1 lane shift (m - nW rotations) +
              log2(S/L) replication rotations (over the B' samples and the S/(L*B') periods).
+    compact=False (no re-layout, for comparison): after the batch reduction and mask, each gradient
+             diagonal is replicated back to the expanded layout directly (m*log2(S/L) rotations,
+             counted in the gradient phase, no lane shifts, no second mask); NAG runs on the m
+             expanded W and V diagonals and all 2*m of them are bootstrapped.
     Infeasible (B > S/L, i.e. d_pad*B > S): k = ceil(B/B') ciphertexts per batch; per-ciphertext
     phases scale with k, per-update phases do not.
     """
@@ -301,10 +332,15 @@ def _diag_batched(
         _add(ph["backward"], k, ct_ct_mults=m, relins=n2, rotations=(n1 - 1) + (n2 - 1) + f_bwd)
     # gradient
     _add(ph["gradient"], k, rotations=n2 - 1, ct_ct_mults=m)
-    _add(ph["gradient"], relins=m, rotations=m * log2i(bp) + (m - nw), ct_pt_mults=m)
-    # update: optimizer on compact ciphertexts, then unpack (mask, lane shift, replicate)
-    _add(ph["update"], ct_pt_mults=nw * nag_pt_mults(momentum, decay))
-    _add(ph["update"], ct_pt_mults=m, rotations=(m - nw) + m * log2i(slots // L))
+    if compact:
+        _add(ph["gradient"], relins=m, rotations=m * log2i(bp) + (m - nw), ct_pt_mults=m)
+        # update: optimizer on compact ciphertexts, then unpack (mask, lane shift, replicate)
+        _add(ph["update"], ct_pt_mults=nw * nag_pt_mults(momentum, decay))
+        _add(ph["update"], ct_pt_mults=m, rotations=(m - nw) + m * log2i(slots // L))
+    else:
+        nw = m  # every expanded diagonal is its own W (and V) ciphertext
+        _add(ph["gradient"], relins=m, rotations=m * log2i(bp) + m * log2i(slots // L), ct_pt_mults=m)
+        _add(ph["update"], ct_pt_mults=m * nag_pt_mults(momentum, decay))
     for p in ph.values():
         p["paper_mults"] = p["ct_ct_mults"]
     extra = {
@@ -316,6 +352,7 @@ def _diag_batched(
         "d_out_pad": dout,
         "bsgs": (n1, n2),
         "weight_ciphertexts": nw,
+        "compact": compact,
     }
     return ph, extra
 
@@ -371,6 +408,9 @@ def _reboot(
     * Update: NAG, scalar mults only (nn.cpp compute_nesterov); then bootstrap W and V once per
       mini-batch (lib/utils/train.py:76 model.bootstrap; lib/models/models.py:131 weights +
       velocities; paper Alg. 1 lines 11-12).
+    At N = 2^17 the slot-filling rule makes r = 2048 (11 sumRows rotations, 39 KS/sample for eMLP-1);
+    a custom sumRows over only next_pow2(784) = 1024 rows would need replicated weights/products and
+    is not what ReBoot does; it would be ~5% cheaper (37 KS/sample), not modelled.
     No hoisting is used (rotations inside EvalSumRows/EvalSumCols are sequentially dependent),
     no multi-sample packing, no reuse of expansions (none are needed: formats alternate).
     """
@@ -561,6 +601,10 @@ def network_cost(
     likewise) unless first_backward=True (Table 2 counts it). `scope` limits the phases summed.
     per_sample: ks = (rotations + relins)/batch, ks_spec = (rotations + relins +
     bootstraps*boot_ks)/batch with boot_ks = bootstrap_key_switches(slots)["total"] by default.
+    Also the spec's literal metric ks_literal = (rotations + ct-ct mults)/batch and ks_literal_spec
+    (+ bootstraps). The primary metric counts relins because a key switch happens at the
+    relinearisation, not at the tensor product: with one relin per product (ReBoot, 2020) the two
+    coincide, with lazy relinearisation several tensor products share one key switch.
     """
     layers = _norm_layers(layers)
     extra_net = {}
@@ -609,14 +653,18 @@ def network_cost(
     out["batch"] = batch
     out["slots"] = slots
     out["ciphertexts"] = max(r_["ciphertexts"] for r_ in res)
-    out["infeasible"] = any(r_["infeasible"] for r_ in res) or extra_net.get("_bad", False)
+    out["infeasible"] = any(r_["infeasible"] for r_ in res)
     if layout == "reboot":
         out["infeasible"] = out["infeasible"] or bad
     out.update(extra_net)
     if boot_ks is None:
         boot_ks = bootstrap_key_switches(slots)["total"]
     out["boot_ks"] = boot_ks
+    boots_ks = out["bootstraps_per_update"] * boot_ks
     out["per_sample"] = {
+        # literal spec metric (research plan RQ1 / Sec. 4.3.2): rotations + ct-ct mults (+ bootstraps)
+        "ks_literal": (out["rotations"] + out["ct_ct_mults"]) / batch,
+        "ks_literal_spec": (out["rotations"] + out["ct_ct_mults"] + boots_ks) / batch,
         "ks": out["key_switches"] / batch,
         "ks_spec": (out["key_switches"] + out["bootstraps_per_update"] * boot_ks) / batch,
         "rotations": out["rotations"] / batch,

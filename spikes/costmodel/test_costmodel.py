@@ -182,10 +182,17 @@ def test_reboot_sim_matches_formula_and_numpy(layers, batch, slots):
 
 
 def test_bootstrap_linear_transform_rotations():
-    # GetCollapsedFFTParams(2^15, budget 2): (g, b) = (64, 8) + remainder (32, 8) -> 70 + 38.
-    assert bootstrap_key_switches(2**15, iterations=1)["linear_transform_rotations"] == 2 * (70 + 38)
-    # 2^16 slots: two full levels (64, 8) -> 2 x 70 per transform.
-    assert bootstrap_key_switches(2**16, iterations=1)["linear_transform_rotations"] == 2 * 140
+    # GetCollapsedFFTParams(2^15, budget 2): (g, b) = (64, 8) + remainder (32, 8). Baby offsets are
+    # centred (never 0): 64 + 32; giant offsets i = 1..7 minus one that wraps to 0 mod 2^15 at the
+    # main level: 6 + 7. -> 109 per transform (CtS and StC alike).
+    from costmodel import _lt_rotations
+
+    assert _lt_rotations(2**15, 2, "enc") == 109
+    assert _lt_rotations(2**15, 2, "dec") == 109
+    assert bootstrap_key_switches(2**15, iterations=1)["linear_transform_rotations"] == 218
+    # 2^16 slots: two full levels (64, 8), one wrapped giant offset -> 141 per transform.
+    assert bootstrap_key_switches(2**16, iterations=1)["linear_transform_rotations"] == 2 * 141
+    assert bootstrap_key_switches(2**15)["total"] == 502
 
 
 def test_bootstrap_total_is_iterations_times_single():
@@ -277,6 +284,47 @@ def test_diag_batched_sim_matches_formula_and_numpy(layers, batch, slots):
     for name, ref in run["reference"].items():
         np.testing.assert_allclose(run["decoded"][name], ref, atol=1e-9, err_msg=name)
     r = network_cost("diag_batched", layers, batch, slots)
+    for ph in PHASES:
+        for op in OPS:
+            assert run["counts"][ph][op] == r["phases"][ph][op], (ph, op)
+    assert run["bootstraps"] == r["bootstraps_per_update"]
+
+
+def test_diag_batched_without_compaction_emlp1():
+    # Without the compact W/V re-layout every expanded diagonal is bootstrapped (W and V):
+    # 2 * (32 + 16) = 96 per update instead of 4, and the 2 * ((32-1) + (16-1)) = 92 lane shifts vanish.
+    layers = [(784, 32, "poly_relu"), (32, 10, None)]
+    a = network_cost("diag_batched", layers, 48, 2**15)
+    b = network_cost("diag_batched", layers, 48, 2**15, compact=False)
+    assert a["bootstraps_per_update"] == 4
+    assert b["bootstraps_per_update"] == 96
+    assert a["rotations"] - b["rotations"] == 92
+    assert b["per_sample"]["ks"] == pytest.approx((a["key_switches"] - 92) / 48)
+
+
+def test_literal_spec_metric():
+    layers = [(784, 32, "poly_relu"), (32, 10, None)]
+    r = network_cost("reboot", layers, 48, 2**15)
+    assert r["per_sample"]["ks_literal"] == pytest.approx(37.0)  # 1 relin per product -> same as KS
+    d = network_cost("diag_batched", layers, 48, 2**15)
+    assert d["per_sample"]["ks_literal"] == pytest.approx((d["rotations"] + d["ct_ct_mults"]) / 48)
+    assert d["per_sample"]["ks_literal"] > d["per_sample"]["ks"]  # lazy relin: tensors > relins
+
+
+@pytest.mark.parametrize(
+    "layers,batch,slots",
+    [
+        ([(16, 8, "poly_relu"), (8, 4, None)], 4, 128),
+        ([(16, 8, "poly_relu"), (8, 4, None)], 4, 32),
+        ([(32, 32, "poly_relu"), (32, 4, None)], 8, 1024),
+    ],
+)
+def test_diag_batched_no_compaction_sim_matches_formula(layers, batch, slots):
+    rng = np.random.default_rng(11)
+    run = slotsim.diag_batched_step(layers, batch, slots, rng, compact=False)
+    for name, ref in run["reference"].items():
+        np.testing.assert_allclose(run["decoded"][name], ref, atol=1e-9, err_msg=name)
+    r = network_cost("diag_batched", layers, batch, slots, compact=False)
     for ph in PHASES:
         for op in OPS:
             assert run["counts"][ph][op] == r["phases"][ph][op], (ph, op)

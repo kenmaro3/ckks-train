@@ -150,7 +150,7 @@ def _random_problem(layers, batch, rng):
 # -------------------------------------------------------------------------------------------------
 
 
-def diag_batched_step(layers, batch, slots, rng):
+def diag_batched_step(layers, batch, slots, rng, compact=True):
     layers = _norm_layers(layers)
     Ws, Vs, X, Y = _random_problem(layers, batch, rng)
     ref = _reference(layers, Ws, Vs, X, Y)
@@ -229,6 +229,17 @@ def diag_batched_step(layers, batch, slots, rng):
     ]
     Wc = [build_compact(Wp[l], g) for l, g in enumerate(geo)]
     Vc = [build_compact(Vp[l], g) for l, g in enumerate(geo)]
+    Vt = [
+        [enc_expanded(np.roll(diag_feat(Vp[l], g, c), pre_rot_shift(g, c)), g["L"]) for c in range(g["m"])]
+        for l, g in enumerate(geo)
+    ]
+
+    def replicate(v, L):
+        for t in range(log2i(bp)):
+            v = sim.add(v, sim.rot(v, -(1 << t)))
+        for t in range(log2i(S // (L * bp))):
+            v = sim.add(v, sim.rot(v, -L * bp * (1 << t)))
+        return v
 
     def bsgs(diags, baby, g):
         n1, n2 = g["n1"], g["n2"]
@@ -328,6 +339,16 @@ def diag_batched_step(layers, batch, slots, rng):
     for l, g in enumerate(geo):
         L = g["L"]
         mask0 = ((s % bp == 0) & (s < L * bp)).astype(float)
+        if not compact:  # replicate each reduced diagonal straight back to the expanded layout
+            Ge = []
+            for c in range(g["m"]):
+                v = sim.relin(Gsum[l][c])
+                for t in range(log2i(bp)):
+                    v = sim.add(v, sim.rot(v, 1 << t))
+                Ge.append(replicate(sim.pt(v, mask0), L))
+            Gc.append(Ge)
+            decoded[f"grad_{l}"] = decode_expanded(Ge, g)[: layers[l][1], : layers[l][0]]
+            continue
         cts = [Ct(np.zeros(S)) for _ in range(g["nw"])]
         for c in range(g["m"]):
             v = sim.relin(Gsum[l][c])
@@ -343,6 +364,17 @@ def diag_batched_step(layers, batch, slots, rng):
     sim.phase = "update"
     for l, g in enumerate(geo):
         L = g["L"]
+        if not compact:  # NAG + bootstrap on every expanded W / V diagonal
+            newW, newV = [], []
+            for c in range(g["m"]):
+                gg = sim.add(Gc[l][c], sim.pt(Wt[l][c], DECAY))
+                upd = sim.add(sim.add(sim.pt(gg, LR), sim.pt(gg, MOM * LR)), sim.pt(Vt[l][c], MOM * MOM * LR))
+                vn = sim.add(sim.pt(Vt[l][c], MOM), gg)
+                newW.append(sim.bootstrap(sim.sub(Wt[l][c], upd)))
+                newV.append(sim.bootstrap(vn))
+            decoded[f"W_new_{l}"] = decode_expanded(newW, g)[: layers[l][1], : layers[l][0]]
+            decoded[f"V_new_{l}"] = decode_expanded(newV, g)[: layers[l][1], : layers[l][0]]
+            continue
         newW, newV = [], []
         for n in range(g["nw"]):
             gg = sim.add(Gc[l][n], sim.pt(Wc[l][n], DECAY))
@@ -357,12 +389,7 @@ def diag_batched_step(layers, batch, slots, rng):
             n, _ell, o = g["lanes"][c]
             lane = np.zeros(S)
             lane[np.arange(L) * bp + o] = 1.0
-            v = sim.rot(sim.pt(newW[n], lane), o)
-            for t in range(log2i(bp)):
-                v = sim.add(v, sim.rot(v, -(1 << t)))
-            for t in range(log2i(S // (L * bp))):
-                v = sim.add(v, sim.rot(v, -L * bp * (1 << t)))
-            diags.append(v)
+            diags.append(replicate(sim.rot(sim.pt(newW[n], lane), o), L))
         # expanded result must be the S-periodic layout the next forward expects
         W_new = decode_expanded(diags, g)
         for c, v in enumerate(diags):

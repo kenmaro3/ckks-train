@@ -41,36 +41,64 @@ def main(path=DEFAULT_CONFIG):
           + f", ReBoot batch {b0}, ReBoot log_n {cfg.get('log_n')}, momentum {cfg.get('momentum')}.\n")
 
     batches = sorted(set(BATCHES) | {b0})
-    print("### Key switches per sample per epoch\n")
-    print("`ratio` = diag_batched / reboot at the same N and the same batch B; `ratio@b0` compares with "
-          f"ReBoot at its own batch b0 = {b0} (bootstraps amortised over b0). `cts` = ciphertexts per "
-          "mini-batch for diag_batched (> 1 = d_pad*B > N/2, flagged `*`). BOOT_KS = key switches of "
-          "one EvalBootstrap (2 iterations, ReBoot config).\n")
-    print("| N | B | cts | diag KS | reboot KS | **ratio KS** | diag KS_spec | reboot KS_spec (B) | "
-          "**ratio KS_spec** | ratio KS_spec@b0 |")
-    print("|---|---|---|---|---|---|---|---|---|---|")
-    rows = []
-    for log_n in LOG_NS:
-        slots = 1 << (log_n - 1)
-        rb0 = network_cost("reboot", layers, b0, slots, momentum=momentum)
-        for B in batches:
-            d = network_cost("diag_batched", layers, B, slots, momentum=momentum)
-            rb = network_cost("reboot", layers, B, slots, momentum=momentum)
-            rk = d["per_sample"]["ks"] / rb["per_sample"]["ks"]
-            rs = d["per_sample"]["ks_spec"] / rb["per_sample"]["ks_spec"]
-            rs0 = d["per_sample"]["ks_spec"] / rb0["per_sample"]["ks_spec"]
-            flag = "*" if d["infeasible"] else ""
-            own = " (b0)" if B == b0 else ""
-            rows.append((log_n, B, rk, rs, rs0, d["infeasible"]))
-            print(f"| 2^{log_n} | {B}{own} | {d['ciphertexts']}{flag} | {fmt(d['per_sample']['ks'])} | "
-                  f"{fmt(rb['per_sample']['ks'])} | **{fmt(rk, 2)}** | {fmt(d['per_sample']['ks_spec'])} | "
-                  f"{fmt(rb['per_sample']['ks_spec'])} | **{fmt(rs, 2)}** | {fmt(rs0, 2)} |")
+    ref_slots = 1 << (int(cfg.get("log_n", 16)) - 1)
+
+    def ps(layout, B, slots, **o):
+        return network_cost(layout, layers, B, slots, momentum=momentum, **o)["per_sample"]
+
+    # verdict at ReBoot's own (N, B)
+    d, dn, rb = ps("diag_batched", b0, ref_slots), ps("diag_batched", b0, ref_slots, compact=False), ps(
+        "reboot", b0, ref_slots)
+    cts = network_cost("diag_batched", layers, b0, ref_slots)["ciphertexts"]
+    print(f"### Verdict at ReBoot's own setting (N = 2^{cfg.get('log_n')}, B = {b0}; diag_batched needs "
+          f"{cts} ciphertext(s) per batch)\n")
+    print("| metric | diag_batched | reboot | ratio | ratio without compaction | <= 0.70? |")
+    print("|---|---|---|---|---|---|")
+    for key, label in (("ks", "KS = rot + relin (primary)"),
+                       ("ks_spec", "KS_spec = KS + boots x BOOT_KS"),
+                       ("ks_literal", "literal: rot + ct-ct mults"),
+                       ("ks_literal_spec", "literal_spec: rot + ct-ct + boots x BOOT_KS")):
+        ratio, ratio_n = d[key] / rb[key], dn[key] / rb[key]
+        print(f"| {label} | {fmt(d[key])} | {fmt(rb[key])} | **{fmt(ratio, 3)}** | {fmt(ratio_n, 3)} | "
+              f"{'yes' if ratio <= PASS else 'no'} |")
     print()
-    for idx, name in ((2, "KS"), (3, "KS_spec (same B)"), (4, f"KS_spec vs ReBoot@b0={b0}")):
-        ok = [f"(B={r[1]}, N=2^{r[0]}){'*' if r[5] else ''}" for r in rows if r[idx] <= PASS]
-        best = min(rows, key=lambda r: r[idx])
-        print(f"- ratio <= {PASS} under {name}: " + (", ".join(ok) if ok else "none")
-              + f". Best {fmt(best[idx], 3)} at (B={best[1]}, N=2^{best[0]}).")
+
+    tables = (
+        ("Primary metric: KS = rotations + relins", "ks", "ks_spec"),
+        ("Literal spec metric: rotations + ct-ct mults", "ks_literal", "ks_literal_spec"),
+    )
+    passes = []
+    for title, k1, k2 in tables:
+        print(f"### {title}, per sample per epoch\n")
+        print(f"| N | B | cts | diag {k1} | reboot {k1} | **ratio** | diag {k2} | reboot {k2} | **ratio** | "
+              f"ratio {k2} without compaction |")
+        print("|---|---|---|---|---|---|---|---|---|---|")
+        for log_n in LOG_NS:
+            slots = 1 << (log_n - 1)
+            for B in batches:
+                net = network_cost("diag_batched", layers, B, slots, momentum=momentum)
+                d, rb = net["per_sample"], ps("reboot", B, slots)
+                dn = ps("diag_batched", B, slots, compact=False)
+                r1, r2, r2n = d[k1] / rb[k1], d[k2] / rb[k2], dn[k2] / rb[k2]
+                flag = "*" if net["infeasible"] else ""
+                own = " (b0)" if B == b0 else ""
+                passes.append((k1, log_n, B, r1, flag))
+                passes.append((k2, log_n, B, r2, flag))
+                passes.append((k2 + " (no compaction)", log_n, B, r2n, flag))
+                print(f"| 2^{log_n} | {B}{own} | {net['ciphertexts']}{flag} | {fmt(d[k1])} | {fmt(rb[k1])} | "
+                      f"**{fmt(r1, 2)}** | {fmt(d[k2])} | {fmt(rb[k2])} | **{fmt(r2, 2)}** | {fmt(r2n, 2)} |")
+        print()
+    print("`ratio` = diag_batched / reboot at the same N and B. `cts` = diag_batched ciphertexts per mini-batch; "
+          "`*` = d_pad*B > N/2 (more than one). BOOT_KS = key switches of one EvalBootstrap in ReBoot's "
+          "configuration (2 iterations): " + ", ".join(
+              f"{bootstrap_key_switches(1 << (n - 1))['total']} at N = 2^{n}" for n in LOG_NS) + ".\n")
+    for metric in ("ks", "ks_spec", "ks_spec (no compaction)", "ks_literal", "ks_literal_spec",
+                   "ks_literal_spec (no compaction)"):
+        rows = [p for p in passes if p[0] == metric]
+        ok = [f"(B={p[2]}, N=2^{p[1]}){p[4]}" for p in rows if p[3] <= PASS]
+        best = min(rows, key=lambda p: p[3])
+        print(f"- ratio <= {PASS} under {metric}: " + (", ".join(ok) if ok else "none")
+              + f". Best {fmt(best[3], 3)} at (B={best[2]}, N=2^{best[1]}).")
     print()
 
     print("### Sensitivity of KS_spec ratio to BOOT_KS (same B)\n")
