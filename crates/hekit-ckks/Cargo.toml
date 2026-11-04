@@ -9,6 +9,7 @@ description = "hekit-ckks (temporary name)"
 
 [dependencies]
 hekit-core = { path = "../hekit-core" }
+ndarray = "0.16"
 num-complex = "0.4"
 
 [dev-dependencies]

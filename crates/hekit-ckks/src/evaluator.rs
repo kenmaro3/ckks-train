@@ -35,15 +35,20 @@
 //! among several rotations of the same ciphertext. A missing key is
 //! `InvalidParams("missing galois key")`; rotations need 2-component ciphertexts.
 //!
-//! Operation counting (`OpCounter`) is wired in by Task 19; see the marker in
-//! [`Evaluator`].
+//! # Operation counts
+//!
+//! Every evaluator counts its successful expensive operations in an [`OpCounter`]
+//! (see [`crate::counter`] for what each field counts); read a snapshot with
+//! [`Evaluator::counter`]. The counter sits behind a `Mutex`, so `Evaluator` is `Sync` and
+//! `&Evaluator` can be shared across threads.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, PoisonError};
 
 use hekit_core::error::{HekitError, Result};
 use hekit_core::poly::RnsPoly;
 
 use crate::ciphertext::Ciphertext;
+use crate::counter::OpCounter;
 use crate::keys::{
     GaloisKey, GaloisKeys, KskKey, QpPoly, RelinKey, conjugation_elt, galois_elt, truncated,
 };
@@ -54,14 +59,34 @@ use crate::plaintext::Plaintext;
 /// Largest accepted relative scale difference for additions, `2^-10`.
 pub const SCALE_TOLERANCE: f64 = 1.0 / 1024.0;
 
-/// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys.
-#[derive(Debug, Clone)]
+/// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
+/// counts the expensive operations it performs ([`Evaluator::counter`]).
+///
+/// `Clone` copies the keys and the current counts into an independent counter.
+#[derive(Debug)]
 pub struct Evaluator {
     params: Arc<CkksParams>,
     relin: Option<RelinKey>,
     galois: Option<GaloisKeys>,
-    // Task 19: `counter: OpCounter` goes here; every public method below is one counted op.
+    counter: Mutex<OpCounter>,
 }
+
+impl Clone for Evaluator {
+    fn clone(&self) -> Evaluator {
+        Evaluator {
+            params: Arc::clone(&self.params),
+            relin: self.relin.clone(),
+            galois: self.galois.clone(),
+            counter: Mutex::new(self.counter()),
+        }
+    }
+}
+
+// `Evaluator` must stay shareable across threads (the counter uses a `Mutex`, not a `Cell`).
+const _: fn() = || {
+    fn assert_sync_send<T: Sync + Send>() {}
+    assert_sync_send::<Evaluator>();
+};
 
 impl Evaluator {
     /// An evaluator for `params`. `relin` is needed by [`Evaluator::relinearize`] and
@@ -76,7 +101,21 @@ impl Evaluator {
             params,
             relin,
             galois,
+            counter: Mutex::new(OpCounter::default()),
         }
+    }
+
+    /// A snapshot of the operation counts so far (see [`crate::counter`]).
+    pub fn counter(&self) -> OpCounter {
+        self.counter
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
+    }
+
+    /// Applies `f` to the counter (called after an operation succeeded).
+    fn count(&self, f: impl FnOnce(&mut OpCounter)) {
+        f(&mut self.counter.lock().unwrap_or_else(PoisonError::into_inner));
     }
 
     /// The parameters.
@@ -130,7 +169,9 @@ impl Evaluator {
         check_level(a.level(), p.level())?;
         let mut c = a.polys().to_vec();
         c.iter_mut().for_each(|x| x.mul_assign(p.poly()));
-        Ciphertext::new(c, a.scale() * p.scale())
+        let r = Ciphertext::new(c, a.scale() * p.scale())?;
+        self.count(|c| c.ct_pt_mults += 1);
+        Ok(r)
     }
 
     /// The tensor product `(a0 b0, a0 b1 + a1 b0, a1 b1)` of two 2-component ciphertexts at
@@ -147,7 +188,9 @@ impl Evaluator {
         let mut d1 = prod(&x[0], &y[1]);
         d1.add_assign(&prod(&x[1], &y[0]));
         let d2 = prod(&x[1], &y[1]);
-        Ciphertext::new(vec![d0, d1, d2], a.scale() * b.scale())
+        let r = Ciphertext::new(vec![d0, d1, d2], a.scale() * b.scale())?;
+        self.count(|c| c.ct_ct_tensor += 1);
+        Ok(r)
     }
 
     /// Relinearizes a 3-component ciphertext `(c0, c1, c2)` to `(c0 + kb, c1 + ka)` with
@@ -166,7 +209,9 @@ impl Evaluator {
         let (kb, ka) = key_switch(&self.params, &c2, rk.key());
         c[0].add_assign(&kb);
         c[1].add_assign(&ka);
-        Ciphertext::new(c, ct.scale())
+        let r = Ciphertext::new(c, ct.scale())?;
+        self.count(|c| c.relins += 1);
+        Ok(r)
     }
 
     /// `relinearize(mul_no_relin(a, b))`. Operand errors (basis, component count,
@@ -215,7 +260,9 @@ impl Evaluator {
         }
         let mut c = ct.polys().to_vec();
         c.iter_mut().for_each(RnsPoly::rescale_by_last);
-        Ciphertext::new(c, ct.scale() / self.params.q()[l] as f64)
+        let r = Ciphertext::new(c, ct.scale() / self.params.q()[l] as f64)?;
+        self.count(|c| c.rescales += 1);
+        Ok(r)
     }
 
     /// Drops primes down to `level` (no division; scale unchanged). `level == ct.level()`
@@ -291,7 +338,9 @@ impl Evaluator {
         } else {
             Vec::new()
         };
-        keys.into_iter()
+        let nontrivial = keys.iter().filter(|k| k.is_some()).count() as u64;
+        let out = keys
+            .into_iter()
             .map(|k| match k {
                 None => Ok(ct.clone()),
                 Some((elt, gk)) => {
@@ -303,7 +352,9 @@ impl Evaluator {
                     finish_galois(ct, elt, kb, ka)
                 }
             })
-            .collect()
+            .collect::<Result<Vec<_>>>()?;
+        self.count(|c| c.rotations += nontrivial);
+        Ok(out)
     }
 
     /// The Galois element of a rotation by `steps`, or `None` for a multiple of `slots`.
@@ -318,7 +369,9 @@ impl Evaluator {
         let gk = self.galois_key(elt)?;
         let d = ct.polys()[1].automorphism(elt);
         let (kb, ka) = key_switch(&self.params, &d, gk.key());
-        finish_galois(ct, elt, kb, ka)
+        let r = finish_galois(ct, elt, kb, ka)?;
+        self.count(|c| c.rotations += 1);
+        Ok(r)
     }
 
     /// The (validated) Galois key for `elt`.
