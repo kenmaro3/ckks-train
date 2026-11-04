@@ -11,6 +11,7 @@ pub mod keyswitch;
 pub mod linalg;
 pub mod params;
 pub mod plaintext;
+pub mod precision;
 pub mod seal_compat;
 
 pub use ciphertext::Ciphertext;
