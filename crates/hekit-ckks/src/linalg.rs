@@ -729,12 +729,12 @@ impl Evaluator {
     /// (offset + g k1) s)`, skipping the entries for which `skip` holds (and the baby
     /// rotations and giant blocks only they would use). All terms share one shape. The
     /// callers have validated everything, so no step fails part-way.
-    fn bsgs<T>(
+    fn bsgs<T: Sync>(
         &self,
         terms: &[(&Diagonals<T>, &Ciphertext)],
-        skip: impl Fn(&T) -> bool,
-        mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext>,
-        finish: impl Fn(Ciphertext) -> Result<Ciphertext>,
+        skip: impl Fn(&T) -> bool + Sync + Send,
+        mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext> + Sync + Send,
+        finish: impl Fn(Ciphertext) -> Result<Ciphertext> + Sync + Send,
     ) -> Result<Ciphertext> {
         let first = terms[0].0;
         let (baby, giant, stride, offset) = (first.baby, first.giant, first.stride, first.offset);
@@ -753,8 +753,9 @@ impl Evaluator {
             }
             xs.push(row);
         }
-        let mut acc: Option<Ciphertext> = None;
-        for k1 in 0..giant {
+        // The giant-step blocks are independent (in parallel with the `parallel` feature,
+        // crate::par); they are summed in their sequential order, so the result is the same.
+        let block = |k1: usize| -> Result<Option<Ciphertext>> {
             let mut inner: Option<Ciphertext> = None;
             for (&(diag, _), xr) in terms.iter().zip(&xs) {
                 let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
@@ -770,13 +771,20 @@ impl Evaluator {
                 }
             }
             let Some(inner) = inner else {
-                continue;
+                return Ok(None);
             };
             let mut block = finish(inner)?;
             let shift = (offset + (baby * k1) as i64) * stride as i64;
             if shift != 0 {
                 block = self.rotate(&block, shift as i32)?;
             }
+            Ok(Some(block))
+        };
+        let mut acc: Option<Ciphertext> = None;
+        for block in crate::par::map_range(giant, block) {
+            let Some(block) = block? else {
+                continue;
+            };
             acc = Some(match acc {
                 None => block,
                 Some(s) => self.add(&s, &block)?,

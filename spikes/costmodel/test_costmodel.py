@@ -19,6 +19,7 @@ import slotsim
 from costmodel import (
     LAYOUTS,
     PHASES,
+    HEKIT_BOOT_KS,
     bootstrap_key_switches,
     bsgs_split,
     cost,
@@ -193,6 +194,8 @@ def test_bootstrap_linear_transform_rotations():
     # 2^16 slots: two full levels (64, 8), one wrapped giant offset -> 141 per transform.
     assert bootstrap_key_switches(2**16, iterations=1)["linear_transform_rotations"] == 2 * 141
     assert bootstrap_key_switches(2**15)["total"] == 502
+    # hekit's own bootstrap, measured in M3 Task 38 (n16_boot, 2^15 slots).
+    assert HEKIT_BOOT_KS[2**15] == 111
 
 
 def test_bootstrap_total_is_iterations_times_single():

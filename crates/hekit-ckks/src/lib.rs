@@ -10,6 +10,7 @@ pub mod evaluator;
 pub mod keys;
 pub mod keyswitch;
 pub mod linalg;
+mod par;
 pub mod params;
 pub mod plaintext;
 pub mod precision;

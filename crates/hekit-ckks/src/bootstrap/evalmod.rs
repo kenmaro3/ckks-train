@@ -30,8 +30,9 @@ use std::f64::consts::PI;
 use hekit_core::error::{HekitError, Result};
 
 use crate::bootstrap::params::BootParams;
-use crate::bootstrap::poly::{chebyshev_coeffs, chebyshev_depth, double_angle};
+use crate::bootstrap::poly::{chebyshev_coeffs, chebyshev_cost, chebyshev_depth, double_angle};
 use crate::ciphertext::Ciphertext;
+use crate::counter::OpCounter;
 use crate::evaluator::Evaluator;
 
 /// The Chebyshev coefficients EvalMod evaluates for `bp` on `y` in `[-1, 1]`: for `r = 0`
@@ -60,6 +61,22 @@ pub fn evalmod_coeffs(bp: &BootParams) -> Vec<f64> {
             bp.cheb_degree,
         )
     }
+}
+
+/// The operations [`Evaluator::eval_mod`] performs for `bp` on one ciphertext, as counter
+/// fields: [`chebyshev_cost`] of [`evalmod_coeffs`] plus one product, relinearization and
+/// rescale per double angle. For [`BootParams::default_n16`]: 23 products, 20
+/// relinearizations, 24 rescales and 71 constant products (`docs/bootstrap.md` §10).
+///
+/// # Panics
+/// As [`evalmod_coeffs`].
+pub fn evalmod_cost(bp: &BootParams) -> OpCounter {
+    let mut c = chebyshev_cost(&evalmod_coeffs(bp), -1.0, 1.0);
+    let r = bp.double_angle as u64;
+    c.ct_ct_tensor += r;
+    c.relins += r;
+    c.rescales += r;
+    c
 }
 
 impl Evaluator {
@@ -244,8 +261,13 @@ mod tests {
         let s = 2f64.powi(58);
         let ct = encryptor.encrypt(&enc.encode(&c.y, s, top).unwrap(), &mut r);
         let b = bp(127, 0, 7);
+        let k0 = eval.counter();
         let out = eval.eval_mod(&ct, &b).unwrap();
         assert_eq!((out.level(), out.scale()), (top - 7, s));
+        // Task 38: the planned counts are exactly what the evaluator counted.
+        assert_eq!(k0, Default::default());
+        assert_eq!(eval.counter(), evalmod_cost(&b));
+        assert_eq!(evalmod_cost(&b).relins, 20);
         let back = q0 / (2.0 * PI * delta);
         let got: Vec<f64> = enc
             .decode(&dec.decrypt(&out))
@@ -282,8 +304,10 @@ mod tests {
         assert!(edge < 2f64.powi(-16), "{edge:e}");
 
         // r = 1: degree 63 then one double angle, 7 levels, exact scale.
+        eval.reset_counter();
         let out = eval.eval_mod(&ct, &bp(63, 1, 7)).unwrap();
         assert_eq!((out.level(), out.scale()), (top - 7, s));
+        assert_eq!(eval.counter(), evalmod_cost(&bp(63, 1, 7)));
 
         // Errors before any work.
         eval.reset_counter();

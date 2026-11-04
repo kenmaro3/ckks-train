@@ -56,3 +56,15 @@ SEAL's LICENSE:
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE
+
+
+Acknowledgements (no code derived)
+----------------------------------
+
+The projects below informed algorithmic choices. No source file of theirs was read for, copied
+into or ported to hekit, so their licenses impose no notice; they are listed for credit only.
+
+- Lattigo (https://github.com/tuneinsight/lattigo, Apache-2.0): the baby-step split rule of
+  the level-optimal Chebyshev evaluation (crates/hekit-ckks/src/bootstrap/poly.rs,
+  optimal_split), a cost formula known from the Lattigo implementation of Bossuat, Mouchet,
+  Troncoso-Pastoriza and Hubaux (Eurocrypt 2021), reimplemented from the formula.

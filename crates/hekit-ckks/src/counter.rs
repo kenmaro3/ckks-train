@@ -19,7 +19,8 @@
 //!   [`Evaluator::mul_plain_to_scale`](crate::Evaluator::mul_plain_to_scale) and
 //!   [`Evaluator::mul_scalar`](crate::Evaluator::mul_scalar).
 //! * `rescales`: each [`Evaluator::rescale`](crate::Evaluator::rescale).
-//! * `bootstraps`: none yet (no bootstrapping in M1).
+//! * `bootstraps`: each [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap),
+//!   which also adds every operation it performs to the other fields.
 //!
 //! Failed operations (any `Err`) count nothing. Composite operations count their parts:
 //! `mul` is one `ct_ct_tensor` plus one `relin`; `matvec_plain` adds `d` `ct_pt_mults`;
@@ -27,9 +28,9 @@
 //! caller's pipeline (the matvec results are returned unrescaled) is counted only when the
 //! caller calls [`Evaluator::rescale`](crate::Evaluator::rescale).
 //!
-//! [`OpCounter::key_switches`] sums the key-switching operations (`rotations + relins +
-//! bootstraps * BOOT_KS_EQUIV`); [`Evaluator::reset_counter`](crate::Evaluator::reset_counter)
-//! zeroes the counts.
+//! [`OpCounter::key_switches`] sums the key-switching operations (`rotations + relins`; a
+//! bootstrap's key switches are already in those fields, see there);
+//! [`Evaluator::reset_counter`](crate::Evaluator::reset_counter) zeroes the counts.
 
 /// Operation counts; see the [module docs](self) for what increments each field.
 #[derive(Default, Clone, Debug, PartialEq)]
@@ -48,15 +49,56 @@ pub struct OpCounter {
     pub bootstraps: u64,
 }
 
-/// Key switches charged per bootstrap in [`OpCounter::key_switches`]. `0` until bootstrapping
-/// exists (M3); at that point it is set to the number of key switches one bootstrap performs.
-pub const BOOT_KS_EQUIV: u64 = 0;
-
 impl OpCounter {
-    /// Total key switches, the dominant cost of CKKS: `rotations + relins + bootstraps *
-    /// `[`BOOT_KS_EQUIV`]. Conjugations are included in `rotations`.
+    /// Total key switches, the dominant cost of CKKS: `rotations + relins`. Conjugations are
+    /// included in `rotations`.
+    ///
+    /// **Bootstraps are not charged separately.**
+    /// [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap) adds every
+    /// operation it performs to the caller's counter (its rotations, conjugations and
+    /// relinearizations, and the two sparse-secret-encapsulation switches of the mod-raise)
+    /// and increments `bootstraps` by one. So a measured counter already contains the key
+    /// switches of its bootstraps, and `bootstraps` is only the number of them. Where
+    /// bootstraps are planned rather than run (a simulator or a cost model counting `b`
+    /// bootstraps), add `b *`
+    /// [`Bootstrapper::key_switches_per_boot`](crate::bootstrap::Bootstrapper::key_switches_per_boot):
+    /// the planned count of one bootstrap, which the tests check against a measured one
+    /// (`docs/bootstrap.md` §11 has the n16_boot value). There is no global constant, because
+    /// the count depends on the bootstrap parameters (M1 and M2 had `BOOT_KS_EQUIV = 0`,
+    /// removed in Task 38).
     pub fn key_switches(&self) -> u64 {
-        self.rotations + self.relins + self.bootstraps * BOOT_KS_EQUIV
+        self.rotations + self.relins
+    }
+}
+
+impl std::ops::AddAssign<&OpCounter> for OpCounter {
+    /// Field-by-field sum (merging the counts of a sub-computation).
+    fn add_assign(&mut self, rhs: &OpCounter) {
+        self.rotations += rhs.rotations;
+        self.relins += rhs.relins;
+        self.ct_ct_tensor += rhs.ct_ct_tensor;
+        self.ct_pt_mults += rhs.ct_pt_mults;
+        self.rescales += rhs.rescales;
+        self.bootstraps += rhs.bootstraps;
+    }
+}
+
+impl std::ops::Sub for &OpCounter {
+    type Output = OpCounter;
+
+    /// Field-by-field difference `self - rhs` (the counts between two snapshots).
+    ///
+    /// # Panics
+    /// In debug builds, if a field of `rhs` exceeds that of `self`.
+    fn sub(self, rhs: &OpCounter) -> OpCounter {
+        OpCounter {
+            rotations: self.rotations - rhs.rotations,
+            relins: self.relins - rhs.relins,
+            ct_ct_tensor: self.ct_ct_tensor - rhs.ct_ct_tensor,
+            ct_pt_mults: self.ct_pt_mults - rhs.ct_pt_mults,
+            rescales: self.rescales - rhs.rescales,
+            bootstraps: self.bootstraps - rhs.bootstraps,
+        }
     }
 }
 
@@ -123,9 +165,13 @@ mod tests {
             bootstraps: 2,
             ..Default::default()
         };
-        assert_eq!(c.key_switches(), 8 + 2 * BOOT_KS_EQUIV);
-        assert_eq!(BOOT_KS_EQUIV, 0, "0 until bootstrapping lands in M3");
+        // Bootstraps add their own key switches to the fields; none are charged on top.
+        assert_eq!(c.key_switches(), 8);
         assert_eq!(OpCounter::default().key_switches(), 0);
+        let mut d = c.clone();
+        d += &c;
+        assert_eq!((d.rotations, d.relins, d.bootstraps), (10, 6, 4));
+        assert_eq!(&d - &c, c);
     }
 
     #[test]

@@ -61,6 +61,7 @@ use hekit_core::error::{HekitError, Result};
 use hekit_core::poly::RnsPoly;
 
 use crate::ciphertext::Ciphertext;
+use crate::counter::OpCounter;
 use crate::encoder::Encoder;
 use crate::evaluator::{Evaluator, MIN_PLAIN_SCALE};
 use crate::linalg::{Diagonals, bsgs_rotation_steps_with_offset, bsgs_split};
@@ -653,6 +654,49 @@ fn diagonal_scales(eval: &Evaluator, spec: &StageSpec, l: usize) -> Result<Vec<(
         s_in = target;
     }
     Ok(out)
+}
+
+/// The operations [`Evaluator::coeff_to_slot`] or [`Evaluator::slot_to_coeff`] performs
+/// for the encoded `stages` (of one direction) at `slots` slots, as counter fields:
+/// `rotations` (the nonzero baby steps some stored diagonal uses and the nonzero giant
+/// steps of the blocks with a stored diagonal, as `Evaluator::matvec_plain_sum_sparse`
+/// skips the others; for CoeffToSlot also its two conjugations), `ct_pt_mults` (one per
+/// stored diagonal) and `rescales` (one per stage). Task 38 uses it for the key-switch count
+/// of a bootstrap; the tests check it against the evaluator's counter.
+pub fn transforms_cost(stages: &[LinearTransform], slots: usize) -> OpCounter {
+    let mut c = OpCounter::default();
+    let nontrivial = |step: i64| step.rem_euclid(slots as i64) != 0;
+    for lt in stages {
+        let terms: Vec<&Diagonals<Option<Plaintext>>> =
+            std::iter::once(&lt.diags).chain(&lt.second).collect();
+        let (baby, giant) = (lt.diags.baby(), lt.diags.giant());
+        let (stride, offset) = (lt.diags.stride() as i64, lt.diags.offset());
+        let kept = |t: &Diagonals<Option<Plaintext>>, k1: usize, k2: usize| {
+            t.entries()[k1 * baby + k2].is_some()
+        };
+        for t in &terms {
+            c.ct_pt_mults += t.nonzero() as u64;
+            c.rotations += (1..baby)
+                .filter(|&k2| nontrivial(k2 as i64 * stride))
+                .filter(|&k2| (0..giant).any(|k1| kept(t, k1, k2)))
+                .count() as u64;
+        }
+        c.rotations += (0..giant)
+            .filter(|&k1| nontrivial((offset + (baby * k1) as i64) * stride))
+            .filter(|&k1| terms.iter().any(|t| (0..baby).any(|k2| kept(t, k1, k2))))
+            .count() as u64;
+        if lt.direction == Direction::CoeffToSlot && lt.second.is_some() {
+            c.rotations += 1;
+        }
+        c.rescales += 1;
+    }
+    if stages
+        .first()
+        .is_some_and(|lt| lt.direction == Direction::CoeffToSlot)
+    {
+        c.rotations += 1;
+    }
+    c
 }
 
 impl Evaluator {
@@ -1638,6 +1682,26 @@ mod tests {
         );
         assert_eq!(cts_ops.rescales - before.rescales, 2);
         assert_eq!(stc_ops.rescales - cts_ops.rescales, 2);
+        // Task 38: transforms_cost of the encoded stages is exactly what was counted.
+        let slots = c.params.slots();
+        let total = transforms_cost(&ctos, slots);
+        assert_eq!(
+            (total.rotations, total.ct_pt_mults, total.rescales),
+            (
+                cts_ops.rotations - before.rotations,
+                cts_ops.ct_pt_mults - before.ct_pt_mults,
+                2
+            )
+        );
+        let total = transforms_cost(&stoc, slots);
+        assert_eq!(
+            (total.rotations, total.ct_pt_mults, total.rescales),
+            (
+                stc_ops.rotations - cts_ops.rotations,
+                stc_ops.ct_pt_mults - cts_ops.ct_pt_mults,
+                2
+            )
+        );
         // The planner of the n16_boot counts agrees with the counter.
         let cts_plan = planned_ops(&dft_stages(4, 2, true).unwrap(), Direction::CoeffToSlot);
         let stc_plan = planned_ops(&dft_stages(4, 2, false).unwrap(), Direction::SlotToCoeff);

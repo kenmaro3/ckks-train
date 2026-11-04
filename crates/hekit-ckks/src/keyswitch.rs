@@ -106,9 +106,10 @@ fn decompose_with(params: &CkksParams, poly: &RnsPoly, lift: Lift) -> Vec<QpPoly
     let l = poly.level();
     assert!(l <= params.max_level(), "level {l} above max_level");
     let bp = params.basis_p();
-    digit_ranges(params, l)
-        .into_iter()
-        .map(|digit| match lift {
+    // The digits are independent (in parallel with the `parallel` feature, crate::par).
+    crate::par::map_slice(&digit_ranges(params, l), |digit| {
+        let digit = digit.clone();
+        match lift {
             Lift::Exact => lift_digit_exact(poly, digit, bp),
             Lift::CenteredFast => {
                 let (q, p) = poly.mod_up_digit_centered(digit, bp);
@@ -118,8 +119,8 @@ fn decompose_with(params: &CkksParams, poly: &RnsPoly, lift: Lift) -> Vec<QpPoly
                 let (q, p) = poly.mod_up_digit(digit, bp);
                 QpPoly::new(q, p)
             }
-        })
-        .collect()
+        }
+    })
 }
 
 /// The exact centered lift of the digit `digit` of `poly` (NTT form) to `Q_l * P`: the
@@ -254,51 +255,52 @@ pub fn apply_key(params: &CkksParams, digits: &[QpPoly], key: &KskKey) -> (RnsPo
     // u128 sums of the products, reduced once per coefficient as hi * [2^64]_m + lo via two
     // Shoup products, which accept any u64). Each product is <= (m - 1)^2, so the sum fits
     // in u128 when digits.len() * (m - 1)^2 <= u128::MAX (>= 256 digits for 60-bit primes).
-    let inner = |basis: &Arc<RnsBasis>, limbs: usize, pick: &dyn Fn(&QpPoly) -> &RnsPoly| {
-        let n = params.n();
-        let (mut out_b, mut out_a) = (Vec::with_capacity(limbs), Vec::with_capacity(limbs));
-        let (mut acc_b, mut acc_a) = (vec![0u128; n], vec![0u128; n]);
-        for (i, m) in basis.moduli()[..limbs].iter().enumerate() {
-            let max = (m.value() - 1) as u128;
-            assert!(
-                (digits.len() as u128) <= u128::MAX / (max * max).max(1),
-                "too many digits for lazy reduction"
-            );
-            acc_b.fill(0);
-            acc_a.fill(0);
-            for (d, (b, a)) in digits.iter().zip(parts) {
-                let (dl, bl, al) = (
-                    &pick(d).limbs()[i],
-                    &pick(b).limbs()[i],
-                    &pick(a).limbs()[i],
+    // The limbs are independent (in parallel with the `parallel` feature, crate::par).
+    let inner =
+        |basis: &Arc<RnsBasis>, limbs: usize, pick: &(dyn Fn(&QpPoly) -> &RnsPoly + Sync)| {
+            let n = params.n();
+            let per_limb = |i: usize| {
+                let m = &basis.moduli()[i];
+                let max = (m.value() - 1) as u128;
+                assert!(
+                    (digits.len() as u128) <= u128::MAX / (max * max).max(1),
+                    "too many digits for lazy reduction"
                 );
-                for ((xb, xa), (&x, (&yb, &ya))) in acc_b
-                    .iter_mut()
-                    .zip(acc_a.iter_mut())
-                    .zip(dl.iter().zip(bl.iter().zip(al)))
-                {
-                    *xb += x as u128 * yb as u128;
-                    *xa += x as u128 * ya as u128;
+                let (mut acc_b, mut acc_a) = (vec![0u128; n], vec![0u128; n]);
+                for (d, (b, a)) in digits.iter().zip(parts) {
+                    let (dl, bl, al) = (
+                        &pick(d).limbs()[i],
+                        &pick(b).limbs()[i],
+                        &pick(a).limbs()[i],
+                    );
+                    for ((xb, xa), (&x, (&yb, &ya))) in acc_b
+                        .iter_mut()
+                        .zip(acc_a.iter_mut())
+                        .zip(dl.iter().zip(bl.iter().zip(al)))
+                    {
+                        *xb += x as u128 * yb as u128;
+                        *xa += x as u128 * ya as u128;
+                    }
                 }
-            }
-            let two64 = m.shoup(((1u128 << 64) % m.value() as u128) as u64);
-            let one = m.shoup(1);
-            let reduce = |acc: &[u128]| -> Vec<u64> {
-                acc.iter()
-                    .map(|&s| {
-                        m.add(
-                            m.mul_shoup((s >> 64) as u64, &two64),
-                            m.mul_shoup(s as u64, &one),
-                        )
-                    })
-                    .collect()
+                let two64 = m.shoup(((1u128 << 64) % m.value() as u128) as u64);
+                let one = m.shoup(1);
+                let reduce = |acc: &[u128]| -> Vec<u64> {
+                    acc.iter()
+                        .map(|&s| {
+                            m.add(
+                                m.mul_shoup((s >> 64) as u64, &two64),
+                                m.mul_shoup(s as u64, &one),
+                            )
+                        })
+                        .collect()
+                };
+                (reduce(&acc_b), reduce(&acc_a))
             };
-            out_b.push(reduce(&acc_b));
-            out_a.push(reduce(&acc_a));
-        }
-        let wrap = |limbs| RnsPoly::from_limbs(basis, limbs, true).expect("reduced limbs");
-        (wrap(out_b), wrap(out_a))
-    };
+            let (out_b, out_a): (Vec<_>, Vec<_>) =
+                crate::par::map_range(limbs, per_limb).into_iter().unzip();
+            let wrap = |limbs| RnsPoly::from_limbs(basis, limbs, true).expect("reduced limbs");
+            (wrap(out_b), wrap(out_a))
+        };
     let (mut bq, mut aq) = inner(basis_q, l + 1, &|x: &QpPoly| x.q());
     let (bp, ap) = inner(basis_p, basis_p.len(), &|x: &QpPoly| x.p());
     bq.mod_down(&bp);

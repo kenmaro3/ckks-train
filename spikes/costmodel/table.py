@@ -16,7 +16,7 @@ import json
 import sys
 from pathlib import Path
 
-from costmodel import bootstrap_key_switches, network_cost
+from costmodel import HEKIT_BOOT_KS, bootstrap_key_switches, network_cost
 
 DEFAULT_CONFIG = Path(__file__).resolve().parents[2] / "crates/hekit-bench/configs/reboot_emlp1.json"
 BATCHES = (16, 32, 64, 128)
@@ -62,6 +62,15 @@ def main(path=DEFAULT_CONFIG):
                        ("ks_literal_spec", "literal_spec: rot + ct-ct + boots x BOOT_KS")):
         ratio, ratio_n = d[key] / rb[key], dn[key] / rb[key]
         print(f"| {label} | {fmt(d[key])} | {fmt(rb[key])} | **{fmt(ratio, 3)}** | {fmt(ratio_n, 3)} | "
+              f"{'yes' if ratio <= PASS else 'no'} |")
+    if ref_slots in HEKIT_BOOT_KS:
+        hk = HEKIT_BOOT_KS[ref_slots]
+        dh = ps("diag_batched", b0, ref_slots, boot_ks=hk)
+        dhn = ps("diag_batched", b0, ref_slots, compact=False, boot_ks=hk)
+        ratio, ratio_n = dh["ks_spec"] / rb["ks_spec"], dhn["ks_spec"] / rb["ks_spec"]
+        print(f"| KS_spec, diag_batched with hekit's measured BOOT_KS = {hk} (Task 38; ReBoot keeps "
+              f"its OpenFHE {bootstrap_key_switches(ref_slots)['total']}) | "
+              f"{fmt(dh['ks_spec'])} | {fmt(rb['ks_spec'])} | **{fmt(ratio, 3)}** | {fmt(ratio_n, 3)} | "
               f"{'yes' if ratio <= PASS else 'no'} |")
     di = ps("diag_batched", b0, ref_slots, interactive=True)
     dit = ps("diag_batched", b0, ref_slots, interactive=True, client_transpose=True)
@@ -153,9 +162,12 @@ def main(path=DEFAULT_CONFIG):
         slots = 1 << (log_n - 1)
         base = bootstrap_key_switches(slots)
         single = bootstrap_key_switches(slots, iterations=1)["total"]
-        for bk, label in ((0, "0 (= KS)"), (single, f"{single} (1 iteration)"),
-                          (base["total"], f"{base['total']} (ReBoot: 2 iterations)"),
-                          (2 * base["total"], f"{2 * base['total']} (2x)")):
+        rows = [(0, "0 (= KS)"), (single, f"{single} (1 iteration)"),
+                (base["total"], f"{base['total']} (ReBoot: 2 iterations)"),
+                (2 * base["total"], f"{2 * base['total']} (2x)")]
+        if slots in HEKIT_BOOT_KS:
+            rows.insert(1, (HEKIT_BOOT_KS[slots], f"{HEKIT_BOOT_KS[slots]} (hekit measured, Task 38)"))
+        for bk, label in rows:
             cells = []
             for B in batches:
                 d = network_cost("diag_batched", layers, B, slots, momentum=momentum, boot_ks=bk)

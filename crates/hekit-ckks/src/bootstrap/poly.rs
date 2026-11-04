@@ -51,13 +51,14 @@
 //! leading branch (the top coefficients) the bound is tight and the recursion splits down to
 //! degree 1; elsewhere there is a level of slack and the leaves have degree up to `2^s - 1`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::f64::consts::PI;
 
 use hekit_core::error::{HekitError, Result};
 use hekit_core::poly::RnsPoly;
 
 use crate::ciphertext::Ciphertext;
+use crate::counter::OpCounter;
 use crate::evaluator::{Evaluator, MIN_PLAIN_SCALE};
 
 /// Largest magnitude of an integer constant ([`mul_const_to`], [`add_const`]): `2^126`,
@@ -140,6 +141,98 @@ pub fn optimal_split(log_degree: usize) -> usize {
         s += 1;
     }
     s as usize
+}
+
+/// The operations [`Evaluator::eval_chebyshev`] performs for `coeffs` on `[a, b]`, as the
+/// counter fields it increments (`ct_ct_tensor`, `relins`, `rescales`, `ct_pt_mults`; the
+/// others zero). Computed by running the recursion of the [module docs](self) on the degrees
+/// and levels alone (no ciphertext), so it is the same for every parameter set and input
+/// level that the evaluation accepts; the tests check it against the evaluator's counter.
+/// Task 38 uses it for the key-switch count of a bootstrap.
+///
+/// # Panics
+/// If `coeffs` has fewer than two entries (degree 0, which the evaluation refuses).
+pub fn chebyshev_cost(coeffs: &[f64], a: f64, b: f64) -> OpCounter {
+    assert!(coeffs.len() >= 2, "chebyshev_cost needs degree >= 1");
+    let depth = chebyshev_depth(coeffs.len() - 1);
+    let mut sim = CostSim {
+        top: depth,
+        baby: 1 << optimal_split(depth),
+        powers: BTreeSet::from([1]),
+        cost: OpCounter::default(),
+    };
+    if a != -1.0 || b != 1.0 {
+        sim.cost.ct_pt_mults += 1;
+        sim.cost.rescales += 1;
+    }
+    if sim.rec(coeffs, 1) == Some(3) {
+        sim.cost.relins += 1;
+    }
+    sim.cost.rescales += 1;
+    sim.cost
+}
+
+/// [`Cheb`] without ciphertexts: the same recursion on degrees and levels, counting what
+/// [`Cheb`] counts. `top` is the level of `T_1` (any value works: only `top - tl` matters).
+struct CostSim {
+    top: usize,
+    baby: usize,
+    powers: BTreeSet<usize>,
+    cost: OpCounter,
+}
+
+impl CostSim {
+    /// [`Cheb::ensure`]: one product, relinearization and rescale per new power, plus an
+    /// integer constant for `T_(a-b)` when `a != b`.
+    fn ensure(&mut self, i: usize) {
+        if self.powers.contains(&i) {
+            return;
+        }
+        let a = 1usize << (ceil_log2(i) - 1);
+        let (b, c) = (i - a, 2 * a - i);
+        self.ensure(a);
+        self.ensure(b);
+        if c > 0 {
+            self.ensure(c);
+            self.cost.ct_pt_mults += 1;
+        }
+        self.cost.ct_ct_tensor += 1;
+        self.cost.relins += 1;
+        self.cost.rescales += 1;
+        self.powers.insert(i);
+    }
+
+    /// [`Cheb::rec`]: the component count of the result (2 or 3), `None` for zero.
+    fn rec(&mut self, p: &[f64], tl: usize) -> Option<usize> {
+        let m = p.iter().rposition(|&c| c != 0.0)?;
+        let p = &p[..=m];
+        if m == 0 || (m < self.baby && tl + ceil_log2(m) <= self.top) {
+            for (i, &c) in p.iter().enumerate().skip(1) {
+                if c != 0.0 {
+                    self.ensure(i);
+                    self.cost.ct_pt_mults += 1;
+                }
+            }
+            return Some(2);
+        }
+        let k = 1usize << (usize::BITS - 1 - m.leading_zeros());
+        let (q, r) = split_coeffs(p, k);
+        self.ensure(k);
+        let qres = self.rec(&q, tl + 1);
+        let rres = self.rec(&r, tl);
+        let prod = qres.map(|len| {
+            if len == 3 {
+                self.cost.relins += 1;
+            }
+            self.cost.rescales += 1;
+            self.cost.ct_ct_tensor += 1;
+            3
+        });
+        match (prod, rres) {
+            (None, r) => r,
+            (Some(a), r) => Some(a.max(r.unwrap_or(0))),
+        }
+    }
 }
 
 /// `p = q T_k + r` for a Chebyshev series `p` of degree `m` with `k <= m < 2k`:
@@ -653,7 +746,15 @@ mod tests {
             let mut r = rng(seed);
             let x = rand_in(&mut r, self.params.slots(), a, b);
             let ct = self.encrypt(&x, scale, level, &mut r);
+            self.eval.reset_counter();
             let out = self.eval.eval_chebyshev(&ct, coeffs, a, b).unwrap();
+            // Task 38: the planned counts are exactly what the evaluator counted.
+            assert_eq!(
+                self.eval.counter(),
+                chebyshev_cost(coeffs, a, b),
+                "degree {}",
+                coeffs.len() - 1
+            );
             let affine = (a, b) != (-1.0, 1.0);
             let depth = chebyshev_depth(coeffs.len() - 1) + affine as usize;
             assert_eq!(out.level(), level - depth, "degree {}", coeffs.len() - 1);
@@ -746,6 +847,7 @@ mod tests {
             (n.ct_ct_tensor, n.relins, n.rescales, n.ct_pt_mults),
             (23, 20, 24, 71)
         );
+        assert_eq!(n, chebyshev_cost(&sine, -1.0, 1.0));
     }
 
     #[test]

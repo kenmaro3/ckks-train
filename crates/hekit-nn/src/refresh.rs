@@ -7,8 +7,9 @@
 //!
 //! [`ClientRefresher`] is the **interactive mode** of M2 (spec §4.3.1, the development stage;
 //! not used for the paper's claims): the server sends the ciphertexts to the key owner, who
-//! decrypts, decodes, re-encodes and re-encrypts them on the top level. M3 replaces it by a
-//! bootstrapping refresher behind the same trait.
+//! decrypts, decodes, re-encodes and re-encrypts them on the top level. M3 adds
+//! [`BootstrapRefresher`], the non-interactive refresh by CKKS bootstrapping behind the same
+//! trait (Task 38).
 //!
 //! # Scale contract
 //!
@@ -38,14 +39,17 @@
 
 use std::sync::Arc;
 
-use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor};
+use hekit_ckks::bootstrap::Bootstrapper;
+use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor, Evaluator};
 use hekit_core::error::{HekitError, Result};
 use hekit_core::sampler::Rng;
 
 use crate::layout::Layout;
 
-/// Brings a ciphertext back to the top level (`max_level`) at its own exact scale, with the
-/// same message in every slot (up to the refresh's error).
+/// Brings a ciphertext back to the refresher's output level at its own exact scale, with the
+/// same message in every slot (up to the refresh's error). The output level is the top level
+/// (`max_level`) for [`ClientRefresher`] and the level after bootstrapping
+/// ([`Bootstrapper::output_level`], 16 on n16_boot) for [`BootstrapRefresher`].
 ///
 /// # Layout binding
 ///
@@ -53,12 +57,11 @@ use crate::layout::Layout;
 /// with a replicated layout (`layout.block() < slots`), whose block copies drift apart
 /// exponentially over a long run unless every refresh re-lays them (module docs, "Replicated
 /// blocks"). [`crate::trainer::Trainer::new`] binds its refresher to its layout.
-/// [`ClientRefresher`] averages the blocks on the client. A future bootstrapping refresher
-/// (M3) has no client to re-lay: it must either average the blocks on the server
-/// (`log2(slots / block)` rotations and additions, the constant `block / slots` folded into a
-/// plaintext) or return `InvalidParams` for a replicated layout.
+/// [`ClientRefresher`] averages the blocks on the client. [`BootstrapRefresher`] has no
+/// client to re-lay and returns `InvalidParams` for a replicated layout (ruling R-M3-3).
 pub trait Refresher {
-    /// A fresh ciphertext on the top level with exactly `ct.scale()` and `ct`'s message.
+    /// A fresh ciphertext on the refresher's output level with exactly `ct.scale()` and
+    /// `ct`'s message.
     ///
     /// Errors: implementation specific (e.g. `InvalidParams` for a ciphertext of other
     /// parameters).
@@ -202,5 +205,163 @@ impl Refresher for ClientRefresher {
         }
         self.block = Some(layout.block());
         Ok(())
+    }
+}
+
+/// The non-interactive refresh (M3, Task 38): every [`Refresher::refresh`] drops the
+/// ciphertext to level 0 (free) and bootstraps it ([`Bootstrapper::bootstrap`]) to
+/// [`Bootstrapper::output_level`]. The evaluator supplies the relinearization key and the
+/// counter: each refresh adds one bootstrap and all its key switches to it.
+///
+/// # Scale
+///
+/// The bootstrap takes and returns exactly `Delta` (the preset scale). A ciphertext at another
+/// scale `s` (a bias on its exact product scale, see the [module docs](self)) is relabelled to
+/// `Delta` before the bootstrap and back to `s` after it. Relabelling is exact: it multiplies
+/// the message by `s / Delta` during the bootstrap and divides it back, so the result decrypts
+/// to `ct`'s message at exactly `s`, with the bootstrap error scaled by `Delta / s`. The
+/// bootstrap's precondition `|m| <= 1` then applies to `(s / Delta) m`; scales outside
+/// `[Delta / 2, 2 Delta]` are refused (`ScaleMismatch`).
+///
+/// # Replicated layouts are refused (ruling R-M3-3)
+///
+/// Bootstrapping refreshes every slot independently: it cannot replace the drifting block
+/// copies of a replicated layout (`layout.block() < slots`) by their mean, as
+/// [`ClientRefresher`] does (module docs, "Replicated blocks"). So
+/// [`Refresher::bind_layout`] returns `InvalidParams` for a layout with more than one block
+/// copy, and a [`crate::trainer::Trainer`] cannot be built with it on such a layout. A
+/// single-block layout (`d * batch == slots`, e.g. MNIST) is accepted. Replicated layouts
+/// take the compact path of Tasks 40/41 instead: pack one lane per diagonal, bootstrap the
+/// compact ciphertext, and unpack (which re-replicates the blocks by construction).
+#[derive(Debug)]
+pub struct BootstrapRefresher<'a> {
+    bs: &'a Bootstrapper,
+    ev: &'a Evaluator,
+}
+
+impl<'a> BootstrapRefresher<'a> {
+    /// A refresher bootstrapping with `bs` on `ev` (which must hold the relinearization key
+    /// of `bs`'s parameters; checked at each refresh).
+    pub fn new(bs: &'a Bootstrapper, ev: &'a Evaluator) -> BootstrapRefresher<'a> {
+        BootstrapRefresher { bs, ev }
+    }
+}
+
+impl Refresher for BootstrapRefresher<'_> {
+    /// Drops `ct` to level 0, bootstraps it (relabelled to `Delta` and back if its scale
+    /// differs, see the type docs) and returns it at [`Bootstrapper::output_level`] with
+    /// exactly `ct.scale()`.
+    ///
+    /// Errors: `ScaleMismatch` for a scale outside `[Delta / 2, 2 Delta]`; the errors of
+    /// [`Evaluator::mod_switch_to_level`] and [`Bootstrapper::bootstrap`] (`InvalidParams`
+    /// for a ciphertext or evaluator of other parameters, a 3-component ciphertext, or no
+    /// relinearization key).
+    fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext> {
+        let delta = self.ev.params().scale();
+        let s = ct.scale();
+        if !(s >= delta / 2.0 && s <= 2.0 * delta) {
+            return Err(HekitError::ScaleMismatch);
+        }
+        let low = self.ev.mod_switch_to_level(ct, 0)?;
+        let low = Ciphertext::new(low.into_polys(), delta)?;
+        let out = self.bs.bootstrap(self.ev, &low)?;
+        Ciphertext::new(out.into_polys(), s)
+    }
+
+    /// Accepts a single-block layout of the parameters' slot count.
+    ///
+    /// Errors (`InvalidParams`): `layout` has another slot count, or it is replicated
+    /// (`layout.block() < slots`): bootstrapping cannot re-lay the block copies (type docs,
+    /// ruling R-M3-3).
+    fn bind_layout(&mut self, layout: &Layout) -> Result<()> {
+        let slots = self.ev.params().slots();
+        if layout.slots != slots {
+            return Err(HekitError::InvalidParams(format!(
+                "layout of {} slots for parameters with {slots} slots",
+                layout.slots
+            )));
+        }
+        if layout.block() < slots {
+            return Err(HekitError::InvalidParams(format!(
+                "BootstrapRefresher cannot re-lay a replicated layout ({} copies of a \
+                 {}-slot block); use the compact pack / bootstrap / unpack path (Tasks 40/41)",
+                slots / layout.block(),
+                layout.block()
+            )));
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use hekit_ckks::bootstrap::BootParams;
+    use hekit_ckks::precision::precision_bits;
+    use hekit_ckks::{CkksParams, KeyGenerator};
+
+    use super::*;
+
+    fn rng(seed: u8) -> Rng {
+        Rng::from_seed([seed; 32])
+    }
+
+    /// The n16_boot bands in miniature at N = 2^10 (insecure, tests only).
+    fn mini() -> CkksParams {
+        let mut q = vec![54, 42, 42];
+        q.extend([34; 4]);
+        q.extend([58; 7]);
+        q.extend([56; 4]);
+        CkksParams::new(10, &q, &[60, 60], 42, 9).unwrap()
+    }
+
+    /// R-M3-3, the scale contract and the counter, on the miniature.
+    #[test]
+    fn bootstrap_refresher_levels_scales_and_layouts() {
+        let params = Arc::new(mini());
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(1)).unwrap();
+        let encoder = Encoder::new(Arc::clone(&params));
+        let bp = BootParams {
+            log_slots: 9,
+            ..BootParams::default_n16()
+        };
+        let bs = Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg).unwrap();
+        let ev = Evaluator::new(Arc::clone(&params), Some(kg.relin_key()), None);
+        let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
+        let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
+        let mut r = rng(2);
+        let slots = params.slots();
+        let m: Vec<f64> = (0..slots)
+            .map(|_| 2.0 * ((r.next_u64() >> 11) as f64 * 2f64.powi(-53)) - 1.0)
+            .collect();
+        let mut rf = BootstrapRefresher::new(&bs, &ev);
+
+        // Layouts: one block is fine, copies are refused, other slot counts too.
+        assert!(rf.bind_layout(&Layout::new(slots, 32, 16).unwrap()).is_ok());
+        let inv = |e: Result<()>| matches!(e, Err(HekitError::InvalidParams(_)));
+        assert!(inv(rf.bind_layout(&Layout::new(slots, 16, 16).unwrap())));
+        assert!(inv(rf.bind_layout(&Layout::new(2 * slots, 32, 32).unwrap())));
+
+        // From any level, at Delta and at a nearby product scale.
+        let delta = params.scale();
+        for (level, scale) in [(5, delta), (0, delta * (1.0 + 2f64.powi(-11)))] {
+            let pt = encoder.encode(&m, scale, level).unwrap();
+            let ct = enc.encrypt(&pt, &mut r);
+            let before = ev.counter().bootstraps;
+            let out = rf.refresh(&ct).unwrap();
+            assert_eq!((out.level(), out.scale()), (bs.output_level(), scale));
+            assert_eq!(ev.counter().bootstraps, before + 1);
+            let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
+            assert!(bits >= 16.0, "level {level}: {bits}");
+        }
+        // A scale far from Delta is refused before any work.
+        let pt = encoder.encode(&m, 4.0 * delta, 0).unwrap();
+        let before = ev.counter();
+        assert_eq!(
+            rf.refresh(&enc.encrypt(&pt, &mut r)).unwrap_err(),
+            HekitError::ScaleMismatch
+        );
+        assert_eq!(ev.counter(), before);
     }
 }

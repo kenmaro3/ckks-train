@@ -180,6 +180,26 @@ impl Evaluator {
         }
     }
 
+    /// An evaluator that shares the `Arc`ed keys (no key copy) with a fresh counter: the
+    /// bootstrapper runs on the caller's relinearization key and its own Galois keys.
+    pub(crate) fn with_shared_keys(
+        params: Arc<CkksParams>,
+        relin: Option<Arc<RelinKey>>,
+        galois: Option<Arc<GaloisKeys>>,
+    ) -> Evaluator {
+        Evaluator {
+            params,
+            relin,
+            galois,
+            counter: Mutex::new(OpCounter::default()),
+        }
+    }
+
+    /// The shared relinearization key, if any (see [`Evaluator::with_shared_keys`]).
+    pub(crate) fn relin_key_shared(&self) -> Option<&Arc<RelinKey>> {
+        self.relin.as_ref()
+    }
+
     /// A snapshot of the operation counts so far (see [`crate::counter`]).
     pub fn counter(&self) -> OpCounter {
         self.counter
@@ -570,20 +590,20 @@ impl Evaluator {
             Vec::new()
         };
         let nontrivial = keys.iter().filter(|k| k.is_some()).count() as u64;
-        let out = keys
-            .into_iter()
-            .map(|k| match k {
-                None => Ok(ct.clone()),
-                Some((elt, gk)) => {
-                    let rotated: Vec<QpPoly> = digits
-                        .iter()
-                        .map(|d| QpPoly::new(d.q().automorphism(elt), d.p().automorphism(elt)))
-                        .collect();
-                    let (kb, ka) = apply_key(&self.params, &rotated, gk.key());
-                    finish_galois(ct, elt, kb, ka)
-                }
-            })
-            .collect::<Result<Vec<_>>>()?;
+        // The steps are independent (in parallel with the `parallel` feature, crate::par).
+        let out = crate::par::map_slice(&keys, |k| match *k {
+            None => Ok(ct.clone()),
+            Some((elt, gk)) => {
+                let rotated: Vec<QpPoly> = digits
+                    .iter()
+                    .map(|d| QpPoly::new(d.q().automorphism(elt), d.p().automorphism(elt)))
+                    .collect();
+                let (kb, ka) = apply_key(&self.params, &rotated, gk.key());
+                finish_galois(ct, elt, kb, ka)
+            }
+        })
+        .into_iter()
+        .collect::<Result<Vec<_>>>()?;
         self.count(|c| c.rotations += nontrivial);
         Ok(out)
     }

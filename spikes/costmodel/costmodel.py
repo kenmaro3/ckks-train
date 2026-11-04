@@ -26,7 +26,7 @@ Counted ops (per update, all samples of the mini-batch):
 
 Key-switch metrics: ``key_switches = rotations + relins`` (brief, Step 5), and the spec metric
 ``ks_spec = rotations + relins + bootstraps * BOOT_KS`` where BOOT_KS is the key-switch count of one
-EvalBootstrap call (see `bootstrap_key_switches`).
+EvalBootstrap call (see `bootstrap_key_switches`; hekit's own measured count is `HEKIT_BOOT_KS`).
 
 ``diag_batched`` has two modes: non-interactive (default; bootstraps the weights, needs the compact
 re-layout) and ``interactive=True`` (M2 Task 30/32: the client decrypts and re-encrypts the weights
@@ -195,6 +195,16 @@ def _ps_mults(degree: int) -> int:
     m = next(mm for hi, mm in table if degree <= hi)
     k = degree // ((1 << m) - 1) + 1
     return k + 2 * m + (1 << (m - 1)) - 4
+
+
+# Key switches of ONE hekit bootstrap, measured (M3 Task 38, docs/bootstrap.md §11): n16_boot
+# (N = 2^16, 2^15 slots), BootParams::default_n16(): CoeffToSlot 32 rotations + 2 conjugations,
+# SlotToCoeff 35 rotations, 2 x 20 EvalMod relinearizations, 2 SSE switches of the mod-raise =
+# 111 (Bootstrapper::key_switches_per_boot, checked against the op counter). This is hekit's own
+# bootstrap; `bootstrap_key_switches` below models ReBoot's OpenFHE EvalBootstrap (502 at 2^15
+# slots), which stays the default of `network_cost` so that the M0 tables are unchanged. Pass
+# boot_ks=HEKIT_BOOT_KS[slots] for the diag_batched side to use the measured value.
+HEKIT_BOOT_KS = {2**15: 111}
 
 
 def bootstrap_key_switches(slots: int, level_budget=(2, 2), iterations: int = 2) -> dict:
