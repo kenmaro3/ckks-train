@@ -20,6 +20,31 @@ pub const N16_TRAIN_K: usize = 4;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_DNUM: usize = 8;
 
+/// `n16_boot` compute levels above the base (levels 1..=16), see docs/bootstrap.md §1.
+pub const N16_BOOT_COMPUTE_LEVELS: usize = 16;
+/// `n16_boot` SlotToCoeff levels (42-bit primes, levels 17..=19).
+pub const N16_BOOT_STOC_LEVELS: usize = 3;
+/// `n16_boot` EvalMod levels (58-bit primes, levels 20..=27).
+pub const N16_BOOT_EVALMOD_LEVELS: usize = 8;
+/// `n16_boot` CoeffToSlot levels (42-bit primes, levels 28..=31).
+pub const N16_BOOT_CTOS_LEVELS: usize = 4;
+/// `n16_boot` special-prime count (58-bit each, log P = 232 >= the largest digit).
+pub const N16_BOOT_K: usize = 4;
+/// `n16_boot` digit count (32 q primes, 4 per digit).
+pub const N16_BOOT_DNUM: usize = 8;
+
+/// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
+/// `[58, 42 x 16 (compute), 42 x 3 (SlotToCoeff), 58 x 8 (EvalMod), 42 x 4 (CoeffToSlot)]`,
+/// p is `[58 x 4]`.
+pub fn n16_boot_bits() -> (Vec<u32>, Vec<u32>) {
+    let mut q = vec![58];
+    q.extend(vec![42; N16_BOOT_COMPUTE_LEVELS]);
+    q.extend(vec![42; N16_BOOT_STOC_LEVELS]);
+    q.extend(vec![58; N16_BOOT_EVALMOD_LEVELS]);
+    q.extend(vec![42; N16_BOOT_CTOS_LEVELS]);
+    (q, vec![58; N16_BOOT_K])
+}
+
 /// CKKS parameters: ring degree, RNS moduli Q (data) and P (special), scale, key-switch digits.
 #[derive(Clone, Debug)]
 pub struct CkksParams {
@@ -135,6 +160,15 @@ impl CkksParams {
         Self::new(16, &q_bits, &p_bits, 42, N16_TRAIN_DNUM).expect("n16_train preset is valid")
     }
 
+    /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
+    /// 31, log PQ = 1720), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
+    /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`; the
+    /// 128-bit security estimate is Task 39's.
+    pub fn n16_boot() -> CkksParams {
+        let (q_bits, p_bits) = n16_boot_bits();
+        Self::new(16, &q_bits, &p_bits, 42, N16_BOOT_DNUM).expect("n16_boot preset is valid")
+    }
+
     /// Returns a copy with a ternary secret-key Hamming weight (validated `<= N` by KeyGenerator).
     pub fn with_hamming_weight(mut self, h: usize) -> CkksParams {
         self.hamming_weight = Some(h);
@@ -184,6 +218,25 @@ impl CkksParams {
     /// Default scale Delta.
     pub fn scale(&self) -> f64 {
         self.scale
+    }
+    /// Default scale of a ciphertext at `level`: `2^(bits of q_level)` for `level >= 1`, and the
+    /// preset scale [`CkksParams::scale`] at level 0. This is the scale that a
+    /// ciphertext-ciphertext product keeps when it is rescaled by `q_level` (2^58 in the
+    /// `n16_boot` EvalMod band, 2^42 elsewhere). For single-size presets it equals `scale()`.
+    ///
+    /// # Panics
+    /// If `level > max_level()`.
+    pub fn scale_at(&self, level: usize) -> f64 {
+        assert!(
+            level <= self.max_level(),
+            "level {level} above max_level {}",
+            self.max_level()
+        );
+        if level == 0 {
+            self.scale
+        } else {
+            (self.q_bits[level] as f64).exp2()
+        }
     }
     /// Number of key-switching digits.
     pub fn dnum(&self) -> usize {
@@ -260,7 +313,11 @@ mod tests {
 
     #[test]
     fn all_primes_distinct_and_ntt_friendly() {
-        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
+        for p in [
+            CkksParams::seal_2020(),
+            CkksParams::n16_train(),
+            CkksParams::n16_boot(),
+        ] {
             let all: Vec<u64> = p.q().iter().chain(p.p()).copied().collect();
             for (i, a) in all.iter().enumerate() {
                 assert!(!all[..i].contains(a));
@@ -288,7 +345,11 @@ mod tests {
 
     #[test]
     fn digit_bits_within_log_p() {
-        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
+        for p in [
+            CkksParams::seal_2020(),
+            CkksParams::n16_train(),
+            CkksParams::n16_boot(),
+        ] {
             // Nominal bit sizes: exact log2 sums of equal-size primes differ by ~1e-11.
             let log_p: u32 = p.p_bits().iter().sum();
             for d in p.q_bits().chunks(p.alpha()) {
@@ -297,6 +358,84 @@ mod tests {
                     "digit {d:?} > log P {log_p}"
                 );
             }
+        }
+    }
+
+    #[test]
+    fn n16_boot_shape() {
+        let p = CkksParams::n16_boot();
+        assert_eq!(p.n(), 1 << 16);
+        assert_eq!(p.max_level(), 31);
+        assert!((p.log_pq() - 1720.0).abs() <= 2.0, "{}", p.log_pq());
+        assert!(p.log_pq() <= 1750.0, "{}", p.log_pq());
+        assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
+        assert_eq!(p.scale(), 2f64.powi(42));
+        assert_eq!(p.hamming_weight(), None);
+    }
+
+    /// Level i is a ciphertext over primes 0..=i; the bands from the bottom are base, compute,
+    /// SlotToCoeff, EvalMod, CoeffToSlot (docs/bootstrap.md §1).
+    #[test]
+    fn n16_boot_bands() {
+        let p = CkksParams::n16_boot();
+        let q = p.q_bits();
+        assert_eq!(q[0], 58);
+        assert!(q[1..=16].iter().all(|&b| b == 42), "compute band");
+        assert!(q[17..=19].iter().all(|&b| b == 42), "SlotToCoeff band");
+        assert!(q[20..=27].iter().all(|&b| b == 58), "EvalMod band");
+        assert!(q[28..=31].iter().all(|&b| b == 42), "CoeffToSlot band");
+        assert_eq!(p.p_bits(), &[58; 4]);
+    }
+
+    #[test]
+    fn n16_boot_scale_at() {
+        let p = CkksParams::n16_boot();
+        assert_eq!(p.scale_at(0), 2f64.powi(42));
+        assert_eq!(p.scale_at(24), 2f64.powi(58));
+        assert_eq!(p.scale_at(31), 2f64.powi(42));
+        for l in 1..=19 {
+            assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
+        }
+        for l in 20..=27 {
+            assert_eq!(p.scale_at(l), 2f64.powi(58), "level {l}");
+        }
+        for l in 28..=31 {
+            assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
+        }
+    }
+
+    /// For the single-size presets `scale_at` is the default scale at every level.
+    #[test]
+    fn scale_at_is_default_scale_for_uniform_presets() {
+        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
+            for l in 0..=p.max_level() {
+                assert_eq!(p.scale_at(l), p.scale(), "level {l}");
+            }
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "level 32 above max_level 31")]
+    fn scale_at_above_max_level_panics() {
+        CkksParams::n16_boot().scale_at(32);
+    }
+
+    #[test]
+    fn n16_boot_rejects_dnum_7() {
+        let (q_bits, p_bits) = n16_boot_bits();
+        assert_eq!(q_bits.len(), 32);
+        assert!(CkksParams::new(16, &q_bits, &p_bits, 42, 7).is_err());
+    }
+
+    /// Exact (not nominal) digit sizes: the two all-58-bit EvalMod digits stay below P because
+    /// SEAL-style assignment gives P the four largest 58-bit primes.
+    #[test]
+    fn n16_boot_digits_below_p_exactly() {
+        let p = CkksParams::n16_boot();
+        let log_p: f64 = p.p().iter().map(|&m| (m as f64).log2()).sum();
+        for d in p.q().chunks(p.alpha()) {
+            let bits: f64 = d.iter().map(|&m| (m as f64).log2()).sum();
+            assert!(bits < log_p, "digit {bits} >= log P {log_p}");
         }
     }
 

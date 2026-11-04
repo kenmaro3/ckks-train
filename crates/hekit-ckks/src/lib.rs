@@ -1,6 +1,7 @@
 //! hekit-ckks: RNS-CKKS scheme built on hekit-core (temporary crate name).
 #![deny(missing_docs)]
 
+pub mod bootstrap;
 pub mod ciphertext;
 pub mod counter;
 pub mod encoder;
