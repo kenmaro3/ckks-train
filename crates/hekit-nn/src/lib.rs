@@ -6,4 +6,6 @@ pub mod dense;
 pub mod layout;
 pub mod loss;
 pub mod optim;
+pub mod refresh;
 pub mod sim;
+pub mod trainer;

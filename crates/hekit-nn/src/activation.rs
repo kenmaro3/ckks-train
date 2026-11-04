@@ -91,6 +91,10 @@ pub trait Activation {
         ev.rescale(&ev.mul(&s, &u)?)
     }
 
+    /// `f(z)` on a plaintext value: evaluation on decrypted weights
+    /// ([`crate::trainer::Mlp::predict_plain`]).
+    fn eval_plain(&self, z: f64) -> f64;
+
     /// Levels consumed by [`Activation::forward`].
     fn depth(&self) -> usize;
 
@@ -309,6 +313,10 @@ impl Activation for Square {
         eval_poly(ev, enc, z, &[None, Some(c1)], target_scale)
     }
 
+    fn eval_plain(&self, z: f64) -> f64 {
+        z * z
+    }
+
     fn depth(&self) -> usize {
         1
     }
@@ -343,6 +351,10 @@ impl Activation for PolyRelu2 {
             HekitError::InvalidParams("derivative factor is identically zero".into())
         })?;
         eval_poly(ev, enc, z, &[scaled(&km, 1.0), Some(c1)], target_scale)
+    }
+
+    fn eval_plain(&self, z: f64) -> f64 {
+        z * z + z
     }
 
     fn depth(&self) -> usize {
@@ -380,6 +392,10 @@ impl Activation for Poly {
             ));
         }
         eval_poly(ev, enc, z, &coeffs, target_scale.or(Some(z.scale())))
+    }
+
+    fn eval_plain(&self, z: f64) -> f64 {
+        self.coeffs.iter().rev().fold(0.0, |acc, &c| acc * z + c)
     }
 
     fn depth(&self) -> usize {
