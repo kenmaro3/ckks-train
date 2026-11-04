@@ -8,3 +8,4 @@ __pycache__/
 tools/**/_ext/
 tools/**/build/
 /kat/
+/data/mnist/

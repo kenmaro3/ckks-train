@@ -223,6 +223,7 @@ dependencies = [
  "criterion",
  "hekit-ckks",
  "hekit-core",
+ "hekit-nn",
  "ndarray",
 ]
 
