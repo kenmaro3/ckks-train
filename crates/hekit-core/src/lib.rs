@@ -3,6 +3,7 @@
 
 pub mod error;
 pub mod modulus;
+pub mod primes;
 
 pub use error::{HekitError, Result};
 pub use modulus::{Modulus, Shoup};
