@@ -88,7 +88,7 @@ mod tests {
     fn ctx() -> Ctx {
         let params = Arc::new(CkksParams::new(12, &[60, 40, 40, 40], &[60], 40, 4).unwrap());
         let mut kg = KeyGenerator::new(Arc::clone(&params), Rng::from_seed([5; 32])).unwrap();
-        let mut steps = bsgs_rotation_steps(16);
+        let mut steps = bsgs_rotation_steps(16, 1);
         steps.extend([1, 2, 3]);
         steps.sort_unstable();
         steps.dedup();
@@ -154,12 +154,13 @@ mod tests {
         let d = 16;
         let (baby, giant) = bsgs_split(d);
         let w = Array2::from_shape_fn((d, d), |(i, j)| (i + j) as f64 / 64.0);
-        let diags = diagonals_from_matrix(&w, c.slots);
+        let diags = diagonals_from_matrix(&w, c.slots, 1);
         let x = c.ct(0.5);
         let cd = Diagonals::<Ciphertext>::encrypt(
             &c.enc,
             &c.encryptor,
             &diags,
+            1,
             c.scale,
             c.top,
             &mut c.rng,

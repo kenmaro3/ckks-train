@@ -54,7 +54,7 @@ fn bench_preset(c: &mut Criterion, name: &str, params: CkksParams) {
     let params = Arc::new(params);
     let (slots, top, scale) = (params.slots(), params.max_level(), params.scale());
     let mut steps: Vec<i32> = (1..=ROTS).collect();
-    for s in bsgs_rotation_steps(D) {
+    for s in bsgs_rotation_steps(D, 1) {
         if !steps.contains(&s) {
             steps.push(s);
         }
@@ -75,13 +75,13 @@ fn bench_preset(c: &mut Criterion, name: &str, params: CkksParams) {
     let cy = encryptor.encrypt(&enc.encode(&y, scale, top).unwrap(), &mut r);
     // matvec: random 64 x 64 matrix, x replicated with period 64.
     let w = Array2::from_shape_vec((D, D), rand_vals(&mut r, D * D)).unwrap();
-    let diags = diagonals_from_matrix(&w, slots);
+    let diags = diagonals_from_matrix(&w, slots, 1);
     let v = rand_vals(&mut r, D);
     let vr: Vec<f64> = (0..slots).map(|j| v[j % D]).collect();
     let cv = encryptor.encrypt(&enc.encode(&vr, scale, top).unwrap(), &mut r);
-    let pdiag = Diagonals::<Plaintext>::encode(&enc, &diags, scale, top).unwrap();
+    let pdiag = Diagonals::<Plaintext>::encode(&enc, &diags, 1, scale, top).unwrap();
     let cdiag =
-        Diagonals::<Ciphertext>::encrypt(&enc, &encryptor, &diags, scale, top, &mut r).unwrap();
+        Diagonals::<Ciphertext>::encrypt(&enc, &encryptor, &diags, 1, scale, top, &mut r).unwrap();
     eprintln!(
         "{name}: N = 2^{}, level {top}, dnum {}, alpha {}, {} special primes, {} Galois keys; \
          setup {:.1} s",

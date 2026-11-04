@@ -90,7 +90,7 @@ pub fn run_precision_suite(params: CkksParams) -> Vec<PrecisionReport> {
         KeyGenerator::new(Arc::clone(&params), Rng::from_seed([20; 32])).expect("key generator");
     let pk = kg.public_key();
     let rk = kg.relin_key();
-    let gks = kg.galois_keys(&bsgs_rotation_steps(MATVEC_D));
+    let gks = kg.galois_keys(&bsgs_rotation_steps(MATVEC_D, 1));
     let enc = Encoder::new(Arc::clone(&params));
     let encryptor = Encryptor::new(Arc::clone(&params), pk);
     let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
@@ -146,14 +146,14 @@ pub fn run_precision_suite(params: CkksParams) -> Vec<PrecisionReport> {
     let want: Vec<f64> = (0..slots)
         .map(|j| (0..d).map(|k| w[[j % d, k]] * v[k]).sum())
         .collect();
-    let diags = diagonals_from_matrix(&w, slots);
+    let diags = diagonals_from_matrix(&w, slots, 1);
     let cv = encrypt(&vr, &mut r);
-    let pdiag = Diagonals::<Plaintext>::encode(&enc, &diags, scale, top).expect("diagonals");
+    let pdiag = Diagonals::<Plaintext>::encode(&enc, &diags, 1, scale, top).expect("diagonals");
     let out = eval
         .rescale(&eval.matvec_plain(&pdiag, &cv).expect("matvec"))
         .expect("rescale");
     report("matvec", out.level(), &want, &decode(&out));
-    let cdiag = Diagonals::<Ciphertext>::encrypt(&enc, &encryptor, &diags, scale, top, &mut r)
+    let cdiag = Diagonals::<Ciphertext>::encrypt(&enc, &encryptor, &diags, 1, scale, top, &mut r)
         .expect("encrypted diagonals");
     let out = eval
         .rescale(&eval.matvec_enc(&cdiag, &cv).expect("matvec_enc"))

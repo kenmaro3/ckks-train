@@ -229,7 +229,7 @@ impl Evaluator {
     }
 
     /// The relinearization key, validated against this evaluator's bases.
-    fn relin_key_checked(&self) -> Result<&RelinKey> {
+    pub(crate) fn relin_key_checked(&self) -> Result<&RelinKey> {
         let rk = self.relin.as_ref().ok_or_else(|| {
             HekitError::InvalidParams("evaluator has no relinearization key".into())
         })?;
@@ -362,6 +362,18 @@ impl Evaluator {
         Ok(out)
     }
 
+    /// `Ok` when a valid Galois key exists for every step of `steps` that is not a multiple
+    /// of `slots`, else the error [`Evaluator::rotate`] would return
+    /// (`InvalidParams("missing galois key")` or a foreign key).
+    pub(crate) fn check_rotation_keys(&self, steps: &[i32]) -> Result<()> {
+        for &s in steps {
+            if let Some(elt) = self.rotation_elt(s) {
+                self.galois_key(elt)?;
+            }
+        }
+        Ok(())
+    }
+
     /// The Galois element of a rotation by `steps`, or `None` for a multiple of `slots`.
     fn rotation_elt(&self, steps: i32) -> Option<u64> {
         let slots = self.params.slots() as i64;
@@ -398,7 +410,7 @@ impl Evaluator {
     }
 
     /// `InvalidParams` unless `ct` is over this evaluator's basis with 2 components.
-    fn check_galois_input(&self, ct: &Ciphertext) -> Result<()> {
+    pub(crate) fn check_galois_input(&self, ct: &Ciphertext) -> Result<()> {
         self.check_basis(ct.polys())?;
         if ct.len() != 2 {
             return Err(HekitError::InvalidParams(format!(
@@ -453,7 +465,7 @@ impl Evaluator {
     }
 
     /// `InvalidParams` unless every polynomial is over this parameter set's data basis.
-    fn check_basis(&self, polys: &[RnsPoly]) -> Result<()> {
+    pub(crate) fn check_basis(&self, polys: &[RnsPoly]) -> Result<()> {
         if polys
             .iter()
             .all(|p| Arc::ptr_eq(p.basis(), self.params.basis_q()))
