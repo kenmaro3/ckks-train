@@ -144,13 +144,17 @@ impl NttTable {
         let q = m.value();
         debug_assert!(a.iter().all(|&x| x < q));
         let two_q = 2 * q;
-        let mut t = self.n;
+        let n = self.n;
+        let mut t = n;
         let mut groups = 1;
-        while groups < self.n {
+        // Every stage but the last (t >= 2); group i of a stage uses roots[groups + i].
+        while groups < n / 2 {
             t >>= 1;
-            for i in 0..groups {
-                let w = &self.roots[groups + i];
-                let (lo, hi) = a[2 * i * t..2 * (i + 1) * t].split_at_mut(t);
+            for (chunk, w) in a
+                .chunks_exact_mut(2 * t)
+                .zip(&self.roots[groups..2 * groups])
+            {
+                let (lo, hi) = chunk.split_at_mut(t);
                 for (x, y) in lo.iter_mut().zip(hi.iter_mut()) {
                     let xr = if *x >= two_q { *x - two_q } else { *x };
                     let tt = m.mul_shoup_lazy(*y, w);
@@ -160,15 +164,17 @@ impl NttTable {
             }
             groups <<= 1;
         }
-        for v in a.iter_mut() {
-            let mut r = *v;
-            if r >= two_q {
-                r -= two_q;
-            }
-            if r >= q {
-                r -= q;
-            }
-            *v = r;
+        // Last stage (t = 1, groups = n/2) fused with the final reduction [0, 4q) -> [0, q).
+        let reduce = |r: u64| {
+            let r = if r >= two_q { r - two_q } else { r };
+            if r >= q { r - q } else { r }
+        };
+        for (pair, w) in a.chunks_exact_mut(2).zip(&self.roots[n / 2..]) {
+            let x = pair[0];
+            let xr = if x >= two_q { x - two_q } else { x };
+            let tt = m.mul_shoup_lazy(pair[1], w);
+            pair[0] = reduce(xr + tt);
+            pair[1] = reduce(xr + two_q - tt);
         }
     }
 
@@ -183,10 +189,20 @@ impl NttTable {
         let two_q = 2 * q;
         let mut t = 1;
         let mut h = self.n >> 1;
+        // First stage (t = 1) on adjacent pairs, without the per-group split.
+        if h > 1 {
+            for (pair, w) in a.chunks_exact_mut(2).zip(&self.inv_roots[h..]) {
+                let (x, y) = (pair[0], pair[1]);
+                let s = x + y;
+                pair[0] = if s >= two_q { s - two_q } else { s };
+                pair[1] = m.mul_shoup_lazy(x + two_q - y, w);
+            }
+            t = 2;
+            h >>= 1;
+        }
         while h > 1 {
-            for i in 0..h {
-                let w = &self.inv_roots[h + i];
-                let (lo, hi) = a[2 * i * t..2 * (i + 1) * t].split_at_mut(t);
+            for (chunk, w) in a.chunks_exact_mut(2 * t).zip(&self.inv_roots[h..2 * h]) {
+                let (lo, hi) = chunk.split_at_mut(t);
                 for (x, y) in lo.iter_mut().zip(hi.iter_mut()) {
                     let s = *x + *y;
                     let d = *x + two_q - *y;
