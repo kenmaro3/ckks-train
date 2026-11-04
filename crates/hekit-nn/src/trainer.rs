@@ -207,17 +207,15 @@ fn dense_out(ev: &Evaluator, level: usize, x_scale: f64, w_scale: f64) -> Result
 
 /// Runs activations on zero ciphertexts to read their output `(level, scale)`: the scale is a
 /// deterministic function of the input scale and the primes, and this reads it from the
-/// activation's own code. A private evaluator with only the relinearization key, so the
-/// training evaluator's counter does not move.
+/// activation's own code. A clone of the training evaluator: it shares the keys (`Arc`, no
+/// key copy) and has its own counter, so the training evaluator's counter does not move.
 struct ScaleProbe {
     ev: Evaluator,
 }
 
 impl ScaleProbe {
     fn new(ev: &Evaluator) -> ScaleProbe {
-        ScaleProbe {
-            ev: Evaluator::new(Arc::clone(ev.params()), ev.relin_key().cloned(), None),
-        }
+        ScaleProbe { ev: ev.clone() }
     }
 
     fn activation(
@@ -300,7 +298,7 @@ impl Mlp {
     /// for inputs encrypted at the top level with scale `Delta` (as [`BatchSpec`] does): the
     /// weights at `Delta`, each bias at the exact product scale its forward adds it to (the
     /// input scale of layer `l` follows from the chain; the activation scales are read with a
-    /// zero-ciphertext probe on a private evaluator holding `ev`'s relinearization key).
+    /// zero-ciphertext probe on a clone of `ev`, which shares its keys).
     ///
     /// Errors: `InvalidParams` if `layers` is empty, `acts` has another length, the shapes do
     /// not chain or do not fit `layout`; `NoLevelsLeft` if the chain runs out of levels; and
@@ -360,7 +358,7 @@ impl Mlp {
     /// Where the client encrypts batches for this network ([`BatchSpec`]): `x` on the top
     /// level at `Delta`, `y` at the output's exact level and scale, computed from the public
     /// parameters, the weights' scales and the activations (zero-ciphertext probe, see
-    /// [`Mlp::encrypt`]; the probe clones `ev`'s relinearization key, so compute it once).
+    /// [`Mlp::encrypt`]; the probe shares `ev`'s keys, so this is cheap).
     ///
     /// Errors: `InvalidParams` for an empty network; `NoLevelsLeft` if the forward does not
     /// fit the levels; the activations' errors.

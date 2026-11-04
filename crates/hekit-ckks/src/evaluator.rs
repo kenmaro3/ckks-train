@@ -120,13 +120,14 @@ fn check_plain_scale(sp: f64) -> Result<()> {
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
 /// counts the expensive operations it performs ([`Evaluator::counter`]).
 ///
-/// `Clone` copies the keys and the current counts into an independent counter. `Debug`
+/// The keys are held behind `Arc`s: `Clone` shares them (no key copy; one n16_train key is
+/// about 302 MB) and copies the current counts into an independent counter. `Debug`
 /// prints a summary (ring degree, top level, which keys are present, the counts), not the
 /// keys.
 pub struct Evaluator {
     params: Arc<CkksParams>,
-    relin: Option<RelinKey>,
-    galois: Option<GaloisKeys>,
+    relin: Option<Arc<RelinKey>>,
+    galois: Option<Arc<GaloisKeys>>,
     counter: Mutex<OpCounter>,
 }
 
@@ -138,7 +139,7 @@ impl std::fmt::Debug for Evaluator {
             .field("relin_key", &self.relin.is_some())
             .field(
                 "galois_keys",
-                &self.galois.as_ref().map_or(0, GaloisKeys::len),
+                &self.galois.as_deref().map_or(0, GaloisKeys::len),
             )
             .field("counter", &self.counter())
             .finish()
@@ -149,8 +150,8 @@ impl Clone for Evaluator {
     fn clone(&self) -> Evaluator {
         Evaluator {
             params: Arc::clone(&self.params),
-            relin: self.relin.clone(),
-            galois: self.galois.clone(),
+            relin: self.relin.as_ref().map(Arc::clone),
+            galois: self.galois.as_ref().map(Arc::clone),
             counter: Mutex::new(self.counter()),
         }
     }
@@ -173,8 +174,8 @@ impl Evaluator {
     ) -> Evaluator {
         Evaluator {
             params,
-            relin,
-            galois,
+            relin: relin.map(Arc::new),
+            galois: galois.map(Arc::new),
             counter: Mutex::new(OpCounter::default()),
         }
     }
@@ -204,12 +205,12 @@ impl Evaluator {
 
     /// The relinearization key, if any.
     pub fn relin_key(&self) -> Option<&RelinKey> {
-        self.relin.as_ref()
+        self.relin.as_deref()
     }
 
     /// The Galois keys, if any.
     pub fn galois_keys(&self) -> Option<&GaloisKeys> {
-        self.galois.as_ref()
+        self.galois.as_deref()
     }
 
     /// `a + b` (same level, scales within [`SCALE_TOLERANCE`]; the result has `a`'s scale,
@@ -451,7 +452,7 @@ impl Evaluator {
 
     /// The relinearization key, validated against this evaluator's bases.
     pub(crate) fn relin_key_checked(&self) -> Result<&RelinKey> {
-        let rk = self.relin.as_ref().ok_or_else(|| {
+        let rk = self.relin.as_deref().ok_or_else(|| {
             HekitError::InvalidParams("evaluator has no relinearization key".into())
         })?;
         self.check_key_basis(rk.key())?;
@@ -623,7 +624,7 @@ impl Evaluator {
         }
         let gk = self
             .galois
-            .as_ref()
+            .as_deref()
             .and_then(|g| g.get_elt(elt))
             .ok_or_else(|| HekitError::InvalidParams("missing galois key".into()))?;
         self.check_key_basis(gk.key())?;
@@ -1460,6 +1461,26 @@ mod tests {
             e.hoisted_rotate(&f, &[1]),
             Err(HekitError::InvalidParams(_))
         ));
+    }
+
+    /// `Clone` shares the keys (the same allocation, no copy) and starts an independent
+    /// counter from the current counts.
+    #[test]
+    fn clone_shares_keys_and_splits_the_counter() {
+        let ctx = small();
+        let e = ctx.eval.clone();
+        let c = e.clone();
+        assert!(std::ptr::eq(e.relin_key().unwrap(), c.relin_key().unwrap()));
+        assert!(std::ptr::eq(
+            e.galois_keys().unwrap(),
+            c.galois_keys().unwrap()
+        ));
+        let before = e.counter();
+        let mut r = rng(70);
+        let a = ctx.encrypt(&rand_vals(71, 8), 2, &mut r);
+        c.mul(&a, &a).unwrap();
+        assert_eq!(e.counter(), before, "the clone counts on its own");
+        assert_eq!(c.counter().relins, before.relins + 1);
     }
 
     /// `mul` reports operand errors (level mismatch, level 0, component count) before a
