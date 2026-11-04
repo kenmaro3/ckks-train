@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Numbers behind docs/bootstrap.md (Task 35): K, EvalMod depth and the precision model.
+"""Numbers behind docs/bootstrap.md (Task 35): K, EvalMod depth, chain and precision model.
 
-Usage: python3 tools/bootstrap/evalmod_design.py      (numpy only, about 10 s)
+Usage: python3 tools/bootstrap/evalmod_design.py      (stdlib + numpy only, under a second)
 
 Sections:
   1. Failure probability of the mod-raise overflow |I_j| >= K over all N coefficients
@@ -10,9 +10,10 @@ Sections:
      cos(2 pi (x - 1/4) / 2^r) on [-K, K] of degree 2^(8 - r) - 1, then r double angles,
      measured at the points x = I + delta (|I| <= K - 1, |delta| <= 2^-20) that occur.
   3. Smallest EvalMod depth for the dense key (K = 400, 420).
-  4. Predicted bootstrap precision (bits, max over 2^15 slots) for the candidate designs,
-     including the chosen design of controller ruling R-M3-5 (dense key + SSE h' = 32,
-     q0 = 54 bits so q0/Delta = 2^12, P = 4 x 60 bits).
+  4. Candidate modulus chains (digits, log PQ, levels after bootstrap, key size) and their
+     predicted precision with the chosen EvalMod design (ruling R-M3-7).
+  5. Secret / EvalMod alternatives on the chosen chain, for several q0/Delta.
+  6. The chosen design in detail, the q0 = 52 fallback, and the degree-63 fallback.
 """
 import math
 from fractions import Fraction
@@ -77,25 +78,65 @@ def slot_noise(h):
 def digit_noise(log_qd_over_p, ndigits=2):
     """Worst-case key-error term of a key switch: sum over the digits whose modulus Q_d is close
     to P of [c]_{Q_d} e_d / P, coefficient std (Q_d/P) * 3.2 * sqrt(N/12), in slot rms.
-    n16_boot has two all-58-bit digits (4 x 58 = 232 bits): Q_d/P ~ 2^0 with P = 4 x 58 and
-    2^-8 with P = 4 x 60. Counted at the working scale of the CtS output (pessimistic)."""
+    Counted at the working scale of the CtS output (pessimistic)."""
     return math.sqrt(N / 2) * math.sqrt(ndigits) * 2.0**log_qd_over_p * 3.2 * math.sqrt(N / 12)
 
 
-def predict(K, r, d, h_noise, log_ratio, log_scale=58, levels=8, log_qd_over_p=None):
-    """Predicted precision bits and the three terms (input noise, internal noise, approximation).
-    With `log_qd_over_p`, the worst-case digit term is added to the CtS output noise."""
+ENC = 0.5 * math.log2(N / 12)  # log2 complex slot rms of rounding N plaintext coefficients
+
+
+def cts_pt_rel(cts_bits, cts_levels, log_q0, h_mr, K, s_out=58):
+    """log2 relative error (to the complex rms of the CtS output) from rounding the CtS diagonals.
+
+    Each level's diagonals at scale D_l carry a slot error of rms sqrt(N/12)/D_l, i.e. a relative
+    error 2^ENC / (a_l D_l) for entries of size a_l. The integer magnitudes fix
+    prod(a_l D_l) = prod(q_l) * (abs_out / abs_in) / sqrt(N/2): abs_in = sqrt(N) sigma_I q0 (slots
+    of the raised plaintext), abs_out = sqrt(2) (sigma_I / K) 2^s_out (packed y at scale 2^58),
+    and each output sums N/2 inputs. Split evenly over the levels."""
+    s = sigma_i(h_mr)
+    abs_in = math.log2(math.sqrt(N) * s) + log_q0
+    abs_out = math.log2(math.sqrt(2) * s / K) + s_out
+    per = (cts_levels * cts_bits + abs_out - abs_in - math.log2(math.sqrt(SLOTS))) / cts_levels
+    return ENC - per + 0.5 * math.log2(cts_levels)
+
+
+def stc_pt_rel(stc_bits, stc_levels, log_ratio, s_in=58, s_out=42):
+    """Same for SlotToCoeff: input sin(2 pi x) ~ 2 pi c / 2^log_ratio at scale 2^58 (two real
+    halves packed), output m at scale 2^42 (rms 1/sqrt(3))."""
+    rms_v = 2 * math.pi * 2.0**-log_ratio / math.sqrt(3 * N)
+    abs_in = s_in + math.log2(math.sqrt(2) * rms_v)
+    abs_out = s_out + math.log2(1 / math.sqrt(3))
+    per = (stc_levels * stc_bits + abs_out - abs_in - math.log2(math.sqrt(SLOTS))) / stc_levels
+    return ENC - per + 0.5 * math.log2(stc_levels)
+
+
+def predict(chain, K=13, r=1, d=127, h_noise=32768, h_mr=32, log_scale=58, levels=8):
+    """Predicted precision bits (max over 2^15 slots) and the bits each term alone would allow.
+
+    chain: dict(q0, cts_bits, cts_levels, stc_bits, stc_levels, log_qd_over_p).
+    Terms (EvalMod-side ones in x = t/q0 units, mapped to slots by 4.2 sqrt(N/2) q0/Delta):
+      input   K * sqrt(cts_levels) * (rescale + key switch + digit term) / 2^58
+      internal sqrt(levels) * (rescale + key switch) / 2^58 * amp / (2 pi)
+      approx  max sine error / (2 pi)
+      cts_pt  CtS diagonal rounding, relative error * sigma_I (real part, x units)
+      stc_pt  StC diagonal rounding, directly in output slots (relative to rms 1/sqrt(3))
+    """
+    log_ratio = chain["q0"] - 42
     s = 2.0**log_scale
-    noise_in = slot_noise(h_noise)
-    if log_qd_over_p is not None:
-        noise_in = math.hypot(noise_in, digit_noise(log_qd_over_p))
-    sig_in = noise_in / s  # y = x / K units, CtS output
+    noise_in = math.hypot(slot_noise(h_noise), digit_noise(chain["log_qd_over_p"]))
     err, amp = sin_error(K, r, d)
-    sig_int = math.sqrt(levels) * slot_noise(h_noise) / s * amp  # sin units
-    to_bits = lambda sig_x: -math.log2(MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio * sig_x)
-    terms = (K * sig_in, sig_int / (2 * math.pi), err / (2 * math.pi))  # x units
-    total = math.sqrt(sum(t * t for t in terms))
-    return to_bits(total), [to_bits(t) for t in terms]
+    f = MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio
+    e = {
+        "input": f * K * math.sqrt(chain["cts_levels"]) * noise_in / s,
+        "internal": f * math.sqrt(levels) * slot_noise(h_noise) / s * amp / (2 * math.pi),
+        "approx": f * err / (2 * math.pi),
+        "cts_pt": f * 2.0 ** cts_pt_rel(chain["cts_bits"], chain["cts_levels"], chain["q0"], h_mr, K)
+        * sigma_i(h_mr),
+        "stc_pt": MAX_FACTOR * 2.0 ** stc_pt_rel(chain["stc_bits"], chain["stc_levels"], log_ratio)
+        / math.sqrt(3),
+    }
+    total = -math.log2(math.sqrt(sum(v * v for v in e.values())))
+    return total, {k: -math.log2(v) for k, v in e.items()}
 
 
 def sine_vs_mod_bits(log_ratio):
@@ -107,6 +148,33 @@ def sine_vs_mod_bits(log_ratio):
     sx = 2.0**-log_ratio / math.sqrt(3 * N)
     err_x = (2 * math.pi) ** 2 / 6 * math.sqrt(15) * sx**3
     return -math.log2(MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio * err_x)
+
+
+def make_chain(q0, compute, stc, evalmod, cts, p, dnum):
+    """q from level 0 up: q0, compute x 42, stc = (levels, bits), evalmod, cts likewise; p bits."""
+    q = [q0] + [42] * compute + [stc[1]] * stc[0] + [evalmod[1]] * evalmod[0] + [cts[1]] * cts[0]
+    assert len(q) % dnum == 0, "dnum must divide the prime count"
+    alpha = len(q) // dnum
+    max_digit = max(sum(q[i : i + alpha]) for i in range(0, len(q), alpha))
+    log_p = sum(p)
+    return dict(
+        q=q, p=p, dnum=dnum, alpha=alpha, max_digit=max_digit, log_p=log_p,
+        log_pq=sum(q) + log_p, levels_after=len(q) - 1 - (stc[0] + evalmod[0] + cts[0]),
+        key_limbs=dnum * (len(q) + len(p)), q0=q0, cts_bits=cts[1], cts_levels=cts[0],
+        stc_bits=stc[1], stc_levels=stc[0], log_qd_over_p=min(0.0, max_digit - log_p),
+    )
+
+
+CHAINS = [
+    ("R-M3-5 (CtS 42, superseded)", (54, 16, (3, 42), (8, 58), (4, 42), [60] * 4, 8)),
+    ("A: compute 16, StC 3x36, CtS 4x52", (54, 16, (3, 36), (8, 58), (4, 52), [60] * 4, 8)),
+    ("B (chosen): compute 15, StC 4x34, CtS 4x56", (54, 15, (4, 34), (8, 58), (4, 56), [60] * 4, 8)),
+    ("C: compute 14, StC 3x36, CtS 4x56, dnum 10", (54, 14, (3, 36), (8, 58), (4, 56), [46] * 4, 10)),
+    ("D: compute 14, StC 3x36, CtS 4x56, dnum 6", (54, 14, (3, 36), (8, 58), (4, 56), [60] * 5, 6)),
+    ("E: compute 16, StC 3x36, CtS 4x56, dnum 16", (54, 16, (3, 36), (8, 58), (4, 56), [42] * 3, 16)),
+    ("F: compute 16, StC 3x36, CtS 4x56, dnum 8 (log PQ > 1750)", (54, 16, (3, 36), (8, 58), (4, 56), [60] * 4, 8)),
+]
+CHOSEN = make_chain(*CHAINS[2][1])
 
 
 def main():
@@ -134,35 +202,50 @@ def main():
         cells = [f"L={L}: {math.log2(sin_error(K, 0, 2**L - 1)[0]):6.1f}" for L in range(9, 13)]
         print(f"  K = {K} | " + " | ".join(cells))
 
-    print("\n## 4. predicted precision (bits), EvalMod scale 2^58")
+    print("\n## 4. candidate chains, design dense + SSE h'=32, K=13, r=1, d=127")
+    for name, args in CHAINS:
+        c = make_chain(*args)
+        bits, t = predict(c)
+        print(f"  {name}")
+        print(f"     primes {len(c['q'])}, dnum {c['dnum']} (alpha {c['alpha']}), max digit {c['max_digit']}, "
+              f"log P {c['log_p']} (+{c['log_p'] - c['max_digit']}), log PQ {c['log_pq']}, "
+              f"levels after boot {c['levels_after']}, key limbs {c['key_limbs']}")
+        print(f"     predicted {bits:5.1f}  [" + ", ".join(f"{k} {v:5.1f}" for k, v in t.items()) + "]")
+
+    print("\n## 5. alternatives on the chosen chain (q0 = 42 + log2(q0/Delta))")
     designs = [
-        ("dense, plan K=25 (Pfail ~ 1)", 25, 0, 255, 32768),
-        ("dense + SSE h'=32, K=13, r=0, d=255", 13, 0, 255, 32768),
-        ("dense + SSE h'=32, K=13, r=1, d=127", 13, 1, 127, 32768),
-        ("dense + SSE h'=32, K=13, r=2, d=63", 13, 2, 63, 32768),
+        ("dense + SSE h'=32, K=13, r=0, d=255", 13, 0, 255, 32),
+        ("dense + SSE h'=32, K=13, r=0, d=127", 13, 0, 127, 32),
+        ("dense + SSE h'=32, K=13, r=1, d=127", 13, 1, 127, 32),
+        ("dense + SSE h'=32, K=13, r=2, d=63", 13, 2, 63, 32),
         ("sparse h=192, K=32, r=0, d=255", 32, 0, 255, 192),
-        ("sparse h=192 + SSE h'=32, K=13, r=1, d=127", 13, 1, 127, 192),
     ]
     for log_ratio in [16, 12, 10, 8]:
+        c = dict(CHOSEN, q0=42 + log_ratio)
         print(f"q0/Delta = 2^{log_ratio} (sine-vs-mod term alone: {sine_vs_mod_bits(log_ratio):.1f} bits)")
-        for name, K, r, d, h in designs:
-            bits, (t_in, t_int, t_apx) = predict(K, r, d, h, log_ratio)
-            print(f"  {name:44s} {bits:5.1f}  [input {t_in:5.1f}, internal {t_int:5.1f}, approx {t_apx:5.1f}]")
-    print("\n## 5. chosen design (ruling R-M3-5): dense + SSE h'=32, K=13, r=1, d=127, q0/Delta = 2^12")
-    for label, lq in [("P = 4 x 60 (chosen), digit term 2^-8", -8.0), ("P = 4 x 58, digit term 2^0", 0.0)]:
-        bits, terms = predict(13, 1, 127, 32768, 12, log_qd_over_p=lq)
-        print(f"  {label:38s} {bits:5.1f}  [input {terms[0]:5.1f}]  digit noise 2^{math.log2(digit_noise(lq)):.1f}")
-    bits, _ = predict(13, 1, 127, 32768, 10, log_qd_over_p=-8.0)
-    print(f"  fallback q0 = 52 bits (q0/Delta = 2^10), P = 4 x 60: {bits:.1f}")
-    print(f"  uncorrected sine-vs-mod term at 2^12: {sine_vs_mod_bits(12):.1f} bits "
-          f"(|m| <= 8: {sine_vs_mod_bits(12) - 9:.1f})")
-    print()
-    bits, _ = predict(13, 1, 127, 32768, 16, log_scale=60)
-    print(f"dense + SSE, K=13, r=1, q0/Delta = 2^16, EvalMod primes 60-bit: {bits:.1f}")
+        for name, K, r, d, h_mr in designs:
+            h_noise = 192 if h_mr == 192 else 32768
+            bits, t = predict(c, K=K, r=r, d=d, h_noise=h_noise, h_mr=h_mr)
+            print(f"  {name:38s} {bits:5.1f}  [" + ", ".join(f"{k} {v:5.1f}" for k, v in t.items()) + "]")
+    sig = 420 * math.sqrt(CHOSEN["cts_levels"]) * slot_noise(32768) / 2.0**58
     for log_ratio in [16, 8]:
-        sig = 420 * slot_noise(32768) / 2.0**58
         b = -math.log2(MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio * sig)
         print(f"dense, no SSE, K = 420, q0/Delta = 2^{log_ratio}: input-noise term alone {b:.1f} bits")
+
+    print("\n## 6. chosen design (rulings R-M3-5, R-M3-7)")
+    bits, t = predict(CHOSEN)
+    print(f"  chain B, P = 4 x 60: {bits:.1f}  [" + ", ".join(f"{k} {v:.1f}" for k, v in t.items()) + "]")
+    bits, _ = predict(dict(CHOSEN, log_qd_over_p=0.0))
+    print(f"  same with P = 4 x 58 (digit term at worst case): {bits:.1f}")
+    bits, _ = predict(dict(CHOSEN, q0=52))
+    print(f"  fallback q0 = 52 bits (q0/Delta = 2^10, log PQ {CHOSEN['log_pq'] - 2}): {bits:.1f}")
+    for r, d in [(0, 127), (1, 63), (2, 31)]:
+        bits, _ = predict(CHOSEN, r=r, d=d)
+        err, _ = sin_error(13, r, d)
+        print(f"  textbook BSGS (ceil(log2(d+1)) + 1 + r <= 8): r = {r}, d = {d}: "
+              f"sine error 2^{math.log2(err):.1f}, predicted {bits:.1f}")
+    print(f"  uncorrected sine-vs-mod term at 2^12: {sine_vs_mod_bits(12):.1f} bits "
+          f"(|m| <= 8: {sine_vs_mod_bits(12) - 9:.1f})")
 
 
 if __name__ == "__main__":

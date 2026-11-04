@@ -20,29 +20,35 @@ pub const N16_TRAIN_K: usize = 4;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_DNUM: usize = 8;
 
-/// `n16_boot` compute levels above the base (levels 1..=16), see docs/bootstrap.md §1.
-pub const N16_BOOT_COMPUTE_LEVELS: usize = 16;
-/// `n16_boot` SlotToCoeff levels (42-bit primes, levels 17..=19).
-pub const N16_BOOT_STOC_LEVELS: usize = 3;
+/// `n16_boot` compute levels above the base (42-bit primes, levels 1..=15), see
+/// docs/bootstrap.md §1 (chain chosen under ruling R-M3-7).
+pub const N16_BOOT_COMPUTE_LEVELS: usize = 15;
+/// `n16_boot` SlotToCoeff levels (34-bit primes, levels 16..=19).
+pub const N16_BOOT_STOC_LEVELS: usize = 4;
 /// `n16_boot` EvalMod levels (58-bit primes, levels 20..=27).
 pub const N16_BOOT_EVALMOD_LEVELS: usize = 8;
-/// `n16_boot` CoeffToSlot levels (42-bit primes, levels 28..=31).
+/// `n16_boot` CoeffToSlot levels (56-bit primes, levels 28..=31): CoeffToSlot works on values of
+/// size about K q_0, so the rounding of its plaintext diagonals needs large primes
+/// (docs/bootstrap.md §6).
 pub const N16_BOOT_CTOS_LEVELS: usize = 4;
 /// `n16_boot` special-prime count (60-bit each: log P = 240 exceeds the largest digit, 4 x 58 =
 /// 232, by 8 bits, so the key-error term of the EvalMod digits is negligible; ruling R-M3-5).
+/// Named like [`N16_TRAIN_K`]; not to be confused with the EvalMod interval `K`
+/// (`BootParams::k_intervals`).
 pub const N16_BOOT_K: usize = 4;
 /// `n16_boot` digit count (32 q primes, 4 per digit).
 pub const N16_BOOT_DNUM: usize = 8;
 
 /// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
-/// `[54, 42 x 16 (compute), 42 x 3 (SlotToCoeff), 58 x 8 (EvalMod), 42 x 4 (CoeffToSlot)]`,
-/// p is `[60 x 4]`. The 54-bit base gives q_0 / Delta = 2^12 (docs/bootstrap.md §6).
+/// `[54, 42 x 15 (compute), 34 x 4 (SlotToCoeff), 58 x 8 (EvalMod), 56 x 4 (CoeffToSlot)]`,
+/// p is `[60 x 4]`; log PQ = 1748. The 54-bit base gives q_0 / Delta = 2^12
+/// (docs/bootstrap.md §1, §6).
 pub fn n16_boot_bits() -> (Vec<u32>, Vec<u32>) {
     let mut q = vec![54];
     q.extend(vec![42; N16_BOOT_COMPUTE_LEVELS]);
-    q.extend(vec![42; N16_BOOT_STOC_LEVELS]);
+    q.extend(vec![34; N16_BOOT_STOC_LEVELS]);
     q.extend(vec![58; N16_BOOT_EVALMOD_LEVELS]);
-    q.extend(vec![42; N16_BOOT_CTOS_LEVELS]);
+    q.extend(vec![56; N16_BOOT_CTOS_LEVELS]);
     (q, vec![60; N16_BOOT_K])
 }
 
@@ -162,7 +168,7 @@ impl CkksParams {
     }
 
     /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
-    /// 31, log PQ = 1724), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
+    /// 31, log PQ = 1748), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
     /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`; the
     /// 128-bit security estimate is Task 39's.
     pub fn n16_boot() -> CkksParams {
@@ -220,10 +226,15 @@ impl CkksParams {
     pub fn scale(&self) -> f64 {
         self.scale
     }
-    /// Default scale of a ciphertext at `level`: `2^(bits of q_level)` for `level >= 1`, and the
-    /// preset scale [`CkksParams::scale`] at level 0. This is the scale that a
-    /// ciphertext-ciphertext product keeps when it is rescaled by `q_level` (2^58 in the
-    /// `n16_boot` EvalMod band, 2^42 elsewhere). For single-size presets it equals `scale()`.
+    /// Nominal default scale at `level`: `2^(bits of q_level)` for `level >= 1`, and the preset
+    /// scale [`CkksParams::scale`] at level 0. It is the scale a ciphertext-ciphertext product
+    /// keeps when it is rescaled by `q_level`, so it is the working scale of the compute band
+    /// (2^42) and of the `n16_boot` EvalMod band (2^58). It is **not** an invariant of the
+    /// bootstrap bands: in CoeffToSlot and SlotToCoeff the ciphertext is multiplied only by
+    /// plaintext diagonals and carries its own scale (about 2^54 to 2^58 in CoeffToSlot against
+    /// a nominal 2^56, about 2^46 to 2^42 in SlotToCoeff against a nominal 2^34; docs/bootstrap.md
+    /// §2), and exact scales differ from these powers of two by the prime / 2^bits ratios.
+    /// For single-size presets it equals `scale()` at every level.
     ///
     /// # Panics
     /// If `level > max_level()`.
@@ -367,7 +378,7 @@ mod tests {
         let p = CkksParams::n16_boot();
         assert_eq!(p.n(), 1 << 16);
         assert_eq!(p.max_level(), 31);
-        assert!((p.log_pq() - 1724.0).abs() <= 2.0, "{}", p.log_pq());
+        assert!((p.log_pq() - 1748.0).abs() <= 2.0, "{}", p.log_pq());
         assert!(p.log_pq() <= 1750.0, "{}", p.log_pq());
         assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
         assert_eq!(p.scale(), 2f64.powi(42));
@@ -381,10 +392,10 @@ mod tests {
         let p = CkksParams::n16_boot();
         let q = p.q_bits();
         assert_eq!(q[0], 54);
-        assert!(q[1..=16].iter().all(|&b| b == 42), "compute band");
-        assert!(q[17..=19].iter().all(|&b| b == 42), "SlotToCoeff band");
+        assert!(q[1..=15].iter().all(|&b| b == 42), "compute band");
+        assert!(q[16..=19].iter().all(|&b| b == 34), "SlotToCoeff band");
         assert!(q[20..=27].iter().all(|&b| b == 58), "EvalMod band");
-        assert!(q[28..=31].iter().all(|&b| b == 42), "CoeffToSlot band");
+        assert!(q[28..=31].iter().all(|&b| b == 56), "CoeffToSlot band");
         assert_eq!(p.p_bits(), &[60; 4]);
     }
 
@@ -393,15 +404,18 @@ mod tests {
         let p = CkksParams::n16_boot();
         assert_eq!(p.scale_at(0), 2f64.powi(42));
         assert_eq!(p.scale_at(24), 2f64.powi(58));
-        assert_eq!(p.scale_at(31), 2f64.powi(42));
-        for l in 1..=19 {
+        assert_eq!(p.scale_at(31), 2f64.powi(56));
+        for l in 1..=15 {
             assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
+        }
+        for l in 16..=19 {
+            assert_eq!(p.scale_at(l), 2f64.powi(34), "level {l}");
         }
         for l in 20..=27 {
             assert_eq!(p.scale_at(l), 2f64.powi(58), "level {l}");
         }
         for l in 28..=31 {
-            assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
+            assert_eq!(p.scale_at(l), 2f64.powi(56), "level {l}");
         }
     }
 
