@@ -9,6 +9,10 @@ relinearisation cannot be over-claimed. Rotation convention: rot(v, k)[s] = v[s 
 y_pred - y, backward, weight gradient summed over the batch, NAG update with weight decay as
 ReBoot's compute_nesterov, bootstrap of W and V) and return the decoded intermediate values, the
 numpy reference values, and the per-phase op counts.
+
+ReBoot is GPL-3.0: `reboot_step` re-implements ReBoot's layout from its paper (Sec. 3, eq. 4-5) to
+count operations; references to ReBoot source files (e.g. compute_nesterov) only say where an op
+count was read. No ReBoot code is copied.
 """
 
 from __future__ import annotations
@@ -150,7 +154,10 @@ def _random_problem(layers, batch, rng):
 # -------------------------------------------------------------------------------------------------
 
 
-def diag_batched_step(layers, batch, slots, rng, compact=True):
+def diag_batched_step(layers, batch, slots, rng, compact=True, interactive=False, client_transpose=False):
+    """One training step of diag_batched. interactive=True: no compaction / unpack / bootstrap; the
+    server runs NAG on the expanded diagonals and the client re-encodes (lane 0 is read back).
+    client_transpose=True: W^T's diagonals are client-encoded (not counted) instead of rotated."""
     layers = _norm_layers(layers)
     Ws, Vs, X, Y = _random_problem(layers, batch, rng)
     ref = _reference(layers, Ws, Vs, X, Y)
@@ -278,7 +285,10 @@ def diag_batched_step(layers, batch, slots, rng, compact=True):
                 c = (-i) % din
                 t = i
             amount = (t - (i // n1) * n1 + (c // n1) * n1) % L
-            E.append(sim.rot(Wt[l][c], amount * bp))
+            if client_transpose:  # client encodes the same vector at re-encryption (free)
+                E.append(Ct(np.roll(Wt[l][c].v, -amount * bp)))
+            else:
+                E.append(sim.rot(Wt[l][c], amount * bp))
         Et[l] = E
 
     # ---- forward, per ciphertext ----
@@ -339,6 +349,16 @@ def diag_batched_step(layers, batch, slots, rng, compact=True):
     for l, g in enumerate(geo):
         L = g["L"]
         mask0 = ((s % bp == 0) & (s < L * bp)).astype(float)
+        if interactive:  # reduce only: lane b = 0 holds the sum, other lanes are ignored later
+            Ge = []
+            for c in range(g["m"]):
+                v = sim.relin(Gsum[l][c])
+                for t in range(log2i(bp)):
+                    v = sim.add(v, sim.rot(v, 1 << t))
+                Ge.append(v)
+            Gc.append(Ge)
+            decoded[f"grad_{l}"] = decode_expanded(Ge, g)[: layers[l][1], : layers[l][0]]
+            continue
         if not compact:  # replicate each reduced diagonal straight back to the expanded layout
             Ge = []
             for c in range(g["m"]):
@@ -364,6 +384,16 @@ def diag_batched_step(layers, batch, slots, rng, compact=True):
     sim.phase = "update"
     for l, g in enumerate(geo):
         L = g["L"]
+        if interactive:  # NAG on the expanded diagonals; the client decrypts lane 0 and re-encodes
+            newW, newV = [], []
+            for c in range(g["m"]):
+                gg = sim.add(Gc[l][c], sim.pt(Wt[l][c], DECAY))
+                upd = sim.add(sim.add(sim.pt(gg, LR), sim.pt(gg, MOM * LR)), sim.pt(Vt[l][c], MOM * MOM * LR))
+                newV.append(sim.add(sim.pt(Vt[l][c], MOM), gg))
+                newW.append(sim.sub(Wt[l][c], upd))
+            decoded[f"W_new_{l}"] = decode_expanded(newW, g)[: layers[l][1], : layers[l][0]]
+            decoded[f"V_new_{l}"] = decode_expanded(newV, g)[: layers[l][1], : layers[l][0]]
+            continue
         if not compact:  # NAG + bootstrap on every expanded W / V diagonal
             newW, newV = [], []
             for c in range(g["m"]):
@@ -405,16 +435,18 @@ def diag_batched_step(layers, batch, slots, rng, compact=True):
 # -------------------------------------------------------------------------------------------------
 
 
-def reboot_step(layers, batch, slots, rng):
+def reboot_step(layers, batch, slots, rng, custom_sumrows=False):
+    """One training step of ReBoot's layout. custom_sumrows=True: r = rows needed (not scaled to
+    fill the slots); every r x c encoding is replicated S/(r*c) times, sumRows uses log2(r)."""
     layers = _norm_layers(layers)
     Ws, Vs, X, Y = _random_problem(layers, batch, rng)
     ref = _reference(layers, Ws, Vs, X, Y)
     S = slots
-    r, c, bad = reboot_rc(layers, S)
+    r, c, bad = reboot_rc(layers, S, fill=not custom_sumrows)
     assert not bad
     sim = Sim(S)
     s = np.arange(S)
-    row_i, col_j = s // c, s % c
+    row_i, col_j = (s // c) % r, s % c  # replicas of the r x c matrix when r * c < S
 
     def enc_expanded(a):  # A[i, j] = a[i]
         v = np.zeros(S)
@@ -453,7 +485,7 @@ def reboot_step(layers, batch, slots, rng):
         return M
 
     def sum_rows(v):
-        for t in range(log2i(S // c)):
+        for t in range(log2i(r)):
             v = sim.add(v, sim.rot(v, c * (1 << t)))
         return v
 

@@ -102,6 +102,9 @@ A100 を借りれば同じ GPU で直接比較できる(H100 で測る場合、A
 
 ```sh
 # 前提: NVIDIA driver (libcuda.so) と CUDA 12.x の NVRTC (libnvrtc.so.12) が LD_LIBRARY_PATH 上にあること。
+#       driver は CUDA >= 12.4 に対応していること(cudarc の `cuda-12040` バインディング。nvidia-smi の
+#       "CUDA Version" が 12.4 以上)。NVRTC は driver より新しくてはいけない(新しい NVRTC の PTX は古い
+#       driver が読めず、モジュールのロードで失敗する)。
 #       rustup があれば rust-toolchain (1.85) は自動で入る。
 cd hekit/spikes/ntt-cuda
 nvidia-smi                                   # ヘッダ(Driver / CUDA Version)と GPU 名をそのまま上の表へ
@@ -205,7 +208,9 @@ transposing at the top level, or transposing both layers (the paper doesn't give
 
 Updated weights after one encrypted iteration vs. a dense double-precision reference on the same init/sample:
 **max |W_he − W_ref| = 4.4e-6** (run-to-run 4e-6 – 1.1e-5; single-step update magnitude up to 0.107);
-over 11 chained iterations (with repacking) it is ≤ 2.6e-5. `he_train --check` (CTest) asserts < 1e-3 for both layouts.
+over 11 chained iterations (with repacking) it is ≤ 1.2e-4 over runs 1–3 (run 3, idle: 1.4e-5 alg5 / 3.6e-5 alg4 /
+1.2e-4 pow2; runs 1–2: 1.6e-5 – 4.3e-5; `[check]` lines of `results/run*/time_*.txt`). `he_train --check` (CTest)
+asserts < 1e-3 for both layouts.
 A slot-exact plaintext simulation of the packed algorithm matches the dense reference to 1e-16 (packing logic exact).
 Main error source: SEAL refuses to add ciphertexts with unequal scales; we force-equalize (max relative mismatch 7.4e-5,
 from scales drifting through 9 rescales by 40-bit primes ≠ 2^40), which perturbs ΔW by ~1e-5 relative.
@@ -247,7 +252,8 @@ rotation count equals the **output** dim (6→3: 3 rot), whereas Alg. 2 as writt
 count M rotations for Alg. 5, we need M − 1 (the i = 0 diagonal needs none); Alg. 4 needs Σ_i (e_i + 1) minus trivial
 ones = 11 for W2 of Iris (paper's q(M+1) = 12). (4) Replication rotations (log-doubling of a1 and δ2 so that rotations
 wrap with period `in`) are not discussed in the paper. Mult counts of the rows both sides compute agree exactly.
-Rule inferred from Table 2 for a cost model: Dense(a→b) = a mult, b rot; square = 1 mult; transition(a×b) = 0 mult, b rot.
+Rule inferred from Table 2 (it reproduces the paper's table, not true cost; the cost model follows Alg. 2 instead):
+Dense(a→b) = a mult, b rot; square = 1 mult; transition(a×b) = 0 mult, b rot.
 
 ### SEAL NTT (for Task 2's ratio)
 
@@ -303,7 +309,7 @@ ReBoot (OpenFHE 1.2.1, `3ac173f`) builds on this Mac, but **eMLP-1 cannot run on
 Code: `spikes/costmodel/` (Python 3.11 + numpy):
 - `costmodel.py`: closed-form op counts per layout.
 - `slotsim.py`: slot-exact plaintext simulator with an op counter; it refuses to rotate or multiply a degree-2 ciphertext.
-- `test_costmodel.py`: 35 tests pass, plus 1 strict xfail.
+- `test_costmodel.py`: 48 tests pass, plus 1 strict xfail.
 - `table.py`: generates the tables below from `crates/hekit-bench/configs/reboot_emlp1.json` (Task 5).
 
 To reproduce, run `python table.py` and `pytest` in `spikes/costmodel/`. The docstrings carry the full derivations, with a source for every formula.
@@ -319,8 +325,15 @@ To reproduce, run `python table.py` and `pytest` in `spikes/costmodel/`. The doc
 - Without bootstraps, diag_batched wins clearly at B ≥ 32 for both N: 0.45 (rot + relin) / 0.54 (rot + ct-ct) at (2^16, 48).
 - The spec metric (≤ 0.70, both variants) is met only at **B ≥ 64**:
   - (64, 2^16) gives 0.64 / 0.68 and needs 2 ciphertexts per batch.
-  - (64, 2^17) gives 0.67 / 0.68.
-  - (128, both N) gives 0.43–0.49.
+  - (64, 2^17) gives 0.67 / 0.68 against ReBoot as shipped.
+  - (128, both N) gives 0.43–0.49 and needs 2 or 4 ciphertexts per batch.
+- **(64, 2^17) depends on the ReBoot baseline.** It is the only pass that satisfies §4.3.3's d × B ≤ N/2 (1 ciphertext
+  per batch). ReBoot as shipped fills the slots, with r = 2048 at 2^17 (39 KS per sample). A generous ReBoot whose
+  sumRows covers only the 1024 used rows costs 37 KS per sample (`custom_sumrows=True`). Against that baseline,
+  (64, 2^17) gives KS_spec **0.691** (pass, 1.3% margin) and literal_spec **0.702 (fail)**.
+  - So (64, 2^17) passes the literal spec metric only against ReBoot as shipped.
+  - Against the generous baseline, no point with d × B ≤ N/2 passes the literal spec metric. The remaining literal
+    passes, (64, 2^16)* and (128, both N)*, all need ≥ 2 ciphertexts per batch.
 - Those passes rest on three things:
   - (a) the compact W/V re-layout, which keeps bootstraps at 2 per layer;
   - (b) BOOT_KS ≈ 502;
@@ -328,6 +341,16 @@ To reproduce, run `python table.py` and `pytest` in `spikes/costmodel/`. The doc
 - **RQ1's spec metric is met only if the compact W/V re-layout works in CKKS.** Without it, diag_batched bootstraps
   2·(32 + 16) = 96 ciphertexts per update instead of 4, and the KS_spec ratio becomes **12.9** at (2^16, 48). It stays
   above 7 at every (B, N).
+- **Interactive mode (M2 Task 30/32).** M2 trains interactively: the client decrypts and re-encrypts the weights after
+  every update, so there is no bootstrap. The client re-encodes the expanded diagonals, so the server never compacts
+  or unpacks. At (2^16, 48) that removes the update-phase unpack (7.62 KS per sample) and the gradient-phase lane
+  shifts (0.96), about 51% of the 16.8.
+  - Model: `interactive=True`. KS is **8.2** per sample (ratio **0.222**) when the server transposes with rotations
+    (the default, the paper's point). With `client_transpose=True`, where the client also supplies W^T, it is
+    7.9 (0.214).
+  - **M2 Task 32's 10% check must compare against this interactive variant**, not the non-interactive 16.8.
+  - M2 can settle only this no-bootstrap KS. The spec metric needs M3 or an explicit CKKS test of the compact
+    re-layout: its bootstrap term, premise (a) compaction, and premise (b) BOOT_KS.
 - Primary metric: rot + relin, not rot + ct-ct. A key switch happens at the relinearisation, not at the tensor product.
   With one relin per product (ReBoot, 2020) the two metrics coincide; under lazy relinearisation several tensor products
   share one key switch. The literal metric is reported alongside.
@@ -343,9 +366,11 @@ To reproduce, run `python table.py` and `pytest` in `spikes/costmodel/`. The doc
 - `diag_2020` in the "seal" convention matches Task 4's measured SEAL counts on 4-10-3: 35 ct-ct, 35 relin, 31 rot.
 - ReBoot eMLP-1 has (r, c) = (1024, 32), the same as ReBoot's own log. It costs 30 rot + 7 relin per sample, plus 4
   bootstraps per mini-batch (W and V for 2 layers).
-- diag_batched (with and without compaction) and ReBoot were checked in the simulator over one NAG step:
+- diag_batched and ReBoot were checked in the simulator over one NAG step. diag_batched ran with compaction, without
+  compaction, and interactive (server or client transpose). ReBoot ran as shipped and with custom sumRows.
   - The decoded forward output, W^Tδ, dW, W' and V' equal dense numpy.
-  - The op counts equal the formulas phase by phase, on 6 + 3 test networks for diag_batched and 2 for ReBoot.
+  - The op counts equal the formulas phase by phase. That holds on 6 + 3 + 4 × 2 test networks for diag_batched and
+    2 + 2 for ReBoot.
 
 Config `reboot_emlp1.json`: reboot_emlp1 on MNIST, layers 784 -> 32 (poly_relu) -> 10 (none), ReBoot batch 48, ReBoot log_n 16, momentum 0.9.
 
@@ -357,21 +382,25 @@ Config `reboot_emlp1.json`: reboot_emlp1 on MNIST, layers 784 -> 32 (poly_relu) 
 | KS_spec = KS + boots x BOOT_KS | 58.6 | 78.8 | **0.744** | 12.925 | no |
 | literal: rot + ct-ct mults | 20.1 | 37.0 | **0.544** | 0.493 | yes |
 | literal_spec: rot + ct-ct + boots x BOOT_KS | 62.0 | 78.8 | **0.786** | 12.967 | no |
+| KS, interactive (server transposes; M2 Task 32 mode, no bootstraps) | 8.2 | 37.0 | **0.222** | - | yes |
+| KS, interactive (client supplies W^T) | 7.9 | 37.0 | **0.214** | - | yes |
+
+Interactive rows: the client decrypts and re-encrypts W and V after every update (Task 30 ClientRefresher), so there is no bootstrap, no compaction and no unpack; ReBoot's KS has no bootstrap term either. They are the reference for M2 Task 32's 10% check, not the spec metric.
 
 ### Primary metric: KS = rotations + relins, per sample per epoch
 
-| N | B | cts | diag ks | reboot ks | **ratio** | diag ks_spec | reboot ks_spec | **ratio** | ratio ks_spec without compaction |
-|---|---|---|---|---|---|---|---|---|---|
-| 2^16 | 16 | 1 | 44.6 | 37.0 | **1.20** | 170.1 | 162.5 | **1.05** | 18.77 |
-| 2^16 | 32 | 1 | 23.8 | 37.0 | **0.64** | 86.5 | 99.8 | **0.87** | 15.31 |
-| 2^16 | 48 (b0) | 2* | 16.8 | 37.0 | **0.45** | 58.6 | 78.8 | **0.74** | 12.92 |
-| 2^16 | 64 | 2* | 12.6 | 37.0 | **0.34** | 44.0 | 68.4 | **0.64** | 11.18 |
-| 2^16 | 128 | 4* | 7.0 | 37.0 | **0.19** | 22.7 | 52.7 | **0.43** | 7.27 |
-| 2^17 | 16 | 1 | 47.6 | 39.0 | **1.22** | 205.1 | 196.5 | **1.04** | 19.45 |
-| 2^17 | 32 | 1 | 25.3 | 39.0 | **0.65** | 104.0 | 117.8 | **0.88** | 16.24 |
-| 2^17 | 48 (b0) | 1 | 17.9 | 39.0 | **0.46** | 70.4 | 91.5 | **0.77** | 13.94 |
-| 2^17 | 64 | 1 | 13.4 | 39.0 | **0.34** | 52.8 | 78.4 | **0.67** | 12.21 |
-| 2^17 | 128 | 2* | 7.1 | 39.0 | **0.18** | 26.7 | 58.7 | **0.46** | 8.16 |
+| N | B | cts | diag ks | reboot ks | **ratio** | diag ks_spec | reboot ks_spec | **ratio** | ratio ks_spec without compaction | diag ks interactive | ratio ks interactive |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2^16 | 16 | 1 | 44.6 | 37.0 | **1.20** | 170.1 | 162.5 | **1.05** | 18.77 | 18.8 | 0.51 |
+| 2^16 | 32 | 1 | 23.8 | 37.0 | **0.64** | 86.5 | 99.8 | **0.87** | 15.31 | 10.9 | 0.29 |
+| 2^16 | 48 (b0) | 2* | 16.8 | 37.0 | **0.45** | 58.6 | 78.8 | **0.74** | 12.92 | 8.2 | 0.22 |
+| 2^16 | 64 | 2* | 12.6 | 37.0 | **0.34** | 44.0 | 68.4 | **0.64** | 11.18 | 6.2 | 0.17 |
+| 2^16 | 128 | 4* | 7.0 | 37.0 | **0.19** | 22.7 | 52.7 | **0.43** | 7.27 | 3.8 | 0.10 |
+| 2^17 | 16 | 1 | 47.6 | 39.0 | **1.22** | 205.1 | 196.5 | **1.04** | 19.45 | 18.8 | 0.48 |
+| 2^17 | 32 | 1 | 25.3 | 39.0 | **0.65** | 104.0 | 117.8 | **0.88** | 16.24 | 10.9 | 0.28 |
+| 2^17 | 48 (b0) | 1 | 17.9 | 39.0 | **0.46** | 70.4 | 91.5 | **0.77** | 13.94 | 8.3 | 0.21 |
+| 2^17 | 64 | 1 | 13.4 | 39.0 | **0.34** | 52.8 | 78.4 | **0.67** | 12.21 | 6.2 | 0.16 |
+| 2^17 | 128 | 2* | 7.1 | 39.0 | **0.18** | 26.7 | 58.7 | **0.46** | 8.16 | 3.5 | 0.09 |
 
 ### Literal spec metric: rotations + ct-ct mults, per sample per epoch
 
@@ -396,6 +425,22 @@ Config `reboot_emlp1.json`: reboot_emlp1 on MNIST, layers 784 -> 32 (poly_relu) 
 - ratio <= 0.7 under ks_literal: (B=32, N=2^16), (B=48, N=2^16)*, (B=64, N=2^16)*, (B=128, N=2^16)*, (B=32, N=2^17), (B=48, N=2^17), (B=64, N=2^17), (B=128, N=2^17)*. Best 0.213 at (B=128, N=2^17).
 - ratio <= 0.7 under ks_literal_spec: (B=64, N=2^16)*, (B=128, N=2^16)*, (B=64, N=2^17), (B=128, N=2^17)*. Best 0.477 at (B=128, N=2^17).
 - ratio <= 0.7 under ks_literal_spec (no compaction): none. Best 7.320 at (B=128, N=2^16).
+- ratio <= 0.7 under ks interactive: (B=16, N=2^16), (B=32, N=2^16), (B=48, N=2^16)*, (B=64, N=2^16)*, (B=128, N=2^16)*, (B=16, N=2^17), (B=32, N=2^17), (B=48, N=2^17), (B=64, N=2^17), (B=128, N=2^17)*. Best 0.089 at (B=128, N=2^17).
+
+### N = 2^17: ReBoot as shipped (slot-filling r = 2048) vs generous ReBoot (custom sumRows, r = 1024)
+
+| B | cts | reboot ks shipped / generous | ratio ks | ratio ks_spec | ratio ks_literal | ratio ks_literal_spec | ratio ks interactive |
+|---|---|---|---|---|---|---|---|
+| 16 | 1 | 39.0 / 37.0 | 1.220 / **1.285** | 1.044 / **1.054** | 1.309 / **1.380** | 1.061 / **1.072** | 0.482 / **0.508** |
+| 32 | 1 | 39.0 / 37.0 | 0.648 / **0.683** | 0.883 / **0.899** | 0.693 / **0.731** | 0.898 / **0.914** | 0.280 / **0.295** |
+| 48 (b0) | 1 | 39.0 / 37.0 | 0.458 / **0.483** | 0.769 / **0.786** | 0.488 / **0.514** | 0.782 / **0.799** | 0.212 / **0.224** |
+| 64 | 1 | 39.0 / 37.0 | 0.343 / **0.362** | 0.673 / **0.691** | 0.366 / **0.386** | 0.684 / **0.702** | 0.159 / **0.168** |
+| 128 | 2* | 39.0 / 37.0 | 0.181 / **0.191** | 0.456 / **0.472** | 0.213 / **0.224** | 0.477 / **0.494** | 0.089 / **0.094** |
+
+Cells: ratio vs shipped / **ratio vs generous**. The generous baseline replicates ReBoot's r x c matrix twice so that sumRows needs only log2(1024) = 10 rotations; it is not what ReBoot ships.
+
+- ratio <= 0.7 under ks_spec vs generous ReBoot at N = 2^17: (B=64), (B=128)*.
+- ratio <= 0.7 under ks_literal_spec vs generous ReBoot at N = 2^17: (B=128)*.
 
 ### Sensitivity of KS_spec ratio to BOOT_KS (same B)
 
@@ -418,6 +463,7 @@ Config `reboot_emlp1.json`: reboot_emlp1 on MNIST, layers 784 -> 32 (poly_relu) 
 | diag_batched | 32 | 0.97 | 0.47 | 0.34 | 10.56 | 11.44 | 0.125 |
 | diag_batched | 64 | 0.97 | 0.23 | 0.34 | 5.34 | 5.72 | 0.062 |
 | diag_batched | 48 | 1.29 | 0.31 | 0.46 | 7.12 | 7.62 | 0.083 |
+| diag_batched interactive | 48 | 1.29 | 0.31 | 0.46 | 6.17 | 0.00 | 0.000 |
 
 ### Reference rows (N = 2^16, KS per sample)
 
@@ -436,7 +482,7 @@ The reference rows at B = 1 are the 2020 algorithms on the eMLP-1 net, without b
    Hoisting helps time, not count; BSGS reduces the count. The literal spec metric is reported as well.
 2. **BOOT_KS** is one OpenFHE 1.2.1 EvalBootstrap in ReBoot's configuration: level budget [2,2], sparse ternary secret,
    num_iterations = 2, which makes it a Meta-BTS of two full bootstraps. That is 502 at N = 2^16 and 630 at 2^17.
-   Per bootstrap at N = 2^16:
+   Per bootstrap at N = 2^16 (2^15 slots):
    - CoeffsToSlots + SlotsToCoeffs: 218 rotations (109 + 109), counted by enumerating the code's rotation-offset
      tables. Baby offsets are centred, so none is zero. One giant offset wraps to 0 mod N/2 and is skipped.
    - Plus 1 conjugation.
@@ -447,11 +493,14 @@ The reference rows at B = 1 are the 2020 algorithms on the eMLP-1 net, without b
    activations, which holds for 1-hidden-layer eMLP-1. Both bootstrap W and V (NAG) once per mini-batch.
 4. **ReBoot model.** Taken from its paper (§3 eq. 4–5, §4.2.1, §4.3) and its code (`packing.cpp`, `nn.cpp`,
    `cryptocontext.py`, OpenFHE `EvalSumRows`/`EvalSumCols`): one sample per ciphertext, no hoisting, a relin after every
-   product.
+   product. ReBoot is GPL-3.0. Its code was read to count operations only; no ReBoot code is copied into hekit.
    - A hypothetical lazy-relin ReBoot (35 KS per sample) is listed as a stronger baseline.
    - Multi-sample packing is impossible for this net at N = 2^16, because r·c = 1024·32 = N/2.
-   - At N = 2^17 the baseline follows ReBoot's slot-filling rule, r = N/2 / c = 2048: 11 sumRows rotations, 39 KS per sample.
-     A custom sumRows over 1024 rows would be about 5% cheaper (37) and is not modelled.
+   - At N = 2^17 the main baseline follows ReBoot's slot-filling rule, r = N/2 / c = 2048: 11 sumRows rotations,
+     39 KS per sample.
+   - The generous variant (`custom_sumrows=True`) uses r = 1024. The client replicates the matrix twice, so sumRows
+     takes 10 rotations, giving 37 KS per sample. It is in the N = 2^17 table above, and it flips the literal-spec
+     verdict at (64, 2^17).
 5. **diag_batched layout:**
    - Feature-major `slot = j·B' + b`, stored S-periodically; dims padded to powers of two (784 → 1024, 10 → 16).
    - BSGS mat-vec over m = min(d_in, d_out) diagonals, with a fold for wide layers and free replication for tall ones.
@@ -459,6 +508,9 @@ The reference rows at B = 1 are the 2020 algorithms on the eMLP-1 net, without b
    - The gradient reuses the forward's baby-step rotations and reduces over the batch (log2 B').
    - Then comes the compact re-layout: pack into ceil(m·L/S) W and V ciphertexts, run NAG, bootstrap, and unpack and
      replicate for the next forward.
+   - `interactive=True` (M2) drops the compaction, the unpack and the bootstraps. NAG runs on the expanded diagonals,
+     and the client reads lane 0 back at re-encryption. The client only decrypts, permutes or replicates slots, and
+     re-encrypts; every arithmetic op, including the batch reduction, stays on the server.
 6. Client-side encodings are free (x and y in either layout, initial weights). Plaintext/scalar products and
    additions are not key switches.
 

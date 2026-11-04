@@ -329,3 +329,111 @@ def test_diag_batched_no_compaction_sim_matches_formula(layers, batch, slots):
         for op in OPS:
             assert run["counts"][ph][op] == r["phases"][ph][op], (ph, op)
     assert run["bootstraps"] == r["bootstraps_per_update"]
+
+
+# ---------------------------------------------------------------------------------------------
+# Generous ReBoot baseline at N = 2^17 (custom sumRows over the used rows only)
+# ---------------------------------------------------------------------------------------------
+
+EMLP1 = [(784, 32, "poly_relu"), (32, 10, None)]
+
+
+def test_reboot_generous_custom_sumrows_emlp1():
+    # ReBoot as shipped fills all slots: r = N/2 / c = 2048 at N = 2^17 -> 11 sumRows rotations.
+    shipped = network_cost("reboot", EMLP1, 48, 2**16)
+    assert shipped["reboot_rc"] == (2048, 32)
+    assert shipped["per_sample"]["ks"] == pytest.approx(39.0)
+    # Generous variant: sumRows over next_pow2(784) = 1024 rows only (matrix replicated twice).
+    gen = network_cost("reboot", EMLP1, 48, 2**16, custom_sumrows=True)
+    assert gen["reboot_rc"] == (1024, 32)
+    assert gen["rotations"] == 30 * 48
+    assert gen["relins"] == 7 * 48
+    assert gen["per_sample"]["ks"] == pytest.approx(37.0)
+    assert gen["bootstraps_per_update"] == 4
+    assert not gen["infeasible"]
+    # At N = 2^16 the matrix already fills the slots: both variants coincide.
+    a = network_cost("reboot", EMLP1, 48, 2**15)
+    b = network_cost("reboot", EMLP1, 48, 2**15, custom_sumrows=True)
+    assert a["per_sample"] == b["per_sample"]
+
+
+def test_reboot_generous_flips_literal_spec_at_64_2p17():
+    # Final review I1: (64, 2^17) passes the literal spec metric only against ReBoot as shipped.
+    d = network_cost("diag_batched", EMLP1, 64, 2**16)["per_sample"]
+    shipped = network_cost("reboot", EMLP1, 64, 2**16)["per_sample"]
+    gen = network_cost("reboot", EMLP1, 64, 2**16, custom_sumrows=True)["per_sample"]
+    assert gen["ks_spec"] == pytest.approx(37 + 4 * 630 / 64)  # 76.375
+    assert d["ks_literal_spec"] / shipped["ks_literal_spec"] <= 0.70
+    assert d["ks_literal_spec"] / gen["ks_literal_spec"] == pytest.approx(0.702, abs=5e-4)
+    assert d["ks_literal_spec"] / gen["ks_literal_spec"] > 0.70
+    assert d["ks_spec"] / gen["ks_spec"] == pytest.approx(0.691, abs=5e-4)
+
+
+@pytest.mark.parametrize(
+    "layers,batch,slots",
+    [
+        ([(16, 8, "poly_relu"), (8, 4, None)], 3, 256),  # r0 * c = 128 = S/2
+        ([(6, 16, "poly_relu"), (16, 4, "square"), (4, 3, None)], 2, 1024),
+    ],
+)
+def test_reboot_custom_sumrows_sim_matches_formula(layers, batch, slots):
+    rng = np.random.default_rng(3)
+    run = slotsim.reboot_step(layers, batch, slots, rng, custom_sumrows=True)
+    for name, ref in run["reference"].items():
+        np.testing.assert_allclose(run["decoded"][name], ref, atol=1e-9, err_msg=name)
+    r = network_cost("reboot", layers, batch, slots, custom_sumrows=True)
+    assert r["reboot_rc"][0] * r["reboot_rc"][1] < slots
+    for ph in PHASES:
+        for op in OPS:
+            assert run["counts"][ph][op] == r["phases"][ph][op], (ph, op)
+    assert run["bootstraps"] == r["bootstraps_per_update"]
+
+
+# ---------------------------------------------------------------------------------------------
+# Interactive mode (M2 Task 30/32: client decrypts and re-encrypts, no bootstrapping)
+# ---------------------------------------------------------------------------------------------
+
+
+def test_diag_batched_interactive_emlp1():
+    a = network_cost("diag_batched", EMLP1, 48, 2**15)
+    i = network_cost("diag_batched", EMLP1, 48, 2**15, interactive=True)
+    lane_shifts = (32 - 1) + (16 - 1)  # pack into compact ciphertexts (gradient phase)
+    assert i["bootstraps_per_update"] == 0
+    assert i["phases"]["update"]["rotations"] == 0 and i["phases"]["update"]["relins"] == 0
+    assert i["rotations"] == a["rotations"] - lane_shifts - a["phases"]["update"]["rotations"]
+    assert i["relins"] == a["relins"]
+    for ph in ("forward", "transpose", "backward"):
+        assert i["phases"][ph] == a["phases"][ph]
+    assert i["per_sample"]["ks_spec"] == i["per_sample"]["ks"]
+    # Option: the client also supplies W^T at re-encryption -> no transpose rotations.
+    t = network_cost("diag_batched", EMLP1, 48, 2**15, interactive=True, client_transpose=True)
+    assert t["phases"]["transpose"]["rotations"] == 0
+    assert t["rotations"] == i["rotations"] - i["phases"]["transpose"]["rotations"]
+    with pytest.raises(ValueError):
+        cost("diag_batched", 32, 16, 4, 1024, client_transpose=True)  # needs interactive=True
+
+
+@pytest.mark.parametrize("client_transpose", [False, True])
+@pytest.mark.parametrize(
+    "layers,batch,slots",
+    [
+        ([(16, 8, "poly_relu"), (8, 4, None)], 4, 128),
+        ([(4, 16, "poly_relu"), (16, 8, None)], 4, 128),
+        ([(16, 8, "poly_relu"), (8, 4, None)], 4, 32),
+        ([(32, 32, "poly_relu"), (32, 4, None)], 8, 1024),
+    ],
+)
+def test_diag_batched_interactive_sim_matches_formula(layers, batch, slots, client_transpose):
+    rng = np.random.default_rng(5)
+    run = slotsim.diag_batched_step(
+        layers, batch, slots, rng, interactive=True, client_transpose=client_transpose
+    )
+    for name, ref in run["reference"].items():
+        np.testing.assert_allclose(run["decoded"][name], ref, atol=1e-9, err_msg=name)
+    r = network_cost(
+        "diag_batched", layers, batch, slots, interactive=True, client_transpose=client_transpose
+    )
+    for ph in PHASES:
+        for op in OPS:
+            assert run["counts"][ph][op] == r["phases"][ph][op], (ph, op)
+    assert run["bootstraps"] == r["bootstraps_per_update"] == 0

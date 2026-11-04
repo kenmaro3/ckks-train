@@ -11,6 +11,7 @@ Layouts (`layout` argument):
 * ``"reboot"``        ReBoot (Pirillo & Colombo, arXiv:2506.19693; code
   github.com/AI-Tech-Research-Lab/ReBoot @ spikes/reboot/_ext/ReBoot, OpenFHE 1.2.1): one sample
   per ciphertext, r x c matrix packing with r*c = N/2, row/column encoding alternating per layer.
+  ``custom_sumrows=True`` is a more generous baseline (sumRows over the used rows only).
 * ``"row_2020"``      Mihara et al. 2020 (arXiv:2012.13552) row packing (Alg. 1 / Alg. 3), B = 1.
 * ``"diag_2020"``     Mihara et al. 2020 diagonal packing (Alg. 2 / Alg. 5), B = 1, naive per-diagonal
   rotations, one relinearisation per ct-ct product (no BSGS, no hoisting, no lazy relin).
@@ -26,6 +27,16 @@ Counted ops (per update, all samples of the mini-batch):
 Key-switch metrics: ``key_switches = rotations + relins`` (brief, Step 5), and the spec metric
 ``ks_spec = rotations + relins + bootstraps * BOOT_KS`` where BOOT_KS is the key-switch count of one
 EvalBootstrap call (see `bootstrap_key_switches`).
+
+``diag_batched`` has two modes: non-interactive (default; bootstraps the weights, needs the compact
+re-layout) and ``interactive=True`` (M2 Task 30/32: the client decrypts and re-encrypts the weights
+after every update, so no bootstrap, no compaction and no unpack).
+
+Licence note: ReBoot is GPL-3.0 (spikes/reboot/_ext/ReBoot/LICENSE). Every reference to a ReBoot
+source file in this package (packing.cpp, nn.cpp, models.py, train.py, cryptocontext.py, the YAML
+configs) cites where an op count or parameter rule was READ; these docstrings describe op counts
+only. No ReBoot code is copied into this package or anywhere in hekit. (The OpenFHE ports below are
+of BSD-2-Clause code.)
 
 All dimensions are padded to powers of two for ``diag_batched`` (stated in every result as
 ``d_in_pad``/``d_out_pad``); the 2020 layouts use the raw dimensions as the paper does; ReBoot pads
@@ -73,8 +84,9 @@ def has_activation(act) -> bool:
 
 
 def nag_pt_mults(momentum: bool, decay: bool) -> int:
-    """Scalar mults of one weight-ciphertext update (ReBoot cpp/lib/nn.cpp compute_nesterov:
-    decay*W, lr*g, mom*lr*g, mom^2*lr*v, mom*v; plain SGD: decay*W, lr*g). No key switch."""
+    """Scalar mults of one weight-ciphertext update, counted from reading ReBoot cpp/lib/nn.cpp
+    compute_nesterov (op count only, no code copied): decay*W, lr*g, mom*lr*g, mom^2*lr*v, mom*v;
+    plain SGD: decay*W, lr*g. No key switch."""
     return (4 if momentum else 1) + (1 if decay else 0)
 
 
@@ -187,7 +199,7 @@ def _ps_mults(degree: int) -> int:
 
 def bootstrap_key_switches(slots: int, level_budget=(2, 2), iterations: int = 2) -> dict:
     """Key switches of one OpenFHE EvalBootstrap(ct, num_iterations) on a fully packed ciphertext
-    with ReBoot's settings (experiments/config/fhe_config_mlp1.yaml: level_budget [2, 2],
+    with ReBoot's settings (read from ReBoot's experiments/config/fhe_config_mlp1.yaml: level_budget [2, 2],
     SPARSE_TERNARY, num_iterations 2 -> Meta-BTS = two full bootstraps, ckksrns-fhe.cpp:366-378).
 
     Per bootstrap: CoeffsToSlots + SlotsToCoeffs rotations (counted from the code's offset tables,
@@ -224,8 +236,9 @@ def cost(layout: str, d_in: int, d_out: int, batch: int, slots: int, **opts) -> 
     Common options: backward=True (compute W^T delta; False for the input layer),
     activation="square" (None for no activation), momentum=True (NAG with velocity, as ReBoot),
     decay=True (weight decay term).
-    Layout options: reboot: packing="row"|"col", c=<col_size>, lazy_relin=False;
-    diag_batched: samples_per_ct=<B'>; diag_2020: convention="paper"|"seal", first_layer=False.
+    Layout options: reboot: packing="row"|"col", c=<col_size>, r=<row_size>, lazy_relin=False,
+    custom_sumrows=False; diag_batched: samples_per_ct=<B'>, compact=True, interactive=False,
+    client_transpose=False; diag_2020: convention="paper"|"seal", first_layer=False.
     """
     if layout not in LAYOUTS:
         raise ValueError(f"unknown layout {layout!r}; expected one of {LAYOUTS}")
@@ -266,6 +279,8 @@ def _diag_batched(
     decay=True,
     samples_per_ct=None,
     compact=True,
+    interactive=False,
+    client_transpose=False,
 ):
     """Batched diagonal packing (this work). Layout invariant: an activation vector of dimension d
     for B' samples is stored S-periodically, slot s holds sample (s mod B') feature
@@ -299,6 +314,17 @@ def _diag_batched(
              diagonal is replicated back to the expanded layout directly (m*log2(S/L) rotations,
              counted in the gradient phase, no lane shifts, no second mask); NAG runs on the m
              expanded W and V diagonals and all 2*m of them are bootstrapped.
+    interactive=True (M2 Task 30/32, ClientRefresher; no bootstrapping): after the batch reduction
+             the server runs NAG directly on the expanded W / V diagonals (only lane b = 0 of each
+             feature holds the reduced gradient; the other lanes carry harmless partial sums, so no
+             mask is needed), and the client decrypts W and V, reads lane 0 and re-encodes the
+             expanded, BSGS pre-rotated diagonals for the next forward. Division of labour: the
+             client only decrypts, permutes / replicates slots and re-encrypts; every arithmetic op
+             (incl. the batch reduction) stays on the server. So no compaction, no lane shifts, no
+             unpack / replication, no bootstraps (bootstraps_per_update = 0, KS_spec = KS).
+             Transpose: by default the server still transposes with rotations (m - 1 per update, the
+             paper's point); client_transpose=True models the other option, where the client also
+             encodes W^T's diagonals at re-encryption (0 transpose rotations).
     Infeasible (B > S/L, i.e. d_pad*B > S): k = ceil(B/B') ciphertexts per batch; per-ciphertext
     phases scale with k, per-update phases do not.
     """
@@ -306,6 +332,8 @@ def _diag_batched(
     m, L = min(din, dout), max(din, dout)
     if L > slots:
         raise ValueError(f"layer {d_in}x{d_out} does not fit {slots} slots")
+    if client_transpose and not interactive:
+        raise ValueError("client_transpose needs interactive=True (only the client can re-encode W^T)")
     bp = samples_per_ct or min(next_pow2(batch), slots // L)
     if L * bp > slots:
         raise ValueError(f"samples_per_ct={bp} too large for L={L}, slots={slots}")
@@ -323,7 +351,7 @@ def _diag_batched(
     if act:
         _add(ph["forward"], k, ct_ct_mults=1, relins=1)
     # transpose, per update
-    if backward:
+    if backward and not client_transpose:
         _add(ph["transpose"], rotations=_transpose_rotations(din, dout, n1))
     # backward, per ciphertext
     if act:
@@ -332,7 +360,11 @@ def _diag_batched(
         _add(ph["backward"], k, ct_ct_mults=m, relins=n2, rotations=(n1 - 1) + (n2 - 1) + f_bwd)
     # gradient
     _add(ph["gradient"], k, rotations=n2 - 1, ct_ct_mults=m)
-    if compact:
+    if interactive:
+        nw = m  # expanded W / V diagonals, refreshed by the client (not bootstrapped)
+        _add(ph["gradient"], relins=m, rotations=m * log2i(bp))
+        _add(ph["update"], ct_pt_mults=m * nag_pt_mults(momentum, decay))
+    elif compact:
         _add(ph["gradient"], relins=m, rotations=m * log2i(bp) + (m - nw), ct_pt_mults=m)
         # update: optimizer on compact ciphertexts, then unpack (mask, lane shift, replicate)
         _add(ph["update"], ct_pt_mults=nw * nag_pt_mults(momentum, decay))
@@ -344,7 +376,7 @@ def _diag_batched(
     for p in ph.values():
         p["paper_mults"] = p["ct_ct_mults"]
     extra = {
-        "bootstraps_per_update": nw * (2 if momentum else 1),
+        "bootstraps_per_update": 0 if interactive else nw * (2 if momentum else 1),
         "ciphertexts": k,
         "samples_per_ct": bp,
         "infeasible": k > 1,
@@ -352,7 +384,8 @@ def _diag_batched(
         "d_out_pad": dout,
         "bsgs": (n1, n2),
         "weight_ciphertexts": nw,
-        "compact": compact,
+        "compact": compact and not interactive,
+        "interactive": interactive,
     }
     return ph, extra
 
@@ -380,13 +413,16 @@ def _reboot(
     *,
     packing="row",
     c=None,
+    r=None,
     backward=True,
     activation="square",
     momentum=True,
     decay=True,
     lazy_relin=False,
+    custom_sumrows=False,
 ):
     """ReBoot, one sample per ciphertext (cpp/lib/packing.cpp loops over the batch vector).
+    Op counts only: the cited ReBoot files (GPL-3.0) were read to count operations; no code copied.
 
     Matrix r x c with r * c = N/2 (paper Sec. 3; lib/cryptocontext.py:162-165 scales row_size by
     num_slots // (row_size*col_size) so the matrix fills all slots), c = col_size.
@@ -408,9 +444,13 @@ def _reboot(
     * Update: NAG, scalar mults only (nn.cpp compute_nesterov); then bootstrap W and V once per
       mini-batch (lib/utils/train.py:76 model.bootstrap; lib/models/models.py:131 weights +
       velocities; paper Alg. 1 lines 11-12).
-    At N = 2^17 the slot-filling rule makes r = 2048 (11 sumRows rotations, 39 KS/sample for eMLP-1);
-    a custom sumRows over only next_pow2(784) = 1024 rows would need replicated weights/products and
-    is not what ReBoot does; it would be ~5% cheaper (37 KS/sample), not modelled.
+    At N = 2^17 the slot-filling rule makes r = 2048 (11 sumRows rotations, 39 KS/sample for eMLP-1).
+    custom_sumrows=True is the generous baseline (not what ReBoot ships): r = next_pow2(rows needed)
+    (1024 for eMLP-1), the r x c matrix and the expanded inputs are replicated S/(r*c) times by the
+    client (free), so the rotate-and-add over log2(r) row offsets gives the full column sums in every
+    replica, and every later op is slot-wise, so the replication is preserved: 10 sumRows rotations,
+    37 KS/sample at 2^17 (same as 2^16). At N = 2^16 both coincide (r*c = N/2 already).
+    An explicit r overrides both rules.
     No hoisting is used (rotations inside EvalSumRows/EvalSumCols are sequentially dependent),
     no multi-sample packing, no reuse of expansions (none are needed: formats alternate).
     """
@@ -418,10 +458,13 @@ def _reboot(
         raise ValueError("packing must be 'row' or 'col'")
     if c is None:
         c = next_pow2(d_out) if packing == "row" else next_pow2(d_in)
-    r = slots // c
     rows_needed = d_in if packing == "row" else d_out
     cols_needed = d_out if packing == "row" else d_in
-    infeasible = r < next_pow2(rows_needed) or c < next_pow2(cols_needed) or r * c != slots
+    if r is None:
+        r = next_pow2(rows_needed) if custom_sumrows else slots // c
+    infeasible = (
+        r < next_pow2(rows_needed) or c < next_pow2(cols_needed) or r * c > slots or slots % (r * c) != 0
+    )
     sum_rows = log2i(r) if r >= 1 else 0
     sum_cols = 2 * log2i(c)
     b = batch
@@ -565,11 +608,13 @@ def _norm_layers(layers):
     return out
 
 
-def reboot_rc(layers, slots):
-    """ReBoot's (r, c): lib/cryptocontext.py get_recommended_parameters (plain MLP, no local-loss
-    blocks, layers alternating row/col packing starting with row) united with the padding
-    constraints of CKKSPackedLinear.add_padding (row layer: in <= r, out <= c; col layer: in <= c,
-    out <= r); then r is scaled so that r * c = slots (cryptocontext.py:162-165)."""
+def reboot_rc(layers, slots, fill=True):
+    """ReBoot's (r, c), re-derived from reading lib/cryptocontext.py get_recommended_parameters
+    (plain MLP, no local-loss blocks, layers alternating row/col packing starting with row) and the
+    padding constraints of CKKSPackedLinear.add_padding (row layer: in <= r, out <= c; col layer:
+    in <= c, out <= r); then r is scaled so that r * c = slots (cryptocontext.py:162-165).
+    Parameter rule only; no ReBoot (GPL-3.0) code is copied. fill=False skips the scaling (the
+    generous custom-sumRows baseline): r = next_pow2 of the rows needed."""
     rows, cols = [layers[0][0]], [layers[0][1]]
     for i, (d_in, d_out, _a) in enumerate(layers):
         if i % 2 == 0:  # row-encoded: ReBoot lists out in rows; padding needs in <= r, out <= c
@@ -580,7 +625,7 @@ def reboot_rc(layers, slots):
             rows += [d_out]
     r0, c = next_pow2(max(rows)), next_pow2(max(cols))
     ratio = slots // (r0 * c)
-    return r0 * ratio, c, ratio == 0
+    return (r0 * ratio if fill else r0), c, ratio == 0
 
 
 def network_cost(
@@ -602,7 +647,8 @@ def network_cost(
     per_sample: ks = (rotations + relins)/batch, ks_spec = (rotations + relins +
     bootstraps*boot_ks)/batch with boot_ks = bootstrap_key_switches(slots)["total"] by default.
     Also the spec's literal metric ks_literal = (rotations + ct-ct mults)/batch and ks_literal_spec
-    (+ bootstraps). The primary metric counts relins because a key switch happens at the
+    (+ bootstraps). Options are passed to every layer (e.g. reboot custom_sumrows=True,
+    diag_batched interactive=True / client_transpose=True / compact=False). The primary metric counts relins because a key switch happens at the
     relinearisation, not at the tensor product: with one relin per product (ReBoot, 2020) the two
     coincide, with lazy relinearisation several tensor products share one key switch.
     """
@@ -610,11 +656,12 @@ def network_cost(
     extra_net = {}
     per_layer_opts = [dict(opts) for _ in layers]
     if layout == "reboot":
-        r, c, bad = reboot_rc(layers, slots)
+        r, c, bad = reboot_rc(layers, slots, fill=not opts.get("custom_sumrows", False))
         extra_net["reboot_rc"] = (r, c)
         for i, o in enumerate(per_layer_opts):
             o.setdefault("packing", "row" if i % 2 == 0 else "col")
             o.setdefault("c", c)
+            o.setdefault("r", r)
     elif layout == "diag_batched":
         L = max(max(next_pow2(a), next_pow2(b)) for a, b, _ in layers)
         bp = opts.get("samples_per_ct") or min(next_pow2(batch), slots // L)
