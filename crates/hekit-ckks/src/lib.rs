@@ -1,10 +1,18 @@
 //! hekit-ckks: RNS-CKKS scheme built on hekit-core (temporary crate name).
 #![deny(missing_docs)]
 
+pub mod ciphertext;
 pub mod encoder;
+pub mod encrypt;
+pub mod keys;
 pub mod params;
 pub mod plaintext;
 
+pub use ciphertext::Ciphertext;
 pub use encoder::Encoder;
+pub use encrypt::{Decryptor, Encryptor};
+pub use keys::{
+    GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey,
+};
 pub use params::CkksParams;
 pub use plaintext::Plaintext;
