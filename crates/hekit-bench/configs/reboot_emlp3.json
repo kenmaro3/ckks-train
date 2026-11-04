@@ -1,0 +1,33 @@
+{
+  "name": "reboot_emlp3",
+  "log_n": 17,
+  "levels": 29,
+  "scale_bits": 59,
+  "layers": [
+    {
+      "in": 784,
+      "out": 128,
+      "activation": "poly_relu"
+    },
+    {
+      "in": 128,
+      "out": 64,
+      "activation": "poly_relu"
+    },
+    {
+      "in": 64,
+      "out": 32,
+      "activation": "poly_relu"
+    },
+    {
+      "in": 32,
+      "out": 10,
+      "activation": "none"
+    }
+  ],
+  "epochs": 10,
+  "lr": 0.0005,
+  "momentum": 0.9,
+  "batch": 48,
+  "dataset": "MNIST"
+}

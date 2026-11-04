@@ -255,3 +255,17 @@ Init N(0, 0.2²) for W and b, z-scored inputs, 80:20 split (120/30), lr 0.1, MSE
 Paper: plaintext accuracy 0.9805, loss 0.0249 (which split is not stated) — matches our train accuracy/loss.
 Note: batch 1 with lr 0.1 diverges (square∘square activations), so the paper's batch-1 setting is a timing-only setting.
 Without biases or without standardization accuracy drops to 0.70–0.96 (exploration, not committed).
+
+## Task 5: ReBoot baseline
+
+ReBoot (OpenFHE 1.2.1, `3ac173f`) builds on this Mac, but **eMLP-1 cannot run on 36 GB RAM**: CKKS context (N=2^16, l=24, full-slot bootstrapping keys) alone has a 44 GB footprint; training steps die in weight bootstrapping (OOM/swap). Details: `spikes/reboot/RUN.md`.
+
+| item | value |
+|---|---|
+| epoch time (this machine) | not measurable (OOM) |
+| accuracy (this machine) | not measurable |
+| memory (this machine) | >= 44 GB after context creation (36 GB RAM) |
+| paper: eMLP-1 iteration time / peak memory | 190.32 s / 76.07 GB (2x Xeon 5318S, 384 GB) |
+| paper-derived epoch (100 it, 4800 samples) / full MNIST (1250 it) | ~5.3 h / ~66 h (arithmetic, not measured) |
+| paper: MNIST test acc eMLP-1/2/3 (plaintext twin) | 94.61 / 96.39 / 96.77 % |
+| configs (paper Table 3/8) | `crates/hekit-bench/configs/reboot_emlp{1,2,3}.json`: N 2^16/2^17/2^17, l 24/27/29, Δ 49/59/59 bits, batch 48, lr 0.001/0.001/0.0005, momentum 0.9; epochs=10 from repo script (not in paper) |
