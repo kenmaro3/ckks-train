@@ -470,6 +470,47 @@ fn client_refresher_restores_level_and_scale() {
     assert_eq!(client.refreshed(), 2);
 }
 
+/// With a layout (`ClientRefresher::with_layout`) the refresh re-lays the canonical form:
+/// every replicated block gets the average of the blocks (Task 31: otherwise the copies drift
+/// apart over a long run). The scale and level contract is unchanged.
+#[test]
+fn client_refresher_with_layout_averages_the_blocks() {
+    let c = ctx(&[], 39);
+    let layout = Layout::new(c.params.slots(), 16, 32).unwrap();
+    let bk = layout.block();
+    let mut client = c.client(40).with_layout(layout).unwrap();
+    let mut r = rng(140);
+    let base: Vec<f64> = (0..bk).map(|_| uni(&mut r)).collect();
+    // Every block holds base plus its own 1e-3 noise: the copies have drifted apart.
+    let noisy: Vec<f64> = (0..c.params.slots())
+        .map(|s| base[s % bk] + 1e-3 * uni(&mut r))
+        .collect();
+    let mean: Vec<f64> = (0..bk)
+        .map(|j| {
+            let n = c.params.slots() / bk;
+            (0..n).map(|k| noisy[k * bk + j]).sum::<f64>() / n as f64
+        })
+        .collect();
+    let scale = c.params.scale() * 1.375;
+    let ct = c
+        .enc
+        .encrypt(&c.encoder.encode(&noisy, scale, 3).unwrap(), &mut r);
+    let fresh = client.refresh(&ct).unwrap();
+    assert_eq!(fresh.level(), c.params.max_level());
+    assert_eq!(fresh.scale(), scale);
+    let got = c.encoder.decode(&c.dec.decrypt(&fresh));
+    let want: Vec<f64> = (0..c.params.slots()).map(|s| mean[s % bk]).collect();
+    let e = vec_diff(&got, &want);
+    eprintln!("block-averaging refresh error 2^{:.2}", e.log2());
+    assert!(e < 2f64.powi(-20), "{e:e}");
+    // A layout of another slot count is rejected.
+    let wrong = Layout::new(c.params.slots() / 2, 16, 32).unwrap();
+    assert!(matches!(
+        c.client(41).with_layout(wrong).unwrap_err(),
+        HekitError::InvalidParams(_)
+    ));
+}
+
 /// Input errors are reported before the network changes.
 #[test]
 fn train_batch_errors_leave_the_network_unchanged() {

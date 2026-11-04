@@ -19,12 +19,27 @@
 //! would have encrypted at the start. The slot layout is kept as is (all `N/2` slots are
 //! decoded and re-encoded), so the replicated, pre-rotated weight diagonals need no
 //! repacking.
+//!
+//! # Replicated blocks ([`ClientRefresher::with_layout`])
+//!
+//! When `d * batch < slots` every packed vector is the block of `d * batch` slots repeated
+//! `slots / (d * batch)` times. Each copy carries its own noise, every training step computes
+//! every copy separately, and rotations that wrap across a block boundary mix neighbouring
+//! copies. Over a long run the copies drift apart and the drift grows **exponentially** (Task
+//! 31, Iris 4-10-3 on seal_2020 with 32 blocks: the block spread grew from 2^-19 to 2^-12 in 13
+//! epochs, the weights left the plaintext trajectory, and the run overflowed at epoch 30). A
+//! refresher with the layout re-lays the canonical form: it replaces every block by the mean
+//! of the blocks before re-encoding. That is exact for every packed vector (all are
+//! block-periodic) and also averages the noise of the copies. A single-block layout
+//! (`d * batch == slots`, e.g. MNIST in Task 32) has nothing to average.
 
 use std::sync::Arc;
 
 use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor};
 use hekit_core::error::{HekitError, Result};
 use hekit_core::sampler::Rng;
+
+use crate::layout::Layout;
 
 /// Brings a ciphertext back to the top level (`max_level`) at its own exact scale, with the
 /// same message in every slot (up to the refresh's error).
@@ -44,6 +59,7 @@ pub struct ClientRefresher {
     encoder: Encoder,
     rng: Rng,
     refreshed: u64,
+    block: Option<usize>,
 }
 
 impl std::fmt::Debug for ClientRefresher {
@@ -53,6 +69,7 @@ impl std::fmt::Debug for ClientRefresher {
             .field("n", &self.encoder.params().n())
             .field("max_level", &self.encoder.params().max_level())
             .field("refreshed", &self.refreshed)
+            .field("block", &self.block)
             .finish()
     }
 }
@@ -67,7 +84,25 @@ impl ClientRefresher {
             encoder,
             rng,
             refreshed: 0,
+            block: None,
         }
+    }
+
+    /// Re-lays the canonical form of `layout` on every refresh: each of the
+    /// `slots / layout.block()` replicated blocks is replaced by the mean of the blocks (see
+    /// the [module docs](self)). Use it whenever `layout.block() < slots`.
+    ///
+    /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count.
+    pub fn with_layout(mut self, layout: Layout) -> Result<ClientRefresher> {
+        if layout.slots != self.encoder.params().slots() {
+            return Err(HekitError::InvalidParams(format!(
+                "layout of {} slots for parameters with {} slots",
+                layout.slots,
+                self.encoder.params().slots()
+            )));
+        }
+        self.block = Some(layout.block());
+        Ok(self)
     }
 
     /// The number of ciphertexts refreshed so far (the interactive mode's round-trip volume).
@@ -97,7 +132,10 @@ impl ClientRefresher {
                 "refresh: ciphertext is not over the client's parameters".into(),
             ));
         }
-        let values = self.encoder.decode(&self.dec.decrypt(ct));
+        let mut values = self.encoder.decode(&self.dec.decrypt(ct));
+        if let Some(bk) = self.block {
+            average_blocks(&mut values, bk);
+        }
         let pt = self.encoder.encode(&values, scale, params.max_level())?;
         let fresh = self.enc.encrypt(&pt, &mut self.rng);
         self.refreshed += 1;
@@ -105,9 +143,26 @@ impl ClientRefresher {
     }
 }
 
+/// Replaces every block of `bk` values by the mean of the blocks.
+fn average_blocks(values: &mut [f64], bk: usize) {
+    let copies = values.len() / bk;
+    if copies <= 1 {
+        return;
+    }
+    let mut mean = vec![0.0; bk];
+    for chunk in values.chunks_exact(bk) {
+        mean.iter_mut().zip(chunk).for_each(|(m, v)| *m += v);
+    }
+    mean.iter_mut().for_each(|m| *m /= copies as f64);
+    for chunk in values.chunks_exact_mut(bk) {
+        chunk.copy_from_slice(&mean);
+    }
+}
+
 impl Refresher for ClientRefresher {
-    /// Decrypts, decodes all `N/2` slots, re-encodes them at exactly `ct.scale()` on the top
-    /// level and encrypts (public-key encryption with the client's ChaCha20 stream).
+    /// Decrypts, decodes all `N/2` slots (averaging the replicated blocks if
+    /// [`ClientRefresher::with_layout`] was set), re-encodes them at exactly `ct.scale()` on
+    /// the top level and encrypts (public-key encryption with the client's ChaCha20 stream).
     ///
     /// Errors as [`ClientRefresher::refresh_to_scale`].
     fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext> {
