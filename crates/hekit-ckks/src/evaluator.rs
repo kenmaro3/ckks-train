@@ -311,9 +311,13 @@ impl Evaluator {
     /// `L / ct.scale()` with `L = exact_product_scale(ct.level(), target_scale)`, i.e.
     /// `~ target_scale * q_l / ct.scale()`. Encode the plaintext at exactly this scale.
     ///
-    /// Errors as [`Evaluator::exact_product_scale`].
+    /// Errors as [`Evaluator::exact_product_scale`], and `InvalidParams` if the scale is below
+    /// [`MIN_PLAIN_SCALE`] (`2^20`; [`Evaluator::mul_plain_to_scale`] would reject it, so this
+    /// fails before anything is encoded).
     pub fn target_plain_scale(&self, ct: &Ciphertext, target_scale: f64) -> Result<f64> {
-        Ok(self.exact_product_scale(ct.level(), target_scale)? / ct.scale())
+        let sp = self.exact_product_scale(ct.level(), target_scale)? / ct.scale();
+        check_plain_scale(sp)?;
+        Ok(sp)
     }
 
     /// `ct * value` for a real constant, **pre-rescale**, labelled so that the caller's
@@ -1676,7 +1680,7 @@ mod tests {
 
     /// A plaintext scale below `2^20` (a target scale far below the ciphertext's scale
     /// divided by `q_l`) would round the constant / mask to a few bits: `InvalidParams`, for
-    /// `mul_scalar` and `mul_plain_to_scale` alike, counting nothing.
+    /// `mul_scalar`, `mul_plain_to_scale` and `target_plain_scale` alike, counting nothing.
     #[test]
     fn small_plaintext_scale_is_rejected() {
         let ctx = small();
@@ -1693,7 +1697,11 @@ mod tests {
             e.mul_scalar(&a, 0.5, tiny),
             Err(HekitError::InvalidParams(_))
         ));
-        let sp = e.target_plain_scale(&a, tiny).unwrap();
+        assert!(matches!(
+            e.target_plain_scale(&a, tiny),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let sp = e.exact_product_scale(2, tiny).unwrap() / a.scale();
         assert!(sp < 2f64.powi(20));
         let pt = ctx.enc.encode(&v, sp, 2).unwrap();
         assert!(matches!(
