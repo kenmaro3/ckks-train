@@ -449,6 +449,8 @@ fn ks_json(k: &Ks, samples: f64) -> J {
         ("rotations", J::I(k.rot as i64)),
         ("relins", J::I(k.relin as i64)),
         ("key_switches", J::I(k.total() as i64)),
+        ("rotations_per_sample", J::N(k.rot as f64 / samples)),
+        ("relins_per_sample", J::N(k.relin as f64 / samples)),
         ("key_switches_per_sample", J::N(k.total() as f64 / samples)),
     ])
 }
