@@ -4,13 +4,16 @@
 pub mod ciphertext;
 pub mod encoder;
 pub mod encrypt;
+pub mod evaluator;
 pub mod keys;
+pub mod keyswitch;
 pub mod params;
 pub mod plaintext;
 
 pub use ciphertext::Ciphertext;
 pub use encoder::Encoder;
 pub use encrypt::{Decryptor, Encryptor};
+pub use evaluator::Evaluator;
 pub use keys::{
     GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey,
 };
