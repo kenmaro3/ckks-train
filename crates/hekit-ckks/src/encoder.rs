@@ -24,6 +24,9 @@
 //! bit-reversed negacyclic DWT of `util::DWTHandler` with the root table of
 //! `util::ComplexRoots` (8-fold symmetry of `exp(2 pi i k / 2N)`). Both are ported verbatim,
 //! so encodings agree with SEAL coefficient by coefficient (pinned by a known-answer test).
+//! This ported code is derived from Microsoft SEAL 4.1.2 (Copyright (c) Microsoft
+//! Corporation, MIT License); its copyright and permission notice is reproduced in
+//! `THIRD_PARTY_NOTICES` at the repository root.
 //!
 //! # Encoding
 //!

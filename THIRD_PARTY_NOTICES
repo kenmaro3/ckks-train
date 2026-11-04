@@ -1,0 +1,58 @@
+hekit third-party notices
+=========================
+
+hekit is licensed under the MIT License (see LICENSE). Parts of it are derived from, or
+written to reproduce bit for bit, the third-party software listed below. Their copyright and
+permission notices are reproduced here as their licenses require.
+
+
+1. Microsoft SEAL 4.1.2
+-----------------------
+
+Source: https://github.com/microsoft/SEAL (version 4.1.2), MIT License.
+
+Ported from SEAL (derived code):
+
+- crates/hekit-ckks/src/encoder.rs: the bit-reversed negacyclic DWT
+  (util::DWTHandler::transform_to_rev / transform_from_rev), the complex root table
+  (util::ComplexRoots) and the CKKSEncoder slot index map (matrix_reps_index_map_), ported
+  so that encodings agree with SEAL coefficient by coefficient.
+
+Written against the SEAL 4.1.2 sources to reproduce its results or formats (interop):
+
+- crates/hekit-ckks/src/params.rs: the prime assignment order of CoeffModulus::Create.
+- crates/hekit-core/src/baseconv.rs: the formulas of BaseConverter::fast_convert_array and
+  of divide_and_round_q_last (rescale / mod_down) for one special prime.
+- crates/hekit-core/src/ntt.rs: the NTT root and storage conventions.
+- crates/hekit-ckks/src/seal_compat.rs: the SEAL serialization format (SEALHeader,
+  Ciphertext / Plaintext / key layouts) and parms_id. The BLAKE2b used for parms_id is an
+  independent implementation from RFC 7693, not SEAL code.
+- crates/hekit-ckks/src/encoder.rs (tests): known-answer values printed by SEAL.
+
+Not distributed with hekit: the tools under tools/seal-kat/ and the spikes under spikes/
+build against SEAL fetched by CMake FetchContent; no SEAL source file is vendored in this
+repository.
+
+SEAL's LICENSE:
+
+    MIT License
+
+    Copyright (c) Microsoft Corporation. All rights reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE

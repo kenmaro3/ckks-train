@@ -1,6 +1,6 @@
 //! Homomorphic arithmetic on CKKS ciphertexts.
 //!
-//! # Rules (checked, never silently fixed)
+//! # Rules (checked; one documented relabelling)
 //!
 //! * Every operand must be over the evaluator's data basis (`params.basis_q()`, same `Arc`);
 //!   otherwise `InvalidParams`.
@@ -9,9 +9,12 @@
 //!   [`Evaluator::mod_switch_to_level`] to bring the higher operand down explicitly.
 //! * Additions (`add`, `sub`, `add_plain`) require scales whose relative difference
 //!   `|s_a - s_b| / min(s_a, s_b)` is below [`SCALE_TOLERANCE`] (`2^-10`), else
-//!   `ScaleMismatch`; scales are never forced equal. The result carries the first operand's
-//!   scale (differences below the tolerance arise from rescaling by different primes, e.g.
-//!   `Delta` vs `Delta^2 / q`, relative `~2^-17` for seal_2020).
+//!   `ScaleMismatch`. Within the tolerance the scales are **not** equalised (no
+//!   multiplication by a correction constant): the polynomials are added as they are and the
+//!   result is **labelled with the first operand's scale** `s_a`. This relabelling is not
+//!   free: `b`'s message then decodes as `m_b * s_b / s_a`, a relative error of
+//!   `(s_b - s_a) / s_a` on `m_b` (absolute `|m_b| * |s_b - s_a| / s_a`). See "Scale
+//!   tolerance" below for the sizes and the exact-scale path.
 //! * Multiplications multiply the scales; [`Evaluator::rescale`] divides the scale by the
 //!   exact value of the dropped prime `q_level`.
 //! * `mul_no_relin`, `mul` and `rescale` at level 0 return `NoLevelsLeft` (a product at
@@ -24,6 +27,31 @@
 //! * A missing relinearization key is `InvalidParams`; `mul` checks its operands first.
 //! * Keys must be over the evaluator's `basis_q` / `basis_p` (same `Arc`s, `dnum` parts),
 //!   else `InvalidParams`.
+//!
+//! # Scale tolerance (what it costs and how to avoid it)
+//!
+//! Scales of different histories differ because `rescale` divides by the exact prime
+//! `q_level`, not by `Delta`: a fresh `Delta = 2^40` encoding and a product rescaled to
+//! `Delta^2 / q_l` differ relatively by `|1 - Delta / q_l|`, which for the seal_2020 40-bit
+//! primes is `2^-19.4 ... 2^-16.8`, and for the n16_train 42-bit primes (`Delta = 2^42`)
+//! `2^-21.4 ... 2^-16.0`. Two products rescaled by different primes differ by about the sum.
+//! Every `add` / `sub` / `add_plain` of such mismatched-history operands therefore injects
+//! up to about `2^-16` relative error into the second operand (for `|m| <= 1`, up to
+//! `2^-16` absolute), silently: far above the encryption noise (`~2^-25`) of seal_2020.
+//!
+//! To avoid it, keep scales exactly equal:
+//!
+//! * encode plaintext constants, biases and masks at `ct.scale()` and `ct.level()` of the
+//!   ciphertext they are added to (`encoder.encode(v, ct.scale(), ct.level())`), not at
+//!   `params.scale()`;
+//! * add ciphertexts only when they have the same history (same multiplications and the
+//!   same rescaled primes), e.g. the terms of one BSGS sum ([`crate::linalg`]);
+//! * a scalar multiplication that feeds an addition must take the target scale (M2's
+//!   `mul_scalar` in Task 28): choose the plaintext scale `s_t * q_l / s_ct` so that after
+//!   the rescale the result has exactly the scale `s_t` of the other operand.
+//!
+//! [`SCALE_TOLERANCE`] stays at the plan's `2^-10`; check `a.scale() == b.scale()` yourself
+//! where exactness matters.
 //!
 //! # Rotations
 //!
@@ -56,7 +84,9 @@ use crate::keyswitch::{apply_key, decompose, key_switch};
 use crate::params::CkksParams;
 use crate::plaintext::Plaintext;
 
-/// Largest accepted relative scale difference for additions, `2^-10`.
+/// Largest accepted relative scale difference for additions, `2^-10`. Within it the result
+/// is relabelled with the first operand's scale, which costs up to the relative scale
+/// difference in accuracy (see the [module docs](self)).
 pub const SCALE_TOLERANCE: f64 = 1.0 / 1024.0;
 
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
@@ -154,12 +184,13 @@ impl Evaluator {
         self.galois.as_ref()
     }
 
-    /// `a + b`.
+    /// `a + b` (same level, scales within [`SCALE_TOLERANCE`]; the result has `a`'s scale,
+    /// see the [module docs](self)).
     pub fn add(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
         self.add_sub(a, b, false)
     }
 
-    /// `a - b`.
+    /// `a - b` (as [`Evaluator::add`]).
     pub fn sub(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
         self.add_sub(a, b, true)
     }
@@ -172,7 +203,8 @@ impl Evaluator {
         Ciphertext::new(c, a.scale())
     }
 
-    /// `a + p` (same level, scales within [`SCALE_TOLERANCE`]).
+    /// `a + p` (same level, scales within [`SCALE_TOLERANCE`]; the result has `a`'s scale,
+    /// see the [module docs](self) for the error of a mismatched `p`).
     pub fn add_plain(&self, a: &Ciphertext, p: &Plaintext) -> Result<Ciphertext> {
         self.check_basis(a.polys())?;
         self.check_basis(std::slice::from_ref(p.poly()))?;
