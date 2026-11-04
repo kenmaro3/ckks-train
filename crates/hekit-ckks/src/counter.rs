@@ -15,7 +15,9 @@
 //! * `relins`: each [`Evaluator::relinearize`](crate::Evaluator::relinearize) (so each `mul`).
 //! * `ct_ct_tensor`: each [`Evaluator::mul_no_relin`](crate::Evaluator::mul_no_relin) (so
 //!   each `mul`).
-//! * `ct_pt_mults`: each [`Evaluator::mul_plain`](crate::Evaluator::mul_plain).
+//! * `ct_pt_mults`: each [`Evaluator::mul_plain`](crate::Evaluator::mul_plain),
+//!   [`Evaluator::mul_plain_to_scale`](crate::Evaluator::mul_plain_to_scale) and
+//!   [`Evaluator::mul_scalar`](crate::Evaluator::mul_scalar).
 //! * `rescales`: each [`Evaluator::rescale`](crate::Evaluator::rescale).
 //! * `bootstraps`: none yet (no bootstrapping in M1).
 //!

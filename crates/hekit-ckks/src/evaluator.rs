@@ -46,9 +46,14 @@
 //!   `params.scale()`;
 //! * add ciphertexts only when they have the same history (same multiplications and the
 //!   same rescaled primes), e.g. the terms of one BSGS sum ([`crate::linalg`]);
-//! * a scalar multiplication that feeds an addition must take the target scale (M2's
-//!   `mul_scalar` in Task 28): choose the plaintext scale `s_t * q_l / s_ct` so that after
-//!   the rescale the result has exactly the scale `s_t` of the other operand.
+//! * a scalar multiplication that feeds an addition must take the target scale:
+//!   [`Evaluator::mul_scalar`]`(ct, value, s_t)` encodes the constant at the plaintext scale
+//!   `~ s_t * q_l / s_ct` and labels the product so that after the rescale the result has
+//!   exactly the scale `s_t` of the other operand; [`Evaluator::mul_plain_to_scale`] does the
+//!   same for a plaintext vector (a mask with a folded constant) encoded at
+//!   [`Evaluator::target_plain_scale`]. [`Evaluator::exact_product_scale`] says when a target
+//!   is reachable (always for power-of-two targets and for scales rescaled from the same
+//!   level).
 //!
 //! [`SCALE_TOLERANCE`] stays at the plan's `2^-10`; check `a.scale() == b.scale()` yourself
 //! where exactness matters.
@@ -88,6 +93,13 @@ use crate::plaintext::Plaintext;
 /// is relabelled with the first operand's scale, which costs up to the relative scale
 /// difference in accuracy (see the [module docs](self)).
 pub const SCALE_TOLERANCE: f64 = 1.0 / 1024.0;
+
+/// Ulps searched on each side of `target * q` by [`Evaluator::exact_product_scale`] (any
+/// solution lies within about 2).
+const LABEL_SEARCH_ULPS: u64 = 8;
+
+/// Bound on the integer constant of [`Evaluator::mul_scalar`], `2^62`.
+const MAX_SCALAR_INT: f64 = 4_611_686_018_427_387_904.0;
 
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
 /// counts the expensive operations it performs ([`Evaluator::counter`]).
@@ -223,6 +235,147 @@ impl Evaluator {
         let mut c = a.polys().to_vec();
         c.iter_mut().for_each(|x| x.mul_assign(p.poly()));
         let r = Ciphertext::new(c, a.scale() * p.scale())?;
+        self.count(|c| c.ct_pt_mults += 1);
+        Ok(r)
+    }
+
+    /// The pre-rescale scale label `L` at `level` whose [`Evaluator::rescale`] gives exactly
+    /// `target_scale`: an f64 with `L / q_level == target_scale` in f64 arithmetic (the
+    /// division `rescale` performs), the one nearest `target_scale * q_level`. Products
+    /// labelled `L` ([`Evaluator::mul_scalar`], [`Evaluator::mul_plain_to_scale`]) land
+    /// exactly on `target_scale` after the caller's rescale, so they can be added to an
+    /// operand of that scale with no relabelling (the exact-scale path of the
+    /// [module docs](self)).
+    ///
+    /// Such an `L` exists whenever `target_scale * q_level` is exactly representable (e.g. a
+    /// power-of-two target such as `Delta`, or `Delta` times a small integer) and whenever
+    /// `target_scale` is itself the scale of a ciphertext rescaled from `level` (`L` is then
+    /// that ciphertext's pre-rescale scale). For an arbitrary target it can fail to exist
+    /// (about 11% of random 53-bit mantissas with 40-bit primes): the f64 grid of `L` near
+    /// `target * q` is coarser than `q` times the grid near `target`. No rescale from `level`
+    /// can produce such a target; that is `ScaleMismatch`.
+    ///
+    /// Errors: `InvalidParams` if `level > max_level` or `target_scale` is not positive and
+    /// finite (or `target_scale * q_level` overflows); `NoLevelsLeft` at level 0 (nothing to
+    /// rescale by); `ScaleMismatch` if no such `L` exists.
+    pub fn exact_product_scale(&self, level: usize, target_scale: f64) -> Result<f64> {
+        if level > self.params.max_level() {
+            return Err(HekitError::InvalidParams(format!(
+                "level {level} exceeds max_level {}",
+                self.params.max_level()
+            )));
+        }
+        if !(target_scale.is_finite() && target_scale > 0.0) {
+            return Err(HekitError::InvalidParams(format!(
+                "target scale {target_scale} must be positive and finite"
+            )));
+        }
+        if level == 0 {
+            return Err(HekitError::NoLevelsLeft);
+        }
+        let q = self.params.q()[level] as f64;
+        let l0 = target_scale * q;
+        if !l0.is_finite() {
+            return Err(HekitError::InvalidParams(format!(
+                "target scale {target_scale:e} times q_{level} overflows"
+            )));
+        }
+        // Any solution lies within about 2 ulps of l0 (the f64 grid near l0 is at most twice
+        // as coarse as q times the grid near the target); search nearest first.
+        let bits = l0.to_bits();
+        (0..=LABEL_SEARCH_ULPS)
+            .flat_map(|k| [bits + k, bits - k])
+            .map(f64::from_bits)
+            .find(|&l| l / q == target_scale)
+            .ok_or(HekitError::ScaleMismatch)
+    }
+
+    /// The plaintext scale for [`Evaluator::mul_plain_to_scale`] of `ct` to `target_scale`:
+    /// `L / ct.scale()` with `L = exact_product_scale(ct.level(), target_scale)`, i.e.
+    /// `~ target_scale * q_l / ct.scale()`. Encode the plaintext at exactly this scale.
+    ///
+    /// Errors as [`Evaluator::exact_product_scale`].
+    pub fn target_plain_scale(&self, ct: &Ciphertext, target_scale: f64) -> Result<f64> {
+        Ok(self.exact_product_scale(ct.level(), target_scale)? / ct.scale())
+    }
+
+    /// `ct * value` for a real constant, **pre-rescale**, labelled so that the caller's
+    /// [`Evaluator::rescale`] gives exactly `target_scale` (M1 §7 ruling, Task 28).
+    ///
+    /// The constant is encoded at the plaintext scale `s_p = L / ct.scale()`
+    /// (`~ target_scale * q_l / ct.scale()`, `L` from [`Evaluator::exact_product_scale`]) as
+    /// the integer `k = round(value * s_p)`, a constant polynomial: every component is
+    /// multiplied by `k` (no NTT, no encoder). The result has the level of `ct`, its
+    /// component count (2 or 3), and scale `L`, so `rescale` returns level `l - 1` with scale
+    /// exactly `target_scale` and message `value * m` up to `|k / s_p - value| <= 1 / (2 s_p)`
+    /// (about `2^-41` for `s_p ~ 2^40`) times `|m|`, plus the rescale noise. The label `L`
+    /// instead of the f64 product `ct.scale() * s_p` differs by at most one rounding
+    /// (relative `2^-52`), far below the integer rounding of `k`.
+    ///
+    /// Counts one `ct_pt_mults` (like [`Evaluator::mul_plain`]); costs the level of the
+    /// caller's rescale. To fold a constant into an existing product at no level, multiply it
+    /// into that product's plaintext instead (`docs/layout.md` §3).
+    ///
+    /// Errors: `InvalidParams` if `ct` is not over this evaluator's basis, `value` is not
+    /// finite, or `|k| >= 2^62`; and those of [`Evaluator::exact_product_scale`]
+    /// (`NoLevelsLeft` at level 0, `ScaleMismatch` for a target no rescale from this level
+    /// can reach). Failures count nothing.
+    pub fn mul_scalar(&self, ct: &Ciphertext, value: f64, target_scale: f64) -> Result<Ciphertext> {
+        self.check_basis(ct.polys())?;
+        if !value.is_finite() {
+            return Err(HekitError::InvalidParams(format!(
+                "scalar {value} must be finite"
+            )));
+        }
+        let label = self.exact_product_scale(ct.level(), target_scale)?;
+        let k = (value * (label / ct.scale())).round();
+        if k.abs() >= MAX_SCALAR_INT {
+            return Err(HekitError::InvalidParams(format!(
+                "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
+                label / ct.scale()
+            )));
+        }
+        let mut c = ct.polys().to_vec();
+        for p in &mut c {
+            p.mul_scalar_assign(k.abs() as u64);
+            if k < 0.0 {
+                p.neg();
+            }
+        }
+        let r = Ciphertext::new(c, label)?;
+        self.count(|c| c.ct_pt_mults += 1);
+        Ok(r)
+    }
+
+    /// `a * p` (same level), **pre-rescale**, labelled so that the caller's
+    /// [`Evaluator::rescale`] gives exactly `target_scale`: the vector analogue of
+    /// [`Evaluator::mul_scalar`] for masks with folded constants. `p` must be encoded at
+    /// exactly [`Evaluator::target_plain_scale`]`(a, target_scale)`; the product is labelled
+    /// `L = exact_product_scale(a.level(), target_scale)` instead of the f64 product
+    /// `a.scale() * p.scale()`, from which it differs by at most one rounding (relative
+    /// `2^-52`, far below the plaintext's own encoding rounding).
+    ///
+    /// Counts one `ct_pt_mults`.
+    ///
+    /// Errors: `InvalidParams` for operands not over this evaluator's basis; `LevelMismatch`
+    /// unless `p.level() == a.level()`; those of [`Evaluator::exact_product_scale`]; and
+    /// `ScaleMismatch` if `p.scale()` is not exactly the target plaintext scale.
+    pub fn mul_plain_to_scale(
+        &self,
+        a: &Ciphertext,
+        p: &Plaintext,
+        target_scale: f64,
+    ) -> Result<Ciphertext> {
+        self.check_basis(a.polys())?;
+        self.check_basis(std::slice::from_ref(p.poly()))?;
+        check_level(a.level(), p.level())?;
+        let label = self.exact_product_scale(a.level(), target_scale)?;
+        if p.scale() != label / a.scale() {
+            return Err(HekitError::ScaleMismatch);
+        }
+        let mut c = a.polys().to_vec();
+        c.iter_mut().for_each(|x| x.mul_assign(p.poly()));
+        let r = Ciphertext::new(c, label)?;
         self.count(|c| c.ct_pt_mults += 1);
         Ok(r)
     }
@@ -1309,5 +1462,215 @@ mod tests {
             bare.mul(&a, &a),
             Err(HekitError::InvalidParams(_))
         ));
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Task 28: scalar and mask multiplications with a target scale.
+    // ---------------------------------------------------------------------------------------
+
+    /// The next / previous positive f64.
+    fn ulp_step(x: f64, k: i64) -> f64 {
+        f64::from_bits((x.to_bits() as i64 + k) as u64)
+    }
+
+    /// `mul_scalar(ct, value, t)` followed by the caller's `rescale` has exactly scale `t` and
+    /// decrypts to `value * m`: for a power-of-two target (fresh weights at `Delta`) and for a
+    /// target that is itself a rescale output (`z^2 + z`: align `z` with `z^2`), so the
+    /// result adds to the other operand without any relabelling.
+    #[test]
+    fn mul_scalar_hits_target_scale_exactly() {
+        let ctx = seal();
+        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
+        let mut r = rng(60);
+        let top = ctx.params.max_level();
+        let v = rand_vals(61, ctx.params.slots());
+        let a = ctx.encrypt(&v, top, &mut r);
+        // z^2 at top - 1 with the scale Delta^2 / q_top.
+        let sq = e.rescale(&e.mul(&a, &a).unwrap()).unwrap();
+        let delta = ctx.params.scale();
+        for (target, what) in [
+            (delta, "Delta"),
+            (sq.scale(), "rescaled"),
+            (delta * 1.5, "1.5 Delta"),
+        ] {
+            for value in [1.0, 0.5, -1.25, 1e-3, 0.0125, 3.0] {
+                e.reset_counter();
+                let p = e.mul_scalar(&a, value, target).unwrap();
+                assert_eq!(e.counter().ct_pt_mults, 1, "counted as ct-pt");
+                assert_eq!(e.counter().rescales, 0, "result is pre-rescale");
+                assert_eq!((p.level(), p.len()), (top, 2));
+                assert_eq!(p.scale(), e.exact_product_scale(top, target).unwrap());
+                let res = e.rescale(&p).unwrap();
+                assert_eq!(res.level(), top - 1);
+                assert_eq!(res.scale(), target, "{what}: exact target scale");
+                let want: Vec<f64> = v.iter().map(|x| value * x).collect();
+                let err = max_err(&ctx.decrypt(&res), &want);
+                assert!(err < 2f64.powi(-22), "{what} x {value}: {err:e}");
+            }
+        }
+        // z^2 + z with exactly equal scales (no tolerance relabel).
+        let z = e
+            .rescale(&e.mul_scalar(&a, 1.0, sq.scale()).unwrap())
+            .unwrap();
+        assert_eq!(z.scale(), sq.scale());
+        let sum = e.add(&sq, &z).unwrap();
+        let want: Vec<f64> = v.iter().map(|x| x * x + x).collect();
+        assert!(max_err(&ctx.decrypt(&sum), &want) < 2f64.powi(-20));
+        // 3-component input and a lower level work too.
+        let t3 = e.mul_no_relin(&a, &a).unwrap();
+        let p3 = e.mul_scalar(&t3, 2.0, sq.scale() * delta).unwrap();
+        assert_eq!(e.rescale(&p3).unwrap().scale(), sq.scale() * delta);
+        let low = ctx.encrypt(&v, 2, &mut r);
+        let pl = e
+            .rescale(&e.mul_scalar(&low, -0.75, delta).unwrap())
+            .unwrap();
+        assert_eq!((pl.level(), pl.scale()), (1, delta));
+        let want: Vec<f64> = v.iter().map(|x| -0.75 * x).collect();
+        assert!(max_err(&ctx.decrypt(&pl), &want) < 2f64.powi(-22));
+    }
+
+    /// The label search is exact and complete: when `exact_product_scale` succeeds,
+    /// `L / q_l == target`; when it fails (`ScaleMismatch`), no f64 near `target * q_l`
+    /// divides to `target` (no rescale from that level reaches it). With NTT primes close to
+    /// `2^40` unreachable targets are rare (the f64 grids nearly align); 20-bit primes
+    /// (`q = 2^20 - c 2^13`) make them common enough to exercise the error.
+    #[test]
+    fn exact_product_scale_search() {
+        let coarse = CkksParams::new(12, &[60, 20, 20], &[60], 20, 3).unwrap();
+        for (params, samples) in [(CkksParams::seal_2020(), 4000), (coarse, 4000)] {
+            let params = Arc::new(params);
+            let e = Evaluator::new(Arc::clone(&params), None, None);
+            let (mut hit, mut miss) = (0, 0);
+            let base = 1.37 * params.scale();
+            for level in 1..=params.max_level() {
+                let q = params.q()[level] as f64;
+                for k in 0..samples / params.max_level() as i64 {
+                    let t = ulp_step(base, k * 7919);
+                    let brute = (-16..=16).any(|j| ulp_step(t * q, j) / q == t);
+                    match e.exact_product_scale(level, t) {
+                        Ok(l) => {
+                            assert_eq!(l / q, t);
+                            assert!((l - t * q).abs() <= 4.0 * (ulp_step(l, 1) - l));
+                            assert!(brute);
+                            hit += 1;
+                        }
+                        Err(err) => {
+                            assert_eq!(err, HekitError::ScaleMismatch);
+                            assert!(!brute, "missed a label for {t:e}");
+                            miss += 1;
+                            let mut zero = RnsPoly::zero(params.basis_q(), level);
+                            zero.to_ntt();
+                            let a =
+                                Ciphertext::new(vec![zero.clone(), zero], params.scale()).unwrap();
+                            assert_eq!(
+                                e.mul_scalar(&a, 1.0, t).unwrap_err(),
+                                HekitError::ScaleMismatch
+                            );
+                        }
+                    }
+                }
+            }
+            eprintln!(
+                "log q = {:?}: {hit} reachable, {miss} unreachable targets",
+                params.q_bits()
+            );
+            assert!(hit > 0);
+            if params.q_bits()[1] == 20 {
+                assert!(miss > 0, "unreachable targets occur with coarse primes");
+            }
+            // Power-of-two targets are always reachable (t * q_l is exact).
+            for lv in 1..=params.max_level() {
+                for b in 20..=90 {
+                    let t = 2f64.powi(b);
+                    let q = params.q()[lv] as f64;
+                    assert_eq!(e.exact_product_scale(lv, t).unwrap(), t * q);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn mul_scalar_errors() {
+        let ctx = small();
+        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
+        let mut r = rng(63);
+        let v = rand_vals(64, 8);
+        let a = ctx.encrypt(&v, 2, &mut r);
+        let z = ctx.encrypt(&v, 0, &mut r);
+        let delta = ctx.params.scale();
+        e.reset_counter();
+        assert_eq!(
+            e.mul_scalar(&z, 1.0, delta).unwrap_err(),
+            HekitError::NoLevelsLeft
+        );
+        for bad in [f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                e.mul_scalar(&a, bad, delta),
+                Err(HekitError::InvalidParams(_))
+            ));
+        }
+        for bad in [0.0, -delta, f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                e.mul_scalar(&a, 1.0, bad),
+                Err(HekitError::InvalidParams(_))
+            ));
+        }
+        // A constant whose integer does not fit 62 bits.
+        assert!(matches!(
+            e.mul_scalar(&a, 1e9, delta * 1e9),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert!(matches!(
+            e.exact_product_scale(ctx.params.max_level() + 1, delta),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let other = Ctx::new(small_params(), 65);
+        let f = other.encrypt(&v, 2, &mut r);
+        assert!(matches!(
+            e.mul_scalar(&f, 1.0, delta),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert_eq!(e.counter(), OpCounter::default(), "failures count nothing");
+    }
+
+    /// `mul_plain_to_scale` with a plaintext encoded at `target_plain_scale` gives exactly the
+    /// target after the rescale (a lane mask with a folded constant), and rejects any other
+    /// plaintext scale.
+    #[test]
+    fn mul_plain_to_scale_is_exact() {
+        let ctx = seal();
+        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
+        let mut r = rng(66);
+        let slots = ctx.params.slots();
+        let v = rand_vals(67, slots);
+        let a = ctx.encrypt(&v, 5, &mut r);
+        let sq = e.rescale(&e.mul(&a, &a).unwrap()).unwrap(); // level 4, scale ~ Delta^2/q
+        let mask: Vec<f64> = (0..slots)
+            .map(|s| if s % 8 == 0 { 0.0125 } else { 0.0 })
+            .collect();
+        for target in [ctx.params.scale(), a.scale() * 1.25] {
+            let sp = e.target_plain_scale(&sq, target).unwrap();
+            assert_eq!(sp, e.exact_product_scale(4, target).unwrap() / sq.scale());
+            let pt = ctx.enc.encode(&mask, sp, 4).unwrap();
+            e.reset_counter();
+            let p = e.mul_plain_to_scale(&sq, &pt, target).unwrap();
+            assert_eq!(e.counter().ct_pt_mults, 1);
+            let res = e.rescale(&p).unwrap();
+            assert_eq!((res.level(), res.scale()), (3, target));
+            let want: Vec<f64> = v.iter().zip(&mask).map(|(x, m)| x * x * m).collect();
+            let err = max_err(&ctx.decrypt(&res), &want);
+            assert!(err < 2f64.powi(-22), "{err:e}");
+            // Any other plaintext scale is rejected (use mul_plain for free scales).
+            let off = ctx.enc.encode(&mask, sp * (1.0 + 1e-12), 4).unwrap();
+            assert_eq!(
+                e.mul_plain_to_scale(&sq, &off, target).unwrap_err(),
+                HekitError::ScaleMismatch
+            );
+            let low = ctx.enc.encode(&mask, sp, 3).unwrap();
+            assert_eq!(
+                e.mul_plain_to_scale(&sq, &low, target).unwrap_err(),
+                HekitError::LevelMismatch
+            );
+        }
     }
 }
