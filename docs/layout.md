@@ -344,6 +344,13 @@ is rewritten with the scaled velocity `U = lr(1+mu)V`:
 - `U' = mu U + h`;
 - `W' = W - h - (mu²/(1+mu)) U`.
 
+**Weight decay is deferred.** The implemented optimizers (`hekit_nn::optim`, Task 28) have no
+`decay` term: `Sgd` and `Nag` use `g = G/n` only (as if `decay = 0`). The `lr(1+mu) decay * W`
+term above is a `mul_scalar` on the fresh `W` (one level off the critical path, no new keys), so
+it fits the same budget when added. Neither the 2020 paper (Iris, SGD) nor Task 31 needs it;
+ReBoot's weight decay (stated only in its RUN.md, `docs/m0-report.md`) is not reproduced until it
+is added. The biases take plain SGD steps under NAG (no bias momentum).
+
 The only multiplications by `mu` act on fresh `U` and `W`, off the critical path, so NAG also fits
 in 9. With that folding, **`seal_2020_l10` is not needed** for the Iris network, including
 Task 31's batch 20 (32 lanes, `valid` mask, same depth). If Task 28 keeps an unfused API, the
