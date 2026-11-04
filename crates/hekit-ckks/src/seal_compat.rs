@@ -611,6 +611,22 @@ mod tests {
         );
     }
 
+    /// n16_train's key-level `parms_id` (32 + 4 primes: the BLAKE2b input spans several
+    /// blocks). Pinned against an independent computation with Python's `hashlib.blake2b`
+    /// (Task 23 review); SEAL itself is not run on n16_train.
+    #[test]
+    fn n16_train_key_parms_id_pinned() {
+        assert_eq!(
+            key_parms_id(&CkksParams::n16_train()),
+            [
+                6651339613328061365,
+                2299678865699252732,
+                1912788140720359349,
+                5768396979508793702
+            ]
+        );
+    }
+
     struct Ctx {
         params: Arc<CkksParams>,
         sk: SecretKey,

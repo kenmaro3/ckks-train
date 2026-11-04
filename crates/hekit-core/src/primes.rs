@@ -56,10 +56,11 @@ pub fn is_prime_u64(n: u64) -> bool {
 /// order without duplicates; returns the `count` primes after skipping the
 /// `skip` largest ones.
 ///
-/// Splitting the stream with `skip` lets callers reproduce SEAL's
-/// `CoeffModulus::Create`, which generates the needed primes of one bit size in
-/// descending order and hands them out from the smallest (`pop_back`) in order of
-/// appearance.
+/// `skip` splits the descending stream (e.g. to take disjoint batches of primes of one
+/// size). It does **not** by itself reproduce SEAL's `CoeffModulus::Create`: SEAL
+/// generates the `c` needed primes of one bit size in descending order and hands them out
+/// from the smallest (`pop_back`) in order of appearance, i.e. the whole set of `c` primes
+/// reversed; `hekit_ckks::CkksParams::new` does that with [`ntt_primes`].
 ///
 /// Fails with `InvalidParams` if `bits` is not in `2..=60`, `n` is not a power of
 /// two, or fewer than `skip + count` such primes exist.

@@ -74,7 +74,7 @@ pub fn digit_ranges(params: &CkksParams, level: usize) -> Vec<Range<usize>> {
 }
 
 /// The exact centered lifts of the digits of `poly` to `Q_l * P` (module docs, step 1), one
-/// [`QpPoly`] per digit of [`digit_ranges`], in NTT form (see [`Lift::Exact`]).
+/// [`QpPoly`] per digit of [`digit_ranges`], in NTT form.
 ///
 /// # Panics
 /// If `poly` is not in NTT form, not over `params.basis_q()` (same `Arc`), or its level

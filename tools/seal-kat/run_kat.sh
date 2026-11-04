@@ -30,9 +30,11 @@ cmake --build "$BUILD" -j --target seal_interop_kat >"$BUILD/build.log" 2>&1 || 
 echo "built $BUILD/seal_interop_kat"
 
 echo "== [2/4] SEAL generates KAT files"
-rm -rf "$KAT"
 mkdir -p "$KAT"
 KAT=$(cd "$KAT" && pwd)
+# Remove only the files this script and the KAT test write (the directory may be
+# overridden by HEKIT_SEAL_KAT_DIR, so never delete it recursively).
+find "$KAT" -maxdepth 1 -type f \( -name '*.bin' -o -name 'values.json' -o -name 'inputs.f64' \) -delete
 "$BUILD/seal_interop_kat" generate "$KAT"
 
 echo "== [3/4] hekit: cargo test -p hekit-ckks --test seal_kat -- --ignored"
