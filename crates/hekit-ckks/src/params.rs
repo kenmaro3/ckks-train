@@ -10,13 +10,13 @@ pub const MIN_LOG_N: u32 = 1;
 /// Largest supported `log2(N)`.
 pub const MAX_LOG_N: u32 = 17;
 
-/// `n16_train` data-prime count L (provisional until Task 22 (lattice-estimator);
+/// `n16_train` data-prime count L (confirmed by Task 22, >= 141 bits, see docs/security.md;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_L: usize = 31;
-/// `n16_train` special-prime count k (provisional until Task 22 (lattice-estimator);
+/// `n16_train` special-prime count k (confirmed by Task 22, >= 141 bits, see docs/security.md;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_K: usize = 4;
-/// `n16_train` digit count (provisional until Task 22 (lattice-estimator);
+/// `n16_train` digit count (confirmed by Task 22, >= 141 bits, see docs/security.md;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_DNUM: usize = 8;
 
@@ -121,7 +121,7 @@ impl CkksParams {
     }
 
     /// Training preset: N = 2^16, q = {58, 42 x L}, p = {58 x k}, scale 2^42.
-    /// Constants are provisional until Task 22 (see [`N16_TRAIN_L`]).
+    /// Constants confirmed by Task 22 (see [`N16_TRAIN_L`], `docs/security.md`).
     pub fn n16_train() -> CkksParams {
         let mut q_bits = vec![58];
         q_bits.extend(vec![42; N16_TRAIN_L]);

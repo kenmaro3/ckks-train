@@ -1,0 +1,22 @@
+{
+  "presets": [
+    {
+      "name": "seal_2020",
+      "n": 32768,
+      "log_q": 419.9999,
+      "log_p": 60.0000,
+      "log_pq": 479.9999,
+      "secret": "ternary_uniform",
+      "sigma": 3.2
+    },
+    {
+      "name": "n16_train",
+      "n": 65536,
+      "log_q": 1359.9996,
+      "log_p": 232.0000,
+      "log_pq": 1591.9996,
+      "secret": "ternary_uniform",
+      "sigma": 3.2
+    }
+  ]
+}

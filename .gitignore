@@ -5,3 +5,4 @@ spikes/**/_ext/
 spikes/**/build/
 __pycache__/
 .pytest_cache/
+tools/**/_ext/
