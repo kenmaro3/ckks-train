@@ -9,6 +9,7 @@ pub mod keys;
 pub mod keyswitch;
 pub mod params;
 pub mod plaintext;
+pub mod seal_compat;
 
 pub use ciphertext::Ciphertext;
 pub use encoder::Encoder;

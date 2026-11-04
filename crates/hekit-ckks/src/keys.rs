@@ -179,6 +179,12 @@ impl std::fmt::Debug for SecretKey {
 }
 
 impl SecretKey {
+    /// Wraps `s` given over `Q * P` in NTT form (e.g. a key loaded from another library,
+    /// [`seal_compat`](crate::seal_compat)); the caller checks the bases and the form.
+    pub(crate) fn from_qp(qp: QpPoly) -> SecretKey {
+        SecretKey(qp)
+    }
+
     /// `s` as an element of `R_{QP}` (NTT form).
     pub fn qp(&self) -> &QpPoly {
         &self.0
@@ -201,6 +207,12 @@ pub struct PublicKey {
 }
 
 impl PublicKey {
+    /// Wraps `(b, a)` over `Q * P` in NTT form (e.g. a key loaded from another library,
+    /// [`seal_compat`](crate::seal_compat)); the caller checks the bases and the form.
+    pub(crate) fn from_parts(b: QpPoly, a: QpPoly) -> PublicKey {
+        PublicKey { b, a }
+    }
+
     /// `b = -a s + e`.
     pub fn b(&self) -> &QpPoly {
         &self.b
