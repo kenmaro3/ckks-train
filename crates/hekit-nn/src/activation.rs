@@ -1,5 +1,5 @@
-//! Polynomial activations on ciphertexts: [`Square`], [`PolyRelu2`] (ReBoot's `z^2 + z`) and
-//! [`Poly`] (degree 2..=4).
+//! Polynomial activations on ciphertexts: [`Square`], [`PolyRelu2`] (ReBoot's `z^2 + z`),
+//! [`Poly`] (degree 2..=4) and [`Identity`] (a linear layer, Task 32).
 //!
 //! # Exact-scale discipline
 //!
@@ -100,7 +100,21 @@ pub trait Activation {
 
     /// Levels consumed by [`Activation::derivative_factor`].
     fn derivative_depth(&self) -> usize;
+
+    /// `Some(k)` if the derivative is the constant `k` (an affine activation, e.g.
+    /// [`Identity`]). A constant is not a ciphertext, so [`Activation::derivative_factor_at`]
+    /// does not apply; the trainer then forms `dz = delta * (k * valid)` with one plaintext
+    /// multiply (no relinearization), or takes `dz = delta` when `k = 1` and every lane is
+    /// valid (no op, no level). Default `None`.
+    fn constant_derivative(&self) -> Option<f64> {
+        None
+    }
 }
+
+/// The identity `f(z) = z`: a linear layer (ReBoot's `"none"` output activation). Depth 0,
+/// derivative the constant 1 ([`Activation::constant_derivative`]).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Identity;
 
 /// `z^2`; derivative `2 z`.
 #[derive(Debug, Clone, Copy, Default)]
@@ -289,6 +303,57 @@ fn folded(ev: &Evaluator, scale_const: f64, mask: Option<&[f64]>) -> Result<Vec<
 
 fn scaled(v: &[f64], f: f64) -> Coef {
     (f != 0.0 && v.iter().any(|&x| x != 0.0)).then(|| v.iter().map(|&x| f * x).collect())
+}
+
+impl Activation for Identity {
+    /// `z` itself (no op, no level).
+    fn forward(&self, _ev: &Evaluator, _enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext> {
+        Ok(z.clone())
+    }
+
+    /// Always `InvalidParams`: the derivative is the constant 1, which is not a ciphertext
+    /// (use [`Activation::constant_derivative`]).
+    fn derivative_factor_at(
+        &self,
+        _ev: &Evaluator,
+        _enc: &Encoder,
+        _z: &Ciphertext,
+        _scale_const: f64,
+        _mask: Option<&[f64]>,
+        _target_scale: Option<f64>,
+    ) -> Result<Ciphertext> {
+        Err(HekitError::InvalidParams(
+            "the identity has a constant derivative (no ciphertext); use constant_derivative"
+                .into(),
+        ))
+    }
+
+    /// `upstream` itself (`f' = 1`: no op, no level).
+    fn backward(
+        &self,
+        _ev: &Evaluator,
+        _enc: &Encoder,
+        _z: &Ciphertext,
+        upstream: &Ciphertext,
+    ) -> Result<Ciphertext> {
+        Ok(upstream.clone())
+    }
+
+    fn eval_plain(&self, z: f64) -> f64 {
+        z
+    }
+
+    fn depth(&self) -> usize {
+        0
+    }
+
+    fn derivative_depth(&self) -> usize {
+        0
+    }
+
+    fn constant_derivative(&self) -> Option<f64> {
+        Some(1.0)
+    }
 }
 
 impl Activation for Square {

@@ -12,7 +12,10 @@
 //!    - derivative factor `s = act'(z) * valid` ([`Activation::derivative_factor_at`] with
 //!      constant 1 and the valid-lane mask; the activation's own factor, e.g. 2 for Square,
 //!      is inside it). `z` is on a high level, so this is off the critical path;
-//!    - `dz = rescale(delta * s)` (the one level on the critical path);
+//!    - `dz = rescale(delta * s)` (the one level on the critical path). An activation with a
+//!      constant derivative `k` ([`Activation::constant_derivative`], e.g. the identity of a
+//!      linear output layer, Task 32) has no `s`: `dz = delta` for `k = 1` on a full batch
+//!      (no op, no level), else `rescale(delta * (k * valid))` (one plaintext multiply);
 //!    - for every layer but the first: `W^T` by rotations only
 //!      ([`EncWeights::transpose_with`] on the **old** weights, switched down to `dz`'s level
 //!      first: fewer limbs to key-switch) and `delta_{l-1} = Dense::backward_input(dz)`;
@@ -485,6 +488,27 @@ fn bias_grad(
     }
 }
 
+/// `dz = delta * (k * valid)` for an activation with the constant derivative `k`
+/// ([`Activation::constant_derivative`], e.g. the identity): `delta` itself when `k = 1` and
+/// every lane is valid (no op, no level); otherwise one plaintext multiply at `delta`'s exact
+/// scale and a rescale (one level, no relinearization).
+fn constant_dz(
+    ev: &Evaluator,
+    enc: &Encoder,
+    delta: &Ciphertext,
+    k: f64,
+    mask: &[f64],
+    full: bool,
+) -> Result<Ciphertext> {
+    if full && k == 1.0 {
+        return Ok(delta.clone());
+    }
+    let target = delta.scale();
+    let v: Vec<f64> = mask.iter().map(|m| k * m).collect();
+    let pt = enc.encode(&v, ev.target_plain_scale(delta, target)?, delta.level())?;
+    ev.rescale(&ev.mul_plain_to_scale(delta, &pt, target)?)
+}
+
 impl<'a> Trainer<'a> {
     /// A trainer on `ev` (which must hold the relinearization key and the Galois keys of
     /// [`mlp_rotation_steps`]) with one optimizer per layer, in `layout`, with the
@@ -620,13 +644,18 @@ impl<'a> Trainer<'a> {
         for i in (0..n_layers).rev() {
             let ln = i + 1;
             let (dense, act) = &mlp.layers[i];
-            let s = act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
-            trace.push((format!("s{ln}"), s.level()));
-            let lv = s.level().min(delta.level());
-            let dz = ev.rescale(&ev.mul(
-                &ev.mod_switch_to_level(&delta, lv)?,
-                &ev.mod_switch_to_level(&s, lv)?,
-            )?)?;
+            let dz = match act.constant_derivative() {
+                Some(k) => constant_dz(ev, enc, &delta, k, &mask, n_valid == layout.batch)?,
+                None => {
+                    let s = act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
+                    trace.push((format!("s{ln}"), s.level()));
+                    let lv = s.level().min(delta.level());
+                    ev.rescale(&ev.mul(
+                        &ev.mod_switch_to_level(&delta, lv)?,
+                        &ev.mod_switch_to_level(&s, lv)?,
+                    )?)?
+                }
+            };
             trace.push((format!("dz{ln}"), dz.level()));
             let next = if i > 0 {
                 let w = &dense.w;
