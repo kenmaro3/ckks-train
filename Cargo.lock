@@ -230,6 +230,8 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "proptest",
+ "rand_chacha",
+ "rand_core",
 ]
 
 [[package]]

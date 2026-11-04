@@ -4,8 +4,12 @@
 pub mod error;
 pub mod modulus;
 pub mod ntt;
+pub mod poly;
 pub mod primes;
+pub mod rns;
 
 pub use error::{HekitError, Result};
 pub use modulus::{Modulus, Shoup};
 pub use ntt::NttTable;
+pub use poly::RnsPoly;
+pub use rns::RnsBasis;
