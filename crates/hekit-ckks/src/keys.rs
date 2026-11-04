@@ -392,12 +392,18 @@ impl KeyGenerator {
         }
     }
 
-    /// Galois keys for rotations by each of `steps` (one key per distinct element).
+    /// Galois keys for rotations by each of `steps` (one key per distinct element). Steps
+    /// whose element is the identity (0 and multiples of the slot count, which
+    /// [`Evaluator::rotate`](crate::Evaluator::rotate) performs as copies) get no key; at
+    /// n16_train a key is ~300 MB.
     pub fn galois_keys(&mut self, steps: &[i32]) -> GaloisKeys {
         let n = self.params.n();
         let mut keys = HashMap::new();
         for &step in steps {
             let elt = galois_elt(n, step);
+            if elt == 1 {
+                continue;
+            }
             keys.entry(elt).or_insert_with(|| self.galois_key(elt));
         }
         GaloisKeys { n, keys }
@@ -645,6 +651,19 @@ mod tests {
         }
         assert_eq!(galois_elt(n, slots as i32), 1);
         assert_eq!(galois_elt(n, -(slots as i32)), 1);
+    }
+
+    /// m2: steps whose Galois element is 1 (0 and multiples of the slot count) get no key.
+    #[test]
+    fn galois_keys_skip_the_identity() {
+        let params = small_params();
+        let slots = params.slots() as i32;
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(9)).unwrap();
+        let gks = kg.galois_keys(&[0, slots, -slots, 2 * slots, 1, slots + 1]);
+        assert_eq!(gks.len(), 1, "only step 1 (= slots + 1) needs a key");
+        assert!(gks.get(1).is_some());
+        assert!(gks.get(0).is_none() && gks.get_elt(1).is_none());
+        assert!(kg.galois_keys(&[0]).is_empty());
     }
 
     #[test]
