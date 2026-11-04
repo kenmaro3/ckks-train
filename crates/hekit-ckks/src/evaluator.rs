@@ -21,7 +21,19 @@
 //!   `rescale`/`mod_switch_to_level` accept both (adding 3-component ciphertexts and
 //!   relinearizing once is the lazy-relinearization pattern); `mul_no_relin`/`mul` need
 //!   2-component operands and `relinearize` exactly 3 (`InvalidParams` otherwise).
-//! * A missing relinearization key is `InvalidParams`.
+//! * A missing relinearization key is `InvalidParams`; `mul` checks its operands first.
+//! * Keys must be over the evaluator's `basis_q` / `basis_p` (same `Arc`s, `dnum` parts),
+//!   else `InvalidParams`.
+//!
+//! # Rotations
+//!
+//! [`Evaluator::rotate`] rotates left (slot `i` of the result is slot `i + steps` of the
+//! input, indices mod `slots = N/2`); `steps` is reduced mod `slots` and a multiple of
+//! `slots` returns a copy. Galois elements follow SEAL 4.1 (generator 3, see
+//! [`crate::keys`]). [`Evaluator::conjugate`] uses element `2N - 1`, whose key is stored in
+//! the same [`GaloisKeys`]. [`Evaluator::hoisted_rotate`] shares one digit decomposition
+//! among several rotations of the same ciphertext. A missing key is
+//! `InvalidParams("missing galois key")`; rotations need 2-component ciphertexts.
 //!
 //! Operation counting (`OpCounter`) is wired in by Task 19; see the marker in
 //! [`Evaluator`].
@@ -32,8 +44,10 @@ use hekit_core::error::{HekitError, Result};
 use hekit_core::poly::RnsPoly;
 
 use crate::ciphertext::Ciphertext;
-use crate::keys::{GaloisKeys, RelinKey, truncated};
-use crate::keyswitch::key_switch;
+use crate::keys::{
+    GaloisKey, GaloisKeys, KskKey, QpPoly, RelinKey, conjugation_elt, galois_elt, truncated,
+};
+use crate::keyswitch::{apply_key, decompose, key_switch};
 use crate::params::CkksParams;
 use crate::plaintext::Plaintext;
 
@@ -51,8 +65,8 @@ pub struct Evaluator {
 
 impl Evaluator {
     /// An evaluator for `params`. `relin` is needed by [`Evaluator::relinearize`] and
-    /// [`Evaluator::mul`]; `galois` by the rotations (Task 18). The keys must have been
-    /// generated for `params` (not checked).
+    /// [`Evaluator::mul`]; `galois` by the rotations and conjugation. The keys must have been
+    /// generated for `params` (the same `Arc`): checked when a key is used.
     pub fn new(
         params: Arc<CkksParams>,
         relin: Option<RelinKey>,
@@ -122,19 +136,7 @@ impl Evaluator {
     /// The tensor product `(a0 b0, a0 b1 + a1 b0, a1 b1)` of two 2-component ciphertexts at
     /// the same level `>= 1`; 3 components, scale `s_a * s_b`, decrypting with `s^2`.
     pub fn mul_no_relin(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
-        self.check_basis(a.polys())?;
-        self.check_basis(b.polys())?;
-        if a.len() != 2 || b.len() != 2 {
-            return Err(HekitError::InvalidParams(format!(
-                "multiplication needs 2-component ciphertexts (got {} and {}); relinearize first",
-                a.len(),
-                b.len()
-            )));
-        }
-        check_level(a.level(), b.level())?;
-        if a.level() == 0 {
-            return Err(HekitError::NoLevelsLeft);
-        }
+        self.check_mul_operands(a, b)?;
         let (x, y) = (a.polys(), b.polys());
         let prod = |p: &RnsPoly, q: &RnsPoly| {
             let mut r = p.clone();
@@ -158,9 +160,7 @@ impl Evaluator {
                 ct.len()
             )));
         }
-        let rk = self.relin.as_ref().ok_or_else(|| {
-            HekitError::InvalidParams("evaluator has no relinearization key".into())
-        })?;
+        let rk = self.relin_key_checked()?;
         let mut c = ct.polys().to_vec();
         let c2 = c.pop().expect("3 components");
         let (kb, ka) = key_switch(&self.params, &c2, rk.key());
@@ -169,14 +169,41 @@ impl Evaluator {
         Ciphertext::new(c, ct.scale())
     }
 
-    /// `relinearize(mul_no_relin(a, b))`.
+    /// `relinearize(mul_no_relin(a, b))`. Operand errors (basis, component count,
+    /// `LevelMismatch`, `NoLevelsLeft`) are reported before a missing or foreign
+    /// relinearization key (`InvalidParams`), and both before any work is done.
     pub fn mul(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
-        if self.relin.is_none() {
-            return Err(HekitError::InvalidParams(
-                "evaluator has no relinearization key".into(),
-            ));
-        }
+        self.check_mul_operands(a, b)?;
+        self.relin_key_checked()?;
         self.relinearize(&self.mul_no_relin(a, b)?)
+    }
+
+    /// The relinearization key, validated against this evaluator's bases.
+    fn relin_key_checked(&self) -> Result<&RelinKey> {
+        let rk = self.relin.as_ref().ok_or_else(|| {
+            HekitError::InvalidParams("evaluator has no relinearization key".into())
+        })?;
+        self.check_key_basis(rk.key())?;
+        Ok(rk)
+    }
+
+    /// The operand checks of `mul_no_relin` / `mul`, in order: basis, component count,
+    /// level mismatch, level 0.
+    fn check_mul_operands(&self, a: &Ciphertext, b: &Ciphertext) -> Result<()> {
+        self.check_basis(a.polys())?;
+        self.check_basis(b.polys())?;
+        if a.len() != 2 || b.len() != 2 {
+            return Err(HekitError::InvalidParams(format!(
+                "multiplication needs 2-component ciphertexts (got {} and {}); relinearize first",
+                a.len(),
+                b.len()
+            )));
+        }
+        check_level(a.level(), b.level())?;
+        if a.level() == 0 {
+            return Err(HekitError::NoLevelsLeft);
+        }
+        Ok(())
     }
 
     /// Divides by the last prime `q_l` with rounding: level `l -> l - 1`, scale `/ q_l`.
@@ -203,6 +230,145 @@ impl Evaluator {
         }
         let c = ct.polys().iter().map(|p| truncated(p, level)).collect();
         Ciphertext::new(c, ct.scale())
+    }
+
+    /// Rotates the slots left by `steps`: slot `i` of the result holds slot
+    /// `(i + steps) mod slots` of `ct` (negative `steps` rotate right). `steps` is reduced
+    /// modulo `slots = N/2`; a multiple of `slots` returns a copy of `ct` (no key needed).
+    ///
+    /// `(c0, c1) -> (sigma_g(c0) + kb, ka)` with `g = galois_elt(N, steps)` and `(kb, ka)` the
+    /// key switch of `sigma_g(c1)` by the Galois key of `g`. Level and scale are unchanged.
+    ///
+    /// Errors (`InvalidParams`): `ct` not over this evaluator's basis or not 2 components;
+    /// no Galois key for `g` (`"missing galois key"`); a key not over this evaluator's bases.
+    pub fn rotate(&self, ct: &Ciphertext, steps: i32) -> Result<Ciphertext> {
+        self.check_galois_input(ct)?;
+        let Some(elt) = self.rotation_elt(steps) else {
+            return Ok(ct.clone());
+        };
+        self.apply_galois(ct, elt)
+    }
+
+    /// Complex conjugation of every slot (Galois element `2N - 1`), with the conjugation key
+    /// stored in the evaluator's [`GaloisKeys`] (see [`GaloisKeys::insert`] and
+    /// [`KeyGenerator::conjugation_key`](crate::KeyGenerator::conjugation_key)).
+    ///
+    /// Errors as [`Evaluator::rotate`].
+    pub fn conjugate(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+        self.check_galois_input(ct)?;
+        self.apply_galois(ct, conjugation_elt(self.params.n()))
+    }
+
+    /// `steps.iter().map(|s| rotate(ct, s))`, with the expensive part of the key switch
+    /// (the digit decomposition and lift of `c1`, [`decompose`]) done once.
+    ///
+    /// For every nonzero step (mod slots), the automorphism `sigma_g` is applied to both
+    /// parts of every lifted digit and the result is passed to [`apply_key`] with the
+    /// Galois key of `g`; then `sigma_g(c0)` is added. This is valid because `sigma_g` is a
+    /// signed permutation of the coefficients (an index permutation in NTT form, the same
+    /// for every prime), so it commutes with reduction modulo every prime: the permuted
+    /// lift is a lift of `sigma_g(c1)`'s digit. The lift used by [`decompose`] is the exact
+    /// centered one, which is symmetric (`lift(-x) = -lift(x)`), so permuting it gives
+    /// exactly the lift of the permuted digit: the result is bit-identical to
+    /// [`Evaluator::rotate`] for every `alpha` (see [`crate::keyswitch`], "Hoisting").
+    ///
+    /// Results are in the order of `steps`; steps that are multiples of `slots` give copies
+    /// of `ct`, and repeated steps are allowed. Every key is looked up before any work, so a
+    /// missing key fails fast. Errors as [`Evaluator::rotate`].
+    pub fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Result<Vec<Ciphertext>> {
+        self.check_galois_input(ct)?;
+        let keys = steps
+            .iter()
+            .map(|&s| {
+                self.rotation_elt(s)
+                    .map(|elt| self.galois_key(elt).map(|k| (elt, k)))
+                    .transpose()
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let c = ct.polys();
+        let digits = if keys.iter().any(Option::is_some) {
+            decompose(&self.params, &c[1])
+        } else {
+            Vec::new()
+        };
+        keys.into_iter()
+            .map(|k| match k {
+                None => Ok(ct.clone()),
+                Some((elt, gk)) => {
+                    let rotated: Vec<QpPoly> = digits
+                        .iter()
+                        .map(|d| QpPoly::new(d.q().automorphism(elt), d.p().automorphism(elt)))
+                        .collect();
+                    let (kb, ka) = apply_key(&self.params, &rotated, gk.key());
+                    finish_galois(ct, elt, kb, ka)
+                }
+            })
+            .collect()
+    }
+
+    /// The Galois element of a rotation by `steps`, or `None` for a multiple of `slots`.
+    fn rotation_elt(&self, steps: i32) -> Option<u64> {
+        let slots = self.params.slots() as i64;
+        let k = (steps as i64).rem_euclid(slots);
+        (k != 0).then(|| galois_elt(self.params.n(), k as i32))
+    }
+
+    /// `sigma_elt` with a key switch of `c1` (no hoisting).
+    fn apply_galois(&self, ct: &Ciphertext, elt: u64) -> Result<Ciphertext> {
+        let gk = self.galois_key(elt)?;
+        let d = ct.polys()[1].automorphism(elt);
+        let (kb, ka) = key_switch(&self.params, &d, gk.key());
+        finish_galois(ct, elt, kb, ka)
+    }
+
+    /// The (validated) Galois key for `elt`.
+    fn galois_key(&self, elt: u64) -> Result<&GaloisKey> {
+        let two_n = 2 * self.params.n() as u64;
+        // The core automorphism only debug_asserts this.
+        if elt % 2 == 0 || elt >= two_n {
+            return Err(HekitError::InvalidParams(format!(
+                "Galois element {elt} must be odd and < 2N = {two_n}"
+            )));
+        }
+        let gk = self
+            .galois
+            .as_ref()
+            .and_then(|g| g.get_elt(elt))
+            .ok_or_else(|| HekitError::InvalidParams("missing galois key".into()))?;
+        self.check_key_basis(gk.key())?;
+        Ok(gk)
+    }
+
+    /// `InvalidParams` unless `ct` is over this evaluator's basis with 2 components.
+    fn check_galois_input(&self, ct: &Ciphertext) -> Result<()> {
+        self.check_basis(ct.polys())?;
+        if ct.len() != 2 {
+            return Err(HekitError::InvalidParams(format!(
+                "rotation needs a 2-component ciphertext (got {}); relinearize first",
+                ct.len()
+            )));
+        }
+        Ok(())
+    }
+
+    /// `InvalidParams` unless `key` has `dnum` parts over this evaluator's `basis_q` and
+    /// `basis_p` (same `Arc`s): a key generated for an equal but separately constructed
+    /// parameter set is rejected instead of silently producing garbage.
+    fn check_key_basis(&self, key: &KskKey) -> Result<()> {
+        let (bq, bp) = (self.params.basis_q(), self.params.basis_p());
+        let ok = key.dnum() == self.params.dnum()
+            && key.parts().iter().all(|(b, a)| {
+                [b, a]
+                    .iter()
+                    .all(|x| Arc::ptr_eq(x.q().basis(), bq) && Arc::ptr_eq(x.p().basis(), bp))
+            });
+        if ok {
+            Ok(())
+        } else {
+            Err(HekitError::InvalidParams(
+                "key is not over this evaluator's bases".into(),
+            ))
+        }
     }
 
     /// `a + b` or `a - b`; the shorter operand is padded with zero components.
@@ -243,6 +409,13 @@ impl Evaluator {
     }
 }
 
+/// `(sigma_elt(c0) + kb, ka)` with the scale of `ct`.
+fn finish_galois(ct: &Ciphertext, elt: u64, kb: RnsPoly, ka: RnsPoly) -> Result<Ciphertext> {
+    let mut r0 = ct.polys()[0].automorphism(elt);
+    r0.add_assign(&kb);
+    Ciphertext::new(vec![r0, ka], ct.scale())
+}
+
 /// `LevelMismatch` unless the levels are equal.
 fn check_level(a: usize, b: usize) -> Result<()> {
     if a == b {
@@ -268,6 +441,7 @@ mod tests {
     use crate::encrypt::{Decryptor, Encryptor};
     use crate::keys::KeyGenerator;
     use hekit_core::sampler::Rng;
+    use num_complex::Complex64;
     use std::sync::OnceLock;
 
     fn rng(seed: u8) -> Rng {
@@ -303,15 +477,26 @@ mod tests {
 
     impl Ctx {
         fn new(params: CkksParams, seed: u8) -> Ctx {
+            Ctx::with_rotations(params, seed, None)
+        }
+
+        /// With `Some(steps)`: Galois keys for `steps` plus the conjugation key (generated
+        /// after the public and relinearization keys, so those do not depend on `steps`).
+        fn with_rotations(params: CkksParams, seed: u8, steps: Option<&[i32]>) -> Ctx {
             let params = Arc::new(params);
             let mut kg = KeyGenerator::new(Arc::clone(&params), rng(seed)).unwrap();
             let pk = kg.public_key();
             let rk = kg.relin_key();
+            let gks = steps.map(|steps| {
+                let mut gks = kg.galois_keys(steps);
+                gks.insert(kg.conjugation_key());
+                gks
+            });
             Ctx {
                 enc: Encoder::new(Arc::clone(&params)),
                 encryptor: Encryptor::new(Arc::clone(&params), pk),
                 dec: Decryptor::new(Arc::clone(&params), kg.secret_key()),
-                eval: Evaluator::new(Arc::clone(&params), Some(rk), None),
+                eval: Evaluator::new(Arc::clone(&params), Some(rk), gks),
                 params,
             }
         }
@@ -326,20 +511,48 @@ mod tests {
         }
     }
 
+    /// Rotation steps with Galois keys in the shared contexts: `1, -1 (= slots - 1), 2, 4, 8`
+    /// and `slots / 2` (only the keys the tests need; key generation at N = 2^15 is slowish).
+    fn rotation_steps(slots: usize) -> Vec<i32> {
+        vec![1, -1, 2, 4, 8, (slots / 2) as i32]
+    }
+
     fn seal() -> &'static Ctx {
         static CTX: OnceLock<Ctx> = OnceLock::new();
-        CTX.get_or_init(|| Ctx::new(CkksParams::seal_2020(), 41))
+        CTX.get_or_init(|| {
+            let params = CkksParams::seal_2020();
+            let steps = rotation_steps(params.slots());
+            Ctx::with_rotations(params, 41, Some(&steps))
+        })
+    }
+
+    fn small_params() -> CkksParams {
+        CkksParams::new(12, &[60, 40, 40, 40, 40, 40], &[60, 60], 40, 3).unwrap()
     }
 
     /// N = 2^12, 6 data primes in 3 digits of 2, 2 special primes (fast; alpha > 1, k > 1).
     fn small() -> &'static Ctx {
         static CTX: OnceLock<Ctx> = OnceLock::new();
         CTX.get_or_init(|| {
-            Ctx::new(
-                CkksParams::new(12, &[60, 40, 40, 40, 40, 40], &[60, 60], 40, 3).unwrap(),
-                42,
-            )
+            let params = small_params();
+            let steps = rotation_steps(params.slots());
+            Ctx::with_rotations(params, 42, Some(&steps))
         })
+    }
+
+    /// `v` rotated left by `steps` (slot `i` gets `v[i + steps mod len]`).
+    fn shifted<T: Copy>(v: &[T], steps: i64) -> Vec<T> {
+        let n = v.len() as i64;
+        (0..n)
+            .map(|i| v[(i + steps).rem_euclid(n) as usize])
+            .collect()
+    }
+
+    fn max_err_complex(a: &[Complex64], b: &[Complex64]) -> f64 {
+        a.iter()
+            .zip(b)
+            .map(|(x, y)| (x - y).norm())
+            .fold(0.0, f64::max)
     }
 
     #[test]
@@ -595,10 +808,7 @@ mod tests {
             Err(HekitError::InvalidParams(_))
         ));
         // Foreign basis.
-        let other = Ctx::new(
-            CkksParams::new(12, &[60, 40, 40, 40, 40, 40], &[60, 60], 40, 3).unwrap(),
-            43,
-        );
+        let other = Ctx::new(small_params(), 43);
         let f = other.encrypt(&v, top, &mut r);
         assert!(matches!(e.add(&a, &f), Err(HekitError::InvalidParams(_))));
         assert!(matches!(e.rescale(&f), Err(HekitError::InvalidParams(_))));
@@ -694,10 +904,11 @@ mod tests {
         assert!(worst <= 2f64.powi(-10), "{worst:e}");
     }
 
-    /// n16_train sanity: one mul + rescale at the top level.
+    /// n16_train sanity: one mul + rescale and one rotation at the top level (one context,
+    /// since key generation at N = 2^16 is slow).
     #[test]
-    fn n16_train_mul_rescale() {
-        let ctx = Ctx::new(CkksParams::n16_train(), 44);
+    fn n16_train_mul_rescale_rotate() {
+        let ctx = Ctx::with_rotations(CkksParams::n16_train(), 44, Some(&[1]));
         let slots = ctx.params.slots();
         let (va, vb) = (rand_vals(32, slots), rand_vals(33, slots));
         let mut r = rng(34);
@@ -709,5 +920,254 @@ mod tests {
         let err = max_err(&ctx.decrypt(&res), &want);
         eprintln!("n16_train: mul+rescale error 2^{:.2}", err.log2());
         assert!(err < 2f64.powi(-20), "{err:e}");
+        let rot = ctx.eval.rotate(&a, 1).unwrap();
+        assert_eq!((rot.len(), rot.level(), rot.scale()), (2, top, a.scale()));
+        let err = max_err(&ctx.decrypt(&rot), &shifted(&va, 1));
+        eprintln!("n16_train: rotate(1) error 2^{:.2}", err.log2());
+        assert!(err < 2f64.powi(-20), "{err:e}");
+        let hoisted = ctx.eval.hoisted_rotate(&a, &[1]).unwrap();
+        let diff = max_err(&ctx.decrypt(&hoisted[0]), &ctx.decrypt(&rot));
+        eprintln!("n16_train: hoisted vs rotate(1) 2^{:.2}", diff.log2());
+        assert!(diff < 2f64.powi(-25), "{diff:e}");
+        // alpha = 4: bit-identical with the exact centered lift (the fast lift gave 2^-25.5).
+        assert_eq!(hoisted[0].polys()[1].limbs(), rot.polys()[1].limbs());
+    }
+
+    /// Review Focus #1: `decode(rotate(encrypt(v), s))` is the cyclic left shift of `v` by `s`
+    /// for `s` negative, 0, `slots/2`, `slots - 1`, `-slots` (= 0) and `>= slots`
+    /// (`slots + 1`, `2 slots - 1`), within 2^-20.
+    #[test]
+    fn rotate_matches_cyclic_shift() {
+        for ctx in [small(), seal()] {
+            let slots = ctx.params.slots();
+            let s = slots as i32;
+            let v = rand_vals(40, slots);
+            let mut r = rng(41);
+            let top = ctx.params.max_level();
+            let ct = ctx.encrypt(&v, top, &mut r);
+            for steps in [1, -1, 0, s / 2, s - 1, -s, s + 1, 2 * s - 1] {
+                let rot = ctx.eval.rotate(&ct, steps).unwrap();
+                assert_eq!((rot.len(), rot.level(), rot.scale()), (2, top, ct.scale()));
+                let err = max_err(&ctx.decrypt(&rot), &shifted(&v, steps as i64));
+                eprintln!(
+                    "N=2^{} rotate({steps}): error 2^{:.2}",
+                    ctx.params.log_n(),
+                    err.log2()
+                );
+                assert!(err < 2f64.powi(-20), "steps {steps}: {err:e}");
+            }
+            // Steps congruent to 0 return the input unchanged (no key switch).
+            for steps in [0, -s, 3 * s] {
+                let rot = ctx.eval.rotate(&ct, steps).unwrap();
+                assert_eq!(rot.polys()[0].limbs(), ct.polys()[0].limbs());
+                assert_eq!(rot.polys()[1].limbs(), ct.polys()[1].limbs());
+            }
+        }
+    }
+
+    /// Rotations below the top level (including level 0) and composition `rotate(-1) o
+    /// rotate(1) = id`.
+    #[test]
+    fn rotate_at_lower_levels() {
+        for ctx in [small(), seal()] {
+            let slots = ctx.params.slots();
+            let v = rand_vals(42, slots);
+            let mut r = rng(43);
+            for level in [2, 0] {
+                let ct = ctx.encrypt(&v, level, &mut r);
+                for steps in [1, -1, 8] {
+                    let rot = ctx.eval.rotate(&ct, steps).unwrap();
+                    assert_eq!(rot.level(), level);
+                    let err = max_err(&ctx.decrypt(&rot), &shifted(&v, steps as i64));
+                    eprintln!(
+                        "N=2^{} level {level} rotate({steps}): error 2^{:.2}",
+                        ctx.params.log_n(),
+                        err.log2()
+                    );
+                    assert!(err < 2f64.powi(-20), "level {level} steps {steps}: {err:e}");
+                }
+                let back = ctx
+                    .eval
+                    .rotate(&ctx.eval.rotate(&ct, 1).unwrap(), -1)
+                    .unwrap();
+                assert!(max_err(&ctx.decrypt(&back), &v) < 2f64.powi(-20));
+            }
+            // A rescaled ciphertext (scale Delta^2 / q_top) rotates with its scale kept.
+            let top = ctx.params.max_level();
+            let ct = ctx.encrypt(&v, top, &mut r);
+            let sq = ctx.eval.rescale(&ctx.eval.mul(&ct, &ct).unwrap()).unwrap();
+            let rot = ctx.eval.rotate(&sq, 2).unwrap();
+            assert_eq!((rot.level(), rot.scale()), (top - 1, sq.scale()));
+            let want: Vec<f64> = shifted(&v, 2).iter().map(|x| x * x).collect();
+            assert!(max_err(&ctx.decrypt(&rot), &want) < 2f64.powi(-20));
+        }
+    }
+
+    /// `hoisted_rotate(ct, &[1, 2, 4, 8])` equals the individual rotations within 2^-25
+    /// (decoded; in fact bit-identical, for alpha = 1 (seal_2020) and alpha = 2, thanks to
+    /// the exact centered lift), in the order of `steps`; step 0 and repeated steps are
+    /// allowed.
+    #[test]
+    fn hoisted_rotate_matches_individual() {
+        for ctx in [small(), seal()] {
+            let slots = ctx.params.slots();
+            let v = rand_vals(44, slots);
+            let mut r = rng(45);
+            for level in [ctx.params.max_level(), 1] {
+                let ct = ctx.encrypt(&v, level, &mut r);
+                let steps = [1, 2, 4, 8, 0, -1, 2];
+                let hoisted = ctx.eval.hoisted_rotate(&ct, &steps).unwrap();
+                assert_eq!(hoisted.len(), steps.len());
+                for (h, &s) in hoisted.iter().zip(&steps) {
+                    let single = ctx.eval.rotate(&ct, s).unwrap();
+                    assert_eq!((h.len(), h.level(), h.scale()), (2, level, ct.scale()));
+                    let dh = ctx.decrypt(h);
+                    let diff = max_err(&dh, &ctx.decrypt(&single));
+                    let err = max_err(&dh, &shifted(&v, s as i64));
+                    eprintln!(
+                        "N=2^{} level {level} step {s}: hoisted vs rotate 2^{:.2}, vs shift \
+                         2^{:.2}",
+                        ctx.params.log_n(),
+                        diff.log2(),
+                        err.log2()
+                    );
+                    assert!(diff < 2f64.powi(-25), "step {s}: {diff:e}");
+                    assert!(err < 2f64.powi(-20), "step {s}: {err:e}");
+                    for (x, y) in h.polys().iter().zip(single.polys()) {
+                        assert_eq!(x.limbs(), y.limbs(), "step {s}: not bit-identical");
+                    }
+                }
+            }
+            assert!(
+                ctx.eval
+                    .hoisted_rotate(&ctx.encrypt(&v, 0, &mut r), &[])
+                    .unwrap()
+                    .is_empty()
+            );
+        }
+    }
+
+    /// `conjugate` decrypts to the complex conjugate (end to end, complex slots), at the top
+    /// level and level 0; conjugating twice is the identity.
+    #[test]
+    fn conjugate_flips_imaginary_parts() {
+        for ctx in [small(), seal()] {
+            let slots = ctx.params.slots();
+            let (re, im) = (rand_vals(46, slots), rand_vals(47, slots));
+            let z: Vec<Complex64> = re
+                .iter()
+                .zip(&im)
+                .map(|(&a, &b)| Complex64::new(a, b))
+                .collect();
+            let want: Vec<Complex64> = z.iter().map(Complex64::conj).collect();
+            let mut r = rng(48);
+            for level in [ctx.params.max_level(), 0] {
+                let pt = ctx
+                    .enc
+                    .encode_complex(&z, ctx.params.scale(), level)
+                    .unwrap();
+                let ct = ctx.encryptor.encrypt(&pt, &mut r);
+                let cj = ctx.eval.conjugate(&ct).unwrap();
+                assert_eq!((cj.len(), cj.level(), cj.scale()), (2, level, ct.scale()));
+                let got = ctx.enc.decode_complex(&ctx.dec.decrypt(&cj));
+                let err = max_err_complex(&got, &want);
+                eprintln!(
+                    "N=2^{} level {level}: conjugate error 2^{:.2}",
+                    ctx.params.log_n(),
+                    err.log2()
+                );
+                assert!(err < 2f64.powi(-20), "{err:e}");
+                // The input really had imaginary parts, and they flipped sign.
+                assert!(
+                    got.iter()
+                        .zip(&z)
+                        .any(|(g, x)| x.im.abs() > 0.5 && g.im * x.im < 0.0)
+                );
+                let twice = ctx.eval.conjugate(&cj).unwrap();
+                let back = ctx.enc.decode_complex(&ctx.dec.decrypt(&twice));
+                assert!(max_err_complex(&back, &z) < 2f64.powi(-20));
+            }
+        }
+    }
+
+    /// Missing keys, foreign-basis keys and 3-component inputs are `InvalidParams`.
+    #[test]
+    fn rotation_key_errors() {
+        let ctx = small();
+        let mut r = rng(49);
+        let top = ctx.params.max_level();
+        let v = rand_vals(50, 8);
+        let ct = ctx.encrypt(&v, top, &mut r);
+        let e = &ctx.eval;
+        let missing = HekitError::InvalidParams("missing galois key".into());
+        assert_eq!(e.rotate(&ct, 3).unwrap_err(), missing);
+        assert_eq!(e.hoisted_rotate(&ct, &[1, 3]).unwrap_err(), missing);
+        // No Galois keys at all: rotations by a multiple of slots still work.
+        let bare = Evaluator::new(Arc::clone(&ctx.params), None, None);
+        assert_eq!(bare.rotate(&ct, 1).unwrap_err(), missing);
+        assert_eq!(bare.hoisted_rotate(&ct, &[0, 1]).unwrap_err(), missing);
+        assert_eq!(bare.conjugate(&ct).unwrap_err(), missing);
+        assert!(bare.rotate(&ct, 0).is_ok());
+        assert_eq!(bare.hoisted_rotate(&ct, &[0, 0]).unwrap().len(), 2);
+        // Galois keys without the conjugation key.
+        let mut kg = KeyGenerator::new(Arc::clone(&ctx.params), rng(51)).unwrap();
+        let no_conj = Evaluator::new(Arc::clone(&ctx.params), None, Some(kg.galois_keys(&[1])));
+        assert!(no_conj.rotate(&ct, 1).is_ok());
+        assert_eq!(no_conj.conjugate(&ct).unwrap_err(), missing);
+        // 3-component input.
+        let t = e.mul_no_relin(&ct, &ct).unwrap();
+        for res in [e.rotate(&t, 1).map(|_| ()), e.conjugate(&t).map(|_| ())] {
+            assert!(matches!(res, Err(HekitError::InvalidParams(_))));
+        }
+        assert!(matches!(
+            e.hoisted_rotate(&t, &[1]),
+            Err(HekitError::InvalidParams(_))
+        ));
+        // Keys generated for an equal but separately constructed parameter set (different
+        // basis `Arc`s): InvalidParams, not a panic or a wrong result.
+        let other = Ctx::with_rotations(small_params(), 52, Some(&[1]));
+        let foreign = Evaluator::new(
+            Arc::clone(&ctx.params),
+            other.eval.relin_key().cloned(),
+            other.eval.galois_keys().cloned(),
+        );
+        for res in [
+            foreign.rotate(&ct, 1).map(|_| ()),
+            foreign.conjugate(&ct).map(|_| ()),
+            foreign.hoisted_rotate(&ct, &[1]).map(|_| ()),
+            foreign.relinearize(&t).map(|_| ()),
+            foreign.mul(&ct, &ct).map(|_| ()),
+        ] {
+            assert!(matches!(res, Err(HekitError::InvalidParams(_))), "{res:?}");
+        }
+        // Foreign ciphertexts are rejected as before.
+        let f = other.encrypt(&v, top, &mut r);
+        assert!(matches!(e.rotate(&f, 1), Err(HekitError::InvalidParams(_))));
+        assert!(matches!(
+            e.hoisted_rotate(&f, &[1]),
+            Err(HekitError::InvalidParams(_))
+        ));
+    }
+
+    /// `mul` reports operand errors (level mismatch, level 0, component count) before a
+    /// missing relinearization key.
+    #[test]
+    fn mul_error_order() {
+        let ctx = small();
+        let mut r = rng(53);
+        let top = ctx.params.max_level();
+        let v = rand_vals(54, 8);
+        let (a, b) = (
+            ctx.encrypt(&v, top, &mut r),
+            ctx.encrypt(&v, top - 1, &mut r),
+        );
+        let z = ctx.encrypt(&v, 0, &mut r);
+        let bare = Evaluator::new(Arc::clone(&ctx.params), None, None);
+        assert_eq!(bare.mul(&a, &b).unwrap_err(), HekitError::LevelMismatch);
+        assert_eq!(bare.mul(&z, &z).unwrap_err(), HekitError::NoLevelsLeft);
+        assert!(matches!(
+            bare.mul(&a, &a),
+            Err(HekitError::InvalidParams(_))
+        ));
     }
 }

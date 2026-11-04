@@ -279,6 +279,17 @@ impl GaloisKeys {
         self.keys.get(&elt)
     }
 
+    /// Adds `key` (e.g. [`KeyGenerator::conjugation_key`]), replacing and returning a key
+    /// with the same element.
+    ///
+    /// # Panics
+    /// If `key` is for a different ring degree.
+    pub fn insert(&mut self, key: GaloisKey) -> Option<GaloisKey> {
+        let n = key.key.parts.first().map(|(b, _)| b.q().basis().n());
+        assert_eq!(n, Some(self.n), "Galois key for a different ring degree");
+        self.keys.insert(key.elt, key)
+    }
+
     /// Number of distinct Galois keys.
     pub fn len(&self) -> usize {
         self.keys.len()

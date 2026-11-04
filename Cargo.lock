@@ -224,6 +224,7 @@ version = "0.0.0"
 name = "hekit-ckks"
 version = "0.0.0"
 dependencies = [
+ "criterion",
  "hekit-core",
  "num-complex",
  "rand_chacha",

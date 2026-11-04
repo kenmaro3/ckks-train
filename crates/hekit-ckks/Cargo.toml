@@ -12,5 +12,10 @@ hekit-core = { path = "../hekit-core" }
 num-complex = "0.4"
 
 [dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 rand_chacha = "0.9"
 rand_core = "0.9"
+
+[[bench]]
+name = "rotate"
+harness = false
