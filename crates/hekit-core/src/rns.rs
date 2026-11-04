@@ -35,13 +35,23 @@ pub(crate) fn bitrev(i: usize, bits: u32) -> usize {
 /// An RNS basis `{q_0, ..., q_L}` for the ring `Z[X]/(X^N + 1)`.
 ///
 /// Built once and shared through `Arc` by every [`RnsPoly`](crate::poly::RnsPoly) over it.
-#[derive(Debug)]
+/// `Debug` prints the degree and the prime values only (not the NTT tables).
 pub struct RnsBasis {
     moduli: Vec<Modulus>,
     ntt: Vec<NttTable>,
     n: usize,
     /// NTT-form Galois permutations, computed on first use per Galois element.
     galois_ntt: Mutex<HashMap<u64, Arc<[u32]>>>,
+}
+
+impl std::fmt::Debug for RnsBasis {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let qs: Vec<u64> = self.moduli.iter().map(Modulus::value).collect();
+        f.debug_struct("RnsBasis")
+            .field("n", &self.n)
+            .field("moduli", &qs)
+            .finish()
+    }
 }
 
 impl RnsBasis {

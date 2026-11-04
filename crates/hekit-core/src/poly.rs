@@ -18,11 +18,32 @@ use crate::error::{HekitError, Result};
 use crate::rns::RnsBasis;
 
 /// A polynomial in RNS representation (one limb of `N` residues per active prime).
-#[derive(Debug, Clone)]
+///
+/// `Debug` prints only the shape (`n`, `level`, `limbs`, `form`), not the residues: they may
+/// belong to secret material and are megabytes at `N = 2^16`.
+#[derive(Clone)]
 pub struct RnsPoly {
     basis: Arc<RnsBasis>,
     limbs: Vec<Vec<u64>>,
     ntt_form: bool,
+}
+
+impl std::fmt::Debug for RnsPoly {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        /// The form as a bare word (`Coeff` / `Ntt`).
+        struct Form(bool);
+        impl std::fmt::Debug for Form {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(if self.0 { "Ntt" } else { "Coeff" })
+            }
+        }
+        f.debug_struct("RnsPoly")
+            .field("n", &self.basis.n())
+            .field("level", &self.level())
+            .field("limbs", &self.limbs.len())
+            .field("form", &Form(self.ntt_form))
+            .finish()
+    }
 }
 
 impl RnsPoly {
@@ -283,6 +304,21 @@ mod tests {
             .map(|m| (0..b.n()).map(|_| rng.next_u64() % m.value()).collect())
             .collect();
         RnsPoly::from_limbs(b, limbs, false).unwrap()
+    }
+
+    /// `Debug` prints the shape (N, level, limbs, form), never the coefficients (m3).
+    #[test]
+    fn debug_is_summarized() {
+        let b = basis(1 << 10, 3);
+        let mut p = rand_poly(&b, 2, &mut ChaCha20Rng::from_seed([3; 32]));
+        let s = format!("{p:?}");
+        assert_eq!(s, "RnsPoly { n: 1024, level: 2, limbs: 3, form: Coeff }");
+        p.to_ntt();
+        assert!(format!("{p:?}").ends_with("form: Ntt }"));
+        // A basis prints its degree and primes, not its NTT tables.
+        let s = format!("{b:?}");
+        assert!(s.starts_with("RnsBasis { n: 1024, moduli: ["), "{s}");
+        assert!(s.len() < 200, "{s}");
     }
 
     /// A random polynomial with small signed coefficients, consistent across limbs.

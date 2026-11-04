@@ -72,19 +72,19 @@ impl Modulus {
 
     /// Reduces an arbitrary `u128` below `q^2` (in particular `a*b` with `a, b < q`).
     ///
-    /// The Barrett quotient estimate is off by at most 2, so two conditional
-    /// subtractions give the exact remainder.
+    /// With `ratio = floor(2^128 / q) = 2^128 / q - f` (`0 <= f < 1`) and the exact high
+    /// half `est = floor(x * ratio / 2^128)`, `x / q - est < 1 + x f / 2^128 < 2` because
+    /// `x < q^2 < 2^120`. So the quotient estimate is off by at most 1, the remainder
+    /// `x - est q` is `< 2q`, and one conditional subtraction gives the exact result.
     fn reduce_wide(&self, x: u128) -> u64 {
         let ratio = (self.barrett.0 as u128) | ((self.barrett.1 as u128) << 64);
         let est = mulhi_u128(x, ratio);
-        // x < q^2 < 2^120, so est*q <= x and the difference fits in u64 range (< 3q).
+        // est <= x / q, so est*q <= x; the difference is < 2q < 2^61 and fits in u64.
         let mut r = (x - est * self.q as u128) as u64;
         if r >= self.q {
             r -= self.q;
         }
-        if r >= self.q {
-            r -= self.q;
-        }
+        debug_assert!(r < self.q, "Barrett estimate off by more than 1");
         r
     }
 
