@@ -223,6 +223,9 @@ version = "0.0.0"
 [[package]]
 name = "hekit-ckks"
 version = "0.0.0"
+dependencies = [
+ "hekit-core",
+]
 
 [[package]]
 name = "hekit-core"

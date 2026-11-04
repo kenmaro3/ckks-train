@@ -8,3 +8,4 @@ publish = false
 description = "hekit-ckks (temporary name)"
 
 [dependencies]
+hekit-core = { path = "../hekit-core" }
