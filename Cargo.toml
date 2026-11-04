@@ -16,3 +16,9 @@ license = "MIT"
 # Later tasks run N = 2^16 tests; keep debug-assertions and overflow-checks (default for test).
 [profile.test]
 opt-level = 3
+
+# Same settings as the M0 NTT spike so bench numbers are comparable.
+[profile.bench]
+opt-level = 3
+lto = true
+codegen-units = 1

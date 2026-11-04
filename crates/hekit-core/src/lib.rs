@@ -3,7 +3,9 @@
 
 pub mod error;
 pub mod modulus;
+pub mod ntt;
 pub mod primes;
 
 pub use error::{HekitError, Result};
 pub use modulus::{Modulus, Shoup};
+pub use ntt::NttTable;
