@@ -58,11 +58,6 @@ impl Rng {
         }
     }
 
-    /// Uniform `f64` in `[0, 1)` with 53 bits of precision.
-    fn unit_f64(&mut self) -> f64 {
-        (self.0.next_u64() >> 11) as f64 * (1.0 / (1u64 << 53) as f64)
-    }
-
     /// Uniformly random polynomial: every coefficient is independent and uniform modulo each
     /// `q_i` (the RNS-uniform distribution on `Z_Q`). Coefficient form.
     ///
@@ -124,9 +119,12 @@ impl Rng {
     /// Discrete Gaussian polynomial with standard deviation `sigma`, tails cut at
     /// `|x| <= 6 sigma`. Coefficient form.
     ///
-    /// Method: rejection sampling. Draw `x` uniformly from `[-B, B]`, `B = floor(6 sigma)`,
-    /// and accept with probability `exp(-x^2 / (2 sigma^2))`; this yields exactly the
-    /// truncated discrete Gaussian (up to `f64` rounding of the acceptance test).
+    /// Method: inversion with a cumulative distribution table (CDT). The weights
+    /// `exp(-x^2 / (2 sigma^2))` of `x in [-B, B]`, `B = floor(6 sigma)`, are normalised and
+    /// accumulated into 64-bit thresholds once per call; each coefficient is the first `x`
+    /// whose threshold exceeds one uniform 64-bit draw. This is the truncated discrete
+    /// Gaussian with probabilities exact up to `f64` rounding (~2^-53 relative), using one
+    /// draw per coefficient (rejection sampling needed about ten).
     ///
     /// # Panics
     /// If `level >= basis.len()` or `sigma` is not finite and positive.
@@ -134,17 +132,28 @@ impl Rng {
         assert!(level < basis.len(), "level out of range");
         assert!(sigma.is_finite() && sigma > 0.0, "sigma must be positive");
         let bound = (TAIL_SIGMAS * sigma).floor() as i64;
-        let width = (2 * bound + 1) as u64;
         let denom = 2.0 * sigma * sigma;
+        let weights: Vec<f64> = (-bound..=bound)
+            .map(|x| (-(x as f64) * (x as f64) / denom).exp())
+            .collect();
+        let total: f64 = weights.iter().sum();
+        // cdt[i] = round(2^64 * P(X <= x_i)); the last threshold is u64::MAX, so every draw
+        // falls in some bucket (r = u64::MAX, probability 2^-64, lands in the last one).
+        let mut acc = 0.0;
+        let mut cdt: Vec<u64> = weights
+            .iter()
+            .map(|w| {
+                acc += w;
+                // `as` saturates at u64::MAX for values >= 2^64.
+                (acc / total * 18_446_744_073_709_551_616.0) as u64
+            })
+            .collect();
+        *cdt.last_mut().expect("bound >= 0") = u64::MAX;
+        let last = cdt.len() - 1;
         let coeffs: Vec<i64> = (0..basis.n())
             .map(|_| {
-                loop {
-                    let x = self.below(width) as i64 - bound;
-                    let xf = x as f64;
-                    if self.unit_f64() < (-xf * xf / denom).exp() {
-                        break x;
-                    }
-                }
+                let r = self.0.next_u64();
+                cdt.partition_point(|&c| c <= r).min(last) as i64 - bound
             })
             .collect();
         signed_to_poly(basis, level, &coeffs)
@@ -310,6 +319,25 @@ mod tests {
         let target = sigma * sigma;
         assert!((var - target).abs() < 0.1 * target, "var = {var}");
         assert!(mean.abs() < 0.2, "mean = {mean}");
+    }
+
+    /// Empirical frequencies of the CDT sampler against the exact truncated discrete
+    /// Gaussian pmf (2^16 samples, each |x| <= 8 within 5 standard errors).
+    #[test]
+    fn gaussian_pmf_matches_exact() {
+        let n = 1 << 16;
+        let b = basis(n);
+        let sigma = 3.2;
+        let v = signed(&rng().gaussian_poly(&b, 0, sigma), 0);
+        let bound = (6.0 * sigma) as i64;
+        let w = |x: i64| (-(x as f64).powi(2) / (2.0 * sigma * sigma)).exp();
+        let total: f64 = (-bound..=bound).map(w).sum();
+        for x in -8..=8 {
+            let p = w(x) / total;
+            let f = v.iter().filter(|&&y| y == x).count() as f64 / n as f64;
+            let se = (p * (1.0 - p) / n as f64).sqrt();
+            assert!((f - p).abs() < 5.0 * se, "x = {x}: freq {f}, pmf {p}");
+        }
     }
 
     #[test]
