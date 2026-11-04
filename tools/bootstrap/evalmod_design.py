@@ -11,9 +11,10 @@ Sections:
      measured at the points x = I + delta (|I| <= K - 1, |delta| <= 2^-20) that occur.
   3. Smallest EvalMod depth for the dense key (K = 400, 420).
   4. Candidate modulus chains (digits, log PQ, levels after bootstrap, key size) and their
-     predicted precision with the chosen EvalMod design (ruling R-M3-7).
-  5. Secret / EvalMod alternatives on the chosen chain, for several q0/Delta.
-  6. The chosen design in detail, the q0 = 52 fallback, and the degree-63 fallback.
+     predicted precision with the chosen EvalMod design (rulings R-M3-7, R-M3-8).
+  5. Secret / EvalMod alternatives, for several q0/Delta, on the 8-level fallback chain B (some
+     of them need 8 EvalMod levels; chain G gives the same rounding terms).
+  6. The chosen design in detail, the q0 = 52 fallback, and the 8-level chain-B fallback.
 """
 import math
 from fractions import Fraction
@@ -110,10 +111,11 @@ def stc_pt_rel(stc_bits, stc_levels, log_ratio, s_in=58, s_out=42):
     return ENC - per + 0.5 * math.log2(stc_levels)
 
 
-def predict(chain, K=13, r=1, d=127, h_noise=32768, h_mr=32, log_scale=58, levels=8):
+def predict(chain, K=13, r=0, d=127, h_noise=32768, h_mr=32, log_scale=58, levels=None):
     """Predicted precision bits (max over 2^15 slots) and the bits each term alone would allow.
 
-    chain: dict(q0, cts_bits, cts_levels, stc_bits, stc_levels, log_qd_over_p).
+    chain: dict(q0, cts_bits, cts_levels, stc_bits, stc_levels, evalmod_levels, log_qd_over_p).
+    `levels` (EvalMod levels, for the internal-noise count) defaults to the chain's band.
     Terms (EvalMod-side ones in x = t/q0 units, mapped to slots by 4.2 sqrt(N/2) q0/Delta):
       input   K * sqrt(cts_levels) * (rescale + key switch + digit term) / 2^58
       internal sqrt(levels) * (rescale + key switch) / 2^58 * amp / (2 pi)
@@ -121,6 +123,7 @@ def predict(chain, K=13, r=1, d=127, h_noise=32768, h_mr=32, log_scale=58, level
       cts_pt  CtS diagonal rounding, relative error * sigma_I (real part, x units)
       stc_pt  StC diagonal rounding, directly in output slots (relative to rms 1/sqrt(3))
     """
+    levels = chain["evalmod_levels"] if levels is None else levels
     log_ratio = chain["q0"] - 42
     s = 2.0**log_scale
     noise_in = math.hypot(slot_noise(h_noise), digit_noise(chain["log_qd_over_p"]))
@@ -161,20 +164,23 @@ def make_chain(q0, compute, stc, evalmod, cts, p, dnum):
         q=q, p=p, dnum=dnum, alpha=alpha, max_digit=max_digit, log_p=log_p,
         log_pq=sum(q) + log_p, levels_after=len(q) - 1 - (stc[0] + evalmod[0] + cts[0]),
         key_limbs=dnum * (len(q) + len(p)), q0=q0, cts_bits=cts[1], cts_levels=cts[0],
-        stc_bits=stc[1], stc_levels=stc[0], log_qd_over_p=min(0.0, max_digit - log_p),
+        stc_bits=stc[1], stc_levels=stc[0], evalmod_levels=evalmod[0],
+        log_qd_over_p=min(0.0, max_digit - log_p),
     )
 
 
 CHAINS = [
     ("R-M3-5 (CtS 42, superseded)", (54, 16, (3, 42), (8, 58), (4, 42), [60] * 4, 8)),
     ("A: compute 16, StC 3x36, CtS 4x52", (54, 16, (3, 36), (8, 58), (4, 52), [60] * 4, 8)),
-    ("B (chosen): compute 15, StC 4x34, CtS 4x56", (54, 15, (4, 34), (8, 58), (4, 56), [60] * 4, 8)),
+    ("B (e8dbe3e, fallback): compute 15, StC 4x34, CtS 4x56", (54, 15, (4, 34), (8, 58), (4, 56), [60] * 4, 8)),
+    ("G (chosen): compute 16, StC 4x34, EvalMod 7x58, CtS 4x56", (54, 16, (4, 34), (7, 58), (4, 56), [60] * 4, 8)),
     ("C: compute 14, StC 3x36, CtS 4x56, dnum 10", (54, 14, (3, 36), (8, 58), (4, 56), [46] * 4, 10)),
     ("D: compute 14, StC 3x36, CtS 4x56, dnum 6", (54, 14, (3, 36), (8, 58), (4, 56), [60] * 5, 6)),
     ("E: compute 16, StC 3x36, CtS 4x56, dnum 16", (54, 16, (3, 36), (8, 58), (4, 56), [42] * 3, 16)),
     ("F: compute 16, StC 3x36, CtS 4x56, dnum 8 (log PQ > 1750)", (54, 16, (3, 36), (8, 58), (4, 56), [60] * 4, 8)),
 ]
-CHOSEN = make_chain(*CHAINS[2][1])
+CHOSEN = make_chain(*CHAINS[3][1])
+FALLBACK = make_chain(*CHAINS[2][1])
 
 
 def main():
@@ -202,7 +208,7 @@ def main():
         cells = [f"L={L}: {math.log2(sin_error(K, 0, 2**L - 1)[0]):6.1f}" for L in range(9, 13)]
         print(f"  K = {K} | " + " | ".join(cells))
 
-    print("\n## 4. candidate chains, design dense + SSE h'=32, K=13, r=1, d=127")
+    print("\n## 4. candidate chains, design dense + SSE h'=32, K=13, r=0, d=127")
     for name, args in CHAINS:
         c = make_chain(*args)
         bits, t = predict(c)
@@ -212,7 +218,7 @@ def main():
               f"levels after boot {c['levels_after']}, key limbs {c['key_limbs']}")
         print(f"     predicted {bits:5.1f}  [" + ", ".join(f"{k} {v:5.1f}" for k, v in t.items()) + "]")
 
-    print("\n## 5. alternatives on the chosen chain (q0 = 42 + log2(q0/Delta))")
+    print("\n## 5. alternatives on fallback chain B, 8 EvalMod levels (q0 = 42 + log2(q0/Delta))")
     designs = [
         ("dense + SSE h'=32, K=13, r=0, d=255", 13, 0, 255, 32),
         ("dense + SSE h'=32, K=13, r=0, d=127", 13, 0, 127, 32),
@@ -221,29 +227,29 @@ def main():
         ("sparse h=192, K=32, r=0, d=255", 32, 0, 255, 192),
     ]
     for log_ratio in [16, 12, 10, 8]:
-        c = dict(CHOSEN, q0=42 + log_ratio)
+        c = dict(FALLBACK, q0=42 + log_ratio)
         print(f"q0/Delta = 2^{log_ratio} (sine-vs-mod term alone: {sine_vs_mod_bits(log_ratio):.1f} bits)")
         for name, K, r, d, h_mr in designs:
             h_noise = 192 if h_mr == 192 else 32768
             bits, t = predict(c, K=K, r=r, d=d, h_noise=h_noise, h_mr=h_mr)
             print(f"  {name:38s} {bits:5.1f}  [" + ", ".join(f"{k} {v:5.1f}" for k, v in t.items()) + "]")
-    sig = 420 * math.sqrt(CHOSEN["cts_levels"]) * slot_noise(32768) / 2.0**58
+    sig = 420 * math.sqrt(FALLBACK["cts_levels"]) * slot_noise(32768) / 2.0**58
     for log_ratio in [16, 8]:
         b = -math.log2(MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio * sig)
         print(f"dense, no SSE, K = 420, q0/Delta = 2^{log_ratio}: input-noise term alone {b:.1f} bits")
 
-    print("\n## 6. chosen design (rulings R-M3-5, R-M3-7)")
+    print("\n## 6. chosen design (rulings R-M3-5, R-M3-7, R-M3-8): chain G, r = 0, d = 127, 7 EvalMod levels")
     bits, t = predict(CHOSEN)
-    print(f"  chain B, P = 4 x 60: {bits:.1f}  [" + ", ".join(f"{k} {v:.1f}" for k, v in t.items()) + "]")
+    print(f"  chain G, P = 4 x 60: {bits:.1f}  [" + ", ".join(f"{k} {v:.1f}" for k, v in t.items()) + "]")
+    err, _ = sin_error(13, 0, 127)
+    print(f"  sine error K=13, r=0, d=127: 2^{math.log2(err):.1f}")
     bits, _ = predict(dict(CHOSEN, log_qd_over_p=0.0))
     print(f"  same with P = 4 x 58 (digit term at worst case): {bits:.1f}")
     bits, _ = predict(dict(CHOSEN, q0=52))
     print(f"  fallback q0 = 52 bits (q0/Delta = 2^10, log PQ {CHOSEN['log_pq'] - 2}): {bits:.1f}")
-    for r, d in [(0, 127), (1, 63), (2, 31)]:
-        bits, _ = predict(CHOSEN, r=r, d=d)
-        err, _ = sin_error(13, r, d)
-        print(f"  textbook BSGS (ceil(log2(d+1)) + 1 + r <= 8): r = {r}, d = {d}: "
-              f"sine error 2^{math.log2(err):.1f}, predicted {bits:.1f}")
+    bits, t = predict(FALLBACK)
+    print(f"  fallback chain B (8 EvalMod levels, textbook evaluator fits 7 + 1), log PQ {FALLBACK['log_pq']}: "
+          f"{bits:.1f}  [" + ", ".join(f"{k} {v:.1f}" for k, v in t.items()) + "]")
     print(f"  uncorrected sine-vs-mod term at 2^12: {sine_vs_mod_bits(12):.1f} bits "
           f"(|m| <= 8: {sine_vs_mod_bits(12) - 9:.1f})")
 

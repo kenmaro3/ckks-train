@@ -20,13 +20,15 @@ pub const N16_TRAIN_K: usize = 4;
 /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
 pub const N16_TRAIN_DNUM: usize = 8;
 
-/// `n16_boot` compute levels above the base (42-bit primes, levels 1..=15), see
-/// docs/bootstrap.md §1 (chain chosen under ruling R-M3-7).
-pub const N16_BOOT_COMPUTE_LEVELS: usize = 15;
-/// `n16_boot` SlotToCoeff levels (34-bit primes, levels 16..=19).
+/// `n16_boot` compute levels above the base (42-bit primes, levels 1..=16), see
+/// docs/bootstrap.md §1 (chain of rulings R-M3-7, R-M3-8).
+pub const N16_BOOT_COMPUTE_LEVELS: usize = 16;
+/// `n16_boot` SlotToCoeff levels (34-bit primes, levels 17..=20).
 pub const N16_BOOT_STOC_LEVELS: usize = 4;
-/// `n16_boot` EvalMod levels (58-bit primes, levels 20..=27).
-pub const N16_BOOT_EVALMOD_LEVELS: usize = 8;
+/// `n16_boot` EvalMod levels (58-bit primes, levels 21..=27): degree-127 Chebyshev, no double
+/// angle, which needs the level-optimal evaluation (ruling R-M3-8). Fallback if Task 37 cannot
+/// fit 7 levels: the e8dbe3e chain (EvalMod 8, compute 15, log PQ 1748), docs/bootstrap.md §5.
+pub const N16_BOOT_EVALMOD_LEVELS: usize = 7;
 /// `n16_boot` CoeffToSlot levels (56-bit primes, levels 28..=31): CoeffToSlot works on values of
 /// size about K q_0, so the rounding of its plaintext diagonals needs large primes
 /// (docs/bootstrap.md §6).
@@ -40,8 +42,8 @@ pub const N16_BOOT_K: usize = 4;
 pub const N16_BOOT_DNUM: usize = 8;
 
 /// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
-/// `[54, 42 x 15 (compute), 34 x 4 (SlotToCoeff), 58 x 8 (EvalMod), 56 x 4 (CoeffToSlot)]`,
-/// p is `[60 x 4]`; log PQ = 1748. The 54-bit base gives q_0 / Delta = 2^12
+/// `[54, 42 x 16 (compute), 34 x 4 (SlotToCoeff), 58 x 7 (EvalMod), 56 x 4 (CoeffToSlot)]`,
+/// p is `[60 x 4]`; log PQ = 1732. The 54-bit base gives q_0 / Delta = 2^12
 /// (docs/bootstrap.md §1, §6).
 pub fn n16_boot_bits() -> (Vec<u32>, Vec<u32>) {
     let mut q = vec![54];
@@ -168,7 +170,7 @@ impl CkksParams {
     }
 
     /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
-    /// 31, log PQ = 1748), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
+    /// 31, log PQ = 1732), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
     /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`; the
     /// 128-bit security estimate is Task 39's.
     pub fn n16_boot() -> CkksParams {
@@ -378,7 +380,7 @@ mod tests {
         let p = CkksParams::n16_boot();
         assert_eq!(p.n(), 1 << 16);
         assert_eq!(p.max_level(), 31);
-        assert!((p.log_pq() - 1748.0).abs() <= 2.0, "{}", p.log_pq());
+        assert!((p.log_pq() - 1732.0).abs() <= 2.0, "{}", p.log_pq());
         assert!(p.log_pq() <= 1750.0, "{}", p.log_pq());
         assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
         assert_eq!(p.scale(), 2f64.powi(42));
@@ -392,9 +394,9 @@ mod tests {
         let p = CkksParams::n16_boot();
         let q = p.q_bits();
         assert_eq!(q[0], 54);
-        assert!(q[1..=15].iter().all(|&b| b == 42), "compute band");
-        assert!(q[16..=19].iter().all(|&b| b == 34), "SlotToCoeff band");
-        assert!(q[20..=27].iter().all(|&b| b == 58), "EvalMod band");
+        assert!(q[1..=16].iter().all(|&b| b == 42), "compute band");
+        assert!(q[17..=20].iter().all(|&b| b == 34), "SlotToCoeff band");
+        assert!(q[21..=27].iter().all(|&b| b == 58), "EvalMod band");
         assert!(q[28..=31].iter().all(|&b| b == 56), "CoeffToSlot band");
         assert_eq!(p.p_bits(), &[60; 4]);
     }
@@ -405,13 +407,13 @@ mod tests {
         assert_eq!(p.scale_at(0), 2f64.powi(42));
         assert_eq!(p.scale_at(24), 2f64.powi(58));
         assert_eq!(p.scale_at(31), 2f64.powi(56));
-        for l in 1..=15 {
+        for l in 1..=16 {
             assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
         }
-        for l in 16..=19 {
+        for l in 17..=20 {
             assert_eq!(p.scale_at(l), 2f64.powi(34), "level {l}");
         }
-        for l in 20..=27 {
+        for l in 21..=27 {
             assert_eq!(p.scale_at(l), 2f64.powi(58), "level {l}");
         }
         for l in 28..=31 {
