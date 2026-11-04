@@ -20,7 +20,7 @@
 //! decoded and re-encoded), so the replicated, pre-rotated weight diagonals need no
 //! repacking.
 //!
-//! # Replicated blocks ([`ClientRefresher::with_layout`])
+//! # Replicated blocks ([`Refresher::bind_layout`])
 //!
 //! When `d * batch < slots` every packed vector is the block of `d * batch` slots repeated
 //! `slots / (d * batch)` times. Each copy carries its own noise, every training step computes
@@ -28,8 +28,11 @@
 //! copies. Over a long run the copies drift apart and the drift grows **exponentially** (Task
 //! 31, Iris 4-10-3 on seal_2020 with 32 blocks: the block spread grew from 2^-19 to 2^-12 in 13
 //! epochs, the weights left the plaintext trajectory, and the run overflowed at epoch 30). A
-//! refresher with the layout re-lays the canonical form: it replaces every block by the mean
-//! of the blocks before re-encoding. That is exact for every packed vector (all are
+//! refresher bound to the layout re-lays the canonical form: [`ClientRefresher`] replaces every
+//! block by the mean of the blocks before re-encoding. [`crate::trainer::Trainer::new`] binds
+//! its refresher to its layout, so this is the default in training; a bare
+//! [`ClientRefresher::new`] used outside a trainer re-encodes the slots as decoded until a
+//! layout is bound ([`ClientRefresher::with_layout`]). That is exact for every packed vector (all are
 //! block-periodic) and also averages the noise of the copies. A single-block layout
 //! (`d * batch == slots`, e.g. MNIST in Task 32) has nothing to average.
 
@@ -43,12 +46,31 @@ use crate::layout::Layout;
 
 /// Brings a ciphertext back to the top level (`max_level`) at its own exact scale, with the
 /// same message in every slot (up to the refresh's error).
+///
+/// # Layout binding
+///
+/// [`Refresher::bind_layout`] is required (no default): a refresher must decide what it does
+/// with a replicated layout (`layout.block() < slots`), whose block copies drift apart
+/// exponentially over a long run unless every refresh re-lays them (module docs, "Replicated
+/// blocks"). [`crate::trainer::Trainer::new`] binds its refresher to its layout.
+/// [`ClientRefresher`] averages the blocks on the client. A future bootstrapping refresher
+/// (M3) has no client to re-lay: it must either average the blocks on the server
+/// (`log2(slots / block)` rotations and additions, the constant `block / slots` folded into a
+/// plaintext) or return `InvalidParams` for a replicated layout.
 pub trait Refresher {
     /// A fresh ciphertext on the top level with exactly `ct.scale()` and `ct`'s message.
     ///
     /// Errors: implementation specific (e.g. `InvalidParams` for a ciphertext of other
     /// parameters).
     fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext>;
+
+    /// Binds the refresher to the slot layout of the values it will refresh: from now on
+    /// every refresh returns the canonical (block-periodic) form of `layout`, its replicated
+    /// blocks re-laid. Called by [`crate::trainer::Trainer::new`].
+    ///
+    /// Errors: `InvalidParams` if `layout` does not fit the refresher's parameters, or if the
+    /// refresher cannot re-lay a replicated layout (see the trait docs).
+    fn bind_layout(&mut self, layout: &Layout) -> Result<()>;
 }
 
 /// The interactive refresh: decrypt → decode → re-encode → encrypt on `max_level` (see the
@@ -88,20 +110,14 @@ impl ClientRefresher {
         }
     }
 
-    /// Re-lays the canonical form of `layout` on every refresh: each of the
-    /// `slots / layout.block()` replicated blocks is replaced by the mean of the blocks (see
-    /// the [module docs](self)). Use it whenever `layout.block() < slots`.
+    /// [`Refresher::bind_layout`] as a builder: re-lays the canonical form of `layout` on
+    /// every refresh, each of the `slots / layout.block()` replicated blocks replaced by the
+    /// mean of the blocks (see the [module docs](self)). A [`crate::trainer::Trainer`] binds
+    /// its layout itself; use this for refreshes outside a trainer.
     ///
     /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count.
     pub fn with_layout(mut self, layout: Layout) -> Result<ClientRefresher> {
-        if layout.slots != self.encoder.params().slots() {
-            return Err(HekitError::InvalidParams(format!(
-                "layout of {} slots for parameters with {} slots",
-                layout.slots,
-                self.encoder.params().slots()
-            )));
-        }
-        self.block = Some(layout.block());
+        self.bind_layout(&layout)?;
         Ok(self)
     }
 
@@ -116,7 +132,9 @@ impl ClientRefresher {
     }
 
     /// [`Refresher::refresh`] at a chosen `scale` instead of `ct.scale()` (the message is
-    /// kept; only the encoding scale changes).
+    /// kept; only the encoding scale changes). With a bound layout
+    /// ([`Refresher::bind_layout`], [`ClientRefresher::with_layout`]) the replicated blocks
+    /// are averaged here too; without one, all slots are re-encoded as decoded.
     ///
     /// Errors: `InvalidParams` if `ct` is not over this client's parameters, and the
     /// [`Encoder::encode`] errors (a scale that is not positive and finite, or too large for
@@ -167,5 +185,22 @@ impl Refresher for ClientRefresher {
     /// Errors as [`ClientRefresher::refresh_to_scale`].
     fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext> {
         self.refresh_to_scale(ct, ct.scale())
+    }
+
+    /// Averages the replicated blocks of `layout` on every later refresh (a no-op for a
+    /// single-block layout). Rebinding replaces the previous layout.
+    ///
+    /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count (the
+    /// binding is then unchanged).
+    fn bind_layout(&mut self, layout: &Layout) -> Result<()> {
+        if layout.slots != self.encoder.params().slots() {
+            return Err(HekitError::InvalidParams(format!(
+                "layout of {} slots for parameters with {} slots",
+                layout.slots,
+                self.encoder.params().slots()
+            )));
+        }
+        self.block = Some(layout.block());
+        Ok(())
     }
 }

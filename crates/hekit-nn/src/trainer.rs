@@ -513,11 +513,15 @@ impl<'a> Trainer<'a> {
     /// A trainer on `ev` (which must hold the relinearization key and the Galois keys of
     /// [`mlp_rotation_steps`]) with one optimizer per layer, in `layout`, with the
     /// [`TransposeKeys::Dedicated`] transpose ([`Trainer::with_transpose_keys`] to change it).
+    /// Binds `refresher` to `layout` ([`Refresher::bind_layout`]), so every refreshed weight,
+    /// bias and optimizer state is re-laid in the canonical form of the layout (Task 31: the
+    /// replicated block copies drift apart otherwise).
     ///
-    /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count.
+    /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count; and the
+    /// refresher's [`Refresher::bind_layout`] errors.
     pub fn new(
         ev: &'a Evaluator,
-        refresher: Box<dyn Refresher>,
+        mut refresher: Box<dyn Refresher>,
         optims: Vec<Box<dyn LayerOptimizer>>,
         layout: Layout,
     ) -> Result<Trainer<'a>> {
@@ -528,6 +532,7 @@ impl<'a> Trainer<'a> {
                 ev.params().slots()
             )));
         }
+        refresher.bind_layout(&layout)?;
         Ok(Trainer {
             ev,
             refresher,

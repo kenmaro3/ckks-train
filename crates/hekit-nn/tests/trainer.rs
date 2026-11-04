@@ -511,6 +511,68 @@ fn client_refresher_with_layout_averages_the_blocks() {
     ));
 }
 
+/// Max deviation of `v` from its first block (`v[s]` vs `v[s mod bk]`): 0 for an exactly
+/// block-periodic vector.
+fn block_spread(v: &[f64], bk: usize) -> f64 {
+    v.iter()
+        .enumerate()
+        .map(|(s, x)| (x - v[s % bk]).abs())
+        .fold(0.0, f64::max)
+}
+
+/// Max block spread over every weight diagonal and bias of `mlp`.
+fn mlp_block_spread(c: &Ctx, mlp: &Mlp) -> f64 {
+    let bk = c.layout.block();
+    mlp.layers
+        .iter()
+        .flat_map(|(d, _)| {
+            d.w.diagonals()
+                .entries()
+                .iter()
+                .chain(std::iter::once(&d.b))
+        })
+        .map(|ct| block_spread(&c.encoder.decode(&c.dec.decrypt(ct)), bk))
+        .fold(0.0, f64::max)
+}
+
+/// Task 31 regression: a `Trainer` built with a **plain** `ClientRefresher::new` on a layout
+/// with many replicated blocks (8 x 8 lanes in 2^14 slots: 256 blocks) binds the refresher to
+/// its layout, so after two steps every refreshed weight diagonal and bias is block-periodic
+/// up to fresh-encryption noise. Without the binding each block copy keeps its own step noise
+/// (the copies drift apart, exponentially over a long run).
+#[test]
+fn trainer_binds_the_refresher_to_its_layout() {
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
+    let c = ctx(&steps, 42);
+    assert!(c.layout.block() < c.params.slots(), "a replicated layout");
+    let mut r = rng(142);
+    let net = random_net(&mut r);
+    let mut mlp = encrypt_mlp(&c, &net, &mut r);
+    let fresh = mlp_block_spread(&c, &mlp);
+    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
+    let mut trainer =
+        Trainer::new(&c.ev, Box::new(c.client(43)), sgd_optims(0.1), c.layout).unwrap();
+    for _ in 0..2 {
+        let x = rand_mat(&mut r, 8, 4, 1.0);
+        let y = rand_mat(&mut r, 8, 2, 1.0);
+        let (xct, yct) = spec
+            .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
+            .unwrap();
+        trainer.train_batch(&mut mlp, &xct, &yct).unwrap();
+    }
+    let spread = mlp_block_spread(&c, &mlp);
+    eprintln!(
+        "block spread: fresh encryption 2^{:.2}, after 2 steps 2^{:.2}",
+        fresh.log2(),
+        spread.log2()
+    );
+    // Fresh encryption noise is the floor (the client encrypts one periodic vector); a step
+    // without re-laying leaves each copy with its own ~2^-20 step noise.
+    assert!(spread <= 4.0 * fresh, "block spread 2^{:.2}", spread.log2());
+}
+
 /// Input errors are reported before the network changes.
 #[test]
 fn train_batch_errors_leave_the_network_unchanged() {
