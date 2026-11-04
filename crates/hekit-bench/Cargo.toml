@@ -10,9 +10,9 @@ description = "hekit-bench (temporary name)"
 [dependencies]
 hekit-ckks = { path = "../hekit-ckks" }
 hekit-core = { path = "../hekit-core" }
-ndarray = "0.16"
 
 [dev-dependencies]
+ndarray = "0.16"
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 
 [[bench]]
