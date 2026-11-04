@@ -1,0 +1,1 @@
+# summary: 50/50 converged; mean train acc 0.9827, mean test acc 0.9687 (sd 0.0289), mean train loss 0.0246

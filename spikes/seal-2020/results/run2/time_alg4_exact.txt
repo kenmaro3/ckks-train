@@ -1,0 +1,35 @@
+# he_train: dims 4-10-3, Iris, layout plain-diag/Alg4, keys exact steps, N=2^15, bits {60,40x9,60}, scale 2^40, lr 0.1, seed 2020
+# samples (train-order idx): 12 149 41 49 100 94 27 136 90 21 75 
+[plain-sim] packed algorithm vs dense reference, 11 iteration(s): max |err| = 1.110e-16
+[plain-sim] SEAL rotation steps needed (19): -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 1 2 3 4 5 6 7 8 9
+[seal] SEAL 4.1.2, slots 16384, keygen (sk,pk,rlk,exact galois) 4.65 s
+[seal] fresh ciphertext level (chain index) = 9
+[seal] iter 0: server 2.305 s (ff 1.720, tr 0.194, bp 0.355, upd 0.036) | repack 0.717 s | enc x,y 0.086 s | max|W_he - W_ref| = 5.929e-06
+[seal] iter 1: server 2.317 s (ff 1.578, tr 0.199, bp 0.456, upd 0.084) | repack 0.761 s | enc x,y 0.070 s | max|W_he - W_ref| = 5.387e-06
+[seal] iter 2: server 2.203 s (ff 1.571, tr 0.155, bp 0.418, upd 0.060) | repack 0.674 s | enc x,y 0.089 s | max|W_he - W_ref| = 9.590e-06
+[seal] iter 3: server 2.276 s (ff 1.504, tr 0.292, bp 0.433, upd 0.047) | repack 0.659 s | enc x,y 0.091 s | max|W_he - W_ref| = 1.293e-05
+[seal] iter 4: server 1.901 s (ff 1.568, tr 0.103, bp 0.213, upd 0.017) | repack 0.349 s | enc x,y 0.108 s | max|W_he - W_ref| = 1.253e-05
+[seal] iter 5: server 1.070 s (ff 0.760, tr 0.088, bp 0.206, upd 0.016) | repack 0.354 s | enc x,y 0.043 s | max|W_he - W_ref| = 1.272e-05
+[seal] iter 6: server 1.510 s (ff 0.968, tr 0.162, bp 0.342, upd 0.039) | repack 0.717 s | enc x,y 0.040 s | max|W_he - W_ref| = 1.683e-05
+[seal] iter 7: server 1.561 s (ff 1.243, tr 0.092, bp 0.208, upd 0.018) | repack 0.345 s | enc x,y 0.110 s | max|W_he - W_ref| = 1.646e-05
+[seal] iter 8: server 1.090 s (ff 0.776, tr 0.090, bp 0.208, upd 0.016) | repack 0.365 s | enc x,y 0.041 s | max|W_he - W_ref| = 1.707e-05
+[seal] iter 9: server 1.878 s (ff 1.292, tr 0.129, bp 0.396, upd 0.061) | repack 0.529 s | enc x,y 0.054 s | max|W_he - W_ref| = 2.517e-05
+[seal] iter 10: server 1.376 s (ff 1.033, tr 0.093, bp 0.229, upd 0.020) | repack 0.370 s | enc x,y 0.043 s | max|W_he - W_ref| = 2.526e-05
+[seal] updated-weight ciphertext levels after one iteration: W1 0, W2 2 (0 = last prime)
+[seal] max forced scale mismatch on add/sub: 7.356e-05 (relative)
+[counts] one iteration (server side), per phase:
+  phase         mul_cc  mul_cp   relin   rot  rescale  modsw   add
+  feedforward       16       0      16    13       16     24    15
+  transition         0       0       0    11        0     60     9
+  backprop          19       1      19     4       20     83     6
+  sgd_update         0       0       0     0        0    120    16
+  total             35       1      35    28       36    287    46
+[timing] server iteration over 10 iters: mean 1.718 s, sd 0.467 s
+[timing]   feedforward  mean 1.229 s, sd 0.327 s
+[timing]   transition   mean 0.140 s, sd 0.065 s
+[timing]   backprop     mean 0.311 s, sd 0.108 s
+[timing]   sgd_update   mean 0.038 s, sd 0.024 s
+[timing] repacking (client decrypt+re-encrypt of 16 weight cts): mean 0.512 s, sd 0.174 s
+[timing] client encrypt x,y: mean 0.069 s
+[timing] server + repacking: mean 2.231 s
+[check] max |W_he - W_ref| over 11 iteration(s): 2.526e-05 (largest single-step update magnitude 1.069e-01)

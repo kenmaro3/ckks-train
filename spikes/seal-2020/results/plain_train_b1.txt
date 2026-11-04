@@ -1,0 +1,13 @@
+# plaintext training: dims 4-10-3, lr 0.1, batch 1, epochs 400, init N(0,0.2^2), z-score inputs
+seed,status,train_acc,test_acc,train_loss,test_loss
+2020,diverged,,,,
+2021,diverged,,,,
+2022,diverged,,,,
+2023,diverged,,,,
+2024,diverged,,,,
+2025,diverged,,,,
+2026,diverged,,,,
+2027,diverged,,,,
+2028,diverged,,,,
+2029,diverged,,,,
+# summary: 0/10 converged

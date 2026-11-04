@@ -1,0 +1,26 @@
+# he_train: dims 4-10-3, Iris, layout stepped/Alg5, keys exact steps, N=2^15, bits {60,40x9,60}, scale 2^40, lr 0.1, seed 2020
+# samples (train-order idx): 12 
+[plain-sim] packed algorithm vs dense reference, 1 iteration(s): max |err| = 8.327e-17
+[plain-sim] SEAL rotation steps needed (20): -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 1 2 3 4 5 6 7 8 9 10
+[seal] SEAL 4.1.2, slots 16384, keygen (sk,pk,rlk,exact galois) 2.39 s
+[seal] fresh ciphertext level (chain index) = 9
+[seal] iter 0: server 1.886 s (ff 1.243, tr 0.030, bp 0.591, upd 0.022) | repack 0.532 s | enc x,y 0.040 s | max|W_he - W_ref| = 1.105e-05
+[seal] updated-weight ciphertext levels after one iteration: W1 0, W2 2 (0 = last prime)
+[seal] max forced scale mismatch on add/sub: 7.356e-05 (relative)
+[counts] one iteration (server side), per phase:
+  phase         mul_cc  mul_cp   relin   rot  rescale  modsw   add
+  feedforward       16       0      16    13       16     24    15
+  transition         0       0       0     2        0     60     9
+  backprop          19       1      19    16       20     83     6
+  sgd_update         0       0       0     0        0    120    16
+  total             35       1      35    31       36    287    46
+[timing] server iteration over 1 iters: mean 1.886 s, sd 0.000 s
+[timing]   feedforward  mean 1.243 s, sd 0.000 s
+[timing]   transition   mean 0.030 s, sd 0.000 s
+[timing]   backprop     mean 0.591 s, sd 0.000 s
+[timing]   sgd_update   mean 0.022 s, sd 0.000 s
+[timing] repacking (client decrypt+re-encrypt of 16 weight cts): mean 0.532 s, sd 0.000 s
+[timing] client encrypt x,y: mean 0.040 s
+[timing] server + repacking: mean 2.418 s
+[check] max |W_he - W_ref| over 1 iteration(s): 1.105e-05 (largest single-step update magnitude 1.069e-01)
+PASS: encrypted-vs-plaintext weight error 1.105e-05 < 1e-3

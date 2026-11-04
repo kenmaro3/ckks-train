@@ -112,3 +112,123 @@ cargo run --release --bin bench -- 16 64 200 20          # 引数: log2N batch r
 
 記録するもの: `nvidia-smi` の GPU 名・driver・CUDA version・メモリ・最大クロック、プロバイダ名と時間単価
 (spot/on-demand の別)、bench 出力の device 行 (sm_XY)、CPU agreement 行、per-poly µs の median / min。
+
+## Task 4: SEAL 2020 reproduction
+
+Code: `spikes/seal-2020/` (C++17, SEAL **4.1.2** via FetchContent, Release `-O3`; flags in its README).
+Paper: Mihara et al., arXiv:2012.13552 (Alg. 2/4/5, Tables 2/4). Raw logs: `spikes/seal-2020/results/`.
+
+**Setup (as paper):** Iris 4-10-3 MLP with biases, square activation after both dense layers, MSE (mean over 3 outputs),
+SGD lr 0.1, batch 1 for the timed iteration; CKKS N = 2^15, coeff modulus {60, 40×9, 60}, Δ = 2^40 (tc128),
+weights **and** input/label encrypted, diagonal packing, transposition by rotations + additions only.
+Interactive mode: after the SGD update the client decrypts and re-encrypts ("repacking", paper Fig. 7).
+
+**Depth / levels:** one full iteration uses exactly the 9 available rescales, so no mid-iteration refresh is needed:
+z1 (1) → a1 = z1² (2) → z2 (3) → a2 (4) → (a2−y)⊙z2 (5) → ×lr·4/3 (ct-pt, 6) → W2ᵀδ2 (7) → ⊙z1 (8) → ΔW1 = δ1⊗x (9).
+The updated W1 is at level 0 (W2 at level 2) → client repacking after every iteration, exactly where the paper puts it.
+
+**Layout choices** (documented in `src/he_train.cpp`): generalized (non-square) diagonals: W (out×in) → `in` diagonals of
+length `out` (no padding to square / power of two needed — the input is replicated with period `in` instead: client packs
+x replicated, server replicates a1 and δ2 with log-doubling rotations). Two variants:
+`alg5` (default) = pre-rotated "stepped" diagonals (paper Fig. 6) + Alg. 5 transpose (M−1 rotations);
+`alg4` = plain diagonals + Alg. 4 transpose (Σ_i (e_i+1) terms), with the forward rotations of x / a1 reused for ΔW.
+Only W2 is transposed (W1ᵀ is not needed for training a 2-layer net; the paper's Table 2 mirrors both layers).
+W2 diagonals are mod-switched down to the level where W2ᵀ is used *before* transposing. Galois keys: one per used step
+("exact", 20 keys) or SEAL's default ±2^k keys ("pow2", closer to what SEAL 3.4 code typically used).
+
+### Timing (Apple M3 Pro, single thread — SEAL is single-threaded; 1 warm-up + 10 timed iterations)
+
+Machine was shared with other agents' jobs: load average **67.7 → 31.4** (1-min) during run 1; run 2 (load 17–37) was noisier
+and is in `results/run2/`. Numbers below are run 1, mean ± sd over 10 iterations (seconds).
+
+| phase | paper diagonal (i7-8700K, SEAL 3.4) | ours alg5, exact keys | ours alg4, exact keys | ours alg5, pow2 keys | paper row packing |
+|---|---|---|---|---|---|
+| Feedforward | 3.10 | 0.713 ± 0.051 | 0.775 ± 0.058 | 0.806 ± 0.007 | 12.42 |
+| Transition | 2.15 | 0.025 ± 0.002 | 0.090 ± 0.004 | 0.037 ± 0.001 | 7.28 |
+| Backpropagation (incl. ΔW, Δb) | 3.12 | 0.275 ± 0.005 | 0.213 ± 0.024 | 0.318 ± 0.003 | 5.46 |
+| SGD update (W − ΔW) | 0.23 | 0.017 ± 0.002 | 0.019 ± 0.003 | 0.016 ± 0.000 | 0.23 |
+| **server iteration** | 9.25 − 0.50 = 8.75 | **1.031 ± 0.058** | 1.097 ± 0.087 | 1.176 ± 0.008 | 27.85 |
+| Repacking (client decrypt + re-encrypt, 16 ct) | 0.50 | 0.345 ± 0.009 | 0.345 ± 0.011 | 0.339 ± 0.005 | 0.62 |
+| **total incl. repacking** | **9.25** | **1.376** | 1.442 | 1.515 | 28.47 |
+
+(Client encryption of x and y: 0.039 s, not included. Run 2: alg5-exact server 1.166 ± 0.219 s, total 1.574 s.)
+→ ~6.7× faster than the paper end-to-end (≈ 8.5× server side). The paper's 2.15 s transition is ~90× our 0.025 s;
+we can't tell which of hardware, SEAL 3.4 → 4.1, keys, transposing at the top level, or transposing both layers
+explains it (the paper doesn't give enough detail). pow2 keys only cost +14 %, so the key set alone doesn't explain it.
+
+### Correctness
+
+Updated weights after one encrypted iteration vs. a dense double-precision reference on the same init/sample:
+**max |W_he − W_ref| = 4.4e-6** (run-to-run 4e-6 – 1.1e-5; single-step update magnitude up to 0.107);
+over 11 chained iterations (with repacking) it is ≤ 2.6e-5. `he_train --check` (CTest) asserts < 1e-3 for both layouts.
+A slot-exact plaintext simulation of the packed algorithm matches the dense reference to 1e-16 (packing logic exact).
+Main error source: SEAL refuses to add ciphertexts with unequal scales; we force-equalize (max relative mismatch 7.4e-5,
+from scales drifting through 9 rescales by 40-bit primes ≠ 2^40), which perturbs ΔW by ~1e-5 relative.
+
+### Op counts (server side, one iteration, counted at every evaluator call)
+
+Iris 4-10-3 (both layouts; `relin` = `mul_cc`, rescale = mul_cc + mul_cp):
+
+| layout | phase | ct-ct mul | ct-pt mul | relin | rot | rescale |
+|---|---|---|---|---|---|---|
+| alg5 | FF / TR / BP / UPD | 16 / 0 / 19 / 0 | 0 / 0 / 1 / 0 | 16 / 0 / 19 / 0 | 13 / 2 / 16 / 0 | 16 / 0 / 20 / 0 |
+| alg5 | **total** | **35** | **1** | **35** | **31** | **36** |
+| alg4 | FF / TR / BP / UPD | 16 / 0 / 19 / 0 | 0 / 0 / 1 / 0 | 16 / 0 / 19 / 0 | 13 / 11 / 4 / 0 | 16 / 0 / 20 / 0 |
+| alg4 | **total** | **35** | **1** | **35** | **28** | **36** |
+
+Paper's Table-2 network 6-3-1 (`--dims 6,3,1`, synthetic data), row by row against Table 2 (diagonal column):
+
+| Table 2 row | paper mult / rot | ours alg5 mult / rot | ours alg4 mult / rot |
+|---|---|---|---|
+| FF Dense 6→3 | 6 / 3 | 6 / 5 | 6 / 5 |
+| FF square | 1 / 0 | 1 / 0 | 1 / 0 |
+| FF Dense 3→1 (a1 replication needs 0 rot here) | 3 / 1 | 3 / 2 | 3 / 2 |
+| FF square | 1 / 0 | 1 / 0 | 1 / 0 |
+| Transition W1 (6×3) | 0 / 3 | not done (not needed) | not done |
+| Transition W2 (3×1) | 0 / 1 | 0 / 0 | 0 / 2 |
+| BP output-square derivative (a2−y)⊙z2 | — (not listed) | 1 / 0 | 1 / 0 |
+| BP lr scaling (ct-pt) | — | 1 (pt) / 0 | 1 (pt) / 0 |
+| BP δ2 replication | — | 0 / 2 | 0 / 2 |
+| BP Dense 1→3 (W2ᵀδ2) | 1 / 3 | 1 / 0 | 1 / 0 |
+| BP square derivative ⊙z1 | 1 / – | 1 / 0 | 1 / 0 |
+| BP Dense 3→6 + square (W1ᵀδ1, input gradient) | 3 / 6 + 1 / 0 | not done (not needed) | not done |
+| ΔW2, ΔW1 (outer products; not in Table 2) | — | 9 / 7 | 9 / 0 |
+| **total** | **17 / 17** | **23 + 1 pt / 16** | **23 + 1 pt / 11** |
+
+Why they differ: (1) Table 2 omits the weight-gradient outer products (in·out entries → `in` ct-ct mults per layer) and
+the output-layer derivative, and includes the unnecessary input-layer backprop (W1ᵀ, Dense 3→6). (2) Table 2's Dense
+rotation count equals the **output** dim (6→3: 3 rot), whereas Alg. 2 as written needs `in − 1` rotations of x
+(the paper's own text says "N multiplications and N rotations"); we follow Alg. 2. (3) Transition: Table 1 / Table 2
+count M rotations for Alg. 5, we need M − 1 (the i = 0 diagonal needs none); Alg. 4 needs Σ_i (e_i + 1) minus trivial
+ones = 11 for W2 of Iris (paper's q(M+1) = 12). (4) Replication rotations (log-doubling of a1 and δ2 so that rotations
+wrap with period `in`) are not discussed in the paper. Mult counts of the rows both sides compute agree exactly.
+Rule inferred from Table 2 for a cost model: Dense(a→b) = a mult, b rot; square = 1 mult; transition(a×b) = 0 mult, b rot.
+
+### SEAL NTT (for Task 2's ratio)
+
+`seal_ntt_bench`: `seal::util::ntt_negacyclic_harvey`, N = 2^16, q = 1152921504606584833 (accepted, 60-bit), 1000 reps,
+input copy excluded, single thread. Same load conditions as above.
+
+| | run 1 before / after | run 2 before / after |
+|---|---|---|
+| forward (fully reduced output), median | **368.0** / 364.2 µs | 376.4 / 379.1 µs |
+| forward lazy (`_lazy`, output in [0,4q)), median | 330.3 / 331.0 µs | 335.9 / 334.0 µs |
+| inverse (incl. N⁻¹), median | 355.1 / 357.2 µs | 362.3 / 356.7 µs |
+
+**Ratio Rust (416.4 µs) / SEAL (368.0 µs) = 1.13** (vs SEAL lazy: 1.26; range over runs 1.10 – 1.14 for the non-lazy one).
+SEAL 4.1 on arm64 has no SIMD NTT path either (HEXL is x86-only), so this is scalar vs scalar.
+
+### Plaintext training (400 epochs, same network/hyperparameters, `he_train --plain-train`)
+
+Init N(0, 0.2²) for W and b, z-scored inputs, 80:20 split (120/30), lr 0.1, MSE.
+
+| batch | seeds | converged | train acc (mean) | test acc (mean ± sd) | train loss |
+|---|---|---|---|---|---|
+| 20 (paper's full-training batch) | 2020–2029 | 10/10 | **0.982** | 0.960 ± 0.021 | 0.0245 |
+| 20 | 2020–2069 | 50/50 | 0.983 | 0.969 ± 0.029 | 0.0246 |
+| 1, lr 0.1 | 2020–2029 | **0/10 (diverge in epoch 1–2)** | — | — | — |
+| 1, lr 0.01 | 2020–2029 | 10/10 | 0.982 | 0.950 ± 0.028 | 0.0238 |
+
+Paper: plaintext accuracy 0.9805, loss 0.0249 (which split is not stated) — matches our train accuracy/loss.
+Note: batch 1 with lr 0.1 diverges (square∘square activations), so the paper's batch-1 setting is a timing-only setting.
+Without biases or without standardization accuracy drops to 0.70–0.96 (exploration, not committed).
