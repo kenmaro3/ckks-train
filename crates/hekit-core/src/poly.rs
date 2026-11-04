@@ -281,6 +281,66 @@ impl RnsPoly {
             ntt_form: self.ntt_form,
         }
     }
+
+    /// The mod-raise of bootstrapping: a level-0 polynomial lifted to `level` over the same
+    /// basis by its **centered** representative.
+    ///
+    /// Each coefficient `x` of limb 0 (a residue mod `q_0`) is read as the integer `x_c` in
+    /// `[-(q_0 - 1)/2, (q_0 - 1)/2]` (the brief's `[-q_0/2, q_0/2)`; `q_0` is odd) and stored
+    /// as `x_c mod q_i` in every limb `i <= level`. So the result is the integer polynomial
+    /// with the smallest coefficients that is congruent to `self` mod `q_0`; for a ciphertext
+    /// component this is what makes the overflow `I` of `c_0 + c_1 s = m + q_0 I` small (and
+    /// zero-mean). The form is kept: an NTT-form input is lifted from its coefficient form and
+    /// returned in NTT form. `level = 0` returns a copy.
+    ///
+    /// # Panics
+    /// If `self` is not at level 0 or `level >= basis.len()`.
+    pub fn raise_from_level0(&self, level: usize) -> RnsPoly {
+        assert_eq!(
+            self.level(),
+            0,
+            "raise_from_level0 needs a level-0 polynomial"
+        );
+        assert!(
+            level < self.basis.len(),
+            "level {level} out of range for a basis of {} primes",
+            self.basis.len()
+        );
+        let moduli = self.basis.moduli();
+        let q0 = moduli[0].value();
+        let mut src = self.limbs[0].clone();
+        if self.ntt_form {
+            self.basis.ntt_tables()[0].inverse(&mut src);
+        }
+        let half = q0 / 2; // (q0 - 1) / 2: residues above it are negative.
+        let mut limbs = Vec::with_capacity(level + 1);
+        for (i, m) in moduli[..=level].iter().enumerate() {
+            let q = m.value();
+            let mut a: Vec<u64> = if i == 0 {
+                src.clone()
+            } else {
+                src.iter()
+                    .map(|&x| {
+                        if x > half {
+                            let r = (q0 - x) % q;
+                            if r == 0 { 0 } else { q - r }
+                        } else {
+                            x % q
+                        }
+                    })
+                    .collect()
+            };
+            if self.ntt_form {
+                self.basis.ntt_tables()[i].forward(&mut a);
+            }
+            limbs.push(a);
+        }
+        RnsPoly {
+            basis: Arc::clone(&self.basis),
+            limbs,
+            ntt_form: self.ntt_form,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -680,5 +740,65 @@ mod tests {
             rhs.mul_assign(&c.automorphism(g));
             assert_eq!(lhs.limbs(), rhs.limbs(), "g={g}");
         }
+    }
+
+    /// `raise_from_level0` stores the centered representative of every `q_0` residue in
+    /// every limb, in both forms (with the extreme residues `0`, `(q_0 - 1)/2`,
+    /// `(q_0 + 1)/2` and `q_0 - 1`).
+    #[test]
+    fn raise_from_level0_is_the_centered_lift() {
+        let n = 64;
+        let b = basis(n, 4);
+        let q0 = b.moduli()[0].value();
+        let mut rng = ChaCha20Rng::seed_from_u64(31);
+        let mut p = rand_poly(&b, 0, &mut rng);
+        {
+            let l = &mut p.limbs_mut()[0];
+            l[0] = 0;
+            l[1] = q0 / 2;
+            l[2] = q0 / 2 + 1;
+            l[3] = q0 - 1;
+        }
+        let want: Vec<i128> = p.limbs()[0]
+            .iter()
+            .map(|&x| {
+                if x > q0 / 2 {
+                    x as i128 - q0 as i128
+                } else {
+                    x as i128
+                }
+            })
+            .collect();
+        assert_eq!(want[2], -((q0 / 2) as i128));
+        for level in 0..4 {
+            let r = p.raise_from_level0(level);
+            assert_eq!((r.level(), r.is_ntt_form()), (level, false));
+            for (limb, m) in r.limbs().iter().zip(b.moduli()) {
+                let q = m.value() as i128;
+                for (&got, &w) in limb.iter().zip(&want) {
+                    assert_eq!(got as i128, w.rem_euclid(q));
+                }
+            }
+            let mut pn = p.clone();
+            pn.to_ntt();
+            let mut rn = pn.raise_from_level0(level);
+            assert!(rn.is_ntt_form());
+            rn.to_coeff();
+            assert_eq!(rn.limbs(), r.limbs());
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "level-0")]
+    fn raise_from_level0_needs_level_0() {
+        let b = basis(16, 3);
+        RnsPoly::zero(&b, 1).raise_from_level0(2);
+    }
+
+    #[test]
+    #[should_panic(expected = "out of range")]
+    fn raise_from_level0_rejects_a_level_above_the_basis() {
+        let b = basis(16, 3);
+        RnsPoly::zero(&b, 0).raise_from_level0(3);
     }
 }

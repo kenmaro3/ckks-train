@@ -121,7 +121,7 @@ We approximate f_r(x) = cos(2π(x − 1/4)/2^r) on x ∈ [−K, K] by Chebyshev 
 - the giant steps are powers of two (T_8 … T_64 for degree 127);
 - the baby-step scalar products are not rescaled on their own. Their scales are chosen so that one rescale after the giant-step product lands on the target scale.
 
-**This evaluation is a requirement on Task 37.** Textbook Paterson–Stockmeyer, or a BSGS that rescales each c_i·T_i, costs ⌈log2(d+1)⌉ + 1. For the default (degree 127, r = 0) that is 8 levels, one more than the 7-level band.
+**This evaluation is a requirement on Task 37**, met by `bootstrap::poly` (§10.1: degree 127 in exactly 7 levels). Textbook Paterson–Stockmeyer, or a BSGS that rescales each c_i·T_i, costs ⌈log2(d+1)⌉ + 1. For the default (degree 127, r = 0) that is 8 levels, one more than the 7-level band.
 
 The other parts of EvalMod cost no level beyond these:
 - The 1/K, the 1/(2π) and the −1/4 shift are folded into the matrices or into the interpolated function.
@@ -344,7 +344,7 @@ This is the largest memory item of the bootstrap, so Task 38 and the GPU port mu
 - smaller radices with more levels;
 - truncating the keys that only SlotToCoeff uses to Q_20·P. Here every key is shared with CoeffToSlot, so this helps only if the layouts differ.
 
-The encoded diagonals of n16_boot take about 1.8 GB for CoeffToSlot (levels 31–28) and 1.2 GB for SlotToCoeff (levels 20–17). All-zero entries are kept as zero plaintexts.
+The encoded diagonals of n16_boot take about 1.8 GB for CoeffToSlot (levels 31–28) and 1.2 GB for SlotToCoeff (levels 20–17). Since Task 37 (review M6) the all-zero entries of the BSGS windows are not stored (`Diagonals::<Option<Plaintext>>::encode_complex_sparse`): 19 of the 112 CoeffToSlot windows and 4 of the 112 SlotToCoeff windows, about 0.29 GB and 0.04 GB less (test `n16_boot_stages_match_a_direct_dft`).
 
 ### 9.4 Scale history (exact)
 
@@ -372,3 +372,118 @@ The CtS diagonal scales multiply to q_28···q_31·2^58/q_0, as in §2. The StC
 | `slot_to_coeff(coeff_to_slot(ct))`, (CtS, StC) stages (4, 4), (2, 4), (4, 3), (1, 2) | 2^−18 | 2^−25.8, 2^−27.0, 2^−26.2, 2^−22.7 |
 
 In the identity test, StC starts from the CtS output scale 2^58 rather than from the planned 2^46, so its diagonal scales are only 2^26 to 2^30. That is the source of the 2^−22.7 with 2 StC stages. With the planned 2^46 input, the folded-factor test measures 2^−28.8. These N = 2^5 figures do not predict the n16_boot precision; Task 38 measures that.
+
+**The input scale q_0 (review M8).** The 54-bit q_0 is not exactly representable in f64 (53-bit mantissa), so `q_0 as f64` is q_0 rounded to an even integer. Labelling the raised ciphertext with it decodes x = t/q_0 with a relative error of at most 2^-54, which is negligible. The stage checks compare f64 scales exactly, so Task 38 must use the same value, `params.q()[0] as f64`, for the relabel and for `StageSpec::input_scale`.
+
+**Value test at log_slots 15 (review M1).** `n16_boot_stages_match_a_direct_dft` applies the n16_boot stage lists (4 + 4 levels) in the clear and compares them with a direct evaluation of z_j = m(ζ^(3^j)) on 48 sampled slots. It needs no keys and no encoding. Measured: forward stages 2^-45.5 and adapted SlotToCoeff (factor 0.6 − 0.45i) 2^-45.9, both relative to sqrt(N); adapted CoeffToSlot (factor 1/K) 2^-52.8 absolute. `coeff_to_slot` also rejects a stage list whose `second` diagonals are misplaced, as `slot_to_coeff` does (review M2).
+
+## 10. ModRaise, SSE, Chebyshev evaluation and EvalMod (Task 37)
+
+The code is in `crates/hekit-ckks/src/bootstrap/`: `modraise.rs`, `poly.rs` and `evalmod.rs`, plus `RnsPoly::raise_from_level0` in hekit-core and `KeyGenerator::sse_keys` / `SseKeys` in `keys.rs`.
+
+### 10.1 Level-optimal, scale-invariant Chebyshev evaluation
+
+`Evaluator::eval_chebyshev(ct, coeffs, a, b)` evaluates p(y) = Σ c_i T_i(y). It follows Bossuat, Mouchet, Troncoso-Pastoriza and Hubaux (Eurocrypt 2021, §4–5, Alg. 2). The recursion and the baby-step rule (`optimal_split`) are adapted from Lattigo's polynomial evaluator (Apache-2.0), which was read for reference. The result has exactly the input scale, or `target_scale` with `eval_chebyshev_to_scale`. It sits ⌈log2(d+1)⌉ levels lower; an interval other than [−1, 1] costs one more level.
+
+**Power basis.** T_1 is the input at level L. Each T_i is 2·T_a·T_b − T_(a−b), with a = 2^(⌈log2 i⌉−1) and b = i − a. The steps are:
+1. multiply T_a and T_b at the lower of their two levels, and relinearize;
+2. double the product by adding it to itself (relabelling it to half its scale instead would halve the scale of every later power);
+3. subtract T_(a−b) as an integer multiple round(S_aS_b / S_(a−b)) labelled S_aS_b, or the integer round(S_aS_b) for T_0 = 1;
+4. rescale once.
+
+T_i lies at level L − ⌈log2 i⌉ with scale S_aS_b/q_l, about 2^58 in the EvalMod band. The powers are built on demand. An odd series therefore builds only the powers of two and the odd T_i.
+
+**Recursion.** rec(p, l, ts) returns p at level l with the exact scale ts, before its rescale. Let m = deg p.
+- **Leaf.** When m < 2^s (s = `optimal_split(D)`, so 4 and leaves of degree up to 15 for D = 7) and T_m lies at level ≥ l: Σ k_i T_i + round(c_0·ts). Each k_i = round(c_i·ts/S_i) is an integer constant of about log2 q_l bits (ts ≈ S·q_l). The product is labelled exactly ts, with no rescale and so no level. A constant scale below 2^20 or an integer of 2^126 or more is refused.
+- **Split.** Otherwise split at k = 2^j, the largest power of two ≤ m, as p = q·T_k + r, using T_i = 2T_(i−k)T_k − T_(2k−i). Then:
+  - q is asked for at (l + 1, ts·q_(l+1)/S_k), relinearized and rescaled, which leaves scale ts/S_k at level l;
+  - it is multiplied by T_k and relabelled ts (a few f64 roundings, checked to 1e-12);
+  - r is asked for at (l, ts) and added.
+- **Top.** rec(p, L − D + 1, label) with D = ⌈log2(d+1)⌉. The label comes from `exact_product_scale(L − D + 1, target)`, and one final relinearization and rescale put the result at level L − D with exactly the target scale.
+
+**Why D levels suffice.** rec(p, l) is feasible when l ≤ L − ⌈log2(m+1)⌉ + 1. A split at 2^j has ⌈log2(m+1)⌉ = j + 1, so l ≤ L − j and three things hold:
+- T_k (level L − j) is available at l;
+- q, of degree below 2^j, is asked for at l + 1 ≤ L − j + 1, within its bound;
+- r, of degree below 2^j, is asked for at l, also within its bound.
+
+The leaf condition holds for m = 1 at any l ≤ L. The leading branch (the top coefficients) is tight, so it splits all the way down to degree 1. The other branches have one level of slack, and their leaves have degree up to 15. The scalar products are never rescaled on their own, and that is the level a textbook evaluator spends.
+
+**Cost of the n16 EvalMod series** (degree 127, odd; counted in `odd_degree_127_costs` and an independent Python simulation of the recursion):
+- 13 powers: T_2, T_4, …, T_64 and the odd T_3 … T_15;
+- 10 splits;
+- so 23 ciphertext products, 20 relinearizations (products that are only summed are relinearized once) and 24 rescales;
+- 71 integer-constant products (64 leaf coefficients and 7 power corrections).
+
+A dense degree-127 series needs 17 powers and 128 constant products.
+
+**Modulus room.** The last unrescaled product, at level L − D + 1, has scale about S_out·q_(L−D+1). Q at that level must hold it. For n16_boot that is about 2^116 at level 21, against Q_21 ≈ 2^920.
+
+**Measured** (N = 2^10, insecure test chains, errors against the plaintext series):
+
+| case | threshold | measured |
+|---|---|---|
+| `chebyshev_coeffs`, degree 31: cos x and cos 2πx on [−1, 1], cos(2π(x − 1/4)) on [−2, 2] | 2^-20 | 2^-47.4, 2^-47.2, 2^-35.0 |
+| `chebyshev_coeffs`, degree 127: sin(2π·13y) on [−1, 1] (10001-point grid) | — | 2^-45.1 |
+| x³ − x, degree 3: [−1, 1] (2 levels) and [−2, 2] (3 levels), 42-bit primes at scale 2^42 | 2^-20 | 2^-32.1, 2^-28.4 |
+| the same in the 58-bit band at scale 2^58 | 2^-20 | 2^-47.3, 2^-45.1 |
+| random series of degree 1 … 255, each in exactly ⌈log2(d+1)⌉ levels at scale 2^58 | 2^-25 | 2^-48.3 … 2^-41.9 |
+| sin(2π·13y), degree 127, level 8 → 1 | 2^-25 | 2^-39.6 |
+
+### 10.2 EvalMod
+
+`Evaluator::eval_mod(ct, bp)` takes the CoeffToSlot output. Its slots must be normalized as
+
+  y_j = x_j / K = (I_j + Δc_j/q_0) / K ∈ [−1, 1],
+
+where t_j = Δc_j + q_0 I_j is coefficient j of the raised plaintext. The 1/K is folded into CoeffToSlot through `StageSpec::factor`, so eval_mod no longer takes q_0 (a deviation from the brief's `eval_mod(ct, bp, q0)`). It returns sin(2πK y_j) = sin(2π x_j) ≈ 2πΔc_j/q_0 at the same scale, `bp.evalmod_depth()` levels lower. For n16_boot that is level 27 → 20, both at scale 2^58. The factor q_0/(2π) back to Δc_j belongs to SlotToCoeff (§2).
+
+**The series.** For r = 0 it is the degree-127 interpolant of sin(2π·13·y), with its even coefficients set exactly to zero because the sine is odd. With r > 0 it is cos(2π(Ky − 1/4)/2^r) followed by r double angles. Each double angle is one level. Its square is relabelled to the exact label of the next planned scale, and the Chebyshev output scale is chosen within a few ulps of sqrt(2σ) for that. There is no arcsine correction (§6).
+
+**Measured.** N = 2^10, the n16 constants (K = 13, degree 127, r = 0), inputs m + q_0 I with |m| ≤ 1 and |I| ≤ 13: the edge slots carry I = ±13 with m pointing inward, so x stays in [−K, K]. The result m' = q_0/(2πΔ)·output matches m to **2^-21.3** (threshold 2^-16) in exactly 7 levels. This is the sine-versus-modulus term at |m| = 1, (2πΔ/q_0)²/6 = 2^-21.3, so it is not noise. In a bootstrap the sine acts on the coefficients, whose rms is 2^-8.8 for slots in [−1, 1], and §6 puts this term at 36.1 bits.
+
+**n16_boot** (`n16_boot_keys_eval_mod`, `BootParams::default_n16()`, all 2^15 slots): level 27 → 20 (7 = `evalmod_levels`), scale exactly 2^58 in and out, max |m − m'| = **2^-21.27** (threshold 2^-16), against a sine term alone of 2^-21.28. The counts are 23 products, 20 relinearizations, 24 rescales and 71 constant products, as in §10.1. It took 5.0 s on one thread of the Mac while another job ran.
+
+### 10.3 ModRaise with SSE
+
+`KeyGenerator::sse_keys(h')` samples an ephemeral ternary s' with exactly h' nonzero coefficients and keeps two keys in `SseKeys`:
+- `to_sparse`: s → s' modulo q_0·P, with one part and level-0 Q parts. Its RLWE samples are under s' with log(q_0 P) = 294 (§8 (b)).
+- `to_dense`: s' → s modulo Q·P, with dnum parts.
+
+s' itself is dropped. `Evaluator::mod_raise(ct, &sse)` works in three steps:
+1. at level 0, key-switch c_1 to s';
+2. raise both components to the top level with `RnsPoly::raise_from_level0`, the centered lift into [−(q_0−1)/2, (q_0−1)/2];
+3. key-switch c_1 back to s at the top level.
+
+The scale stays Δ, and Task 38 relabels it to q_0. `mod_raise_main_key` skips SSE and is for tests only.
+
+**Key switches.** Each `mod_raise` performs exactly 2 key switches: one at level 0 with `to_sparse`, and one at the top level with `to_dense`. These are not yet counted in `OpCounter`. Task 38 counts them, together with its change of `BOOT_KS_EQUIV` to `key_switches_per_boot` (controller ruling C), so that RQ1 counts every key switch.
+
+**Noise of the two switches.**
+- The level-0 switch adds Σ d·e/P + r_b + r_a·s'. The digit term is about q_0/P ≈ 2^-186 of the key error. The P-rounding term is sqrt((h'+1)/12) = 1.66 per coefficient.
+- The top switch adds the dense rounding term sqrt((N/2+1)/12), which is 52 at N = 2^16, plus the digit term of §6 (negligible with P = 4×60).
+
+**What each term alone allows**, in the §6 model −log2(4.2·sqrt(N/2)·σ/Δ) with σ the coefficient rms:
+- the level-0 switch, about 31.7 bits at n16_boot;
+- the top switch, about 26.7 bits.
+
+Both are far above the binding 17.4-bit input-noise term, and the top switch moves the total by under 0.1 bit.
+
+**Measured** (N = 2^12, insecure test chain with α = 2, 4 ciphertexts, 16384 coefficients):
+
+| quantity | predicted | measured |
+|---|---|---|
+| σ_I under SSE, h' = 32 | sqrt(33/12) = 1.658 | 1.663 (mean −0.005, max \|I\| = 7 ≤ K = 13) |
+| σ_I without SSE (dense key, h = 1994) | 12.89 | 12.92 |
+| level-0 switch s → s', rms per coefficient | 1.658 | 1.682 (33.7 bits alone at N = 2^12) |
+| top switch s' → s, rms per coefficient | sqrt(2049/12) = 13.1 | 12.90 (30.7 bits alone) |
+
+**n16_boot** (`n16_boot_keys_sse_mod_raise`, dense main key, h' = 32, two ciphertexts, 2^17 coefficients):
+
+| quantity | predicted | measured |
+|---|---|---|
+| σ_I | 1.658 | **1.664** (mean −0.003, max \|I\| = 8 ≤ K = 13) |
+| level-0 switch s → s', rms per coefficient | 1.658 | **1.654**: 31.7 bits alone |
+| top switch s' → s, rms per coefficient | sqrt(32769/12) = 52.3 | **52.35**: 26.7 bits alone |
+| residual t − Δc − q_0 I (fresh encryption + both switches) | — | 74.0: 26.2 bits alone |
+
+**Consistency with the input-noise term.** The binding term of §6 allows 17.4 bits. The level-0 switch allows 31.7 bits alone, 14 bits of margin, so it is negligible. The top switch allows 26.7 bits. In the §6 units (coefficient error in x units) it is 2^-48.3 against the binding term's 2^-39.0, so adding it in quadrature costs under 0.01 bit and the 17.4-bit prediction stands.

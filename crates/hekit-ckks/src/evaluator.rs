@@ -194,7 +194,7 @@ impl Evaluator {
     }
 
     /// Applies `f` to the counter (called after an operation succeeded).
-    fn count(&self, f: impl FnOnce(&mut OpCounter)) {
+    pub(crate) fn count(&self, f: impl FnOnce(&mut OpCounter)) {
         f(&mut self.counter.lock().unwrap_or_else(PoisonError::into_inner));
     }
 

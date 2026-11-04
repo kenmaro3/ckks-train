@@ -21,7 +21,7 @@ pub use encoder::Encoder;
 pub use encrypt::{Decryptor, Encryptor};
 pub use evaluator::Evaluator;
 pub use keys::{
-    GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey,
+    GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey, SseKeys,
 };
 pub use linalg::{
     DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_rotation_steps_with_offset, bsgs_split,

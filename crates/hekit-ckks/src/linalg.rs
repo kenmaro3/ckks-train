@@ -311,6 +311,59 @@ impl Diagonals<Plaintext> {
     }
 }
 
+impl Diagonals<Option<Plaintext>> {
+    /// [`Diagonals::<Plaintext>::encode_complex`] that stores no plaintext for an all-zero
+    /// (pre-rotated) diagonal: such entries are `None`. Used by the bootstrapping DFT stages
+    /// ([`crate::bootstrap::linear`]), where about one diagonal in six is zero (at n16_boot a
+    /// plaintext at the CoeffToSlot levels is 16 MB). Errors as `encode_complex`, and
+    /// `InvalidParams` if every diagonal is zero.
+    pub fn encode_complex_sparse(
+        encoder: &Encoder,
+        diagonals: &[Vec<Complex64>],
+        stride: usize,
+        offset: i64,
+        scale: f64,
+        level: usize,
+    ) -> Result<Diagonals<Option<Plaintext>>> {
+        check_offset(diagonals.len(), offset)?;
+        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, offset)?;
+        let zero = Complex64::new(0.0, 0.0);
+        let entries = pre
+            .iter()
+            .map(|v| {
+                if v.iter().all(|&x| x == zero) {
+                    Ok(None)
+                } else {
+                    encoder.encode_complex(v, scale, level).map(Some)
+                }
+            })
+            .collect::<Result<Vec<_>>>()?;
+        if entries.iter().all(Option::is_none) {
+            return Err(HekitError::InvalidParams(
+                "every diagonal is zero (nothing to encode)".into(),
+            ));
+        }
+        Ok(Diagonals {
+            d: diagonals.len(),
+            baby,
+            giant,
+            stride,
+            offset,
+            entries,
+        })
+    }
+
+    /// The common scale of the encoded entries (`None` if every entry is `None`).
+    pub fn plain_scale(&self) -> Option<f64> {
+        self.entries.iter().flatten().next().map(Plaintext::scale)
+    }
+
+    /// The number of encoded (nonzero) entries.
+    pub fn nonzero(&self) -> usize {
+        self.entries.iter().flatten().count()
+    }
+}
+
 impl Diagonals<Ciphertext> {
     /// Pre-rotates, encodes (at `scale` and `level`) and encrypts `diagonals`; errors as
     /// [`Diagonals::<Plaintext>::encode`]. `encoder` and `encryptor` must be for the same
@@ -612,6 +665,64 @@ impl Evaluator {
             }
         }
         self.bsgs(terms, is_zero_plaintext, |w, xr| self.mul_plain(xr, w), Ok)
+    }
+
+    /// [`Evaluator::matvec_plain_sum`] for diagonals whose zero entries are not stored
+    /// ([`Diagonals::<Option<Plaintext>>::encode_complex_sparse`]): `None` entries are
+    /// skipped exactly as zero plaintexts are there, with the same costs and result.
+    ///
+    /// Errors, all before any work: `InvalidParams` if `terms` is empty, an `x_t` is not a
+    /// 2-component ciphertext over this evaluator's basis, an entry is not over the basis,
+    /// the diagonals differ in `d`, `stride` or `offset`, the stride does not fit, a term has
+    /// no entry at all, or a Galois key is missing; `LevelMismatch` if the `x_t` or the
+    /// entries differ in level; `ScaleMismatch` unless every `x_t` has exactly the scale of
+    /// `x_0` and every entry exactly one common scale.
+    pub fn matvec_plain_sum_sparse(
+        &self,
+        terms: &[(&Diagonals<Option<Plaintext>>, &Ciphertext)],
+    ) -> Result<Ciphertext> {
+        let Some(&(d0, x0)) = terms.first() else {
+            return Err(HekitError::InvalidParams(
+                "matvec_plain_sum_sparse needs at least one term".into(),
+            ));
+        };
+        let sp = d0.plain_scale();
+        for &(diag, x) in terms {
+            self.check_galois_input(x)?;
+            if (diag.d, diag.stride, diag.offset) != (d0.d, d0.stride, d0.offset) {
+                return Err(HekitError::InvalidParams(
+                    "matvec_plain_sum_sparse terms must share d, stride and offset".into(),
+                ));
+            }
+            if diag.nonzero() == 0 {
+                return Err(HekitError::InvalidParams(
+                    "a term of matvec_plain_sum_sparse has no nonzero diagonal".into(),
+                ));
+            }
+            for p in diag.entries.iter().flatten() {
+                self.check_basis(std::slice::from_ref(p.poly()))?;
+                if p.level() != x.level() {
+                    return Err(HekitError::LevelMismatch);
+                }
+                if Some(p.scale()) != sp {
+                    return Err(HekitError::ScaleMismatch);
+                }
+            }
+            if x.level() != x0.level() {
+                return Err(HekitError::LevelMismatch);
+            }
+            if x.scale() != x0.scale() {
+                return Err(HekitError::ScaleMismatch);
+            }
+            check_stride(diag.d(), diag.stride(), self.params().slots())?;
+            self.check_rotation_keys(&diag.rotation_steps())?;
+        }
+        self.bsgs(
+            terms,
+            Option::is_none,
+            |w, xr| self.mul_plain(xr, w.as_ref().expect("skipped if None")),
+            Ok,
+        )
     }
 
     /// `sum_{k1} rot(finish(sum_t sum_{k2} mul(entries_t[k1 baby + k2], rot(x_t, k2 s))),

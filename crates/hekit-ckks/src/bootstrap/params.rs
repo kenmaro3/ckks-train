@@ -101,8 +101,9 @@ impl BootParams {
     /// The Chebyshev part assumes the **level-optimal, scale-invariant baby-step giant-step
     /// evaluation of Bossuat et al. (Eurocrypt 2021, Alg. 2)**: power-of-two giant steps, and
     /// baby-step scalar products that are not rescaled on their own but whose scales are chosen so
-    /// one rescale after the giant-step product lands on the target scale. This is a requirement
-    /// on Task 37. Textbook Paterson-Stockmeyer (or rescaling each `c_i T_i`) costs one level more,
+    /// one rescale after the giant-step product lands on the target scale. Task 37 implements it
+    /// ([`Evaluator::eval_chebyshev`](crate::Evaluator::eval_chebyshev), whose depth is
+    /// [`chebyshev_depth`](crate::bootstrap::chebyshev_depth)). Textbook Paterson-Stockmeyer (or rescaling each `c_i T_i`) costs one level more,
     /// 8 for the default; then the fallback is the e8dbe3e chain with 8 EvalMod levels and the same
     /// r = 0, degree 127 (docs/bootstrap.md §5).
     pub fn evalmod_depth(&self) -> usize {

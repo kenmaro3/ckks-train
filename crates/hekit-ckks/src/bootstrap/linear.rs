@@ -45,8 +45,9 @@
 //! CoeffToSlot then gives `re + i im = factor * u`, SlotToCoeff gives `factor * z`. Its
 //! modulus is spread evenly over the stages.
 //!
-//! Each stage is a BSGS product of plaintext diagonals ([`Evaluator::matvec_plain_sum`]) at
-//! one level, followed by one rescale; [`encode_stages`] picks every diagonal scale so that
+//! Each stage is a BSGS product of plaintext diagonals
+//! ([`Evaluator::matvec_plain_sum_sparse`]: all-zero diagonals are neither stored nor
+//! multiplied) at one level, followed by one rescale; [`encode_stages`] picks every diagonal scale so that
 //! the ciphertext lands **exactly** on a planned scale after each rescale (powers of two in
 //! between, `output_scale` after the last stage; the exact-scale path of
 //! [`crate::evaluator`]).
@@ -448,7 +449,12 @@ pub struct StageSpec {
     pub direction: Direction,
     /// Level of the first stage's input; stage `k` runs at `start_level - k`.
     pub start_level: usize,
-    /// Exact scale of the input ciphertext(s).
+    /// Exact scale of the input ciphertext(s). For CoeffToSlot after the mod-raise this is
+    /// `q_0` as an f64, which is **not exact** for the 54-bit `q_0` of n16_boot (f64 keeps 53
+    /// bits: `q_0 as f64` is `q_0` rounded to an even integer, relative difference
+    /// `<= 2^-54`). Labelling the raised ciphertext with it decodes `x = t / q_0` with that
+    /// relative error, which is negligible; but the stage checks compare f64 scales exactly,
+    /// so the relabel and this field must use the same value (`params.q()[0] as f64`).
     pub input_scale: f64,
     /// Exact scale after the last stage's rescale (at `start_level - stages`).
     pub output_scale: f64,
@@ -458,15 +464,16 @@ pub struct StageSpec {
 }
 
 /// One stage of CoeffToSlot or SlotToCoeff: plaintext diagonals at one level and the exact
-/// ciphertext scale after its rescale.
+/// ciphertext scale after its rescale. All-zero diagonals of the BSGS window are not stored
+/// (`None` entries, [`Diagonals::<Option<Plaintext>>::encode_complex_sparse`]).
 #[derive(Debug, Clone)]
 pub struct LinearTransform {
     /// The diagonals applied to the stage input.
-    pub diags: Diagonals<Plaintext>,
+    pub diags: Diagonals<Option<Plaintext>>,
     /// The diagonals of a two-input stage, with the same layout: applied to the conjugate of
     /// the stage input in CoeffToSlot's last stage, to the `im` ciphertext in SlotToCoeff's
     /// first stage (then `diags` takes `re`); `None` for a complex-linear stage.
-    pub second: Option<Diagonals<Plaintext>>,
+    pub second: Option<Diagonals<Option<Plaintext>>>,
     /// The level of the stage input (and of the diagonals).
     pub level: usize,
     /// The exact ciphertext scale after the stage's rescale (to `level - 1`).
@@ -599,7 +606,7 @@ pub fn encode_stages(
         let level = spec.start_level - k;
         let shape = stages[k].shape();
         let encode = |m: &DiagMatrix| {
-            Diagonals::<Plaintext>::encode_complex(
+            Diagonals::<Option<Plaintext>>::encode_complex_sparse(
                 encoder,
                 &m.window(shape)?,
                 shape.stride,
@@ -655,8 +662,9 @@ impl Evaluator {
     /// Costs one BSGS product and one rescale per stage, the conjugation of the last stage's
     /// input and the conjugation of the result (two conjugation key switches).
     ///
-    /// Errors, all before any work: `InvalidParams` if `ctos` is empty, `ct` is not a
-    /// 2-component ciphertext over this evaluator's basis, or a rotation key
+    /// Errors, all before any work: `InvalidParams` if `ctos` is empty, its last stage has no
+    /// `second` diagonals or an earlier one has (a SlotToCoeff list, or stages out of order),
+    /// `ct` is not a 2-component ciphertext over this evaluator's basis, or a rotation key
     /// ([`LinearTransform::rotation_steps`]) or the conjugation key is missing;
     /// `LevelMismatch` unless the stage levels are `ct.level(), ct.level() - 1, ...`;
     /// `ScaleMismatch` unless `ct.scale()` is the scale the stages were encoded for.
@@ -666,6 +674,14 @@ impl Evaluator {
         ctos: &[LinearTransform],
     ) -> Result<(Ciphertext, Ciphertext)> {
         self.check_galois_input(ct)?;
+        let Some((last, rest)) = ctos.split_last() else {
+            return Err(HekitError::InvalidParams("no stages".into()));
+        };
+        if last.second.is_none() || rest.iter().any(|lt| lt.second.is_some()) {
+            return Err(HekitError::InvalidParams(
+                "coeff_to_slot: only the last stage (and it must) takes the conjugate".into(),
+            ));
+        }
         self.check_stages(ctos, ct.level(), ct.scale())?;
         self.check_conjugation_key()?;
         let mut x = ct.clone();
@@ -736,7 +752,11 @@ impl Evaluator {
                 return Err(HekitError::LevelMismatch);
             }
             let label = self.exact_product_scale(lt.level, lt.scale)?;
-            let sp = lt.diags.entries()[0].scale();
+            let Some(sp) = lt.diags.plain_scale() else {
+                return Err(HekitError::InvalidParams(
+                    "a stage without diagonals".into(),
+                ));
+            };
             if sp != label / s_in {
                 return Err(HekitError::ScaleMismatch);
             }
@@ -748,7 +768,7 @@ impl Evaluator {
                         "second diagonals of a different layout".into(),
                     ));
                 }
-                if b.entries()[0].scale() != sp {
+                if b.plain_scale() != Some(sp) {
                     return Err(HekitError::ScaleMismatch);
                 }
             }
@@ -771,7 +791,7 @@ impl Evaluator {
         if let (Some(b), Some(x2)) = (&lt.second, x2) {
             terms.push((b, x2));
         }
-        let y = self.matvec_plain_sum(&terms)?;
+        let y = self.matvec_plain_sum_sparse(&terms)?;
         let label = self.exact_product_scale(lt.level, lt.scale)?;
         if ((y.scale() - label) / label).abs() > 1e-15 {
             return Err(HekitError::ScaleMismatch);
@@ -1059,6 +1079,95 @@ mod tests {
             key_bytes as f64 / 1e9,
             total / 1e9
         );
+    }
+
+    /// M1 (Task 36 review): the n16_boot stages (log_slots 15, 4 + 4 levels) against a direct
+    /// evaluation of the special DFT on sampled slots, in the clear (no keys, no encoding):
+    /// the forward stages give `z_j = m(zeta^(3^j))`, the adapted SlotToCoeff (factor `f`)
+    /// gives `f z_j`, the adapted CoeffToSlot (factor `1/K`) gives back `u / K` from the
+    /// full slot vector. Also the zero diagonals the sparse encoding skips (M6).
+    #[test]
+    fn n16_boot_stages_match_a_direct_dft() {
+        let bp = BootParams::default_n16();
+        let n = 1usize << bp.log_slots;
+        let mut r = rng(16);
+        let m = rand_vals(&mut r, 2 * n);
+        let u = packed_coeffs(&m);
+        let (a, b): (Vec<f64>, Vec<f64>) = u.iter().map(|v| (v.re, v.im)).unzip();
+        let fwd = dft_stages(bp.log_slots, bp.stoc_levels, false).unwrap();
+        let inv = dft_stages(bp.log_slots, bp.ctos_levels, true).unwrap();
+        // Direct z_j at 48 sampled slots (both ends and random ones).
+        let two_n = 4 * n;
+        let mut js: Vec<usize> = vec![0, 1, 2, 3, n - 2, n - 1];
+        js.extend((0..42).map(|_| (r.next_u64() % n as u64) as usize));
+        let direct: Vec<Complex64> = js
+            .iter()
+            .map(|&j| {
+                let g = pow_mod(3, j, two_n);
+                m.iter()
+                    .enumerate()
+                    .map(|(k, &mk)| root(g * k % two_n, two_n) * mk)
+                    .sum()
+            })
+            .collect();
+        let at = |z: &[Complex64]| -> Vec<Complex64> { js.iter().map(|&j| z[j]).collect() };
+        // |z_j| ~ sqrt(N / 3) ~ 148: errors are compared relative to sqrt(N).
+        let unit = (2.0 * n as f64).sqrt();
+        let mut x = u.clone();
+        for st in &fwd {
+            x = st.apply(&x);
+        }
+        let z = odd_conj(&x);
+        let e_fwd = max_err(&at(&z), &direct) / unit;
+        let f = Complex64::new(0.6, -0.45);
+        let stc = adapt(&fwd, Direction::SlotToCoeff, f).unwrap();
+        let fz: Vec<Complex64> = direct.iter().map(|v| f * v).collect();
+        let e_stc = max_err(&at(&clear_stoc(&stc, &a, &b)), &fz) / unit;
+        let k = Complex64::new(1.0 / bp.k_intervals as f64, 0.0);
+        let cts = adapt(&inv, Direction::CoeffToSlot, k).unwrap();
+        let uk: Vec<Complex64> = u.iter().map(|v| k * v).collect();
+        let e_cts = max_err(&clear_ctos(&cts, &z), &uk);
+        eprintln!(
+            "n16_boot stages vs direct DFT: forward 2^{:.1}, StC 2^{:.1} (relative to sqrt(N)), \
+             CtS 2^{:.1} (absolute, coefficients in [-1, 1])",
+            e_fwd.log2(),
+            e_stc.log2(),
+            e_cts.log2()
+        );
+        assert!(
+            e_fwd < 2f64.powi(-40) && e_stc < 2f64.powi(-40),
+            "{e_fwd:e} {e_stc:e}"
+        );
+        assert!(e_cts < 2f64.powi(-40), "{e_cts:e}");
+        // M6: all-zero diagonals of the BSGS windows (not encoded).
+        let p = CkksParams::n16_boot();
+        let bytes_at = |level: usize| ((level + 1) * p.n() * 8) as f64;
+        for (name, stages, adapted, top) in [
+            ("CoeffToSlot", &inv, &cts, p.max_level()),
+            (
+                "SlotToCoeff",
+                &fwd,
+                &stc,
+                crate::bootstrap::levels_after_boot(&p, &bp) + 4,
+            ),
+        ] {
+            let (mut windows, mut zeros, mut saved) = (0, 0, 0.0);
+            for (i, (st, (ma, mb))) in stages.iter().zip(adapted).enumerate() {
+                for mm in std::iter::once(ma).chain(mb.as_ref()) {
+                    let w = mm.window(st.shape()).unwrap();
+                    let z = w.iter().filter(|v| v.iter().all(|x| *x == ZERO)).count();
+                    windows += w.len();
+                    zeros += z;
+                    saved += z as f64 * bytes_at(top - i);
+                }
+            }
+            eprintln!(
+                "n16_boot {name}: {windows} window diagonals, {zeros} all-zero not encoded \
+                 ({:.2} GB saved)",
+                saved / 1e9
+            );
+            assert!(zeros > 0);
+        }
     }
 
     /// The adapted stages give hekit's CoeffToSlot / SlotToCoeff in the clear, for every
@@ -1529,6 +1638,19 @@ mod tests {
                 stc_ops.ct_pt_mults - cts_ops.ct_pt_mults
             )
         );
+        // M6: exactly the nonzero diagonals are stored (one plaintext per product).
+        let stored = |lts: &[LinearTransform]| -> u64 {
+            lts.iter()
+                .map(|lt| lt.diags.nonzero() + lt.second.as_ref().map_or(0, |b| b.nonzero()))
+                .sum::<usize>() as u64
+        };
+        assert_eq!((stored(&ctos), stored(&stoc)), (cts_plan.1, stc_plan.1));
+        let windows: usize = ctos
+            .iter()
+            .chain(&stoc)
+            .map(|lt| lt.diags.d() * (1 + lt.second.is_some() as usize))
+            .sum();
+        assert!((stored(&ctos) + stored(&stoc)) < windows as u64);
     }
 
     /// Every error is reported before any work (the counter does not move).
@@ -1583,6 +1705,26 @@ mod tests {
                 .unwrap_err(),
             HekitError::InvalidParams("missing galois key".into())
         );
+        // M2: coeff_to_slot rejects a SlotToCoeff list (`second` on the first stage) and a
+        // CoeffToSlot list whose last stage lost its `second`.
+        let ct_full = remap(&full, &ct);
+        let stoc_list = tiny_stoc(&full, 2, 2f64.powi(46), ONE);
+        assert!(matches!(
+            full.eval.coeff_to_slot(&ct_full, &stoc_list),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let mut no_second = tiny_ctos(&full, 2, ONE);
+        no_second[1].second = None;
+        assert!(matches!(
+            full.eval.coeff_to_slot(&ct_full, &no_second),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let mut two_seconds = tiny_ctos(&full, 2, ONE);
+        two_seconds[0].second = two_seconds[1].second.clone();
+        assert!(matches!(
+            full.eval.coeff_to_slot(&ct_full, &two_seconds),
+            Err(HekitError::InvalidParams(_))
+        ));
         // slot_to_coeff: CtS stages, mismatched inputs.
         let stoc = tiny_stoc(&full, 2, 2f64.powi(46), ONE);
         let s = 2f64.powi(46);

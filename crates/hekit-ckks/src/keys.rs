@@ -414,65 +414,199 @@ impl KeyGenerator {
         self.galois_key(conjugation_elt(self.params.n()))
     }
 
+    /// Sparse-secret encapsulation keys (Bossuat, Troncoso-Pastoriza, Hubaux, ACNS 2022;
+    /// controller ruling R-M3-9) for a fresh ephemeral ternary secret `s'` with exactly
+    /// `hamming_weight` nonzero coefficients (see [`SseKeys`]). `s'` itself is dropped: only
+    /// the two switching keys are kept.
+    ///
+    /// Errors with `InvalidParams` unless `1 <= hamming_weight <= N`.
+    pub fn sse_keys(&mut self, hamming_weight: usize) -> Result<SseKeys> {
+        self.sse_keys_with_secret(hamming_weight).map(|(k, _)| k)
+    }
+
+    /// [`KeyGenerator::sse_keys`] and the ephemeral secret (for the noise tests).
+    pub(crate) fn sse_keys_with_secret(
+        &mut self,
+        hamming_weight: usize,
+    ) -> Result<(SseKeys, SecretKey)> {
+        let n = self.params.n();
+        if hamming_weight == 0 || hamming_weight > n {
+            return Err(HekitError::InvalidParams(format!(
+                "ephemeral Hamming weight {hamming_weight} must be in 1..=N = {n}"
+            )));
+        }
+        let top = self.params.max_level();
+        let s = self
+            .rng
+            .ternary_poly(self.params.basis_q(), top, Some(hamming_weight));
+        let sparse = small_qp(self.params.basis_p(), s);
+        // s -> s': RLWE samples under s' modulo q_0 * P, one part (the level-0 digit).
+        let to_sparse = ksk_under(&mut self.rng, &self.params, &sparse, &self.sk.0.q, 0);
+        // s' -> s: a standard key modulo Q * P.
+        let to_dense = ksk_under(&mut self.rng, &self.params, &self.sk.0, &sparse.q, top);
+        Ok((
+            SseKeys {
+                hamming_weight,
+                to_sparse,
+                to_dense,
+            },
+            SecretKey(sparse),
+        ))
+    }
+
     /// An RLWE sample `(b, a) = (-a s + e, a)` over `Q * P` (NTT form).
     fn rlwe_sample(&mut self) -> (QpPoly, QpPoly) {
-        let (bq, bp) = (self.params.basis_q(), self.params.basis_p());
-        let mut aq = self.rng.uniform_poly(bq, bq.len() - 1);
-        let mut ap = self.rng.uniform_poly(bp, bp.len() - 1);
-        aq.to_ntt();
-        ap.to_ntt();
-        let e = self.rng.gaussian_poly(bq, bq.len() - 1, ERROR_STD_DEV);
-        let e = small_qp(bp, e);
-        let b = [(&aq, &self.sk.0.q, &e.q), (&ap, &self.sk.0.p, &e.p)].map(|(a, s, e)| {
-            let mut b = a.clone();
-            b.mul_assign(s);
-            b.neg();
-            b.add_assign(e);
-            b
-        });
-        let [b_q, b_p] = b;
-        (QpPoly::new(b_q, b_p), QpPoly::new(aq, ap))
+        let top = self.params.max_level();
+        rlwe_sample_under(&mut self.rng, &self.params, &self.sk.0, top)
     }
 
     /// The hybrid key-switching key from `s_prime` (NTT form, `Q` part at level `L`) to `s`:
     /// part `j` is an RLWE sample with `[P]_{q_i} * s'_i` added to limb `i` of `b`'s `Q`
     /// part for every prime `i` of digit `j` (module docs).
     fn ksk(&mut self, s_prime: &RnsPoly) -> KskKey {
-        let basis_q = Arc::clone(self.params.basis_q());
-        assert!(
-            s_prime.is_ntt_form() && s_prime.level() + 1 == basis_q.len(),
-            "source key must be in NTT form over all data primes"
-        );
-        let (n, alpha) = (basis_q.n(), self.params.alpha());
-        let specials = self.params.p().to_vec();
-        let mut parts = Vec::with_capacity(self.params.dnum());
-        for j in 0..self.params.dnum() {
-            let (b, a) = self.rlwe_sample();
-            let digit = j * alpha..(j + 1) * alpha;
-            let limbs = basis_q
-                .moduli()
-                .iter()
-                .enumerate()
-                .map(|(i, m)| {
-                    if digit.contains(&i) {
-                        let q = m.value();
-                        let p_mod = specials.iter().fold(1 % q, |acc, &p| m.mul(acc, p % q));
-                        let s = m.shoup(p_mod);
-                        s_prime.limbs()[i]
-                            .iter()
-                            .map(|&x| m.mul_shoup(x, &s))
-                            .collect()
-                    } else {
-                        vec![0u64; n]
-                    }
-                })
-                .collect();
-            let gadget = RnsPoly::from_limbs(&basis_q, limbs, true).expect("reduced limbs");
-            let (mut b_q, b_p) = b.into_parts();
-            b_q.add_assign(&gadget);
-            parts.push((QpPoly::new(b_q, b_p), a));
+        let top = self.params.max_level();
+        ksk_under(&mut self.rng, &self.params, &self.sk.0, s_prime, top)
+    }
+}
+
+/// An RLWE sample `(b, a) = (-a t + e, a)` under the secret `target` modulo `Q_level * P`
+/// (NTT form; the `Q` parts have `level + 1` limbs).
+fn rlwe_sample_under(
+    rng: &mut Rng,
+    params: &CkksParams,
+    target: &QpPoly,
+    level: usize,
+) -> (QpPoly, QpPoly) {
+    let (bq, bp) = (params.basis_q(), params.basis_p());
+    let mut aq = rng.uniform_poly(bq, level);
+    let mut ap = rng.uniform_poly(bp, bp.len() - 1);
+    aq.to_ntt();
+    ap.to_ntt();
+    let e = rng.gaussian_poly(bq, level, ERROR_STD_DEV);
+    let e = small_qp(bp, e);
+    let truncated_q;
+    let tq = if level == target.q.level() {
+        &target.q
+    } else {
+        truncated_q = truncated(&target.q, level);
+        &truncated_q
+    };
+    let b = [(&aq, tq, &e.q), (&ap, &target.p, &e.p)].map(|(a, s, e)| {
+        let mut b = a.clone();
+        b.mul_assign(s);
+        b.neg();
+        b.add_assign(e);
+        b
+    });
+    let [b_q, b_p] = b;
+    (QpPoly::new(b_q, b_p), QpPoly::new(aq, ap))
+}
+
+/// The key-switching key from `s_prime` (NTT form over all data primes) to `target` modulo
+/// `Q_level * P`: the parts of the digits that start at or below `level` (all `dnum` for
+/// `level = L`), each an RLWE sample under `target` with `Q` parts at `level` and the gadget
+/// `[P]_{q_i} * s'_i` on the digit's limbs `i <= level` (module docs). A key truncated this
+/// way switches exactly the polynomials of level `<= level`.
+fn ksk_under(
+    rng: &mut Rng,
+    params: &CkksParams,
+    target: &QpPoly,
+    s_prime: &RnsPoly,
+    level: usize,
+) -> KskKey {
+    let basis_q = Arc::clone(params.basis_q());
+    assert!(
+        s_prime.is_ntt_form() && s_prime.level() + 1 == basis_q.len(),
+        "source key must be in NTT form over all data primes"
+    );
+    assert!(level < basis_q.len(), "level {level} above max_level");
+    let (n, alpha) = (basis_q.n(), params.alpha());
+    let specials = params.p();
+    let parts_count = level / alpha + 1;
+    let mut parts = Vec::with_capacity(parts_count);
+    for j in 0..parts_count {
+        let (b, a) = rlwe_sample_under(rng, params, target, level);
+        let digit = j * alpha..(j + 1) * alpha;
+        let limbs = basis_q.moduli()[..=level]
+            .iter()
+            .enumerate()
+            .map(|(i, m)| {
+                if digit.contains(&i) {
+                    let q = m.value();
+                    let p_mod = specials.iter().fold(1 % q, |acc, &p| m.mul(acc, p % q));
+                    let s = m.shoup(p_mod);
+                    s_prime.limbs()[i]
+                        .iter()
+                        .map(|&x| m.mul_shoup(x, &s))
+                        .collect()
+                } else {
+                    vec![0u64; n]
+                }
+            })
+            .collect();
+        let gadget = RnsPoly::from_limbs(&basis_q, limbs, true).expect("reduced limbs");
+        let (mut b_q, b_p) = b.into_parts();
+        b_q.add_assign(&gadget);
+        parts.push((QpPoly::new(b_q, b_p), a));
+    }
+    KskKey { parts }
+}
+
+/// The two switching keys of sparse-secret encapsulation (SSE; Bossuat, Troncoso-Pastoriza,
+/// Hubaux, ACNS 2022), used by [`Evaluator::mod_raise`](crate::Evaluator::mod_raise):
+///
+/// * `to_sparse`: from the main key `s` to an ephemeral ternary key `s'` of Hamming weight
+///   `h'` ([`SseKeys::hamming_weight`]), **modulo `q_0 * P` only** (one part: the level-0
+///   digit, `Q` parts with one limb). It switches level-0 ciphertexts only; its RLWE samples
+///   are under the sparse `s'` with modulus `q_0 P` (log 294 for n16_boot), the instance
+///   docs/bootstrap.md §8 (b) gives to the security estimate.
+/// * `to_dense`: from `s'` back to `s`, a standard key modulo `Q * P` (`dnum` parts, RLWE
+///   under the dense main key).
+///
+/// The mod-raise runs under `s'`, so the overflow `I` has `sigma_I = sqrt((h' + 1) / 12)`
+/// instead of `sqrt((N/2 + 1) / 12)` (docs/bootstrap.md §3). Task 38's bootstrapping keys
+/// embed this struct. `Debug` prints the shape only.
+#[derive(Clone)]
+pub struct SseKeys {
+    hamming_weight: usize,
+    to_sparse: KskKey,
+    to_dense: KskKey,
+}
+
+impl std::fmt::Debug for SseKeys {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SseKeys")
+            .field("hamming_weight", &self.hamming_weight)
+            .field("to_sparse_parts", &self.to_sparse.dnum())
+            .field("to_dense_parts", &self.to_dense.dnum())
+            .finish()
+    }
+}
+
+impl SseKeys {
+    /// Assembles keys from parts (tests of the shape checks).
+    #[cfg(test)]
+    pub(crate) fn from_parts(hamming_weight: usize, to_sparse: KskKey, to_dense: KskKey) -> Self {
+        SseKeys {
+            hamming_weight,
+            to_sparse,
+            to_dense,
         }
-        KskKey { parts }
+    }
+
+    /// The Hamming weight `h'` of the ephemeral key.
+    pub fn hamming_weight(&self) -> usize {
+        self.hamming_weight
+    }
+
+    /// The key from `s` to `s'` modulo `q_0 * P` (one part, level-0 `Q` parts).
+    pub fn to_sparse(&self) -> &KskKey {
+        &self.to_sparse
+    }
+
+    /// The key from `s'` to `s` modulo `Q * P` (`dnum` parts).
+    pub fn to_dense(&self) -> &KskKey {
+        &self.to_dense
     }
 }
 
