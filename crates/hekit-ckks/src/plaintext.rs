@@ -7,12 +7,23 @@ use hekit_core::poly::RnsPoly;
 ///
 /// As in SEAL 4.1, the polynomial is always stored in **NTT form** (bit-reversed evaluation
 /// order of [`hekit_core::ntt::NttTable::forward`]), so it can be multiplied with NTT-form
-/// ciphertexts without conversion. `level` always equals `poly.level()`.
-#[derive(Debug, Clone)]
+/// ciphertexts without conversion. `level` always equals `poly.level()`. `Debug` prints the
+/// shape (`n`, `level`, `scale`), not the residues.
+#[derive(Clone)]
 pub struct Plaintext {
     poly: RnsPoly,
     scale: f64,
     level: usize,
+}
+
+impl std::fmt::Debug for Plaintext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Plaintext")
+            .field("n", &self.poly.basis().n())
+            .field("level", &self.level)
+            .field("scale", &self.scale)
+            .finish()
+    }
 }
 
 impl Plaintext {

@@ -62,13 +62,29 @@ pub const SCALE_TOLERANCE: f64 = 1.0 / 1024.0;
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
 /// counts the expensive operations it performs ([`Evaluator::counter`]).
 ///
-/// `Clone` copies the keys and the current counts into an independent counter.
-#[derive(Debug)]
+/// `Clone` copies the keys and the current counts into an independent counter. `Debug`
+/// prints a summary (ring degree, top level, which keys are present, the counts), not the
+/// keys.
 pub struct Evaluator {
     params: Arc<CkksParams>,
     relin: Option<RelinKey>,
     galois: Option<GaloisKeys>,
     counter: Mutex<OpCounter>,
+}
+
+impl std::fmt::Debug for Evaluator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Evaluator")
+            .field("n", &self.params.n())
+            .field("max_level", &self.params.max_level())
+            .field("relin_key", &self.relin.is_some())
+            .field(
+                "galois_keys",
+                &self.galois.as_ref().map_or(0, GaloisKeys::len),
+            )
+            .field("counter", &self.counter())
+            .finish()
+    }
 }
 
 impl Clone for Evaluator {
@@ -623,6 +639,28 @@ mod tests {
             .zip(b)
             .map(|(x, y)| (x - y).norm())
             .fold(0.0, f64::max)
+    }
+
+    /// m3: `Debug` of the evaluator, ciphertexts and plaintexts prints shapes, not limbs.
+    #[test]
+    fn debug_is_summarized() {
+        let c = small();
+        let s = format!("{:?}", c.eval);
+        assert!(
+            s.starts_with("Evaluator { n: 4096, max_level: 5, relin_key: true, galois_keys: 7, counter: OpCounter {"),
+            "{s}"
+        );
+        assert!(s.len() < 300, "{s}");
+        let pt = c.enc.encode(&[0.5], 4.0, 2).unwrap();
+        assert_eq!(
+            format!("{pt:?}"),
+            "Plaintext { n: 4096, level: 2, scale: 4.0 }"
+        );
+        let ct = c.encryptor.encrypt(&pt, &mut rng(3));
+        assert_eq!(
+            format!("{ct:?}"),
+            "Ciphertext { n: 4096, len: 2, level: 2, scale: 4.0 }"
+        );
     }
 
     #[test]

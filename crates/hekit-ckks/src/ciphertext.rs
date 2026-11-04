@@ -11,12 +11,24 @@ use hekit_core::poly::RnsPoly;
 /// `k = 2` for fresh / relinearized ciphertexts and `k = 3` after a multiplication before
 /// relinearization. As in SEAL 4.1 every component is in **NTT form**; all components share
 /// the data basis `q_0..=q_level` (the `basis_q` of the parameters, same `Arc`), and `level`
-/// always equals the level of every component.
-#[derive(Debug, Clone)]
+/// always equals the level of every component. `Debug` prints the shape (`n`, `len`,
+/// `level`, `scale`), not the residues.
+#[derive(Clone)]
 pub struct Ciphertext {
     c: Vec<RnsPoly>,
     scale: f64,
     level: usize,
+}
+
+impl std::fmt::Debug for Ciphertext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ciphertext")
+            .field("n", &self.c[0].basis().n())
+            .field("len", &self.c.len())
+            .field("level", &self.level)
+            .field("scale", &self.scale)
+            .finish()
+    }
 }
 
 impl Ciphertext {
