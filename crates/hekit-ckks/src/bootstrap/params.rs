@@ -58,9 +58,10 @@ pub struct BootParams {
 
 impl BootParams {
     /// Full-slot parameters for [`CkksParams::n16_boot`] (rulings R-M3-5, R-M3-7, R-M3-8):
-    /// CoeffToSlot 4, EvalMod 7, SlotToCoeff 4, dense main key (`sparse_hw = None`), sparse-secret
-    /// encapsulation to `ephemeral_hw = Some(32)`, and K = 13, degree 127, r = 0. The EvalMod constants assume
-    /// that SSE: they are sized for an h' = 32 mod-raise key (docs/bootstrap.md §3, §4).
+    /// CoeffToSlot 4, EvalMod 7, SlotToCoeff 4, dense main key (`sparse_hw = None`),
+    /// sparse-secret encapsulation to `ephemeral_hw = Some(32)`, and K = 13, degree 127,
+    /// r = 0. The EvalMod constants assume that SSE: they are sized for an h' = 32 mod-raise
+    /// key (docs/bootstrap.md §3, §4).
     /// Predicted precision 17.4 bits at q_0/Delta = 2^12 (docs/bootstrap.md §6). The 7-level
     /// EvalMod needs the level-optimal Chebyshev evaluation (see [`BootParams::evalmod_depth`]).
     pub fn default_n16() -> BootParams {
@@ -94,8 +95,8 @@ impl BootParams {
         (7.0 * ((h + 1.0) / 12.0).sqrt() + 0.5).ceil() as usize
     }
 
-    /// Levels EvalMod consumes: `ceil(log2(cheb_degree + 1)) + double_angle`, then one level per
-    /// double angle.
+    /// Levels EvalMod consumes: `ceil(log2(cheb_degree + 1))` for the Chebyshev evaluation plus
+    /// one level per double angle, `ceil(log2(cheb_degree + 1)) + double_angle`.
     ///
     /// The Chebyshev part assumes the **level-optimal, scale-invariant baby-step giant-step
     /// evaluation of Bossuat et al. (Eurocrypt 2021, Alg. 2)**: power-of-two giant steps, and
@@ -112,8 +113,9 @@ impl BootParams {
     /// Checks the parameters against `params`. Errors (`InvalidParams`): `log_slots` outside
     /// `1..=log_n - 1`; a band of zero levels; the three bands not leaving at least one compute
     /// level above the base; `k_intervals` or `cheb_degree` zero; [`Self::evalmod_depth`] (the
-    /// level-optimal count, 7 for the default) above `evalmod_levels`; `sparse_hw` different from `params.hamming_weight()` (the weight the key
-    /// generator really uses); `ephemeral_hw` outside `1..=N` or not below the main key's weight
+    /// level-optimal count, 7 for the default) above `evalmod_levels`; `sparse_hw` different
+    /// from `params.hamming_weight()` (the weight the key generator really uses);
+    /// `ephemeral_hw` outside `1..=N` or not below the main key's weight
     /// (`params.hamming_weight()`, or `N / 2` for the dense key); `k_intervals` below
     /// [`Self::min_k_intervals`] (for example the SSE constants without SSE).
     pub fn validate(&self, params: &CkksParams) -> Result<()> {
@@ -142,7 +144,8 @@ impl BootParams {
         }
         if self.evalmod_depth() > self.evalmod_levels {
             return bad(format!(
-                "EvalMod depth {} (degree {}, {} double angles, level-optimal evaluation) exceeds {} levels",
+                "EvalMod depth {} (degree {}, {} double angles, level-optimal evaluation) \
+                 exceeds {} levels",
                 self.evalmod_depth(),
                 self.cheb_degree,
                 self.double_angle,
@@ -418,9 +421,16 @@ mod tests {
         ok.validate(&p).unwrap();
         assert_eq!(levels_after_boot(&p, &ok), 1);
         // The h = 192 alternative of docs/bootstrap.md §4 (no SSE): K = 32, degree 255, r = 0,
-        // 8 EvalMod levels (the e8dbe3e chain), valid only on parameters whose key really has
-        // weight 192.
-        let p192 = CkksParams::n16_boot().with_hamming_weight(192);
+        // 8 EvalMod levels, so it needs the e8dbe3e chain B ([54, 42 x 15, 34 x 4, 58 x 8,
+        // 56 x 4], built here), and it is valid only on parameters whose key really has
+        // weight 192. (`validate` checks depths and weights, not the prime size of each band.)
+        let mut chain_b = vec![54];
+        chain_b.extend([42; 15]);
+        chain_b.extend([34; 4]);
+        chain_b.extend([58; 8]);
+        chain_b.extend([56; 4]);
+        let p_b = CkksParams::new(16, &chain_b, &[60; 4], 42, 8).unwrap();
+        let p192 = p_b.clone().with_hamming_weight(192);
         let h192 = BootParams {
             sparse_hw: Some(192),
             ephemeral_hw: None,
@@ -439,10 +449,15 @@ mod tests {
             Err(HekitError::InvalidParams(_))
         ));
         h192.validate(&p192).unwrap();
-        assert!(matches!(
-            h192.validate(&p),
-            Err(HekitError::InvalidParams(_))
-        ));
+        assert_eq!(levels_after_boot(&p192, &h192), 15);
+        let q = p192.q_bits();
+        assert!(q[20..=27].iter().all(|&b| b == 58), "chain B EvalMod band");
+        for wrong_key in [&p_b, &p] {
+            assert!(matches!(
+                h192.validate(wrong_key),
+                Err(HekitError::InvalidParams(_))
+            ));
+        }
         // Ephemeral key not sparser than a weight-16 main key.
         let p16 = CkksParams::n16_boot().with_hamming_weight(16);
         let e32 = BootParams {

@@ -83,7 +83,7 @@ The input is a ciphertext at level 0 with scale Δ = 2^42; Task 38 checks both c
 
 Notes:
 - **EvalMod scale.** At level 27 the ciphertext enters EvalMod at scale 2^58, which matches `scale_at(27)`. The products are rescaled by 58-bit primes.
-- **StC scale.** The EvalMod output is v ≈ 2πΔc/q_0 at scale 2^58. That is the same plaintext as 2πc at scale Δ·2^58/q_0 ≈ 2^46, so the relabelling is free. The 1/(2π) factor and the step from 2^46 to Δ are folded into the StC diagonals. The last diagonal is encoded at q_l·Δ/(current scale), so StC ends exactly on the preset compute scale (Task 38's `ScaleMismatch` contract). Each StC diagonal scale is about 2^32 to 2^34, above the 2^20 plaintext floor.
+- **StC scale.** The EvalMod output is v ≈ 2πΔc/q_0 at scale 2^58. That is the same plaintext as 2πc at scale Δ·2^58/q_0 ≈ 2^46, so the relabelling is free. The 1/(2π) factor and the step from 2^46 to Δ are folded into the StC diagonals. Every StC diagonal is encoded so that the rescale lands exactly on the next planned scale (2^45, 2^44, 2^43), and the last one exactly on Δ, the preset compute scale (Task 38's `ScaleMismatch` contract). Each StC diagonal scale is about 2^33, above the 2^20 plaintext floor (§9).
 - **No arcsine correction.** The uncorrected sine-versus-mod error at q0/Δ = 2^12 allows 36.1 bits for |m| ≤ 1 and 27.1 bits for |m| ≤ 8 (§6).
 
 ## 3. The overflow I and the interval K
@@ -234,14 +234,14 @@ The model has five error terms. The ones in x units go through the formula above
 
 **Terms that do not bind.**
 - **Sine versus modular reduction, uncorrected.** On the message part x = Δc/q_0, x − sin(2πx)/(2π) ≈ (2π)²x³/6. This term alone allows 44.1 bits at q0/Δ = 2^16, 36.1 at 2^12, 32.1 at 2^10 and 28.1 at 2^8. At 2^12 with |m| ≤ 8 it allows 27.1 bits.
-- **Key-error digit term.** A key switch adds Σ_d [c]_{Q_d}·e_d/P, with coefficient std (Q_d/P)·3.2·sqrt(N/12) ≈ 236·(Q_d/P) per digit. The two all-58-bit digits have Q_d = 2^232. With P = 4×58 the term would be about 2^15.9 slot rms, and would cost 1.6 bits at the worst case (it would predict 15.8). With P = 4×60, Q_d/P = 2^-8 and the term is negligible.
+- **Key-error digit term.** A key switch adds Σ_d [c]_{Q_d}·e_d/P, with coefficient std (Q_d/P)·3.2·sqrt(N/12) ≈ 236·(Q_d/P) per digit. Chain G has one all-58-bit digit (q_24..q_27), with Q_d = 2^232; the fallback chain B has two. With P = 4×58 the term would be about 2^15.4 slot rms on chain G, and would cost 1.2 bits at the worst case (it would predict 16.2). With P = 4×60, Q_d/P = 2^-8 and the term is negligible.
 
 **Chosen design** (chain G; dense + SSE h' = 32; K = 13, r = 0, d = 127; 7 EvalMod levels at scale 2^58; q0/Δ = 2^12; P = 4×60):
 
 | variant | predicted bits | bits each term alone allows (input / internal / approx / CtS pt / StC pt) |
 |---|---|---|
 | **chosen (chain G)** | **17.4** | 17.4 / 23.3 / 26.5 / 22.8 / 23.9 |
-| P = 4×58 (digit term, worst case) | 15.8 | — |
+| P = 4×58 (digit term, worst case) | 16.2 | — |
 | fallback q_0 = 52 (q0/Δ = 2^10, log PQ 1730) | 19.4 | 19.4 / 25.3 / 28.5 / 25.3 / 23.4 |
 | fallback chain B (8 EvalMod levels, textbook evaluator, log PQ 1748) | 17.4 | 17.4 / 23.2 / 26.5 / 22.8 / 23.9 |
 
@@ -283,3 +283,92 @@ That is above 128 with a margin of about 2 bits under MATZOV. For comparison, th
 - (a) the dense n16_boot at log PQ 1732, and at 1730 if the q_0 = 52 fallback is used. Also chain B at 1748 if Task 37 cannot fit 7 EvalMod levels, and chain C at 1622 as the security fallback;
 - (b) the SSE switching key s → s': N = 2^16, ternary secret with h = 32. The modulus is q_0·P with log(q_0·P) = 54 + 240 = 294 as ruled, or 114 with a single 60-bit special prime (§7, option 1). This is a sparse-secret instance, so the hybrid and MITM attacks must be enabled. The s' → s key uses the dense main key at modulus Q·P and is covered by (a);
 - (c) h = 192 as an alternative only, at log PQ 1748 (it needs the 8-level chain B). The rough model in docs/security.md gave 107 bits at 1592, so I expect this to come in below 128.
+
+## 9. CoeffToSlot and SlotToCoeff (Task 36)
+
+`crates/hekit-ckks/src/bootstrap/linear.rs` implements both transforms. Its tests check them on `CkksParams::test_tiny()` (N = 2^5, log_slots 4, insecure, tests only). They count the n16_boot layouts and keys without generating any key.
+
+### 9.1 The special DFT in SEAL's slot order
+
+Let n = N/2 (full packing) and u_k = m_k + i·m_{k+n} for k < n. Slot j of the plaintext m decodes to z_j = m(ζ^(3^j)), because hekit uses SEAL's generator 3. The textbook radix-2 special FFT needs a generator g ≡ 1 mod 4, so that ζ_j^n = i for every slot. With generator 3 the value alternates: i at even j, −i at odd j.
+
+The fix uses −3, which is ≡ 1 mod 4 and generates the same subgroup as 5. Since 3^j = (−3)^j for even j and −(−3)^j for odd j,
+
+  z = C_o(U'' u),
+
+where U'' is the special FFT for the generator −3 and C_o conjugates the odd slots.
+
+**The stages.** U'' factors into log_slots butterfly stages S_len, for len = 2, 4, …, n. Each stage works on the pairs (j, j + len/2) of a block, with twiddle exp(2πi((−3)^j mod 4len)/(4len)). The twiddles depend on len only, not on N. The stages work in the bit-reversed layout. `dft_stages` merges them into `levels` groups.
+
+**Removing C_o.** C_o is not complex-linear. Every stage except the distance-1 butterflies maps even slots to even slots, and for such a matrix S, C_o S C_o = ρ(S): the matrix with its odd rows conjugated. So C_o moves through every group except the one that holds the distance-1 stage:
+
+- **SlotToCoeff.** z = ρ(H_L)···ρ(H_2)·[ρ(H_1)·a + ρ(i·H_1)·b], with a = Re u and b = Im u. The first stage takes the `re` and `im` ciphertexts as two inputs. It needs no conjugation, and its two BSGS sums share the giant rotations (`Evaluator::matvec_plain_sum`).
+- **CoeffToSlot.** u = H_1^−1·C_o·ρ(R)·z, where R is the product of the other groups' inverses. The last stage is real-linear: w = A·h + B·conj(h), with
+  - A = (D_e·H·D_e + D_o·conj(H)·D_o)/2 and B = (D_e·H·D_o + D_o·conj(H)·D_e)/2;
+  - H = H_1^−1, and D_e, D_o the even and odd slot masks.
+
+  This gives w = C_o(u)/2. Then re = w + conj(w) and im = X^(N/2)·(conj(w) − w). The monomial X^(N/2) multiplies slot j by i^(3^j) = (−1)^j·i. That is an exact signed permutation of the coefficients: no key, no level, no noise. It undoes the odd-slot conjugation. CoeffToSlot costs two conjugation key switches in all: one at the input of its last stage and one at the output. A and B have only even and only odd diagonals respectively, so half of their entries are zero. `matvec_plain_sum` skips those entries, and the baby rotations that only they would use.
+
+**Output order.** The outputs are in the bit-reversed order of every bootstrapping DFT. Slot j of `re` holds m_{bitrev(j)}, and slot j of `im` holds m_{n+bitrev(j)}. SlotToCoeff takes that order back, and EvalMod is slot-wise. The brief's "decrypts to the coefficient sequence" is tested in this order.
+
+**Folded factor.** `StageSpec::factor` is a complex c. CoeffToSlot then returns re + i·im = c·u, and SlotToCoeff returns c·z. The modulus |c| is spread evenly as |c|^(1/L) per stage. For CoeffToSlot the phase goes inside the conjugation sandwich of the last stage. For SlotToCoeff it goes onto the first stage. The 1/K of §2 is a factor of the CoeffToSlot list, and the 1/(2π) of §2 a factor of the SlotToCoeff list. Tested: c = 0.6 − 0.45i gives c times the unfolded result, both in the clear and encrypted.
+
+### 9.2 Level collapsing
+
+The `levels` groups split the radix evenly (`stage_radices`). When log_slots is not a multiple of `levels`, the groups farthest from the distance-1 stage get the extra stage. For n16_boot, 15 stages over 4 levels give **[3, 4, 4, 4]** from distance 1 upward. The radix-3 group holds distances 1, 2 and 4; the other groups hold 8–64, 128–1024 and 2048–16384. CoeffToSlot applies the groups in the reverse order.
+
+The noise model of §6 splits the CtS and StC rounding terms evenly and does not depend on where the extra stages go. So the placement is chosen by cost:
+- the distance-1 group is the two-input or real-linear stage, where every diagonal is multiplied twice, so it gets the smallest radix;
+- the group with distance n/2 wraps around modulo n, so it has 2^r diagonals instead of 2^(r+1) − 1.
+
+BSGS layouts (`d` diagonals at slot stride `s`, window starting at `offset`). The offset is a new field of `Diagonals` (`Diagonals::encode_complex`, `bsgs_rotation_steps_with_offset`). It lets a window cover negative diagonals, and its zero giant step costs no rotation.
+
+| group (distances) | diagonals | d, stride, offset | BSGS | rotation keys |
+|---|---|---|---|---|
+| 1, 2, 4 | 15 | 16, 1, −8 | 4 × 4 | 1, 2, 3; −8, −4, 4 |
+| 8 … 64 | 31 | 32, 8, −16 | 8 × 4 | 8 … 56; −128, −64, 64 |
+| 128 … 1024 | 31 | 32, 128, −16 | 8 × 4 | 128 … 896; −2048, −1024, 1024 |
+| 2048 … 16384 | 16 (wraps) | 16, 2048, 0 | 4 × 4 | 2048, 4096, 6144; 8192, 16384, 24576 |
+
+Key switches per transform at n16_boot, from these layouts and the zero diagonals (test `n16_boot_rotation_steps`). The planner that gives them matches the op counter exactly on test_tiny (`encoded_steps_and_op_counts`); nothing was run at N = 2^16:
+- **CoeffToSlot:** 6 + 10 + 10 + (3 baby + 3 giant) + 2 conjugations = **34**, and 93 plaintext products.
+- **SlotToCoeff:** (6 baby + 3 giant) + 10 + 10 + 6 = **35**, and 108 plaintext products.
+
+### 9.3 Rotation keys
+
+The CoeffToSlot and SlotToCoeff groups have the same layouts, so they share their keys. `galois_steps_for` gives **32 rotation steps** for n16_boot (CtS 4 + StC 4, log_slots 15). That is below the brief's bound of 2·log_slots + stages = 38. The conjugation key comes on top.
+
+One n16_boot Galois key is 8 digits × 2 polynomials × 36 limbs × 2^16 words = **0.302 GB**. The 33 keys take **9.97 GB**, before the relinearization key of EvalMod.
+
+This is the largest memory item of the bootstrap, so Task 38 and the GPU port must plan for it. Ways to reduce it, none implemented here:
+- smaller radices with more levels;
+- truncating the keys that only SlotToCoeff uses to Q_20·P. Here every key is shared with CoeffToSlot, so this helps only if the layouts differ.
+
+The encoded diagonals of n16_boot take about 1.8 GB for CoeffToSlot (levels 31–28) and 1.2 GB for SlotToCoeff (levels 20–17). All-zero entries are kept as zero plaintexts.
+
+### 9.4 Scale history (exact)
+
+Every stage is one BSGS product of plaintext diagonals followed by one rescale. `encode_stages` sets each stage's diagonal scale to L_k/s_k:
+- s_k is the planned input scale;
+- L_k is the label whose rescale by q_level gives exactly the next planned scale (`Evaluator::exact_product_scale`, the exact-scale path of the evaluator).
+
+The planned scales are powers of two on the geometric path, and exactly `output_scale` after the last stage. At run time the product is relabelled to L_k. That differs from the f64 product of the scales by at most one rounding, and is checked to 1e−15. `coeff_to_slot` and `slot_to_coeff` reject an input whose scale is not exactly the planned one, with `ScaleMismatch`, before any work.
+
+n16_boot (from the `n16_boot_rotation_steps` test, log2 of the scales):
+
+| transform | level in → out | ciphertext scale | diagonal scales |
+|---|---|---|---|
+| CoeffToSlot | 31 → 27 | q_0 (2^54.00) → 2^55 → 2^56 → 2^57 → **2^58** | 2^57.00 at every stage |
+| SlotToCoeff | 20 → 16 | 2^58·Δ/q_0 (2^46.00) → 2^45 → 2^44 → 2^43 → **2^42 = Δ** | 2^33.00, 2^33.00, 2^33.00, 2^33.00 |
+
+The CtS diagonal scales multiply to q_28···q_31·2^58/q_0, as in §2. The StC output is exactly the preset scale at level 16 (`levels_after_boot`).
+
+**Measured on test_tiny** (N = 2^5, the band layout in miniature: CtS 4 × 56 bits, StC 4 × 34 bits). These are maximum absolute errors over all slots:
+
+| case | brief threshold | measured |
+|---|---|---|
+| `coeff_to_slot`, coefficients in [−1, 1], 1–4 stages | 2^−20 | 2^−50.4 … 2^−51.0 |
+| the same, coefficients I + δ with \|I\| ≤ 5 and 1/K folded in (K = 6) | 2^−20 | 2^−50.6 … 2^−51.2 |
+| `slot_to_coeff(coeff_to_slot(ct))`, (CtS, StC) stages (4, 4), (2, 4), (4, 3), (1, 2) | 2^−18 | 2^−25.8, 2^−27.0, 2^−26.2, 2^−22.7 |
+
+In the identity test, StC starts from the CtS output scale 2^58 rather than from the planned 2^46, so its diagonal scales are only 2^26 to 2^30. That is the source of the 2^−22.7 with 2 StC stages. With the planned 2^46 input, the folded-factor test measures 2^−28.8. These N = 2^5 figures do not predict the n16_boot precision; Task 38 measures that.

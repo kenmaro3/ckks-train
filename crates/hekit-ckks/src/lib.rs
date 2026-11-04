@@ -24,7 +24,8 @@ pub use keys::{
     GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey,
 };
 pub use linalg::{
-    DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_split, diagonals_from_matrix,
+    DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_rotation_steps_with_offset, bsgs_split,
+    diagonals_from_matrix,
 };
 pub use params::CkksParams;
 pub use plaintext::Plaintext;

@@ -76,10 +76,11 @@ def slot_noise(h):
     return math.hypot(rs, ks)
 
 
-def digit_noise(log_qd_over_p, ndigits=2):
-    """Worst-case key-error term of a key switch: sum over the digits whose modulus Q_d is close
-    to P of [c]_{Q_d} e_d / P, coefficient std (Q_d/P) * 3.2 * sqrt(N/12), in slot rms.
-    Counted at the working scale of the CtS output (pessimistic)."""
+def digit_noise(log_qd_over_p, ndigits):
+    """Worst-case key-error term of a key switch: sum over the `ndigits` largest digits (modulus
+    Q_d = max digit, the ones closest to P) of [c]_{Q_d} e_d / P, coefficient std
+    (Q_d/P) * 3.2 * sqrt(N/12), in slot rms. Counted at the working scale of the CtS output
+    (pessimistic). Chain G has one such digit (q_24..q_27, 232 bits), chain B two."""
     return math.sqrt(N / 2) * math.sqrt(ndigits) * 2.0**log_qd_over_p * 3.2 * math.sqrt(N / 12)
 
 
@@ -126,7 +127,9 @@ def predict(chain, K=13, r=0, d=127, h_noise=32768, h_mr=32, log_scale=58, level
     levels = chain["evalmod_levels"] if levels is None else levels
     log_ratio = chain["q0"] - 42
     s = 2.0**log_scale
-    noise_in = math.hypot(slot_noise(h_noise), digit_noise(chain["log_qd_over_p"]))
+    noise_in = math.hypot(
+        slot_noise(h_noise), digit_noise(chain["log_qd_over_p"], chain["max_digits"])
+    )
     err, amp = sin_error(K, r, d)
     f = MAX_FACTOR * math.sqrt(SLOTS) * 2.0**log_ratio
     e = {
@@ -158,14 +161,15 @@ def make_chain(q0, compute, stc, evalmod, cts, p, dnum):
     q = [q0] + [42] * compute + [stc[1]] * stc[0] + [evalmod[1]] * evalmod[0] + [cts[1]] * cts[0]
     assert len(q) % dnum == 0, "dnum must divide the prime count"
     alpha = len(q) // dnum
-    max_digit = max(sum(q[i : i + alpha]) for i in range(0, len(q), alpha))
+    digits = [sum(q[i : i + alpha]) for i in range(0, len(q), alpha)]
+    max_digit = max(digits)
     log_p = sum(p)
     return dict(
         q=q, p=p, dnum=dnum, alpha=alpha, max_digit=max_digit, log_p=log_p,
         log_pq=sum(q) + log_p, levels_after=len(q) - 1 - (stc[0] + evalmod[0] + cts[0]),
         key_limbs=dnum * (len(q) + len(p)), q0=q0, cts_bits=cts[1], cts_levels=cts[0],
         stc_bits=stc[1], stc_levels=stc[0], evalmod_levels=evalmod[0],
-        log_qd_over_p=min(0.0, max_digit - log_p),
+        log_qd_over_p=min(0.0, max_digit - log_p), max_digits=digits.count(max_digit),
     )
 
 

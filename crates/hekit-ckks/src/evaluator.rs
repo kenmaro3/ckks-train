@@ -600,6 +600,13 @@ impl Evaluator {
         Ok(())
     }
 
+    /// `Ok` when a valid conjugation key exists, else the error [`Evaluator::conjugate`]
+    /// would return.
+    pub(crate) fn check_conjugation_key(&self) -> Result<()> {
+        self.galois_key(conjugation_elt(self.params.n()))
+            .map(|_| ())
+    }
+
     /// The Galois element of a rotation by `steps`, or `None` for a multiple of `slots`.
     fn rotation_elt(&self, steps: i32) -> Option<u64> {
         let slots = self.params.slots() as i64;

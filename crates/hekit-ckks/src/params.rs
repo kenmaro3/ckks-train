@@ -178,6 +178,22 @@ impl CkksParams {
         Self::new(16, &q_bits, &p_bits, 42, N16_BOOT_DNUM).expect("n16_boot preset is valid")
     }
 
+    /// **Insecure toy parameters, for tests only** (N = 2^5 gives no security at all): the
+    /// `n16_boot` band layout in miniature for the bootstrapping tests, with `log_slots` 4
+    /// (16 full slots). q from level 0 up is `[54, 42 (compute), 34 x 4 (SlotToCoeff),
+    /// 58 x 2 (EvalMod), 56 x 4 (CoeffToSlot)]` (max level 11), p = `[60]`, scale 2^42,
+    /// dnum 12 (one prime per digit, every digit below p), dense ternary secret.
+    /// `BootParams::default_n16` does not fit it: tests build their own `BootParams` (four
+    /// CoeffToSlot, two EvalMod and four SlotToCoeff levels, an ephemeral weight and `K` for
+    /// N = 2^5) and pass it through `BootParams::validate`.
+    pub fn test_tiny() -> CkksParams {
+        let mut q_bits = vec![54, 42];
+        q_bits.extend([34; 4]);
+        q_bits.extend([58; 2]);
+        q_bits.extend([56; 4]);
+        Self::new(5, &q_bits, &[60], 42, 12).expect("test_tiny preset is valid")
+    }
+
     /// Returns a copy with a ternary secret-key Hamming weight (validated `<= N` by KeyGenerator).
     pub fn with_hamming_weight(mut self, h: usize) -> CkksParams {
         self.hamming_weight = Some(h);
@@ -444,8 +460,8 @@ mod tests {
         assert!(CkksParams::new(16, &q_bits, &p_bits, 42, 7).is_err());
     }
 
-    /// Exact (not nominal) digit sizes: every digit, including the two all-58-bit EvalMod
-    /// digits, is at least 8 bits below log P = 4 x 60.
+    /// Exact (not nominal) digit sizes: every digit, including the all-58-bit EvalMod digit
+    /// (q_24..q_27), is at least 8 bits below log P = 4 x 60.
     #[test]
     fn n16_boot_digits_below_p_exactly() {
         let p = CkksParams::n16_boot();
@@ -467,6 +483,20 @@ mod tests {
         assert!(CkksParams::new(15, &[60, 40], &[61], 40, 1).is_err());
         assert!(CkksParams::new(15, &[60, 40], &[60], 61, 1).is_err());
         assert!(CkksParams::new(15, &[60, 40], &[60], 40, 2).is_ok());
+    }
+
+    #[test]
+    fn test_tiny_shape() {
+        let p = CkksParams::test_tiny();
+        assert_eq!((p.n(), p.slots(), p.max_level()), (32, 16, 11));
+        assert_eq!(
+            p.q_bits(),
+            &[54, 42, 34, 34, 34, 34, 58, 58, 56, 56, 56, 56]
+        );
+        assert_eq!((p.dnum(), p.alpha(), p.p_bits()), (12, 1, &[60][..]));
+        assert_eq!(p.scale(), 2f64.powi(42));
+        assert_eq!(p.scale_at(1), p.scale());
+        assert_eq!(p.scale_at(7), 2f64.powi(58));
     }
 
     #[test]
