@@ -31,7 +31,7 @@ load: SEAL 3.76 → 3.20、hekit 3.20 → 3.37。
 
 load: hekit 3.53 → 4.17、SEAL 4.17 → 3.29。
 
-SEAL には複数素数の特別法が無い。そのため SEAL 側は `{58, 42×31, 58}` を使った。データ素数 Q は hekit と同じ 32 本で、特別素数は 1 本、鍵切替は素数ごとの分解(dnum 32、k 1)、sec_level none。一方 hekit は dnum 8、k 4 の hybrid 鍵切替を使う。**つまりこの表は同じアルゴリズムの比較ではなく、「n16_train の構成」対「SEAL ネイティブの構成」の比較である。** 回転の差の大部分は dnum の違い(分解する NTT の数が約 1/3)による。
+SEAL には複数素数の特別法が無い。そのため SEAL 側は `{58, 42×31, 58}` を使った。データ素数 Q は hekit とビット幅が同じ 32 本(42 bit の 31 本は同一の素数。58 bit の q_0 は、hekit が 4 本の 58 bit 特別素数と一緒に生成するので異なる)で、特別素数は 1 本、鍵切替は素数ごとの分解(dnum 32、k 1)、sec_level none。一方 hekit は dnum 8、k 4 の hybrid 鍵切替を使う。**つまりこの表は同じアルゴリズムの比較ではなく、「n16_train の構成」対「SEAL ネイティブの構成」の比較である。** 回転の差の大部分は dnum の違い(分解する NTT の数が約 1/3)による。
 
 | 演算 | hekit (ms) | SEAL (ms) | SEAL 比 |
 |---|---|---|---|
@@ -67,7 +67,7 @@ SEAL の n16 では、鍵メモリを抑えるため Galois 鍵を 2 本(ステ�
 
 ## 2. KAT(SEAL 4.1.2 との既知解相互運用、正当性ゲート)
 
-**結果: 合格(両方向)。** `tools/seal-kat/run_kat.sh`(2026-11-05、Task 24 の性能変更後のコード)の出力 `PASS: 0 failure(s)`。
+**結果: 合格(両方向)。** 根拠はローカルでの `tools/seal-kat/run_kat.sh` の実行(CI ではない)。最初は 2026-11-05、Task 24 の性能変更後のコード(c5c4bf6)で、M1 修正ウェーブの後に 2026-11-05、コミット 37f9502(コードは修正ウェーブの最終状態。未コミットだったのは文書だけ) で再実行した。どちらも出力は `PASS: 0 failure(s)`。KAT のデータファイル(`kat/`、約 80 MB、実行ごとに SEAL の乱数で作り直す)はコミットしない(ルーリング)。再現するには同じスクリプトを実行する。
 
 - **SEAL → hekit**: SEAL が作った 8 個の暗号文(対称暗号 x, y、公開鍵暗号 x、add、multiply の 3 成分、relinearize、rescale_to_next、rotate_vector(1))について、hekit の復号は SEAL の復号と**ビット一致**した(hekit と SEAL の decode の差は 2^-inf。スケール 2^80 の 2 個だけは浮動小数点の decode の差で 2^-51)。hekit の add / mul_no_relin / rescale を SEAL の暗号文にかけた結果も、SEAL の add / multiply / rescale_to_next と**ビット一致**した。
 - **hekit → SEAL**: hekit が作った 6 個(対称暗号 x のレベル 9 とレベル 3、SEAL の公開鍵での暗号、add、3 成分の積、SEAL の積を hekit で rescale したもの)を、SEAL がすべて読み込んで上限内で復号した。この方向はビット一致ではなく誤差上限だけで検査している(§5 の未達項目)。
@@ -131,13 +131,23 @@ SEAL の n16 では、鍵メモリを抑えるため Galois 鍵を 2 本(ステ�
 - 疎な秘密鍵の推定は rough だけ。完全な推定は **M3 の前提条件**。
 - 2018 年の HE Standard の表は N = 2^16 を含まない。
 
+**セキュリティ上の注意(M1 修正ウェーブで確認・対処したもの)**
+- `Rng` は `Clone` だった。クローンは ChaCha のストリームを再生するので、暗号化の乱数(u, e0, e1)を使い回し、2 つの暗号文の差から m − m' が漏れる。**修正済み**: `Clone` を外し、`Rng::fork`(親の出力 32 バイトで新しい ChaCha20 を初期化)を足した。
+- 加算のスケール許容(§7 と `evaluator` の文書)。2^-10 未満の差は受け付けてスケールを付け替えるので、最大 ≈ 2^-16 の誤差が黙って入る。**文書化済み**(値は計画どおりで変えていない)。M2 は正確なスケールの経路を使うこと(§7)。
+- `Decryptor::decrypt` と `Encoder::decode` は、別のパラメータ(別の `Arc`)の暗号文や平文を渡すと `Result` ではなく panic する(assert)。evaluator の演算は `InvalidParams` を返す。**未対処**(M2 で同じ `Arc` を共有していれば起きない)。
+
+**計画の API からの逸脱(Task 13、ルーリング済み)**
+- `mod_up` は P 側の部分だけを返す(Q 側はもとの多項式なので複製しない)。
+- `mod_down` は `&RnsPoly`(P 側)を引数にとる。
+- 桁ごとの持ち上げ用に `mod_up_digit`(と中心化版 `mod_up_digit_centered`)を新しく足した。
+
 **KAT の限界**
 - hekit → SEAL の方向は誤差上限だけで検査していて、ビット一致は見ていない。
 - hekit の回転は SEAL の回転とビット一致しない(中心化の持ち上げ。設計どおり)。
 - KAT は seal_2020 だけ。n16_train の parms_id は Python の hashlib と照合して固定した(本タスクのテスト)が、SEAL 自体では動かしていない。
 
 **知っておくべき先送りの軽微な指摘**(ledger より抜粋)
-- サンプラは定数時間ではない(CDT も二分探索)。秘密鍵は `Debug` を伏せ字にしているが zeroize しない。`from_entropy` は panic する。`gaussian_poly` に σ の上限チェックが無い。
+- サンプラは定数時間ではない(CDT も二分探索)。秘密鍵は `Debug` を伏せ字にしているが zeroize しない。`from_entropy` は panic する。(`gaussian_poly` の σ の上限は修正ウェーブで追加した: σ ≤ 2^20、6σ < min q_i。)
 - NTT の x < q と、`QpPoly::new` の前提は `debug_assert` だけ。リリースビルドでは検査されない。
 - automorphism の置換キャッシュ(`Mutex`)は上限が無い。`GaloisKeys::insert` は次数しか検査しない。
 - エンコーダの Q/2 境界チェックは f64 の近似で、log Q > 1025 では inf になる(文書化されていない)。decode は O(N·L^2)。
@@ -171,7 +181,8 @@ ledger から、結果に効いたものだけを挙げる。
 
 - **Evaluator の API**(`Evaluator::new(params, Option<RelinKey>, Option<GaloisKeys>)`)
   - 演算: `add / sub / negate / add_plain / mul_plain / mul_no_relin / relinearize / mul / rescale / mod_switch_to_level / rotate / conjugate / hoisted_rotate / matvec_plain / matvec_enc`。カウンタは `counter() / reset_counter()`。
-  - 規則は検査するだけで、黙って直すことはない。レベルが違えば `LevelMismatch`(`mod_switch_to_level` で明示的に下げる)。スケールの相対差が 2^-10 以上なら `ScaleMismatch`(強制的に揃えない)。レベル 0 での `mul` / `rescale` は `NoLevelsLeft`。鍵が無いか別パラメータの鍵なら `InvalidParams`。
+  - 規則は検査する。レベルが違えば `LevelMismatch`(`mod_switch_to_level` で明示的に下げる)。レベル 0 での `mul` / `rescale` は `NoLevelsLeft`。鍵が無いか別パラメータの鍵なら `InvalidParams`。
+  - **スケールだけは 1 つ例外がある。** `add / sub / add_plain` はスケールの相対差が 2^-10 以上なら `ScaleMismatch` を返す。しかし 2^-10 未満なら受け付けて、結果に**第 1 オペランドのスケールを付け替える**(補正の定数倍はしない)。このとき第 2 オペランドの値には、スケールの相対差と同じ大きさの相対誤差が黙って乗る。rescale は Δ ではなく素数 q_l で割るので、履歴の違う暗号文どうしのスケールは q_l / Δ の分だけずれる。そのずれは seal_2020(40 bit 素数)で 2^-19.4 〜 2^-16.8、n16_train(42 bit 素数)で 2^-21.4 〜 2^-16.0 になる。つまり 1 回の加算で最大 ≈ 2^-16 の誤差が入る(暗号化の雑音 ≈ 2^-25 よりずっと大きい)。詳細は `evaluator` のモジュール文書の "Scale tolerance"。`SCALE_TOLERANCE` は計画の値のまま変えていない。
   - `mul` は relin 込みで、結果は rescale 前。3 成分暗号文どうしを足してから 1 回だけ relin する(遅延 relin)こともできる。
 - **カウンタの意味**(`OpCounter`)
   - `rotations` は鍵切替をする回転だけを数える。slots の倍数の回転はコピーなので 0。共役は 1 回と数える。hoisted は 1 ステップを 1 回と数える。
@@ -179,15 +190,15 @@ ledger から、結果に効いたものだけを挙げる。
   - `matvec_plain(d)`: ct_pt が d、rotations が baby + giant − 2、relins が 0。
   - `matvec_enc(d)`: ct_ct_tensor が d、**relins は giant**、rotations は baby + giant − 2。
   - rescale は呼び出し側が呼んだ分だけ数える。`key_switches()` = rotations + relins(+ bootstraps × `BOOT_KS_EQUIV`、M1 では 0)。
-- **matvec のレイアウト**
-  - d は 2 の冪で、slots を割り切ること。
-  - x は**複製して**暗号化する(スロット j に x[j mod d])。
-  - 対角は `diagonals_from_matrix` → `Diagonals::encode / encrypt` で作る(BSGS 用に事前回転済み)。
-  - 出力も複製レイアウト(スロット j に (Wx)[j mod d])なので、次の層にそのまま入れられる。
-  - BSGS の分割は baby = 2^ceil(log2 d / 2)(d = 64 なら 8×8)。
+- **matvec のレイアウト(修正ウェーブでストライド付きにした)**
+  - d は 2 の冪。`stride`(レーン数)を指定でき、d·stride が slots を割り切ること。stride = 1 が従来の動作。
+  - x は特徴メジャーで詰める: スロット j·stride + b にレーン b の x_b[j](d·stride スロットのブロックを slots / (d·stride) 回繰り返す)。stride = 1 なら従来どおりスロット j に x[j mod d]。Task 25 の `slot(j, b) = j * batch + b` は stride = batch。
+  - 対角は `diagonals_from_matrix(w, slots, stride)` → `Diagonals::encode / encrypt(…, stride, scale, level)` で作る(BSGS 用に事前回転済み: 対角 i はスロット j·stride + b に w[j][(j+i) mod d])。回転は baby が k2·stride、giant が g·k1·stride、事前回転は −g·k1·stride。
+  - 出力も同じレイアウト(スロット j·stride + b に (W x_b)[j])なので、次の層にそのまま入れられる。
+  - BSGS の分割は baby = 2^ceil(log2 d / 2)(d = 64 なら 8×8)。回転回数は stride によらず baby + giant − 2。d = 16、stride = 8 は seal_2020 で 8 レーンすべてを平文の W x_b と照合した(2^-15 以内)。
 - **matvec の出力は rescale 前**: レベルは x.level()、スケールは s_x × s_W。呼び出し側が 1 回 rescale する(対角を Δ で符号化しておけば、rescale 後のスケールは ≈ Δ に戻る)。
 - **Galois 鍵のステップ**
-  - `kg.galois_keys(&bsgs_rotation_steps(d))`(ステップ 1..baby と baby·k)に、ほかに使うステップを足して作る。生成元は 3 で、負のステップも使える。
+  - `kg.galois_keys(&bsgs_rotation_steps(d, stride))`(ステップ k2·stride と baby·k1·stride)に、ほかに使うステップを足して作る。生成元は 3 で、負のステップも使える。ステップ 0 と slots の倍数には鍵を作らない(修正ウェーブ。回転はコピーになる)。
   - **n16_train の Galois 鍵は 1 本 302 MB**(dnum 8 × 2 × 36 limb × 2^16 × 8 B)で、Relin 鍵も同じ大きさ。本タスクのベンチは 21 本(6.3 GB)を作った。
 - **精度の余裕**
   - n16_train の最小は matvec_enc の約 24.5 bit。テストの閾値は 24 bit なので、固定シードで余裕は約 0.5 bit(≈ 2σ)しかない。
@@ -195,3 +206,15 @@ ledger から、結果に効いたものだけを挙げる。
   - 学習で層を重ねると誤差は積もる。M2 の精度目標は、この余裕から逆算して決めること。
 - **演算コスト**: n16_train の 1 演算あたりの時間は §1 の表にある(1 スレッド: 回転 257 ms、mul+relin+rescale 303 ms、matvec_enc d = 64 で 5.7 s)。鍵切替 1 回は回転 1 回とほぼ同じ。hoisted 回転は 1 ステップあたり通常回転の約 0.4 倍かかる。鍵生成は、Galois 鍵 21 本 + relin 鍵 + 対角 64 本の暗号化で約 22 s。
 - **乱数**: `Rng::from_seed`(ChaCha20)が唯一の乱数源。本タスクで離散ガウスのサンプラを CDT 法に変えたため、同じシードでも Task 24 以前とは雑音の値が違う(テストはすべて通る)。
+- **Diagonals の API(修正ウェーブ、Task 26〜28 用)**
+  - `Diagonals::from_prerotated(d, stride, entries)`: 呼び出し側が事前回転した対角を包む。個数、d が 2 の冪、stride、全エントリのレベルとスケールが等しいこと(スケールは完全一致)を検査する。
+  - `entries / entries_mut / into_entries / stride`、`try_map(f) -> Result<Diagonals<U>>`(形を保ったまま写す。例えば復号して `Vec<f64>` に)。
+  - `Diagonals<Ciphertext>::mod_switch_to_level(&eval, level)`。平文の対角は、目的のレベルで符号化し直す。
+  - `matvec_plain / matvec_enc` は、作業の前にすべて検査する(x とエントリの形、レベル、スケール、stride、全 Galois 鍵、`matvec_enc` は relin 鍵)。失敗した演算はカウンタを動かさない。
+- **正確なスケールの経路(加算で誤差を入れないため)**
+  - 平文の定数、バイアス、マスクは、足す相手の暗号文の `ct.scale()` と `ct.level()` で符号化する(`params.scale()` ではない)。
+  - 暗号文どうしは、同じ履歴(同じ乗算と同じ素数での rescale)のものだけを足す。
+  - Task 28 の `Evaluator::mul_scalar` は**目標スケールを引数にとること**。rescale 後に足す相手と同じスケール s_t になるよう、平文のスケールを s_t·q_l / s_ct にする。
+- **レベルの予算**: seal_2020 のレベルは 9 しかない。2 層の Square 活性化ネットをバッチごとに作り直す(refresh)構成では約 9〜10 レベル要る。Task 25 はレベルを数えて設計すること。マスクの乗算(転置や fold)も 1 レベル使う。
+- **パラメータは 1 回だけ作って共有する**: `CkksParams::seal_2020()` を 2 回呼ぶと、同じ値でも `Arc` が別なので、鍵・暗号文・evaluator は互いに使えない(`InvalidParams`、decrypt / decode は panic)。`Arc<CkksParams>` を 1 つ作って全員に渡すこと。
+- **Task 26 の relins**: Task 26 の「`counter.relins == 1`」は、BSGS の下では **giant 回**と読む(コントローラのルーリング。Task 21 と同じ)。fold や bias の加算は relin を増やさない。

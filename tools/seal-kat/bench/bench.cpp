@@ -7,7 +7,9 @@
 // seal_2020: CKKS, N = 2^15, CoeffModulus::Create(N, {60, 40 x 9, 60}), tc128, scale 2^40
 //            (exactly hekit's seal_2020; SEAL's last prime is its single special prime).
 // n16:       CKKS, N = 2^16, CoeffModulus::Create(N, {58, 42 x 31, 58}), sec_level none,
-//            scale 2^42: the same data primes Q as hekit's n16_train (32 primes) but SEAL's own
+//            scale 2^42: data primes Q of the same bit sizes as hekit's n16_train (32 primes;
+//            the 31 42-bit primes are identical, the 58-bit q_0 differs because hekit draws
+//            it together with its four 58-bit special primes), but SEAL's own
 //            key switching (one special prime, one digit per data prime: dnum = 32, k = 1)
 //            instead of hekit's dnum = 8, k = 4. SEAL has no multi-prime special modulus.
 //

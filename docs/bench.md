@@ -4,6 +4,10 @@ Machine: Apple M3 Pro (12 cores; benches use 1 core). Criterion, `cargo bench -p
 (profile.bench: opt-level 3, LTO, codegen-units 1). Values are criterion's point estimate (mean) of
 a single in-place transform, input clone excluded from timing.
 
+Note: the rows in this file are criterion's point estimates of the **mean**; the SEAL comparison
+tables in `docs/m1-report.md` section 1 use **medians** (of criterion's samples for hekit, of the
+timed repetitions for SEAL), so the same operation can differ slightly between the two files.
+
 ## NTT (hekit-core, Task 10)
 
 | date | rustc | N | q | forward (µs) | inverse (µs) | `uptime` load (1-min, before -> after) |
@@ -45,7 +49,7 @@ The first row is from an earlier revision whose key inner product reduced every 
 reduces once per coefficient (lazy reduction), which made a single rotation about 17% faster
 (44.5 -> 37.0 ms) and a hoisted step about 35% faster (20.8 -> 13.5 ms).
 
-Per rotation (last row): `rotate` costs 37.0 ms, of which the digit decomposition (10 INTT +
+Per rotation (third row, 2.74x): `rotate` costs 37.0 ms, of which the digit decomposition (10 INTT +
 100 NTT of 2^15 points for the 10 one-prime digits) is about 23.5 ms. A hoisted step costs
 13.5 ms: the automorphism of the 10 lifted digits (110 limb permutations), the inner product
 with the key, and the two `mod_down` (22 NTT-sized transforms). That gives the 2.7x speed-up

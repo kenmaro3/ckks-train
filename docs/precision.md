@@ -8,6 +8,8 @@ Measured by `cargo run -p hekit-ckks --release --example precision` (`hekit_ckks
 - Rerun 2026-11-05 (Task 24) after the CDT Gaussian sampler (e2326a3) and the NTT / key-switching performance commits
   (2152d02, 69225da): the error samples changed, so the numbers moved by up to 0.4 bit; the tables below are the rerun,
   the Task 20 values are in parentheses where they differ.
+- Rerun 2026-11-05 after the M1 fix wave (commit 37f9502: strided BSGS, `Rng` without `Clone`, CDT refactor):
+  every value identical to the Task 24 rerun below (no randomness consumption changed).
 
 `bits` = `-log2(max abs error)` over all N/2 slots, inputs uniform in [-1, 1) at the top level with the preset scale, fixed seeds.
 `level` is the level of the decrypted ciphertext. `matvec` is a 16 x 16 matrix-vector product (BSGS, plaintext diagonals, then one rescale);
