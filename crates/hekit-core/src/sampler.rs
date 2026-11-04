@@ -229,6 +229,28 @@ mod tests {
     }
 
     #[test]
+    fn ternary_hamming_positions_uniform() {
+        let n = 1 << 12;
+        let h = 256;
+        let b = basis(n);
+        let support = |seed: u8| -> Vec<usize> {
+            let v = signed(&Rng::from_seed([seed; 32]).ternary_poly(&b, 0, Some(h)), 0);
+            (0..n).filter(|&i| v[i] != 0).collect()
+        };
+        // Count in each of 8 equal blocks: hypergeometric, mean h/8 = 32, sigma ~ 5.3.
+        for seed in [1u8, 2, 3] {
+            let s = support(seed);
+            assert_eq!(s.len(), h);
+            for blk in 0..8 {
+                let c = s.iter().filter(|&&i| i / (n / 8) == blk).count() as f64;
+                assert!((c - 32.0).abs() < 5.0 * 5.3, "seed {seed} block {blk}: {c}");
+            }
+        }
+        assert_ne!(support(1), support(2));
+        assert_ne!(support(2), support(3));
+    }
+
+    #[test]
     fn same_seed_same_output() {
         let b = basis(1 << 10);
         let (mut r1, mut r2) = (rng(), rng());
