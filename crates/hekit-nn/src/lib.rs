@@ -4,6 +4,7 @@
 pub mod activation;
 pub mod dense;
 pub mod layout;
+pub mod layout_reboot;
 pub mod loss;
 pub mod optim;
 pub mod refresh;
