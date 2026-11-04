@@ -219,6 +219,12 @@ dependencies = [
 [[package]]
 name = "hekit-bench"
 version = "0.0.0"
+dependencies = [
+ "criterion",
+ "hekit-ckks",
+ "hekit-core",
+ "ndarray",
+]
 
 [[package]]
 name = "hekit-ckks"
