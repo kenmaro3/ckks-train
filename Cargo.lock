@@ -224,6 +224,7 @@ dependencies = [
  "hekit-ckks",
  "hekit-core",
  "hekit-nn",
+ "libc",
  "ndarray",
 ]
 

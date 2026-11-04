@@ -155,8 +155,9 @@ impl Mnist {
 /// Builds an [`Mnist`] from parsed image (`n x rows x cols`) and label (`n`) arrays, keeping
 /// the first `limit` samples (all if `None`).
 ///
-/// Errors (`InvalidData`): images not 3-dimensional, labels not 1-dimensional, or different
-/// sample counts.
+/// Errors (`InvalidData`): images not 3-dimensional, labels not 1-dimensional, different
+/// sample counts, an array whose data length is not the product of its dimensions (possible
+/// for a hand-built [`IdxU8`]), or a label outside the MNIST classes `0..=9`.
 pub fn mnist_from_idx(images: &IdxU8, labels: &IdxU8, limit: Option<usize>) -> io::Result<Mnist> {
     if images.dims.len() != 3 || labels.dims.len() != 1 {
         return Err(invalid(format!(
@@ -167,6 +168,18 @@ pub fn mnist_from_idx(images: &IdxU8, labels: &IdxU8, limit: Option<usize>) -> i
     let (n, rows, cols) = (images.dims[0], images.dims[1], images.dims[2]);
     if labels.dims[0] != n {
         return Err(invalid(format!("{n} images but {} labels", labels.dims[0])));
+    }
+    for (what, idx) in [("images", images), ("labels", labels)] {
+        if idx.dims.iter().product::<usize>() != idx.data.len() {
+            return Err(invalid(format!(
+                "{what}: dimensions {:?} but {} data bytes",
+                idx.dims,
+                idx.data.len()
+            )));
+        }
+    }
+    if let Some(l) = labels.data.iter().find(|&&l| l >= 10) {
+        return Err(invalid(format!("label {l} is not an MNIST class (0..=9)")));
     }
     let n = limit.map_or(n, |l| l.min(n));
     let f = rows * cols;
@@ -283,6 +296,25 @@ mod tests {
             "3 images, 2 labels"
         );
         assert!(mnist_from_idx(&two, &two, None).is_err(), "1-d images");
+        let bad_label = parse_idx_u8(&write_idx_u8(&[3], &[1, 10, 2])).unwrap();
+        assert!(
+            mnist_from_idx(&img, &bad_label, None).is_err(),
+            "label >= 10"
+        );
+        let short = IdxU8 {
+            dims: vec![3, 2, 3],
+            data: vec![0; 17],
+        };
+        let labels = parse_idx_u8(&write_idx_u8(&[3], &[1, 2, 3])).unwrap();
+        assert!(
+            mnist_from_idx(&short, &labels, None).is_err(),
+            "hand-built IdxU8 with too little data"
+        );
+        let short_labels = IdxU8 {
+            dims: vec![3],
+            data: vec![1, 2],
+        };
+        assert!(mnist_from_idx(&img, &short_labels, None).is_err());
     }
 
     #[test]

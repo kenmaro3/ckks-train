@@ -12,6 +12,7 @@ hekit-ckks = { path = "../hekit-ckks" }
 hekit-core = { path = "../hekit-core" }
 hekit-nn = { path = "../hekit-nn" }
 ndarray = "0.16"
+libc = "0.2"
 
 [dev-dependencies]
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }

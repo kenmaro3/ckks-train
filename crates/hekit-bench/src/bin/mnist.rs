@@ -3,6 +3,10 @@
 //!
 //! # Network and training (`crates/hekit-bench/configs/reboot_emlp1.json`)
 //!
+//! The config's values are transcribed into the defaults below, not parsed (the crate has no
+//! JSON dependency): dims, activations, `lr` and `momentum` as in the config; `batch` 48 → 32
+//! lanes and `epochs` 10 → 1 per the Task 32 rulings.
+//!
 //! `784 -> 32` with ReBoot's `z^2 + z` ([`PolyRelu2`]), then `32 -> 10` linear ("none",
 //! [`Identity`]); MSE against one-hot labels (the trainer's loss gradient is `a - y`); NAG
 //! with `lr = 0.001`, `momentum = 0.9` per the config (Table 8 hyperparameters; weight decay
@@ -403,7 +407,7 @@ impl J {
             J::N(v) if v.is_finite() => write!(out, "{v}").unwrap(),
             J::N(_) => out.push_str("null"),
             J::I(v) => write!(out, "{v}").unwrap(),
-            J::S(s) => write!(out, "{s:?}").unwrap(),
+            J::S(s) => json_string(out, s),
             J::B(b) => write!(out, "{b}").unwrap(),
             J::A(v) => {
                 if v.iter().all(|x| matches!(x, J::N(_) | J::I(_))) {
@@ -440,6 +444,23 @@ impl J {
     }
 }
 
+/// `s` as a JSON string literal (RFC 8259 escapes; Rust's `Debug` would write `\u{..}`).
+fn json_string(out: &mut String, s: &str) {
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => write!(out, "\\u{:04x}", c as u32).unwrap(),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+}
+
 fn obj(kv: Vec<(&str, J)>) -> J {
     J::O(kv.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
 }
@@ -466,14 +487,47 @@ fn counter_json(c: &OpCounter) -> J {
     ])
 }
 
+/// The load averages: `sysctl -n vm.loadavg` (macOS), else `/proc/loadavg` (Linux), else
+/// `"unknown"`.
 fn loadavg() -> String {
     Command::new("sysctl")
         .args(["-n", "vm.loadavg"])
         .output()
         .ok()
+        .filter(|o| o.status.success())
         .and_then(|o| String::from_utf8(o.stdout).ok())
+        .or_else(|| std::fs::read_to_string("/proc/loadavg").ok())
         .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "unknown".into())
+}
+
+/// This process's peak resident set size in bytes (`getrusage(RUSAGE_SELF)`; `ru_maxrss` is
+/// in bytes on macOS and in KiB on Linux), or `None` if the call fails.
+fn peak_rss_bytes() -> Option<u64> {
+    // SAFETY: `getrusage` only writes the `rusage` struct it is given, which is plain data
+    // and fully initialised by `zeroed`.
+    let mut ru: libc::rusage = unsafe { std::mem::zeroed() };
+    let rc = unsafe { libc::getrusage(libc::RUSAGE_SELF, &mut ru) };
+    if rc != 0 {
+        return None;
+    }
+    let raw = u64::try_from(ru.ru_maxrss).ok()?;
+    Some(if cfg!(target_os = "macos") {
+        raw
+    } else {
+        raw * 1024
+    })
+}
+
+/// How this binary was built (from compile-time facts only).
+fn build_info() -> J {
+    obj(vec![
+        ("debug_assertions", J::B(cfg!(debug_assertions))),
+        ("package_version", J::S(env!("CARGO_PKG_VERSION").into())),
+        ("target_os", J::S(std::env::consts::OS.into())),
+        ("target_arch", J::S(std::env::consts::ARCH.into())),
+    ])
 }
 
 fn stats(v: &[f64]) -> J {
@@ -481,7 +535,10 @@ fn stats(v: &[f64]) -> J {
     obj(vec![
         ("mean", J::N(v.iter().sum::<f64>() / n)),
         ("min", J::N(v.iter().copied().fold(f64::INFINITY, f64::min))),
-        ("max", J::N(v.iter().copied().fold(0.0, f64::max))),
+        (
+            "max",
+            J::N(v.iter().copied().fold(f64::NEG_INFINITY, f64::max)),
+        ),
     ])
 }
 
@@ -538,9 +595,15 @@ fn load(args: &Args) -> Result<(Mnist, Mnist), String> {
 fn run(args: &Args) -> Result<(), String> {
     let load_start = loadavg();
     let t_all = Instant::now();
-    let (train, test) = load(args)?;
+    // `--plan` does not need the data: without the files it plans for 28 x 28 images.
+    let loaded = load(args);
+    let features = match (&loaded, args.plan) {
+        (Ok((train, _)), _) => train.features(),
+        (Err(_), true) => 28 * 28,
+        (Err(e), false) => return Err(e.clone()),
+    };
     let params = Arc::new(params_named(&args.params)?);
-    let dims = [train.features(), args.hidden, CLASSES];
+    let dims = [features, args.hidden, CLASSES];
     let acts_flags = [true, false];
     let d = dims
         .iter()
@@ -558,6 +621,9 @@ fn run(args: &Args) -> Result<(), String> {
     let key_bytes = params.dnum() * 2 * limbs * params.n() * 8;
     let (pred, terms) = predict(&dims, &acts_flags, &layout, &keys)?;
     let model = cost_model_interactive(&dims, &acts_flags, layout.batch);
+    // docs/layout.md §5 items 1, 2 and 5 (written before this task): replication, recomputed
+    // babies, transpose keys. The bias term (§3) and the BSGS split are not in §5.
+    let pre_registered = model.total() + terms.replication + terms.babies + terms.transpose;
     let b = layout.batch as f64;
     eprintln!(
         "mnist: {} N = 2^{} ({} slots, {} levels), dims {dims:?}, layout d = {d}, B = {}, \
@@ -617,8 +683,12 @@ fn run(args: &Args) -> Result<(), String> {
             ]),
         ),
         (
-            "documented_adjusted_key_switches",
+            "replication_adjusted_key_switches",
             J::I((model.total() + terms.replication) as i64),
+        ),
+        (
+            "pre_registered_adjusted_key_switches",
+            J::I(pre_registered as i64),
         ),
         (
             "cost_model_plus_all_corrections",
@@ -636,6 +706,7 @@ fn run(args: &Args) -> Result<(), String> {
         println!("{s}");
         return Ok(());
     }
+    let (train, test) = loaded?;
 
     // Keys and the client.
     let t_keys = Instant::now();
@@ -771,7 +842,8 @@ fn run(args: &Args) -> Result<(), String> {
         rot: total.rotations,
         relin: total.relins,
     };
-    let documented = (model.total() + terms.replication) as f64 * batches as f64;
+    let replication_adjusted = (model.total() + terms.replication) as f64 * batches as f64;
+    let pre_registered_total = pre_registered as f64 * batches as f64;
     eprintln!(
         "mnist: {batches} batches, {samples} samples in {train_s:.1} s; {} KS ({:.3}/sample), \
          prediction per batch matched: {constant}; max |W_he - W_twin| = {max_diff:e}",
@@ -816,8 +888,12 @@ fn run(args: &Args) -> Result<(), String> {
         ),
         ("prediction_per_update", prediction_json),
         (
-            "measured_over_documented_adjusted",
-            J::N(measured.total() as f64 / documented),
+            "measured_over_replication_adjusted",
+            J::N(measured.total() as f64 / replication_adjusted),
+        ),
+        (
+            "measured_over_pre_registered_adjusted",
+            J::N(measured.total() as f64 / pre_registered_total),
         ),
         (
             "measured_over_cost_model_interactive",
@@ -880,10 +956,24 @@ fn run(args: &Args) -> Result<(), String> {
             ),
         ),
         (
+            "memory",
+            obj(vec![
+                (
+                    "peak_rss_bytes",
+                    peak_rss_bytes().map_or(J::N(f64::NAN), |b| J::I(b as i64)),
+                ),
+                (
+                    "source",
+                    J::S("getrusage(RUSAGE_SELF) at the end of the run".into()),
+                ),
+            ]),
+        ),
+        (
             "machine",
             obj(vec![
                 ("load_start", J::S(load_start)),
                 ("load_end", J::S(loadavg())),
+                ("build", build_info()),
                 (
                     "threads",
                     J::S("single (the library is single-threaded)".into()),
@@ -919,6 +1009,20 @@ mod tests {
         assert_eq!((k.rot, k.relin), (291, 58));
     }
 
+    #[test]
+    fn json_strings_are_escaped() {
+        let mut out = String::new();
+        json_string(&mut out, "a\"b\\c\n\u{1}é");
+        assert_eq!(out, "\"a\\\"b\\\\c\\n\\u0001é\"");
+        let mut st = String::new();
+        stats(&[]).write(&mut st, 0);
+        assert!(
+            st.contains("\"min\": null") && st.contains("\"max\": null"),
+            "{st}"
+        );
+        assert!(peak_rss_bytes().is_some_and(|b| b > 0));
+    }
+
     /// eMLP-1 on n16_train's 2^15 slots with 32 lanes: the exact count is the model plus the
     /// corrections, for both transpose key sets (`docs/layout.md` §2.3: 31 vs 45 keys).
     #[test]
@@ -933,6 +1037,13 @@ mod tests {
             assert_eq!(
                 (t.replication, t.babies, t.bias, t.split),
                 (240, 14, 20, -2)
+            );
+            // Pre-registered in docs/layout.md §5 (items 1, 2, 5): 615 reuse, 603 dedicated.
+            let pre = model.total() + t.replication + t.babies + t.transpose;
+            assert_eq!(
+                pre,
+                ks - 18,
+                "pre-registered = exact - bias (20) - split (-2)"
             );
             assert_eq!(
                 mlp_rotation_steps(&EMLP1, &layout, &keys).unwrap().len(),
