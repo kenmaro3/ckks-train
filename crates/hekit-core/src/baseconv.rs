@@ -144,9 +144,11 @@ impl BaseConverter {
     /// [`BaseConverter::convert`] with the overflow `e` removed: output `t` is
     /// `[x]_Q mod p_t` (the representative in `[0, Q)`), as in HPS-style exact conversion.
     ///
-    /// `e = floor(sum_j y_j / q_j)` (`y_j` as in the module docs) is evaluated in `f64`;
-    /// the sum equals `e + [x]_Q / Q`, so the result is exact unless `[x]_Q / Q` lies within
-    /// about `k * 2^-52` of 0 or 1 (`k = from.len()`), where it may be off by `+-Q`.
+    /// For one source prime the plain conversion is already exact (`e = 0`) and is used
+    /// unchanged. For `k = from.len() >= 2`, `e = floor(sum_j y_j / q_j)` (`y_j` as in the
+    /// module docs) is evaluated in `f64`; the sum equals `e + [x]_Q / Q`, so the result is
+    /// exact unless `[x]_Q / Q` lies within about `k * 2^-52` of 0 or 1, where it may be off
+    /// by `+-Q`.
     ///
     /// # Panics
     /// If `input.len() != from.len()`.
@@ -177,8 +179,11 @@ impl BaseConverter {
                     .collect()
             })
             .collect();
-        // e = floor(sum_j y_j / q_j) (exact conversion only).
-        let overflow: Option<Vec<u64>> = exact.then(|| {
+        // e = floor(sum_j y_j / q_j) (exact conversion only). With one source prime
+        // y_0 = x_0 < q_0, so e = 0 and the plain conversion is already exact; skip the f64
+        // estimate there, which would round y_0 / q_0 up to 1.0 for y_0 within ~2^9 of a
+        // 60-bit q_0 (and break SEAL's exact divide_and_round for one special prime).
+        let overflow: Option<Vec<u64>> = (exact && self.from.len() > 1).then(|| {
             let inv: Vec<f64> = self.from.iter().map(|m| 1.0 / m.value() as f64).collect();
             (0..n)
                 .map(|c| {
@@ -426,9 +431,10 @@ impl RnsPoly {
     /// `special` is the `P` part (its active limbs define `P`) and must be in the same form
     /// as `self`; the form is preserved. With `X` in `[0, Q_l * P)` the result is
     /// `floor((X + h) / P) = round(X / P)`: `[X + h]_P` is converted with
-    /// [`BaseConverter::convert_exact`], so the rounding is exact for any number `k` of
-    /// special primes, except when `X / P` lies within about `k * 2^-52` of a tie
-    /// `n + 1/2`, where it may round to either neighbour (rounding error `<= 1/2 + k 2^-52`).
+    /// [`BaseConverter::convert_exact`], so the rounding is exact: always for one special
+    /// prime (bit-identical to SEAL's `divide_and_round_q_last`), and for `k >= 2` except
+    /// when `X / P` lies within about `k * 2^-52` of a tie `n + 1/2`, where it may round to
+    /// either neighbour (rounding error `<= 1/2 + k 2^-52`).
     ///
     /// (With the plain fast conversion the result would be `round(X / P) - e`,
     /// `0 <= e <= k - 1`; that biased `e` multiplies the secret key in encryption and key
@@ -628,7 +634,8 @@ mod tests {
     }
 
     /// `convert_exact` returns `[x]_Q` itself (no overflow multiple) for random `x in [0, Q)`
-    /// over 1, 2 and 3 source primes; within `2^-40 * Q` of 0 or `Q` it may be off by `Q`.
+    /// over 1, 2 and 3 source primes; for `k >= 2`, within `2^-40 * Q` of 0 or `Q` it may be
+    /// off by `Q`, while `k = 1` is always exact.
     #[test]
     fn convert_exact_removes_the_overflow() {
         let to = ntt_primes(60, 16, 2).unwrap();
@@ -649,7 +656,9 @@ mod tests {
             let mut edges = 0;
             for (c, &x) in xs.iter().enumerate() {
                 let r = crt(&[out[0][c], out[1][c]], &to);
-                if r != x {
+                if k == 1 {
+                    assert_eq!(r, x, "k=1 must be exact");
+                } else if r != x {
                     let edge = q >> 40;
                     let ok = (x < edge && r == x + q) || (x > q - edge && r == pt - (q - x));
                     assert!(ok, "k={k} x={x}: got {r}");
@@ -1014,9 +1023,10 @@ mod tests {
     // ---------------------------------------------------------------- mod_down
 
     /// `mod_down` on random `X in [0, Q_l * P)` (exact `u128` reference): the result is
-    /// exactly `floor((X + (P-1)/2) / P)` for `k = 1, 2`, except possibly off by one when
-    /// `[X + h]_P / P` is within `2^-40` of 0 or 1 (a rounding tie; boundary values
-    /// included); NTT form agrees with coefficient form. Level 1 of a 3-prime basis.
+    /// exactly `floor((X + (P-1)/2) / P)`: always for `k = 1` (SEAL's `divide_and_round`;
+    /// boundary values `[X + h]_P = 0` and `P - 1` included), and for `k = 2` except possibly
+    /// off by one when `[X + h]_P / P` is within `2^-40` of 0 or 1 (a rounding tie); NTT form
+    /// agrees with coefficient form. Level 1 of a 3-prime basis.
     #[test]
     fn mod_down_rounds_exactly() {
         let n = 16;
@@ -1057,7 +1067,9 @@ mod tests {
                 for (c, &x) in xs.iter().enumerate() {
                     let got = crt(&[r.limbs()[0][c], r.limbs()[1][c]], qs);
                     let want = ((x + h) / p) % q;
-                    if got != want {
+                    if k == 1 {
+                        assert_eq!(got, want, "k=1 must round exactly: x={x}");
+                    } else if got != want {
                         let f = (x + h) % p;
                         let edge = p >> 40;
                         let near_tie = (f < edge && (want + q - 1) % q == got)
@@ -1072,6 +1084,54 @@ mod tests {
                 assert_eq!(coeff_of(&f).limbs(), r.limbs(), "k={k}");
             }
             eprintln!("mod_down k={k}: {ties} tie values rounded the other way");
+        }
+    }
+
+    /// One 60-bit special prime (the seal_2020 regime, where `f64(y) * f64(1/p)` can round
+    /// to 1.0 for `y` near `p`): `convert_exact` from one prime is the identity and
+    /// `mod_down` is exactly SEAL's `divide_and_round`, including every `[X + h]_P` in
+    /// `[P - 1024, P)` and `[0, 1024)`.
+    #[test]
+    fn one_60_bit_special_prime_rounds_exactly() {
+        let n = 1024;
+        let p = ntt_primes(60, n, 1).unwrap()[0] as u128;
+        let to = ntt_primes_skip(60, n, 1, 2).unwrap();
+        let bc = BaseConverter::new(&[p as u64], &to);
+        let ys: Vec<u64> = (0..n as u64).flat_map(|t| [p as u64 - 1 - t, t]).collect();
+        let out = bc.convert_exact(&[ys.clone()]);
+        for (c, &y) in ys.iter().enumerate() {
+            assert_eq!(crt(&[out[0][c], out[1][c]], &to), y as u128, "y = {y}");
+        }
+
+        let qs = ntt_primes(30, n, 2).unwrap();
+        let b = RnsBasis::new(n, &qs).unwrap();
+        let sp = RnsBasis::new(n, &[p as u64]).unwrap();
+        let q = product(&qs);
+        let h = (p - 1) / 2;
+        let mut rng = ChaCha20Rng::seed_from_u64(1311);
+        for side in [0u128, 1] {
+            // [X + h]_P = P - 1 - t (side 0) or t (side 1), X = m P + ([X + h]_P - h mod P).
+            let xs: Vec<u128> = (0..n as u128)
+                .map(|t| {
+                    let f = if side == 0 { p - 1 - t } else { t };
+                    rand_u128(&mut rng, q) * p + (f + p - h) % p
+                })
+                .collect();
+            let xq = poly_u128(&b, 1, &xs);
+            let xp = poly_u128(&sp, 0, &xs);
+            for ntt in [false, true] {
+                let (mut r, xp) = if ntt {
+                    (ntt_of(&xq), ntt_of(&xp))
+                } else {
+                    (xq.clone(), xp.clone())
+                };
+                r.mod_down(&xp);
+                let r = coeff_of(&r);
+                for (c, &x) in xs.iter().enumerate() {
+                    let got = crt(&[r.limbs()[0][c], r.limbs()[1][c]], &qs);
+                    assert_eq!(got, ((x + h) / p) % q, "side {side} c={c} x={x}");
+                }
+            }
         }
     }
 
