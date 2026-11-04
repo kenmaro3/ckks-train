@@ -316,20 +316,22 @@ impl RnsPoly {
         let mut limbs = Vec::with_capacity(level + 1);
         for (i, m) in moduli[..=level].iter().enumerate() {
             let q = m.value();
-            let mut a: Vec<u64> = if i == 0 {
-                src.clone()
-            } else {
-                src.iter()
-                    .map(|&x| {
-                        if x > half {
-                            let r = (q0 - x) % q;
-                            if r == 0 { 0 } else { q - r }
-                        } else {
-                            x % q
-                        }
-                    })
-                    .collect()
-            };
+            if i == 0 {
+                // Limb 0 is unchanged (no NTT round trip, review m8).
+                limbs.push(self.limbs[0].clone());
+                continue;
+            }
+            let mut a: Vec<u64> = src
+                .iter()
+                .map(|&x| {
+                    if x > half {
+                        let r = (q0 - x) % q;
+                        if r == 0 { 0 } else { q - r }
+                    } else {
+                        x % q
+                    }
+                })
+                .collect();
             if self.ntt_form {
                 self.basis.ntt_tables()[i].forward(&mut a);
             }

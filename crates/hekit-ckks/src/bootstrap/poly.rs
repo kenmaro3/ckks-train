@@ -2,9 +2,10 @@
 //! Chebyshev series on a ciphertext (Task 37), the evaluation of Bossuat, Mouchet,
 //! Troncoso-Pastoriza and Hubaux, "Efficient Bootstrapping for Approximate Homomorphic
 //! Encryption with Non-Sparse Keys" (Eurocrypt 2021, §4–5, Alg. 2). The recursion and the
-//! scale bookkeeping follow the paper and Lattigo's polynomial evaluator (Apache-2.0,
-//! `polynomial_evaluator.go`, read for reference); [`optimal_split`] is Lattigo's baby-step
-//! rule. `docs/bootstrap.md` §10 has the level and scale analysis.
+//! scale bookkeeping follow the algorithm of that paper, and [`optimal_split`] follows
+//! Lattigo's baby-step split rule (a cost formula). This code was written from the
+//! algorithm: no Lattigo source was read or copied for it (Task 37 fix round 1).
+//! `docs/bootstrap.md` §10 has the level and scale analysis.
 //!
 //! # What "level-optimal" means here
 //!
@@ -126,9 +127,9 @@ pub fn chebyshev_depth(degree: usize) -> usize {
     (degree + 1).next_power_of_two().trailing_zeros() as usize
 }
 
-/// The baby-step exponent `s` for a series of depth `log_degree`: the leaves have degree
-/// `< 2^s`. Lattigo's `OptimalSplit` (Apache-2.0): start at `log_degree / 2` and take one
-/// more when `2^s + 2^(D-s) + D - s - 3 > 2^(s+1) + 2^(D-s-1) + D - s - 4` (the
+/// The baby-step exponent `s` for a series of depth `log_degree`: the leaves have degree `< 2^s`.
+/// This follows Lattigo's split rule (`OptimalSplit`), a cost formula: start at `log_degree / 2`
+/// and take one more when `2^s + 2^(D-s) + D - s - 3 > 2^(s+1) + 2^(D-s-1) + D - s - 4` (the
 /// estimated product counts). 4 for degree 127 (`D = 7`): leaves up to degree 15.
 pub fn optimal_split(log_degree: usize) -> usize {
     let d = log_degree as i64;
@@ -240,6 +241,17 @@ fn add_const(ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
     Ciphertext::new(c, ct.scale())
 }
 
+/// `a + b` (or `a - b`) for operands of **bit-identical** scales, else `ScaleMismatch`:
+/// every addition of the evaluation is exact in scale by construction, and this keeps
+/// [`SCALE_TOLERANCE`](crate::evaluator::SCALE_TOLERANCE) from silently relabelling after a
+/// future change (review m3).
+fn add_exact(eval: &Evaluator, a: &Ciphertext, b: &Ciphertext, sub: bool) -> Result<Ciphertext> {
+    if a.scale() != b.scale() {
+        return Err(HekitError::ScaleMismatch);
+    }
+    if sub { eval.sub(a, b) } else { eval.add(a, b) }
+}
+
 /// The trivial encryption of zero at `level` with `scale` (2 components).
 fn zero_ct(eval: &Evaluator, level: usize, scale: f64) -> Result<Ciphertext> {
     let mut z = RnsPoly::zero(eval.params().basis_q(), level);
@@ -289,12 +301,12 @@ impl Cheb<'_> {
         let ta = ev.mod_switch_to_level(ta, l)?;
         let tb = ev.mod_switch_to_level(tb, l)?;
         let prod = ev.relinearize(&ev.mul_no_relin(&ta, &tb)?)?;
-        let prod = ev.add(&prod, &prod)?;
+        let prod = add_exact(ev, &prod, &prod, false)?;
         let prod = if c == 0 {
             add_const(&prod, -1.0)?
         } else {
             let tc = ev.mod_switch_to_level(&self.powers[&c], l)?;
-            ev.sub(&prod, &mul_const_to(ev, &tc, 1.0, prod.scale())?)?
+            add_exact(ev, &prod, &mul_const_to(ev, &tc, 1.0, prod.scale())?, true)?
         };
         let t = ev.rescale(&prod)?;
         debug_assert_eq!(t.level() + ceil_log2(i), self.top);
@@ -337,7 +349,7 @@ impl Cheb<'_> {
         Ok(match (prod, rres) {
             (None, r) => r,
             (Some(a), None) => Some(a),
-            (Some(a), Some(b)) => Some(ev.add(&a, &b)?),
+            (Some(a), Some(b)) => Some(add_exact(ev, &a, &b, false)?),
         })
     }
 
@@ -353,7 +365,7 @@ impl Cheb<'_> {
             let term = mul_const_to(self.eval, &t, c, ts)?;
             acc = Some(match acc {
                 None => term,
-                Some(s) => self.eval.add(&s, &term)?,
+                Some(s) => add_exact(self.eval, &s, &term, false)?,
             });
         }
         let acc = match acc {
@@ -578,7 +590,7 @@ mod tests {
         }
         assert_eq!(chebyshev_depth(255), 8);
         assert_eq!(chebyshev_depth(256), 9);
-        // Lattigo's rule: 4 for degree 127 (leaves up to degree 15).
+        // The split rule: 4 for degree 127 (leaves up to degree 15).
         assert_eq!(optimal_split(7), 4);
         assert_eq!(optimal_split(2), 1);
         assert_eq!(optimal_split(1), 1);

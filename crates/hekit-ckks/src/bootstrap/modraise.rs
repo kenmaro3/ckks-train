@@ -2,15 +2,15 @@
 //! ACNS 2022), the first step of bootstrapping (Task 37, controller ruling R-M3-9,
 //! `docs/bootstrap.md` §2, §3, §7).
 //!
-//! A level-0 ciphertext `(c_0, c_1)` decrypts to `m = c_0 + c_1 s mod q_0`. Reading its
-//! components as integers (centered,
-//! [`RnsPoly::raise_from_level0`](hekit_core::poly::RnsPoly::raise_from_level0)) and reducing
-//! them modulo the whole chain gives a ciphertext at the top level that decrypts to
-//! `t = m + q_0 I`, with `I` the integer overflow of `c_0 + c_1 s`. EvalMod removes `q_0 I` later, which works
-//! only while `|I| < K`. With the dense main key `I` has `sigma_I = sqrt((N/2 + 1) / 12)`
-//! (about 52 at `N = 2^16`); SSE first switches the ciphertext to an ephemeral key `s'` of
-//! Hamming weight `h'`, so that `sigma_I = sqrt((h' + 1) / 12)` (1.66 for `h' = 32`, hence
-//! `K = 13`), and switches back to `s` at the top level:
+//! A level-0 ciphertext `(c_0, c_1)` decrypts to `m = c_0 + c_1 s mod q_0`. Reading its components
+//! as integers (centered,
+//! [`RnsPoly::raise_from_level0`](hekit_core::poly::RnsPoly::raise_from_level0)) and reducing them
+//! modulo the whole chain gives a ciphertext at the top level that decrypts to `t = m + q_0 I`,
+//! with `I` the integer overflow of `c_0 + c_1 s`. EvalMod removes `q_0 I` later, which works only
+//! while `|I| < K`. With the dense main key `I` has `sigma_I = sqrt((N/2 + 1) / 12)` (about 52 at
+//! `N = 2^16`); SSE first switches the ciphertext to an ephemeral key `s'` of Hamming weight `h'`,
+//! so that `sigma_I = sqrt((h' + 1) / 12)` (1.66 for `h' = 32`, hence `K = 13`), and switches back
+//! to `s` at the top level:
 //!
 //! 1. at level 0, key-switch `c_1` from `s` to `s'` ([`SseKeys::to_sparse`], modulo `q_0 P`);
 //! 2. raise both components from level 0 to `max_level` (centered lift);
@@ -90,7 +90,13 @@ impl Evaluator {
     /// `InvalidParams` unless `ct` has 2 components over this basis, `LevelMismatch` unless
     /// it is at level 0.
     fn check_mod_raise_input(&self, ct: &Ciphertext) -> Result<()> {
-        self.check_galois_input(ct)?;
+        self.check_basis(ct.polys())?;
+        if ct.len() != 2 {
+            return Err(HekitError::InvalidParams(format!(
+                "mod_raise needs a 2-component ciphertext (got {}); relinearize first",
+                ct.len()
+            )));
+        }
         if ct.level() != 0 {
             return Err(HekitError::LevelMismatch);
         }
@@ -429,7 +435,12 @@ mod tests {
             e.mod_switch_to_level(&e.mul_no_relin(&x, &x).unwrap(), 0)
                 .unwrap()
         };
-        assert!(inv(eval.mod_raise(&three, &sse)));
+        assert_eq!(
+            eval.mod_raise(&three, &sse).unwrap_err(),
+            HekitError::InvalidParams(
+                "mod_raise needs a 2-component ciphertext (got 3); relinearize first".into()
+            )
+        );
         assert!(inv(eval.mod_raise_main_key(&three)));
     }
 }

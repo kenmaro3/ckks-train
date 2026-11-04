@@ -383,7 +383,7 @@ The code is in `crates/hekit-ckks/src/bootstrap/`: `modraise.rs`, `poly.rs` and 
 
 ### 10.1 Level-optimal, scale-invariant Chebyshev evaluation
 
-`Evaluator::eval_chebyshev(ct, coeffs, a, b)` evaluates p(y) = Σ c_i T_i(y). It follows Bossuat, Mouchet, Troncoso-Pastoriza and Hubaux (Eurocrypt 2021, §4–5, Alg. 2). The recursion and the baby-step rule (`optimal_split`) are adapted from Lattigo's polynomial evaluator (Apache-2.0), which was read for reference. The result has exactly the input scale, or `target_scale` with `eval_chebyshev_to_scale`. It sits ⌈log2(d+1)⌉ levels lower; an interval other than [−1, 1] costs one more level.
+`Evaluator::eval_chebyshev(ct, coeffs, a, b)` evaluates p(y) = Σ c_i T_i(y). It follows Bossuat, Mouchet, Troncoso-Pastoriza and Hubaux (Eurocrypt 2021, §4–5, Alg. 2). The recursion and the scale bookkeeping follow the algorithm of the paper, and the baby-step rule (`optimal_split`) follows Lattigo's split rule, which is a cost formula. The code was written from the algorithm: no Lattigo source was read or copied for it, so no third-party notice applies (Task 37 review I1). The result has exactly the input scale, or `target_scale` with `eval_chebyshev_to_scale`. It sits ⌈log2(d+1)⌉ levels lower; an interval other than [−1, 1] costs one more level.
 
 **Power basis.** T_1 is the input at level L. Each T_i is 2·T_a·T_b − T_(a−b), with a = 2^(⌈log2 i⌉−1) and b = i − a. The steps are:
 1. multiply T_a and T_b at the lower of their two levels, and relinearize;
@@ -440,6 +440,12 @@ where t_j = Δc_j + q_0 I_j is coefficient j of the raised plaintext. The 1/K is
 **The series.** For r = 0 it is the degree-127 interpolant of sin(2π·13·y), with its even coefficients set exactly to zero because the sine is odd. With r > 0 it is cos(2π(Ky − 1/4)/2^r) followed by r double angles. Each double angle is one level. Its square is relabelled to the exact label of the next planned scale, and the Chebyshev output scale is chosen within a few ulps of sqrt(2σ) for that. There is no arcsine correction (§6).
 
 **Measured.** N = 2^10, the n16 constants (K = 13, degree 127, r = 0), inputs m + q_0 I with |m| ≤ 1 and |I| ≤ 13: the edge slots carry I = ±13 with m pointing inward, so x stays in [−K, K]. The result m' = q_0/(2πΔ)·output matches m to **2^-21.3** (threshold 2^-16) in exactly 7 levels. This is the sine-versus-modulus term at |m| = 1, (2πΔ/q_0)²/6 = 2^-21.3, so it is not noise. In a bootstrap the sine acts on the coefficients, whose rms is 2^-8.8 for slots in [−1, 1], and §6 puts this term at 36.1 bits.
+
+**Preconditions** (stated in the `eval_mod` rustdoc, review m2): |y| ≤ 1 and message slots |m| ≤ 1.
+- **Just past the edge.** The outward edge, I = ±K with m pointing outward (|y| − 1 ≈ 2^-15.8), still measures 2^-21.5 at N = 2^10.
+- **Further out.** For |I| > K the series diverges.
+- **Larger messages.** Precision falls quadratically with |m|.
+- **r > 0.** This path is experimental: it is checked for levels and exact scale only.
 
 **n16_boot** (`n16_boot_keys_eval_mod`, `BootParams::default_n16()`, all 2^15 slots): level 27 → 20 (7 = `evalmod_levels`), scale exactly 2^58 in and out, max |m − m'| = **2^-21.27** (threshold 2^-16), against a sine term alone of 2^-21.28. The counts are 23 products, 20 relinearizations, 24 rescales and 71 constant products, as in §10.1. It took 5.0 s on one thread of the Mac while another job ran.
 

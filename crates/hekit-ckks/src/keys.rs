@@ -419,6 +419,10 @@ impl KeyGenerator {
     /// `hamming_weight` nonzero coefficients (see [`SseKeys`]). `s'` itself is dropped: only
     /// the two switching keys are kept.
     ///
+    /// This advances the generator's random stream, so keys generated afterwards differ from
+    /// those of the same seed without the call: fix the generation order where key-derived
+    /// values are pinned (review m9).
+    ///
     /// Errors with `InvalidParams` unless `1 <= hamming_weight <= N`.
     pub fn sse_keys(&mut self, hamming_weight: usize) -> Result<SseKeys> {
         self.sse_keys_with_secret(hamming_weight).map(|(k, _)| k)

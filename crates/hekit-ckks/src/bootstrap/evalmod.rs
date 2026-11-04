@@ -70,6 +70,26 @@ impl Evaluator {
     /// 27 -> 20 on n16_boot). Uses [`evalmod_coeffs`], [`Evaluator::eval_chebyshev_to_scale`]
     /// and `r` double-angle steps.
     ///
+    /// # Preconditions (not checked: the slots are encrypted)
+    ///
+    /// * **`|y| <= 1`**, that is `|I + Delta c / q_0| <= K`. The series interpolates on
+    ///   `[-1, 1]` only. Just past the edge (`|I| = K` with the outward sign of `m`,
+    ///   `|y| - 1 ~ 2^-15.8`) it still holds (measured 2^-21.5 at N = 2^10), but further out
+    ///   a degree-127 Chebyshev series grows fast, so a slot with `|I| > K` (`|I| >= K` has
+    ///   probability 2^-39.7 per n16_boot bootstrap, `docs/bootstrap.md` §3) is garbage, not
+    ///   an approximation.
+    /// * **`|Delta c / q_0| << 1`**, that is message slots `|m| <= 1` (Review Focus 2). The
+    ///   output is `sin(2 pi x)`, not `2 pi x`: the relative error of reading it as the
+    ///   modulus is `(2 pi Delta c / q_0)^2 / 6`, 2^-21.3 at `|c| = 1` with
+    ///   `q_0 / Delta = 2^12` and far less for real coefficients (rms 2^-8.8 for slots in
+    ///   `[-1, 1]`; `docs/bootstrap.md` §6 gives 36.1 bits at `|m| <= 1`, 27.1 at `|m| <= 8`).
+    ///   Larger messages lose precision quadratically and wrap past `|Delta c / q_0| = 1/4`.
+    ///
+    /// The `r > 0` (double-angle) path is **experimental**: it is checked for levels and
+    /// exact scale, and one double-angle step for its value, but no `r > 0` design is
+    /// accurate at K = 13 within 7 levels (`docs/bootstrap.md` §4), so the composed path has
+    /// no value test; n16_boot uses `r = 0`.
+    ///
     /// With double angles, the Chebyshev output scale `t` is chosen so that each square is
     /// relabelled from `t^2` to the exact label of the next planned scale (`t ~ sqrt(2 sigma)`,
     /// a relabelling error of a few `2^-52` relative); the final scale is `ct.scale()` exactly.
@@ -163,7 +183,12 @@ mod tests {
     /// the module docs: `I` uniform in `-(K-1)..=K-1`, the first slots at the edges
     /// `I = +-K` with `m` of the inward sign (so `x = I + m Delta / q_0` stays in `[-K, K]`),
     /// `m` uniform in `[-1, 1]`, and `delta_over_q0 = Delta / q_0`.
-    fn case(slots: usize, k: usize, delta_over_q0: f64, r: &mut Rng) -> Case {
+    ///
+    /// The inward sign at `I = +-K` is a deliberate narrowing of the brief (review m6): the
+    /// design covers `|I| <= K - 1` (`BootParams::validate`, `docs/bootstrap.md` §3) and the
+    /// series is accurate only for `|y| <= 1`. With `outward`, those two slots get the outward
+    /// sign instead (`|y| = 1 + |m| Delta / (q_0 K)`), to observe that case.
+    fn case(slots: usize, k: usize, delta_over_q0: f64, outward: bool, r: &mut Rng) -> Case {
         let k = k as i64;
         let mut i: Vec<i64> = (0..slots)
             .map(|_| (r.next_u64() % (2 * k as u64 - 1)) as i64 - (k - 1))
@@ -171,7 +196,7 @@ mod tests {
         let mut m: Vec<f64> = (0..slots).map(|_| unit(r)).collect();
         for (j, s) in [(0, 1), (1, -1)] {
             i[j] = s * k;
-            m[j] = -(s as f64) * m[j].abs();
+            m[j] = if outward { s as f64 } else { -(s as f64) } * m[j].abs();
         }
         let y = i
             .iter()
@@ -214,7 +239,7 @@ mod tests {
         let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
         let mut r = rng(2);
         let (q0, delta) = (params.q()[0] as f64, params.scale());
-        let c = case(params.slots(), 13, delta / q0, &mut r);
+        let c = case(params.slots(), 13, delta / q0, false, &mut r);
         let top = params.max_level();
         let s = 2f64.powi(58);
         let ct = encryptor.encrypt(&enc.encode(&c.y, s, top).unwrap(), &mut r);
@@ -237,7 +262,24 @@ mod tests {
             e.log2()
         );
         assert!(e < 2f64.powi(-16), "{e:e}");
+        // Regression gate (review m4): the error is the sine term (2 pi Delta / q_0)^2 / 6 at
+        // |m| = 1, with little room for noise or approximation error.
+        let sine = (2.0 * PI * delta / q0).powi(2) / 6.0;
+        assert!(e < 1.05 * sine, "{e:e} vs sine term {sine:e}");
         assert!(c.i.iter().any(|&v| v.abs() == 13));
+        // Review m6: the outward edge (|I| = K, |y| slightly above 1).
+        let co = case(params.slots(), 13, delta / q0, true, &mut r);
+        let cto = encryptor.encrypt(&enc.encode(&co.y, s, top).unwrap(), &mut r);
+        let got = enc.decode(&dec.decrypt(&eval.eval_mod(&cto, &b).unwrap()));
+        let edge = (0..2)
+            .map(|j| (got[j] * back - co.m[j]).abs())
+            .fold(0.0, f64::max);
+        eprintln!(
+            "outward edge |y| = 1 + {:.1e}: max |m - m'| at the two edge slots = 2^{:.1}",
+            co.y[0].abs() - 1.0,
+            edge.log2()
+        );
+        assert!(edge < 2f64.powi(-16), "{edge:e}");
 
         // r = 1: degree 63 then one double angle, 7 levels, exact scale.
         let out = eval.eval_mod(&ct, &bp(63, 1, 7)).unwrap();
@@ -282,7 +324,7 @@ mod tests {
         let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
         let mut r = rng(32);
         let (q0, delta) = (params.q()[0] as f64, params.scale());
-        let c = case(params.slots(), b.k_intervals, delta / q0, &mut r);
+        let c = case(params.slots(), b.k_intervals, delta / q0, false, &mut r);
         let level =
             crate::bootstrap::levels_after_boot(&params, &b) + b.stoc_levels + b.evalmod_levels;
         assert_eq!(level, 27);
@@ -315,6 +357,8 @@ mod tests {
             eval.counter()
         );
         assert!(e < 2f64.powi(-16), "{e:e}");
+        // Regression gate (review m4): within 5% of the analytic sine term.
+        assert!(e < 1.05 * sine, "{e:e} vs sine term {sine:e}");
     }
 
     #[test]

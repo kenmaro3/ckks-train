@@ -45,12 +45,11 @@
 //! CoeffToSlot then gives `re + i im = factor * u`, SlotToCoeff gives `factor * z`. Its
 //! modulus is spread evenly over the stages.
 //!
-//! Each stage is a BSGS product of plaintext diagonals
-//! ([`Evaluator::matvec_plain_sum_sparse`]: all-zero diagonals are neither stored nor
-//! multiplied) at one level, followed by one rescale; [`encode_stages`] picks every diagonal scale so that
-//! the ciphertext lands **exactly** on a planned scale after each rescale (powers of two in
-//! between, `output_scale` after the last stage; the exact-scale path of
-//! [`crate::evaluator`]).
+//! Each stage is a BSGS product of plaintext diagonals ([`Evaluator::matvec_plain_sum_sparse`]:
+//! all-zero diagonals are neither stored nor multiplied) at one level, followed by one rescale;
+//! [`encode_stages`] picks every diagonal scale so that the ciphertext lands **exactly** on a
+//! planned scale after each rescale (powers of two in between, `output_scale` after the last stage;
+//! the exact-scale path of [`crate::evaluator`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -468,6 +467,10 @@ pub struct StageSpec {
 /// (`None` entries, [`Diagonals::<Option<Plaintext>>::encode_complex_sparse`]).
 #[derive(Debug, Clone)]
 pub struct LinearTransform {
+    /// The transform this stage belongs to (from [`StageSpec::direction`]): checked by
+    /// [`Evaluator::coeff_to_slot`] and [`Evaluator::slot_to_coeff`], so that even a
+    /// one-stage list cannot be used in the wrong direction.
+    pub direction: Direction,
     /// The diagonals applied to the stage input.
     pub diags: Diagonals<Option<Plaintext>>,
     /// The diagonals of a two-input stage, with the same layout: applied to the conjugate of
@@ -616,6 +619,7 @@ pub fn encode_stages(
             )
         };
         out.push(LinearTransform {
+            direction: spec.direction,
             diags: encode(&main)?,
             second: second.as_ref().map(encode).transpose()?,
             level,
@@ -662,8 +666,10 @@ impl Evaluator {
     /// Costs one BSGS product and one rescale per stage, the conjugation of the last stage's
     /// input and the conjugation of the result (two conjugation key switches).
     ///
-    /// Errors, all before any work: `InvalidParams` if `ctos` is empty, its last stage has no
-    /// `second` diagonals or an earlier one has (a SlotToCoeff list, or stages out of order),
+    /// Errors, all before any work: `InvalidParams` if `ctos` is empty, a stage is of the
+    /// SlotToCoeff direction ([`LinearTransform::direction`]; this also catches a one-stage
+    /// list), its last stage has no `second` diagonals or an earlier one has (stages out of
+    /// order),
     /// `ct` is not a 2-component ciphertext over this evaluator's basis, or a rotation key
     /// ([`LinearTransform::rotation_steps`]) or the conjugation key is missing;
     /// `LevelMismatch` unless the stage levels are `ct.level(), ct.level() - 1, ...`;
@@ -677,6 +683,11 @@ impl Evaluator {
         let Some((last, rest)) = ctos.split_last() else {
             return Err(HekitError::InvalidParams("no stages".into()));
         };
+        if ctos.iter().any(|lt| lt.direction != Direction::CoeffToSlot) {
+            return Err(HekitError::InvalidParams(
+                "coeff_to_slot: a stage of the SlotToCoeff direction".into(),
+            ));
+        }
         if last.second.is_none() || rest.iter().any(|lt| lt.second.is_some()) {
             return Err(HekitError::InvalidParams(
                 "coeff_to_slot: only the last stage (and it must) takes the conjugate".into(),
@@ -704,8 +715,9 @@ impl Evaluator {
     /// Costs one BSGS product and one rescale per stage; the first stage multiplies the
     /// diagonals of both inputs and shares the giant rotations. No conjugation.
     ///
-    /// Errors, all before any work: `InvalidParams` if `stoc` is empty, its first stage has
-    /// no `second` diagonals or a later one has, an input is not a 2-component ciphertext over
+    /// Errors, all before any work: `InvalidParams` if `stoc` is empty, a stage is of the
+    /// CoeffToSlot direction ([`LinearTransform::direction`]), its first stage has no
+    /// `second` diagonals or a later one has, an input is not a 2-component ciphertext over
     /// this evaluator's basis, or a rotation key is missing; `LevelMismatch` unless
     /// `re` and `im` are both at `stoc[0].level` and the stage levels descend by one;
     /// `ScaleMismatch` unless `re` and `im` have exactly the scale the stages were encoded
@@ -718,6 +730,11 @@ impl Evaluator {
     ) -> Result<Ciphertext> {
         self.check_galois_input(re)?;
         self.check_galois_input(im)?;
+        if stoc.iter().any(|lt| lt.direction != Direction::SlotToCoeff) {
+            return Err(HekitError::InvalidParams(
+                "slot_to_coeff: a stage of the CoeffToSlot direction".into(),
+            ));
+        }
         if stoc.first().is_none_or(|lt| lt.second.is_none())
             || stoc[1..].iter().any(|lt| lt.second.is_some())
         {
@@ -1721,10 +1738,22 @@ mod tests {
         ));
         let mut two_seconds = tiny_ctos(&full, 2, ONE);
         two_seconds[0].second = two_seconds[1].second.clone();
-        assert!(matches!(
-            full.eval.coeff_to_slot(&ct_full, &two_seconds),
-            Err(HekitError::InvalidParams(_))
-        ));
+        let msg = |e: Result<(Ciphertext, Ciphertext)>| match e {
+            Err(HekitError::InvalidParams(m)) => m,
+            other => panic!("{other:?}"),
+        };
+        assert!(msg(full.eval.coeff_to_slot(&ct_full, &two_seconds)).contains("last stage"));
+        // Review m1: one-stage lists are told apart by their direction.
+        let stoc1 = tiny_stoc(&full, 1, 2f64.powi(46), ONE);
+        assert!(msg(full.eval.coeff_to_slot(&ct_full, &stoc1)).contains("direction"));
+        let ctos1 = tiny_ctos(&full, 1, ONE);
+        let s46 = full
+            .encryptor
+            .encrypt(&full.enc.encode(&[0.5], 2f64.powi(46), 5).unwrap(), &mut r);
+        match full.eval.slot_to_coeff(&s46, &s46, &ctos1) {
+            Err(HekitError::InvalidParams(m)) => assert!(m.contains("direction"), "{m}"),
+            other => panic!("{other:?}"),
+        }
         // slot_to_coeff: CtS stages, mismatched inputs.
         let stoc = tiny_stoc(&full, 2, 2f64.powi(46), ONE);
         let s = 2f64.powi(46);
