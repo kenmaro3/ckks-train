@@ -101,6 +101,22 @@ const LABEL_SEARCH_ULPS: u64 = 8;
 /// Bound on the integer constant of [`Evaluator::mul_scalar`], `2^62`.
 const MAX_SCALAR_INT: f64 = 4_611_686_018_427_387_904.0;
 
+/// Smallest plaintext scale [`Evaluator::mul_scalar`] and [`Evaluator::mul_plain_to_scale`]
+/// accept, `2^20`: below it the constant (or mask) is rounded to fewer than about 20 bits
+/// (absolute error up to `1 / (2 s_p)` per unit of message), silently.
+pub const MIN_PLAIN_SCALE: f64 = 1_048_576.0;
+
+/// `InvalidParams` if the plaintext scale `sp` is below [`MIN_PLAIN_SCALE`].
+fn check_plain_scale(sp: f64) -> Result<()> {
+    if sp < MIN_PLAIN_SCALE {
+        return Err(HekitError::InvalidParams(format!(
+            "plaintext scale {sp:e} is below 2^20: the target scale is too small for this \
+             ciphertext's scale and level (the constant would be rounded to a few bits)"
+        )));
+    }
+    Ok(())
+}
+
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
 /// counts the expensive operations it performs ([`Evaluator::counter`]).
 ///
@@ -317,7 +333,8 @@ impl Evaluator {
     /// into that product's plaintext instead (`docs/layout.md` §3).
     ///
     /// Errors: `InvalidParams` if `ct` is not over this evaluator's basis, `value` is not
-    /// finite, or `|k| >= 2^62`; and those of [`Evaluator::exact_product_scale`]
+    /// finite, the plaintext scale `s_p` is below [`MIN_PLAIN_SCALE`] (`2^20`: the constant
+    /// would keep fewer than about 20 bits), or `|k| >= 2^62`; and those of [`Evaluator::exact_product_scale`]
     /// (`NoLevelsLeft` at level 0, `ScaleMismatch` for a target no rescale from this level
     /// can reach). Failures count nothing.
     pub fn mul_scalar(&self, ct: &Ciphertext, value: f64, target_scale: f64) -> Result<Ciphertext> {
@@ -328,6 +345,7 @@ impl Evaluator {
             )));
         }
         let label = self.exact_product_scale(ct.level(), target_scale)?;
+        check_plain_scale(label / ct.scale())?;
         let k = (value * (label / ct.scale())).round();
         if k.abs() >= MAX_SCALAR_INT {
             return Err(HekitError::InvalidParams(format!(
@@ -357,8 +375,9 @@ impl Evaluator {
     ///
     /// Counts one `ct_pt_mults`.
     ///
-    /// Errors: `InvalidParams` for operands not over this evaluator's basis; `LevelMismatch`
-    /// unless `p.level() == a.level()`; those of [`Evaluator::exact_product_scale`]; and
+    /// Errors: `InvalidParams` for operands not over this evaluator's basis, or if the target
+    /// plaintext scale is below [`MIN_PLAIN_SCALE`] (`2^20`); `LevelMismatch` unless
+    /// `p.level() == a.level()`; those of [`Evaluator::exact_product_scale`]; and
     /// `ScaleMismatch` if `p.scale()` is not exactly the target plaintext scale.
     pub fn mul_plain_to_scale(
         &self,
@@ -370,6 +389,7 @@ impl Evaluator {
         self.check_basis(std::slice::from_ref(p.poly()))?;
         check_level(a.level(), p.level())?;
         let label = self.exact_product_scale(a.level(), target_scale)?;
+        check_plain_scale(label / a.scale())?;
         if p.scale() != label / a.scale() {
             return Err(HekitError::ScaleMismatch);
         }
@@ -1631,6 +1651,39 @@ mod tests {
             Err(HekitError::InvalidParams(_))
         ));
         assert_eq!(e.counter(), OpCounter::default(), "failures count nothing");
+    }
+
+    /// A plaintext scale below `2^20` (a target scale far below the ciphertext's scale
+    /// divided by `q_l`) would round the constant / mask to a few bits: `InvalidParams`, for
+    /// `mul_scalar` and `mul_plain_to_scale` alike, counting nothing.
+    #[test]
+    fn small_plaintext_scale_is_rejected() {
+        let ctx = small();
+        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
+        let mut r = rng(68);
+        let v = rand_vals(69, 8);
+        let a = ctx.encrypt(&v, 2, &mut r);
+        let q = ctx.params.q()[2] as f64;
+        e.reset_counter();
+        // Target t gives s_p = t * q / a.scale(); a.scale() = Delta.
+        let delta = ctx.params.scale();
+        let tiny = delta * 2f64.powi(19) / q; // s_p ~ 2^19
+        assert!(matches!(
+            e.mul_scalar(&a, 0.5, tiny),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let sp = e.target_plain_scale(&a, tiny).unwrap();
+        assert!(sp < 2f64.powi(20));
+        let pt = ctx.enc.encode(&v, sp, 2).unwrap();
+        assert!(matches!(
+            e.mul_plain_to_scale(&a, &pt, tiny),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert_eq!(e.counter(), OpCounter::default(), "failures count nothing");
+        // Just above the bound is accepted.
+        let ok = delta * 2f64.powi(21) / q; // s_p ~ 2^21
+        assert!(e.target_plain_scale(&a, ok).unwrap() >= 2f64.powi(20));
+        assert!(e.mul_scalar(&a, 0.5, ok).is_ok());
     }
 
     /// `mul_plain_to_scale` with a plaintext encoded at `target_plain_scale` gives exactly the
