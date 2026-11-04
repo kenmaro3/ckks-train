@@ -40,7 +40,9 @@
 //!
 //! 1. for each digit `j` with primes `D_j = j*alpha .. min((j+1)*alpha, l+1)` (the last digit
 //!    may be clipped by the level; skip digits starting above `l`):
-//!    `(d_q, d_p) = c1.mod_up_digit(D_j, &basis_p)` (NTT form in, NTT form out);
+//!    `(d_q, d_p) = c1.mod_up_digit_centered(D_j, &basis_p)` (NTT form in, NTT form out;
+//!    the centered lift keeps the key-switch noise zero-mean, see
+//!    [`RnsPoly::mod_up_digit_centered`]);
 //! 2. multiply `(d_q, d_p)` part-wise by key part `j` restricted to `Q_l * P`: its `Q` part
 //!    truncated to level `l` (key `Q` parts are stored at level `L`; drop limbs `l+1..=L`, or
 //!    work on `limbs()` directly) and its `P` part unchanged, and accumulate;
@@ -176,6 +178,15 @@ impl BaseConverter {
     }
 }
 
+/// `(D - 1)/2 mod m` for `D` the (odd) product of `factors`: `(D - 1) * 2^{-1}` with
+/// `2^{-1} = (m + 1)/2` (`m` odd).
+fn half_mod(factors: &[Modulus], m: &Modulus) -> u64 {
+    let d = factors
+        .iter()
+        .fold(1 % m.value(), |acc, f| m.mul(acc, f.value() % m.value()));
+    m.mul(m.sub(d, 1 % m.value()), m.value().div_ceil(2))
+}
+
 impl RnsPoly {
     /// Divides by the last prime `q_l` with rounding and drops it (level `l -> l - 1`):
     /// `a_i <- (a_i - [a_l + h]_{q_l} + h) * q_l^{-1} mod q_i`, `h = (q_l - 1) / 2`
@@ -235,7 +246,7 @@ impl RnsPoly {
     /// # Panics
     /// If `special` has a different ring degree.
     pub fn mod_up(&self, special: &Arc<RnsBasis>) -> RnsPoly {
-        let (_, p_limbs) = self.convert_digit(0..self.level() + 1, special);
+        let (_, p_limbs) = self.convert_digit(0..self.level() + 1, special, false);
         RnsPoly::from_limbs(special, p_limbs, self.is_ntt_form())
             .expect("converted limbs are reduced")
     }
@@ -254,7 +265,40 @@ impl RnsPoly {
     /// If `digit` is empty or not within `0..=level`, or `special` has a different ring
     /// degree.
     pub fn mod_up_digit(&self, digit: Range<usize>, special: &Arc<RnsBasis>) -> (RnsPoly, RnsPoly) {
-        let (others, mut converted) = self.convert_digit(digit.clone(), special);
+        self.lift_digit(digit, special, false)
+    }
+
+    /// [`RnsPoly::mod_up_digit`] with a **centered** lift: the digit value is taken as its
+    /// representative `x_c` in `[-(Q_D-1)/2, (Q_D-1)/2]` (`Q_D` is odd) instead of
+    /// `[0, Q_D)`, so every converted limb is `(x_c + u*Q_D) mod r` with
+    /// `0 <= u <= digit.len() - 1` (`u = 0`, an exact lift, for a one-prime digit). The digit
+    /// limbs are copied unchanged, as in `mod_up_digit`.
+    ///
+    /// Implemented as the fast conversion of `[x + h]_{Q_D}` followed by subtracting
+    /// `h mod r`, `h = (Q_D - 1)/2` (the same offset trick as [`RnsPoly::mod_down`]).
+    ///
+    /// Hybrid key switching uses this lift: the lifted digit `d_j` multiplies the key error
+    /// `e_j`, and a non-centered `d_j` has mean `Q_D/2`, whose constant component concentrates
+    /// noise in the slots near `zeta = 1` (seal_2020, `Q_D = q_0 ~ P`: key-switch error
+    /// `2^-19.8` instead of `2^-22.7` times the scale).
+    ///
+    /// # Panics
+    /// As [`RnsPoly::mod_up_digit`].
+    pub fn mod_up_digit_centered(
+        &self,
+        digit: Range<usize>,
+        special: &Arc<RnsBasis>,
+    ) -> (RnsPoly, RnsPoly) {
+        self.lift_digit(digit, special, true)
+    }
+
+    fn lift_digit(
+        &self,
+        digit: Range<usize>,
+        special: &Arc<RnsBasis>,
+        centered: bool,
+    ) -> (RnsPoly, RnsPoly) {
+        let (others, mut converted) = self.convert_digit(digit.clone(), special, centered);
         let p_limbs = converted.split_off(others.len());
         let mut converted = converted.into_iter();
         let q_limbs = (0..=self.level())
@@ -276,11 +320,14 @@ impl RnsPoly {
     }
 
     /// Converts the limbs `digit` to every other `Q_l` prime (indices returned, increasing)
-    /// followed by every prime of `special`, in the form of `self`.
+    /// followed by every prime of `special`, in the form of `self`. With `centered`, the
+    /// digit value is lifted from its centered representative (see
+    /// [`RnsPoly::mod_up_digit_centered`]).
     fn convert_digit(
         &self,
         digit: Range<usize>,
         special: &Arc<RnsBasis>,
+        centered: bool,
     ) -> (Vec<usize>, Vec<Vec<u64>>) {
         let l = self.level();
         assert!(
@@ -302,13 +349,28 @@ impl RnsPoly {
                 .for_each(|(a, t)| t.inverse(a));
         }
         let others: Vec<usize> = (0..=l).filter(|i| !digit.contains(i)).collect();
-        let from: Vec<u64> = qs[digit].iter().map(Modulus::value).collect();
-        let to: Vec<u64> = others
+        let digit_moduli = &qs[digit];
+        let from: Vec<u64> = digit_moduli.iter().map(Modulus::value).collect();
+        let targets: Vec<&Modulus> = others
             .iter()
-            .map(|&i| qs[i].value())
-            .chain(special.moduli().iter().map(Modulus::value))
+            .map(|&i| &qs[i])
+            .chain(special.moduli())
             .collect();
+        let to: Vec<u64> = targets.iter().map(|m| m.value()).collect();
+        if centered {
+            // [x + h]_{Q_D}, h = (Q_D - 1)/2; h mod q_j = (q_j - 1)/2 for a digit prime q_j.
+            for (a, m) in src.iter_mut().zip(digit_moduli) {
+                let h = m.value() >> 1;
+                a.iter_mut().for_each(|x| *x = m.add(*x, h));
+            }
+        }
         let mut out = BaseConverter::new(&from, &to).convert(&src);
+        if centered {
+            for (a, m) in out.iter_mut().zip(&targets) {
+                let h = half_mod(digit_moduli, m);
+                a.iter_mut().for_each(|x| *x = m.sub(*x, h));
+            }
+        }
         if ntt {
             let targets = others
                 .iter()
@@ -372,8 +434,8 @@ impl RnsPoly {
             let p_inv = m
                 .inv(p_mod)
                 .expect("special primes must be coprime to the Q primes");
-            // h mod q_i = (P - 1) * 2^{-1}; q_i is odd, so 2^{-1} = (q_i + 1)/2.
-            let half = m.mul(m.sub(p_mod, 1 % m.value()), m.value().div_ceil(2));
+            // h mod q_i = (P - 1) * 2^{-1}.
+            let half = half_mod(ps, m);
             t.iter_mut().for_each(|x| *x = m.sub(*x, half));
             if ntt {
                 tables[i].forward(&mut t);
@@ -761,6 +823,97 @@ mod tests {
             assert_eq!(wq.limbs(), a.limbs());
             assert_eq!(wp.limbs(), a.mod_up(&sp).limbs());
         }
+    }
+
+    /// Centered representative of `x in [0, q)` in `[-(q-1)/2, (q-1)/2]` (`q` odd).
+    fn center(x: u128, q: u128) -> i128 {
+        if x > q / 2 {
+            x as i128 - q as i128
+        } else {
+            x as i128
+        }
+    }
+
+    /// `mod_up_digit_centered`: digit limbs are copied, every converted limb holds
+    /// `x_c + u*Q_D` with `x_c` the centered representative of the digit value and
+    /// `0 <= u <= digit.len() - 1` (the same `u` for every target prime); a one-prime digit
+    /// is lifted exactly (`u = 0`). Boundary values `0, (Q_D-1)/2, (Q_D+1)/2, Q_D-1`
+    /// included; NTT form agrees with coefficient form.
+    #[test]
+    fn mod_up_digit_centered_lifts_the_centered_representative() {
+        let n = 16;
+        let qs = ntt_primes(20, n, 4).unwrap();
+        let b = RnsBasis::new(n, &qs).unwrap();
+        let p = ntt_primes(50, n, 2).unwrap();
+        let sp = RnsBasis::new(n, &p).unwrap();
+        let mut rng = ChaCha20Rng::seed_from_u64(1307);
+        for (digit, trial) in [(1..3usize, 0), (1..3, 1), (2..3, 0), (2..3, 1), (0..4, 0)]
+            .into_iter()
+            .chain((0..10).map(|t| (1..3, t + 2)))
+        {
+            let q_d: u128 = qs[digit.clone()].iter().map(|&q| q as u128).product();
+            let mut a = rand_poly(&b, 3, &mut rng);
+            if trial == 0 {
+                // Boundary digit values in the first coefficients.
+                let mut xs: Vec<u128> = (0..n as u128).map(|c| c * 977 % q_d).collect();
+                xs[..4].copy_from_slice(&[0, (q_d - 1) / 2, (q_d + 1) / 2, q_d - 1]);
+                let limbs = (0..4)
+                    .map(|i| {
+                        if digit.contains(&i) {
+                            xs.iter().map(|&x| (x % qs[i] as u128) as u64).collect()
+                        } else {
+                            a.limbs()[i].clone()
+                        }
+                    })
+                    .collect();
+                a = RnsPoly::from_limbs(&b, limbs, false).unwrap();
+            }
+            let (dq, dp) = a.mod_up_digit_centered(digit.clone(), &sp);
+            assert_eq!((dq.level(), dp.level()), (3, 1));
+            assert!(Arc::ptr_eq(dq.basis(), &b) && Arc::ptr_eq(dp.basis(), &sp));
+            assert!(!dq.is_ntt_form() && !dp.is_ntt_form());
+            for i in digit.clone() {
+                assert_eq!(dq.limbs()[i], a.limbs()[i]);
+            }
+            let digit_q: Vec<u64> = qs[digit.clone()].to_vec();
+            for c in 0..n {
+                let res: Vec<u64> = digit.clone().map(|i| a.limbs()[i][c]).collect();
+                let x_c = center(crt(&res, &digit_q), q_d);
+                // Recover the lifted integer from the two P limbs (P > alpha * Q_D).
+                let lifted = crt(&[dp.limbs()[0][c], dp.limbs()[1][c]], &p);
+                let lifted = center(lifted, product(&p));
+                let u = lifted - x_c;
+                assert_eq!(u % q_d as i128, 0, "coefficient {c}: not x_c + u*Q_D");
+                let u = u / q_d as i128;
+                assert!(
+                    (0..digit.len() as i128).contains(&u),
+                    "coefficient {c}: u = {u}"
+                );
+                if digit.len() == 1 {
+                    assert_eq!(u, 0);
+                }
+                for i in (0..4).filter(|i| !digit.contains(i)) {
+                    assert_eq!(dq.limbs()[i][c], rem_i(lifted, qs[i]), "limb {i}");
+                }
+                if trial == 0 && c < 4 {
+                    let want = [0, (q_d as i128 - 1) / 2, -(q_d as i128 - 1) / 2, -1][c];
+                    assert_eq!(x_c, want);
+                }
+            }
+            let fa = ntt_of(&a);
+            let (fq, fp) = fa.mod_up_digit_centered(digit.clone(), &sp);
+            assert!(fq.is_ntt_form() && fp.is_ntt_form());
+            assert_eq!(coeff_of(&fq).limbs(), dq.limbs());
+            assert_eq!(coeff_of(&fp).limbs(), dp.limbs());
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn mod_up_digit_centered_rejects_range_above_level() {
+        let b = RnsBasis::new(16, &ntt_primes(20, 16, 3).unwrap()).unwrap();
+        let sp = RnsBasis::new(16, &ntt_primes(40, 16, 1).unwrap()).unwrap();
+        let _ = RnsPoly::zero(&b, 1).mod_up_digit_centered(1..3, &sp);
     }
 
     #[test]
