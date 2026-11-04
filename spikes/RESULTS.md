@@ -269,3 +269,135 @@ ReBoot (OpenFHE 1.2.1, `3ac173f`) builds on this Mac, but **eMLP-1 cannot run on
 | paper-derived epoch (100 it, 4800 samples) / full MNIST (1250 it) | ~5.3 h / ~66 h (arithmetic, not measured) |
 | paper: MNIST test acc eMLP-1/2/3 (plaintext twin) | 94.61 / 96.39 / 96.77 % |
 | configs (paper Table 3/8) | `crates/hekit-bench/configs/reboot_emlp{1,2,3}.json`: N 2^16/2^17/2^17, l 24/27/29, Δ 49/59/59 bits, batch 48, lr 0.001/0.001/0.0005, momentum 0.9; epochs=10 from repo script (not in paper) |
+
+## Task 6: Cost model (RQ1)
+
+Code: `spikes/costmodel/` (Python 3.11 + numpy). `costmodel.py` has the closed-form op counts per layout.
+`slotsim.py` is a slot-exact plaintext simulator with an op counter; it refuses to rotate or multiply a degree-2
+ciphertext. `test_costmodel.py` holds the tests (30 pass, plus 1 strict xfail). `table.py` generates the tables below from
+`crates/hekit-bench/configs/reboot_emlp1.json` (Task 5).
+Run `python table.py` and `pytest` in `spikes/costmodel/`. Full derivations, with a source for every formula, are in the docstrings.
+
+**Verdict (RQ1, spec §4.3.2: same N, model and batch as ReBoot, i.e. N = 2^16, B = 48):**
+- **KS = rot + relin: diag_batched / ReBoot = 0.45.** That is a 55% reduction and passes the 30% bar.
+- **KS_spec = KS + bootstraps × 498: 0.74.** That is a 26% reduction and **misses the 30% bar.**
+- KS_spec passes only for B ≥ 64 (0.64 at N = 2^16, which needs 2 ciphertexts per batch) or with cheaper bootstrapping
+  (0.65 at B = 48 with single-iteration bootstrapping).
+- At B = 16, diag_batched is worse than ReBoot (1.20 / 1.05).
+- The gain comes almost entirely from spreading the per-update work (batch reduction, weight re-layout, transpose,
+  bootstraps) over B samples. ReBoot pays 30 rotations per sample (log2(r) + 2·log2(c) + log2(r) for the forward and
+  backward sums) whatever the batch size.
+
+**Checks against published or measured counts:**
+- 2020 paper Table 2 (6-3-1 net): `row_2020` reproduces 38 mults / 63 rotations, every row matching.
+- `diag_2020` reproduces 17 / 17 in total. The per-row rotation counts are a strict xfail: Table 2 counts the output
+  dimension, while Alg. 2 and §2 count the input dimension. The totals still agree because forward and backward swap
+  in and out (same finding as Task 4).
+- `diag_2020` in the "seal" convention equals Task 4's measured SEAL counts on 4-10-3: 35 ct-ct, 35 relin, 31 rot.
+- ReBoot eMLP-1 has (r, c) = (1024, 32), the same as ReBoot's own log, and costs 30 rot + 7 relin per sample plus
+  4 bootstraps per mini-batch (W and V for 2 layers).
+- For diag_batched and ReBoot, the simulator's decoded forward output, W^Tδ, dW, W' and V' equal dense numpy for
+  one NAG step, and its op counts equal the formulas phase by phase on 6 and 2 test networks.
+
+Config `reboot_emlp1.json`: reboot_emlp1 on MNIST, layers 784 -> 32 (poly_relu) -> 10 (none), ReBoot batch 48, ReBoot log_n 16, momentum 0.9.
+
+### Key switches per sample per epoch
+
+`ratio` = diag_batched / reboot at the same N and the same batch B; `ratio@b0` compares with ReBoot at its own batch b0 = 48 (bootstraps amortised over b0). `cts` = ciphertexts per mini-batch for diag_batched (> 1 = d_pad*B > N/2, flagged `*`). BOOT_KS = key switches of one EvalBootstrap (2 iterations, ReBoot config).
+
+| N | B | cts | diag KS | reboot KS | **ratio KS** | diag KS_spec | reboot KS_spec (B) | **ratio KS_spec** | ratio KS_spec@b0 |
+|---|---|---|---|---|---|---|---|---|---|
+| 2^16 | 16 | 1 | 44.6 | 37.0 | **1.20** | 169.1 | 161.5 | **1.05** | 2.15 |
+| 2^16 | 32 | 1 | 23.8 | 37.0 | **0.64** | 86.0 | 99.2 | **0.87** | 1.10 |
+| 2^16 | 48 (b0) | 2* | 16.8 | 37.0 | **0.45** | 58.3 | 78.5 | **0.74** | 0.74 |
+| 2^16 | 64 | 2* | 12.6 | 37.0 | **0.34** | 43.7 | 68.1 | **0.64** | 0.56 |
+| 2^16 | 128 | 4* | 7.0 | 37.0 | **0.19** | 22.6 | 52.6 | **0.43** | 0.29 |
+| 2^17 | 16 | 1 | 47.6 | 39.0 | **1.22** | 204.1 | 195.5 | **1.04** | 2.24 |
+| 2^17 | 32 | 1 | 25.3 | 39.0 | **0.65** | 103.5 | 117.2 | **0.88** | 1.14 |
+| 2^17 | 48 (b0) | 1 | 17.9 | 39.0 | **0.46** | 70.0 | 91.2 | **0.77** | 0.77 |
+| 2^17 | 64 | 1 | 13.4 | 39.0 | **0.34** | 52.5 | 78.1 | **0.67** | 0.58 |
+| 2^17 | 128 | 2* | 7.1 | 39.0 | **0.18** | 26.6 | 58.6 | **0.45** | 0.29 |
+
+- ratio <= 0.7 under KS: (B=32, N=2^16), (B=48, N=2^16)*, (B=64, N=2^16)*, (B=128, N=2^16)*, (B=32, N=2^17), (B=48, N=2^17), (B=64, N=2^17), (B=128, N=2^17)*. Best 0.181 at (B=128, N=2^17).
+- ratio <= 0.7 under KS_spec (same B): (B=64, N=2^16)*, (B=128, N=2^16)*, (B=64, N=2^17), (B=128, N=2^17)*. Best 0.430 at (B=128, N=2^16).
+- ratio <= 0.7 under KS_spec vs ReBoot@b0=48: (B=64, N=2^16)*, (B=128, N=2^16)*, (B=64, N=2^17), (B=128, N=2^17)*. Best 0.288 at (B=128, N=2^16).
+
+### Sensitivity of KS_spec ratio to BOOT_KS (same B)
+
+| N | BOOT_KS | B=16 | B=32 | B=48 | B=64 | B=128 |
+|---|---|---|---|---|---|---|
+| 2^16 | 0 (= KS) | 1.20 | 0.64 | 0.45 | 0.34 | 0.19 |
+| 2^16 | 249 (1 iteration) | 1.08 | 0.81 | 0.65 | 0.54 | 0.33 |
+| 2^16 | 498 (ReBoot: 2 iterations) | 1.05 | 0.87 | 0.74 | 0.64 | 0.43 |
+| 2^16 | 996 (2x) | 1.03 | 0.92 | 0.83 | 0.75 | 0.56 |
+| 2^17 | 0 (= KS) | 1.22 | 0.65 | 0.46 | 0.34 | 0.18 |
+| 2^17 | 313 (1 iteration) | 1.07 | 0.82 | 0.68 | 0.56 | 0.35 |
+| 2^17 | 626 (ReBoot: 2 iterations) | 1.04 | 0.88 | 0.77 | 0.67 | 0.45 |
+| 2^17 | 1252 (2x) | 1.02 | 0.93 | 0.85 | 0.78 | 0.59 |
+
+### Per-phase key switches per sample (N = 2^16)
+
+| layout | B | forward | transpose | backward | gradient | update | bootstraps/sample |
+|---|---|---|---|---|---|---|---|
+| reboot | 48 | 23.00 | 0.00 | 12.00 | 2.00 | 0.00 | 0.083 |
+| diag_batched | 32 | 0.97 | 0.47 | 0.34 | 10.56 | 11.44 | 0.125 |
+| diag_batched | 64 | 0.97 | 0.23 | 0.34 | 5.34 | 5.72 | 0.062 |
+| diag_batched | 48 | 1.29 | 0.31 | 0.46 | 7.12 | 7.62 | 0.083 |
+
+### Reference rows (N = 2^16, KS per sample)
+
+| layout | B | rotations | relins | KS | bootstraps/sample |
+|---|---|---|---|---|---|
+| reboot | 48 | 30.0 | 7.0 | 37.0 | 0.083 |
+| reboot (lazy relin, hypothetical) | 48 | 30.0 | 5.0 | 35.0 | 0.083 |
+| diag_2020 (seal convention) | 1 | 1650.0 | 1644.0 | 3294.0 | 1632.000 |
+| row_2020 | 1 | 26460.0 | 118.0 | 26578.0 | 84.000 |
+| diag_batched | 1 | 463.0 | 58.0 | 521.0 | 4.000 |
+
+Columns: `diag KS`/`reboot KS` etc. are key switches per sample per epoch, i.e. per update divided by B. `*` means
+d_pad·B > N/2, so diag_batched needs `cts` ciphertexts per batch; per-ciphertext costs scale with cts, per-update
+costs don't. The reference rows at B = 1 are the 2020 algorithms on the eMLP-1 net (no batching).
+
+**Modelling assumptions**
+1. Every rotation and every relinearisation counts as one key switch, hoisted or not and at any level. Hoisting helps
+   time, not count; BSGS reduces the count.
+2. BOOT_KS = 498 at N = 2^16 (626 at 2^17) for one OpenFHE 1.2.1 EvalBootstrap in ReBoot's configuration: level budget
+   [2,2], sparse ternary secret, num_iterations = 2, which makes it a Meta-BTS of two full bootstraps.
+   - CoeffsToSlots + SlotsToCoeffs: 216 rotations per bootstrap, exact, ported from `GetCollapsedFFTParams` / `EvalCoeffsToSlots`.
+   - Plus 1 conjugation.
+   - Plus 2 EvalMods of about 16 relins each, an **estimate** from OpenFHE's Paterson–Stockmeyer cost formula
+     (about 13% of the total).
+   - The sensitivity table above covers 0, ½×, 1× and 2×.
+3. Both layouts get the same N, depth budget and bootstrap configuration, and neither bootstraps activations (true for
+   1-hidden-layer eMLP-1). Bootstrapping refreshes W and V (NAG) once per mini-batch in both layouts.
+4. ReBoot is modelled from its paper (§3 eq. 4–5, §4.2.1, §4.3) and its code (`packing.cpp`, `nn.cpp`,
+   `cryptocontext.py`, OpenFHE `EvalSumRows`/`EvalSumCols`): one sample per ciphertext, no hoisting, a relin
+   after every product. A hypothetical lazy-relin ReBoot (35 KS per sample) is listed as a stronger baseline.
+   Multi-sample packing is impossible for this net at N = 2^16, because r·c = 1024·32 = N/2.
+5. diag_batched layout:
+   - Feature-major `slot = j·B' + b`, stored S-periodically; dims padded to powers of two (784 → 1024, 10 → 16).
+   - BSGS mat-vec over m = min(d_in, d_out) diagonals, with a fold for wide layers and free replication for tall ones.
+   - The transpose rotates the encrypted weight diagonals, one rotation each (m − 1 per update).
+   - The gradient reuses the forward's baby-step rotations, reduces over the batch (log2 B') and packs into compact
+     weight ciphertexts.
+6. Client-side encodings are free (x and y in either layout, initial weights). Plaintext/scalar products and
+   additions are not key switches.
+
+**Limitations / open concerns**
+- BSGS needs **n2 relins, not the brief's 1**. A giant-step rotation acts on a degree-2 sum of tensor products, so it
+  must be relinearised first; one relin is only possible with no BSGS (n2 = 1). The simulator enforces this.
+- **At B = 1, diag_batched is worse than the 2020 diagonal method:** 80 vs 43 key switches per step on the Table 2 net,
+  and 521 vs ReBoot's 37 per sample on eMLP-1. Its per-update re-layout only pays off when amortised over B.
+- **KS_spec depends on an unbuilt compact re-layout.** Packing the m weight diagonals (and m velocity diagonals) into
+  ceil(m·L/S) ciphertexts before bootstrapping keeps bootstraps at 2 per layer, the same as ReBoot. Without it there
+  would be 2m per layer (64 for layer 1), and KS_spec would be far worse. The re-layout is verified only in the
+  plaintext simulator, not in CKKS.
+- The **EvalMod part of the 498 KS per bootstrap is estimated**, not counted from an actual run (ReBoot OOMs on this
+  machine, see Task 5).
+- **Accuracy at large B is untested.** The ratios that pass KS_spec need B ≥ 64, while ReBoot trains eMLP-1 with
+  B = 48. "Same model configuration and accuracy" has to be shown in training before claiming a ≥ 30% reduction at
+  B = 64/128.
+- The count metric ignores how expensive each key switch is (level, dnum) and ignores rotation-key memory.
+  diag_batched may need more distinct rotation keys.
+- diag_batched optimisations that are not modelled could only lower its cost: batched reduction and replication of
+  several diagonals at once, and storage with fewer periods.
