@@ -141,20 +141,43 @@ W2 diagonals are mod-switched down to the level where W2ᵀ is used *before* tra
 Machine was shared with other agents' jobs: load average **67.7 → 31.4** (1-min) during run 1; run 2 (load 17–37) was noisier
 and is in `results/run2/`. Numbers below are run 1, mean ± sd over 10 iterations (seconds).
 
-| phase | paper diagonal (i7-8700K, SEAL 3.4) | ours alg5, exact keys | ours alg4, exact keys | ours alg5, pow2 keys | paper row packing |
-|---|---|---|---|---|---|
-| Feedforward | 3.10 | 0.713 ± 0.051 | 0.775 ± 0.058 | 0.806 ± 0.007 | 12.42 |
-| Transition | 2.15 | 0.025 ± 0.002 | 0.090 ± 0.004 | 0.037 ± 0.001 | 7.28 |
-| Backpropagation (incl. ΔW, Δb) | 3.12 | 0.275 ± 0.005 | 0.213 ± 0.024 | 0.318 ± 0.003 | 5.46 |
-| SGD update (W − ΔW) | 0.23 | 0.017 ± 0.002 | 0.019 ± 0.003 | 0.016 ± 0.000 | 0.23 |
-| **server iteration** | 9.25 − 0.50 = 8.75 | **1.031 ± 0.058** | 1.097 ± 0.087 | 1.176 ± 0.008 | 27.85 |
-| Repacking (client decrypt + re-encrypt, 16 ct) | 0.50 | 0.345 ± 0.009 | 0.345 ± 0.011 | 0.339 ± 0.005 | 0.62 |
-| **total incl. repacking** | **9.25** | **1.376** | 1.442 | 1.515 | 28.47 |
+Paper Table 4, every row exactly as printed (seconds, batch 1, i7-8700K, SEAL 3.4), next to our measurements and the
+phase of ours each row is compared with:
 
-(Client encryption of x and y: 0.039 s, not included. Run 2: alg5-exact server 1.166 ± 0.219 s, total 1.574 s.)
-→ ~6.7× faster than the paper end-to-end (≈ 8.5× server side). The paper's 2.15 s transition is ~90× our 0.025 s;
-we can't tell which of hardware, SEAL 3.4 → 4.1, keys, transposing at the top level, or transposing both layers
-explains it (the paper doesn't give enough detail). pow2 keys only cost +14 %, so the key set alone doesn't explain it.
+| Table 4 row (as printed) | paper row | paper diagonal | our phase compared with | ours alg5, exact keys | ours alg4, exact keys | ours alg5, pow2 keys |
+|---|---|---|---|---|---|---|
+| Feedforward | 12.42 | 3.10 | FF: z1, a1, a1 replication, z2, a2 | 0.713 ± 0.051 | 0.775 ± 0.058 | 0.806 ± 0.007 |
+| Transition | 7.28 | 2.15 | TR: W2 mod-switch + transpose (W2 only) | 0.025 ± 0.002 | 0.090 ± 0.004 | 0.037 ± 0.001 |
+| Backpropagation | 5.46 | 3.12 | BP: a2−y, δ2, lr scaling, δ2 replication, W2ᵀδ2, δ1, **and ΔW/Δb outer products** | 0.275 ± 0.005 | 0.213 ± 0.024 | 0.318 ± 0.003 |
+| SGD Update | 0.23 | 0.23 | UPD: W − ΔW, b − Δb (subtractions + mod-switches) | 0.017 ± 0.002 | 0.019 ± 0.003 | 0.016 ± 0.000 |
+| Repacking | 0.62 | 0.50 | client decrypt + re-encode + re-encrypt of 16 weight cts | 0.345 ± 0.009 | 0.345 ± 0.011 | 0.339 ± 0.005 |
+| Total | 28.47 | 9.25 | stated total, compared below | | | |
+| *sum of phases (computed here, not printed in the paper)* | *26.01* | *9.10* | sum of the five rows above | 1.376 | 1.442 | 1.515 |
+
+**Note: the paper's stated totals exceed the sum of its own phases, and the paper doesn't explain the gap.**
+Diagonal: stated 9.25 vs phase sum 9.10 (+0.15 s). Row: stated 28.47 vs phase sum 26.01 (+2.46 s). We don't guess
+what the gap is. No server-side figure is derived by subtracting from the stated total.
+
+Headline comparison, against the paper's **stated total** (9.25 s, diagonal):
+
+| ours (run 1) | what it includes | value | paper stated total / ours |
+|---|---|---|---|
+| alg5, exact keys | server iteration + repacking + client encryption of x, y | 1.031 + 0.345 + 0.039 = **1.415 s** | **6.5×** |
+| alg4, exact keys | same | 1.097 + 0.345 + 0.040 = 1.482 s | 6.2× |
+| alg5, pow2 keys | same | 1.176 + 0.339 + 0.039 = 1.554 s | 6.0× |
+
+Without the 0.039 s client encryption (server + repacking only): alg5 1.376 s → 6.7×.
+
+Indicative only (phase sums, assuming the paper's phases mean what ours mean; see the mapping caveat below):
+paper FF + Transition + BP + SGD Update = 8.60 s vs our server iteration 1.031 s (≈ 8.3×). Paper phase sum incl.
+Repacking = 9.10 s vs our 1.376 s (≈ 6.6×).
+
+Row packing (not implemented here): printed server-side rows sum to 25.39 s, all printed rows to 26.01 s.
+(Run 2, noisier: alg5-exact server 1.166 ± 0.219 s, server + repacking 1.574 s.)
+→ About 6.5× faster than the paper's stated total (ours = server iteration + repacking + client encryption of x, y; what the paper's total contains beyond its phases is unknown). All per-phase comparisons are **indicative**: our BP includes the gradient outer products, and the paper doesn't say whether its "Backpropagation" or its "SGD Update" (0.23 s) contains them. The paper's
+2.15 s transition is ~90× our 0.025 s. We can't tell which of these explains it: hardware, SEAL 3.4 → 4.1, keys,
+transposing at the top level, or transposing both layers (the paper doesn't give enough detail). pow2 keys only cost
++14 %, so the key set alone doesn't explain it.
 
 ### Correctness
 
