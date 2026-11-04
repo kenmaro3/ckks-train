@@ -43,10 +43,13 @@ pub fn precision_bits(expected: &[f64], actual: &[f64]) -> f64 {
         .iter()
         .zip(actual)
         .map(|(e, a)| (e - a).abs())
-        .fold(
-            0.0,
-            |m: f64, x| if x.is_nan() { f64::NAN } else { m.max(x) },
-        );
+        .fold(0.0, |m: f64, x| {
+            if m.is_nan() || x.is_nan() {
+                f64::NAN
+            } else {
+                m.max(x)
+            }
+        });
     if err == 0.0 {
         f64::INFINITY
     } else {
@@ -158,4 +161,24 @@ pub fn run_precision_suite(params: CkksParams) -> Vec<PrecisionReport> {
     report("matvec_enc", out.level(), &want, &decode(&out));
 
     reports
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nan_anywhere_gives_nan() {
+        let nan = f64::NAN;
+        for (e, a) in [
+            ([nan, 0.0], [0.0, 0.0]),
+            ([0.0, nan], [0.0, 0.0]),
+            ([0.0, 0.0], [nan, 0.0]),
+            ([0.0, 0.0], [0.0, nan]),
+            ([nan, 0.0], [0.0, 1e-9]),
+            ([0.0, 0.0], [nan, 1e-9]),
+        ] {
+            assert!(precision_bits(&e, &a).is_nan(), "{e:?} vs {a:?}");
+        }
+    }
 }
