@@ -39,7 +39,7 @@
 //!
 //! Every evaluator counts its successful expensive operations in an [`OpCounter`]
 //! (see [`crate::counter`] for what each field counts); read a snapshot with
-//! [`Evaluator::counter`]. The counter sits behind a `Mutex`, so `Evaluator` is `Sync` and
+//! [`Evaluator::counter`] and zero it with [`Evaluator::reset_counter`]. The counter sits behind a `Mutex`, so `Evaluator` is `Sync` and
 //! `&Evaluator` can be shared across threads.
 
 use std::sync::{Arc, Mutex, PoisonError};
@@ -111,6 +111,11 @@ impl Evaluator {
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .clone()
+    }
+
+    /// Resets the operation counts to zero.
+    pub fn reset_counter(&self) {
+        self.count(|c| *c = OpCounter::default());
     }
 
     /// Applies `f` to the counter (called after an operation succeeded).
