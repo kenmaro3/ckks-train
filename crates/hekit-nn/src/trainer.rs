@@ -460,14 +460,7 @@ pub struct Trainer<'a> {
 
 /// `after - before`, field by field.
 fn counter_delta(before: &OpCounter, after: &OpCounter) -> OpCounter {
-    OpCounter {
-        rotations: after.rotations - before.rotations,
-        relins: after.relins - before.relins,
-        ct_ct_tensor: after.ct_ct_tensor - before.ct_ct_tensor,
-        ct_pt_mults: after.ct_pt_mults - before.ct_pt_mults,
-        rescales: after.rescales - before.rescales,
-        bootstraps: after.bootstraps - before.bootstraps,
-    }
+    after - before
 }
 
 /// [`Dense::bias_grad_scaled`]; if the bias's scale is not reachable by a rescale from

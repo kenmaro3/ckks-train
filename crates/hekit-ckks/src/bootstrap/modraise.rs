@@ -43,8 +43,8 @@ impl Evaluator {
     /// the same scale decrypting (under the main key) to `m + q_0 I`, `I` the overflow under
     /// the ephemeral key of `sse` (`sigma_I = sqrt((h' + 1) / 12)`). This is the path of the
     /// n16_boot bootstrap. Each call performs **exactly 2 key switches** (one at level 0 with
-    /// `to_sparse`, one at the top with `to_dense`). They are **not yet counted** in
-    /// [`OpCounter`](crate::OpCounter); Task 38 counts them (controller ruling C).
+    /// `to_sparse`, one at the top with `to_dense`), counted as
+    /// [`OpCounter::sse_switches`](crate::OpCounter::sse_switches) `+= 2` on success (Task 38).
     ///
     /// Errors, before any work: `InvalidParams` if `ct` is not a 2-component ciphertext over
     /// this evaluator's basis, or the keys are not SSE keys of these parameters (`to_sparse`
@@ -63,7 +63,9 @@ impl Evaluator {
         let (kb, ka) = key_switch(self.params(), &raised.polys()[1], sse.to_dense());
         let mut c0 = raised.into_polys().swap_remove(0);
         c0.add_assign(&kb);
-        Ciphertext::new(vec![c0, ka], ct.scale())
+        let out = Ciphertext::new(vec![c0, ka], ct.scale())?;
+        self.count(|c| c.sse_switches += 2);
+        Ok(out)
     }
 
     /// ModRaise under the main key, without SSE: both components raised from level 0 to
@@ -400,6 +402,16 @@ mod tests {
             .collect();
         let ct = encryptor.encrypt(&coeff_plaintext(&params, &c, delta), &mut r);
         let raised = eval.mod_raise(&ct, &sse).unwrap();
+        // Task 38: one mod_raise is exactly 2 key switches, counted as sse_switches.
+        let k = eval.counter();
+        assert_eq!(
+            k,
+            crate::OpCounter {
+                sse_switches: 2,
+                ..Default::default()
+            }
+        );
+        assert_eq!(k.key_switches(), 2);
         let low = eval.mod_switch_to_level(&raised, 0).unwrap();
         let got = coeffs_of(&params, &dec.decrypt(&low));
         let err = got
@@ -442,5 +454,9 @@ mod tests {
             )
         );
         assert!(inv(eval.mod_raise_main_key(&three)));
+        // Failures count nothing; the main-key raise has no switch.
+        assert_eq!(eval.counter(), k);
+        eval.mod_raise_main_key(&ct).unwrap();
+        assert_eq!(eval.counter(), k);
     }
 }

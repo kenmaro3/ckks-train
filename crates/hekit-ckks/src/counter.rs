@@ -19,6 +19,9 @@
 //!   [`Evaluator::mul_plain_to_scale`](crate::Evaluator::mul_plain_to_scale) and
 //!   [`Evaluator::mul_scalar`](crate::Evaluator::mul_scalar).
 //! * `rescales`: each [`Evaluator::rescale`](crate::Evaluator::rescale).
+//! * `sse_switches`: the key switches of the sparse-secret encapsulation, 2 per
+//!   [`Evaluator::mod_raise`](crate::Evaluator::mod_raise) (to the ephemeral key at level 0
+//!   and back at the top level).
 //! * `bootstraps`: each [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap),
 //!   which also adds every operation it performs to the other fields.
 //!
@@ -45,18 +48,20 @@ pub struct OpCounter {
     pub ct_pt_mults: u64,
     /// Rescales.
     pub rescales: u64,
+    /// Sparse-secret-encapsulation key switches (2 per `mod_raise`).
+    pub sse_switches: u64,
     /// Bootstraps.
     pub bootstraps: u64,
 }
 
 impl OpCounter {
-    /// Total key switches, the dominant cost of CKKS: `rotations + relins`. Conjugations are
-    /// included in `rotations`.
+    /// Total key switches, the dominant cost of CKKS: `rotations + relins + sse_switches`.
+    /// Conjugations are included in `rotations`.
     ///
     /// **Bootstraps are not charged separately.**
     /// [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap) adds every
     /// operation it performs to the caller's counter (its rotations, conjugations and
-    /// relinearizations, and the two sparse-secret-encapsulation switches of the mod-raise)
+    /// relinearizations, and the two `sse_switches` of the mod-raise)
     /// and increments `bootstraps` by one. So a measured counter already contains the key
     /// switches of its bootstraps, and `bootstraps` is only the number of them. Where
     /// bootstraps are planned rather than run (a simulator or a cost model counting `b`
@@ -67,7 +72,7 @@ impl OpCounter {
     /// the count depends on the bootstrap parameters (M1 and M2 had `BOOT_KS_EQUIV = 0`,
     /// removed in Task 38).
     pub fn key_switches(&self) -> u64 {
-        self.rotations + self.relins
+        self.rotations + self.relins + self.sse_switches
     }
 }
 
@@ -79,6 +84,7 @@ impl std::ops::AddAssign<&OpCounter> for OpCounter {
         self.ct_ct_tensor += rhs.ct_ct_tensor;
         self.ct_pt_mults += rhs.ct_pt_mults;
         self.rescales += rhs.rescales;
+        self.sse_switches += rhs.sse_switches;
         self.bootstraps += rhs.bootstraps;
     }
 }
@@ -97,6 +103,7 @@ impl std::ops::Sub for &OpCounter {
             ct_ct_tensor: self.ct_ct_tensor - rhs.ct_ct_tensor,
             ct_pt_mults: self.ct_pt_mults - rhs.ct_pt_mults,
             rescales: self.rescales - rhs.rescales,
+            sse_switches: self.sse_switches - rhs.sse_switches,
             bootstraps: self.bootstraps - rhs.bootstraps,
         }
     }
@@ -162,15 +169,19 @@ mod tests {
         let c = OpCounter {
             rotations: 5,
             relins: 3,
+            sse_switches: 4,
             bootstraps: 2,
             ..Default::default()
         };
         // Bootstraps add their own key switches to the fields; none are charged on top.
-        assert_eq!(c.key_switches(), 8);
+        assert_eq!(c.key_switches(), 12);
         assert_eq!(OpCounter::default().key_switches(), 0);
         let mut d = c.clone();
         d += &c;
-        assert_eq!((d.rotations, d.relins, d.bootstraps), (10, 6, 4));
+        assert_eq!(
+            (d.rotations, d.relins, d.sse_switches, d.bootstraps),
+            (10, 6, 8, 4)
+        );
         assert_eq!(&d - &c, c);
     }
 

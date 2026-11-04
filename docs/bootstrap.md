@@ -17,7 +17,7 @@ Every number below comes from the reproducibility script `tools/bootstrap/evalmo
 > - **P.** 4×60 bits.
 > - **Bands (R-M3-7, R-M3-8).** The large primes go to CoeffToSlot, because CtS works on values of size about K·q_0. The chain is [54, 42×16, 34×4 (StC), 58×7 (EvalMod), 56×4 (CtS)], dnum 8. That gives log PQ = 1732 and levels_after_boot = 16.
 > - **EvalMod (R-M3-8).** K = 13, Chebyshev degree 127, r = 0 (no double angle), in 7 levels. This needs the level-optimal Chebyshev evaluation (§4), which is a requirement on Task 37.
-> - **Predicted precision: 17.4 bits (§6).**
+> - **Predicted precision: 17.4 bits (§6). Measured in Task 38: 17.46 bits (§11.4), with 111 key switches per bootstrap (§11.2).**
 > - **Fallback if Task 38 measures below 16 bits:** q_0 = 52. That gives 19.4 bits predicted and log PQ 1730.
 > - **Fallback if Task 37 cannot fit EvalMod in 7 levels:** the e8dbe3e chain (EvalMod 8, compute 15, log PQ 1748) with the same r = 0 and degree 127. A textbook evaluator fits degree 127 in 7 + 1 = 8 levels, and the predicted precision stays at 17.4 bits (§5).
 
@@ -462,7 +462,7 @@ s' itself is dropped. `Evaluator::mod_raise(ct, &sse)` works in three steps:
 
 The scale stays Δ, and Task 38 relabels it to q_0. `mod_raise_main_key` skips SSE and is for tests only.
 
-**Key switches.** Each `mod_raise` performs exactly 2 key switches: one at level 0 with `to_sparse`, and one at the top level with `to_dense`. These are not yet counted in `OpCounter`. Task 38 counts them, together with its change of `BOOT_KS_EQUIV` to `key_switches_per_boot` (controller ruling C), so that RQ1 counts every key switch.
+**Key switches.** Each `mod_raise` performs exactly 2 key switches: one at level 0 with `to_sparse`, and one at the top level with `to_dense`. Since Task 38 they are counted as `OpCounter::sse_switches` (+2 per successful `mod_raise`, included in `key_switches()`), so that RQ1 counts every key switch (§11.2).
 
 **Noise of the two switches.**
 - The level-0 switch adds Σ d·e/P + r_b + r_a·s'. The digit term is about q_0/P ≈ 2^-186 of the key error. The P-rounding term is sqrt((h'+1)/12) = 1.66 per coefficient.
@@ -493,3 +493,94 @@ Both are far above the binding 17.4-bit input-noise term, and the top switch mov
 | residual t − Δc − q_0 I (fresh encryption + both switches) | — | 74.0: 26.2 bits alone |
 
 **Consistency with the input-noise term.** The binding term of §6 allows 17.4 bits. The level-0 switch allows 31.7 bits alone, 14 bits of margin, so it is negligible. The top switch allows 26.7 bits. In the §6 units (coefficient error in x units) it is 2^-48.3 against the binding term's 2^-39.0, so adding it in quadrature costs under 0.01 bit and the 17.4-bit prediction stands.
+
+## 11. The assembled bootstrap (Task 38)
+
+`crates/hekit-ckks/src/bootstrap/bootstrapper.rs` has `BootstrapKeys` and `Bootstrapper`; `crates/hekit-nn/src/refresh.rs` has `BootstrapRefresher`.
+
+### 11.1 Pipeline and interfaces
+
+`Bootstrapper::new(params, bp, &encoder, &mut kg)` encodes the stages and generates the keys. `bootstrap(&ev, &ct)` runs the §2 pipeline:
+1. `mod_raise` with SSE (2 key switches), relabelled to the scale `q_0 as f64`;
+2. CoeffToSlot from level 31, input scale q_0, output exactly `scale_at(27)` = 2^58, factor 1/K;
+3. `eval_mod` on `re` and on `im` (27 → 20, scale 2^58);
+4. relabel both to 2^58·Δ/q_0 (2^46.00); SlotToCoeff from level 20 to exactly Δ at level 16, factor 1/(2π).
+
+The input must be at level 0 (else `InvalidParams`) with exactly Δ (else `ScaleMismatch`). Both checks, and the evaluator checks (same parameters, a relinearization key), run before any work. The output is at `levels_after_boot` = 16 with exactly Δ.
+
+Deviations from the brief's interface:
+- `BootstrapKeys` keeps the conjugation key inside its `GaloisKeys` (behind an `Arc`), not in a separate `conj` field. `Evaluator::conjugate` looks it up there, and sharing the `Arc` avoids copying 10 GB per bootstrap. It also holds the `SseKeys`.
+- The bootstrap runs on an internal evaluator that shares the caller's relinearization key and the bootstrapper's Galois keys. On success its counts are added to the caller's counter.
+- `Bootstrapper::cost_per_boot()` plans every count from the encoded stages (`transforms_cost`, which skips the stored-as-zero diagonals as the BSGS does) and from the EvalMod series (`evalmod_cost` = `chebyshev_cost`, a ciphertext-free run of the same recursion). The tests assert that a real bootstrap adds exactly these counts, at N = 2^10 and at n16_boot.
+- Optional rayon parallelism (cargo feature `parallel`, off by default, `src/par.rs`) covers the digits and limbs of key switching, the hoisted rotation steps, the BSGS giant-step blocks, and the two EvalMods. Every parallel section is collected in its sequential order, so the output is bit-identical for any thread count (tested on 1 and 4 threads).
+
+### 11.2 Counting (RQ1)
+
+`OpCounter::key_switches()` is `rotations + relins + sse_switches`. There is no per-bootstrap constant any more: `BOOT_KS_EQUIV` is removed. A bootstrap adds its own rotations, conjugations, relinearizations and its 2 SSE switches (the `sse_switches` field) to the caller's counter, and adds 1 to `bootstraps`, which is a plain event count. A measured counter therefore never double-counts. A simulator or cost model that plans `b` bootstraps instead of running them adds `b · Bootstrapper::key_switches_per_boot()`.
+
+Per n16_boot bootstrap (measured by the counter, equal to the plan):
+
+| part | key switches | other operations |
+|---|---|---|
+| mod-raise (SSE) | 2 | — |
+| CoeffToSlot | 34 (32 rotations + 2 conjugations) | 93 plaintext products, 4 rescales |
+| EvalMod × 2 | 40 relinearizations | 46 products, 142 constant products, 48 rescales |
+| SlotToCoeff | 35 rotations | 108 plaintext products, 4 rescales |
+| **total** | **111** | 46 ct-ct products, 343 plaintext/constant products, 56 rescales |
+
+**Against the M0 cost model.** The cost model's BOOT_KS = 502 is ReBoot's OpenFHE EvalBootstrap: Meta-BTS with 2 iterations, each with 2 × 109 linear-transform rotations, 1 conjugation and an estimated 2 × 16 EvalMod key switches. One hekit bootstrap measures **111**, against 251 for one OpenFHE iteration and 502 for ReBoot's two. Two things make the difference:
+- the 4 + 4-level CtS/StC collapse with BSGS (69 rotations against 218);
+- the level-optimal degree-127 EvalMod (20 relinearizations per part).
+
+`spikes/costmodel/costmodel.py` now has `HEKIT_BOOT_KS = {2^15: 111}`. The default of `network_cost` stays the OpenFHE estimate, because it is the bootstrap of the ReBoot side and the M0 tables use it for both layouts. `table.py` prints two new rows:
+- the verdict at ReBoot's setting (N = 2^16, B = 48) with diag_batched at hekit's measured 111 and ReBoot at its 502: KS_spec 26.1 against 78.8, a ratio of **0.331** (0.744 with 502 on both sides);
+- a sensitivity row at BOOT_KS = 111 on both sides: 1.12 / 0.74 / 0.56 / 0.44 / 0.26 for B = 16 / 32 / 48 / 64 / 128.
+
+### 11.3 Keys and memory (n16_boot)
+
+| item | count | size |
+|---|---|---|
+| rotation keys (`galois_steps_for`, CtS and StC share them) | 32 | 0.302 GB each |
+| conjugation key | 1 | 0.302 GB |
+| SSE s' → s (mod Q·P, 8 parts) | 1 | 0.302 GB |
+| SSE s → s' (mod q_0·P, 1 part) | 1 | 5.2 MB |
+| **`BootstrapKeys::bytes()`** | | **10.27 GB** |
+| relinearization key (the caller's evaluator) | 1 | 0.302 GB |
+| encoded CtS + StC diagonals | 93 + 108 plaintexts | about 3 GB (§9.3) |
+
+`Bootstrapper::new` takes 27 s on one thread of the Mac: key generation plus encoding.
+
+### 11.4 Precision (gate: ≥ 16 bits, all 2^15 slots, m uniform in [−1, 1])
+
+| case | measured | model (§6) |
+|---|---|---|
+| **n16_boot, m uniform in [−1, 1]** (`n16_boot_keys_bootstrap`, the gate) | **17.46 bits** | 17.4 |
+| n16_boot, m uniform in [−1, 1], second seed (observation) | 17.41 bits | 17.4 |
+| n16_boot, \|m\| = 1, random signs (observation) | 17.53 bits | — |
+| n16_boot, \|m\| = 4, random signs (observation, outside the \|m\| ≤ 1 precondition) | 17.38 bits absolute (19.4 relative to \|m\|) | — |
+| N = 2^10 miniature (same bands, insecure), m uniform in [−1, 1] | 26.77 bits; 26.18 after a second bootstrap | — |
+
+The measurement matches the model to 0.1 bit, so the q_0 = 52 fallback is not needed.
+
+**|m| = 4 costs nothing in absolute terms.** The precondition |m| ≤ 1 of `eval_mod` is conservative for full-slot bootstrapping. The sine acts on the coefficients, and at |m| = 4 these have an rms of only about 4/sqrt(N) = 2^-6, so the sine-versus-modulus term still allows about 28 bits (§6 gives 27.1 bits at |m| ≤ 8). The absolute error stays at the input-noise floor. Slot magnitudes are bounded by |m|·Δ < q_0/2 at level 0 (|m| < 2^11) and by the EvalMod interval. The Review Focus 2 observation is therefore that |m| = 4 is usable at 17.4 absolute bits; it is not gated.
+
+**Per-stage errors** (`n16_boot_keys_observe_m1`, m uniform in [−1, 1]). The "bits alone" column applies the §6 conversion −log2(4.2·sqrt(N/2)·(q_0/Δ)·σ) to an x-unit rms σ:
+
+| stage (output level, scale) | max error | rms error | bits alone | model term (§6) |
+|---|---|---|---|---|
+| mod-raise with SSE: coefficient noise of t − Δc − q_0 I (max \|I\| = 7 ≤ K − 1) | 336 | 73.8 (2^-47.8 in x units) | 26.2 | 26.7 top switch (§10.3) |
+| CoeffToSlot (27, 2^58.00), x error, raise included | 2^-37.0 | 2^-39.9 | 18.3 | 17.4 input noise |
+| EvalMod (20, 2^58.00), against sin(2πx)/(2π) | 2^-36.0 | 2^-39.4 | 17.8 | + internal 23.3, approximation 26.5 |
+| SlotToCoeff (16, 2^42.00 = Δ), slot error | 2^-17.53 (2^-17.41 uniform m) | 2^-19.55 | **17.5 / 17.4** | 17.4 total |
+
+The rows show uniform m. The \|m\| = 1 run gives the same numbers to within 0.1 bit. The binding term is the CoeffToSlot output noise, as §6 predicts. The model is 0.9 bits pessimistic for that stage alone, and EvalMod and SlotToCoeff together take another 0.9 bit.
+
+### 11.5 Time
+
+| run | threads | time per bootstrap |
+|---|---|---|
+| `n16_boot_keys_bootstrap` (default build, no `parallel`), Mac | 1 | 37.8 s, 38.8 s, 39.1 s (three runs, with Task 33's timed baseline running on the same machine) |
+| criterion `benches/bootstrap.rs` (`--features parallel`), Mac | 1 and 12 | **pending: needs an idle machine** |
+| criterion, quadruped-gpu | 1 and 32 | **pending (user-driven session)** |
+
+The Mac has 12 cores, so the brief's "32 threads" runs as 12 threads there. The brief's target is ≤ 10 s with 32 threads; it is a target, not a gate, and it is not yet evaluated. In the single-thread run, EvalMod takes about 10 s (2 × 5.0 s, §10.2). The rest is the 69 rotations of CoeffToSlot and SlotToCoeff at levels 31–17 and the two SSE switches.

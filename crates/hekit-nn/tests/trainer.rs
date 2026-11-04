@@ -194,14 +194,9 @@ fn sgd_optims(lr: f64) -> Vec<Box<dyn LayerOptimizer>> {
 }
 
 fn add_counts(a: &OpCounter, b: &OpCounter) -> OpCounter {
-    OpCounter {
-        rotations: a.rotations + b.rotations,
-        relins: a.relins + b.relins,
-        ct_ct_tensor: a.ct_ct_tensor + b.ct_ct_tensor,
-        ct_pt_mults: a.ct_pt_mults + b.ct_pt_mults,
-        rescales: a.rescales + b.rescales,
-        bootstraps: a.bootstraps + b.bootstraps,
-    }
+    let mut s = a.clone();
+    s += b;
+    s
 }
 
 /// Task 30 Step 1: one `train_batch` (SGD) equals the simulator's plaintext step within
@@ -252,14 +247,7 @@ fn train_batch_matches_sim_and_fits_seal_2020() {
     let secs = t0.elapsed().as_secs_f64();
     let step_count = {
         let after = c.ev.counter();
-        OpCounter {
-            rotations: after.rotations - before.rotations,
-            relins: after.relins - before.relins,
-            ct_ct_tensor: after.ct_ct_tensor - before.ct_ct_tensor,
-            ct_pt_mults: after.ct_pt_mults - before.ct_pt_mults,
-            rescales: after.rescales - before.rescales,
-            bootstraps: after.bootstraps - before.bootstraps,
-        }
+        &after - &before
     };
     eprintln!("train_batch (seal_2020, SGD, dedicated): {secs:.3} s, counter {step_count:?}");
 

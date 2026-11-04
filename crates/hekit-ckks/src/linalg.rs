@@ -841,6 +841,7 @@ mod tests {
             ct_ct_tensor: b.ct_ct_tensor - a.ct_ct_tensor,
             ct_pt_mults: b.ct_pt_mults - a.ct_pt_mults,
             rescales: b.rescales - a.rescales,
+            sse_switches: b.sse_switches - a.sse_switches,
             bootstraps: b.bootstraps - a.bootstraps,
         }
     }

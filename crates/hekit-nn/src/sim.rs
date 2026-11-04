@@ -43,7 +43,8 @@ pub struct SimCounter {
 }
 
 impl SimCounter {
-    /// The same counts as an `OpCounter` (`bootstraps = 0`), to compare with the evaluator.
+    /// The same counts as an `OpCounter` (`sse_switches = bootstraps = 0`), to compare with
+    /// the evaluator.
     pub fn to_op_counter(&self) -> OpCounter {
         OpCounter {
             rotations: self.rotations,
@@ -51,6 +52,7 @@ impl SimCounter {
             ct_ct_tensor: self.ct_ct_tensor,
             ct_pt_mults: self.ct_pt_mults,
             rescales: self.rescales,
+            sse_switches: 0,
             bootstraps: 0,
         }
     }

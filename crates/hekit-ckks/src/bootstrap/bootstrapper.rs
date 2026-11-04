@@ -28,7 +28,7 @@
 //! The bootstrap runs on an internal evaluator that shares the caller's relinearization key
 //! and the bootstrapper's Galois keys. On success every operation it performed is added to
 //! the caller's [`OpCounter`] (rotations and conjugations, relinearizations, products,
-//! rescales), plus the 2 key switches of the mod-raise and `bootstraps += 1`; a failed
+//! rescales, and the 2 `sse_switches` of the mod-raise), plus `bootstraps += 1`; a failed
 //! bootstrap counts nothing. [`Bootstrapper::cost_per_boot`] plans these counts from the
 //! encoded stages and the EvalMod series, and the tests check it against the counter.
 
@@ -272,6 +272,7 @@ impl Bootstrapper {
         cost += &em;
         cost += &em;
         cost += &transforms_cost(&stoc, params.slots());
+        cost.sse_switches = if keys.sse.is_some() { 2 } else { 0 };
         cost.bootstraps = 1;
         Ok(Bootstrapper {
             params,
@@ -307,18 +308,18 @@ impl Bootstrapper {
 
     /// What one [`Bootstrapper::bootstrap`] adds to the caller's counter, planned from the
     /// encoded stages ([`transforms_cost`]) and the EvalMod series ([`evalmod_cost`], twice);
-    /// `bootstraps = 1`. The mod-raise switches are [`Bootstrapper::sse_switches_per_boot`].
+    /// `sse_switches` = [`Bootstrapper::sse_switches_per_boot`], `bootstraps = 1`.
     pub fn cost_per_boot(&self) -> OpCounter {
         self.cost.clone()
     }
 
     /// The key switches of one bootstrap: the rotations and conjugations of CoeffToSlot and
     /// SlotToCoeff, the relinearizations of the two EvalMods and the mod-raise switches
-    /// ([`Bootstrapper::cost_per_boot`] plus [`Bootstrapper::sse_switches_per_boot`]). This
+    /// (`cost_per_boot().key_switches()`, SSE switches included). This
     /// replaces M1's `BOOT_KS_EQUIV` for planned bootstraps (see
     /// [`OpCounter::key_switches`]).
     pub fn key_switches_per_boot(&self) -> u64 {
-        self.cost.key_switches() + self.sse_switches_per_boot()
+        self.cost.key_switches()
     }
 
     /// Bootstraps `ct`: from level 0 at the scale `Delta` to [`Bootstrapper::output_level`]
@@ -507,10 +508,9 @@ mod tests {
             assert_eq!(out.scale(), self.params.scale());
             assert_eq!(done.bootstraps, 1);
             assert_eq!(done, self.bs.cost_per_boot());
-            assert_eq!(
-                done.key_switches() + self.bs.sse_switches_per_boot(),
-                self.bs.key_switches_per_boot()
-            );
+            // RQ1: the measured key switches (SSE included) are the planned count.
+            assert_eq!(done.sse_switches, self.bs.sse_switches_per_boot());
+            assert_eq!(done.key_switches(), self.bs.key_switches_per_boot());
             (precision_bits(m, &self.decrypt(&out)), secs)
         }
     }
