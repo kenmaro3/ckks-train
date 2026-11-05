@@ -22,8 +22,8 @@
 //! on a forked counter that is merged only on success ([`crate::matvec::counted`]), so a
 //! device error part-way (an allocation failure in the 40th product of a matvec) leaves the
 //! counter unchanged.
-//! `sse_switches` and `bootstraps` are never incremented here (no mod-raise or bootstrap runs
-//! on the device); host-side bootstraps merge theirs with [`HeOps::add_counts`]
+//! Device bootstraps merge `sse_switches` and `bootstraps` only after synchronization;
+//! host-side bootstraps merge theirs with [`HeOps::add_counts`]
 //! (`hekit_ckks::HostBootstrapper`). Counts are taken when the work is queued, not when the
 //! device finishes it; a device error that surfaces later (at a download or a sync) does not
 //! retract them.
@@ -205,6 +205,31 @@ impl<'d> CudaEvaluator<'d> {
         })
     }
 
+    /// A bootstrap-local evaluator sharing the caller's relin key and uploaded
+    /// bootstrap Galois keys, always using the CPU bootstrap's optimized configuration.
+    pub(crate) fn with_bootstrap_galois(&self, galois: &GaloisKeys) -> Result<Self> {
+        self.relin_key(self.params.max_level())?;
+        let mut keys = HashMap::new();
+        for key in galois.iter() {
+            keys.insert(key.elt(), self.dev.upload_galois_key(key)?);
+        }
+        let mut out = self.with_config(EvalConfig::OPTIMIZED);
+        out.galois = Arc::new(keys);
+        Ok(out)
+    }
+
+    pub(crate) fn bootstrap_fork(&self, source: &Self) -> Result<Self> {
+        if !std::ptr::eq(self.dev, source.dev) || !Arc::ptr_eq(&self.params, &source.params) {
+            return Err(invalid(
+                "bootstrap evaluator is on another device or parameter Arc",
+            ));
+        }
+        source.relin_key(source.params.max_level())?;
+        let mut out = self.with_config(EvalConfig::OPTIMIZED);
+        out.relin = source.relin.clone();
+        Ok(out)
+    }
+
     /// An evaluator sharing this one's device keys (no upload, no device memory) with the
     /// ablation flags `config` and its own counter starting at zero (e.g. for the RQ3 grid).
     pub fn with_config(&self, config: EvalConfig) -> CudaEvaluator<'d> {
@@ -294,7 +319,7 @@ impl<'d> CudaEvaluator<'d> {
     }
 
     /// The relinearization key usable at `level`.
-    fn relin_key(&self, level: usize) -> Result<&DeviceKsk<'d>> {
+    pub(crate) fn relin_key(&self, level: usize) -> Result<&DeviceKsk<'d>> {
         let rk = self
             .relin
             .as_ref()

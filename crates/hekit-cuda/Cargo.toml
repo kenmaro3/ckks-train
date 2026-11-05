@@ -25,6 +25,7 @@ cudarc = { version = "=0.19.0", default-features = false, features = ["std", "dr
 cuda = ["dep:cudarc"]
 
 [dev-dependencies]
+hekit-nn = { path = "../hekit-nn" }
 rand_chacha = "0.9"
 rand_core = "0.9"
 

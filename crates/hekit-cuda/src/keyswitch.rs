@@ -28,6 +28,10 @@ pub enum KskPurpose {
     /// Any key-switching key ([`CudaDevice::upload_ksk`]): usable with
     /// [`CudaDevice::key_switch`] / [`CudaDevice::apply_key`] only.
     Generic,
+    /// Sparse-secret encapsulation from the main key at level zero only.
+    SseSparse,
+    /// Sparse-secret encapsulation back to the main key at full level.
+    SseDense,
     /// A relinearization key (`s^2 -> s`): also [`CudaDevice::relinearize`].
     Relin,
     /// A Galois key for this element (`sigma_g(s) -> s`): also the rotations and conjugation.
@@ -148,6 +152,32 @@ impl CudaDevice {
         self.upload_key(gk.key(), KskPurpose::Galois(gk.elt()), max_level)
     }
 
+    /// Upload the typed SSE pair. The level-zero sparse key cannot be used for
+    /// relinearization or rotations, and both keys must share this device's bases.
+    pub fn upload_sse_keys<'d>(
+        &'d self,
+        keys: &hekit_ckks::SseKeys,
+    ) -> Result<(DeviceKsk<'d>, DeviceKsk<'d>)> {
+        for key in [keys.to_sparse(), keys.to_dense()] {
+            for (b, a) in key.parts() {
+                for x in [b, a] {
+                    if !Arc::ptr_eq(x.q().basis(), self.params().basis_q())
+                        || !Arc::ptr_eq(x.p().basis(), self.params().basis_p())
+                    {
+                        return Err(invalid("SSE keys must share this device's bases"));
+                    }
+                }
+            }
+        }
+        let sparse = self.upload_key(keys.to_sparse(), KskPurpose::SseSparse, 0)?;
+        let dense = self.upload_key(
+            keys.to_dense(),
+            KskPurpose::SseDense,
+            self.params().max_level(),
+        )?;
+        Ok((sparse, dense))
+    }
+
     fn upload_key<'d>(
         &'d self,
         key: &KskKey,
@@ -158,7 +188,14 @@ impl CudaDevice {
             check_galois_elt(self.n(), g)?;
         }
         let shape = KskShape::new(self.params(), max_level)?;
-        let limbs = ksk_limbs(self.prime_table(), self.params(), key, &shape)?;
+        let limbs = if purpose == KskPurpose::SseSparse {
+            if max_level != 0 {
+                return Err(invalid("SSE sparse key serves only level zero"));
+            }
+            crate::ks::sse_sparse_limbs(self.params(), key)?
+        } else {
+            ksk_limbs(self.prime_table(), self.params(), key, &shape)?
+        };
         // One allocation (a fallible driver call: out of memory is `Device`), then one copy per
         // limb from the host key (no host staging copy of the whole key).
         let mut buf = self.alloc_limbs(limbs.len())?;

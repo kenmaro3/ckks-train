@@ -288,6 +288,21 @@ impl Bootstrapper {
         })
     }
 
+    /// The exact shared parameter object used to encode and generate this bootstrap.
+    pub fn params(&self) -> &Arc<CkksParams> {
+        &self.params
+    }
+
+    /// Encoded CoeffToSlot stages, available for device upload without re-encoding.
+    pub fn coeff_to_slot_stages(&self) -> &[LinearTransform] {
+        &self.ctos
+    }
+
+    /// Encoded SlotToCoeff stages, available for device upload without re-encoding.
+    pub fn slot_to_coeff_stages(&self) -> &[LinearTransform] {
+        &self.stoc
+    }
+
     /// The bootstrap parameters.
     pub fn boot_params(&self) -> &BootParams {
         &self.bp

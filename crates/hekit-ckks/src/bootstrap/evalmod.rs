@@ -30,10 +30,12 @@ use std::f64::consts::PI;
 use hekit_core::error::{HekitError, Result};
 
 use crate::bootstrap::params::BootParams;
+use crate::bootstrap::poly::{BootstrapArithmetic, eval_chebyshev_to_scale};
 use crate::bootstrap::poly::{chebyshev_coeffs, chebyshev_cost, chebyshev_depth, double_angle};
 use crate::ciphertext::Ciphertext;
 use crate::counter::OpCounter;
 use crate::evaluator::Evaluator;
+use crate::linalg::DiagonalEntry;
 
 /// The Chebyshev coefficients EvalMod evaluates for `bp` on `y` in `[-1, 1]`: for `r = 0`
 /// the interpolant of degree `bp.cheb_degree` of `sin(2 pi K y)` with the even coefficients
@@ -120,46 +122,50 @@ impl Evaluator {
     /// `NoLevelsLeft` if `ct.level()` is below the depth; `ScaleMismatch` if a planned
     /// scale is unreachable.
     pub fn eval_mod(&self, ct: &Ciphertext, bp: &BootParams) -> Result<Ciphertext> {
-        if bp.k_intervals == 0 || bp.cheb_degree == 0 {
-            return Err(HekitError::InvalidParams(
-                "k_intervals and cheb_degree must be positive".into(),
-            ));
-        }
-        let depth = bp.evalmod_depth();
-        if depth > bp.evalmod_levels {
-            return Err(HekitError::InvalidParams(format!(
-                "EvalMod depth {depth} exceeds evalmod_levels {}",
-                bp.evalmod_levels
-            )));
-        }
-        self.check_galois_input(ct)?;
-        self.relin_key_checked()?;
-        if ct.level() < depth {
-            return Err(HekitError::NoLevelsLeft);
-        }
-        // Planned scales, backwards from the output: the double angle at level l takes
-        // t_{i-1} to t_i; its square is labelled sigma_i = exact label of t_i at l.
-        let r = bp.double_angle;
-        let cheb_out = ct.level() - chebyshev_depth(bp.cheb_degree);
-        let mut targets = vec![ct.scale(); r + 1];
-        for i in (1..=r).rev() {
-            let level = cheb_out - (i - 1);
-            let sigma = self.exact_product_scale(level, targets[i])?;
-            targets[i - 1] = reachable_near(self, level + 1, (2.0 * sigma).sqrt())?;
-        }
-        let coeffs = evalmod_coeffs(bp);
-        let mut c = self.eval_chebyshev_to_scale(ct, &coeffs, -1.0, 1.0, targets[0])?;
-        for &t in &targets[1..] {
-            c = double_angle(self, &c, t)?;
-        }
-        debug_assert_eq!(c.level(), ct.level() - depth);
-        Ok(c)
+        eval_mod(self, ct, bp)
     }
+}
+
+/// Backend-neutral EvalMod; the same algorithm and scale checks as [`Evaluator::eval_mod`].
+pub fn eval_mod<E: BootstrapArithmetic>(ev: &E, ct: &E::Ct, bp: &BootParams) -> Result<E::Ct> {
+    if bp.k_intervals == 0 || bp.cheb_degree == 0 {
+        return Err(HekitError::InvalidParams(
+            "k_intervals and cheb_degree must be positive".into(),
+        ));
+    }
+    let depth = bp.evalmod_depth();
+    if depth > bp.evalmod_levels {
+        return Err(HekitError::InvalidParams(format!(
+            "EvalMod depth {depth} exceeds evalmod_levels {}",
+            bp.evalmod_levels
+        )));
+    }
+    ev.check_boot_input(ct)?;
+    if ct.level() < depth {
+        return Err(HekitError::NoLevelsLeft);
+    }
+    // Planned scales, backwards from the output: the double angle at level l takes
+    // t_{i-1} to t_i; its square is labelled sigma_i = exact label of t_i at l.
+    let r = bp.double_angle;
+    let cheb_out = ct.level() - chebyshev_depth(bp.cheb_degree);
+    let mut targets = vec![ct.scale(); r + 1];
+    for i in (1..=r).rev() {
+        let level = cheb_out - (i - 1);
+        let sigma = ev.exact_product_scale(level, targets[i])?;
+        targets[i - 1] = reachable_near(ev, level + 1, (2.0 * sigma).sqrt())?;
+    }
+    let coeffs = evalmod_coeffs(bp);
+    let mut c = eval_chebyshev_to_scale(ev, ct, &coeffs, -1.0, 1.0, targets[0])?;
+    for &t in &targets[1..] {
+        c = double_angle(ev, &c, t)?;
+    }
+    debug_assert_eq!(c.level(), ct.level() - depth);
+    Ok(c)
 }
 
 /// The f64 nearest `scale` (within 16 ulps) that a rescale from `level` reaches exactly
 /// ([`Evaluator::exact_product_scale`]), else `ScaleMismatch`.
-fn reachable_near(eval: &Evaluator, level: usize, scale: f64) -> Result<f64> {
+fn reachable_near<E: BootstrapArithmetic>(eval: &E, level: usize, scale: f64) -> Result<f64> {
     let bits = scale.to_bits();
     (0..=16u64)
         .flat_map(|k| [bits + k, bits - k])

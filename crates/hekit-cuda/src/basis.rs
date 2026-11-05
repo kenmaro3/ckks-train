@@ -510,6 +510,28 @@ pub(crate) fn mod_up_digit<B: Backend>(b: &B, x: &B::Buf, plan: &ModUpPlan) -> R
     Ok(out)
 }
 
+/// Centered lift of a level-zero NTT polynomial to every Q prime. Shared by the CUDA
+/// implementation and kernel replay; the input is never downloaded.
+#[cfg_attr(not(any(test, feature = "cuda")), allow(dead_code))]
+pub(crate) fn raise_level0<B: Backend>(b: &B, x: &B::Buf, top: usize) -> Result<B::Buf> {
+    let mut out = b.alloc(top + 1)?;
+    b.copy_limbs(x, 0, &mut out, 0, 1)?;
+    if top == 0 {
+        return Ok(out);
+    }
+    // Conversion tables require disjoint bases. q0 is already exact and copied above.
+    let targets: Vec<u32> = (1..=top as u32).collect();
+    let mut src = b.alloc(1)?;
+    b.copy_limbs(x, 0, &mut src, 0, 1)?;
+    b.ntt(&mut src, &[0], true)?;
+    let table = b.conv_table(&[0], &targets)?;
+    let mut lifted = b.alloc(targets.len())?;
+    b.convert(&mut lifted, &src, &table)?;
+    b.ntt(&mut lifted, &targets, false)?;
+    b.copy_limbs(&lifted, 0, &mut out, 1, top)?;
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

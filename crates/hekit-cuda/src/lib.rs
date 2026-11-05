@@ -57,6 +57,8 @@
 #![deny(missing_docs)]
 
 pub mod basis;
+#[cfg(any(test, feature = "cuda"))]
+pub mod bootstrap;
 pub mod ks;
 pub mod matvec;
 pub mod plan;
@@ -106,3 +108,6 @@ pub const POINTWISE_KERNEL_SRC: &str = include_str!("../kernels/pointwise.cu");
 pub const BASIS_KERNEL_SRC: &str = include_str!("../kernels/basis.cu");
 /// Source of the key-switching inner-product kernel.
 pub const KEYSWITCH_KERNEL_SRC: &str = include_str!("../kernels/keyswitch.cu");
+
+#[cfg(feature = "cuda")]
+pub use bootstrap::CudaBootstrapper;

@@ -115,6 +115,34 @@ pub fn ksk_limbs<'k>(
     Ok(out)
 }
 
+/// The level-zero SSE key layout. Unlike ordinary keys this accepts exactly one
+/// part with exactly one Q limb, and checks shared basis identity as well as NTT form.
+/// Ordinary key upload continues to require full keys via [`ksk_limbs`].
+pub fn sse_sparse_limbs<'k>(params: &CkksParams, key: &'k KskKey) -> Result<Vec<&'k [u64]>> {
+    if key.dnum() != 1 {
+        return Err(invalid("SSE sparse key needs exactly one part"));
+    }
+    let mut out = Vec::new();
+    for (b, a) in key.parts() {
+        for x in [b, a] {
+            if !std::sync::Arc::ptr_eq(x.q().basis(), params.basis_q())
+                || !std::sync::Arc::ptr_eq(x.p().basis(), params.basis_p())
+                || x.q().level() != 0
+                || x.p().limbs().len() != params.p().len()
+                || !x.q().is_ntt_form()
+                || !x.p().is_ntt_form()
+            {
+                return Err(invalid(
+                    "SSE sparse key must be level-zero NTT over these exact bases",
+                ));
+            }
+            out.extend(x.q().limbs().iter().map(Vec::as_slice));
+            out.extend(x.p().limbs().iter().map(Vec::as_slice));
+        }
+    }
+    Ok(out)
+}
+
 /// One launch of `ks_inner_product` (`kernels/keyswitch.cu`): the digits of a level-`level`
 /// polynomial against a key of shape `key`.
 #[derive(Clone, Debug, PartialEq, Eq)]

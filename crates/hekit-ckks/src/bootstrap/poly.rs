@@ -60,6 +60,8 @@ use hekit_core::poly::RnsPoly;
 use crate::ciphertext::Ciphertext;
 use crate::counter::OpCounter;
 use crate::evaluator::{Evaluator, MIN_PLAIN_SCALE};
+use crate::linalg::DiagonalEntry;
+use crate::ops::{HeCiphertext, HeOps};
 
 /// Largest magnitude of an integer constant ([`mul_const_to`], [`add_const`]): `2^126`,
 /// so that it fits an `i128`.
@@ -262,7 +264,7 @@ fn residue(k: i128, q: u64) -> u64 {
 }
 
 /// The integer `round(v)` as `i128`, `InvalidParams` beyond `2^126` or for non-finite `v`.
-fn to_int(v: f64) -> Result<i128> {
+pub fn rounded_constant(v: f64) -> Result<i128> {
     let r = v.round();
     if !(r.is_finite() && r.abs() < MAX_CONST) {
         return Err(HekitError::InvalidParams(format!(
@@ -307,7 +309,7 @@ fn mul_const_to(
             ct.scale()
         )));
     }
-    let k = to_int(value * ratio)?;
+    let k = rounded_constant(value * ratio)?;
     let c = ct.polys().iter().map(|p| mul_int(p, k)).collect();
     let r = Ciphertext::new(c, product_scale)?;
     eval.count(|c| c.ct_pt_mults += 1);
@@ -317,7 +319,7 @@ fn mul_const_to(
 /// `ct + value`: adds the integer `round(value * ct.scale())` to `c_0` (in NTT form a
 /// constant polynomial is the same constant at every evaluation point). No noise, no level.
 fn add_const(ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
-    let k = to_int(value * ct.scale())?;
+    let k = rounded_constant(value * ct.scale())?;
     let mut c = ct.polys().to_vec();
     let p0 = &c[0];
     let basis = p0.basis();
@@ -338,7 +340,7 @@ fn add_const(ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
 /// every addition of the evaluation is exact in scale by construction, and this keeps
 /// [`SCALE_TOLERANCE`](crate::evaluator::SCALE_TOLERANCE) from silently relabelling after a
 /// future change (review m3).
-fn add_exact(eval: &Evaluator, a: &Ciphertext, b: &Ciphertext, sub: bool) -> Result<Ciphertext> {
+fn add_exact<E: HeOps>(eval: &E, a: &E::Ct, b: &E::Ct, sub: bool) -> Result<E::Ct> {
     if a.scale() != b.scale() {
         return Err(HekitError::ScaleMismatch);
     }
@@ -353,23 +355,58 @@ fn zero_ct(eval: &Evaluator, level: usize, scale: f64) -> Result<Ciphertext> {
 }
 
 /// `ct` relabelled to `scale`, which must be within [`RELABEL_TOL`] of its scale.
-fn relabel(ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
+fn relabel<E: BootstrapArithmetic>(ev: &E, ct: E::Ct, scale: f64) -> Result<E::Ct> {
     if ((ct.scale() - scale) / scale).abs() > RELABEL_TOL {
         return Err(HekitError::ScaleMismatch);
     }
-    Ciphertext::new(ct.into_polys(), scale)
+    ev.boot_relabel(ct, scale)
+}
+
+/// Extra arithmetic needed by the shared level-optimal bootstrap polynomial executor.
+/// Implementations must preserve exact scale labels and the CPU integer rounding rules.
+pub trait BootstrapArithmetic: HeOps {
+    /// Check ownership, two components and a usable relinearization key before work.
+    fn check_boot_input(&self, ct: &Self::Ct) -> Result<()>;
+    /// Integer constant product with the exact requested label, counted once.
+    fn boot_mul_const(&self, ct: &Self::Ct, value: f64, scale: f64) -> Result<Self::Ct>;
+    /// Add a rounded integer constant, without a level or operation count.
+    fn boot_add_const(&self, ct: &Self::Ct, value: f64) -> Result<Self::Ct>;
+    /// Trivial zero encryption with two components.
+    fn boot_zero(&self, level: usize, scale: f64) -> Result<Self::Ct>;
+    /// Change only the scale label (the caller validates the numerical justification).
+    fn boot_relabel(&self, ct: Self::Ct, scale: f64) -> Result<Self::Ct>;
+}
+
+impl BootstrapArithmetic for Evaluator {
+    fn check_boot_input(&self, ct: &Ciphertext) -> Result<()> {
+        self.check_galois_input(ct)?;
+        self.relin_key_checked()?;
+        Ok(())
+    }
+    fn boot_mul_const(&self, ct: &Ciphertext, value: f64, scale: f64) -> Result<Ciphertext> {
+        mul_const_to(self, ct, value, scale)
+    }
+    fn boot_add_const(&self, ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
+        add_const(ct, value)
+    }
+    fn boot_zero(&self, level: usize, scale: f64) -> Result<Ciphertext> {
+        zero_ct(self, level, scale)
+    }
+    fn boot_relabel(&self, ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
+        Ciphertext::new(ct.into_polys(), scale)
+    }
 }
 
 /// The state of one evaluation: the evaluator, the level `L` of `T_1`, the baby-step bound
 /// `2^s` and the power basis computed so far.
-struct Cheb<'e> {
-    eval: &'e Evaluator,
+struct Cheb<'e, E: BootstrapArithmetic> {
+    eval: &'e E,
     top: usize,
     baby: usize,
-    powers: BTreeMap<usize, Ciphertext>,
+    powers: BTreeMap<usize, E::Ct>,
 }
 
-impl Cheb<'_> {
+impl<E: BootstrapArithmetic> Cheb<'_, E> {
     /// Computes `T_i` (and what it needs) if absent: `T_i = 2 T_a T_b - T_{a-b}` at level
     /// `L - ceil(log2 i)` (module docs). The product is relinearized and doubled (added to
     /// itself: relabelling it with half its scale would double the message for free but halve
@@ -396,10 +433,10 @@ impl Cheb<'_> {
         let prod = ev.relinearize(&ev.mul_no_relin(&ta, &tb)?)?;
         let prod = add_exact(ev, &prod, &prod, false)?;
         let prod = if c == 0 {
-            add_const(&prod, -1.0)?
+            ev.boot_add_const(&prod, -1.0)?
         } else {
             let tc = ev.mod_switch_to_level(&self.powers[&c], l)?;
-            add_exact(ev, &prod, &mul_const_to(ev, &tc, 1.0, prod.scale())?, true)?
+            add_exact(ev, &prod, &ev.boot_mul_const(&tc, 1.0, prod.scale())?, true)?
         };
         let t = ev.rescale(&prod)?;
         debug_assert_eq!(t.level() + ceil_log2(i), self.top);
@@ -409,7 +446,7 @@ impl Cheb<'_> {
 
     /// `sum_i p_i T_i` at level `tl` with the exact scale `ts`, unrescaled (module docs);
     /// `None` for the zero polynomial.
-    fn rec(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Option<Ciphertext>> {
+    fn rec(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Option<E::Ct>> {
         let Some(m) = p.iter().rposition(|&c| c != 0.0) else {
             return Ok(None);
         };
@@ -429,14 +466,14 @@ impl Cheb<'_> {
         let prod = match qres {
             None => None,
             Some(qc) => {
-                let qc = if qc.len() == 3 {
+                let qc = if qc.size() == 3 {
                     ev.relinearize(&qc)?
                 } else {
                     qc
                 };
                 let qc = ev.rescale(&qc)?;
                 let tp = ev.mod_switch_to_level(&self.powers[&k], tl)?;
-                Some(relabel(ev.mul_no_relin(&qc, &tp)?, ts)?)
+                Some(relabel(ev, ev.mul_no_relin(&qc, &tp)?, ts)?)
             }
         };
         Ok(match (prod, rres) {
@@ -447,15 +484,15 @@ impl Cheb<'_> {
     }
 
     /// The leaf `sum_{i >= 1} k_i T_i + round(p_0 ts)` at level `tl`, scale `ts`.
-    fn leaf(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Ciphertext> {
-        let mut acc: Option<Ciphertext> = None;
+    fn leaf(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<E::Ct> {
+        let mut acc: Option<E::Ct> = None;
         for (i, &c) in p.iter().enumerate().skip(1) {
             if c == 0.0 {
                 continue;
             }
             self.ensure(i)?;
             let t = self.eval.mod_switch_to_level(&self.powers[&i], tl)?;
-            let term = mul_const_to(self.eval, &t, c, ts)?;
+            let term = self.eval.boot_mul_const(&t, c, ts)?;
             acc = Some(match acc {
                 None => term,
                 Some(s) => add_exact(self.eval, &s, &term, false)?,
@@ -463,10 +500,10 @@ impl Cheb<'_> {
         }
         let acc = match acc {
             Some(a) => a,
-            None => zero_ct(self.eval, tl, ts)?,
+            None => self.eval.boot_zero(tl, ts)?,
         };
         if p[0] != 0.0 {
-            add_const(&acc, p[0])
+            self.eval.boot_add_const(&acc, p[0])
         } else {
             Ok(acc)
         }
@@ -523,58 +560,70 @@ impl Evaluator {
         b: f64,
         target_scale: f64,
     ) -> Result<Ciphertext> {
-        let bad = |m: String| Err(HekitError::InvalidParams(m));
-        self.check_galois_input(ct)?;
-        self.relin_key_checked()?;
-        if coeffs.len() < 2 {
-            return bad("eval_chebyshev needs degree >= 1 (two coefficients or more)".into());
-        }
-        if let Some(c) = coeffs.iter().find(|c| !c.is_finite()) {
-            return bad(format!("non-finite Chebyshev coefficient {c}"));
-        }
-        if !(a.is_finite() && b.is_finite() && a < b) {
-            return bad(format!("interval [{a}, {b}] must be finite with a < b"));
-        }
-        if !(target_scale.is_finite() && target_scale > 0.0) {
-            return bad(format!(
-                "target scale {target_scale} must be positive and finite"
-            ));
-        }
-        let affine = a != -1.0 || b != 1.0;
-        let depth = chebyshev_depth(coeffs.len() - 1);
-        if ct.level() < depth + affine as usize {
-            return Err(HekitError::NoLevelsLeft);
-        }
-        let x = if affine {
-            // y = alpha x + beta at exactly ct.scale(), one level.
-            let (alpha, beta) = (2.0 / (b - a), -(a + b) / (b - a));
-            let y = self.rescale(&self.mul_scalar(ct, alpha, ct.scale())?)?;
-            add_const(&y, beta)?
-        } else {
-            ct.clone()
-        };
-        let top = x.level();
-        let tl = top + 1 - depth;
-        let label = self.exact_product_scale(tl, target_scale)?;
-        let mut cheb = Cheb {
-            eval: self,
-            top,
-            baby: 1 << optimal_split(depth),
-            powers: BTreeMap::from([(1, x)]),
-        };
-        let res = match cheb.rec(coeffs, tl, label)? {
-            Some(c) => c,
-            None => zero_ct(self, tl, label)?,
-        };
-        let res = if res.len() == 3 {
-            self.relinearize(&res)?
-        } else {
-            res
-        };
-        let out = self.rescale(&res)?;
-        debug_assert_eq!(out.scale(), target_scale);
-        Ok(out)
+        eval_chebyshev_to_scale(self, ct, coeffs, a, b, target_scale)
     }
+}
+
+/// Backend-neutral execution of [`Evaluator::eval_chebyshev_to_scale`], with identical
+/// recursion, scale labels, integer rounding and counts.
+pub fn eval_chebyshev_to_scale<E: BootstrapArithmetic>(
+    ev: &E,
+    ct: &E::Ct,
+    coeffs: &[f64],
+    a: f64,
+    b: f64,
+    target_scale: f64,
+) -> Result<E::Ct> {
+    let bad = |m: String| Err(HekitError::InvalidParams(m));
+    ev.check_boot_input(ct)?;
+    if coeffs.len() < 2 {
+        return bad("eval_chebyshev needs degree >= 1 (two coefficients or more)".into());
+    }
+    if let Some(c) = coeffs.iter().find(|c| !c.is_finite()) {
+        return bad(format!("non-finite Chebyshev coefficient {c}"));
+    }
+    if !(a.is_finite() && b.is_finite() && a < b) {
+        return bad(format!("interval [{a}, {b}] must be finite with a < b"));
+    }
+    if !(target_scale.is_finite() && target_scale > 0.0) {
+        return bad(format!(
+            "target scale {target_scale} must be positive and finite"
+        ));
+    }
+    let affine = a != -1.0 || b != 1.0;
+    let depth = chebyshev_depth(coeffs.len() - 1);
+    if ct.level() < depth + affine as usize {
+        return Err(HekitError::NoLevelsLeft);
+    }
+    let x = if affine {
+        // y = alpha x + beta at exactly ct.scale(), one level.
+        let (alpha, beta) = (2.0 / (b - a), -(a + b) / (b - a));
+        let y = ev.rescale(&ev.mul_scalar(ct, alpha, ct.scale())?)?;
+        ev.boot_add_const(&y, beta)?
+    } else {
+        ct.clone()
+    };
+    let top = x.level();
+    let tl = top + 1 - depth;
+    let label = ev.exact_product_scale(tl, target_scale)?;
+    let mut cheb = Cheb {
+        eval: ev,
+        top,
+        baby: 1 << optimal_split(depth),
+        powers: BTreeMap::from([(1, x)]),
+    };
+    let res = match cheb.rec(coeffs, tl, label)? {
+        Some(c) => c,
+        None => ev.boot_zero(tl, label)?,
+    };
+    let res = if res.size() == 3 {
+        ev.relinearize(&res)?
+    } else {
+        res
+    };
+    let out = ev.rescale(&res)?;
+    debug_assert_eq!(out.scale(), target_scale);
+    Ok(out)
 }
 
 /// The double-angle step `c <- 2 c^2 - 1` at the level of `c`, landing exactly on
@@ -583,14 +632,18 @@ impl Evaluator {
 /// caller (a relative relabelling error of a few `2^-52`; more than `2^-40` is
 /// `ScaleMismatch`). The relabel doubles the message; then `1` is subtracted at that scale
 /// and the result rescaled. One level.
-pub(crate) fn double_angle(eval: &Evaluator, c: &Ciphertext, out_scale: f64) -> Result<Ciphertext> {
+pub(crate) fn double_angle<E: BootstrapArithmetic>(
+    eval: &E,
+    c: &E::Ct,
+    out_scale: f64,
+) -> Result<E::Ct> {
     let sigma = eval.exact_product_scale(c.level(), out_scale)?;
     let sq = eval.relinearize(&eval.mul_no_relin(c, c)?)?;
     if ((sq.scale() / 2.0 - sigma) / sigma).abs() > 2f64.powi(-40) {
         return Err(HekitError::ScaleMismatch);
     }
-    let sq = Ciphertext::new(sq.into_polys(), sigma)?;
-    eval.rescale(&add_const(&sq, -1.0)?)
+    let sq = eval.boot_relabel(sq, sigma)?;
+    eval.rescale(&eval.boot_add_const(&sq, -1.0)?)
 }
 
 #[cfg(test)]

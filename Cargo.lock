@@ -295,6 +295,7 @@ dependencies = [
  "cudarc",
  "hekit-ckks",
  "hekit-core",
+ "hekit-nn",
  "rand_chacha",
  "rand_core",
 ]
