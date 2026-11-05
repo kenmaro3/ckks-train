@@ -4,6 +4,10 @@ Runs [malb/lattice-estimator](https://github.com/malb/lattice-estimator) on the 
 It needs SageMath, is a development tool only, and `_ext/` (Sage, estimator) is not committed
 (`_ext/` is gitignored).
 
+Licences: lattice-estimator is LGPLv3+ and SageMath is GPLv3. Both are run-time development
+tools only. They live in the gitignored `_ext/`, are never committed, vendored or linked into any
+hekit crate, and the scripts here only import the estimator when run.
+
 ## Setup (macOS arm64, no system Sage)
 
     mkdir -p _ext/bin && curl -sL https://micro.mamba.pm/api/micromamba/osx-arm64/latest -o _ext/mm.tar.bz2
@@ -22,15 +26,30 @@ It needs SageMath, is a development tool only, and `_ext/` (Sage, estimator) is 
     _ext/sage-env/bin/python estimate.py --rough               # crude screening only
 
 Results and interpretation: `docs/security.md`.
-Options: `--m oo`, `--hamming-weight h` (sparse secret; enables hybrid attacks, slow),
-`--only n16_boot,n16_boot_sse_to_sparse` (run a subset of the exported entries),
-`--attacks usvp,bdd_mitm_hybrid,...` (run a subset of the attacks).
+Options:
+- `--m oo`: unbounded samples.
+- `--hamming-weight h`: sparse secret; enables the hybrid attacks, which are slow.
+- `--only n16_boot,n16_boot_sse_to_sparse`: run a subset of the exported entries.
+- `--attacks usvp,bdd_mitm_hybrid,...`: run a subset of the attacks. Besides `LWE.estimate`'s
+  six, there are the EJK20 dual hybrids `dual_hybrid_ejk20` (exhaustive guessing) and
+  `dual_mitm_hybrid` (MITM guessing).
+- `--mitm-opt analytical|numerical`: the MITM solver of `dual_mitm_hybrid`.
+- `--dense-hybrids`: also run the hybrids on the dense default secret.
+- `--primal-hybrid-zeta 0,20,...`: evaluate `bdd_hybrid` and `bdd_mitm_hybrid` at fixed
+  guessing dimensions. The full primal-hybrid optimiser does not finish at log PQ 1732.
+- `--dual-opt-step k`: `opt_step` of the EJK20 optimisers. Higher is more robust and slower.
 
 `params.json` also holds `n16_boot_sse_to_sparse`: the SSE switching key s -> s' of n16_boot, an
 RLWE sample under the h' = 32 ephemeral key at modulus q_0 * P (docs/security.md, Task 39).
 
-`dual_mitm_scan.py NAME --cost-model M` grid-scans the EJK20 dual MITM hybrid over the splitting
-dimension (the estimator's own optimiser for it depends on `opt_step`; docs/security.md, Task 39):
+`dual_mitm_scan.py NAME --cost-model M` grid-scans the EJK20 dual hybrid over the splitting
+dimension and h1. The estimator's own optimiser for it depends on `opt_step`, so binding sparse
+figures come from this scan (docs/security.md, Task 39). Options:
+- `--solver mitm|exhaustive`;
+- `--mitm-opt analytical|numerical`;
+- the grid: `--zeta-min`, `--zeta-max`, `--step`, `--refine`.
+
+For example:
 
     _ext/sage-env/bin/python dual_mitm_scan.py n16_boot_sse_to_sparse --cost-model bdgl16 \
-        --zeta-min 40000 --zeta-max 65000 --step 500 --refine 25
+        --mitm-opt numerical --zeta-min 56000 --zeta-max 61500 --step 250 --refine 50

@@ -277,16 +277,16 @@ n16_train (log PQ 1592) estimated 143.9 bits under BDGL16 and 141.2 under MATZOV
 - about **130** under MATZOV;
 - about 99 under Core-SVP.
 
-That is above 128 with a margin of about 2 bits under MATZOV. For comparison, the 8-level fallback chain B at 1748 would give about 131 / 128.6. The lattice-estimator run of Task 39 decides. If n16_boot comes in below 128, the security fallback is chain C (log PQ 1622; about 141 / 139; 14 levels after bootstrap).
+That is above 128 with a margin of about 2 bits under MATZOV. For comparison, the 8-level fallback chain B at 1748 would give about 131 / 128.6. The lattice-estimator run of Task 39 decides. *(Superseded.)* This paragraph used to name chain C (log PQ 1622; about 141 / 139; 14 levels after bootstrap) as the fallback if n16_boot came in below 128. The parent's rule replaced that: trim the EvalMod prime width by 1 bit at a time (58 → 57 → 56) and keep every level. It did not trigger (Result below).
 
 **Task 39 needs:**
 - (a) the dense n16_boot at log PQ 1732, and at 1730 if the q_0 = 52 fallback is used. Also chain B at 1748 if Task 37 cannot fit 7 EvalMod levels, and chain C at 1622 as the security fallback;
 - (b) the SSE switching key s → s': N = 2^16, ternary secret with h = 32. The modulus is q_0·P with log(q_0·P) = 54 + 240 = 294 as ruled, or 114 with a single 60-bit special prime (§7, option 1). This is a sparse-secret instance, so the hybrid and MITM attacks must be enabled. The s' → s key uses the dense main key at modulus Q·P and is covered by (a);
-- (c) h = 192 as an alternative only, at log PQ 1748 (it needs the 8-level chain B). The rough model in docs/security.md gave 107 bits at 1592, so I expect this to come in below 128.
+- (c) h = 192 as an alternative only. *(Superseded: this item used to say log PQ 1748 on the 8-level chain B. Ruling R-M3-10 keeps SSE with h' = 32 for h = 192, so it uses the n16_boot chain at 1732.)* The rough model in docs/security.md gave 107 bits at 1592, so I expect this to come in below 128.
 
 **Result (Task 39, `docs/security.md`).** Under ruling R-M3-10, h = 192 uses the same chain with SSE, so only 1732 was needed; the fallback chains were not estimated.
-- (a) dense n16_boot at 1732: 131.5 bits (BDGL16) and 129.3 (MATZOV); Core-SVP 95.2.
-- (b) SSE key at log 294: 134.4 / 135.0, from the dual MITM hybrid (grid minimum).
+- (a) dense n16_boot at 1732: 131.5 bits (BDGL16) and 129.3 (MATZOV); Core-SVP 95.2. No hybrid attack lowers it.
+- (b) SSE key at log 294: 133.8 / 134.2, from the dual MITM hybrid (grid minimum with the numerical MITM solver; the analytical solver gives 134.4 / 135.0).
 - (c) `n16_boot_sparse` (h = 192) at 1732: 122.2 / 121.7, below 128, so it is **not used in the paper**. Its bootstrap measures 21.12 bits (model 21.0).
 
 n16_boot is kept unchanged, with no EvalMod prime trimmed.

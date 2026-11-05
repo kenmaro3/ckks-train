@@ -176,7 +176,8 @@ impl CkksParams {
     /// 31, log PQ = 1732), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
     /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`.
     /// Security (Task 39, `docs/security.md`): 131.5 bits under BDGL16 and 129.3 under MATZOV
-    /// at log PQ 1732; the SSE key s -> s' (h' = 32, modulus q_0 P) is estimated separately.
+    /// at log PQ 1732. The SSE key s -> s' (h' = 32, modulus q_0 P) is at least 133.8 / 134.2
+    /// (numerical-MITM grid minimum of the dual MITM hybrid).
     pub fn n16_boot() -> CkksParams {
         let (q_bits, p_bits) = n16_boot_bits();
         Self::new(16, &q_bits, &p_bits, 42, N16_BOOT_DNUM).expect("n16_boot preset is valid")

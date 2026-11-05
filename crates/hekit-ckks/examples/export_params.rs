@@ -8,6 +8,7 @@
 //! at modulus q_0 * P only.
 
 use hekit_ckks::bootstrap::BootParams;
+use hekit_ckks::keys::ERROR_STD_DEV;
 use hekit_ckks::params::CkksParams;
 
 fn log2_sum(m: &[u64]) -> f64 {
@@ -20,7 +21,7 @@ fn entry_raw(name: &str, n: usize, log_q: f64, log_p: f64, secret: Option<usize>
         None => "\"ternary_default\"".to_string(),
     };
     format!(
-        "    {{\n      \"name\": \"{name}\",\n      \"n\": {n},\n      \"log_q\": {log_q:.4},\n      \"log_p\": {log_p:.4},\n      \"log_pq\": {:.4},\n      \"secret\": {secret},\n      \"sigma\": 3.2\n    }}",
+        "    {{\n      \"name\": \"{name}\",\n      \"n\": {n},\n      \"log_q\": {log_q:.4},\n      \"log_p\": {log_p:.4},\n      \"log_pq\": {:.4},\n      \"secret\": {secret},\n      \"sigma\": {ERROR_STD_DEV}\n    }}",
         log_q + log_p
     )
 }

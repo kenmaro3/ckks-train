@@ -71,8 +71,10 @@ and leave 16 levels after bootstrapping.
 - **(a) Main key, dense, modulus Q·P** (log 1732). The public key, the relinearization key, the
   33 Galois keys and the SSE key s' → s (`SseKeys::to_dense`) are all RLWE samples under the
   dense s at modulus Q·P (or a divisor of it). The s' → s key has the form
-  b = −a·s + e + P·s' (mod Q·P): s' sits only in the message, so as an RLWE instance it is one
-  more sample under the dense s, and **(a) covers it**.
+  b_i = −a_i·s + e_i + [P]_{q_i}·s' (mod Q·P), one sample per digit (dnum = 8 samples). s' sits
+  only in the messages, so as an RLWE instance these are 8 more samples under the dense s, and
+  **(a) covers them**. The m = oo runs cover the sample count: all keys together expose about 290
+  RLWE samples under s.
 - **(b) SSE key s → s' (`SseKeys::to_sparse`), modulus q_0·P** (log 294 = 54 + 4×60,
   exported as `n16_boot_sse_to_sparse`). One part, so one RLWE sample (m = n): b = −a·s' + e + P·s
   (mod q_0·P), under the ephemeral s' with h' = 32. It is modelled as plain RLWE under s' at
@@ -86,41 +88,109 @@ and leave 16 levels after bootstrapping.
 Secret models: dense = `ND.SparseTernary(n/4, n/4, n)` as in M1; a weight h or h' =
 `ND.SparseTernary(h/2, h/2, n)`. hekit's fixed-weight sampler (`Rng::ternary_poly` with
 `Some(h)`) draws exactly h nonzero positions with independent signs, so the split between +1 and
-−1 is binomial instead of exactly h/2. This is the usual modelling and it is not refined here.
-Error: σ = 3.2, m = n. Attacks: dense (a) uses usvp, bdd, dual and dual_hybrid, as in M1. Sparse
-(b) and (c) use those plus bdd_hybrid, bdd_mitm_hybrid and dual_mitm_hybrid. At this commit
-`LWE.estimate` has no dual MITM entry (its `dual_hybrid` is MATZOV's dual), so `estimate.py`
-runs the EJK20 dual hybrid with MITM guessing, `lwe_dual.dual_hybrid(mitm_optimization=True)`,
-separately and reports it as `dual_mitm_hybrid`. Arora-GB and BKW are skipped, as in M1.
+−1 is binomial instead of exactly h/2. This is the usual modelling. If anything, it favours the
+attacker. For a typical hekit key, the guessed part with h1 nonzeros has 2^h1 sign patterns
+against the model's C(h1, h1/2). At the binding h1 of 9 or 10 that is about 2 bits more search,
+or 1 bit after the MITM square root. Keys with strongly unbalanced signs (|#(+1) − 16| ≥ 8) occur
+with probability about 0.7%, and even for them the MITM search shrinks by at most about 1 bit.
+Error: σ = 3.2 (`keys::ERROR_STD_DEV`), m = n.
 
-**The dual MITM optimiser is not robust.** Its search over the splitting dimension ζ is a
-local-minimum search whose result depends on `opt_step`. On (b) it gave 136.4 / 136.6
-(BDGL16 / MATZOV) at the default step 8. With step 16 it gave 134.6 / 135.0; with step 2,
-136.4 / 206.7; under ADPS16, 179.5 at step 8 and 122.3 at step 2 (step 1 fails inside the
-estimator). `tools/estimate/dual_mitm_scan.py` therefore evaluates the same inner optimisation
-(`DH.optimize_blocksize` with the MITM solver, every h1 ≥ 1) on an explicit grid,
-ζ = 40000..65000 in steps of 500, and refines in steps of 25 around the best point. **The grid
-minima are the (b) figures below.** They are smooth around the minimum (±0.1 bit over ±100 in
-ζ). The primal hybrids and the (c) runs use the estimator's own optimiser. For (c) a grid could
-only lower a figure that is already below 128.
+**Attacks.**
+- **`LWE.estimate`'s six attacks.** These are usvp, bdd, dual and dual_hybrid, plus the primal
+  hybrids bdd_hybrid and bdd_mitm_hybrid. At this commit `dual_hybrid` is MATZOV's dual, which
+  does not guess secret coordinates.
+- **The EJK20 dual hybrid, which guesses ζ coordinates.** `LWE.estimate` does not include it,
+  so `estimate.py` runs it separately in two variants:
+  - `dual_hybrid_ejk20`: `lwe_dual.dual_hybrid(mitm_optimization=False)`, exhaustive search over
+    the guessed part;
+  - `dual_mitm_hybrid`: `mitm_optimization` set to `"analytical"` (the estimator default) or
+    `"numerical"`, a MITM search over the guessed part.
+- **Which secret gets which attacks.** Sparse (b) and (c) run all eight. Dense (a) runs the four
+  non-hybrid ones by default, as in M1. With `--dense-hybrids` it also runs the four hybrids;
+  see "Hybrid attacks on the dense key".
+- **Skipped.** Arora-GB and BKW are skipped, as in M1.
+
+**Hybrid attacks on the dense key (a).** (a) has the smallest margin, 1.3 bits under MATZOV, so
+the hybrids were checked on it as well (`estimate.py --dense-hybrids`). The full `primal_hybrid`
+optimiser does not finish within 30 minutes at log PQ 1732, so the primal hybrids were evaluated
+at fixed guessing dimensions instead (`--primal-hybrid-zeta`):
+
+| attack on (a) | MATZOV | BDGL16 |
+|---|---|---|
+| bdd_mitm_hybrid (Babai + MITM), ζ = 0 / 5 / 10 / 20 / 40 | 129.6 / 146.4 / 145.8 / 144.5 / 142.4 | 131.9 / – / – / 146.8 / – |
+| bdd_mitm_hybrid, ζ = 60 / 80 / 100 / 120 / 130 / 140 / 150 / 160 | 140.6 / 139.1 / 137.9 / **137.1** / 138.5 / 142.3 / 147.8 / 154.1 | – |
+| bdd_mitm_hybrid, ζ = 240 / 320 / 480 / 640 / 1000 | 209.1 / 264.9 / 377.8 / 491.1 / 746.5 | – |
+| bdd_hybrid (no Babai, no MITM), ζ = 0 / 5 / 10 / 20 / 40 | 129.3 / 129.6 / 129.6 / 129.6 / 130.6 | 131.5 / – / – / 131.8 / – |
+| dual_hybrid_ejk20 (exhaustive) | 130.4 (ζ 0, β 326) | 131.6 |
+| dual_mitm_hybrid | ∞ | ∞ |
+
+**None of them lowers the reported 129.3 (MATZOV) or 131.5 (BDGL16).**
+- **Exhaustive guessing.** For bdd_hybrid and dual_hybrid_ejk20 the optimum is ζ = 0, which is
+  the BDD attack (respectively the plain dual) already reported. Guessing a dense ternary
+  coordinate (entropy 1.5 bits) costs more than the dimension it removes.
+- **MITM guessing.** The primal MITM hybrid has a local minimum of 137.1 near ζ = 120, 7.8 bits
+  above the BDD figure. Past ζ ≈ 140 it rises steeply. The EJK20 dual MITM hybrid returns ∞.
+
+The binding attacks on (a) stay usvp and bdd.
+
+**The estimator's dual-hybrid optimisers are not reliable at n = 2^16.** Their search over the
+splitting dimension ζ is a local-minimum search whose result depends on `opt_step`; per the
+estimator's docstring, a higher step is more robust and slower. For the dual MITM hybrid on (b):
+
+| optimiser setting | BDGL16 | MATZOV | ADPS16 |
+|---|---|---|---|
+| step 8 (default) | 136.4 | 136.6 | 179.5 |
+| step 16 | 134.6 | 135.0 | – |
+| step 2 | 136.4 | 206.7 | 122.3 |
+| step 1 | fails inside the estimator | fails | – |
+
+**A default `LWE.estimate`-style result for a sparse key is therefore not trustworthy at this
+commit without a grid.** `tools/estimate/dual_mitm_scan.py` evaluates the same inner optimisation
+(`DH.optimize_blocksize` for every h1) on an explicit ζ grid and refines around the best point.
+**The grid minima are the (b) figures below.** The scans:
+
+- **MITM, analytical solver** (`mitm_opt = "analytical"`, the estimator default). h1 ≥ 1, since
+  h1 = 0 has no MITM split; that case is the exhaustive solver's h1 = 0 point. ζ = 40000..65000 in
+  steps of 500, refined in steps of 25. Minima: **134.4** (BDGL16, ζ 59000, h1 9, β 153),
+  **135.0** (MATZOV, ζ 58500, h1 10, β 173) and 122.0 (ADPS16). The curve is smooth around the
+  minimum (±0.1 bit over ±100 in ζ) and rises to both edges.
+- **MITM, numerical solver** (`mitm_opt = "numerical"`, the estimator's other mode). About one
+  minute per ζ point, so the grid is ζ = 56000..61500 in steps of 250, refined in steps of 50.
+  That range holds every solver's minimum (ζ 58450–59450). The costs at its edges are 141–144
+  bits, well above the minimum. The numerical solver is noisy: it jumps by up to 2.2 bits between
+  neighbouring grid points, and by up to 1.5 bits between steps of 50 near the minimum. Minima:
+  **133.8** (BDGL16, ζ 58450, h1 10, β 173) and **134.2** (MATZOV, ζ 58550, h1 10, β 169).
+- **Exhaustive solver** (`dual_hybrid_ejk20`, zero-guessing without MITM). h1 ≥ 0,
+  ζ = 40000..64000 in steps of 500, refined in steps of 25. Minima: 155.0 (BDGL16, ζ 59275) and
+  156.1 (MATZOV, ζ 59450). The default optimiser gives 159.2 / 156.1. It does not bind: about
+  20 bits above the MITM variant.
+
+**The conservative (b) figure is the minimum over both MITM solvers: 133.8 (BDGL16) and 134.2
+(MATZOV), both from the numerical solver.** The analytical figures alone are 134.4 / 135.0. The
+primal hybrids and the (c) runs use the estimator's own optimisers. The reviewer scanned the (b) primal MITM hybrid on a ζ grid
+(50000..64000, step 1000) and found 144.5, against the optimiser's 144.2, so the primal optimiser
+is not the weak spot for (b). For (c) a grid could only lower a figure that is already below 128.
 
 **`inf` entries.** For (b), usvp, bdd, dual and dual_hybrid return ∞: no block size up to the
 estimator's cap β = 1754 (`conf.max_beta`) succeeds. That means at least 0.292 × 1754 = 512 bits
 even under Core-SVP, so they do not bind. The binding attacks on (b) guess about 2^15.8 of the
-65536 secret coordinates as zero and attack the remaining dimension of about 8500.
+65536 secret coordinates. The primal hybrids guess about 57000 coordinates, which leaves a
+dimension of about 8500. The binding dual MITM point (BDGL16, ζ = 59000) leaves n − ζ = 6536
+coordinates in a lattice of dimension 13334.
 
 ### Results (log2 rop, minimum over attacks; binding attack in brackets)
 
 | key / instance | log modulus | BDGL16 (= HE Standard sieve) | MATZOV (estimator default) | Core-SVP (ADPS16; information only) |
 |---|---|---|---|---|
 | (a) `n16_boot` dense main key | 1732 | **131.5** [usvp/bdd, β 326] | **129.3** [usvp/bdd, β 326] | 95.2 |
-| (b) SSE key s → s', h' = 32 | 294 | **134.4** [dual_mitm_hybrid, grid: ζ 59000, h1 9, β 153] | **135.0** [dual_mitm_hybrid, grid: ζ 58500, h1 10, β 173] | 122.0 [dual_mitm_hybrid, grid] |
+| (b) SSE key s → s', h' = 32 | 294 | **133.8** [dual_mitm_hybrid, numerical MITM grid: ζ 58450, h1 10, β 173; analytical 134.4] | **134.2** [dual_mitm_hybrid, numerical MITM grid: ζ 58550, h1 10, β 169; analytical 135.0] | 122.0 [dual_mitm_hybrid, analytical grid] |
 | (c) `n16_boot_sparse` main key, h = 192 | 1732 | **122.2** [dual_mitm_hybrid, β 269] | **121.7** [dual_mitm_hybrid, β 269] | 90.2 |
 
 The rows in more detail:
 - (a) at m = oo: identical (131.5 / 129.3), as for n16_train in M1.
 - (b), other attacks: bdd_mitm_hybrid gives 144.2 (BDGL16) / 144.4 (MATZOV) / 133.2 (ADPS16),
-  and bdd_hybrid 162.9 / 164.0 / 143.2. The rough model gives ∞. At m = oo every attack is
+  and bdd_hybrid 162.9 / 164.0 / 143.2. dual_hybrid_ejk20 (exhaustive) gives 155.0 / 156.1 on its
+  grid. The rough model gives ∞. At m = oo every attack is
   unchanged (estimator optimiser: 136.4 / 136.6). For comparison, exhaustive search over the
   fixed-weight secrets costs log2(C(65536, 32)·2^32) = 426.3 bits.
 - (c) under BDGL16, per attack: usvp 131.2, bdd 131.0, dual 131.3, dual_hybrid 131.0,
@@ -136,8 +206,9 @@ the sieve model.
 ### Verdict
 
 - **`n16_boot` (dense main key + SSE h' = 32) is ≥ 128 bits under BDGL16 and MATZOV for both
-  of its key types**: (a) 131.5 / 129.3 and (b) 134.4 / 135.0. The MATZOV margin of (a) is 1.3
-  bits. Both are at least 128, so the 58-bit EvalMod primes are kept (no trim), and the chain,
+  of its key types**: (a) 131.5 / 129.3 and (b) 133.8 / 134.2. The (b) figures are the
+  conservative numerical-MITM grid minima; the analytical ones are 134.4 / 135.0. The MATZOV margin
+  of (a) is 1.3 bits, and none of the hybrid attacks lowers it. Both are at least 128, so the 58-bit EvalMod primes are kept (no trim), and the chain,
   log PQ 1732, levels_after_boot 16 and the measured precision (17.46 bits, docs/bootstrap.md
   §11.4) stand. **`n16_boot` may be used in the paper.**
 - **`n16_boot_sparse` (h = 192) is below 128 bits** (122.2 under BDGL16, 121.7 under
@@ -893,5 +964,137 @@ dual                 :: rop: ≈2^94.9, mem: ≈2^75.8, m: ≈2^16.0, β: 325, d
 dual_hybrid          :: rop: ≈2^94.9, red: ≈2^94.9, guess: ≈2^19.8, β: 325, p: 6, ζ: 0, t: 0, β': 325, N: 1474.820, m: ≈2^16.0
 dual_mitm_hybrid :: rop: ≈2^90.2
 min rop (bits): {'usvp': 94.9, 'bdd': 94.9, 'bdd_hybrid': 94.0, 'bdd_mitm_hybrid': 91.8, 'dual': 94.9, 'dual_hybrid': 94.9, 'dual_mitm_hybrid': 90.2} -> 90.2
+```
+
+### Task 39 fix round 1, raw output
+
+Same format as above: header, one line per attack (or the scan's refine, MIN and final cost lines), and the minimum. Wall-clock time per run in brackets.
+
+#### (a) n16_boot, EJK20 dual hybrids, MATZOV [184 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+dual_mitm_hybrid :: rop: ≈2^inf
+min rop (bits): {'dual_hybrid_ejk20': 130.4, 'dual_mitm_hybrid': inf} -> 130.4
+```
+
+#### (a) n16_boot, EJK20 dual hybrids, BDGL16 [164 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=bdgl16
+dual_mitm_hybrid :: rop: ≈2^inf
+min rop (bits): {'dual_hybrid_ejk20': 131.6, 'dual_mitm_hybrid': inf} -> 131.6
+```
+
+#### (a) n16_boot, primal hybrids at fixed ζ 0, 20, MATZOV [90 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_hybrid@0 :: rop: ≈2^129.3
+bdd_mitm_hybrid@0 :: rop: ≈2^129.6
+bdd_hybrid@20 :: rop: ≈2^129.6
+bdd_mitm_hybrid@20 :: rop: ≈2^144.5
+min rop (bits): {'bdd_hybrid@0': 129.3, 'bdd_mitm_hybrid@0': 129.6, 'bdd_hybrid@20': 129.6, 'bdd_mitm_hybrid@20': 144.5} -> 129.3
+```
+
+#### (a) n16_boot, primal hybrids at fixed ζ 0, 20, BDGL16 [121 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=bdgl16
+bdd_hybrid@0 :: rop: ≈2^131.5
+bdd_mitm_hybrid@0 :: rop: ≈2^131.9
+bdd_hybrid@20 :: rop: ≈2^131.8
+bdd_mitm_hybrid@20 :: rop: ≈2^146.8
+min rop (bits): {'bdd_hybrid@0': 131.5, 'bdd_mitm_hybrid@0': 131.9, 'bdd_hybrid@20': 131.8, 'bdd_mitm_hybrid@20': 146.8} -> 131.5
+```
+
+#### (a) n16_boot, primal hybrids at fixed ζ 5, 10, 40, MATZOV [191 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_hybrid@5 :: rop: ≈2^129.6
+bdd_mitm_hybrid@5 :: rop: ≈2^146.4
+bdd_hybrid@10 :: rop: ≈2^129.6
+bdd_mitm_hybrid@10 :: rop: ≈2^145.8
+bdd_hybrid@40 :: rop: ≈2^130.6
+bdd_mitm_hybrid@40 :: rop: ≈2^142.4
+min rop (bits): {'bdd_hybrid@5': 129.6, 'bdd_mitm_hybrid@5': 146.4, 'bdd_hybrid@10': 129.6, 'bdd_mitm_hybrid@10': 145.8, 'bdd_hybrid@40': 130.6, 'bdd_mitm_hybrid@40': 142.4} -> 129.6
+```
+
+#### (a) n16_boot, primal MITM hybrid at fixed ζ 60..1000, MATZOV [300 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_mitm_hybrid@60 :: rop: ≈2^140.6
+bdd_mitm_hybrid@80 :: rop: ≈2^139.1
+bdd_mitm_hybrid@120 :: rop: ≈2^137.1
+bdd_mitm_hybrid@160 :: rop: ≈2^154.1
+bdd_mitm_hybrid@240 :: rop: ≈2^209.1
+bdd_mitm_hybrid@320 :: rop: ≈2^264.9
+bdd_mitm_hybrid@480 :: rop: ≈2^377.8
+bdd_mitm_hybrid@640 :: rop: ≈2^491.1
+bdd_mitm_hybrid@1000:: rop: ≈2^746.5
+min rop (bits): {'bdd_mitm_hybrid@60': 140.6, 'bdd_mitm_hybrid@80': 139.1, 'bdd_mitm_hybrid@120': 137.1, 'bdd_mitm_hybrid@160': 154.1, 'bdd_mitm_hybrid@240': 209.1, 'bdd_mitm_hybrid@320': 264.9, 'bdd_mitm_hybrid@480': 377.8, 'bdd_mitm_hybrid@640': 491.1, 'bdd_mitm_hybrid@1000': 746.5} -> 137.1
+```
+
+#### (a) n16_boot, primal MITM hybrid at fixed ζ 100..150, MATZOV [116 s]
+
+```
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_mitm_hybrid@100 :: rop: ≈2^137.9
+bdd_mitm_hybrid@130 :: rop: ≈2^138.5
+bdd_mitm_hybrid@140 :: rop: ≈2^142.3
+bdd_mitm_hybrid@150 :: rop: ≈2^147.8
+min rop (bits): {'bdd_mitm_hybrid@100': 137.9, 'bdd_mitm_hybrid@130': 138.5, 'bdd_mitm_hybrid@140': 142.3, 'bdd_mitm_hybrid@150': 147.8} -> 137.9
+```
+
+#### (b) SSE key, dual_hybrid_ejk20 (exhaustive), default optimiser, BDGL16 [27 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=n cost=bdgl16
+min rop (bits): {'dual_hybrid_ejk20': 159.2} -> 159.2
+```
+
+#### (b) SSE key, dual_hybrid_ejk20 (exhaustive), default optimiser, MATZOV [36 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=n cost=matzov
+min rop (bits): {'dual_hybrid_ejk20': 156.1} -> 156.1
+```
+
+#### (b) SSE key, dual_mitm_scan.py --solver exhaustive, BDGL16 [315 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=bdgl16 solver=exhaustive zeta grid 40000..64000 step 500
+--- refine around 59000 in [58500, 59500] step 25
+MIN zeta 59275: log2 rop 155.02 (310 s)
+rop: ≈2^155.0, mem: ≈2^70.3, m: ≈2^12.6, β: 132, d: 12525, ↻: ≈2^82.6, ζ: ≈2^15.9, h1: 4
+```
+
+#### (b) SSE key, dual_mitm_scan.py --solver exhaustive, MATZOV [454 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=matzov solver=exhaustive zeta grid 40000..64000 step 500
+--- refine around 59500 in [59000, 60000] step 25
+MIN zeta 59450: log2 rop 156.07 (448 s)
+rop: ≈2^156.1, mem: ≈2^70.4, m: ≈2^12.6, β: 125, d: 12168, ↻: ≈2^83.7, ζ: ≈2^15.9, h1: 4
+```
+
+#### (b) SSE key, dual_mitm_scan.py --mitm-opt numerical, BDGL16 [1277 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=bdgl16 solver=mitm/numerical zeta grid 56000..61500 step 250
+--- refine around 58500 in [58250, 58750] step 50
+MIN zeta 58450: log2 rop 133.76 (1267 s)
+rop: ≈2^133.8, m: ≈2^12.8, k: ≈2^14.9, mem: ≈2^86.4, ↻: ≈2^54.0, β: 173, d: 14389, ζ: ≈2^15.8, h1: 10
+```
+
+#### (b) SSE key, dual_mitm_scan.py --mitm-opt numerical, MATZOV [1988 s]
+
+```
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=matzov solver=mitm/numerical zeta grid 56000..61500 step 250
+--- refine around 58500 in [58250, 58750] step 50
+MIN zeta 58550: log2 rop 134.16 (1972 s)
+rop: ≈2^134.2, m: ≈2^12.8, k: ≈2^14.9, mem: ≈2^86.4, ↻: ≈2^54.5, β: 169, d: 14188, ζ: ≈2^15.8, h1: 10
 ```
 
