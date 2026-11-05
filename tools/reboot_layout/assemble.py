@@ -29,7 +29,16 @@ PROVENANCE = {
         "assembled from those two raw outputs plus the logs by tools/reboot_layout/assemble.py "
         "(the first version used an uncommitted throwaway script with the same logic) and "
         "re-serialized with Python json (indent 1), so number formatting differs from the "
-        "binary's. Every value under modes.*.run is the binary output unchanged."
+        "binary's. Every value under modes.*.run is the binary output unchanged. "
+        "The raw outputs of the two full bin runs (Lazy 1024, PerSample 256) were written to the "
+        "agent's session scratch directory, not to results/logs/, and were not kept with the "
+        "results at first; until the M2 fix wave the assembly could only be checked against the "
+        "committed JSON (M2 final review m6). In the M2 fix wave (Task 34) both files were "
+        "recovered from that scratch directory (full_lazy.json 09:27 JST, sub_persample.json "
+        "10:09 JST, the paths printed in the run logs), compared equal to modes.*.run, and copied "
+        "to results/logs/reboot_lazy_1024.json and results/logs/reboot_persample_256.json "
+        "(gitignored); re-running this script on them plus the logs and probes reproduces this "
+        "file byte for byte except the final newline."
     ),
     "hand_added_fields": {
         "modes.*.run": "the binary's raw JSON, unchanged",

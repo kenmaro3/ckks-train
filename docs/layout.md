@@ -363,7 +363,9 @@ The reduce-only variant drops the mask level and needs `4L`.
 
 **eMLP-1, 784 → 32 → 10, z² + z, n16_train (`max_level` 31).** `d = 1024` and `B <= 32` lanes. The
 structure is the same as above with `L = 2`: depth 9 when constants are folded (8 reduce-only),
-10 or 11 unfused. All are far below 31, so there is **no mid-iteration refresh**. That leaves room for about 5 more layers at 4 levels
+10 or 11 unfused. (With the linear output layer of `reboot_emlp1.json`, as implemented in Task 32
+with `activation::Identity`, the measured trace uses 7 levels: the output activation and its `dz`
+cost none; `docs/m2-report.md` §4.) All are far below 31, so there is **no mid-iteration refresh**. That leaves room for about 5 more layers at 4 levels
 each.
 
 ## 5. Differences from the M0 spike (`spikes/costmodel/slotsim.py`) and the cost-model change Task 32 needs

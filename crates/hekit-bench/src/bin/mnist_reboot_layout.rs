@@ -24,6 +24,11 @@
 //! 10's delayed gradient is not modelled) and encrypts the new weights on the top level. The
 //! update has no key switch. Weights and inputs are encrypted at `max_level`.
 //!
+//! **Labels are plaintext here** (a threat-model deviation of this baseline): the server encodes
+//! `-t` from the training labels and adds it with `add_plain`, whereas `mnist` and the
+//! research plan (§4.3.1) encrypt the labels too. It changes no key-switch count and the time
+//! difference is negligible (one encode per sample).
+//!
 //! Usage: `mnist_reboot_layout --mode lazy|persample [--subset 1024] [--batch 32]
 //! [--r 1024] [--c 32] [--params n16_train|small] [--seed 32] [--lr 0.001] [--momentum 0.9]
 //! [--test-subset 10000] [--data data/mnist] [--out results/mnist_reboot_<mode>.json]`.
