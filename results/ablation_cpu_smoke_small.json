@@ -52,19 +52,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": true,
-      "iteration_s_median": 0.8086097860000001,
+      "iteration_s_median": 0.8899412500000001,
       "lazy_relin": true,
       "log2_max_abs_weight_diff_vs_default": null,
       "max_abs_weight_diff_vs_default": 0.0,
-      "refresh_s_median": 0.24823441000000002,
+      "refresh_s_median": 0.26230271,
       "step_s": [
-        0.5645665440000001,
-        0.5603753760000001,
-        0.55839209
+        0.5793377979999998,
+        0.629341958,
+        0.6276385400000001
       ],
-      "step_s_median": 0.5603753760000001,
-      "step_speedup_over_all_off": 1.8081622273138567,
-      "step_time_over_default": 1.0
+      "step_s_median": 0.6276385400000001,
+      "step_speedup_over_all_off": 1.675301303199131,
+      "step_time_over_default": 1.0,
+      "weights_bit_identical_to_hoist_on_counterpart": null
     },
     {
       "bsgs": true,
@@ -86,19 +87,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": true,
-      "iteration_s_median": 1.008039169,
+      "iteration_s_median": 1.044953125,
       "lazy_relin": false,
       "log2_max_abs_weight_diff_vs_default": -26.927874736227544,
       "max_abs_weight_diff_vs_default": 7.832528519866044e-9,
-      "refresh_s_median": 0.24560475200000004,
+      "refresh_s_median": 0.259538377,
       "step_s": [
-        0.7624344169999999,
-        0.771868415,
-        0.755991581
+        0.7707167129999999,
+        0.7854147479999999,
+        0.7989522889999999
       ],
-      "step_s_median": 0.7624344169999999,
-      "step_speedup_over_all_off": 1.3289662237270174,
-      "step_time_over_default": 1.3605780154765397
+      "step_s_median": 0.7854147479999999,
+      "step_speedup_over_all_off": 1.3387623121128356,
+      "step_time_over_default": 1.2513806879991782,
+      "weights_bit_identical_to_hoist_on_counterpart": null
     },
     {
       "bsgs": false,
@@ -120,19 +122,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": true,
-      "iteration_s_median": 1.106136834,
+      "iteration_s_median": 1.150070833,
       "lazy_relin": true,
       "log2_max_abs_weight_diff_vs_default": -27.110326121570928,
       "max_abs_weight_diff_vs_default": 6.902058646840459e-9,
-      "refresh_s_median": 0.24739821399999995,
+      "refresh_s_median": 0.24991903600000004,
       "step_s": [
-        0.8587386200000001,
-        0.8571620750000001,
-        0.8616927030000001
+        0.911833749,
+        0.900151797,
+        0.8701553310000002
       ],
-      "step_s_median": 0.8587386200000001,
-      "step_speedup_over_all_off": 1.1799278201788572,
-      "step_time_over_default": 1.5324346086184915
+      "step_s_median": 0.900151797,
+      "step_speedup_over_all_off": 1.1681181635190359,
+      "step_time_over_default": 1.4341882144458495,
+      "weights_bit_identical_to_hoist_on_counterpart": null
     },
     {
       "bsgs": false,
@@ -154,19 +157,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": true,
-      "iteration_s_median": 1.258707955,
+      "iteration_s_median": 1.170627375,
       "lazy_relin": false,
       "log2_max_abs_weight_diff_vs_default": -27.011738098370234,
       "max_abs_weight_diff_vs_default": 7.390206901297658e-9,
-      "refresh_s_median": 0.264563084,
+      "refresh_s_median": 0.25381305,
       "step_s": [
-        0.908312209,
-        1.017324124,
-        0.9941448709999999
+        0.916814325,
+        0.992687076,
+        0.9051492130000002
       ],
-      "step_s_median": 0.9941448709999999,
-      "step_speedup_over_all_off": 1.0192172363981347,
-      "step_time_over_default": 1.7740695140751506
+      "step_s_median": 0.916814325,
+      "step_speedup_over_all_off": 1.1468883451401133,
+      "step_time_over_default": 1.4607361826442333,
+      "weights_bit_identical_to_hoist_on_counterpart": null
     },
     {
       "bsgs": true,
@@ -188,19 +192,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": false,
-      "iteration_s_median": 0.852871334,
+      "iteration_s_median": 0.898569293,
       "lazy_relin": true,
       "log2_max_abs_weight_diff_vs_default": null,
       "max_abs_weight_diff_vs_default": 0.0,
-      "refresh_s_median": 0.24649612799999998,
+      "refresh_s_median": 0.27326683199999996,
       "step_s": [
-        0.6197638299999999,
-        0.597429628,
-        0.606375206
+        0.612452041,
+        0.6408829600000001,
+        0.625302461
       ],
-      "step_s_median": 0.606375206,
-      "step_speedup_over_all_off": 1.670994423871612,
-      "step_time_over_default": 1.082087529127975
+      "step_s_median": 0.625302461,
+      "step_speedup_over_all_off": 1.6815600922447034,
+      "step_time_over_default": 0.9962779866895999,
+      "weights_bit_identical_to_hoist_on_counterpart": true
     },
     {
       "bsgs": true,
@@ -222,19 +227,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": false,
-      "iteration_s_median": 1.038549381,
+      "iteration_s_median": 1.1366343749999999,
       "lazy_relin": false,
       "log2_max_abs_weight_diff_vs_default": -26.927874736227544,
       "max_abs_weight_diff_vs_default": 7.832528519866044e-9,
-      "refresh_s_median": 0.24549892200000004,
+      "refresh_s_median": 0.2660076229999999,
       "step_s": [
-        0.795273746,
-        0.7930504589999999,
-        0.792257286
+        0.870626752,
+        0.8568865800000001,
+        0.8924537940000001
       ],
-      "step_s_median": 0.7930504589999999,
-      "step_speedup_over_all_off": 1.2776609312825582,
-      "step_time_over_default": 1.4152128965067154
+      "step_s_median": 0.870626752,
+      "step_speedup_over_all_off": 1.2077318570610613,
+      "step_time_over_default": 1.387146735762912,
+      "weights_bit_identical_to_hoist_on_counterpart": true
     },
     {
       "bsgs": false,
@@ -256,19 +262,20 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": false,
-      "iteration_s_median": 1.152792585,
+      "iteration_s_median": 1.2893172079999997,
       "lazy_relin": true,
       "log2_max_abs_weight_diff_vs_default": -27.110326121570928,
       "max_abs_weight_diff_vs_default": 6.902058646840459e-9,
-      "refresh_s_median": 0.2597003319999999,
+      "refresh_s_median": 0.27913341899999994,
       "step_s": [
-        0.8930922530000001,
-        0.892844323,
-        1.154406543
+        1.0101837889999998,
+        1.1287683380000002,
+        0.9796388759999998
       ],
-      "step_s_median": 0.8930922530000001,
-      "step_speedup_over_all_off": 1.1345407874677869,
-      "step_time_over_default": 1.5937392884301183
+      "step_s_median": 1.0101837889999998,
+      "step_speedup_over_all_off": 1.0408835257996802,
+      "step_time_over_default": 1.6094992971591575,
+      "weights_bit_identical_to_hoist_on_counterpart": true
     },
     {
       "bsgs": false,
@@ -290,26 +297,59 @@
       },
       "counts_equal_hoist_on_counterpart": true,
       "hoist": false,
-      "iteration_s_median": 1.2754205440000002,
+      "iteration_s_median": 1.304860792,
       "lazy_relin": false,
       "log2_max_abs_weight_diff_vs_default": -27.011738098370234,
       "max_abs_weight_diff_vs_default": 7.390206901297658e-9,
-      "refresh_s_median": 0.26217095600000007,
+      "refresh_s_median": 0.25337712799999995,
       "step_s": [
-        1.013249588,
-        1.0668297939999998,
-        0.9482981709999999
+        1.055035834,
+        0.978551415,
+        1.051483664
       ],
-      "step_s_median": 1.013249588,
+      "step_s_median": 1.051483664,
       "step_speedup_over_all_off": 1.0,
-      "step_time_over_default": 1.8081622273138567
+      "step_time_over_default": 1.675301303199131,
+      "weights_bit_identical_to_hoist_on_counterpart": true
     }
   ],
   "machine": {
     "threads": "single (no parallel feature)",
-    "wall_total_s": 36.130060833
+    "wall_total_s": 39.209850292
   },
-  "protocol": "per configuration: same keys, same initial network and batches; warm-up iterations untimed; step = server side incl. the wait for the device queue; refresh = host client refresh (unchanged by the flags); medians over the timed iterations; closed form = default count + per-matvec deltas of EvalConfig::matvec_rotations / matvec_enc_relins",
+  "protocol": "per configuration: same keys, same initial network and batches; warm-up iterations untimed; step = server side incl. the wait for the device queue; refresh = host client refresh (unchanged by the flags); medians over the timed iterations; closed form = default count + per-matvec deltas of EvalConfig::matvec_rotations / matvec_enc_relins (relative: the default row matches by construction; its absolute count is checked against the mnist bin's structural predict in tests/mnist_flags.rs); all_checks_pass = counters constant over iterations, closed form, hoist-off counts equal and weights bit-identical to the hoist-on counterpart; log2_max_abs_weight_diff_vs_default is null when the difference is 0",
+  "provenance": {
+    "build": {
+      "debug_assertions": false,
+      "features": {
+        "cuda": false,
+        "parallel": false
+      },
+      "package_version": "0.0.0",
+      "target_arch": "aarch64",
+      "target_os": "macos"
+    },
+    "command_line": "/private/tmp/claude-501/-Users-marconi-Documents-research/e61f3af7-c47f-40e6-b1c7-a2dbc78e1e6c/scratchpad/fix-target/release/ablation --backend cpu --params small --batch 2 --iters 3 --warmup 1 --out results/ablation_cpu_smoke_small.json",
+    "finished_unix": 1793922786.857717,
+    "git_commit": "0e075618ab6e28b0cf260f98feb7f80ee1ccf1f3",
+    "git_modified_tracked_files": "none",
+    "gpu": null,
+    "load_end": "{ 22.09 37.37 27.70 }",
+    "load_start": "{ 33.93 41.15 28.58 }",
+    "machine": {
+      "cpu": "Apple M3 Pro",
+      "host": "marconi",
+      "logical_cpus": 12,
+      "memory_bytes": "38654705664",
+      "os": "Darwin 25.3.0 arm64"
+    },
+    "parallel_feature": false,
+    "peak_rss_bytes": 681574400,
+    "rustc_on_path": "rustc 1.85.1 (4eb161250 2025-03-15)",
+    "started_unix": 1793922747.647691,
+    "threads": "1 (no parallel feature)",
+    "written_by": "the ablation binary (raw output, not assembled)"
+  },
   "setup": {
     "data": "MNIST training images (first in file order)",
     "dims": [
@@ -318,7 +358,7 @@
       10
     ],
     "galois_keys": 23,
-    "keygen_s": 0.340832041,
+    "keygen_s": 0.339015,
     "lanes_b": 2,
     "layout_d": 1024,
     "level_capped": false,
