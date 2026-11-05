@@ -105,6 +105,7 @@ def validate_binary(data):
     number(p['machine']['logical_cpus'], 'provenance.machine.logical_cpus', minimum=1, integer=True)
     text_value(p['threads'], 'provenance.threads')
     setup, training, measured = data['setup'], data['training'], data['measured']
+    number(setup['batch'], 'setup.batch', minimum=1, integer=True)
     require(setup['boot_ks'] == 111, 'setup.boot_ks: expected measured 111')
     require(setup['placement'] == 'when_needed', 'setup.placement: expected when_needed')
     samples = number(training['samples'], 'training.samples', minimum=1, integer=True)

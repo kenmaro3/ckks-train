@@ -252,6 +252,21 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(parsed.data['measured']['total']['bootstraps'], 36)
         self.assertEqual(parsed.sha256, hashlib.sha256(raw.read_bytes()).hexdigest())
 
+    def test_invalid_batch_with_cached_model_fails_before_division(self):
+        # Break caught: dividing by zero or accepting invalid batch types in cached ratios.
+        raw = ROOT / 'results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json'
+        for batch in (0, -1, 64.0, True, None, '64'):
+            with self.subTest(batch=batch):
+                invalid = json.loads(raw.read_text())
+                invalid['setup']['batch'] = batch
+                run = self.run_summary(one=invalid)
+                self.assertNotEqual(run.returncode, 0)
+                self.assertEqual(run.stdout, '')
+                self.assertIn('error:', run.stderr)
+                self.assertIn('full1.json', run.stderr)
+                self.assertIn('setup.batch', run.stderr)
+                self.assertNotIn('Traceback', run.stderr)
+
     def test_truncated_nested_schemas_fail_with_clear_cli_error(self):
         for section in ('provenance', 'setup', 'training', 'prediction', 'measured',
                         'time_s', 'twin', 'evaluation'):
