@@ -335,3 +335,46 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **output path:** `results/quadruped/raw/reboot_emlp23_full/{config_values.json, init_weights_emlp{2,3}_seed{S}/, twin_steps_emlp{2,3}_seed0.tsv}`
 - **order:** next free slot, at nice 19. It must not disturb the timed FULL runs; if it would take more than a few CPU-minutes, run it after FULL-2.
 - **status:** done (2026-11-06T07:55–07:55 JST, exit 0, 1 thread, nice 19, wall 3.8 s, peak RSS 0.90 GB; ran during R-41-FULL-1's timed updates, negligible). Output: `results/quadruped/raw/reboot_emlp23_full/` (config_values.json with `structure` read from the built models and `structure_summary`; train_indices_emlp{2,3}_seed{0,1,2}.txt; init_weights_emlp{2,3}_seed{0,1,2}/<layer>.npy with sha256; twin_steps_emlp{2,3}_seed0.tsv). Full setting = precision_analysis.py, 196 inputs, 4800 samples, 1000 steps, lr 5e-4 then ReBoot's cosine schedule, decay 0. eMLP-2 = local block 196→64 (head 64→16) + output stack 64→32→16; eMLP-3 = blocks 196→128 (head 128→16), 128→64 (head 64→16) + output stack 64→32→16; no gradient between blocks; test uses the output stack. Recomputed seed-0 twin test accuracy: eMLP-2 0.9156, eMLP-3 0.9175. Per-step indices differ from eMLP-1's for every seed (different number of init draws before the epoch shuffles), so they are given per model.
+
+## R-48-1..4: Task 48 GPU training checks and RQ3 ablation (commit 626160e or later)
+
+These blocks share one clean clone, `~/hekit-r48`, synced to 626160e or later. Run them **after R-41-FULL-2 and R-47-3**, in the order R-48-1 → R-48-2 → R-48-3 → R-48-4, each one alone. Never run them during a FULL run.
+
+Common setup:
+```
+cd ~/hekit-r48
+export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+export MNIST=$HOME/hekit-r41full/data/mnist   # or scripts/fetch_mnist.sh in the clone
+export RAYON_NUM_THREADS=12
+cargo build -p hekit-bench --features cuda --release --bins --tests   # untimed, ~3–5 min
+mkdir -p results/quadruped/raw/R-48-1 results/quadruped/logs
+```
+
+### R-48-1: Step 1 GPU-vs-CPU training tests
+```
+HEKIT_MNIST_DIR=$MNIST HEKIT_TASK48_OUT=results/quadruped/raw/R-48-1 nice -n 10 cargo test -p hekit-bench --features cuda --release --test mnist_cuda --test iris_cuda -- --ignored --nocapture --test-threads=1 2>&1 | tee results/quadruped/task48_gpu_tests.txt
+```
+- **Pass:** 5/5 ok. `n16_train_full_keys` (15560 MiB) is expected to SKIP. `n16_train_level7` (2456 MiB) SKIPs if that much isn't free.
+- **Record:** which variants ran, and the `max |W_gpu - W_cpu|` lines.
+- **GPU:** ≤ 2.4 GiB. **RAM:** ≤ 15 GB. **Duration:** 35–45 min.
+
+### R-48-2: GPU ablation (timed)
+```
+nice -n 10 target/release/ablation --backend cuda --params n16_train --top-level 7 --iters 5 --warmup 1 --data $MNIST --out results/quadruped/ablation_cuda.json 2>&1 | tee results/quadruped/logs/R-48-2.log
+# only if exit code 3 (SKIP): SGD variant, 2072 MiB
+nice -n 10 target/release/ablation --backend cuda --params n16_train --top-level 7 --optimizer sgd --iters 5 --warmup 1 --data $MNIST --out results/quadruped/ablation_cuda_sgd.json 2>&1 | tee results/quadruped/logs/R-48-2-sgd.log
+```
+- **Pass:** exit 0 and `all_checks_pass: true`.
+- **GPU:** 2456 MiB (NAG) or 2072 MiB (SGD). **Duration:** 5–10 min.
+
+### R-48-3: CPU ablation at level 7, matching R-48-2
+```
+nice -n 10 target/release/ablation --backend cpu --params n16_train --top-level 7 --iters 5 --warmup 1 --data $MNIST --out results/quadruped/ablation_cpu_l7.json 2>&1 | tee results/quadruped/logs/R-48-3.log
+```
+- **Threads:** 12. **RAM:** ~5 GB. **Duration:** 15–25 min.
+
+### R-48-4: CPU ablation at full level 31 (the RQ3 CPU table)
+```
+nice -n 10 target/release/ablation --backend cpu --params n16_train --iters 3 --warmup 1 --data $MNIST --out results/quadruped/ablation_cpu.json 2>&1 | tee results/quadruped/logs/R-48-4.log
+```
+- **Threads:** 12. **RAM:** ~25 GB. **Duration:** ~60–90 min (estimate).
