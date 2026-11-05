@@ -152,6 +152,10 @@ use ndarray::{Array2, Axis, s};
 
 const CLASSES: usize = 10;
 
+/// Task 52: ReBoot's eMLP-2/3 block structure (`--blocks`).
+#[path = "mnist/blocks.rs"]
+mod blocks;
+
 // ---------------------------------------------------------------------------------------------
 // Arguments.
 // ---------------------------------------------------------------------------------------------
@@ -229,6 +233,13 @@ struct Args {
     /// Task 48: write the decrypted final weights and biases into the output JSON
     /// (`final_weights`), e.g. to compare a CPU and a GPU run.
     dump_weights: bool,
+    /// Task 52: ReBoot's block structure, the widths of the local blocks (`--blocks 64` for
+    /// eMLP-2, `--blocks 128,64` for eMLP-3); the output stack's hidden width is `--hidden`
+    /// (`configs/reboot_emlp{2,3}.json`; module `blocks`). Empty: the plain MLP.
+    blocks: Vec<usize>,
+    /// Task 52: ReBoot's per-step twin log (`twin_steps_*.tsv`) to compare the plain block
+    /// run with, step by step.
+    compare_steps: Option<PathBuf>,
 }
 
 /// `configs/reboot_emlp1_faithful.json` (ruling R-M3-12), transcribed: ReBoot's printed
@@ -283,6 +294,8 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
         test_subset_given: false,
         be: BackendOpts::default(),
         dump_weights: false,
+        blocks: Vec::new(),
+        compare_steps: None,
     };
     // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
     // them wherever they appear.
@@ -363,6 +376,20 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
             "--out-width" => a.out_width = num(&v)?,
             "--init-weights" => a.init_weights = Some(PathBuf::from(v)),
             "--init-weights-manifest" => a.init_weights_manifest = Some(PathBuf::from(v)),
+            "--blocks" => {
+                a.blocks = v
+                    .split(',')
+                    .map(|w| {
+                        w.trim()
+                            .parse::<usize>()
+                            .map_err(|e| format!("--blocks {v}: {e}"))
+                    })
+                    .collect::<Result<_, _>>()?;
+                if a.blocks.is_empty() || a.blocks.contains(&0) {
+                    return Err(format!("--blocks {v}: positive widths"));
+                }
+            }
+            "--compare-steps" => a.compare_steps = Some(PathBuf::from(v)),
             _ => return Err(format!("unknown flag {flag}")),
         }
     }
@@ -419,6 +446,12 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
     }
     if a.no_bias && a.mode == "interactive" {
         return Err("--no-bias is supported in --mode noninteractive and plain only".into());
+    }
+    if !a.blocks.is_empty() && a.mode == "interactive" {
+        return Err("--blocks is supported in --mode plain and noninteractive".into());
+    }
+    if a.compare_steps.is_some() && (a.blocks.is_empty() || a.mode != "plain") {
+        return Err("--compare-steps is supported with --blocks in --mode plain".into());
     }
     placement_named(&a.placement)?;
     a.be.validate()?;
@@ -887,6 +920,8 @@ fn main() {
         }
     };
     let r = match args.mode.as_str() {
+        "noninteractive" if !args.blocks.is_empty() => blocks::run_ni_blocks(&args),
+        "plain" if !args.blocks.is_empty() => blocks::run_plain_blocks(&args),
         "noninteractive" => run_ni(&args),
         "plain" => run_plain(&args),
         _ => run(&args),

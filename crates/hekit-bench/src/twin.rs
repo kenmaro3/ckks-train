@@ -116,6 +116,52 @@ pub fn twin_step(
     }
 }
 
+/// The activation a block hands to the next stage (Task 52, ReBoot's eMLP-2/3): `z^2 + z` of
+/// the stage's first layer.
+pub fn block_hidden(stage: &[Layer], x: &Array2<f64>) -> Array2<f64> {
+    affine(x, &stage[0]).mapv(|v| v * v + v)
+}
+
+/// The model output of a block network (`stages`: the local blocks, then the output stack):
+/// the input through every block's first layer ([`block_hidden`]), then the whole output stack
+/// ([`forward_plain`]). The local heads are not used at test time.
+pub fn block_forward_plain(stages: &[Vec<Layer>], x: &Array2<f64>) -> Array2<f64> {
+    let (output, blocks) = stages.split_last().expect("an output stack");
+    let mut a = x.clone();
+    for b in blocks {
+        a = block_hidden(b, &a);
+    }
+    forward_plain(output, &a)
+}
+
+/// One step of ReBoot's block training (R-REB-5): every stage's input is computed first from
+/// the weights before the step (the batch, then each block's [`block_hidden`]); then every
+/// stage takes its own [`twin_step`] on its own labels `ys[s]` (local loss for a block, the
+/// main loss for the output stack). No gradient crosses a stage (`twin_step` sends none below
+/// a network's first layer), losses are not summed, and every layer has its own velocity, all
+/// at the same lr. The update order is irrelevant (no stage reads another's new weights).
+#[allow(clippy::too_many_arguments)]
+pub fn block_twin_step(
+    stages: &mut [Vec<Layer>],
+    vels: &mut [Vec<Array2<f64>>],
+    x: &Array2<f64>,
+    ys: &[&Array2<f64>],
+    lr: f64,
+    mu: f64,
+    bias_lr: f64,
+    wd: WeightDecay,
+) {
+    assert_eq!(ys.len(), stages.len(), "one label matrix per stage");
+    let mut inputs = vec![x.clone()];
+    for st in &stages[..stages.len() - 1] {
+        let h = block_hidden(st, inputs.last().expect("input"));
+        inputs.push(h);
+    }
+    for (s, st) in stages.iter_mut().enumerate() {
+        twin_step(st, &mut vels[s], &inputs[s], ys[s], lr, mu, bias_lr, wd);
+    }
+}
+
 /// The accuracy with the argmax over the first `cols` outputs (a padded output layer has extra
 /// rows trained to 0).
 pub fn accuracy_over(out: &Array2<f64>, labels: &[u8], cols: usize) -> f64 {
@@ -228,6 +274,50 @@ mod tests {
                     .fold(0.0f64, |m, (p, q)| m.max((p - q).abs()));
             assert!(e < 1e-15, "{e}");
         }
+    }
+
+    /// The block step equals the explicit form: each stage's local NAG step on the input
+    /// formed from the old weights; block 0 does not see the output stack's labels.
+    #[test]
+    fn block_twin_step_is_stagewise() {
+        let mut r = rng(5, 4);
+        let s0 = init_net(&[4, 6, 3], &mut r, "xavier", true);
+        let s1 = init_net(&[6, 5, 3], &mut r, "xavier", true);
+        let x = Array2::from_shape_fn((7, 4), |_| uni(&mut r));
+        let y = Array2::from_shape_fn((7, 3), |_| uni(&mut r));
+        let y2 = Array2::from_shape_fn((7, 3), |_| uni(&mut r));
+        let run = |yo: &Array2<f64>| {
+            let mut st = vec![s0.clone(), s1.clone()];
+            let mut v: Vec<Vec<Array2<f64>>> = st
+                .iter()
+                .map(|n| n.iter().map(|l| Array2::zeros(l.w.dim())).collect())
+                .collect();
+            block_twin_step(
+                &mut st,
+                &mut v,
+                &x,
+                &[&y, yo],
+                0.1,
+                0.9,
+                0.0,
+                WeightDecay::NONE,
+            );
+            st
+        };
+        let a = run(&y);
+        let b = run(&y2);
+        assert_eq!(a[0][0].w, b[0][0].w);
+        assert_ne!(a[1][0].w, b[1][0].w);
+        // Stage 1 = a plain twin step on the block activation of the old weights.
+        let mut want = s1.clone();
+        let mut v: Vec<Array2<f64>> = want.iter().map(|l| Array2::zeros(l.w.dim())).collect();
+        let h = block_hidden(&s0, &x);
+        twin_step(&mut want, &mut v, &h, &y, 0.1, 0.9, 0.0, WeightDecay::NONE);
+        assert_eq!(a[1][0].w, want[0].w);
+        assert_eq!(a[1][1].w, want[1].w);
+        // The model output goes through block 0's first layer and the whole output stack.
+        let o = block_forward_plain(&a, &x);
+        assert_eq!(o, forward_plain(&a[1], &block_hidden(&a[0], &x)));
     }
 
     #[test]

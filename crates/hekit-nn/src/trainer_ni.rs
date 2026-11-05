@@ -621,7 +621,10 @@ pub fn levels_per_iter<E: HeOps>(mlp: &Mlp<E>, placement: BootPlacement) -> usiz
 
 /// [`levels_per_iter`] of a network with the activations `acts` (one per layer; the level count
 /// does not depend on the dimensions), without an encrypted network (e.g. for a plan).
-pub fn levels_per_iter_of<E: HeOps>(acts: &[&dyn Activation<E>], placement: BootPlacement) -> usize {
+pub fn levels_per_iter_of<E: HeOps>(
+    acts: &[&dyn Activation<E>],
+    placement: BootPlacement,
+) -> usize {
     let meta = metas_of(acts);
     const BIG: i64 = 1 << 30;
     let n = meta.len();
