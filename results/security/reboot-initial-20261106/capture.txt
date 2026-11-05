@@ -1,0 +1,16 @@
+Initial completed estimator outputs; additional fixed-zeta and dual-grid searches remain in progress.
+Copied verbatim; no metric has been edited.
+These are Mac estimator runs, not quadruped training timing.
+END   t39r_full_bdgl16.log 2026-11-06 07:41:55 rc=0
+t39r_full_bdgl16.log sha256 dd0aa78e4162021fc37a3342a532b1d5150339d6a422a850c01030297285157b
+END   t39r_full_matzov.log 2026-11-06 07:52:23 rc=0
+t39r_full_matzov.log sha256 7e2f5d025ac2074046abee4d5bb883916f662c3bdb155b7c207adc472fc68789
+END   t39r_full_adps16.log 2026-11-06 08:00:34 rc=0
+t39r_full_adps16.log sha256 e06edbac24d8eb04dc27055d2d92dc6ae79ee430e36b62cef36ce72dfd03c829
+Input/source tools/estimate/reboot_params.json sha256 9ecd18a791ac0c2147fc63f18afd2bcf91eeaab9cc9199f12a84bff0eed61d9b
+Input/source tools/estimate/estimate.py sha256 5d88b797250589373ec9cdceac1851f21c0b8a793813c7bb8b98d03b456b0a72
+Input/source results/quadruped/raw/reboot_crypto_params/params.json sha256 84ca4f3497272fc9c87af1681b6e16b5440ae47abc994976276e581635141790
+estimator_commit ae45d740ceb138af87a4f92edc592a0ab0d4f43f
+Commands: _ext/sage-env/bin/python estimate.py reboot_params.json --cost-model {bdgl16,matzov,adps16} (one at a time; see original log headers).
+Modelling: q=2^ceil(logPQ)=2^1730; N=65536; m=N; SparseTernary(97,95,N); sigma3.19. Exact sign split was observed on one generated key; it is not a guarantee of every key sign split.
+Limit: input/source belong to the ongoing Task39 work and were uncommitted when captured. Final evidence must tie these hashes to the eventual source commit and additional searches.

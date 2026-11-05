@@ -1,0 +1,98 @@
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=matzov
+usvp                 :: rop: ≈2^129.1, red: ≈2^129.1, δ: 1.004590, β: 325, d: 127747, tag: usvp
+bdd                  :: rop: ≈2^129.0, red: ≈2^129.0, svp: ≈2^119.9, β: 325, η: 352, d: 127213, tag: bdd
+bdd_hybrid           :: rop: ≈2^126.2, red: ≈2^126.1, svp: ≈2^122.7, β: 303, η: 1, ζ: ≈2^11.6, |S|: ≈2^85.7, d: 124642, prob: 0.401, ↻: 9, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^122.2, red: ≈2^122.2, svp: ≈2^117.7, β: 279, η: 2, ζ: ≈2^12.8, |S|: ≈2^156.2, d: 117586, prob: 0.072, ↻: 62, tag: hybrid
+dual                 :: rop: ≈2^129.9, mem: 329, m: ≈2^16.0, β: 328, d: 131072, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^130.1, red: ≈2^130.1, guess: ≈2^107.5, β: 325, p: 2, ζ: 0, t: 90, β': 359, N: ≈2^14.8, m: ≈2^16.0
+usvp                ::          rop: ≈2^129.1
+         red: ≈2^129.1
+           δ: 1.004590
+           β:      325
+           d:   127747
+         tag:     usvp
+bdd                 ::          rop: ≈2^129.0
+         red: ≈2^129.0
+         svp: ≈2^119.9
+           β:      325
+           η:      352
+           d:   127213
+         tag:      bdd
+bdd_hybrid          ::          rop: ≈2^126.2
+         red: ≈2^126.1
+         svp: ≈2^122.7
+           β:      303
+           η:        1
+           ζ: ≈2^11.6
+         |S|: ≈2^85.7
+           d:   124642
+        prob:    0.401
+           ↻:        9
+         tag:   hybrid
+bdd_mitm_hybrid     ::          rop: ≈2^122.2
+         red: ≈2^122.2
+         svp: ≈2^117.7
+           β:      279
+           η:        2
+           ζ: ≈2^12.8
+         |S|: ≈2^156.2
+           d:   117586
+        prob:    0.072
+           ↻:       62
+         tag:   hybrid
+dual                ::          rop: ≈2^129.9
+         mem:      329
+           m: ≈2^16.0
+           β:      328
+           d:   131072
+           ↻:        1
+         tag:     dual
+dual_hybrid         ::          rop: ≈2^130.1
+         red: ≈2^130.1
+       guess: ≈2^107.5
+           β:      325
+           p:        2
+           ζ:        0
+           t:       90
+          β':      359
+           N: ≈2^14.8
+           m: ≈2^16.0
+dual_hybrid_ejk20   ::          rop: ≈2^153.3
+         mem: ≈2^92.2
+           m: ≈2^15.6
+           β:      209
+           d:    98165
+           ↻: ≈2^55.7
+           ζ: ≈2^14.0
+          h1:        6
+         tag: dual_hybrid
+dual_mitm_hybrid    ::          rop: ≈2^121.9
+         mem: ≈2^104.5
+           m: ≈2^15.8
+           k: ≈2^12.0
+           ↻: ≈2^13.3
+           β:      270
+           d:   115132
+           ζ: ≈2^13.0
+          h1:       17
+         tag: dual_mitm_hybrid
+min rop (bits): {'usvp': 129.1, 'bdd': 129.0, 'bdd_hybrid': 126.2, 'bdd_mitm_hybrid': 122.2, 'dual': 129.9, 'dual_hybrid': 130.1, 'dual_hybrid_ejk20': 153.3, 'dual_mitm_hybrid': 121.9} -> 121.9
+SUMMARY {"reboot_main": {"usvp": 129.05241799849958, "bdd": 129.04882280183622, "bdd_hybrid": 126.22527742550974, "bdd_mitm_hybrid": 122.2204560660314, "dual": 129.92069024725868, "dual_hybrid": 130.10960876326195, "dual_hybrid_ejk20": 153.30992056440456, "dual_mitm_hybrid": 121.85302402827524}}
+      628.30 real       595.33 user         7.00 sys
+           374734848  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              292092  page reclaims
+                  90  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5458  voluntary context switches
+             1062823  involuntary context switches
+       9618069197560  instructions retired
+       2154353039813  cycles elapsed
+           347850000  peak memory footprint
