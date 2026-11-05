@@ -68,3 +68,15 @@ into or ported to hekit, so their licenses impose no notice; they are listed for
   the level-optimal Chebyshev evaluation (crates/hekit-ckks/src/bootstrap/poly.rs,
   optimal_split), a cost formula known from the Lattigo implementation of Bossuat, Mouchet,
   Troncoso-Pastoriza and Hubaux (Eurocrypt 2021), reimplemented from the formula.
+
+
+Dependencies under licenses other than MIT / Apache-2.0 / BSD
+-------------------------------------------------------------
+
+hekit links these crates as ordinary dependencies (no code of theirs is copied into hekit).
+They are listed so the license set stays visible.
+
+- libloading 0.8 (https://github.com/nagisa/rust_libloading), ISC License. Pulled in by
+  cudarc for dynamic loading of the CUDA driver/NVRTC in crates/hekit-cuda (feature `cuda`
+  only). ISC is an OSI-approved permissive license equivalent to MIT; accepted by planner
+  ruling on 2026-11-05.

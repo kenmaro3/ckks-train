@@ -11,7 +11,7 @@ allow = [
     "Apache-2.0",
     "BSD-2-Clause",
     "BSD-3-Clause",
-    "ISC",
+    "ISC", # libloading (via cudarc, hekit-cuda); planner ruling 2026-11-05: ISC accepted (OSI, MIT-equivalent)
     "Unicode-3.0",
     "Zlib",
 ]
