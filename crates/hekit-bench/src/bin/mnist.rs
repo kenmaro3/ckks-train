@@ -62,6 +62,15 @@
 //! - `--init-weights DIR` takes the initial weights from `DIR/W{k}.npy` (little-endian f8/f4,
 //!   C or Fortran order; `(in, out)` matrices are transposed; square ones need the orientation in
 //!   `DIR/init_weights.json`) for both the encrypted model and the twin.
+//! - `--dataset-npy DIR` reads the data set from .npy arrays (`train_images_14x14.npy`,
+//!   `train_labels.npy`, `test_images_14x14.npy`, `test_labels.npy`, used as given) checked
+//!   against `DIR/data_manifest.json` (SHA-256): ReBoot's 14 x 14 MNIST of the paper's eMLP-1
+//!   (196 -> 32 -> 10, ruling R-M3-13). The input dimension follows the data (196 pads to 256,
+//!   so `B` up to 128 fits one ciphertext; a batch below its power-of-two lane count runs with
+//!   that many valid lanes, e.g. 48 of 64). `--input-dim N` sets it for `--plan` without data.
+//! - `--lr-schedule FILE` gives one lr per step (ReBoot's scheduler, in `--lr-sum` units; a
+//!   JSON array, the array under the first `lr` key of a JSON object, or one value per line),
+//!   plaintext mode only for now (the encrypted trainers need an optimizer lr update in hekit-nn).
 //! - `--mode plain` runs the plaintext twin alone and records ReBoot's per-step metrics (batch
 //!   loss summed over the batch and all outputs, batch accuracy).
 //!
@@ -77,7 +86,7 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-use hekit_bench::data::{Mnist, Split, load_mnist, one_hot, read_npy_f64};
+use hekit_bench::data::{Mnist, Split, load_mnist, load_npy_dataset, one_hot, read_npy_f64};
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
 use hekit_core::sampler::Rng;
@@ -131,6 +140,17 @@ struct Args {
     /// A directory with initial weights `W1.npy`, `W2.npy`, ... (and optionally `b1.npy`, ...)
     /// that replace the drawn ones for both the encrypted model and the twin.
     init_weights: Option<PathBuf>,
+    /// A data set given as .npy arrays with a SHA-256 manifest (R-M3-13: ReBoot's preprocessed
+    /// 14 x 14 MNIST), instead of the IDX files of `--data`.
+    dataset_npy: Option<PathBuf>,
+    /// Per-step learning rates (ReBoot's scheduler, in `--lr-sum` units: lr on the batch-summed
+    /// gradient, applied as `value * batch` to our mean gradient); plaintext mode only.
+    lr_schedule: Option<PathBuf>,
+    /// The input dimension `--plan` assumes when no data is loaded (default 784).
+    input_dim: usize,
+    /// `--subset` / `--test-subset` were given (an .npy data set is otherwise used whole).
+    subset_given: bool,
+    test_subset_given: bool,
     /// Output rows (>= 10): ReBoot pads the 10 classes to 16 rows with zero targets. The
     /// padded rows are trained toward 0 and their deltas reach the hidden layer, so they change
     /// the training (accuracy is the argmax over the 10 real classes).
@@ -169,6 +189,11 @@ fn parse_args() -> Result<Args, String> {
         faithful: false,
         out_width: CLASSES,
         init_weights: None,
+        dataset_npy: None,
+        lr_schedule: None,
+        input_dim: 28 * 28,
+        subset_given: false,
+        test_subset_given: false,
     };
     // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
     // them wherever they appear.
@@ -202,8 +227,17 @@ fn parse_args() -> Result<Args, String> {
         let real = |v: &str| v.parse::<f64>().map_err(|e| format!("{flag} {v}: {e}"));
         match flag.as_str() {
             "--epochs" => a.epochs = num(&v)?,
-            "--subset" => a.subset = num(&v)?,
-            "--test-subset" => a.test_subset = num(&v)?,
+            "--subset" => {
+                a.subset = num(&v)?;
+                a.subset_given = true;
+            }
+            "--test-subset" => {
+                a.test_subset = num(&v)?;
+                a.test_subset_given = true;
+            }
+            "--dataset-npy" => a.dataset_npy = Some(PathBuf::from(v)),
+            "--lr-schedule" => a.lr_schedule = Some(PathBuf::from(v)),
+            "--input-dim" => a.input_dim = num(&v)?,
             "--batch" => a.batch = num(&v)?,
             "--hidden" => a.hidden = num(&v)?,
             "--params" => a.params = v,
@@ -247,6 +281,13 @@ fn parse_args() -> Result<Args, String> {
             ));
         }
     };
+    if a.lr_schedule.is_some() && a.mode != "plain" {
+        return Err(
+            "--lr-schedule is supported in --mode plain only: a per-step lr in the encrypted \
+             trainers needs an optimizer lr update in hekit-nn (pending, Task 43 owns hekit-nn)"
+                .into(),
+        );
+    }
     if a.no_bias && a.mode == "interactive" {
         return Err("--no-bias is supported in --mode noninteractive and plain only".into());
     }
@@ -809,41 +850,120 @@ fn main() {
     }
 }
 
+/// The training-sample indices of `--indices FILE`: lines starting with `#` are comments; a
+/// line `label<TAB>indices` keeps the part after its tab (gpu-runner's per-step format);
+/// indices are whitespace- or comma-separated, in training order.
+fn read_indices(path: &std::path::Path) -> Result<Vec<usize>, String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    text.lines()
+        .filter(|l| !l.trim_start().starts_with('#'))
+        .map(|l| l.split_once('\t').map_or(l, |(_, rest)| rest))
+        .flat_map(|l| l.split(|c: char| c.is_whitespace() || c == ','))
+        .filter(|t| !t.is_empty())
+        .map(|t| t.parse::<usize>().map_err(|e| format!("index {t}: {e}")))
+        .collect()
+}
+
+/// The rows `idx` of `set`, in that order.
+fn select(set: &Mnist, idx: &[usize]) -> Result<Mnist, String> {
+    if let Some(&bad) = idx.iter().find(|&&i| i >= set.len()) {
+        return Err(format!("index {bad} >= {} training images", set.len()));
+    }
+    Ok(Mnist {
+        images: set.images.select(Axis(0), idx),
+        labels: idx.iter().map(|&i| set.labels[i]).collect(),
+        rows: set.rows,
+        cols: set.cols,
+    })
+}
+
+/// The first `n` rows of `set` (all if `n >= len`).
+fn first(set: Mnist, n: usize) -> Mnist {
+    if n >= set.len() {
+        return set;
+    }
+    let idx: Vec<usize> = (0..n).collect();
+    select(&set, &idx).expect("in range")
+}
+
+/// The training and test sets: the IDX files of `--data` (the first `--subset` / `--test-subset`
+/// images), or the .npy arrays of `--dataset-npy` (checked against their manifest; whole unless
+/// `--subset` / `--test-subset` is given); `--indices` then selects and orders the training
+/// samples.
 fn load(args: &Args) -> Result<(Mnist, Mnist), String> {
     let hint = |e: std::io::Error| format!("{e} (run scripts/fetch_mnist.sh)");
-    let train = match &args.indices {
-        None => load_mnist(&args.data, Split::Train, Some(args.subset)).map_err(hint)?,
-        Some(path) => {
-            let all = load_mnist(&args.data, Split::Train, None).map_err(hint)?;
-            let text =
-                std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-            // Lines starting with `#` are comments; a line `label<TAB>indices` keeps the part
-            // after its tab (gpu-runner's per-step format); indices are whitespace- or
-            // comma-separated, in training order.
-            let idx = text
-                .lines()
-                .filter(|l| !l.trim_start().starts_with('#'))
-                .map(|l| l.split_once('\t').map_or(l, |(_, rest)| rest))
-                .flat_map(|l| l.split(|c: char| c.is_whitespace() || c == ','))
-                .filter(|t| !t.is_empty())
-                .map(|t| t.parse::<usize>().map_err(|e| format!("index {t}: {e}")))
-                .collect::<Result<Vec<_>, _>>()?;
-            if let Some(&bad) = idx.iter().find(|&&i| i >= all.len()) {
-                return Err(format!("index {bad} >= {} training images", all.len()));
-            }
-            Mnist {
-                images: all.images.select(Axis(0), &idx),
-                labels: idx.iter().map(|&i| all.labels[i]).collect(),
-                rows: all.rows,
-                cols: all.cols,
-            }
+    let (train, test) = match &args.dataset_npy {
+        Some(dir) => {
+            let (tr, te) = load_npy_dataset(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+            let tr = if args.subset_given && args.indices.is_none() {
+                first(tr, args.subset)
+            } else {
+                tr
+            };
+            let te = if args.test_subset_given {
+                first(te, args.test_subset)
+            } else {
+                te
+            };
+            (tr, te)
+        }
+        None => {
+            let limit = args.indices.is_none().then_some(args.subset);
+            let tr = load_mnist(&args.data, Split::Train, limit).map_err(hint)?;
+            let te = load_mnist(&args.data, Split::Test, Some(args.test_subset)).map_err(hint)?;
+            (tr, te)
         }
     };
-    let test = load_mnist(&args.data, Split::Test, Some(args.test_subset)).map_err(hint)?;
+    let train = match &args.indices {
+        Some(path) => select(&train, &read_indices(path)?)?,
+        None => train,
+    };
     if train.features() != test.features() {
         return Err("train and test images differ in size".into());
     }
     Ok((train, test))
+}
+
+/// Per-step learning rates from `--lr-schedule FILE`: a JSON object (the array under the first
+/// key whose name contains `lr`), a JSON array, or one value per line / separated by commas;
+/// `#` starts a comment line. Easy to adapt to gpu-runner's final format.
+fn read_lr_schedule(path: &std::path::Path) -> Result<Vec<f64>, String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let body: String = text
+        .lines()
+        .filter(|l| !l.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let t = body.trim();
+    let list = if t.starts_with('{') {
+        let key = t
+            .match_indices('"')
+            .collect::<Vec<_>>()
+            .chunks(2)
+            .filter(|q| q.len() == 2)
+            .map(|q| (q[0].0, q[1].0))
+            .map(|(a, b)| (b, &t[a + 1..b]))
+            .find(|(b, name)| name.contains("lr") && t[b + 1..].trim_start().starts_with(':'))
+            .map(|(b, _)| b)
+            .ok_or("no key containing \"lr\" in the lr schedule")?;
+        let open = t[key..].find('[').ok_or("no array after the lr key")? + key;
+        let close = t[open..].find(']').ok_or("unterminated lr array")? + open;
+        &t[open + 1..close]
+    } else if t.starts_with('[') {
+        let close = t.find(']').ok_or("unterminated lr array")?;
+        &t[1..close]
+    } else {
+        t
+    };
+    let v = list
+        .split(|c: char| c.is_whitespace() || c == ',')
+        .filter(|s| !s.is_empty())
+        .map(|s| s.parse::<f64>().map_err(|e| format!("lr {s}: {e}")))
+        .collect::<Result<Vec<_>, _>>()?;
+    if v.is_empty() || v.iter().any(|x| !x.is_finite() || *x < 0.0) {
+        return Err("the lr schedule must be nonempty, finite and non-negative".into());
+    }
+    Ok(v)
 }
 
 fn run(args: &Args) -> Result<(), String> {
@@ -854,8 +974,11 @@ fn run(args: &Args) -> Result<(), String> {
     let features = match (&loaded, args.plan) {
         (Ok((train, _)), _) => train.features(),
         (Err(e), true) => {
-            eprintln!("mnist: --plan: data not loaded ({e}); planning for 28 x 28 images");
-            28 * 28
+            eprintln!(
+                "mnist: --plan: data not loaded ({e}); planning for {} inputs (--input-dim)",
+                args.input_dim
+            );
+            args.input_dim
         }
         (Err(e), false) => return Err(e.clone()),
     };
@@ -1285,6 +1408,12 @@ fn run_plain(args: &Args) -> Result<(), String> {
     let mut epochs = Vec::new();
     let mut updates = 0;
     let (mut step_loss, mut step_acc) = (Vec::new(), Vec::new());
+    let schedule = args
+        .lr_schedule
+        .as_deref()
+        .map(read_lr_schedule)
+        .transpose()?;
+    let mut lrs = Vec::new();
     for epoch in 0..args.epochs {
         for start in (0..n).step_by(args.batch) {
             let end = (start + args.batch).min(n);
@@ -1297,7 +1426,23 @@ fn run_plain(args: &Args) -> Result<(), String> {
             let labels = &train.labels[start..end];
             step_loss.push(J::N((&o - &y).mapv(|v| v * v).sum()));
             step_acc.push(J::N(accuracy(&o, labels)));
-            twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum, bias_lr);
+            // A scheduled step's lr is in --lr-sum units (ReBoot's lr on the summed gradient).
+            let (lr, blr) = match &schedule {
+                Some(v) => {
+                    let ls = *v.get(updates).ok_or_else(|| {
+                        format!(
+                            "the lr schedule has {} values, step {} needs one",
+                            v.len(),
+                            updates
+                        )
+                    })?;
+                    let lr = ls * args.batch as f64;
+                    (lr, if args.no_bias { 0.0 } else { lr })
+                }
+                None => (args.lr, bias_lr),
+            };
+            lrs.push(J::N(lr));
+            twin_step(&mut twin, &mut vel, &x, &y, lr, args.momentum, blr);
             updates += 1;
         }
         let out = forward_plain(&twin, &test.images);
@@ -1333,6 +1478,21 @@ fn run_plain(args: &Args) -> Result<(), String> {
                 ("biases", J::B(!args.no_bias)),
                 ("output_width", J::I(args.out_width as i64)),
                 (
+                    "dataset",
+                    J::S(args.dataset_npy.as_ref().map_or_else(
+                        || format!("IDX files in {}", args.data.display()),
+                        |p| format!("npy arrays in {} (sha256-checked)", p.display()),
+                    )),
+                ),
+                (
+                    "lr_schedule",
+                    J::S(
+                        args.lr_schedule
+                            .as_ref()
+                            .map_or_else(|| "constant".into(), |p| p.display().to_string()),
+                    ),
+                ),
+                (
                     "init_weights",
                     J::S(
                         args.init_weights
@@ -1357,6 +1517,7 @@ fn run_plain(args: &Args) -> Result<(), String> {
         ("epochs", J::A(epochs)),
         ("step_batch_loss_sum", J::A(step_loss)),
         ("step_batch_acc", J::A(step_acc)),
+        ("step_lr_on_batch_mean_gradient", J::A(lrs)),
         ("test_acc_init", J::N(accuracy(&out_init, &test.labels))),
         ("test_samples", J::I(test.len() as i64)),
     ]);
@@ -1858,8 +2019,11 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let features = match (&loaded, args.plan) {
         (Ok((train, _)), _) => train.features(),
         (Err(e), true) => {
-            eprintln!("mnist: --plan: data not loaded ({e}); planning for 28 x 28 images");
-            28 * 28
+            eprintln!(
+                "mnist: --plan: data not loaded ({e}); planning for {} inputs (--input-dim)",
+                args.input_dim
+            );
+            args.input_dim
         }
         (Err(e), false) => return Err(e.clone()),
     };
@@ -1874,10 +2038,13 @@ fn run_ni(args: &Args) -> Result<(), String> {
     // B lanes per ciphertext; a larger batch is k micro-batch ciphertexts (ruling R-M3-4).
     let lanes = args.batch.next_power_of_two().min(params.slots() / d);
     let micro = args.batch.div_ceil(lanes);
-    if micro * lanes != args.batch {
+    // A batch that fits one ciphertext runs in pow2(B) lanes with B valid (e.g. B = 48 in 64
+    // lanes when d B <= slots, the 196-input model; every update is then partial, which costs
+    // one more level at the linear output). A larger batch must be whole ciphertexts.
+    if micro > 1 && micro * lanes != args.batch {
         return Err(format!(
             "--batch {} is not a whole number of {lanes}-lane ciphertexts (power-of-two lanes, \
-             ruling R-M3-4: B = 48 is not run)",
+             ruling R-M3-4: B = 48 does not fit one ciphertext here)",
             args.batch
         ));
     }

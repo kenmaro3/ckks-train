@@ -49,12 +49,15 @@ fn mnist_binary_noninteractive_mini_boot() {
     fs::create_dir_all(&dir).unwrap();
     write_split(&dir, Split::Train, 32, 7);
     write_split(&dir, Split::Test, 20, 9);
-    for (placement, faithful) in [
-        ("after_update", false),
-        ("when_needed", false),
-        ("after_update", true),
+    // (placement, faithful, batch, updates, micro): batch 16 = 2 x 8 lanes; batch 6 = one
+    // 8-lane ciphertext with 6 valid lanes (Task 41b: B = 48 in 64 lanes, in miniature).
+    for (placement, faithful, batch, updates, micro) in [
+        ("after_update", false, "16", 2.0, 2.0),
+        ("when_needed", false, "16", 2.0, 2.0),
+        ("after_update", true, "16", 2.0, 2.0),
+        ("when_needed", true, "6", 6.0, 1.0),
     ] {
-        let out = dir.join(format!("{placement}_{faithful}.json"));
+        let out = dir.join(format!("{placement}_{faithful}_{batch}.json"));
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_mnist"));
         if faithful {
             // R-M3-12: no biases, Xavier init, lr 5e-4 on the batch-summed gradient (the
@@ -64,7 +67,7 @@ fn mnist_binary_noninteractive_mini_boot() {
         let status = cmd
             .args(["--mode", "noninteractive", "--placement", placement])
             .args(["--params", "mini_boot", "--hidden", "32", "--subset", "32"])
-            .args(["--test-subset", "20", "--batch", "16"])
+            .args(["--test-subset", "20", "--batch", batch])
             .args(if faithful {
                 vec![]
             } else {
@@ -80,8 +83,8 @@ fn mnist_binary_noninteractive_mini_boot() {
         let json = fs::read_to_string(&out).unwrap();
         eprintln!("{json}");
         assert!(json.contains("\"every_update_equals_prediction\": true"));
-        assert_eq!(number(&json, "updates"), 2.0);
-        assert_eq!(number(&json, "micro_batches_per_update"), 2.0);
+        assert_eq!(number(&json, "updates"), updates);
+        assert_eq!(number(&json, "micro_batches_per_update"), micro);
         // The measured per-sample count is the prediction (closed form with the schedule).
         let ratio = number(&json, "measured_over_predicted");
         assert!(

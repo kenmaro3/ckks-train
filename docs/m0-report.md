@@ -189,6 +189,10 @@ H100 を使うなら $500–900 を見込む。spot や Vast は中断と品質�
     - 初期化: ReBoot は Xavier 一様 ±sqrt(1/(fan_in+fan_out))、hekit は PyTorch 既定。
     - 結果として、これを使った Task 32 と Task 41 の実行は、精度が公式 ReBoot の 0.75 に対して 0.33(B = 32)と 0.19(B = 64)。鍵切替回数はこの差の影響を受けない。
     - 忠実な設定は `crates/hekit-bench/configs/reboot_emlp1_faithful.json`(`mnist --faithful`)。既存の実行が使ったので、古いファイルも残す。
+    - **入力次元も違う(ルーリング R-M3-13)。** 論文(Table 2)と ReBoot の本設定のコード経路は 14×14 に縮めた MNIST を使う。論文の eMLP-1 は **196-32-10(出力は 16 にパディング)** で、784-32-10 ではない。
+      - 784 入力のこれまでの実行(Task 32、Task 41 の R-41-1〜4 と忠実版 F1/F2)は補足の行として残す。これらは ReBoot の `training_encrypted.py` の subset 実行(両側とも 784)と対応する。
+      - RQ1 の見出しと精度の ±0.5 pt 確認は 196 入力で行う。参照は論文 Table 4 の eMLP-1 MNIST 94.61±0.27(平文の ReBoot 学習、10 回)。
+      - データは gpu-runner の `.npy`(`mnist --dataset-npy`)で、sha256 を照合する。
   - **`reboot_emlp2/3.json` は eMLP-2/3 に忠実ではない。** 論文 Table 3 では、eMLP-2 = RE-Block(64) → CE-Block(32) で、ブロックごとに局所分類器(CE-FC / RE-FC)と局所損失を持ち、ブロック間に勾配は流れない。JSON は素の BP の形(784-64-32-10 など)しか表せない。スキーマにブロックのフィールドが入るまでは eMLP-2/3 として使わないこと。eMLP-1 は単一ブロックなので影響を受けない(RUN.md に記載)。
   - RUN.md にあった「重みブートストラップは 64 暗号文」は誤りで、正しくは 4 暗号文(W 2 + V 2、`models.py:121-133`)。訂正した(**修正済み**)。
 - **コストモデル**:

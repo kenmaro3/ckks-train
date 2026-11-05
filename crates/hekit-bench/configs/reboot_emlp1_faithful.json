@@ -39,5 +39,6 @@
     "reboot_model_and_epoch_shuffle": 0,
     "reboot_subsample_shuffle": 42,
     "hekit_init": "ChaCha20 from mnist --seed (default 32): the initial weights are not ReBoot's draw"
-  }
+  },
+  "input_note": "This file is the 784-input subset setting of ReBoot's training_encrypted.py (supplementary rows). The paper's eMLP-1 (Table 2) and ReBoot's full setting use 14 x 14 MNIST: 196 -> 32 -> 10 (16 padded), ruling R-M3-13; run it with the same flags plus --dataset-npy <gpu-runner's 14 x 14 arrays> (the input dimension follows the data; d_in 196 pads to 256, so B up to 128 fits one ciphertext)."
 }
