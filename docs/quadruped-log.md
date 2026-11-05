@@ -328,7 +328,7 @@ the 784-input NI runs.
 
 ### 2026-11-06 R-REB-4: ReBoot's CKKS parameters → `results/quadruped/raw/reboot_crypto_params/params.json`
 `scripts/reboot_crypto_params.{py,cpp,sh}` through `run_job.sh`, 1 thread, nice 19, peak RSS 0.56 GB, a few seconds
-(during R-41-FULL-1's build and setup). ReBoot's `CryptoContext` was built as in the subset run with
+(07:30–07:31). Correction: R-41-FULL-1's timed updates had already begun at 07:17:56 (its build reused cached artifacts), so R-REB-4 overlapped about 1 minute of them, around updates 6–7. ReBoot's `CryptoContext` was built as in the subset run with
 `openfhe.GenCryptoContext` intercepted: the CCParams were captured, the context generated, and the constructor stopped
 before key generation and bootstrapping setup, which do not change the modulus chain. A C++ helper linked to the same
 OpenFHE 1.2.1 rebuilt the context from those CCParams and read the chain. The enum settings match the captured ones.
@@ -337,3 +337,11 @@ log2 Q = 1249.585; P has 8 × 60-bit, log2 P = 480; log2 PQ = 1729.585; HYBRID w
 default for numLargeDigits = 0), 9 towers per digit; SPARSE_TERNARY with Hamming weight 192 counted on a generated key;
 σ = 3.19. openfhe-python's `GetModulus()` overflows a double for this Q, so log Q could not be cross-checked from Python;
 the ring dimension agrees.
+
+- 07:40 R-41-FULL-1: projection after 10 updates 70596 s (19.6 h; limit 30 h), so the run continues. Updates alternate 68 s (no bootstrap, 925 KS) and 120 s (4 bootstraps, 1369 KS), matching the prediction. One SLAM process was back at 07:40 (load 6.98). Expected end about 02:55 on 11-07, then FULL-2.
+
+### 2026-11-06 R-REB-5: ReBoot eMLP-2/3 full setting as data → `raw/reboot_emlp23_full/`
+`scripts/reboot_emlp23.py` through `run_job.sh`, 1 thread, nice 19, 3.8 s, 0.9 GB, during R-41-FULL-1's timed updates
+(negligible next to the 12-thread run). Structure read from the models built by ReBoot's constructor with the MLP-2/3
+lines of `experiments.sh`; summary in `config_values.json:structure_summary`. Seed-0 twin test accuracy (recomputed):
+eMLP-2 0.9156, eMLP-3 0.9175. Indices differ from eMLP-1's (different number of RNG draws before the epoch shuffles).

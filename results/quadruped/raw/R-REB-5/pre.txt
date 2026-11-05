@@ -1,0 +1,15 @@
+date: 2026-11-06T07:55:13+09:00
+uptime:  07:55:13 up 53 days, 22:25,  3 users,  load average: 3.37, 3.64, 3.27
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  844G   25G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312 37082566656 40925589504    54677504 55449632768 95397318656
+Swap:     8589930496   652722176  7937208320
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 21097 MiB, 2987 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+1708283, /home/kmihara/persistent-slam-reanchor-switch-v1-20261106/build-mit/persistent_stereo_prefix, 384 MiB
