@@ -9,7 +9,7 @@
 - **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
 - **進捗**: 全 58 タスク中、Task 1〜41、43〜47 が完了(レビュー済み)。Task 42(M3 報告)は草稿、Task 47 は再計測(R-47-3)待ち。M5 は Task 51 に着手済み。
 - **暫定判定**(784 入力 subset、サーバー実測): WhenNeeded B=64 は key switch 3 通りすべてと wall-clock(0.447 倍)で合格。精度 ±0.5 pt の確定は本番走行 R-41-FULL-2 待ち(2026-11-07 深夜〜11-08 に完了見込み)。
-- **GitHub**: `kenmaro3/mit-hekit`(private、2026-11-06 に初回 push。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`)。
+- **GitHub**: `kenmaro3/ckks-train`(private、2026-11-06 に初回 push。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`)。
 
 ## 1. 必ず読むファイル(順番どおり)
 
@@ -149,7 +149,7 @@ hekit/
 | 52 | eMLP-2/3 のブロック構造(`BlockMlp`) | M0 で emlp2/3 の JSON は忠実でないと記録。ReBoot のコードから値を取り直す(runner に依頼) |
 | 53(stretch) | 4 次活性化 | 削減候補 |
 | 54 | `scripts/run_all.sh` + `tools/tables.py` | Mac は `--quick`、本走行はサーバー。論文の表を JSON から生成 |
-| 55 | v1.0 公開準備 | 名前は **mit-hekit**(GitHub `kenmaro3/mit-hekit`、private)。README の Status が M1 のままなので更新。`scripts/rename.sh` は dry-run のみ。THIRD_PARTY_NOTICES に SEAL(MIT)、Lattigo(アルゴリズムの謝辞、コードは未参照)、libloading(ISC)、Iris/WDBC/MNIST のデータ出典 |
+| 55 | v1.0 公開準備 | 名前は **ckks-train**(GitHub `kenmaro3/ckks-train`、private。本人決定 2026-11-06)。README の Status が M1 のままなので更新。`scripts/rename.sh` は dry-run のみ。THIRD_PARTY_NOTICES に SEAL(MIT)、Lattigo(アルゴリズムの謝辞、コードは未参照)、libloading(ISC)、Iris/WDBC/MNIST のデータ出典 |
 | 56 | 論文ドラフト(acmart、WAHC 2027) | 著者欄は仮置き(本人未決)。R-M3-15 の精度の書き方、4 通りの比、「速さはブートストラップ由来」の正直な分解、ReBoot の論文値の再現性(R-REB-3)を入れる |
 | 57 | M5 報告 + arXiv チェックリスト | |
 | 58(最後) | PyO3 バインディング | Python toolchain が無ければ省略して明記 |
@@ -163,7 +163,7 @@ hekit/
 13. **wall-clock の比べ方**(12 スレッド、ピン留めなし、共有負荷あり)。ReBoot 公式のフル走行(約 47.6 h)を回すか。
 14. **「同一 N」の解釈**(実測はすべて 2^16。推奨は 2^16 固定)。
 15. **重み誤差の蓄積の許容基準**(非対話版は 1 epoch で 2^-13〜2^-15)。FULL で 10 epoch の値を見る。
-17. **ライブラリの名前**: 本人は「MIT HKit みたいな感じ」→ リポジトリ名 `mit-hekit` で作成。crate 名を変えるかは Task 55 で。
+17. **ライブラリの名前**(決定済み): **決定(2026-11-06): ckks-train**。GitHub は rename 済み。crate 名(`hekit-*` → `ckks-train-*` など)の付け替えは Task 55 の `scripts/rename.sh` で。
 18. **投稿先と著者情報**(WAHC 2027 固定、著者欄は仮置き)。
 
 計画担当の裁定で確定済み(本人が覆してよい): セキュリティの主張は BDGL16 と MATZOV で 128 bit 以上(Core-SVP は併記のみ)、見出しは (a) + 196 入力 + WhenNeeded、ReBoot 側の基準は Lazy 35.06 実測(784)/ モデル 37(196)、精度は公開コードのフル設定で判定、ISC ライセンス許可、Plan B は発動しない(本人決定 2026-11-04)。
