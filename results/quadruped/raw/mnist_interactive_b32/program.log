@@ -1,0 +1,39 @@
+    Finished `release` profile [optimized] target(s) in 0.02s
+     Running `target/release/mnist --mode interactive --epochs 1 --subset 1024 --test-subset 10000 --batch 32 --hidden 32 --seed 32 --lr 0.001 --momentum 0.9 --params n16_train --transpose reuse --data data/mnist --out /home/kmihara/hekit-runs/out/mnist_interactive_b32/mnist.json`
+mnist: n16_train N = 2^16 (32768 slots, 31 levels), dims [784, 32, 10], layout d = 1024, B = 32, transpose reuse: 31 Galois keys + relin (9.7 GB at 302 MB each)
+mnist: predicted per update 571 rot + 62 relin = 633 KS (19.781/sample); cost model (interactive) 349 KS (10.906/sample); corrections Terms { replication: 240, babies: 14, bias: 20, split: -2, transpose: 12 }
+mnist: keys in 20.8 s
+mnist: epoch 0 batch 0 (32 samples): 332.0 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 367 s, load 1.04 2.14 4.58 1/1380 1537788
+mnist: epoch 0 batch 1 (32 samples): 337.9 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 705 s, load 1.08 1.41 3.49 1/1382 1538679
+mnist: epoch 0 batch 2 (32 samples): 335.2 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 1041 s, load 1.02 1.16 2.74 1/1381 1539535
+mnist: epoch 0 batch 3 (32 samples): 335.1 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 1377 s, load 1.02 1.08 2.22 1/1380 1540413
+mnist: epoch 0 batch 4 (32 samples): 334.8 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 1712 s, load 1.07 1.04 1.84 1/1383 1541267
+mnist: epoch 0 batch 5 (32 samples): 335.4 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 2048 s, load 1.02 1.04 1.60 1/1382 1542120
+mnist: epoch 0 batch 6 (32 samples): 335.3 s (refresh 31.0 s), 571 rot + 62 relin; elapsed 2384 s, load 1.08 1.06 1.43 1/1382 1542983
+mnist: epoch 0 batch 7 (32 samples): 334.7 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 2719 s, load 1.06 1.08 1.32 1/1381 1543848
+mnist: epoch 0 batch 8 (32 samples): 335.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 3054 s, load 1.03 1.03 1.21 1/1382 1544709
+mnist: epoch 0 batch 9 (32 samples): 335.4 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 3390 s, load 1.03 1.03 1.15 1/1380 1545577
+mnist: epoch 0 batch 10 (32 samples): 335.1 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 3726 s, load 1.00 1.01 1.09 1/1384 1546447
+mnist: epoch 0 batch 11 (32 samples): 334.4 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 4061 s, load 1.02 1.03 1.08 1/1382 1547302
+mnist: epoch 0 batch 12 (32 samples): 334.8 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 4396 s, load 1.16 1.08 1.09 1/1381 1548155
+mnist: epoch 0 batch 13 (32 samples): 335.2 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 4731 s, load 1.00 1.02 1.06 1/1382 1549042
+mnist: epoch 0 batch 14 (32 samples): 335.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 5067 s, load 1.01 1.02 1.04 1/1380 1549889
+mnist: epoch 0 batch 15 (32 samples): 334.9 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 5402 s, load 1.05 1.04 1.03 1/1383 1550867
+mnist: epoch 0 batch 16 (32 samples): 345.2 s (refresh 33.3 s), 571 rot + 62 relin; elapsed 5748 s, load 5.02 2.70 1.65 5/1454 1551903
+mnist: epoch 0 batch 17 (32 samples): 359.7 s (refresh 33.0 s), 571 rot + 62 relin; elapsed 6108 s, load 5.42 4.63 2.89 5/1455 1552833
+mnist: epoch 0 batch 18 (32 samples): 358.7 s (refresh 33.0 s), 571 rot + 62 relin; elapsed 6467 s, load 5.08 5.08 3.70 5/1455 1553762
+mnist: epoch 0 batch 19 (32 samples): 359.3 s (refresh 33.1 s), 571 rot + 62 relin; elapsed 6827 s, load 5.49 5.26 4.23 5/1488 1554858
+mnist: epoch 0 batch 20 (32 samples): 359.8 s (refresh 33.1 s), 571 rot + 62 relin; elapsed 7187 s, load 5.10 5.36 4.66 5/1461 1556111
+mnist: epoch 0 batch 21 (32 samples): 359.8 s (refresh 33.1 s), 571 rot + 62 relin; elapsed 7548 s, load 5.25 5.48 4.96 5/1455 1557094
+mnist: epoch 0 batch 22 (32 samples): 359.2 s (refresh 33.6 s), 571 rot + 62 relin; elapsed 7908 s, load 3.96 4.58 4.72 2/1439 1558769
+mnist: epoch 0 batch 23 (32 samples): 336.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 8244 s, load 1.05 2.19 3.60 1/1387 1560150
+mnist: epoch 0 batch 24 (32 samples): 335.1 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 8580 s, load 1.03 1.40 2.81 1/1381 1561219
+mnist: epoch 0 batch 25 (32 samples): 335.2 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 8915 s, load 1.03 1.17 2.27 1/1382 1562069
+mnist: epoch 0 batch 26 (32 samples): 334.6 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 9250 s, load 1.01 1.07 1.88 1/1380 1562923
+mnist: epoch 0 batch 27 (32 samples): 335.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 9586 s, load 1.03 1.06 1.63 1/1384 1564423
+mnist: epoch 0 batch 28 (32 samples): 335.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 9921 s, load 1.09 1.05 1.44 1/1380 1565280
+mnist: epoch 0 batch 29 (32 samples): 335.0 s (refresh 30.9 s), 571 rot + 62 relin; elapsed 10257 s, load 1.08 1.04 1.30 1/1382 1566148
+mnist: epoch 0 batch 30 (32 samples): 335.1 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 10592 s, load 1.08 1.06 1.23 1/1380 1567009
+mnist: epoch 0 batch 31 (32 samples): 335.1 s (refresh 30.8 s), 571 rot + 62 relin; elapsed 10928 s, load 1.05 1.04 1.16 1/1380 1567857
+mnist: 32 batches, 1024 samples in 10893.6 s; 20256 KS (19.781/sample), prediction per batch matched: true; max |W_he - W_twin| = 1.9576568522118587e-6
+mnist: wrote /home/kmihara/hekit-runs/out/mnist_interactive_b32/mnist.json

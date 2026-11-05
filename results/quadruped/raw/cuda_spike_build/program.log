@@ -1,0 +1,13 @@
+   Compiling cfg-if v1.0.5
+   Compiling libc v0.2.191
+   Compiling zerocopy v0.8.63
+   Compiling cudarc v0.12.1
+   Compiling ntt-cpu v0.0.0 (/home/kmihara/hekit/spikes/ntt-cpu)
+   Compiling libloading v0.8.9
+   Compiling getrandom v0.2.17
+   Compiling rand_core v0.6.4
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.3.1
+   Compiling rand v0.8.8
+   Compiling ntt-cuda v0.0.0 (/home/kmihara/hekit/spikes/ntt-cuda)
+    Finished `release` profile [optimized] target(s) in 3.65s

@@ -1,0 +1,39 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running unittests src/lib.rs (target/release/deps/ntt_cuda-11faca2acd15b685)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/bench.rs (target/release/deps/bench-fc425dfbe17c936f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/emulation.rs (target/release/deps/emulation-654cba43dfbeb3f2)
+
+running 6 tests
+test launch_plan_n65536_batch64 ... ok
+test launch_plan_small_n_is_shared_only ... ok
+test same_prime_as_task2 ... ok
+test emulation_matches_cpu_small_n ... ok
+test emulation_matches_cpu_extreme_inputs ... ok
+test emulation_matches_cpu_n65536_batch64 ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/gpu.rs (target/release/deps/gpu-6e268f7b82eb1f90)
+
+running 2 tests
+test gpu_matches_cpu_small_n ... ok
+test gpu_matches_cpu_n65536_batch64 ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+   Doc-tests ntt_cuda
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

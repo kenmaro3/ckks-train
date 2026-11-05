@@ -1,0 +1,93 @@
+{
+  "wrapper": {
+    "threads_os_cpu_count_override": 12,
+    "script": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/training_encrypted.py",
+    "argv": [
+      "MNIST",
+      "--subsample",
+      "48",
+      "--num-layers",
+      "2",
+      "--num-hidden",
+      "32",
+      "--batch-size",
+      "48",
+      "--num-epochs",
+      "1",
+      "--seed",
+      "0"
+    ],
+    "elapsed_s": 222.1297990400344
+  },
+  "bootstrap": {
+    "bootstrap_array_calls": 1,
+    "ciphertexts_bootstrapped": 4,
+    "num_iterations_args": [
+      2
+    ],
+    "precision_args": [
+      11
+    ],
+    "seconds_per_call": [
+      67.5839517377317
+    ]
+  },
+  "steps": [
+    {
+      "index": 0,
+      "unix_start": 1793844894.1539538,
+      "reboot_step_time_s": 189.06331658363342,
+      "wall_s": 189.07543938234448,
+      "batch_loss": 48.656715393066406,
+      "batch_train_acc": 0.25,
+      "lr": 0.0005
+    }
+  ],
+  "decoder_check": {
+    "max_abs_err_per_layer_at_encryption": [
+      5.820766091346741e-11,
+      1.4551915228366852e-11
+    ],
+    "shapes": [
+      [
+        784,
+        32
+      ],
+      [
+        32,
+        16
+      ]
+    ]
+  },
+  "timeline": {
+    "encrypt_done_s": 32.26271481253207,
+    "script_done_s": 221.86793935857713,
+    "script_wall_s": 221.8679334241897
+  },
+  "evaluation": {
+    "test_samples": 10000,
+    "test_acc_encrypted_trained_argmax10": 0.1861,
+    "test_acc_encrypted_trained_argmax_all_outputs": 0.1776,
+    "test_acc_init_argmax10": 0.1456,
+    "test_mse_encrypted_trained": 0.058590278029441833,
+    "output_dim": 16,
+    "train_samples": 48,
+    "batches_per_epoch": 1,
+    "final_train_loss_reported": 48.656715393066406,
+    "final_train_acc_reported": 0.25,
+    "weight_abs_max_per_layer": [
+      0.03663736954331398,
+      0.14410170912742615
+    ],
+    "method": "decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test"
+  },
+  "crypto": {
+    "row_size": 1024,
+    "col_size": 32,
+    "valid_slots": 32768,
+    "num_slots": 32768,
+    "bs_levels": 14,
+    "bs_iterations": 2,
+    "bs_precision": 11
+  }
+}

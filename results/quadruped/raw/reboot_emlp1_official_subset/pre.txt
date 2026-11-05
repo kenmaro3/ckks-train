@@ -1,0 +1,18 @@
+date: 2026-11-05T11:21:59+09:00
+uptime:  11:21:59 up 53 days,  1:52,  4 users,  load average: 4.21, 5.82, 5.43
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  843G   26G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312 13315473408 67654836224    81252352 52405448704 119164411904
+Swap:     8589930496   334630912  8255299584
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+1494804, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB
+1495416, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB
+1496022, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB
+1508017, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB

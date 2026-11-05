@@ -1,0 +1,1 @@
+./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement when_needed --batch 32 --out results/quadruped/mnist_emlp1_ni_when_needed_b32.json 

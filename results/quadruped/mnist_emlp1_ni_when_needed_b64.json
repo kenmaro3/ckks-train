@@ -1,0 +1,417 @@
+{
+  "provenance": {
+    "written_by": "the mnist binary (raw output, not assembled)",
+    "git_commit": "43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+    "git_modified_tracked_files": "M crates/hekit-ckks/examples/export_params.rs\n M docs/bootstrap.md\n M docs/security.md\n M spikes/ntt-cuda/Cargo.toml\n M tools/estimate/README.md\n M tools/estimate/dual_mitm_scan.py\n M tools/estimate/estimate.py",
+    "command_line": "./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement when_needed --batch 64 --out results/quadruped/mnist_emlp1_ni_when_needed_b64.json",
+    "build": {
+      "debug_assertions": false,
+      "package_version": "0.0.0",
+      "target_os": "linux",
+      "target_arch": "x86_64"
+    },
+    "parallel_feature": true,
+    "rustc_on_path": "rustc 1.85.1 (4eb161250 2025-03-15)",
+    "machine": {
+      "cpu": "unknown",
+      "logical_cpus": 32,
+      "memory_bytes": "unknown",
+      "os": "Linux 7.0.0-31-generic x86_64",
+      "host": "kmihara-Z790-S01"
+    },
+    "threads": "rayon (feature parallel), RAYON_NUM_THREADS = 12, 32 logical CPUs",
+    "load_start": "2.53 2.74 2.79 2/1385 1599139",
+    "load_end": "2.94 3.02 2.84 1/1396 1603336",
+    "started_unix": 1793870390.3151612,
+    "finished_unix": 1793871882.624815
+  },
+  "task": "Task 41: MNIST eMLP-1 non-interactive training with bootstrapping (RQ1)",
+  "network": "784 -> 32 (z^2 + z) -> 10 (linear), MSE, NAG (biases SGD)",
+  "setup": {
+    "params": "n16_boot",
+    "log_n": 16,
+    "slots": 32768,
+    "max_level": 31,
+    "bootstrap_output_level": 16,
+    "start_level_after_unpack": 15,
+    "levels_per_iter": 7,
+    "placement": "when_needed",
+    "batch": 64,
+    "lanes_per_ciphertext": 32,
+    "micro_batches_per_update": 2,
+    "layout_d": 1024,
+    "transpose_keys": "reuse",
+    "training_galois_keys": 35,
+    "key_bytes_each": 301989888,
+    "bootstrap_key_bytes": 10272899072,
+    "boot_ks": 111,
+    "compact_containers": 2,
+    "bias_slots": "[BiasSlot { container: 1, position: 16 }, BiasSlot { container: 1, position: 32 }]"
+  },
+  "training": {
+    "epochs": 1,
+    "subset": 1024,
+    "updates": 16,
+    "samples": 1024,
+    "lr": 0.001,
+    "momentum": 0.9,
+    "weight_decay": 0,
+    "seed": 32
+  },
+  "prediction": {
+    "cost_model_ni_without_boots": {
+      "rotations": 739,
+      "relins": 68,
+      "key_switches": 807,
+      "rotations_per_sample": 11.546875,
+      "relins_per_sample": 1.0625,
+      "key_switches_per_sample": 12.609375
+    },
+    "cost_model_ni_bootstraps_per_update": 4,
+    "cost_model_ni_ks_per_sample_at_hekit_boot": 19.546875,
+    "closed_form_per_update": {
+      "forward_rot": 44,
+      "forward_relin": 18,
+      "transpose_rot": 27,
+      "backward_rot": 12,
+      "backward_relin": 10,
+      "gradient_rot": 272,
+      "gradient_relin": 48,
+      "shift_rot": 46,
+      "bias_grad_rot": 12,
+      "unpack_rot": 366,
+      "bias_extract_rot": 22,
+      "rotations": 801,
+      "relins": 76,
+      "weight_bootstraps_when_booted": 4,
+      "activation_bootstraps": 0
+    },
+    "bootstraps_per_update_avg": 2,
+    "corrections_per_update": {
+      "recomputed_babies": 28,
+      "bsgs_split": -4,
+      "transpose_beyond_model": 12,
+      "bias_gradients_and_extraction": 34,
+      "bootstraps_beyond_model_x_boot_ks": -222,
+      "total": -152
+    },
+    "predicted_ks_per_sample": 17.171875,
+    "boot_schedule": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+    ]
+  },
+  "measured": {
+    "total": {
+      "rotations": 15024,
+      "relins": 2496,
+      "sse_switches": 64,
+      "key_switches": 17584,
+      "bootstraps": 32,
+      "ct_ct_tensor": 5120,
+      "ct_pt_mults": 12716,
+      "rescales": 4460
+    },
+    "ks_per_sample_incl_bootstraps": 17.171875,
+    "ks_per_sample_without_bootstraps": 13.703125,
+    "bootstraps_per_update": 2,
+    "bootstraps_per_sample": 0.03125,
+    "weight_booted": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    "every_update_equals_prediction": true,
+    "predicted_ks_this_run": 17584,
+    "measured_over_predicted": 1,
+    "measured_over_predicted_full_batch_per_sample": 1,
+    "measured_over_model_plus_corrections": 1,
+    "measured_over_cost_model": 0.8784972022382095,
+    "per_update_first": {
+      "rotations": 801,
+      "relins": 76,
+      "sse_switches": 0,
+      "key_switches": 877,
+      "bootstraps": 0,
+      "ct_ct_tensor": 228,
+      "ct_pt_mults": 104,
+      "rescales": 162
+    }
+  },
+  "rq1": {
+    "metric": "key switches per sample (rotations + relins + SSE switches), bootstraps included",
+    "headline_reboot_side": "lazy_measured",
+    "by_reboot_side": {
+      "lazy_measured": {
+        "source": "measured (Task 33, results/mnist_reboot_layout.json, mode \"lazy\"): ReBoot's per-sample layout in hekit (in-library layout, hekit's interactive client, no bootstraps); ReBoot official (OpenFHE) not measured",
+        "ks_per_sample_without_bootstraps": 35.0625,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 76.89583333333334,
+          "ratio_vs_reboot_b48": 0.22331346518558653,
+          "reboot_ks_per_sample_same_b": 66.4375,
+          "ratio_vs_reboot_same_b": 0.25846660395108184
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 29.390625,
+          "reboot_ks_per_sample_b48": 76.89583333333334,
+          "ratio_vs_reboot_b48": 0.38221349227851525,
+          "reboot_ks_per_sample_same_b": 66.4375,
+          "ratio_vs_reboot_same_b": 0.44238005644402634
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 44.3125,
+          "ratio_vs_reboot_b48": 0.3875176304654443,
+          "reboot_ks_per_sample_same_b": 42,
+          "ratio_vs_reboot_same_b": 0.4088541666666667
+        }
+      },
+      "persample_measured": {
+        "source": "measured (Task 33, results/mnist_reboot_layout.json, mode \"persample\"): ReBoot's per-sample layout in hekit (in-library layout, hekit's interactive client, no bootstraps); ReBoot official (OpenFHE) not measured",
+        "ks_per_sample_without_bootstraps": 37,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.2178250528541226,
+          "reboot_ks_per_sample_same_b": 68.375,
+          "ratio_vs_reboot_same_b": 0.25114259597806216
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 29.390625,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.3728197674418604,
+          "reboot_ks_per_sample_same_b": 68.375,
+          "ratio_vs_reboot_same_b": 0.42984460694698357
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 46.25,
+          "ratio_vs_reboot_b48": 0.3712837837837838,
+          "reboot_ks_per_sample_same_b": 43.9375,
+          "ratio_vs_reboot_same_b": 0.39082503556187764
+        }
+      },
+      "m0_model": {
+        "source": "M0 cost model, ReBoot as shipped at N = 2^16 (spikes/RESULTS.md Task 6)",
+        "ks_per_sample_without_bootstraps": 37,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.2178250528541226,
+          "reboot_ks_per_sample_same_b": 68.375,
+          "ratio_vs_reboot_same_b": 0.25114259597806216
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 29.390625,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.3728197674418604,
+          "reboot_ks_per_sample_same_b": 68.375,
+          "ratio_vs_reboot_same_b": 0.42984460694698357
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 17.171875,
+          "reboot_ks_per_sample_b48": 46.25,
+          "ratio_vs_reboot_b48": 0.3712837837837838,
+          "reboot_ks_per_sample_same_b": 43.9375,
+          "ratio_vs_reboot_same_b": 0.39082503556187764
+        }
+      }
+    },
+    "reboot_bootstraps": {
+      "bootstraps_per_update": 4,
+      "source": "M0 cost model: ReBoot bootstraps W and V of both layers once per update",
+      "own_batch": 48,
+      "boot_ks_502_provenance": "OpenFHE EvalBootstrap, Meta-BTS with 2 iterations, as configured by ReBoot (level budget [2, 2]): 2 x (218 linear-transform rotations + 1 conjugation + 32 EvalMod relins) = 502, counted from the OpenFHE code by the M0 cost model (spikes/costmodel/costmodel.py bootstrap_key_switches; spikes/RESULTS.md Task 6; docs/bootstrap.md 11.2). A model count, not a measurement."
+    }
+  },
+  "time_s": {
+    "bootstrapper_setup": 25.72239897,
+    "keygen_total": 48.504750376,
+    "encrypt_network": 6.897921802,
+    "train_total": 1434.775781058,
+    "epoch_measured": 1434.775781058,
+    "epoch_1024_extrapolated_from_mean_update": 1427.099857409,
+    "per_update": {
+      "mean": 89.1937410880625,
+      "min": 62.991673486,
+      "max": 114.857264823
+    },
+    "per_update_client_encrypt": {
+      "mean": 0.4769458039374999,
+      "min": 0.460766435,
+      "max": 0.502285076
+    },
+    "bootstrap_time_total": 445.043552,
+    "per_update_bootstrap": {
+      "mean": 27.815222,
+      "min": 0,
+      "max": 55.98947986600001
+    },
+    "wall_total": 1492.309000075
+  },
+  "twin": {
+    "max_abs_w_diff_per_layer": [
+      3.71418599013941e-05,
+      2.8175196019344928e-05
+    ],
+    "max_abs_b_diff_per_layer": [
+      1.7097140542515765e-05,
+      1.3222726811715213e-05
+    ],
+    "max_abs_diff": 3.71418599013941e-05,
+    "log2_max_abs_diff": -14.716594413516374,
+    "max_abs_w_update_per_layer": [
+      0.006427295014443244,
+      0.006928264029097436
+    ],
+    "max_abs_hidden_activation": 1.6313303136441424,
+    "activation_bootstraps": {
+      "note": "AfterActivation only: the bootstrapped hidden activations of every update, decrypted by the client after the update, against the twin's activations from the same pre-update weights (bootstrap error plus the accumulated training error, which the weight diff bounds). Inputs above 1 violate the bootstrap's |m| <= 1 precondition; they are not clipped.",
+      "slots_compared": 0,
+      "max_abs_input_twin": 1.6313303136441424,
+      "inputs_above_1": 0,
+      "precondition_hit": false,
+      "max_abs_output": 0,
+      "max_abs_err_vs_twin": 0,
+      "log2_max_abs_err_vs_twin": null
+    }
+  },
+  "evaluation": {
+    "test_samples": 10000,
+    "test_acc_encrypted_trained": 0.1929,
+    "test_acc_twin": 0.1929,
+    "test_acc_init": 0.0894,
+    "test_mse_encrypted_trained": 0.0972654505336173,
+    "test_mse_twin": 0.09726677737609012
+  },
+  "levels_last_step": {
+    "z1": 6,
+    "a1": 5,
+    "z2": 4,
+    "a2": 4,
+    "delta2": 4,
+    "dz2": 4,
+    "delta1": 3,
+    "h2": 2,
+    "hb2": 3,
+    "s1": 5,
+    "dz1": 2,
+    "h1": 0,
+    "hb1": 1,
+    "c0'": 0,
+    "c1'": 1
+  },
+  "memory": {
+    "peak_rss_bytes": 28873342976
+  },
+  "machine": {
+    "load_start": "2.53 2.74 2.79 2/1385 1599139",
+    "load_end": "2.94 3.02 2.84 1/1396 1603337",
+    "build": {
+      "debug_assertions": false,
+      "package_version": "0.0.0",
+      "target_os": "linux",
+      "target_arch": "x86_64"
+    },
+    "parallel_feature": true,
+    "threads": "rayon, 32 available (this Mac); quadruped-gpu 32-thread figure: pending (user-driven session)"
+  },
+  "quadruped": {
+    "threads": "12: rayon (build with --features parallel, RAYON_NUM_THREADS=12)",
+    "binary_output_unmodified": "results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json",
+    "note": "requests.md block R-41-4 (Task 41 Step 5), run through run_job.sh/r41.sh; partial-run rule not triggered (see raw/R-41-4/projection.txt)",
+    "provenance": {
+      "raw_dir": "results/quadruped/raw/R-41-4/",
+      "hekit_synced_commit": [
+        "commit 43f219f",
+        "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+        "dirty_files 6",
+        "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+        "synced_at 2026-11-05T10:55:22+09:00"
+      ],
+      "command": "./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement when_needed --batch 64 --out results/quadruped/mnist_emlp1_ni_when_needed_b64.json",
+      "workdir": "/home/kmihara/hekit",
+      "threads_cap": 12,
+      "nice": 10,
+      "start": "2026-11-05T18:19:50+09:00",
+      "end": "2026-11-05T18:44:46+09:00",
+      "wall_s_runner": 1496.1115026474,
+      "uptime_before": " 18:19:50 up 53 days,  8:50,  2 users,  load average: 2.67, 2.77, 2.80",
+      "uptime_after": " 18:44:46 up 53 days,  9:15,  2 users,  load average: 2.70, 2.97, 2.82",
+      "peak_rss_kb_time_v": 28196624,
+      "peak_rss_kb_tree_sampled_10s": 28125204,
+      "exit_status": 0,
+      "watchdog_killed": false,
+      "host": "kmihara-Z790-S01",
+      "cpu": [
+        "CPU(s):                                  32",
+        "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+        "Thread(s) per core:                      2",
+        "Socket(s):                               1",
+        "CPU(s) scaling MHz:                      30%"
+      ],
+      "kernel": "7.0.0-31-generic",
+      "time_v_elapsed": "24:53.32",
+      "time_v_user_s": 4021.03,
+      "time_v_sys_s": 42.03,
+      "time_v_cpu_percent": "272%",
+      "composed_by": "results/quadruped/scripts/compose.py",
+      "snapshot_before": "date: 2026-11-05T18:19:50+09:00\nuptime:  18:19:50 up 53 days,  8:50,  2 users,  load average: 2.67, 2.77, 2.80\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8058707968 76722073600    48365568 48607301632 124421177344\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n"
+    }
+  }
+}

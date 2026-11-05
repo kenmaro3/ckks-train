@@ -33,28 +33,33 @@ Common rules for every block:
 - **GPU memory need:** 0 (CPU only)
 - **RAM need:** about 25 GB
 - **output path:** `results/quadruped/mnist_emlp1_ni_after_update_b32.json` and `results/quadruped/logs/R-41-1.log`
+- **status:** done (2026-11-05T15:40–16:54 JST, exit 0, full epoch, partial rule not triggered: projection after 2 updates: 4421 s for 32 updates). Result: `results/quadruped/mnist_emlp1_ni_after_update_b32.json`; log: `results/quadruped/logs/R-41-1.log`; raw/provenance: `results/quadruped/raw/R-41-1/`. KS/sample incl. bootstraps 39.46875, epoch 4339 s, test acc 0.3322, peak RSS 28.6 GB (kB/1e6). Run as `run_job.sh` (nice 10, /usr/bin/time -v, RAYON_NUM_THREADS=12) on the server tree at 43f219f + 6 uncommitted Mac edits outside hekit-bench/ckks/nn sources (export_params example, docs, tools/estimate).
 
 ## R-41-2: Task 41 Step 5, AfterUpdate, B = 64
 
 - Same as R-41-1, with `--batch 64`.
 - **output path:** `results/quadruped/mnist_emlp1_ni_after_update_b64.json`
 - **expected duration:** about 1.5–3 h, with the same partial rule as R-41-1.
+- **status:** done (2026-11-05T16:54–17:32 JST, exit 0, full epoch, partial rule not triggered: projection after 2 updates: 2282 s for 16 updates). Result: `results/quadruped/mnist_emlp1_ni_after_update_b64.json`; log: `results/quadruped/logs/R-41-2.log`; raw/provenance: `results/quadruped/raw/R-41-2/`. KS/sample incl. bootstraps 20.640625, epoch 2229 s, test acc 0.1929, peak RSS 28.6 GB (kB/1e6). Run as `run_job.sh` (nice 10, /usr/bin/time -v, RAYON_NUM_THREADS=12) on the server tree at 43f219f + 6 uncommitted Mac edits outside hekit-bench/ckks/nn sources (export_params example, docs, tools/estimate).
 
 ## R-41-3: Task 41 Step 5, WhenNeeded, B = 32
 
 - Same as R-41-1, with `--placement when_needed`.
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b32.json`
+- **status:** done (2026-11-05T17:32–18:19 JST, exit 0, full epoch, partial rule not triggered: projection after 2 updates: 2815 s for 32 updates). Result: `results/quadruped/mnist_emlp1_ni_when_needed_b32.json`; log: `results/quadruped/logs/R-41-3.log`; raw/provenance: `results/quadruped/raw/R-41-3/`. KS/sample incl. bootstraps 32.53125, epoch 2774 s, test acc 0.3323, peak RSS 28.1 GB (kB/1e6). Run as `run_job.sh` (nice 10, /usr/bin/time -v, RAYON_NUM_THREADS=12) on the server tree at 43f219f + 6 uncommitted Mac edits outside hekit-bench/ckks/nn sources (export_params example, docs, tools/estimate).
 
 ## R-41-4: Task 41 Step 5, WhenNeeded, B = 64
 
 - Same as R-41-1, with `--placement when_needed --batch 64`.
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b64.json`
+- **status:** done (2026-11-05T18:19–18:44 JST, exit 0, full epoch, partial rule not triggered: projection after 2 updates: 1478 s for 16 updates). Result: `results/quadruped/mnist_emlp1_ni_when_needed_b64.json`; log: `results/quadruped/logs/R-41-4.log`; raw/provenance: `results/quadruped/raw/R-41-4/`. KS/sample incl. bootstraps 17.171875, epoch 1435 s, test acc 0.1929, peak RSS 28.2 GB (kB/1e6). Run as `run_job.sh` (nice 10, /usr/bin/time -v, RAYON_NUM_THREADS=12) on the server tree at 43f219f + 6 uncommitted Mac edits outside hekit-bench/ckks/nn sources (export_params example, docs, tools/estimate).
 
 ## R-41-5: Task 41 Step 5, AfterActivation, B = 32
 
 - Same as R-41-1, with `--placement after_activation`.
 - **output path:** `results/quadruped/mnist_emlp1_ni_after_activation_b32.json`
 - **note:** this one is lower priority. Run it only after R-41-1 to R-41-4 are done.
+- **status:** queued: starts after the Iris run (epoch ~300/400 at 19:55 JST) and a parallel rebuild; expected start ~20:20 JST
 
 M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that code lands. Each GPU
 block will state its GPU memory need, and the tests skip with a message when the need is not met.

@@ -1,0 +1,1 @@
+./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement after_update --batch 64 --out results/quadruped/mnist_emlp1_ni_after_update_b64.json 

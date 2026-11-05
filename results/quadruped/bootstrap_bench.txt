@@ -1,0 +1,29 @@
+# n16_boot bootstrap criterion bench (M3 Task 38 Step 5) on quadruped-gpu
+# cargo bench --list (run without HEKIT_BOOT_THREADS, so its default counts 1 and available_parallelism = 32 appear): benches/bootstrap.rs (target/release/deps/bootstrap-4c545d5703f9d072) bootstrapper: bootstrap_n16_boot/1_threads: bootstrap_n16_boot/32_threads:
+# command: env HEKIT_BOOT_THREADS=1\,12 cargo bench -p hekit-ckks --features parallel --bench bootstrap
+# workdir: /home/kmihara/hekit  threads: HEKIT_BOOT_THREADS=1,12 (one rayon pool per count; 1 is the requested measurement)
+# hekit synced commit: commit 43f219f | full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb | dirty_files 6 | working_tree_diff_sha256_16 f0f8ec53e649c5de | synced_at 2026-11-05T10:55:22+09:00
+# start 2026-11-05T15:28:11+09:00  end 2026-11-05T15:40:35+09:00  exit 0
+# uptime before:  15:28:11 up 53 days,  5:58,  2 users,  load average: 3.47, 1.58, 1.31
+# uptime after:   15:40:35 up 53 days,  6:11,  2 users,  load average: 3.47, 2.38, 1.67
+# peak RSS (time -v): 16849056 kB; sampled tree peak 16785368 kB
+# cpu: CPU(s):                                  32 / Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF / Thread(s) per core:                      2 / Socket(s):                               1 / CPU(s) scaling MHz:                      29%
+# raw output: results/quadruped/raw/bootstrap_bench/program.log (composed by results/quadruped/scripts/compose.py)
+
+    Finished `bench` profile [optimized] target(s) in 0.02s
+     Running benches/bootstrap.rs (target/release/deps/bootstrap-4c545d5703f9d072)
+n16_boot bootstrapper: 24.6 s setup, 111 key switches per boot, 33 Galois keys, 10.27 GB of keys
+Benchmarking bootstrap_n16_boot/1_threads
+Benchmarking bootstrap_n16_boot/1_threads: Warming up for 1.0000 s
+Benchmarking bootstrap_n16_boot/1_threads: Collecting 10 samples in estimated 454.29 s (10 iterations)
+Benchmarking bootstrap_n16_boot/1_threads: Analyzing
+bootstrap_n16_boot/1_threads
+                        time:   [45.340 s 45.414 s 45.501 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking bootstrap_n16_boot/12_threads
+Benchmarking bootstrap_n16_boot/12_threads: Warming up for 1.0000 s
+Benchmarking bootstrap_n16_boot/12_threads: Collecting 10 samples in estimated 139.87 s (10 iterations)
+Benchmarking bootstrap_n16_boot/12_threads: Analyzing
+bootstrap_n16_boot/12_threads
+                        time:   [13.882 s 13.949 s 14.012 s]

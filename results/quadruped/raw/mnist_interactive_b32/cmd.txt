@@ -1,0 +1,1 @@
+cargo run --release -p hekit-bench --bin mnist -- --mode interactive --epochs 1 --subset 1024 --test-subset 10000 --batch 32 --hidden 32 --seed 32 --lr 0.001 --momentum 0.9 --params n16_train --transpose reuse --data data/mnist --out /home/kmihara/hekit-runs/out/mnist_interactive_b32/mnist.json 

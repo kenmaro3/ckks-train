@@ -1,0 +1,333 @@
+{
+  "wrapper": {
+    "threads_os_cpu_count_override": 12,
+    "script": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/training_encrypted.py",
+    "argv": [
+      "MNIST",
+      "--subsample",
+      "1024",
+      "--num-layers",
+      "2",
+      "--num-hidden",
+      "32",
+      "--batch-size",
+      "48",
+      "--num-epochs",
+      "1",
+      "--seed",
+      "0"
+    ],
+    "elapsed_s": 3636.4956484315917
+  },
+  "bootstrap": {
+    "bootstrap_array_calls": 21,
+    "ciphertexts_bootstrapped": 84,
+    "num_iterations_args": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "precision_args": [
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11
+    ],
+    "seconds_per_call": [
+      63.10159344226122,
+      105.74601771496236,
+      126.10783958528191,
+      126.49093222804368,
+      127.25700607802719,
+      132.54952332377434,
+      135.78522126749158,
+      131.88142479397357,
+      132.7238444974646,
+      132.1105725467205,
+      132.41265554260463,
+      134.7315168781206,
+      141.13915267772973,
+      131.8677769191563,
+      126.91447296831757,
+      123.80056336149573,
+      123.85175696294755,
+      124.41184203885496,
+      124.66235969867557,
+      115.70344123896211,
+      112.61923622805625
+    ]
+  },
+  "steps": [
+    {
+      "index": 0,
+      "unix_start": 1793845350.6648688,
+      "reboot_step_time_s": 175.3596646785736,
+      "wall_s": 175.36297930125147,
+      "batch_loss": 49.33608627319336,
+      "batch_train_acc": 0.14583333333333334,
+      "lr": 0.0005
+    },
+    {
+      "index": 1,
+      "unix_start": 1793845526.4930165,
+      "reboot_step_time_s": 178.0465383529663,
+      "wall_s": 178.05587765015662,
+      "batch_loss": 46.24556350708008,
+      "batch_train_acc": 0.1875,
+      "lr": 0.0005
+    },
+    {
+      "index": 2,
+      "unix_start": 1793845704.867249,
+      "reboot_step_time_s": 169.0347228050232,
+      "wall_s": 169.03616660274565,
+      "batch_loss": 43.77197265625,
+      "batch_train_acc": 0.1875,
+      "lr": 0.0005
+    },
+    {
+      "index": 3,
+      "unix_start": 1793845874.203095,
+      "reboot_step_time_s": 170.67171931266785,
+      "wall_s": 170.67736984882504,
+      "batch_loss": 42.362911224365234,
+      "batch_train_acc": 0.2708333333333333,
+      "lr": 0.0005
+    },
+    {
+      "index": 4,
+      "unix_start": 1793846045.1839535,
+      "reboot_step_time_s": 171.7046868801117,
+      "wall_s": 171.7452085511759,
+      "batch_loss": 41.16542053222656,
+      "batch_train_acc": 0.3541666666666667,
+      "lr": 0.0005
+    },
+    {
+      "index": 5,
+      "unix_start": 1793846217.2406256,
+      "reboot_step_time_s": 176.83878588676453,
+      "wall_s": 176.84045150037855,
+      "batch_loss": 37.582313537597656,
+      "batch_train_acc": 0.5,
+      "lr": 0.0005
+    },
+    {
+      "index": 6,
+      "unix_start": 1793846394.3868961,
+      "reboot_step_time_s": 181.54851150512695,
+      "wall_s": 181.5751303974539,
+      "batch_loss": 36.91229248046875,
+      "batch_train_acc": 0.5625,
+      "lr": 0.0005
+    },
+    {
+      "index": 7,
+      "unix_start": 1793846576.2890718,
+      "reboot_step_time_s": 177.7140462398529,
+      "wall_s": 177.72722704987973,
+      "batch_loss": 36.46424865722656,
+      "batch_train_acc": 0.5625,
+      "lr": 0.0005
+    },
+    {
+      "index": 8,
+      "unix_start": 1793846754.3246338,
+      "reboot_step_time_s": 175.83773231506348,
+      "wall_s": 175.83923578914255,
+      "batch_loss": 36.67267608642578,
+      "batch_train_acc": 0.5625,
+      "lr": 0.0005
+    },
+    {
+      "index": 9,
+      "unix_start": 1793846930.464401,
+      "reboot_step_time_s": 175.93609023094177,
+      "wall_s": 175.94896750804037,
+      "batch_loss": 34.155155181884766,
+      "batch_train_acc": 0.6875,
+      "lr": 0.0005
+    },
+    {
+      "index": 10,
+      "unix_start": 1793847106.7206945,
+      "reboot_step_time_s": 177.07300209999084,
+      "wall_s": 177.0785233443603,
+      "batch_loss": 31.25271987915039,
+      "batch_train_acc": 0.7291666666666666,
+      "lr": 0.0005
+    },
+    {
+      "index": 11,
+      "unix_start": 1793847284.1170142,
+      "reboot_step_time_s": 178.6057608127594,
+      "wall_s": 178.62098614871502,
+      "batch_loss": 31.436107635498047,
+      "batch_train_acc": 0.6875,
+      "lr": 0.0005
+    },
+    {
+      "index": 12,
+      "unix_start": 1793847463.0580063,
+      "reboot_step_time_s": 187.35342478752136,
+      "wall_s": 187.35494466871023,
+      "batch_loss": 30.430078506469727,
+      "batch_train_acc": 0.6666666666666666,
+      "lr": 0.0005
+    },
+    {
+      "index": 13,
+      "unix_start": 1793847650.7164178,
+      "reboot_step_time_s": 177.07909512519836,
+      "wall_s": 177.08059649448842,
+      "batch_loss": 29.72064781188965,
+      "batch_train_acc": 0.7291666666666666,
+      "lr": 0.0005
+    },
+    {
+      "index": 14,
+      "unix_start": 1793847828.1005104,
+      "reboot_step_time_s": 167.63924384117126,
+      "wall_s": 167.64708911068738,
+      "batch_loss": 30.084510803222656,
+      "batch_train_acc": 0.7708333333333334,
+      "lr": 0.0005
+    },
+    {
+      "index": 15,
+      "unix_start": 1793847996.0437572,
+      "reboot_step_time_s": 163.32077813148499,
+      "wall_s": 163.3325703945011,
+      "batch_loss": 31.298484802246094,
+      "batch_train_acc": 0.7083333333333334,
+      "lr": 0.0005
+    },
+    {
+      "index": 16,
+      "unix_start": 1793848159.674579,
+      "reboot_step_time_s": 163.27506923675537,
+      "wall_s": 163.35142925195396,
+      "batch_loss": 28.09895896911621,
+      "batch_train_acc": 0.75,
+      "lr": 0.0005
+    },
+    {
+      "index": 17,
+      "unix_start": 1793848323.3438056,
+      "reboot_step_time_s": 164.1160650253296,
+      "wall_s": 164.14113022293895,
+      "batch_loss": 29.537708282470703,
+      "batch_train_acc": 0.7083333333333334,
+      "lr": 0.0005
+    },
+    {
+      "index": 18,
+      "unix_start": 1793848487.784921,
+      "reboot_step_time_s": 163.94268894195557,
+      "wall_s": 164.0257197022438,
+      "batch_loss": 28.28933334350586,
+      "batch_train_acc": 0.7708333333333334,
+      "lr": 0.0005
+    },
+    {
+      "index": 19,
+      "unix_start": 1793848652.1066167,
+      "reboot_step_time_s": 155.03277134895325,
+      "wall_s": 155.03412729594857,
+      "batch_loss": 24.348350524902344,
+      "batch_train_acc": 0.875,
+      "lr": 0.0005
+    },
+    {
+      "index": 20,
+      "unix_start": 1793848807.417092,
+      "reboot_step_time_s": 149.79625368118286,
+      "wall_s": 149.82476770784706,
+      "batch_loss": 26.66478729248047,
+      "batch_train_acc": 0.75,
+      "lr": 0.0005
+    }
+  ],
+  "decoder_check": {
+    "max_abs_err_per_layer_at_encryption": [
+      5.820766091346741e-11,
+      7.275957614183426e-12
+    ],
+    "shapes": [
+      [
+        784,
+        32
+      ],
+      [
+        32,
+        16
+      ]
+    ]
+  },
+  "timeline": {
+    "encrypt_done_s": 29.497108973562717,
+    "script_done_s": 3636.352609315887,
+    "script_wall_s": 3636.3525999188423
+  },
+  "evaluation": {
+    "test_samples": 10000,
+    "test_acc_encrypted_trained_argmax10": 0.7506,
+    "test_acc_encrypted_trained_argmax_all_outputs": 0.7506,
+    "test_acc_init_argmax10": 0.1456,
+    "test_mse_encrypted_trained": 0.035870905965566635,
+    "output_dim": 16,
+    "train_samples": 1024,
+    "batches_per_epoch": 21,
+    "final_train_loss_reported": 34.56334686279297,
+    "final_train_acc_reported": 0.5793650793650795,
+    "weight_abs_max_per_layer": [
+      0.06684501469135284,
+      0.16608421504497528
+    ],
+    "method": "decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test"
+  },
+  "crypto": {
+    "row_size": 1024,
+    "col_size": 32,
+    "valid_slots": 32768,
+    "num_slots": 32768,
+    "bs_levels": 14,
+    "bs_iterations": 2,
+    "bs_precision": 11
+  }
+}

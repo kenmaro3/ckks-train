@@ -1,0 +1,1 @@
+cargo bench -p hekit-ckks --features parallel --bench bootstrap -- --list 

@@ -1,0 +1,76 @@
+{
+  "job": "bootstrap_bench",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      29%"
+  ],
+  "workdir": "/home/kmihara/hekit",
+  "command": "env HEKIT_BOOT_THREADS=1\\,12 cargo bench -p hekit-ckks --features parallel --bench bootstrap",
+  "threads_cap": 12,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "12",
+    "RAYON_NUM_THREADS": "12",
+    "CARGO_BUILD_JOBS": "12"
+  },
+  "nice": 10,
+  "gpu_job": false,
+  "hekit_synced_commit": [
+    "commit 43f219f",
+    "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+    "dirty_files 6",
+    "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+    "synced_at 2026-11-05T10:55:22+09:00"
+  ],
+  "start": "2026-11-05T15:28:11+09:00",
+  "end": "2026-11-05T15:40:35+09:00",
+  "wall_s_runner": 743.9751513004303,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 15:28:11 up 53 days,  5:58,  2 users,  load average: 3.47, 1.58, 1.31",
+  "uptime_after": " 15:40:35 up 53 days,  6:11,  2 users,  load average: 3.47, 2.38, 1.67",
+  "load_before": [
+    3.47,
+    1.58,
+    1.31
+  ],
+  "load_after": [
+    3.47,
+    2.38,
+    1.67
+  ],
+  "peak_rss_kb_time_v": 16849056,
+  "peak_rss_kb_tree_sampled_10s": 16785368,
+  "time_v": {
+    "Command being timed": "\"env HEKIT_BOOT_THREADS=1,12 cargo bench -p hekit-ckks --features parallel --bench bootstrap\"",
+    "User time (seconds)": "1313.69",
+    "System time (seconds)": "18.62",
+    "Percent of CPU this job got": "180%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "12:19.65",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "16849056",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "0",
+    "Minor (reclaiming a frame) page faults": "16828943",
+    "Voluntary context switches": "51953",
+    "Involuntary context switches": "14030",
+    "Swaps": "0",
+    "File system inputs": "0",
+    "File system outputs": "168",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T15:28:11+09:00\nuptime:  15:28:11 up 53 days,  5:58,  2 users,  load average: 3.47, 1.58, 1.31\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8693174272 76126445568    48365568 48568467456 123786711040\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n",
+  "snapshot_after": "date: 2026-11-05T15:40:35+09:00\nuptime:  15:40:35 up 53 days,  6:11,  2 users,  load average: 3.47, 2.38, 1.67\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8199671808 76618977280    48365568 48569446400 124280213504\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n"
+}

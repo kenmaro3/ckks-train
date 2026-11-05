@@ -1,0 +1,22 @@
+    Finished `bench` profile [optimized] target(s) in 0.02s
+     Running benches/bootstrap.rs (target/release/deps/bootstrap-4c545d5703f9d072)
+n16_boot bootstrapper: 24.6 s setup, 111 key switches per boot, 33 Galois keys, 10.27 GB of keys
+Benchmarking bootstrap_n16_boot/1_threads
+Benchmarking bootstrap_n16_boot/1_threads: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 60.0s. You may wish to increase target time to 454.3s.
+Benchmarking bootstrap_n16_boot/1_threads: Collecting 10 samples in estimated 454.29 s (10 iterations)
+Benchmarking bootstrap_n16_boot/1_threads: Analyzing
+bootstrap_n16_boot/1_threads
+                        time:   [45.340 s 45.414 s 45.501 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking bootstrap_n16_boot/12_threads
+Benchmarking bootstrap_n16_boot/12_threads: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 60.0s. You may wish to increase target time to 139.9s.
+Benchmarking bootstrap_n16_boot/12_threads: Collecting 10 samples in estimated 139.87 s (10 iterations)
+Benchmarking bootstrap_n16_boot/12_threads: Analyzing
+bootstrap_n16_boot/12_threads
+                        time:   [13.882 s 13.949 s 14.012 s]
+

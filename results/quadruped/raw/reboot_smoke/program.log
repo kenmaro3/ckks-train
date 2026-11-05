@@ -1,0 +1,73 @@
+
+Detected 12 threads
+Subsampling applied: training on 48 samples
+Loaded dataset: MNIST
+Train set:  (48, 1, 28, 28), (48, 16)
+Test set:   (10000, 1, 28, 28), (10000, 16)
+Data types: (float32, float32)
+
+Train data statistics:
+ Min:  0.00000 - Max:  1.00000
+Mean:  0.12194 - Std:  0.29797
+CKKS parameters:
+  - Security level: SecurityLevel.HEStd_128_classic
+  - Ring dimension: 65536
+  - Multiplicative depth: 24
+  - Rescale method: ScalingTechnique.FLEXIBLEAUTOEXT
+  - Number of slots: 32768
+  - First modulus size: 54 bits
+  - Scaling modulus size: 49 bits
+
+Bootstrapping parameters:
+  - Bootstrapping enabled: True
+  - Bootstrapping cost: 14
+  - Level budget: [2, 2]
+  - Number of iterations: 2
+  - Secret key distribution: SecretKeyDist.SPARSE_TERNARY
+
+Network parameters:
+  - Multiplicative depth: 8
+  - Valid slots: 32768
+  - Row size: 1024
+  - Col size: 32
+
+LocalLossMLP(
+	(0): Sequential(
+			(0): CKKSPackedLinear(in_features=784, out_features=32, bias=False, row_packing=True)
+			(1): PolyReLU()
+			(2): CKKSPackedLinear(in_features=32, out_features=16, bias=False, row_packing=False)
+		)
+	)
+       linear_00 weights: (784, 32) -> (1024, 32)
+       linear_01 weights: (32, 16) -> (32, 1024)
+| linear_00        | Forward    | Min:  -0.652 | Max:   0.619 | Mean:  -0.017 | Std:   0.176 | Level:  1 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.001 | Mean:   0.014 | Std:   0.175 | Level:  2 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Forward    | Min:  -0.262 | Max:   0.317 | Mean:   0.000 | Std:   0.010 | Level:  4 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad X     | Min:  -0.215 | Max:   0.228 | Mean:   0.001 | Std:   0.086 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad W     | Min:  -3.527 | Max:   1.652 | Mean:  -0.001 | Std:   0.068 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Weights    | Min:  -0.144 | Max:   0.144 | Mean:  -0.000 | Std:   0.010 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Velocity   | Min:  -3.527 | Max:   1.652 | Mean:  -0.001 | Std:   0.068 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Backward   | Min:  -0.210 | Max:   0.493 | Mean:   0.005 | Std:   0.090 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Grad W     | Min:  -2.281 | Max:   3.658 | Mean:   0.028 | Std:   0.342 | Level:  7 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level:  8 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Weights    | Min:  -0.037 | Max:   0.036 | Mean:  -0.000 | Std:   0.018 | Level:  8 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Velocity   | Min:  -2.281 | Max:   3.658 | Mean:   0.028 | Std:   0.342 | Level:  7 | Precision: (35.00|35.00|35.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 67.587 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  1/1 - Batch loss: 48.65672 - Batch accuracy: 25.00% - Time: 3m 9s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch   1/1 - Loss: 48.65672 - Accuracy: 25.00% 
+--------------------------------------------------------------------------------
+Final train loss: 48.65672
+Final train accuracy: 25.00%
+| linear_00        | Forward    | Min:  -0.955 | Max:   0.840 | Mean:  -0.026 | Std:   0.184 |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.545 | Mean:   0.008 | Std:   0.181 |
+| linear_01        | Forward    | Min:  -0.365 | Max:   0.372 | Mean:   0.009 | Std:   0.082 |
+| linear_00        | Forward    | Min:  -0.967 | Max:   0.806 | Mean:  -0.036 | Std:   0.184 |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.456 | Mean:  -0.001 | Std:   0.175 |
+| linear_01        | Forward    | Min:  -0.314 | Max:   0.401 | Mean:   0.028 | Std:   0.074 |
+WRAPPER_DONE {"test_samples": 10000, "test_acc_encrypted_trained_argmax10": 0.1861, "test_acc_encrypted_trained_argmax_all_outputs": 0.1776, "test_acc_init_argmax10": 0.1456, "test_mse_encrypted_trained": 0.058590278029441833, "output_dim": 16, "train_samples": 48, "batches_per_epoch": 1, "final_train_loss_reported": 48.656715393066406, "final_train_acc_reported": 0.25, "weight_abs_max_per_layer": [0.03663736954331398, 0.14410170912742615], "method": "decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test"}

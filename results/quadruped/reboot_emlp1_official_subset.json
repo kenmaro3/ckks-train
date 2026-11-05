@@ -1,0 +1,436 @@
+{
+  "task": "Official ReBoot eMLP-1 (AAAI-26, OpenFHE) on quadruped-gpu, RQ1 wall-clock baseline",
+  "software": {
+    "reboot": "3ac173fcea376ba5a2f733b2b8a2fbd4d9547aa2 + build-only patch (spikes/reboot/_ext/logs/reboot_patches.diff)",
+    "openfhe": "v1.2.1 (85a8f6325c50e3e39d07d253a1fe150bad2d49ce), Release, WITH_NATIVEOPT=ON, OpenMP, NATIVE_SIZE 64, GCC 15.2",
+    "openfhe_python": "v0.8.9 (2447d372d63a6ff5c54e1cd1f85ad6d1c5dafe19)",
+    "python": "CPython 3.11.16 (uv), numpy 2.0.0, torch 2.15.0+cpu",
+    "wrapper": "results/quadruped/scripts/reboot_wrapper.py (runs training_encrypted.py unchanged via runpy; os.cpu_count -> 12; counts bootstrap_array; decrypts trained weights for test accuracy)"
+  },
+  "setting": {
+    "script_args": [
+      "MNIST",
+      "--subsample",
+      "1024",
+      "--num-layers",
+      "2",
+      "--num-hidden",
+      "32",
+      "--batch-size",
+      "48",
+      "--num-epochs",
+      "1",
+      "--seed",
+      "0"
+    ],
+    "threads": 12,
+    "omp_num_threads": 12,
+    "train_samples": 1024,
+    "batch": 48,
+    "batches_per_epoch": 21,
+    "subset_rule": "ReBoot --subsample K keeps the first K images of the torchvision MNIST training set (same IDX order as hekit's --subset), then shuffles (seed 42); per-epoch shuffle from np.random seeded 0. With K=1024 and batch 48 the last 1024 - 48*floor(1024/48) samples are dropped each epoch.",
+    "lr": 0.0005,
+    "lr_note": "script default (--lr not passed, as in upstream experiments.sh); CosineLR schedule starts after 5 epochs",
+    "weight_decay": 0.0,
+    "momentum": 0.9,
+    "optimizer": "ENCRYPTED_NESTEROV_SGD",
+    "crypto": {
+      "row_size": 1024,
+      "col_size": 32,
+      "valid_slots": 32768,
+      "num_slots": 32768,
+      "bs_levels": 14,
+      "bs_iterations": 2,
+      "bs_precision": 11
+    }
+  },
+  "timing_s": {
+    "per_batch_step_reboot": {
+      "n": 21,
+      "mean": 171.4250786304474,
+      "median": 175.3596646785736,
+      "min": 149.79625368118286,
+      "max": 187.35342478752136,
+      "sum": 3599.926651239395
+    },
+    "per_batch_step_definition": "ReBoot's own step_time from train_step_encrypted: encrypt batch + forward + backward + update + decrypt predictions + weight/velocity bootstrap (excludes the per-batch debug decryptions compute_mean_weights/compute_precisions the script runs after each step)",
+    "per_batch_bootstrap_array": {
+      "n": 21,
+      "mean": 124.08898809490104,
+      "sum": 2605.868749992922
+    },
+    "per_batch_bootstrap_logged_by_reboot": [
+      63.106,
+      105.746,
+      126.108,
+      126.491,
+      127.257,
+      132.55,
+      135.785,
+      131.882,
+      132.724,
+      132.111,
+      132.413,
+      134.732,
+      141.139,
+      131.868,
+      126.915,
+      123.801,
+      123.852,
+      124.412,
+      124.662,
+      115.704,
+      112.619
+    ],
+    "setup_until_encrypted_weights": 29.497108973562717,
+    "script_wall_incl_setup_and_debug": 3636.3525999188423,
+    "epoch_wall_from_first_step_start_to_script_end": 3606.576990961097,
+    "process_wall_runner": 3641.571187734604,
+    "steps": [
+      {
+        "index": 0,
+        "unix_start": 1793845350.6648688,
+        "reboot_step_time_s": 175.3596646785736,
+        "wall_s": 175.36297930125147,
+        "batch_loss": 49.33608627319336,
+        "batch_train_acc": 0.14583333333333334,
+        "lr": 0.0005
+      },
+      {
+        "index": 1,
+        "unix_start": 1793845526.4930165,
+        "reboot_step_time_s": 178.0465383529663,
+        "wall_s": 178.05587765015662,
+        "batch_loss": 46.24556350708008,
+        "batch_train_acc": 0.1875,
+        "lr": 0.0005
+      },
+      {
+        "index": 2,
+        "unix_start": 1793845704.867249,
+        "reboot_step_time_s": 169.0347228050232,
+        "wall_s": 169.03616660274565,
+        "batch_loss": 43.77197265625,
+        "batch_train_acc": 0.1875,
+        "lr": 0.0005
+      },
+      {
+        "index": 3,
+        "unix_start": 1793845874.203095,
+        "reboot_step_time_s": 170.67171931266785,
+        "wall_s": 170.67736984882504,
+        "batch_loss": 42.362911224365234,
+        "batch_train_acc": 0.2708333333333333,
+        "lr": 0.0005
+      },
+      {
+        "index": 4,
+        "unix_start": 1793846045.1839535,
+        "reboot_step_time_s": 171.7046868801117,
+        "wall_s": 171.7452085511759,
+        "batch_loss": 41.16542053222656,
+        "batch_train_acc": 0.3541666666666667,
+        "lr": 0.0005
+      },
+      {
+        "index": 5,
+        "unix_start": 1793846217.2406256,
+        "reboot_step_time_s": 176.83878588676453,
+        "wall_s": 176.84045150037855,
+        "batch_loss": 37.582313537597656,
+        "batch_train_acc": 0.5,
+        "lr": 0.0005
+      },
+      {
+        "index": 6,
+        "unix_start": 1793846394.3868961,
+        "reboot_step_time_s": 181.54851150512695,
+        "wall_s": 181.5751303974539,
+        "batch_loss": 36.91229248046875,
+        "batch_train_acc": 0.5625,
+        "lr": 0.0005
+      },
+      {
+        "index": 7,
+        "unix_start": 1793846576.2890718,
+        "reboot_step_time_s": 177.7140462398529,
+        "wall_s": 177.72722704987973,
+        "batch_loss": 36.46424865722656,
+        "batch_train_acc": 0.5625,
+        "lr": 0.0005
+      },
+      {
+        "index": 8,
+        "unix_start": 1793846754.3246338,
+        "reboot_step_time_s": 175.83773231506348,
+        "wall_s": 175.83923578914255,
+        "batch_loss": 36.67267608642578,
+        "batch_train_acc": 0.5625,
+        "lr": 0.0005
+      },
+      {
+        "index": 9,
+        "unix_start": 1793846930.464401,
+        "reboot_step_time_s": 175.93609023094177,
+        "wall_s": 175.94896750804037,
+        "batch_loss": 34.155155181884766,
+        "batch_train_acc": 0.6875,
+        "lr": 0.0005
+      },
+      {
+        "index": 10,
+        "unix_start": 1793847106.7206945,
+        "reboot_step_time_s": 177.07300209999084,
+        "wall_s": 177.0785233443603,
+        "batch_loss": 31.25271987915039,
+        "batch_train_acc": 0.7291666666666666,
+        "lr": 0.0005
+      },
+      {
+        "index": 11,
+        "unix_start": 1793847284.1170142,
+        "reboot_step_time_s": 178.6057608127594,
+        "wall_s": 178.62098614871502,
+        "batch_loss": 31.436107635498047,
+        "batch_train_acc": 0.6875,
+        "lr": 0.0005
+      },
+      {
+        "index": 12,
+        "unix_start": 1793847463.0580063,
+        "reboot_step_time_s": 187.35342478752136,
+        "wall_s": 187.35494466871023,
+        "batch_loss": 30.430078506469727,
+        "batch_train_acc": 0.6666666666666666,
+        "lr": 0.0005
+      },
+      {
+        "index": 13,
+        "unix_start": 1793847650.7164178,
+        "reboot_step_time_s": 177.07909512519836,
+        "wall_s": 177.08059649448842,
+        "batch_loss": 29.72064781188965,
+        "batch_train_acc": 0.7291666666666666,
+        "lr": 0.0005
+      },
+      {
+        "index": 14,
+        "unix_start": 1793847828.1005104,
+        "reboot_step_time_s": 167.63924384117126,
+        "wall_s": 167.64708911068738,
+        "batch_loss": 30.084510803222656,
+        "batch_train_acc": 0.7708333333333334,
+        "lr": 0.0005
+      },
+      {
+        "index": 15,
+        "unix_start": 1793847996.0437572,
+        "reboot_step_time_s": 163.32077813148499,
+        "wall_s": 163.3325703945011,
+        "batch_loss": 31.298484802246094,
+        "batch_train_acc": 0.7083333333333334,
+        "lr": 0.0005
+      },
+      {
+        "index": 16,
+        "unix_start": 1793848159.674579,
+        "reboot_step_time_s": 163.27506923675537,
+        "wall_s": 163.35142925195396,
+        "batch_loss": 28.09895896911621,
+        "batch_train_acc": 0.75,
+        "lr": 0.0005
+      },
+      {
+        "index": 17,
+        "unix_start": 1793848323.3438056,
+        "reboot_step_time_s": 164.1160650253296,
+        "wall_s": 164.14113022293895,
+        "batch_loss": 29.537708282470703,
+        "batch_train_acc": 0.7083333333333334,
+        "lr": 0.0005
+      },
+      {
+        "index": 18,
+        "unix_start": 1793848487.784921,
+        "reboot_step_time_s": 163.94268894195557,
+        "wall_s": 164.0257197022438,
+        "batch_loss": 28.28933334350586,
+        "batch_train_acc": 0.7708333333333334,
+        "lr": 0.0005
+      },
+      {
+        "index": 19,
+        "unix_start": 1793848652.1066167,
+        "reboot_step_time_s": 155.03277134895325,
+        "wall_s": 155.03412729594857,
+        "batch_loss": 24.348350524902344,
+        "batch_train_acc": 0.875,
+        "lr": 0.0005
+      },
+      {
+        "index": 20,
+        "unix_start": 1793848807.417092,
+        "reboot_step_time_s": 149.79625368118286,
+        "wall_s": 149.82476770784706,
+        "batch_loss": 26.66478729248047,
+        "batch_train_acc": 0.75,
+        "lr": 0.0005
+      }
+    ],
+    "last_step_bootstrap_logged_by_reboot": 112.619,
+    "breakdown_note": "process_wall_runner = python start .. exit (imports, keygen + bootstrap setup, encrypt, 21 steps incl. their weight bootstraps, per-step debug decryptions, test evaluation); per_batch_step_reboot includes that step's weight bootstrap"
+  },
+  "bootstrap": {
+    "bootstrap_array_calls": 21,
+    "ciphertexts_bootstrapped": 84,
+    "num_iterations_per_ciphertext": [
+      2
+    ],
+    "evalbootstrap_calls": 84,
+    "note": "EvalBootstrap(ct, numIterations=2, precision=11) per ciphertext; one bootstrap_array call per step on 4 ciphertexts (W1, W2, V1, V2). OpenFHE's iterative bootstrapping with 2 iterations runs the bootstrap circuit twice internally.",
+    "per_sample": 0.08333333333333333
+  },
+  "key_switches": "not measured: ReBoot and OpenFHE 1.2.1 do not log key-switch or rotation counts (the analytic count is in spikes/costmodel)",
+  "evaluation": {
+    "test_samples": 10000,
+    "test_acc_encrypted_trained_argmax10": 0.7506,
+    "test_acc_encrypted_trained_argmax_all_outputs": 0.7506,
+    "test_acc_init_argmax10": 0.1456,
+    "test_mse_encrypted_trained": 0.035870905965566635,
+    "output_dim": 16,
+    "train_samples": 1024,
+    "batches_per_epoch": 21,
+    "final_train_loss_reported": 34.56334686279297,
+    "final_train_acc_reported": 0.5793650793650795,
+    "weight_abs_max_per_layer": [
+      0.06684501469135284,
+      0.16608421504497528
+    ],
+    "method": "decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test"
+  },
+  "decoder_check": {
+    "max_abs_err_per_layer_at_encryption": [
+      5.820766091346741e-11,
+      7.275957614183426e-12
+    ],
+    "shapes": [
+      [
+        784,
+        32
+      ],
+      [
+        32,
+        16
+      ]
+    ]
+  },
+  "memory": {
+    "peak_rss_kb_time_v": 69917984,
+    "peak_rss_gb_time_v": 71.596015616,
+    "peak_rss_kb_tree_sampled_10s": 69872612
+  },
+  "provenance": {
+    "raw_dir": "results/quadruped/raw/reboot_emlp1_official_subset/",
+    "hekit_synced_commit": [
+      "commit 43f219f",
+      "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+      "dirty_files 6",
+      "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+      "synced_at 2026-11-05T10:55:22+09:00"
+    ],
+    "command": "env REBOOT_THREADS=12 REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_STATS_OUT=/home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/stats.json REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONUNBUFFERED=1 PYTHONPATH=/home/kmihara/reboot/src/ReBoot /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_wrapper.py MNIST --subsample 1024 --num-layers 2 --num-hidden 32 --batch-size 48 --num-epochs 1 --seed 0",
+    "workdir": "/home/kmihara/reboot/runs/reboot_emlp1_official_subset",
+    "threads_cap": 12,
+    "nice": 10,
+    "start": "2026-11-05T11:21:59+09:00",
+    "end": "2026-11-05T12:22:41+09:00",
+    "wall_s_runner": 3641.571187734604,
+    "uptime_before": " 11:21:59 up 53 days,  1:52,  4 users,  load average: 4.21, 5.82, 5.43",
+    "uptime_after": " 12:22:41 up 53 days,  2:53,  2 users,  load average: 4.03, 5.41, 6.55",
+    "peak_rss_kb_time_v": 69917984,
+    "peak_rss_kb_tree_sampled_10s": 69872612,
+    "exit_status": 0,
+    "watchdog_killed": false,
+    "host": "kmihara-Z790-S01",
+    "cpu": [
+      "CPU(s):                                  32",
+      "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+      "Thread(s) per core:                      2",
+      "Socket(s):                               1",
+      "CPU(s) scaling MHz:                      28%"
+    ],
+    "kernel": "7.0.0-31-generic",
+    "time_v_elapsed": "1:00:40",
+    "time_v_user_s": 18325.66,
+    "time_v_sys_s": 560.59,
+    "time_v_cpu_percent": "518%",
+    "composed_by": "results/quadruped/scripts/compose.py",
+    "snapshot_before": "date: 2026-11-05T11:21:59+09:00\nuptime:  11:21:59 up 53 days,  1:52,  4 users,  load average: 4.21, 5.82, 5.43\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 13315473408 67654836224    81252352 52405448704 119164411904\nSwap:     8589930496   334630912  8255299584\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1494804, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1495416, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1496022, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1508017, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n"
+  },
+  "reboot_hyperparameters": {
+    "parsed_args": {
+      "dataset": "MNIST",
+      "subsample": 1024,
+      "resize": null,
+      "num_layers": 2,
+      "num_hidden": [
+        32
+      ],
+      "batch_size": 48,
+      "num_epochs": 1,
+      "lr": 0.0005,
+      "weight_decay": 0.0,
+      "input_dim": 32,
+      "output_dim": 32,
+      "seed": 0,
+      "num_runs": 1
+    },
+    "parsed_args_source": "lib.parser.get_parser_args() run on the server with the run's argv (raw/<job>/reboot_config_dump.txt)",
+    "momentum": 0.9,
+    "momentum_source": "training_encrypted.py training_config (hard-coded momentum=0.9)",
+    "optimizer": "ENCRYPTED_NESTEROV_SGD (training_encrypted.py)",
+    "lr_schedule": "CosineLR(base_lr=lr, steps_before_restart=50, from_step=5*n_train_batches): constant lr for the first 5 epochs, so constant in this 1-epoch run",
+    "lr_seen_per_step": [
+      0.0005
+    ],
+    "init": [
+      "50:        # bound = np.sqrt(1 / in_features)  # Kaiming uniform (PyTorch's default)",
+      "51:        bound = np.sqrt(1 / (in_features + out_features))  # Xavier uniform"
+    ],
+    "init_note": "lib/layers/linear.py: Xavier uniform U(-sqrt(1/(in+out)), +sqrt(1/(in+out))), no bias (bias=False in network_config); np.random.seed(seed=0)",
+    "fhe_config_yaml": "params:\n  64_first_mod: 54\n  64_scaling_mod_size: 49\n  64_rescale_method: FLEXIBLEAUTOEXT\n\n  128_first_mod: 89\n  128_scaling_mod_size: 78\n  128_rescale_method: FIXEDAUTO\n\n  ring_dim: 65536\n  mult_depth: null\n  num_slots: null\n  security_level: HEStd_128_classic\n\nbootstrap_params:\n  run_bootstrap: true\n  level_budget: [2, 2]\n  secret_key_dist: SPARSE_TERNARY\n  num_iterations: 2\n  precision: 11\n\nfeatures:\n  pke: true\n  keyswitch: true\n  leveledshe: true\n  advancedshe: true\n  fhe: true"
+  },
+  "reboot_printed_parameters": {
+    "ckks": [
+      "Security level: SecurityLevel.HEStd_128_classic",
+      "Ring dimension: 65536",
+      "Multiplicative depth: 24",
+      "Rescale method: ScalingTechnique.FLEXIBLEAUTOEXT",
+      "Number of slots: 32768",
+      "First modulus size: 54 bits",
+      "Scaling modulus size: 49 bits"
+    ],
+    "bootstrapping": [
+      "Bootstrapping enabled: True",
+      "Bootstrapping cost: 14",
+      "Level budget: [2, 2]",
+      "Number of iterations: 2",
+      "Secret key distribution: SecretKeyDist.SPARSE_TERNARY"
+    ],
+    "network": [
+      "Multiplicative depth: 8",
+      "Valid slots: 32768",
+      "Row size: 1024",
+      "Col size: 32"
+    ],
+    "threads_line": "Detected 12 threads",
+    "bootstrap_precision_arg": [
+      11
+    ]
+  },
+  "wrapper_done_line": "WRAPPER_DONE {\"test_samples\": 10000, \"test_acc_encrypted_trained_argmax10\": 0.7506, \"test_acc_encrypted_trained_argmax_all_outputs\": 0.7506, \"test_acc_init_argmax10\": 0.1456, \"test_mse_encrypted_trained\": 0.035870905965566635, \"output_dim\": 16, \"train_samples\": 1024, \"batches_per_epoch\": 21, \"final_train_loss_reported\": 34.56334686279297, \"final_train_acc_reported\": 0.5793650793650795, \"weight_abs_max_per_layer\": [0.06684501469135284, 0.16608421504497528], \"method\": \"decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test\"}",
+  "reboot_final_lines": [
+    "Final train loss: 34.56335",
+    "Final train accuracy: 57.94%"
+  ]
+}

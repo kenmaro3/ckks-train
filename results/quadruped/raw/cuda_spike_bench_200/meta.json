@@ -1,0 +1,76 @@
+{
+  "job": "cuda_spike_bench_200",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      51%"
+  ],
+  "workdir": "/home/kmihara/hekit/spikes/ntt-cuda",
+  "command": "cargo run --release --bin bench -- 16 64 200 20",
+  "threads_cap": 1,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "1",
+    "RAYON_NUM_THREADS": "1",
+    "CARGO_BUILD_JOBS": "1"
+  },
+  "nice": 10,
+  "gpu_job": true,
+  "hekit_synced_commit": [
+    "commit 43f219f",
+    "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+    "dirty_files 6",
+    "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+    "synced_at 2026-11-05T10:55:22+09:00"
+  ],
+  "start": "2026-11-05T11:20:24+09:00",
+  "end": "2026-11-05T11:20:34+09:00",
+  "wall_s_runner": 10.05435061454773,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 11:20:24 up 53 days,  1:50,  4 users,  load average: 4.86, 6.47, 5.57",
+  "uptime_after": " 11:20:34 up 53 days,  1:51,  4 users,  load average: 4.87, 6.42, 5.57",
+  "load_before": [
+    4.86,
+    6.47,
+    5.57
+  ],
+  "load_after": [
+    4.87,
+    6.42,
+    5.57
+  ],
+  "peak_rss_kb_time_v": 254264,
+  "peak_rss_kb_tree_sampled_10s": 1768,
+  "time_v": {
+    "Command being timed": "\"cargo run --release --bin bench -- 16 64 200 20\"",
+    "User time (seconds)": "0.16",
+    "System time (seconds)": "0.20",
+    "Percent of CPU this job got": "99%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "0:00.36",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "254264",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "0",
+    "Minor (reclaiming a frame) page faults": "45389",
+    "Voluntary context switches": "113",
+    "Involuntary context switches": "7",
+    "Swaps": "0",
+    "File system inputs": "0",
+    "File system outputs": "16",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T11:20:24+09:00\nuptime:  11:20:24 up 53 days,  1:50,  4 users,  load average: 4.86, 6.47, 5.57\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 16166789120 64917377024    81252352 52291481600 116313096192\nSwap:     8589930496   334630912  8255299584\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1494804, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1495416, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1496022, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1508017, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n--- nvidia-smi\nThu Nov  5 11:20:24 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.91.07              Driver Version: 595.91.07      CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |\n|  0%   31C    P8             26W /  450W |   22265MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A         1494804      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1495416      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1496022      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1508017      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         2791212      C   VLLM::EngineCore                      20660MiB |\n|    0   N/A  N/A         4085553      G   /usr/bin/gnome-shell                     10MiB |\n|    0   N/A  N/A         4085847      G   /usr/bin/Xwayland                         8MiB |\n+-----------------------------------------------------------------------------------------+\n",
+  "snapshot_after": "date: 2026-11-05T11:20:34+09:00\nuptime:  11:20:34 up 53 days,  1:51,  4 users,  load average: 4.87, 6.42, 5.57\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 16087994368 64985792512    81252352 52301873152 116391890944\nSwap:     8589930496   334630912  8255299584\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1494804, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1495416, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1496022, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n1508017, /home/kmihara/persistent-slam-tvdev/build-mit/persistent_stereo_prefix, 384 MiB\n--- nvidia-smi\nThu Nov  5 11:20:35 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.91.07              Driver Version: 595.91.07      CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |\n|  0%   31C    P8             26W /  450W |   22265MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A         1494804      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1495416      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1496022      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         1508017      C   ...-mit/persistent_stereo_prefix        384MiB |\n|    0   N/A  N/A         2791212      C   VLLM::EngineCore                      20660MiB |\n|    0   N/A  N/A         4085553      G   /usr/bin/gnome-shell                     10MiB |\n|    0   N/A  N/A         4085847      G   /usr/bin/Xwayland                         8MiB |\n+-----------------------------------------------------------------------------------------+\n"
+}

@@ -1,0 +1,76 @@
+{
+  "job": "R-41-2",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      27%"
+  ],
+  "workdir": "/home/kmihara/hekit",
+  "command": "./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement after_update --batch 64 --out results/quadruped/mnist_emlp1_ni_after_update_b64.json",
+  "threads_cap": 12,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "12",
+    "RAYON_NUM_THREADS": "12",
+    "CARGO_BUILD_JOBS": "12"
+  },
+  "nice": 10,
+  "gpu_job": false,
+  "hekit_synced_commit": [
+    "commit 43f219f",
+    "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+    "dirty_files 6",
+    "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+    "synced_at 2026-11-05T10:55:22+09:00"
+  ],
+  "start": "2026-11-05T16:54:07+09:00",
+  "end": "2026-11-05T17:32:16+09:00",
+  "wall_s_runner": 2289.4440026283264,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 16:54:07 up 53 days,  7:24,  2 users,  load average: 2.97, 3.38, 3.10",
+  "uptime_after": " 17:32:17 up 53 days,  8:02,  2 users,  load average: 2.30, 3.07, 3.17",
+  "load_before": [
+    2.97,
+    3.38,
+    3.1
+  ],
+  "load_after": [
+    2.3,
+    3.07,
+    3.17
+  ],
+  "peak_rss_kb_time_v": 28558636,
+  "peak_rss_kb_tree_sampled_10s": 28505580,
+  "time_v": {
+    "Command being timed": "\"./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement after_update --batch 64 --out results/quadruped/mnist_emlp1_ni_after_update_b64.json\"",
+    "User time (seconds)": "6960.33",
+    "System time (seconds)": "70.96",
+    "Percent of CPU this job got": "307%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "38:07.39",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "28558636",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "0",
+    "Minor (reclaiming a frame) page faults": "59241519",
+    "Voluntary context switches": "1083474",
+    "Involuntary context switches": "104189",
+    "Swaps": "0",
+    "File system inputs": "0",
+    "File system outputs": "176",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T16:54:07+09:00\nuptime:  16:54:07 up 53 days,  7:24,  2 users,  load average: 2.97, 3.38, 3.10\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8032059392 76753788928    48365568 48602263552 124447825920\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n",
+  "snapshot_after": "date: 2026-11-05T17:32:17+09:00\nuptime:  17:32:17 up 53 days,  8:02,  2 users,  load average: 2.30, 3.07, 3.17\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8062685184 76721000448    48365568 48604409856 124417200128\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n"
+}

@@ -1,0 +1,1 @@
+env HEKIT_BOOT_THREADS=1\,12 cargo bench -p hekit-ckks --features parallel --bench bootstrap 

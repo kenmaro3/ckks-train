@@ -1,0 +1,468 @@
+
+Detected 12 threads
+Subsampling applied: training on 1024 samples
+Loaded dataset: MNIST
+Train set:  (1024, 1, 28, 28), (1024, 16)
+Test set:   (10000, 1, 28, 28), (10000, 16)
+Data types: (float32, float32)
+
+Train data statistics:
+ Min:  0.00000 - Max:  1.00000
+Mean:  0.12789 - Std:  0.30476
+CKKS parameters:
+  - Security level: SecurityLevel.HEStd_128_classic
+  - Ring dimension: 65536
+  - Multiplicative depth: 24
+  - Rescale method: ScalingTechnique.FLEXIBLEAUTOEXT
+  - Number of slots: 32768
+  - First modulus size: 54 bits
+  - Scaling modulus size: 49 bits
+
+Bootstrapping parameters:
+  - Bootstrapping enabled: True
+  - Bootstrapping cost: 14
+  - Level budget: [2, 2]
+  - Number of iterations: 2
+  - Secret key distribution: SecretKeyDist.SPARSE_TERNARY
+
+Network parameters:
+  - Multiplicative depth: 8
+  - Valid slots: 32768
+  - Row size: 1024
+  - Col size: 32
+
+LocalLossMLP(
+	(0): Sequential(
+			(0): CKKSPackedLinear(in_features=784, out_features=32, bias=False, row_packing=True)
+			(1): PolyReLU()
+			(2): CKKSPackedLinear(in_features=32, out_features=16, bias=False, row_packing=False)
+		)
+	)
+       linear_00 weights: (784, 32) -> (1024, 32)
+       linear_01 weights: (32, 16) -> (32, 1024)
+| linear_00        | Forward    | Min:  -0.658 | Max:   0.537 | Mean:  -0.025 | Std:   0.176 | Level:  1 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   0.826 | Mean:   0.007 | Std:   0.174 | Level:  2 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Forward    | Min:  -0.311 | Max:   0.300 | Mean:   0.000 | Std:   0.010 | Level:  4 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad X     | Min:  -0.216 | Max:   0.242 | Mean:   0.000 | Std:   0.085 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad W     | Min:  -2.248 | Max:   2.112 | Mean:  -0.000 | Std:   0.067 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Weights    | Min:  -0.144 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Velocity   | Min:  -2.248 | Max:   2.112 | Mean:  -0.000 | Std:   0.067 | Level:  5 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Backward   | Min:  -0.195 | Max:   0.428 | Mean:   0.004 | Std:   0.089 | Level:  6 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Grad W     | Min:  -2.592 | Max:   4.275 | Mean:   0.024 | Std:   0.359 | Level:  7 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.004 | Mean:   0.000 | Std:   0.000 | Level:  8 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Weights    | Min:  -0.037 | Max:   0.036 | Mean:  -0.000 | Std:   0.018 | Level:  8 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Velocity   | Min:  -2.592 | Max:   4.275 | Mean:   0.024 | Std:   0.359 | Level:  7 | Precision: (35.00|35.00|35.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 63.106 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  1/21 - Batch loss: 49.33609 - Batch accuracy: 14.58% - Time: 2m 55s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.603 | Max:   0.514 | Mean:  -0.035 | Std:   0.177 | Level:  9 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   0.778 | Mean:  -0.003 | Std:   0.170 | Level: 10 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Forward    | Min:  -0.196 | Max:   0.301 | Mean:   0.000 | Std:   0.009 | Level: 12 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad X     | Min:  -0.184 | Max:   0.200 | Mean:   0.006 | Std:   0.083 | Level: 13 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Grad W     | Min:  -3.688 | Max:   1.725 | Mean:   0.000 | Std:   0.056 | Level: 13 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 14 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Weights    | Min:  -0.144 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level: 14 | Precision: (35.00|35.00|35.00) |
+| linear_01        | Velocity   | Min:  -5.612 | Max:   2.589 | Mean:  -0.000 | Std:   0.097 | Level: 13 | Precision: (35.00|35.00|35.00) |
+| non_linearity_00 | Backward   | Min:  -0.213 | Max:   0.350 | Mean:   0.008 | Std:   0.084 | Level: 14 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Grad W     | Min:  -1.847 | Max:   2.480 | Mean:   0.041 | Std:   0.273 | Level: 15 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 16 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Weights    | Min:  -0.039 | Max:   0.037 | Mean:  -0.000 | Std:   0.018 | Level: 16 | Precision: (35.00|35.00|35.00) |
+| linear_00        | Velocity   | Min:  -4.052 | Max:   4.973 | Mean:   0.063 | Std:   0.471 | Level: 15 | Precision: (35.00|35.00|35.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 105.746 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  2/21 - Batch loss: 46.24556 - Batch accuracy: 18.75% - Time: 2m 58s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.744 | Max:   0.579 | Mean:  -0.045 | Std:   0.195 | Level: 16 | Precision: (19.35|20.00|19.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   0.914 | Mean:  -0.005 | Std:   0.185 | Level: 17 | Precision: (19.35|20.00|18.00) |
+| linear_01        | Forward    | Min:  -0.213 | Max:   0.350 | Mean:   0.001 | Std:   0.012 | Level: 19 | Precision: (23.42|24.00|22.00) |
+| linear_01        | Grad X     | Min:  -0.199 | Max:   0.241 | Mean:  -0.000 | Std:   0.080 | Level: 20 | Precision: (21.75|23.00|21.00) |
+| linear_01        | Grad W     | Min:  -2.350 | Max:   1.516 | Mean:   0.000 | Std:   0.055 | Level: 20 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (31.00|31.00|31.00) |
+| linear_01        | Weights    | Min:  -0.145 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (31.00|31.00|31.00) |
+| linear_01        | Velocity   | Min:  -5.705 | Max:   2.479 | Mean:  -0.000 | Std:   0.115 | Level: 20 | Precision: (21.00|21.00|21.00) |
+| non_linearity_00 | Backward   | Min:  -0.237 | Max:   0.427 | Mean:   0.001 | Std:   0.080 | Level: 21 | Precision: (21.21|22.00|20.00) |
+| linear_00        | Grad W     | Min:  -1.992 | Max:   2.080 | Mean:   0.013 | Std:   0.232 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (29.00|29.00|29.00) |
+| linear_00        | Weights    | Min:  -0.040 | Max:   0.038 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (22.00|22.00|22.00) |
+| linear_00        | Velocity   | Min:  -3.441 | Max:   4.807 | Mean:   0.070 | Std:   0.465 | Level: 22 | Precision: (19.00|19.00|19.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 126.108 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  3/21 - Batch loss: 43.77197 - Batch accuracy: 18.75% - Time: 2m 49s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.722 | Max:   0.598 | Mean:  -0.059 | Std:   0.193 | Level: 16 | Precision: (19.00|20.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   0.955 | Mean:  -0.018 | Std:   0.178 | Level: 17 | Precision: (18.96|20.00|18.00) |
+| linear_01        | Forward    | Min:  -0.189 | Max:   0.320 | Mean:   0.001 | Std:   0.012 | Level: 19 | Precision: (22.27|23.00|22.00) |
+| linear_01        | Grad X     | Min:  -0.204 | Max:   0.216 | Mean:  -0.006 | Std:   0.078 | Level: 20 | Precision: (21.48|22.00|21.00) |
+| linear_01        | Grad W     | Min:  -1.688 | Max:   1.393 | Mean:   0.000 | Std:   0.055 | Level: 20 | Precision: (20.00|20.00|20.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (30.00|30.00|30.00) |
+| linear_01        | Weights    | Min:  -0.146 | Max:   0.144 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (22.00|22.00|22.00) |
+| linear_01        | Velocity   | Min:  -4.157 | Max:   3.345 | Mean:   0.000 | Std:   0.133 | Level: 20 | Precision: (20.00|20.00|20.00) |
+| non_linearity_00 | Backward   | Min:  -0.210 | Max:   0.342 | Mean:  -0.005 | Std:   0.073 | Level: 21 | Precision: (21.06|22.00|20.00) |
+| linear_00        | Grad W     | Min:  -1.660 | Max:   1.588 | Mean:  -0.017 | Std:   0.203 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (29.00|29.00|29.00) |
+| linear_00        | Weights    | Min:  -0.041 | Max:   0.039 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (22.00|22.00|22.00) |
+| linear_00        | Velocity   | Min:  -4.708 | Max:   4.416 | Mean:   0.045 | Std:   0.505 | Level: 22 | Precision: (18.00|18.00|18.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 126.491 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  4/21 - Batch loss: 42.36291 - Batch accuracy: 27.08% - Time: 2m 50s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.783 | Max:   0.690 | Mean:  -0.061 | Std:   0.220 | Level: 16 | Precision: (18.77|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.165 | Mean:  -0.009 | Std:   0.204 | Level: 17 | Precision: (18.71|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.259 | Max:   0.418 | Mean:   0.001 | Std:   0.014 | Level: 19 | Precision: (21.71|22.00|21.00) |
+| linear_01        | Grad X     | Min:  -0.199 | Max:   0.223 | Mean:  -0.003 | Std:   0.076 | Level: 20 | Precision: (21.00|22.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.489 | Max:   2.989 | Mean:   0.000 | Std:   0.058 | Level: 20 | Precision: (19.00|19.00|19.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.004 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (29.00|29.00|29.00) |
+| linear_01        | Weights    | Min:  -0.147 | Max:   0.143 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (22.00|22.00|22.00) |
+| linear_01        | Velocity   | Min:  -5.562 | Max:   4.673 | Mean:   0.000 | Std:   0.158 | Level: 20 | Precision: (19.00|19.00|19.00) |
+| non_linearity_00 | Backward   | Min:  -0.202 | Max:   0.343 | Mean:  -0.001 | Std:   0.075 | Level: 21 | Precision: (20.69|21.00|20.00) |
+| linear_00        | Grad W     | Min:  -1.834 | Max:   1.799 | Mean:   0.000 | Std:   0.219 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.041 | Max:   0.040 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (22.00|22.00|22.00) |
+| linear_00        | Velocity   | Min:  -4.854 | Max:   3.718 | Mean:   0.041 | Std:   0.549 | Level: 22 | Precision: (18.00|18.00|18.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 127.257 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  5/21 - Batch loss: 41.16542 - Batch accuracy: 35.42% - Time: 2m 51s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch  1/1 - Estimated loss: 44.57639 - Estimated accuracy 22.92% 
+--------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.782 | Max:   0.683 | Mean:  -0.070 | Std:   0.207 | Level: 16 | Precision: (18.40|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.148 | Mean:  -0.022 | Std:   0.191 | Level: 17 | Precision: (18.60|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.206 | Max:   0.382 | Mean:   0.001 | Std:   0.013 | Level: 19 | Precision: (21.50|22.00|21.00) |
+| linear_01        | Grad X     | Min:  -0.183 | Max:   0.192 | Mean:  -0.001 | Std:   0.071 | Level: 20 | Precision: (20.94|22.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.524 | Max:   1.050 | Mean:   0.000 | Std:   0.043 | Level: 20 | Precision: (19.00|19.00|19.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (29.00|29.00|29.00) |
+| linear_01        | Weights    | Min:  -0.148 | Max:   0.143 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (22.00|22.00|22.00) |
+| linear_01        | Velocity   | Min:  -5.587 | Max:   5.004 | Mean:   0.000 | Std:   0.163 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| non_linearity_00 | Backward   | Min:  -0.169 | Max:   0.296 | Mean:  -0.002 | Std:   0.067 | Level: 21 | Precision: (20.58|21.00|20.00) |
+| linear_00        | Grad W     | Min:  -1.289 | Max:   1.462 | Mean:  -0.005 | Std:   0.150 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.042 | Max:   0.041 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (22.00|22.00|22.00) |
+| linear_00        | Velocity   | Min:  -5.604 | Max:   4.209 | Mean:   0.032 | Std:   0.562 | Level: 22 | Precision: (18.00|18.00|18.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 132.550 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  6/21 - Batch loss: 37.58231 - Batch accuracy: 50.00% - Time: 2m 56s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.145 | Max:   0.850 | Mean:  -0.070 | Std:   0.233 | Level: 16 | Precision: (18.25|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.572 | Mean:  -0.010 | Std:   0.214 | Level: 17 | Precision: (18.25|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.227 | Max:   0.448 | Mean:   0.001 | Std:   0.015 | Level: 19 | Precision: (21.15|22.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.188 | Max:   0.222 | Mean:   0.001 | Std:   0.071 | Level: 20 | Precision: (20.75|22.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.060 | Max:   3.719 | Mean:   0.000 | Std:   0.064 | Level: 20 | Precision: (19.00|19.00|19.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.004 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (28.00|28.00|28.00) |
+| linear_01        | Weights    | Min:  -0.149 | Max:   0.143 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (22.00|22.00|22.00) |
+| linear_01        | Velocity   | Min:  -6.793 | Max:   5.957 | Mean:   0.000 | Std:   0.187 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| non_linearity_00 | Backward   | Min:  -0.197 | Max:   0.356 | Mean:  -0.001 | Std:   0.068 | Level: 21 | Precision: (20.31|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.463 | Max:   2.018 | Mean:   0.003 | Std:   0.214 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.043 | Max:   0.043 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -5.554 | Max:   5.257 | Mean:   0.032 | Std:   0.590 | Level: 22 | Precision: (18.00|18.00|18.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 135.785 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  7/21 - Batch loss: 36.91229 - Batch accuracy: 56.25% - Time: 3m 1s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.971 | Max:   0.801 | Mean:  -0.083 | Std:   0.247 | Level: 16 | Precision: (18.12|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.442 | Mean:  -0.015 | Std:   0.224 | Level: 17 | Precision: (18.19|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.226 | Max:   0.499 | Mean:   0.001 | Std:   0.015 | Level: 19 | Precision: (20.96|22.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.209 | Max:   0.259 | Mean:   0.001 | Std:   0.071 | Level: 20 | Precision: (20.73|22.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.180 | Max:   1.248 | Mean:   0.000 | Std:   0.051 | Level: 20 | Precision: (19.00|19.00|19.00) |
+| linear_01        | Update W   | Min:  -0.005 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (28.00|28.00|28.00) |
+| linear_01        | Weights    | Min:  -0.149 | Max:   0.143 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -8.227 | Max:   6.329 | Mean:   0.000 | Std:   0.192 | Level: 20 | Precision: (17.00|17.00|17.00) |
+| non_linearity_00 | Backward   | Min:  -0.254 | Max:   0.536 | Mean:   0.000 | Std:   0.069 | Level: 21 | Precision: (20.27|22.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.354 | Max:   1.509 | Mean:   0.006 | Std:   0.182 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.044 | Max:   0.045 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -5.514 | Max:   5.248 | Mean:   0.035 | Std:   0.581 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 131.882 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  8/21 - Batch loss: 36.46425 - Batch accuracy: 56.25% - Time: 2m 57s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.931 | Max:   0.751 | Mean:  -0.092 | Std:   0.248 | Level: 16 | Precision: (18.08|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.316 | Mean:  -0.022 | Std:   0.216 | Level: 17 | Precision: (18.10|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.302 | Max:   0.531 | Mean:   0.001 | Std:   0.014 | Level: 19 | Precision: (20.92|22.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.199 | Max:   0.204 | Mean:   0.002 | Std:   0.071 | Level: 20 | Precision: (20.58|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.804 | Max:   1.253 | Mean:   0.000 | Std:   0.050 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (28.00|28.00|28.00) |
+| linear_01        | Weights    | Min:  -0.150 | Max:   0.144 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.816 | Max:   6.017 | Mean:   0.000 | Std:   0.189 | Level: 20 | Precision: (17.00|17.00|17.00) |
+| non_linearity_00 | Backward   | Min:  -0.194 | Max:   0.427 | Mean:   0.000 | Std:   0.068 | Level: 21 | Precision: (20.23|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.282 | Max:   1.447 | Mean:   0.002 | Std:   0.176 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.045 | Max:   0.047 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -5.084 | Max:   4.539 | Mean:   0.034 | Std:   0.573 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 132.724 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step  9/21 - Batch loss: 36.67268 - Batch accuracy: 56.25% - Time: 2m 55s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch  1/1 - Estimated loss: 41.16817 - Estimated accuracy 37.04% 
+--------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.872 | Max:   0.749 | Mean:  -0.088 | Std:   0.250 | Level: 16 | Precision: (18.02|19.00|18.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.309 | Mean:  -0.018 | Std:   0.226 | Level: 17 | Precision: (18.12|19.00|18.00) |
+| linear_01        | Forward    | Min:  -0.273 | Max:   0.691 | Mean:   0.001 | Std:   0.015 | Level: 19 | Precision: (20.90|21.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.204 | Max:   0.196 | Mean:  -0.001 | Std:   0.069 | Level: 20 | Precision: (20.46|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.369 | Max:   1.476 | Mean:   0.000 | Std:   0.052 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.151 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -5.987 | Max:   5.606 | Mean:   0.000 | Std:   0.186 | Level: 20 | Precision: (17.00|17.00|17.00) |
+| non_linearity_00 | Backward   | Min:  -0.189 | Max:   0.290 | Mean:  -0.002 | Std:   0.062 | Level: 21 | Precision: (20.12|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.479 | Max:   1.512 | Mean:  -0.005 | Std:   0.167 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.046 | Max:   0.049 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -4.721 | Max:   4.539 | Mean:   0.025 | Std:   0.569 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 132.111 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 10/21 - Batch loss: 34.15516 - Batch accuracy: 68.75% - Time: 2m 55s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.071 | Max:   0.983 | Mean:  -0.101 | Std:   0.286 | Level: 16 | Precision: (17.94|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.949 | Mean:  -0.009 | Std:   0.263 | Level: 17 | Precision: (18.00|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.332 | Max:   0.943 | Mean:   0.001 | Std:   0.018 | Level: 19 | Precision: (20.58|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.207 | Max:   0.170 | Mean:  -0.001 | Std:   0.066 | Level: 20 | Precision: (20.25|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -2.096 | Max:   2.273 | Mean:  -0.000 | Std:   0.057 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.152 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -7.135 | Max:   4.016 | Mean:   0.000 | Std:   0.192 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.189 | Max:   0.286 | Mean:  -0.003 | Std:   0.062 | Level: 21 | Precision: (20.04|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.188 | Max:   1.279 | Mean:  -0.013 | Std:   0.152 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.047 | Max:   0.052 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -5.289 | Max:   4.126 | Mean:   0.010 | Std:   0.549 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 132.413 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 11/21 - Batch loss: 31.25272 - Batch accuracy: 72.92% - Time: 2m 57s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.022 | Max:   0.998 | Mean:  -0.088 | Std:   0.272 | Level: 16 | Precision: (17.98|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.994 | Mean:  -0.006 | Std:   0.252 | Level: 17 | Precision: (17.92|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.359 | Max:   0.943 | Mean:   0.001 | Std:   0.018 | Level: 19 | Precision: (20.60|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.187 | Max:   0.208 | Mean:  -0.003 | Std:   0.064 | Level: 20 | Precision: (20.23|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.750 | Max:   1.578 | Mean:  -0.000 | Std:   0.055 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.153 | Max:   0.145 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.468 | Max:   3.989 | Mean:   0.000 | Std:   0.198 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.192 | Max:   0.350 | Mean:  -0.004 | Std:   0.060 | Level: 21 | Precision: (20.00|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.161 | Max:   1.225 | Mean:  -0.009 | Std:   0.139 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.048 | Max:   0.055 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -5.279 | Max:   3.641 | Mean:   0.000 | Std:   0.526 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 134.732 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 12/21 - Batch loss: 31.43611 - Batch accuracy: 68.75% - Time: 2m 58s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.999 | Max:   1.082 | Mean:  -0.093 | Std:   0.290 | Level: 16 | Precision: (17.88|19.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   2.252 | Mean:  -0.000 | Std:   0.279 | Level: 17 | Precision: (17.85|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.321 | Max:   0.990 | Mean:   0.001 | Std:   0.019 | Level: 19 | Precision: (20.38|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.220 | Max:   0.212 | Mean:   0.000 | Std:   0.064 | Level: 20 | Precision: (20.17|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -2.270 | Max:   1.728 | Mean:  -0.000 | Std:   0.051 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.154 | Max:   0.146 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.473 | Max:   4.349 | Mean:  -0.000 | Std:   0.204 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.184 | Max:   0.469 | Mean:  -0.001 | Std:   0.064 | Level: 21 | Precision: (19.96|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.979 | Max:   1.836 | Mean:   0.003 | Std:   0.146 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.049 | Max:   0.057 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -4.772 | Max:   3.858 | Mean:   0.004 | Std:   0.511 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 141.139 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 13/21 - Batch loss: 30.43008 - Batch accuracy: 66.67% - Time: 3m 7s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch  1/1 - Estimated loss: 38.29135 - Estimated accuracy 46.96% 
+--------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.013 | Max:   0.765 | Mean:  -0.088 | Std:   0.284 | Level: 16 | Precision: (17.96|19.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.351 | Mean:   0.000 | Std:   0.262 | Level: 17 | Precision: (17.94|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.231 | Max:   0.785 | Mean:   0.001 | Std:   0.019 | Level: 19 | Precision: (20.42|21.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.192 | Max:   0.214 | Mean:  -0.000 | Std:   0.063 | Level: 20 | Precision: (20.35|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -2.000 | Max:   1.347 | Mean:  -0.000 | Std:   0.046 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.155 | Max:   0.148 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.473 | Max:   4.323 | Mean:  -0.000 | Std:   0.208 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.219 | Max:   0.449 | Mean:  -0.002 | Std:   0.061 | Level: 21 | Precision: (19.98|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.992 | Max:   0.947 | Mean:  -0.010 | Std:   0.117 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.050 | Max:   0.059 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -4.340 | Max:   3.885 | Mean:  -0.007 | Std:   0.503 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 131.868 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 14/21 - Batch loss: 29.72065 - Batch accuracy: 72.92% - Time: 2m 57s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.050 | Max:   0.986 | Mean:  -0.087 | Std:   0.280 | Level: 16 | Precision: (17.83|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.958 | Mean:  -0.001 | Std:   0.261 | Level: 17 | Precision: (17.88|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.229 | Max:   0.823 | Mean:   0.001 | Std:   0.018 | Level: 19 | Precision: (20.35|21.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.185 | Max:   0.250 | Mean:   0.000 | Std:   0.064 | Level: 20 | Precision: (20.15|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -1.089 | Max:   1.229 | Mean:  -0.000 | Std:   0.039 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (27.00|27.00|27.00) |
+| linear_01        | Weights    | Min:  -0.156 | Max:   0.150 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.160 | Max:   4.271 | Mean:  -0.000 | Std:   0.207 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.190 | Max:   0.465 | Mean:  -0.002 | Std:   0.063 | Level: 21 | Precision: (19.83|20.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.926 | Max:   1.297 | Mean:  -0.002 | Std:   0.131 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.051 | Max:   0.061 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -3.988 | Max:   3.595 | Mean:  -0.008 | Std:   0.497 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 126.915 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 15/21 - Batch loss: 30.08451 - Batch accuracy: 77.08% - Time: 2m 47s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.073 | Max:   0.790 | Mean:  -0.082 | Std:   0.289 | Level: 16 | Precision: (17.92|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.415 | Mean:   0.008 | Std:   0.269 | Level: 17 | Precision: (17.88|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.252 | Max:   0.852 | Mean:   0.001 | Std:   0.019 | Level: 19 | Precision: (20.27|21.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.244 | Max:   0.194 | Mean:   0.001 | Std:   0.065 | Level: 20 | Precision: (20.19|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -1.434 | Max:   1.599 | Mean:  -0.000 | Std:   0.052 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.157 | Max:   0.154 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.302 | Max:   4.633 | Mean:  -0.000 | Std:   0.202 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.192 | Max:   0.393 | Mean:   0.001 | Std:   0.063 | Level: 21 | Precision: (19.90|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.862 | Max:   1.753 | Mean:   0.004 | Std:   0.151 | Level: 22 | Precision: (19.00|19.00|19.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.003 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.052 | Max:   0.062 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -3.144 | Max:   4.728 | Mean:  -0.003 | Std:   0.480 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 123.801 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 16/21 - Batch loss: 31.29848 - Batch accuracy: 70.83% - Time: 2m 43s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.986 | Max:   0.894 | Mean:  -0.090 | Std:   0.302 | Level: 16 | Precision: (17.85|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.694 | Mean:   0.009 | Std:   0.276 | Level: 17 | Precision: (17.67|18.00|17.00) |
+| linear_01        | Forward    | Min:  -0.226 | Max:   0.980 | Mean:   0.001 | Std:   0.020 | Level: 19 | Precision: (20.10|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.205 | Max:   0.203 | Mean:   0.000 | Std:   0.062 | Level: 20 | Precision: (20.04|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -1.793 | Max:   1.737 | Mean:  -0.000 | Std:   0.053 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.159 | Max:   0.156 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -5.718 | Max:   4.831 | Mean:  -0.000 | Std:   0.207 | Level: 20 | Precision: (16.00|16.00|16.00) |
+| non_linearity_00 | Backward   | Min:  -0.199 | Max:   0.391 | Mean:  -0.001 | Std:   0.062 | Level: 21 | Precision: (19.71|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.175 | Max:   1.304 | Mean:   0.005 | Std:   0.139 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.052 | Max:   0.063 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -3.329 | Max:   4.103 | Mean:   0.002 | Std:   0.462 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 123.852 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 17/21 - Batch loss: 28.09896 - Batch accuracy: 75.00% - Time: 2m 43s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch  1/1 - Estimated loss: 36.29354 - Estimated accuracy 53.31% 
+--------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.021 | Max:   0.845 | Mean:  -0.078 | Std:   0.287 | Level: 16 | Precision: (17.73|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.558 | Mean:   0.011 | Std:   0.272 | Level: 17 | Precision: (17.71|18.00|17.00) |
+| linear_01        | Forward    | Min:  -0.330 | Max:   0.773 | Mean:   0.001 | Std:   0.019 | Level: 19 | Precision: (20.12|21.00|20.00) |
+| linear_01        | Grad X     | Min:  -0.228 | Max:   0.215 | Mean:   0.002 | Std:   0.063 | Level: 20 | Precision: (20.12|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -2.459 | Max:   1.414 | Mean:  -0.000 | Std:   0.053 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.160 | Max:   0.158 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.113 | Max:   5.693 | Mean:  -0.000 | Std:   0.207 | Level: 20 | Precision: (15.00|15.00|15.00) |
+| non_linearity_00 | Backward   | Min:  -0.209 | Max:   0.395 | Mean:   0.001 | Std:   0.066 | Level: 21 | Precision: (19.79|21.00|19.00) |
+| linear_00        | Grad W     | Min:  -1.238 | Max:   1.771 | Mean:   0.013 | Std:   0.156 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (27.00|27.00|27.00) |
+| linear_00        | Weights    | Min:  -0.053 | Max:   0.064 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (21.00|21.00|21.00) |
+| linear_00        | Velocity   | Min:  -2.941 | Max:   3.210 | Mean:   0.015 | Std:   0.450 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 124.412 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 18/21 - Batch loss: 29.53771 - Batch accuracy: 70.83% - Time: 2m 44s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.907 | Max:   0.879 | Mean:  -0.089 | Std:   0.298 | Level: 16 | Precision: (17.65|19.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.652 | Mean:   0.008 | Std:   0.282 | Level: 17 | Precision: (17.62|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.284 | Max:   0.724 | Mean:   0.001 | Std:   0.021 | Level: 19 | Precision: (20.12|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.215 | Max:   0.206 | Mean:   0.001 | Std:   0.063 | Level: 20 | Precision: (20.10|21.00|20.00) |
+| linear_01        | Grad W     | Min:  -1.863 | Max:   1.346 | Mean:  -0.000 | Std:   0.047 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.003 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.162 | Max:   0.158 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.146 | Max:   6.133 | Mean:  -0.000 | Std:   0.208 | Level: 20 | Precision: (15.00|15.00|15.00) |
+| non_linearity_00 | Backward   | Min:  -0.266 | Max:   0.352 | Mean:   0.001 | Std:   0.064 | Level: 21 | Precision: (19.73|20.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.908 | Max:   1.368 | Mean:   0.006 | Std:   0.129 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (27.00|27.00|27.00) |
+| linear_00        | Weights    | Min:  -0.054 | Max:   0.065 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (20.00|20.00|20.00) |
+| linear_00        | Velocity   | Min:  -2.916 | Max:   2.984 | Mean:   0.020 | Std:   0.445 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 124.662 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 19/21 - Batch loss: 28.28933 - Batch accuracy: 77.08% - Time: 2m 43s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -1.065 | Max:   1.032 | Mean:  -0.099 | Std:   0.324 | Level: 16 | Precision: (17.35|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   2.097 | Mean:   0.016 | Std:   0.315 | Level: 17 | Precision: (17.35|18.00|17.00) |
+| linear_01        | Forward    | Min:  -0.289 | Max:   0.985 | Mean:   0.001 | Std:   0.022 | Level: 19 | Precision: (19.96|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.189 | Max:   0.174 | Mean:  -0.002 | Std:   0.058 | Level: 20 | Precision: (19.98|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -2.496 | Max:   2.931 | Mean:  -0.000 | Std:   0.069 | Level: 20 | Precision: (17.00|17.00|17.00) |
+| linear_01        | Update W   | Min:  -0.004 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.164 | Max:   0.159 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (21.00|21.00|21.00) |
+| linear_01        | Velocity   | Min:  -6.577 | Max:   5.477 | Mean:  -0.001 | Std:   0.220 | Level: 20 | Precision: (15.00|15.00|15.00) |
+| non_linearity_00 | Backward   | Min:  -0.216 | Max:   0.369 | Mean:  -0.003 | Std:   0.058 | Level: 21 | Precision: (19.67|21.00|18.00) |
+| linear_00        | Grad W     | Min:  -1.537 | Max:   1.339 | Mean:  -0.011 | Std:   0.169 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:  -0.000 | Std:   0.000 | Level: 23 | Precision: (27.00|27.00|27.00) |
+| linear_00        | Weights    | Min:  -0.054 | Max:   0.066 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (20.00|20.00|20.00) |
+| linear_00        | Velocity   | Min:  -3.217 | Max:   3.031 | Mean:   0.007 | Std:   0.437 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 115.704 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 20/21 - Batch loss: 24.34835 - Batch accuracy: 87.50% - Time: 2m 35s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+| linear_00        | Forward    | Min:  -0.957 | Max:   0.931 | Mean:  -0.084 | Std:   0.300 | Level: 16 | Precision: (17.44|18.00|17.00) |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.798 | Mean:   0.013 | Std:   0.288 | Level: 17 | Precision: (17.40|19.00|17.00) |
+| linear_01        | Forward    | Min:  -0.254 | Max:   0.930 | Mean:   0.001 | Std:   0.020 | Level: 19 | Precision: (20.06|21.00|19.00) |
+| linear_01        | Grad X     | Min:  -0.199 | Max:   0.207 | Mean:   0.002 | Std:   0.062 | Level: 20 | Precision: (20.02|21.00|19.00) |
+| linear_01        | Grad W     | Min:  -2.496 | Max:   1.122 | Mean:  -0.000 | Std:   0.048 | Level: 20 | Precision: (18.00|18.00|18.00) |
+| linear_01        | Update W   | Min:  -0.005 | Max:   0.003 | Mean:  -0.000 | Std:   0.000 | Level: 21 | Precision: (26.00|26.00|26.00) |
+| linear_01        | Weights    | Min:  -0.166 | Max:   0.159 | Mean:  -0.000 | Std:   0.010 | Level: 21 | Precision: (20.00|20.00|20.00) |
+| linear_01        | Velocity   | Min:  -8.415 | Max:   5.822 | Mean:  -0.001 | Std:   0.226 | Level: 20 | Precision: (15.00|15.00|15.00) |
+| non_linearity_00 | Backward   | Min:  -0.272 | Max:   0.319 | Mean:  -0.001 | Std:   0.062 | Level: 21 | Precision: (19.67|20.00|19.00) |
+| linear_00        | Grad W     | Min:  -0.887 | Max:   0.862 | Mean:  -0.001 | Std:   0.110 | Level: 22 | Precision: (18.00|18.00|18.00) |
+| linear_00        | Update W   | Min:  -0.002 | Max:   0.002 | Mean:   0.000 | Std:   0.000 | Level: 23 | Precision: (28.00|28.00|28.00) |
+| linear_00        | Weights    | Min:  -0.055 | Max:   0.067 | Mean:  -0.000 | Std:   0.018 | Level: 23 | Precision: (20.00|20.00|20.00) |
+| linear_00        | Velocity   | Min:  -3.313 | Max:   3.153 | Mean:   0.006 | Std:   0.428 | Level: 22 | Precision: (17.00|17.00|17.00) |
+-------------------------------------------------------------------------------------------------------------------------------------------
+Bootstrapping the weights took 112.619 s
+-------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------- 
+Epoch  1/1 - Step 21/21 - Batch loss: 26.66479 - Batch accuracy: 75.00% - Time: 2m 29s 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch  1/1 - Estimated loss: 34.56335 - Estimated accuracy 57.94% 
+--------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
+Epoch   1/1 - Loss: 34.56335 - Accuracy: 57.94% 
+--------------------------------------------------------------------------------
+Final train loss: 34.56335
+Final train accuracy: 57.94%
+| linear_00        | Forward    | Min:  -0.955 | Max:   0.840 | Mean:  -0.026 | Std:   0.184 |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   1.545 | Mean:   0.008 | Std:   0.181 |
+| linear_01        | Forward    | Min:  -0.365 | Max:   0.372 | Mean:   0.009 | Std:   0.082 |
+| linear_00        | Forward    | Min:  -1.461 | Max:   1.339 | Mean:  -0.092 | Std:   0.320 |
+| non_linearity_00 | Forward    | Min:  -0.250 | Max:   3.133 | Mean:   0.019 | Std:   0.298 |
+| linear_01        | Forward    | Min:  -0.598 | Max:   1.409 | Mean:   0.059 | Std:   0.157 |
+WRAPPER_DONE {"test_samples": 10000, "test_acc_encrypted_trained_argmax10": 0.7506, "test_acc_encrypted_trained_argmax_all_outputs": 0.7506, "test_acc_init_argmax10": 0.1456, "test_mse_encrypted_trained": 0.035870905965566635, "output_dim": 16, "train_samples": 1024, "batches_per_epoch": 21, "final_train_loss_reported": 34.56334686279297, "final_train_acc_reported": 0.5793650793650795, "weight_abs_max_per_layer": [0.06684501469135284, 0.16608421504497528], "method": "decrypt trained weights, decode, load into the script's plain_model, plaintext forward on X_test"}

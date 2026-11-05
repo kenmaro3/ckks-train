@@ -1,0 +1,23 @@
+	Command being timed: "env REBOOT_THREADS=12 REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_STATS_OUT=/home/kmihara/hekit-runs/out/reboot_smoke/stats.json REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONUNBUFFERED=1 PYTHONPATH=/home/kmihara/reboot/src/ReBoot /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_wrapper.py MNIST --subsample 48 --num-layers 2 --num-hidden 32 --batch-size 48 --num-epochs 1 --seed 0"
+	User time (seconds): 1545.98
+	System time (seconds): 61.74
+	Percent of CPU this job got: 704%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:48.16
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 63546828
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1027
+	Minor (reclaiming a frame) page faults: 40175868
+	Voluntary context switches: 1800827
+	Involuntary context switches: 4899
+	Swaps: 0
+	File system inputs: 247504
+	File system outputs: 163520
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
