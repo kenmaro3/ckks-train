@@ -59,12 +59,12 @@ Common rules for every block:
 - Same as R-41-1, with `--placement after_activation`.
 - **output path:** `results/quadruped/mnist_emlp1_ni_after_activation_b32.json`
 - **note:** this one is lower priority. Run it only after R-41-1 to R-41-4 are done.
-- **status:** queued: starts after the Iris run (epoch ~300/400 at 19:55 JST) and a parallel rebuild; expected start ~20:20 JST
 
 M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that code lands. Each GPU
 block will state its GPU memory need, and the tests skip with a message when the need is not met.
 
 ---
+- **status:** queued (20:20 JST) in chain3, order R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5, starting when the Iris run ends (~20:22). Runs last, from the 43f219f tree in ~/hekit.
 
 ## R-REB-1: ReBoot official eMLP-1, initial weights as plain data
 
@@ -97,6 +97,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** 1–2 min for the build, under 1 min for the tests
 - **GPU memory need:** at most 104 MiB per test, about 512 MiB peak including the CUDA context. **RAM need:** < 4 GB
 - **output path:** `results/quadruped/hekit_cuda_task44_tests.txt` (full stdout and stderr) and `results/quadruped/logs/R-44-1.log`
+- **status:** queued (20:20 JST) in chain3, order R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5, starting when the Iris run ends (~20:22). Runs in the clean clone `~/hekit-r44` at 3e0e99c (≥ 8b39a57; 0 dirty files). Skipped with a note if free GPU memory < 512 MiB at start.
 
 ## R-41-F1: Task 41 faithful encrypted run, WhenNeeded, B = 32, ReBoot's samples and initial weights
 
@@ -111,12 +112,14 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected:** 33.49 KS/sample; 17 of 32 updates bootstrap; about 45–50 min
 - **GPU memory need:** 0. **RAM need:** about 25 GB
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b32_faithful.json`, `results/quadruped/logs/R-41-F1.log`
+- **status:** queued (20:20 JST) in chain3, order R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5, starting when the Iris run ends (~20:22). Same clone at 3e0e99c; --indices and --init-weights use the in-tree copies committed in 3e0e99c (paths exactly as in the command).
 
 ## R-41-F2: same as R-41-F1, B = 64
 
 - Same as R-41-F1, with `--batch 64` and `--out results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`.
 - **expected:** 17.89 KS/sample; 9 of 16 updates bootstrap; about 25–30 min. Plaintext twin accuracy is 0.7359.
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`, `results/quadruped/logs/R-41-F2.log`
+- **status:** queued (20:20 JST) in chain3, order R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5, starting when the Iris run ends (~20:22). Same as R-41-F1.
 
 ## R-REB-2: ReBoot official eMLP-1 full training setting, as data
 
@@ -129,3 +132,19 @@ block will state its GPU memory need, and the tests skip with a message when the
   - ReBoot's paper-reported eMLP-1 test accuracy, if it is printed or stored anywhere in the repo's data or logs. Otherwise say "not found".
 - **expected duration:** < 10 min. **GPU memory need:** 0
 - **output path:** `results/quadruped/raw/reboot_emlp1_full/{config_values.json, train_indices.txt}`
+- **status:** queued (20:20 JST) in chain3, order R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5, starting when the Iris run ends (~20:22). Note: upstream experiments.sh runs the full setting with precision_analysis.py (not training_encrypted.py): 14x14 resized inputs (196 features), lr 5e-4 fixed in its config, scheduler stepped per batch, seeds 0/1/2. Output will cover all three seeds.
+
+## R-45-1: hekit-cuda GPU tests at a6ab1e2 (Task 44 + Task 45, 18 tests)
+
+- **purpose:** check that the GPU pointwise, automorphism, rescale, mod_down and mod_up kernels match the CPU bit for bit (seal_2020 and n16_train, 8 random inputs plus extremes), and that the Task 44 NTT tests pass at this commit too. If R-44-1 has not run yet, run this block instead and mark R-44-1 "superseded by R-45-1".
+- **commit to sync:** a6ab1e2 or later (clean clone, as for R-44-1)
+- **working dir:** `~/hekit-r44` (re-synced to a6ab1e2), or a fresh clean clone
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1
+  ```
+- **pass criterion:** all 18 GPU tests pass, and no `SKIP` line appears. Record any SKIP as-is.
+- **expected duration:** 1–2 min to build, then 1–3 min of tests
+- **GPU memory need:** at most 145 MiB per test, about 600 MiB peak. **RAM need:** < 4 GB
+- **output path:** `results/quadruped/hekit_cuda_task45_tests.txt` and `results/quadruped/logs/R-45-1.log`
