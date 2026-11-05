@@ -1,0 +1,67 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running unittests src/lib.rs (target/release/deps/hekit_cuda-c3b838255b0a5982)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 0.00s
+
+     Running tests/gpu.rs (target/release/deps/gpu-7786b32237eed00a)
+
+running 5 tests
+test bad_ordinal_is_device_error ... bad_ordinal_is_device_error: CUDA device ordinal 1000 does not exist (1 device(s) present)
+ok
+test intt_ntt_roundtrip_n16_train ... intt_ntt_roundtrip_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 104.0 MiB, free 1816.6 MiB)
+ok
+test ntt_matches_cpu_n16_train_32_limbs ... ntt_matches_cpu_n16_train_32_limbs: NVIDIA GeForce RTX 4090 (sm_89) (need 104.0 MiB, free 1816.6 MiB)
+ok
+test ntt_matches_cpu_small_params ... ntt_matches_cpu_small_params: NVIDIA GeForce RTX 4090 (sm_89) (need 0.0 MiB, free 1816.6 MiB)
+ntt_matches_cpu_small_params: NVIDIA GeForce RTX 4090 (sm_89) (need 16.0 MiB, free 1816.6 MiB)
+ok
+test upload_pt_roundtrip_n16_train ... upload_pt_roundtrip_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 83.0 MiB, free 1816.6 MiB)
+ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 2.08s
+
+     Running tests/gpu_arith.rs (target/release/deps/gpu_arith-dd6490a0b9ad0a8b)
+
+running 13 tests
+test automorphism_matches_cpu_n16_train ... automorphism_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test automorphism_matches_cpu_seal_2020 ... automorphism_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test mod_down_matches_cpu_n16_train ... mod_down_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test mod_down_matches_cpu_seal_2020 ... mod_down_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test mod_up_matches_cpu_n16_train ... mod_up_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test mod_up_matches_cpu_seal_2020 ... mod_up_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test pointwise_matches_cpu_n16_train ... pointwise_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test pointwise_matches_cpu_seal_2020 ... pointwise_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test qp_layout_matches_cpu_n16_train ... qp_layout_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test qp_layout_matches_cpu_seal_2020 ... qp_layout_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test rescale_matches_cpu_n16_train ... rescale_matches_cpu_n16_train: NVIDIA GeForce RTX 4090 (sm_89) (need 145.0 MiB, free 1816.6 MiB)
+ok
+test rescale_matches_cpu_seal_2020 ... rescale_matches_cpu_seal_2020: NVIDIA GeForce RTX 4090 (sm_89) (need 23.0 MiB, free 1816.6 MiB)
+ok
+test shape_errors_are_invalid_params ... shape_errors_are_invalid_params: NVIDIA GeForce RTX 4090 (sm_89) (need 4.0 MiB, free 1816.6 MiB)
+ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.47s
+
+   Doc-tests hekit_cuda
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+

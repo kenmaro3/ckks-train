@@ -1,12 +1,13 @@
 #!/bin/bash
 # Run one Task 41 Step 5 request block (requests.md R-41-x) on quadruped-gpu (~/hekit-runs/r41.sh).
-# Usage: r41.sh ID OUT_JSON_REL NUM_UPDATES -- mnist args...
+# HEKIT_DIR (default ~/hekit) selects the tree. Usage: r41.sh ID OUT_JSON_REL NUM_UPDATES -- mnist args...
 # The request's `RAYON_NUM_THREADS=12 /usr/bin/time -v ./target/release/mnist ...` is run through run_job.sh, which
 # sets RAYON_NUM_THREADS=12 and wraps the command in `nice -n 10 /usr/bin/time -v`.
 # Partial rule (requests.md): after 2 updates, project setup + mean(update 0,1) * NUM_UPDATES; if > 5 h, stop the
 # job after 8 updates have been logged and mark it partial (out/ID/partial.txt).
 set -u
 ID=$1; OUTJ=$2; NUPD=$3; shift 3; [ "$1" = "--" ] && shift
+H=${HEKIT_DIR:-$HOME/hekit}
 LOG=$HOME/hekit-runs/logs/$ID.log; OUT=$HOME/hekit-runs/out/$ID
 mkdir -p "$OUT"; rm -f "$OUT/partial.txt" "$OUT/time.pid"
 (
@@ -29,6 +30,6 @@ mkdir -p "$OUT"; rm -f "$OUT/partial.txt" "$OUT/time.pid"
     sleep 15
   done
 ) &
-bash $HOME/hekit-runs/run_job.sh "$ID" "$HOME/hekit" 12 0 -- ./target/release/mnist "$@" --out "$OUTJ"
+bash $HOME/hekit-runs/run_job.sh "$ID" "$H" 12 0 -- ./target/release/mnist "$@" --out "$OUTJ"
 wait
-mkdir -p $HOME/hekit/results/quadruped/logs && cp "$LOG" "$HOME/hekit/results/quadruped/logs/$ID.log"
+mkdir -p $H/results/quadruped/logs && cp "$LOG" "$H/results/quadruped/logs/$ID.log"

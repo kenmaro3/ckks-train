@@ -1,0 +1,1 @@
+cargo run --release -p hekit-bench --bin iris -- --epochs 400 --batch 20 --seed 2020 --out /home/kmihara/hekit-runs/out/iris_20/iris.json 

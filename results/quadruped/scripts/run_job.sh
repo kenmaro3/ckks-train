@@ -30,7 +30,7 @@ snap() {  # $1 = file
 
 printf '%q ' "$@" > "$OUT/cmd.txt"; echo >> "$OUT/cmd.txt"
 echo "$WORKDIR" > "$OUT/workdir.txt"
-cp -f "$HOME/hekit/.synced-commit" "$OUT/synced-commit.txt" 2>/dev/null || true
+cp -f "${SYNCED_COMMIT_FILE:-$HOME/hekit/.synced-commit}" "$OUT/synced-commit.txt" 2>/dev/null || true
 snap "$OUT/pre.txt"
 START=$(date -Is); START_EPOCH=$(date +%s.%N)
 cd "$WORKDIR" || { echo "no workdir $WORKDIR" > "$LOG"; exit 2; }

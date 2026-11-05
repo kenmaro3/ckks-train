@@ -141,3 +141,70 @@ Deleted the OpenFHE and openfhe-python build trees (91 MB) and the rustup instal
 venv, reboot_cpp module and hekit `target/` for reruns. My total on the server is about 3.2 GB (`~/reboot` 1.5G,
 `~/.rustup` 1.1G, `~/hekit` 395M, `~/.cargo` 150M). The disk has 26 GB free; the rest of the usage belongs to
 other users.
+
+### 2026-11-05 ~20:10 ReBoot config record replaced (controller request)
+`raw/reboot_emlp1_official_subset/reboot_config_dump.txt` contained ReBoot (GPL-3.0) source excerpts and was
+deleted. It is replaced by `reboot_config_values.json`, which holds plain values only, and
+`reboot_emlp1_official_subset.json` was regenerated from it. The 1008 trained indices are in
+`reboot_subsample_indices.txt` (one line per step, plus the 16 dropped). They were rebuilt by `scripts/reboot_indices.py`
+from ReBoot's own shuffles and checked by a plaintext replay with ReBoot's plaintext Nesterov step: per-step batch
+loss within 1.5e-6 (relative) of the encrypted run, batch accuracy equal on 21/21 steps (`reboot_indices.json`).
+
+### 2026-11-05 20:08 R-REB-1: ReBoot initial weights → `raw/reboot_emlp1_official_subset/reboot_init_weights/`
+`scripts/reboot_init_weights.py` (run through `run_job.sh`, 2 threads, wall 10 s, peak RSS 0.78 GB). It ran while
+the single-threaded Iris run was going (epoch ~355); that overlap is noted here because it may have added a little
+time to one or two Iris epochs. W1.npy (784 × 32) and W2.npy (32 × 16) are stored in × out as float64 (ReBoot holds
+float32, so the upcast is exact); sha256 values are in `init_weights.json`. Replaying step 1 from the files
+reproduces ReBoot's step-1 batch loss 49.33608627 and accuracy 0.1458 exactly (equal to `reboot_indices.json` and to
+the encrypted run's step 1).
+
+### 2026-11-05 20:12 Queue change for R-44-1
+R-44-1 needs commit ≥ 8b39a57, while R-41-5 is pinned to 43f219f in `~/hekit`. So `~/hekit` was not re-synced.
+Instead, the Mac HEAD (85bf330, committed state, 0 dirty files) was cloned from a git bundle into `~/hekit-r44`, and
+R-44-1 runs there. The first chain was stopped (only its bash process; the Iris job it had launched continued).
+`chain2.sh` waits for Iris, runs R-44-1 (GPU check, then an untimed build, then the tests), and then R-41-5. That way
+no build overlaps a timed run. `run_job.sh` now takes `SYNCED_COMMIT_FILE`, so each job records the tree it ran in.
+
+### 2026-11-05 20:20 Queue change: chain3
+New blocks R-41-F1, R-41-F2 and R-REB-2 (requests at 3e0e99c). chain2, which was still waiting for Iris and had run
+nothing, was stopped. `~/hekit-r44` was re-cloned at 3e0e99c (committed state, 0 dirty files); that commit contains
+the R-REB-1 weights and the subset indices, so F1/F2 use the in-tree copies at the paths in the request command
+(no flags point at `~/hekit`). `chain3.sh` waits for Iris, then runs R-44-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5
+(R-41-5 from the 43f219f tree in `~/hekit`). `r41.sh` now takes `HEKIT_DIR` for the tree.
+Finding for R-REB-2: upstream `experiments.sh` runs the full eMLP-1 setting with `precision_analysis.py`, not
+`training_encrypted.py`. That script resizes inputs to 14 × 14 (196 features), fixes lr at 5e-4 in its config,
+steps the cosine scheduler once per batch (so the lr decays after step 500), trains a plaintext twin alongside, and is
+listed with seeds 0, 1 and 2.
+
+### 2026-11-05 18:45–20:20 Job 2b: Iris → `results/quadruped/iris_20.json`
+`cargo run --release -p hekit-bench --bin iris -- --epochs 400 --batch 20 --seed 2020`, 1 thread (release profile;
+the Mac `results/iris_20.json` binary was built with the LTO bench profile). Load 2.37 2.89 2.80 at start.
+- Final: test acc 0.9667, train acc 0.9833, twin equal; max weight error 2.7e-6. Same accuracies as the Mac run.
+- Wall 5686.5 s (binary's own) versus 3355.8 s on the Mac (ratio 1.69, different build profile). Peak RSS 1.3 GB.
+- **Runner incident:** `run_job.sh` for this job died between the end of its monitoring loop (20:19:38) and writing
+  `post.txt`/`meta.json`. The program itself finished normally (time -v exit 0, 1:34:49). The cause is not
+  determined; the job's parent chain bash had been stopped at 20:12 to reorder the queue. As a result, chain3 (which
+  waited for `post.txt`) sat idle from 20:20 to 20:47. Recovery at 20:47: `post.txt` was written then and marked
+  "recovered snapshot, taken late", and `meta.json` was rebuilt from `pre.txt`, `time.txt` and `rss.tsv` (end time =
+  mtime of `time.txt`; field `recovered`), so `uptime_after`/`load_after` in the Iris provenance are from 20:47, not
+  from the job end. Lesson applied: chains are only stopped while they wait, never while a job runs.
+
+### 2026-11-05 20:50 Queue: chain4 (R-45-1 supersedes R-44-1)
+R-45-1 (hekit-cuda Task 44 + 45 tests) runs in a new clean clone `~/hekit-r45` at 7519f77 (contains a6ab1e2,
+0 dirty files). R-44-1 was not run and is marked superseded. F1/F2 stay on `~/hekit-r44` at 3e0e99c as announced.
+Order: R-45-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5. A dry run of the extended R-REB-2 script (seeds 0–9,
+twin replay, data dump) runs into `~/hekit-runs/scratch/` alongside R-45-1, which is a correctness test, not timed.
+
+### 2026-11-05 20:48 R-45-1: hekit-cuda Task 44 + 45 GPU tests → `results/quadruped/hekit_cuda_task45_tests.txt`
+Clean clone `~/hekit-r45` at 7519f77 (contains a6ab1e2), cudarc 0.19.0 with `cuda-13010` and `dynamic-loading`,
+NVRTC 13.1 via `LD_LIBRARY_PATH`. GPU free before: 2208 MiB (used 21875 MiB, by vLLM and others). Untimed build
+`raw/R-45-1-build/`, then `cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1`.
+**18 passed, 0 failed, 0 SKIP** (5 Task 44: NTT, INTT round trip, upload, small params, bad ordinal → Device
+error; 13 Task 45: pointwise, automorphism, rescale, mod_down, mod_up, QP layout for seal_2020 and n16_train, plus
+shape errors). Each GPU test reported a need of ≤ 145 MiB with 1816.6 MiB free. Peak host RSS 0.45 GB.
+
+R-REB-2 dry run (`~/hekit-runs/scratch/rebdry`, 20:47–20:48:36, outside run_job): all 10 seeds, 1000 steps each,
+196 inputs, data identical across seeds, pre-scaling min/max −35.69 / 284.48 (bicubic overshoot), no accuracy
+numbers in the repo's text files. Twin test accuracy over seeds 0–9: mean 0.9065, sample std 0.0027. It finished
+21 s before R-41-F1 started, so it did not overlap the timed run. The provenance-recorded R-REB-2 run happens in its
+queue slot and will be checked against this dry run.

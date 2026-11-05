@@ -1,0 +1,76 @@
+{
+  "job": "R-45-1-build",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      47%"
+  ],
+  "workdir": "/home/kmihara/hekit-r45",
+  "command": "cargo test -p hekit-cuda --features cuda --release --no-run",
+  "threads_cap": 12,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "12",
+    "RAYON_NUM_THREADS": "12",
+    "CARGO_BUILD_JOBS": "12"
+  },
+  "nice": 10,
+  "gpu_job": false,
+  "hekit_synced_commit": [
+    "commit 7519f77",
+    "full 7519f77ef8d3dbbc33d74bc8e3ad219d646743a1",
+    "dirty_files 0",
+    "source git bundle of the Mac HEAD (committed state only), cloned to ~/hekit-r45",
+    "synced_at 2026-11-05T20:47:30+09:00"
+  ],
+  "start": "2026-11-05T20:48:16+09:00",
+  "end": "2026-11-05T20:48:26+09:00",
+  "wall_s_runner": 10.048194408416748,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 20:48:16 up 53 days, 11:18,  3 users,  load average: 3.09, 3.74, 4.37",
+  "uptime_after": " 20:48:26 up 53 days, 11:18,  3 users,  load average: 3.96, 3.91, 4.42",
+  "load_before": [
+    3.09,
+    3.74,
+    4.37
+  ],
+  "load_after": [
+    3.96,
+    3.91,
+    4.42
+  ],
+  "peak_rss_kb_time_v": 392616,
+  "peak_rss_kb_tree_sampled_10s": 19864,
+  "time_v": {
+    "Command being timed": "\"cargo test -p hekit-cuda --features cuda --release --no-run\"",
+    "User time (seconds)": "24.10",
+    "System time (seconds)": "1.77",
+    "Percent of CPU this job got": "527%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "0:04.90",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "392616",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "273",
+    "Minor (reclaiming a frame) page faults": "957799",
+    "Voluntary context switches": "3132",
+    "Involuntary context switches": "295",
+    "Swaps": "0",
+    "File system inputs": "656",
+    "File system outputs": "184632",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T20:48:16+09:00\nuptime:  20:48:16 up 53 days, 11:18,  3 users,  load average: 3.09, 3.74, 4.37\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 11053506560 69198589952    67252224 53345046528 121426378752\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 21875 MiB, 2208 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1620940, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1621166, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1622361, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n",
+  "snapshot_after": "date: 2026-11-05T20:48:26+09:00\nuptime:  20:48:26 up 53 days, 11:18,  3 users,  load average: 3.96, 3.91, 4.42\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 11342028800 68817367040    67252224 53437771776 121137856512\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 21875 MiB, 2208 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1620940, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1621166, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1622361, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n"
+}

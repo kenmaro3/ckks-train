@@ -1,0 +1,805 @@
+    Finished `release` profile [optimized] target(s) in 0.04s
+     Running `target/release/iris --epochs 400 --batch 20 --seed 2020 --out /home/kmihara/hekit-runs/out/iris_20/iris.json`
+# preset seal_2020 (N = 2^15, max_level 9), layout d = 16, B = 32, 18 Galois keys [-64, -16, -8, -4, -2, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 416, 448, 480], keygen 2.1 s
+# init: encrypted vs twin W 2^-25.7, b 2^-54.0; x at level 9, y at level 5
+  copies: lane spread 2^-21.9, block spread 2^-25.0
+epoch   0 13.5s (refresh 1.56s, enc 0.26s) loss 0.24275 acc 0.6167/0.6333 | twin 0.24275 0.6167/0.6333 | err W 2^-22.6 b 2^-26.7 | wall 14s load 2.06 2.79 2.77
+  copies: lane spread 2^-21.6, block spread 2^-24.8
+epoch   1 13.5s (refresh 1.56s, enc 0.24s) loss 0.20445 acc 0.6333/0.6333 | twin 0.20445 0.6333/0.6333 | err W 2^-22.6 b 2^-24.9 | wall 28s load 
+  copies: lane spread 2^-21.0, block spread 2^-24.8
+epoch   2 13.5s (refresh 1.56s, enc 0.24s) loss 0.17869 acc 0.6417/0.6333 | twin 0.17869 0.6417/0.6333 | err W 2^-21.9 b 2^-24.3 | wall 42s load 
+  copies: lane spread 2^-20.9, block spread 2^-24.8
+epoch   3 13.5s (refresh 1.56s, enc 0.24s) loss 0.15465 acc 0.7083/0.7333 | twin 0.15465 0.7083/0.7333 | err W 2^-21.9 b 2^-24.9 | wall 56s load 
+  copies: lane spread 2^-20.9, block spread 2^-24.9
+epoch   4 13.5s (refresh 1.56s, enc 0.24s) loss 0.11614 acc 0.8833/0.8000 | twin 0.11614 0.8833/0.8000 | err W 2^-22.0 b 2^-24.7 | wall 70s load 
+  copies: lane spread 2^-20.9, block spread 2^-25.0
+epoch   5 13.6s (refresh 1.55s, enc 0.24s) loss 0.09116 acc 0.9500/0.9000 | twin 0.09116 0.9500/0.9000 | err W 2^-22.1 b 2^-24.2 | wall 84s load 
+  copies: lane spread 2^-20.6, block spread 2^-24.9
+epoch   6 13.5s (refresh 1.56s, enc 0.24s) loss 0.08812 acc 0.9167/0.8667 | twin 0.08812 0.9167/0.8667 | err W 2^-22.0 b 2^-23.1 | wall 98s load 
+  copies: lane spread 2^-20.4, block spread 2^-24.7
+epoch   7 13.5s (refresh 1.55s, enc 0.24s) loss 0.07266 acc 0.9417/0.8667 | twin 0.07266 0.9417/0.8667 | err W 2^-21.9 b 2^-23.6 | wall 112s load 
+  copies: lane spread 2^-20.5, block spread 2^-24.9
+epoch   8 13.5s (refresh 1.55s, enc 0.24s) loss 0.05913 acc 0.9833/0.9333 | twin 0.05913 0.9833/0.9333 | err W 2^-21.7 b 2^-23.6 | wall 125s load 
+  copies: lane spread 2^-20.4, block spread 2^-24.9
+epoch   9 13.5s (refresh 1.56s, enc 0.24s) loss 0.05431 acc 0.9667/0.9000 | twin 0.05431 0.9667/0.9000 | err W 2^-21.3 b 2^-23.5 | wall 139s load 
+  copies: lane spread 2^-20.2, block spread 2^-24.9
+epoch  10 13.5s (refresh 1.55s, enc 0.24s) loss 0.05091 acc 0.9750/0.9000 | twin 0.05091 0.9750/0.9000 | err W 2^-21.2 b 2^-23.5 | wall 153s load 
+  copies: lane spread 2^-20.3, block spread 2^-25.0
+epoch  11 13.5s (refresh 1.56s, enc 0.24s) loss 0.04706 acc 0.9667/0.9000 | twin 0.04706 0.9667/0.9000 | err W 2^-21.2 b 2^-23.8 | wall 167s load 
+  copies: lane spread 2^-20.3, block spread 2^-25.0
+epoch  12 13.5s (refresh 1.55s, enc 0.24s) loss 0.04920 acc 0.9667/0.9000 | twin 0.04920 0.9667/0.9000 | err W 2^-21.0 b 2^-23.5 | wall 181s load 
+  copies: lane spread 2^-20.3, block spread 2^-25.2
+epoch  13 13.5s (refresh 1.56s, enc 0.24s) loss 0.04057 acc 0.9667/0.9000 | twin 0.04057 0.9667/0.9000 | err W 2^-20.9 b 2^-23.4 | wall 195s load 
+  copies: lane spread 2^-20.2, block spread 2^-25.1
+epoch  14 13.5s (refresh 1.56s, enc 0.24s) loss 0.03920 acc 0.9667/0.9000 | twin 0.03920 0.9667/0.9000 | err W 2^-21.1 b 2^-23.3 | wall 209s load 
+  copies: lane spread 2^-20.1, block spread 2^-24.9
+epoch  15 13.5s (refresh 1.56s, enc 0.24s) loss 0.03986 acc 0.9583/0.9000 | twin 0.03986 0.9583/0.9000 | err W 2^-21.2 b 2^-23.2 | wall 223s load 
+  copies: lane spread 2^-20.0, block spread 2^-24.9
+epoch  16 13.5s (refresh 1.55s, enc 0.24s) loss 0.03548 acc 0.9667/0.9000 | twin 0.03548 0.9667/0.9000 | err W 2^-21.1 b 2^-23.2 | wall 237s load 
+  copies: lane spread 2^-20.1, block spread 2^-24.9
+epoch  17 13.5s (refresh 1.56s, enc 0.24s) loss 0.03465 acc 0.9750/0.9000 | twin 0.03465 0.9750/0.9000 | err W 2^-21.0 b 2^-23.1 | wall 251s load 
+  copies: lane spread 2^-20.1, block spread 2^-24.9
+epoch  18 13.5s (refresh 1.55s, enc 0.24s) loss 0.03415 acc 0.9667/0.9000 | twin 0.03415 0.9667/0.9000 | err W 2^-20.7 b 2^-23.1 | wall 265s load 
+  copies: lane spread 2^-20.1, block spread 2^-25.0
+epoch  19 13.5s (refresh 1.56s, enc 0.24s) loss 0.03499 acc 0.9667/0.9000 | twin 0.03499 0.9667/0.9000 | err W 2^-20.5 b 2^-23.1 | wall 279s load 
+  copies: lane spread 2^-19.9, block spread 2^-25.0
+epoch  20 13.5s (refresh 1.56s, enc 0.24s) loss 0.03217 acc 0.9750/0.9000 | twin 0.03217 0.9750/0.9000 | err W 2^-20.4 b 2^-23.1 | wall 293s load 1.04 1.72 2.31
+  copies: lane spread 2^-20.0, block spread 2^-25.0
+epoch  21 13.5s (refresh 1.56s, enc 0.24s) loss 0.03325 acc 0.9917/0.9333 | twin 0.03325 0.9917/0.9333 | err W 2^-20.5 b 2^-23.1 | wall 307s load 
+  copies: lane spread 2^-19.9, block spread 2^-25.1
+epoch  22 13.5s (refresh 1.56s, enc 0.24s) loss 0.03127 acc 0.9917/0.9000 | twin 0.03127 0.9917/0.9000 | err W 2^-20.5 b 2^-23.2 | wall 321s load 
+  copies: lane spread 2^-19.8, block spread 2^-25.1
+epoch  23 13.5s (refresh 1.56s, enc 0.24s) loss 0.03199 acc 0.9833/0.9333 | twin 0.03199 0.9833/0.9333 | err W 2^-20.3 b 2^-22.7 | wall 334s load 
+  copies: lane spread 2^-19.8, block spread 2^-25.1
+epoch  24 13.5s (refresh 1.56s, enc 0.24s) loss 0.03203 acc 0.9833/0.9000 | twin 0.03203 0.9833/0.9000 | err W 2^-20.4 b 2^-23.1 | wall 348s load 
+  copies: lane spread 2^-19.7, block spread 2^-24.9
+epoch  25 13.6s (refresh 1.56s, enc 0.24s) loss 0.03365 acc 0.9833/0.9667 | twin 0.03365 0.9833/0.9667 | err W 2^-20.3 b 2^-23.1 | wall 362s load 
+  copies: lane spread 2^-19.6, block spread 2^-24.6
+epoch  26 13.5s (refresh 1.56s, enc 0.24s) loss 0.03424 acc 0.9667/0.8667 | twin 0.03424 0.9667/0.8667 | err W 2^-20.4 b 2^-23.0 | wall 376s load 
+  copies: lane spread 2^-19.6, block spread 2^-24.8
+epoch  27 13.5s (refresh 1.56s, enc 0.24s) loss 0.03182 acc 0.9667/0.8667 | twin 0.03182 0.9667/0.8667 | err W 2^-20.3 b 2^-23.0 | wall 390s load 
+  copies: lane spread 2^-19.5, block spread 2^-24.6
+epoch  28 13.5s (refresh 1.56s, enc 0.24s) loss 0.03115 acc 0.9833/0.9667 | twin 0.03115 0.9833/0.9667 | err W 2^-20.1 b 2^-22.9 | wall 404s load 
+  copies: lane spread 2^-19.5, block spread 2^-24.8
+epoch  29 13.5s (refresh 1.56s, enc 0.24s) loss 0.03104 acc 0.9833/0.9667 | twin 0.03104 0.9833/0.9667 | err W 2^-20.0 b 2^-22.8 | wall 418s load 
+  copies: lane spread 2^-19.5, block spread 2^-25.0
+epoch  30 13.5s (refresh 1.56s, enc 0.24s) loss 0.03376 acc 0.9667/0.8667 | twin 0.03376 0.9667/0.8667 | err W 2^-20.1 b 2^-22.7 | wall 432s load 
+  copies: lane spread 2^-19.4, block spread 2^-24.7
+epoch  31 13.5s (refresh 1.57s, enc 0.24s) loss 0.03207 acc 0.9833/0.9667 | twin 0.03207 0.9833/0.9667 | err W 2^-20.0 b 2^-22.5 | wall 446s load 
+  copies: lane spread 2^-19.4, block spread 2^-24.8
+epoch  32 13.5s (refresh 1.56s, enc 0.24s) loss 0.04202 acc 0.9583/0.8667 | twin 0.04202 0.9583/0.8667 | err W 2^-20.0 b 2^-22.5 | wall 460s load 
+  copies: lane spread 2^-19.2, block spread 2^-25.0
+epoch  33 13.5s (refresh 1.56s, enc 0.24s) loss 0.02970 acc 0.9917/0.9333 | twin 0.02970 0.9917/0.9333 | err W 2^-19.9 b 2^-22.6 | wall 474s load 
+  copies: lane spread 2^-19.2, block spread 2^-25.1
+epoch  34 13.5s (refresh 1.56s, enc 0.24s) loss 0.03177 acc 0.9833/0.9333 | twin 0.03177 0.9833/0.9333 | err W 2^-19.9 b 2^-22.3 | wall 488s load 
+  copies: lane spread 2^-19.2, block spread 2^-24.8
+epoch  35 13.6s (refresh 1.56s, enc 0.24s) loss 0.02924 acc 0.9833/0.9333 | twin 0.02924 0.9833/0.9333 | err W 2^-19.9 b 2^-22.6 | wall 502s load 
+  copies: lane spread 2^-19.3, block spread 2^-24.9
+epoch  36 13.5s (refresh 1.56s, enc 0.24s) loss 0.03078 acc 0.9833/0.9333 | twin 0.03078 0.9833/0.9333 | err W 2^-19.9 b 2^-22.6 | wall 516s load 
+  copies: lane spread 2^-19.3, block spread 2^-25.1
+epoch  37 13.6s (refresh 1.56s, enc 0.24s) loss 0.02871 acc 0.9833/0.9333 | twin 0.02871 0.9833/0.9333 | err W 2^-19.9 b 2^-22.1 | wall 530s load 
+  copies: lane spread 2^-19.2, block spread 2^-25.2
+epoch  38 13.6s (refresh 1.56s, enc 0.24s) loss 0.03034 acc 0.9833/0.9667 | twin 0.03034 0.9833/0.9667 | err W 2^-19.9 b 2^-22.5 | wall 544s load 
+  copies: lane spread 2^-19.1, block spread 2^-24.7
+epoch  39 13.5s (refresh 1.55s, enc 0.25s) loss 0.02891 acc 0.9833/0.9333 | twin 0.02891 0.9833/0.9333 | err W 2^-19.8 b 2^-22.2 | wall 558s load 
+  copies: lane spread 2^-19.1, block spread 2^-25.1
+epoch  40 13.5s (refresh 1.55s, enc 0.24s) loss 0.02965 acc 0.9833/0.9333 | twin 0.02965 0.9833/0.9333 | err W 2^-19.8 b 2^-22.1 | wall 572s load 1.00 1.28 1.96
+  copies: lane spread 2^-19.0, block spread 2^-24.9
+epoch  41 13.5s (refresh 1.56s, enc 0.24s) loss 0.02829 acc 0.9833/0.9333 | twin 0.02829 0.9833/0.9333 | err W 2^-19.7 b 2^-21.8 | wall 585s load 
+  copies: lane spread 2^-19.0, block spread 2^-24.9
+epoch  42 13.5s (refresh 1.55s, enc 0.24s) loss 0.02977 acc 0.9833/0.9667 | twin 0.02977 0.9833/0.9667 | err W 2^-19.7 b 2^-22.4 | wall 599s load 
+  copies: lane spread 2^-18.9, block spread 2^-25.1
+epoch  43 13.5s (refresh 1.56s, enc 0.24s) loss 0.04010 acc 0.9583/0.8667 | twin 0.04010 0.9583/0.8667 | err W 2^-19.6 b 2^-21.8 | wall 613s load 
+  copies: lane spread 2^-18.9, block spread 2^-24.9
+epoch  44 13.5s (refresh 1.55s, enc 0.24s) loss 0.03105 acc 0.9833/0.9000 | twin 0.03105 0.9833/0.9000 | err W 2^-19.6 b 2^-22.5 | wall 627s load 
+  copies: lane spread 2^-18.9, block spread 2^-24.4
+epoch  45 13.5s (refresh 1.56s, enc 0.24s) loss 0.02939 acc 0.9833/0.9667 | twin 0.02939 0.9833/0.9667 | err W 2^-19.5 b 2^-22.5 | wall 641s load 
+  copies: lane spread 2^-18.9, block spread 2^-24.7
+epoch  46 13.5s (refresh 1.56s, enc 0.24s) loss 0.03274 acc 0.9667/0.8667 | twin 0.03274 0.9667/0.8667 | err W 2^-19.6 b 2^-22.5 | wall 655s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.0
+epoch  47 13.5s (refresh 1.56s, enc 0.24s) loss 0.02898 acc 0.9833/0.9667 | twin 0.02898 0.9833/0.9667 | err W 2^-19.5 b 2^-22.5 | wall 669s load 
+  copies: lane spread 2^-18.8, block spread 2^-24.8
+epoch  48 13.6s (refresh 1.56s, enc 0.24s) loss 0.02809 acc 0.9833/0.9333 | twin 0.02809 0.9833/0.9333 | err W 2^-19.5 b 2^-22.1 | wall 683s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.1
+epoch  49 13.6s (refresh 1.56s, enc 0.24s) loss 0.02880 acc 0.9833/0.9333 | twin 0.02880 0.9833/0.9333 | err W 2^-19.5 b 2^-21.5 | wall 697s load 
+  copies: lane spread 2^-18.8, block spread 2^-24.8
+epoch  50 13.5s (refresh 1.56s, enc 0.24s) loss 0.03069 acc 0.9833/0.9667 | twin 0.03069 0.9833/0.9667 | err W 2^-19.5 b 2^-21.8 | wall 711s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.1
+epoch  51 13.5s (refresh 1.56s, enc 0.24s) loss 0.02884 acc 0.9833/0.9667 | twin 0.02884 0.9833/0.9667 | err W 2^-19.5 b 2^-21.9 | wall 725s load 
+  copies: lane spread 2^-18.9, block spread 2^-24.9
+epoch  52 13.5s (refresh 1.56s, enc 0.24s) loss 0.03355 acc 0.9833/0.9667 | twin 0.03355 0.9833/0.9667 | err W 2^-19.5 b 2^-22.5 | wall 739s load 
+  copies: lane spread 2^-18.9, block spread 2^-25.1
+epoch  53 13.5s (refresh 1.56s, enc 0.24s) loss 0.02951 acc 0.9833/0.9667 | twin 0.02951 0.9833/0.9667 | err W 2^-19.5 b 2^-22.5 | wall 753s load 
+  copies: lane spread 2^-18.9, block spread 2^-25.1
+epoch  54 13.5s (refresh 1.56s, enc 0.24s) loss 0.04148 acc 0.9583/0.8667 | twin 0.04148 0.9583/0.8667 | err W 2^-19.5 b 2^-22.6 | wall 767s load 
+  copies: lane spread 2^-18.9, block spread 2^-24.6
+epoch  55 13.5s (refresh 1.56s, enc 0.24s) loss 0.02832 acc 0.9833/0.9333 | twin 0.02832 0.9833/0.9333 | err W 2^-19.4 b 2^-22.3 | wall 781s load 
+  copies: lane spread 2^-18.8, block spread 2^-24.7
+epoch  56 13.5s (refresh 1.56s, enc 0.24s) loss 0.02917 acc 0.9833/0.9667 | twin 0.02917 0.9833/0.9667 | err W 2^-19.4 b 2^-22.6 | wall 795s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.2
+epoch  57 13.5s (refresh 1.56s, enc 0.24s) loss 0.02839 acc 0.9833/0.9667 | twin 0.02839 0.9833/0.9667 | err W 2^-19.4 b 2^-22.5 | wall 808s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.0
+epoch  58 13.5s (refresh 1.55s, enc 0.24s) loss 0.02792 acc 0.9833/0.9667 | twin 0.02792 0.9833/0.9667 | err W 2^-19.3 b 2^-22.2 | wall 822s load 
+  copies: lane spread 2^-18.8, block spread 2^-25.0
+epoch  59 13.5s (refresh 1.55s, enc 0.24s) loss 0.02933 acc 0.9833/0.9667 | twin 0.02933 0.9833/0.9667 | err W 2^-19.4 b 2^-22.5 | wall 836s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.9
+epoch  60 13.6s (refresh 1.56s, enc 0.26s) loss 0.02914 acc 0.9917/0.9000 | twin 0.02914 0.9917/0.9000 | err W 2^-19.3 b 2^-22.5 | wall 850s load 1.08 1.15 1.72
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  61 13.5s (refresh 1.55s, enc 0.24s) loss 0.02844 acc 0.9833/0.9667 | twin 0.02844 0.9833/0.9667 | err W 2^-19.3 b 2^-22.2 | wall 864s load 
+  copies: lane spread 2^-18.7, block spread 2^-25.2
+epoch  62 13.5s (refresh 1.56s, enc 0.24s) loss 0.02946 acc 0.9667/0.8667 | twin 0.02946 0.9667/0.8667 | err W 2^-19.3 b 2^-21.7 | wall 878s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  63 13.6s (refresh 1.56s, enc 0.24s) loss 0.03062 acc 0.9833/0.9667 | twin 0.03062 0.9833/0.9667 | err W 2^-19.2 b 2^-22.3 | wall 892s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch  64 13.6s (refresh 1.56s, enc 0.24s) loss 0.02899 acc 0.9833/0.9667 | twin 0.02899 0.9833/0.9667 | err W 2^-19.3 b 2^-22.3 | wall 906s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  65 13.5s (refresh 1.56s, enc 0.24s) loss 0.02788 acc 0.9833/0.9667 | twin 0.02788 0.9833/0.9667 | err W 2^-19.3 b 2^-22.2 | wall 920s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch  66 13.6s (refresh 1.56s, enc 0.24s) loss 0.02800 acc 0.9833/0.9667 | twin 0.02800 0.9833/0.9667 | err W 2^-19.3 b 2^-22.3 | wall 934s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch  67 13.6s (refresh 1.56s, enc 0.24s) loss 0.02871 acc 0.9833/0.9667 | twin 0.02871 0.9833/0.9667 | err W 2^-19.4 b 2^-22.4 | wall 948s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  68 13.5s (refresh 1.56s, enc 0.24s) loss 0.03917 acc 0.9667/0.8667 | twin 0.03917 0.9667/0.8667 | err W 2^-19.3 b 2^-22.0 | wall 962s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch  69 13.5s (refresh 1.57s, enc 0.24s) loss 0.03510 acc 0.9667/0.8667 | twin 0.03510 0.9667/0.8667 | err W 2^-19.2 b 2^-22.3 | wall 976s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch  70 13.5s (refresh 1.56s, enc 0.24s) loss 0.02779 acc 0.9833/0.9333 | twin 0.02779 0.9833/0.9333 | err W 2^-19.2 b 2^-22.0 | wall 990s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.6
+epoch  71 13.5s (refresh 1.56s, enc 0.24s) loss 0.03137 acc 0.9833/0.8667 | twin 0.03137 0.9833/0.8667 | err W 2^-19.3 b 2^-21.9 | wall 1004s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.7
+epoch  72 13.5s (refresh 1.56s, enc 0.24s) loss 0.02761 acc 0.9833/0.9667 | twin 0.02761 0.9833/0.9667 | err W 2^-19.3 b 2^-22.3 | wall 1018s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.8
+epoch  73 13.5s (refresh 1.56s, enc 0.24s) loss 0.02738 acc 0.9833/0.9667 | twin 0.02738 0.9833/0.9667 | err W 2^-19.3 b 2^-22.4 | wall 1032s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.6
+epoch  74 13.6s (refresh 1.56s, enc 0.24s) loss 0.02757 acc 0.9833/0.9000 | twin 0.02757 0.9833/0.9000 | err W 2^-19.2 b 2^-22.1 | wall 1046s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch  75 13.6s (refresh 1.56s, enc 0.24s) loss 0.02857 acc 0.9833/1.0000 | twin 0.02857 0.9833/1.0000 | err W 2^-19.2 b 2^-21.7 | wall 1060s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch  76 13.5s (refresh 1.56s, enc 0.24s) loss 0.02795 acc 0.9833/0.9000 | twin 0.02795 0.9833/0.9000 | err W 2^-19.1 b 2^-22.0 | wall 1073s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.2
+epoch  77 13.6s (refresh 1.56s, enc 0.24s) loss 0.02805 acc 0.9917/0.9000 | twin 0.02805 0.9917/0.9000 | err W 2^-19.2 b 2^-22.0 | wall 1087s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch  78 13.5s (refresh 1.56s, enc 0.24s) loss 0.03094 acc 0.9833/1.0000 | twin 0.03094 0.9833/1.0000 | err W 2^-19.2 b 2^-22.1 | wall 1101s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch  79 13.6s (refresh 1.57s, enc 0.24s) loss 0.02777 acc 0.9833/0.9000 | twin 0.02777 0.9833/0.9000 | err W 2^-19.2 b 2^-22.4 | wall 1115s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.6
+epoch  80 13.5s (refresh 1.56s, enc 0.24s) loss 0.02894 acc 0.9917/0.8667 | twin 0.02894 0.9917/0.8667 | err W 2^-19.2 b 2^-22.4 | wall 1129s load 1.04 1.08 1.54
+  copies: lane spread 2^-18.5, block spread 2^-24.4
+epoch  81 13.6s (refresh 1.57s, enc 0.24s) loss 0.02777 acc 0.9833/0.9667 | twin 0.02777 0.9833/0.9667 | err W 2^-19.2 b 2^-22.0 | wall 1143s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch  82 13.5s (refresh 1.56s, enc 0.24s) loss 0.02718 acc 0.9833/0.9000 | twin 0.02718 0.9833/0.9000 | err W 2^-19.2 b 2^-22.3 | wall 1157s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.5
+epoch  83 13.5s (refresh 1.57s, enc 0.24s) loss 0.02736 acc 0.9833/0.9000 | twin 0.02736 0.9833/0.9000 | err W 2^-19.1 b 2^-22.3 | wall 1171s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  84 13.5s (refresh 1.56s, enc 0.24s) loss 0.02888 acc 0.9667/0.8667 | twin 0.02888 0.9667/0.8667 | err W 2^-19.2 b 2^-22.2 | wall 1185s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch  85 13.5s (refresh 1.57s, enc 0.24s) loss 0.02804 acc 0.9833/0.9667 | twin 0.02804 0.9833/0.9667 | err W 2^-19.2 b 2^-22.3 | wall 1199s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.2
+epoch  86 13.7s (refresh 1.58s, enc 0.24s) loss 0.04625 acc 0.9583/0.8667 | twin 0.04625 0.9583/0.8667 | err W 2^-19.2 b 2^-22.2 | wall 1213s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch  87 13.5s (refresh 1.56s, enc 0.24s) loss 0.03061 acc 0.9667/0.8667 | twin 0.03061 0.9667/0.8667 | err W 2^-19.2 b 2^-22.2 | wall 1227s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch  88 13.5s (refresh 1.56s, enc 0.24s) loss 0.02809 acc 0.9833/0.9000 | twin 0.02809 0.9833/0.9000 | err W 2^-19.3 b 2^-22.3 | wall 1241s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch  89 13.5s (refresh 1.56s, enc 0.24s) loss 0.03229 acc 0.9833/0.9667 | twin 0.03229 0.9833/0.9667 | err W 2^-19.2 b 2^-22.2 | wall 1255s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch  90 13.5s (refresh 1.56s, enc 0.24s) loss 0.03267 acc 0.9667/0.8667 | twin 0.03267 0.9667/0.8667 | err W 2^-19.2 b 2^-22.3 | wall 1269s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.4
+epoch  91 13.5s (refresh 1.56s, enc 0.24s) loss 0.02707 acc 0.9833/0.9000 | twin 0.02707 0.9833/0.9000 | err W 2^-19.2 b 2^-22.2 | wall 1283s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.7
+epoch  92 13.5s (refresh 1.56s, enc 0.24s) loss 0.02904 acc 0.9917/0.9000 | twin 0.02904 0.9917/0.9000 | err W 2^-19.2 b 2^-22.2 | wall 1297s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch  93 13.5s (refresh 1.56s, enc 0.24s) loss 0.02730 acc 0.9833/0.9667 | twin 0.02730 0.9833/0.9667 | err W 2^-19.1 b 2^-22.2 | wall 1311s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch  94 13.5s (refresh 1.56s, enc 0.24s) loss 0.03383 acc 0.9917/0.9000 | twin 0.03383 0.9917/0.9000 | err W 2^-19.1 b 2^-22.1 | wall 1325s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.4
+epoch  95 13.8s (refresh 1.58s, enc 0.24s) loss 0.05046 acc 0.9500/0.8667 | twin 0.05046 0.9500/0.8667 | err W 2^-19.2 b 2^-22.2 | wall 1339s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.9
+epoch  96 13.6s (refresh 1.56s, enc 0.24s) loss 0.02697 acc 0.9833/0.9667 | twin 0.02697 0.9833/0.9667 | err W 2^-19.2 b 2^-22.1 | wall 1353s load 
+  copies: lane spread 2^-18.7, block spread 2^-25.1
+epoch  97 13.6s (refresh 1.56s, enc 0.24s) loss 0.02705 acc 0.9833/0.9000 | twin 0.02705 0.9833/0.9000 | err W 2^-19.2 b 2^-22.1 | wall 1367s load 
+  copies: lane spread 2^-18.7, block spread 2^-25.1
+epoch  98 13.5s (refresh 1.56s, enc 0.24s) loss 0.02852 acc 0.9833/0.9000 | twin 0.02852 0.9833/0.9000 | err W 2^-19.2 b 2^-22.1 | wall 1381s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.7
+epoch  99 13.6s (refresh 1.56s, enc 0.24s) loss 0.02741 acc 0.9833/1.0000 | twin 0.02741 0.9833/1.0000 | err W 2^-19.2 b 2^-22.2 | wall 1395s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.8
+epoch 100 13.5s (refresh 1.56s, enc 0.24s) loss 0.03128 acc 0.9833/0.9000 | twin 0.03128 0.9833/0.9000 | err W 2^-19.2 b 2^-22.1 | wall 1409s load 1.05 1.08 1.41
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 101 13.5s (refresh 1.57s, enc 0.24s) loss 0.02839 acc 0.9833/1.0000 | twin 0.02839 0.9833/1.0000 | err W 2^-19.2 b 2^-22.3 | wall 1423s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 102 13.6s (refresh 1.56s, enc 0.24s) loss 0.02871 acc 0.9833/0.9667 | twin 0.02871 0.9833/0.9667 | err W 2^-19.2 b 2^-22.3 | wall 1437s load 
+  copies: lane spread 2^-18.7, block spread 2^-25.2
+epoch 103 13.6s (refresh 1.57s, enc 0.24s) loss 0.02805 acc 0.9833/0.9000 | twin 0.02805 0.9833/0.9000 | err W 2^-19.2 b 2^-22.0 | wall 1451s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.8
+epoch 104 13.5s (refresh 1.56s, enc 0.24s) loss 0.02827 acc 0.9833/0.9000 | twin 0.02827 0.9833/0.9000 | err W 2^-19.1 b 2^-22.2 | wall 1465s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.9
+epoch 105 13.6s (refresh 1.56s, enc 0.24s) loss 0.02659 acc 0.9833/0.9333 | twin 0.02659 0.9833/0.9333 | err W 2^-19.2 b 2^-22.2 | wall 1479s load 
+  copies: lane spread 2^-18.7, block spread 2^-24.9
+epoch 106 13.6s (refresh 1.56s, enc 0.24s) loss 0.05069 acc 0.9500/0.8667 | twin 0.05069 0.9500/0.8667 | err W 2^-19.2 b 2^-21.2 | wall 1493s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 107 13.5s (refresh 1.56s, enc 0.24s) loss 0.02767 acc 0.9833/1.0000 | twin 0.02767 0.9833/1.0000 | err W 2^-19.1 b 2^-22.1 | wall 1507s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 108 13.5s (refresh 1.56s, enc 0.24s) loss 0.02842 acc 0.9833/0.9333 | twin 0.02842 0.9833/0.9333 | err W 2^-19.1 b 2^-22.0 | wall 1521s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 109 13.5s (refresh 1.56s, enc 0.24s) loss 0.03026 acc 0.9667/0.8667 | twin 0.03026 0.9667/0.8667 | err W 2^-19.2 b 2^-22.2 | wall 1534s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 110 13.6s (refresh 1.56s, enc 0.24s) loss 0.03697 acc 0.9583/0.8667 | twin 0.03697 0.9583/0.8667 | err W 2^-19.1 b 2^-22.2 | wall 1548s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 111 13.5s (refresh 1.56s, enc 0.24s) loss 0.02758 acc 0.9833/1.0000 | twin 0.02758 0.9833/1.0000 | err W 2^-19.1 b 2^-22.2 | wall 1562s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 112 13.5s (refresh 1.55s, enc 0.24s) loss 0.02761 acc 0.9833/0.9000 | twin 0.02761 0.9833/0.9000 | err W 2^-19.0 b 2^-22.2 | wall 1576s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.5
+epoch 113 13.5s (refresh 1.55s, enc 0.24s) loss 0.02667 acc 0.9833/1.0000 | twin 0.02667 0.9833/1.0000 | err W 2^-19.0 b 2^-22.2 | wall 1590s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 114 13.5s (refresh 1.56s, enc 0.24s) loss 0.02658 acc 0.9833/0.9667 | twin 0.02658 0.9833/0.9667 | err W 2^-19.1 b 2^-22.2 | wall 1604s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 115 13.5s (refresh 1.55s, enc 0.24s) loss 0.02797 acc 0.9833/1.0000 | twin 0.02797 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 1618s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 116 13.5s (refresh 1.56s, enc 0.24s) loss 0.02782 acc 0.9750/0.9000 | twin 0.02782 0.9750/0.9000 | err W 2^-19.0 b 2^-21.8 | wall 1632s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.7
+epoch 117 13.5s (refresh 1.56s, enc 0.24s) loss 0.02668 acc 0.9833/0.9333 | twin 0.02668 0.9833/0.9333 | err W 2^-19.1 b 2^-22.2 | wall 1646s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 118 13.5s (refresh 1.56s, enc 0.24s) loss 0.03378 acc 0.9667/0.8667 | twin 0.03378 0.9667/0.8667 | err W 2^-19.0 b 2^-22.2 | wall 1660s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch 119 13.5s (refresh 1.55s, enc 0.24s) loss 0.02623 acc 0.9833/0.9667 | twin 0.02623 0.9833/0.9667 | err W 2^-19.0 b 2^-22.2 | wall 1674s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 120 13.5s (refresh 1.56s, enc 0.24s) loss 0.02711 acc 0.9833/1.0000 | twin 0.02711 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 1688s load 1.08 1.06 1.31
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 121 13.5s (refresh 1.55s, enc 0.24s) loss 0.02626 acc 0.9833/1.0000 | twin 0.02626 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 1702s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 122 13.5s (refresh 1.55s, enc 0.24s) loss 0.03138 acc 0.9667/0.8667 | twin 0.03138 0.9667/0.8667 | err W 2^-19.0 b 2^-21.9 | wall 1716s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 123 13.5s (refresh 1.55s, enc 0.24s) loss 0.03468 acc 0.9833/1.0000 | twin 0.03468 0.9833/1.0000 | err W 2^-19.0 b 2^-22.2 | wall 1730s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 124 13.5s (refresh 1.55s, enc 0.24s) loss 0.02636 acc 0.9833/0.9667 | twin 0.02636 0.9833/0.9667 | err W 2^-19.0 b 2^-22.0 | wall 1744s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 125 13.5s (refresh 1.55s, enc 0.24s) loss 0.02638 acc 0.9833/1.0000 | twin 0.02638 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 1757s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 126 13.5s (refresh 1.55s, enc 0.24s) loss 0.02738 acc 0.9833/1.0000 | twin 0.02738 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 1771s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.5
+epoch 127 13.5s (refresh 1.55s, enc 0.24s) loss 0.02615 acc 0.9833/0.9333 | twin 0.02615 0.9833/0.9333 | err W 2^-19.0 b 2^-22.2 | wall 1785s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 128 13.5s (refresh 1.56s, enc 0.24s) loss 0.03416 acc 0.9583/0.8667 | twin 0.03416 0.9583/0.8667 | err W 2^-19.0 b 2^-22.1 | wall 1799s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 129 13.6s (refresh 1.56s, enc 0.24s) loss 0.02664 acc 0.9833/0.9333 | twin 0.02664 0.9833/0.9333 | err W 2^-19.0 b 2^-22.0 | wall 1813s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 130 13.6s (refresh 1.56s, enc 0.24s) loss 0.03298 acc 0.9667/0.8667 | twin 0.03298 0.9667/0.8667 | err W 2^-18.9 b 2^-22.0 | wall 1827s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 131 13.6s (refresh 1.56s, enc 0.24s) loss 0.03997 acc 0.9583/0.8667 | twin 0.03997 0.9583/0.8667 | err W 2^-19.0 b 2^-22.0 | wall 1841s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 132 13.5s (refresh 1.56s, enc 0.24s) loss 0.02903 acc 0.9667/0.9000 | twin 0.02903 0.9667/0.9000 | err W 2^-18.9 b 2^-22.0 | wall 1855s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 133 13.6s (refresh 1.56s, enc 0.24s) loss 0.02556 acc 0.9833/1.0000 | twin 0.02556 0.9833/1.0000 | err W 2^-18.9 b 2^-21.3 | wall 1869s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 134 13.6s (refresh 1.56s, enc 0.24s) loss 0.02697 acc 0.9833/0.9000 | twin 0.02697 0.9833/0.9000 | err W 2^-18.9 b 2^-21.7 | wall 1883s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 135 13.6s (refresh 1.56s, enc 0.24s) loss 0.02749 acc 0.9833/1.0000 | twin 0.02749 0.9833/1.0000 | err W 2^-18.9 b 2^-21.2 | wall 1897s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 136 13.5s (refresh 1.56s, enc 0.24s) loss 0.02656 acc 0.9833/1.0000 | twin 0.02656 0.9833/1.0000 | err W 2^-18.8 b 2^-21.1 | wall 1911s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.2
+epoch 137 13.5s (refresh 1.56s, enc 0.24s) loss 0.02752 acc 0.9833/1.0000 | twin 0.02752 0.9833/1.0000 | err W 2^-18.8 b 2^-21.8 | wall 1925s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 138 13.5s (refresh 1.56s, enc 0.24s) loss 0.02800 acc 0.9833/0.9333 | twin 0.02800 0.9833/0.9333 | err W 2^-18.9 b 2^-21.4 | wall 1939s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 139 13.5s (refresh 1.56s, enc 0.24s) loss 0.02613 acc 0.9833/0.9333 | twin 0.02613 0.9833/0.9333 | err W 2^-18.9 b 2^-21.9 | wall 1953s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch 140 13.6s (refresh 1.56s, enc 0.24s) loss 0.02751 acc 0.9833/0.9000 | twin 0.02751 0.9833/0.9000 | err W 2^-18.9 b 2^-21.7 | wall 1967s load 1.00 1.03 1.23
+  copies: lane spread 2^-18.5, block spread 2^-24.4
+epoch 141 13.6s (refresh 1.56s, enc 0.24s) loss 0.02720 acc 0.9833/1.0000 | twin 0.02720 0.9833/1.0000 | err W 2^-18.9 b 2^-22.1 | wall 1981s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 142 13.6s (refresh 1.56s, enc 0.24s) loss 0.02546 acc 0.9833/1.0000 | twin 0.02546 0.9833/1.0000 | err W 2^-18.9 b 2^-22.0 | wall 1995s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch 143 13.6s (refresh 1.56s, enc 0.24s) loss 0.03106 acc 0.9667/0.9000 | twin 0.03106 0.9667/0.9000 | err W 2^-18.9 b 2^-22.1 | wall 2009s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch 144 13.6s (refresh 1.56s, enc 0.24s) loss 0.02921 acc 0.9750/0.9000 | twin 0.02921 0.9750/0.9000 | err W 2^-18.9 b 2^-22.0 | wall 2023s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 145 13.6s (refresh 1.56s, enc 0.24s) loss 0.02558 acc 0.9833/1.0000 | twin 0.02558 0.9833/1.0000 | err W 2^-18.9 b 2^-21.9 | wall 2037s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.2
+epoch 146 13.6s (refresh 1.56s, enc 0.24s) loss 0.02595 acc 0.9833/0.9000 | twin 0.02595 0.9833/0.9000 | err W 2^-18.9 b 2^-22.0 | wall 2051s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 147 13.5s (refresh 1.56s, enc 0.24s) loss 0.02905 acc 0.9833/1.0000 | twin 0.02905 0.9833/1.0000 | err W 2^-19.0 b 2^-22.1 | wall 2065s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.3
+epoch 148 13.5s (refresh 1.56s, enc 0.24s) loss 0.02739 acc 0.9750/0.9000 | twin 0.02739 0.9750/0.9000 | err W 2^-19.0 b 2^-22.1 | wall 2079s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 149 13.5s (refresh 1.56s, enc 0.24s) loss 0.02519 acc 0.9833/0.9333 | twin 0.02519 0.9833/0.9333 | err W 2^-19.0 b 2^-22.1 | wall 2092s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.5
+epoch 150 13.5s (refresh 1.56s, enc 0.24s) loss 0.02945 acc 0.9667/0.8667 | twin 0.02945 0.9667/0.8667 | err W 2^-18.9 b 2^-22.0 | wall 2106s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 151 13.6s (refresh 1.56s, enc 0.24s) loss 0.03034 acc 0.9667/0.8667 | twin 0.03034 0.9667/0.8667 | err W 2^-18.9 b 2^-21.5 | wall 2120s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 152 13.6s (refresh 1.57s, enc 0.24s) loss 0.02634 acc 0.9833/1.0000 | twin 0.02634 0.9833/1.0000 | err W 2^-18.9 b 2^-21.9 | wall 2134s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.6
+epoch 153 13.6s (refresh 1.56s, enc 0.24s) loss 0.02883 acc 0.9833/1.0000 | twin 0.02883 0.9833/1.0000 | err W 2^-18.9 b 2^-22.1 | wall 2148s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 154 13.5s (refresh 1.56s, enc 0.24s) loss 0.02793 acc 0.9833/1.0000 | twin 0.02793 0.9833/1.0000 | err W 2^-18.9 b 2^-22.1 | wall 2162s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 155 13.6s (refresh 1.56s, enc 0.24s) loss 0.03220 acc 0.9667/0.8667 | twin 0.03220 0.9667/0.8667 | err W 2^-19.0 b 2^-22.1 | wall 2176s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 156 13.5s (refresh 1.56s, enc 0.24s) loss 0.02553 acc 0.9750/0.9667 | twin 0.02553 0.9750/0.9667 | err W 2^-19.1 b 2^-22.0 | wall 2190s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.6
+epoch 157 13.6s (refresh 1.56s, enc 0.24s) loss 0.02547 acc 0.9833/1.0000 | twin 0.02547 0.9833/1.0000 | err W 2^-19.1 b 2^-21.9 | wall 2204s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 158 13.6s (refresh 1.56s, enc 0.24s) loss 0.02882 acc 0.9833/1.0000 | twin 0.02882 0.9833/1.0000 | err W 2^-19.1 b 2^-22.0 | wall 2218s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 159 13.6s (refresh 1.56s, enc 0.24s) loss 0.02487 acc 0.9833/1.0000 | twin 0.02487 0.9833/1.0000 | err W 2^-19.0 b 2^-22.0 | wall 2232s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 160 13.5s (refresh 1.56s, enc 0.24s) loss 0.02664 acc 0.9833/1.0000 | twin 0.02664 0.9833/1.0000 | err W 2^-19.1 b 2^-21.9 | wall 2246s load 1.02 1.04 1.17
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 161 13.5s (refresh 1.55s, enc 0.24s) loss 0.04561 acc 0.9583/0.8667 | twin 0.04561 0.9583/0.8667 | err W 2^-19.1 b 2^-21.9 | wall 2260s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.5
+epoch 162 13.5s (refresh 1.55s, enc 0.24s) loss 0.04859 acc 0.9583/0.8667 | twin 0.04859 0.9583/0.8667 | err W 2^-19.1 b 2^-22.1 | wall 2274s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 163 13.6s (refresh 1.57s, enc 0.24s) loss 0.02514 acc 0.9833/1.0000 | twin 0.02514 0.9833/1.0000 | err W 2^-19.1 b 2^-22.1 | wall 2288s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch 164 13.5s (refresh 1.55s, enc 0.24s) loss 0.02491 acc 0.9833/0.9667 | twin 0.02491 0.9833/0.9667 | err W 2^-19.2 b 2^-22.1 | wall 2302s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 165 13.5s (refresh 1.55s, enc 0.24s) loss 0.02528 acc 0.9750/0.9333 | twin 0.02528 0.9750/0.9333 | err W 2^-19.2 b 2^-22.1 | wall 2316s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch 166 13.5s (refresh 1.55s, enc 0.24s) loss 0.03103 acc 0.9667/0.8667 | twin 0.03103 0.9667/0.8667 | err W 2^-19.2 b 2^-21.9 | wall 2330s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 167 13.5s (refresh 1.55s, enc 0.24s) loss 0.02614 acc 0.9833/1.0000 | twin 0.02614 0.9833/1.0000 | err W 2^-19.3 b 2^-21.5 | wall 2344s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 168 13.5s (refresh 1.56s, enc 0.24s) loss 0.02565 acc 0.9833/1.0000 | twin 0.02565 0.9833/1.0000 | err W 2^-19.4 b 2^-21.4 | wall 2358s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 169 13.5s (refresh 1.56s, enc 0.24s) loss 0.02519 acc 0.9833/1.0000 | twin 0.02519 0.9833/1.0000 | err W 2^-19.4 b 2^-21.6 | wall 2371s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.0
+epoch 170 13.5s (refresh 1.55s, enc 0.24s) loss 0.02574 acc 0.9833/1.0000 | twin 0.02574 0.9833/1.0000 | err W 2^-19.4 b 2^-21.8 | wall 2385s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.2
+epoch 171 13.5s (refresh 1.56s, enc 0.24s) loss 0.02712 acc 0.9667/0.9000 | twin 0.02712 0.9667/0.9000 | err W 2^-19.4 b 2^-21.4 | wall 2399s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.2
+epoch 172 13.5s (refresh 1.56s, enc 0.24s) loss 0.02514 acc 0.9750/0.9667 | twin 0.02514 0.9750/0.9667 | err W 2^-19.4 b 2^-21.5 | wall 2413s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 173 13.6s (refresh 1.55s, enc 0.24s) loss 0.03423 acc 0.9667/0.8667 | twin 0.03423 0.9667/0.8667 | err W 2^-19.4 b 2^-21.3 | wall 2427s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch 174 13.6s (refresh 1.56s, enc 0.24s) loss 0.02922 acc 0.9667/0.8667 | twin 0.02922 0.9667/0.8667 | err W 2^-19.4 b 2^-21.5 | wall 2441s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.3
+epoch 175 13.5s (refresh 1.56s, enc 0.24s) loss 0.02519 acc 0.9750/0.9667 | twin 0.02519 0.9750/0.9667 | err W 2^-19.4 b 2^-21.1 | wall 2455s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 176 13.5s (refresh 1.56s, enc 0.24s) loss 0.04315 acc 0.9583/0.8667 | twin 0.04315 0.9583/0.8667 | err W 2^-19.4 b 2^-21.0 | wall 2469s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 177 13.5s (refresh 1.56s, enc 0.24s) loss 0.02461 acc 0.9750/0.9667 | twin 0.02461 0.9750/0.9667 | err W 2^-19.5 b 2^-21.2 | wall 2483s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 178 13.6s (refresh 1.56s, enc 0.24s) loss 0.02500 acc 0.9833/1.0000 | twin 0.02500 0.9833/1.0000 | err W 2^-19.4 b 2^-21.2 | wall 2497s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 179 13.5s (refresh 1.56s, enc 0.24s) loss 0.02441 acc 0.9750/0.9667 | twin 0.02441 0.9750/0.9667 | err W 2^-19.4 b 2^-21.1 | wall 2511s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.7
+epoch 180 13.5s (refresh 1.56s, enc 0.24s) loss 0.02508 acc 0.9750/0.9667 | twin 0.02508 0.9750/0.9667 | err W 2^-19.4 b 2^-21.3 | wall 2525s load 1.01 1.02 1.13
+  copies: lane spread 2^-18.6, block spread 2^-24.6
+epoch 181 13.6s (refresh 1.56s, enc 0.24s) loss 0.02426 acc 0.9833/1.0000 | twin 0.02426 0.9833/1.0000 | err W 2^-19.4 b 2^-21.2 | wall 2539s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.9
+epoch 182 13.5s (refresh 1.56s, enc 0.24s) loss 0.02454 acc 0.9833/1.0000 | twin 0.02454 0.9833/1.0000 | err W 2^-19.4 b 2^-21.3 | wall 2553s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.8
+epoch 183 13.6s (refresh 1.56s, enc 0.24s) loss 0.02426 acc 0.9833/0.9667 | twin 0.02426 0.9833/0.9667 | err W 2^-19.4 b 2^-21.1 | wall 2567s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 184 13.6s (refresh 1.56s, enc 0.24s) loss 0.02437 acc 0.9750/0.9667 | twin 0.02437 0.9750/0.9667 | err W 2^-19.5 b 2^-21.2 | wall 2581s load 
+  copies: lane spread 2^-18.6, block spread 2^-25.1
+epoch 185 13.6s (refresh 1.56s, enc 0.24s) loss 0.02439 acc 0.9833/1.0000 | twin 0.02439 0.9833/1.0000 | err W 2^-19.5 b 2^-21.2 | wall 2595s load 
+  copies: lane spread 2^-18.6, block spread 2^-24.7
+epoch 186 13.6s (refresh 1.55s, enc 0.24s) loss 0.02584 acc 0.9833/1.0000 | twin 0.02584 0.9833/1.0000 | err W 2^-19.4 b 2^-21.7 | wall 2609s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 187 13.6s (refresh 1.56s, enc 0.24s) loss 0.02452 acc 0.9750/1.0000 | twin 0.02452 0.9750/1.0000 | err W 2^-19.4 b 2^-21.7 | wall 2623s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 188 13.5s (refresh 1.56s, enc 0.24s) loss 0.02478 acc 0.9833/1.0000 | twin 0.02478 0.9833/1.0000 | err W 2^-19.4 b 2^-21.8 | wall 2637s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.7
+epoch 189 13.6s (refresh 1.56s, enc 0.24s) loss 0.02401 acc 0.9750/0.9667 | twin 0.02401 0.9750/0.9667 | err W 2^-19.5 b 2^-21.7 | wall 2651s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.1
+epoch 190 13.5s (refresh 1.56s, enc 0.24s) loss 0.02490 acc 0.9750/1.0000 | twin 0.02490 0.9750/1.0000 | err W 2^-19.4 b 2^-21.7 | wall 2665s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.7
+epoch 191 13.6s (refresh 1.56s, enc 0.24s) loss 0.02823 acc 0.9833/1.0000 | twin 0.02823 0.9833/1.0000 | err W 2^-19.3 b 2^-21.7 | wall 2678s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.6
+epoch 192 13.6s (refresh 1.56s, enc 0.24s) loss 0.02556 acc 0.9750/0.9333 | twin 0.02556 0.9750/0.9333 | err W 2^-19.3 b 2^-21.5 | wall 2692s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.6
+epoch 193 13.6s (refresh 1.56s, enc 0.24s) loss 0.03047 acc 0.9667/0.8667 | twin 0.03047 0.9667/0.8667 | err W 2^-19.3 b 2^-21.7 | wall 2706s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 194 13.6s (refresh 1.57s, enc 0.24s) loss 0.02624 acc 0.9833/1.0000 | twin 0.02624 0.9833/1.0000 | err W 2^-19.4 b 2^-21.6 | wall 2720s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.7
+epoch 195 13.5s (refresh 1.56s, enc 0.24s) loss 0.02427 acc 0.9833/1.0000 | twin 0.02427 0.9833/1.0000 | err W 2^-19.4 b 2^-21.6 | wall 2734s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 196 13.5s (refresh 1.57s, enc 0.24s) loss 0.02440 acc 0.9750/0.9333 | twin 0.02440 0.9750/0.9333 | err W 2^-19.4 b 2^-21.6 | wall 2748s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 197 13.6s (refresh 1.56s, enc 0.24s) loss 0.02514 acc 0.9750/0.9000 | twin 0.02514 0.9750/0.9000 | err W 2^-19.4 b 2^-21.6 | wall 2762s load 
+  copies: lane spread 2^-18.5, block spread 2^-25.0
+epoch 198 13.5s (refresh 1.56s, enc 0.24s) loss 0.02393 acc 0.9750/0.9667 | twin 0.02393 0.9750/0.9667 | err W 2^-19.3 b 2^-21.6 | wall 2776s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.6
+epoch 199 13.5s (refresh 1.56s, enc 0.24s) loss 0.02516 acc 0.9750/0.9000 | twin 0.02516 0.9750/0.9000 | err W 2^-19.3 b 2^-21.6 | wall 2790s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.9
+epoch 200 13.5s (refresh 1.56s, enc 0.24s) loss 0.02392 acc 0.9750/1.0000 | twin 0.02392 0.9750/1.0000 | err W 2^-19.4 b 2^-21.6 | wall 2804s load 1.07 1.06 1.10
+  copies: lane spread 2^-18.4, block spread 2^-24.7
+epoch 201 13.5s (refresh 1.56s, enc 0.24s) loss 0.02390 acc 0.9750/1.0000 | twin 0.02390 0.9750/1.0000 | err W 2^-19.3 b 2^-21.6 | wall 2818s load 
+  copies: lane spread 2^-18.5, block spread 2^-24.8
+epoch 202 13.6s (refresh 1.58s, enc 0.24s) loss 0.02403 acc 0.9750/1.0000 | twin 0.02403 0.9750/1.0000 | err W 2^-19.3 b 2^-21.5 | wall 2832s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.4
+epoch 203 13.5s (refresh 1.56s, enc 0.24s) loss 0.05646 acc 0.9250/0.8667 | twin 0.05646 0.9250/0.8667 | err W 2^-19.2 b 2^-21.5 | wall 2846s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 204 13.6s (refresh 1.56s, enc 0.24s) loss 0.02863 acc 0.9833/1.0000 | twin 0.02863 0.9833/1.0000 | err W 2^-19.2 b 2^-21.4 | wall 2860s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.9
+epoch 205 13.5s (refresh 1.56s, enc 0.24s) loss 0.02410 acc 0.9750/0.9667 | twin 0.02410 0.9750/0.9667 | err W 2^-19.2 b 2^-21.3 | wall 2874s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.9
+epoch 206 13.6s (refresh 1.56s, enc 0.24s) loss 0.02395 acc 0.9750/1.0000 | twin 0.02395 0.9750/1.0000 | err W 2^-19.2 b 2^-21.3 | wall 2888s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.8
+epoch 207 13.6s (refresh 1.56s, enc 0.24s) loss 0.02381 acc 0.9750/0.9667 | twin 0.02381 0.9750/0.9667 | err W 2^-19.2 b 2^-21.3 | wall 2902s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.1
+epoch 208 13.5s (refresh 1.56s, enc 0.24s) loss 0.02598 acc 0.9750/0.9667 | twin 0.02598 0.9750/0.9667 | err W 2^-19.2 b 2^-21.3 | wall 2916s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.3
+epoch 209 13.6s (refresh 1.56s, enc 0.24s) loss 0.02482 acc 0.9750/0.9667 | twin 0.02482 0.9750/0.9667 | err W 2^-19.2 b 2^-21.3 | wall 2930s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.9
+epoch 210 13.6s (refresh 1.56s, enc 0.24s) loss 0.02378 acc 0.9750/1.0000 | twin 0.02378 0.9750/1.0000 | err W 2^-19.2 b 2^-21.3 | wall 2944s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.0
+epoch 211 13.6s (refresh 1.56s, enc 0.24s) loss 0.02387 acc 0.9750/0.9667 | twin 0.02387 0.9750/0.9667 | err W 2^-19.2 b 2^-21.4 | wall 2958s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.8
+epoch 212 13.5s (refresh 1.56s, enc 0.24s) loss 0.02587 acc 0.9750/0.9000 | twin 0.02587 0.9750/0.9000 | err W 2^-19.1 b 2^-21.4 | wall 2972s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.1
+epoch 213 13.5s (refresh 1.56s, enc 0.24s) loss 0.02429 acc 0.9750/0.9667 | twin 0.02429 0.9750/0.9667 | err W 2^-19.2 b 2^-21.3 | wall 2986s load 
+  copies: lane spread 2^-18.3, block spread 2^-24.8
+epoch 214 13.5s (refresh 1.55s, enc 0.24s) loss 0.02494 acc 0.9750/0.9667 | twin 0.02494 0.9750/0.9667 | err W 2^-19.1 b 2^-21.3 | wall 2999s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.1
+epoch 215 13.6s (refresh 1.55s, enc 0.24s) loss 0.02949 acc 0.9583/0.9000 | twin 0.02949 0.9583/0.9000 | err W 2^-19.1 b 2^-21.0 | wall 3013s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.6
+epoch 216 13.5s (refresh 1.55s, enc 0.24s) loss 0.02472 acc 0.9750/0.9333 | twin 0.02472 0.9750/0.9333 | err W 2^-19.1 b 2^-21.2 | wall 3027s load 
+  copies: lane spread 2^-18.3, block spread 2^-24.8
+epoch 217 13.5s (refresh 1.55s, enc 0.24s) loss 0.02484 acc 0.9833/1.0000 | twin 0.02484 0.9833/1.0000 | err W 2^-19.0 b 2^-21.2 | wall 3041s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.0
+epoch 218 13.5s (refresh 1.56s, enc 0.24s) loss 0.02462 acc 0.9750/0.9667 | twin 0.02461 0.9750/0.9667 | err W 2^-19.1 b 2^-21.2 | wall 3055s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.0
+epoch 219 13.5s (refresh 1.56s, enc 0.24s) loss 0.02412 acc 0.9750/0.9667 | twin 0.02412 0.9750/0.9667 | err W 2^-19.1 b 2^-21.2 | wall 3069s load 
+  copies: lane spread 2^-18.4, block spread 2^-24.9
+epoch 220 13.5s (refresh 1.56s, enc 0.24s) loss 0.02371 acc 0.9750/1.0000 | twin 0.02371 0.9750/1.0000 | err W 2^-19.0 b 2^-21.3 | wall 3083s load 1.00 1.03 1.08
+  copies: lane spread 2^-18.3, block spread 2^-25.1
+epoch 221 13.5s (refresh 1.55s, enc 0.24s) loss 0.02461 acc 0.9833/1.0000 | twin 0.02461 0.9833/1.0000 | err W 2^-19.0 b 2^-21.1 | wall 3097s load 
+  copies: lane spread 2^-18.3, block spread 2^-24.8
+epoch 222 13.5s (refresh 1.56s, enc 0.24s) loss 0.05944 acc 0.9250/0.8667 | twin 0.05944 0.9250/0.8667 | err W 2^-19.0 b 2^-20.7 | wall 3111s load 
+  copies: lane spread 2^-18.3, block spread 2^-24.5
+epoch 223 13.5s (refresh 1.55s, enc 0.24s) loss 0.02782 acc 0.9750/0.9333 | twin 0.02782 0.9750/0.9333 | err W 2^-19.1 b 2^-20.9 | wall 3125s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.2
+epoch 224 13.5s (refresh 1.55s, enc 0.24s) loss 0.02392 acc 0.9750/0.9667 | twin 0.02392 0.9750/0.9667 | err W 2^-19.1 b 2^-21.3 | wall 3139s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.0
+epoch 225 13.5s (refresh 1.55s, enc 0.24s) loss 0.02351 acc 0.9750/1.0000 | twin 0.02351 0.9750/1.0000 | err W 2^-19.1 b 2^-21.2 | wall 3153s load 
+  copies: lane spread 2^-18.4, block spread 2^-25.1
+epoch 226 13.5s (refresh 1.56s, enc 0.24s) loss 0.02428 acc 0.9750/1.0000 | twin 0.02428 0.9750/1.0000 | err W 2^-19.1 b 2^-21.2 | wall 3167s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.1
+epoch 227 13.7s (refresh 1.58s, enc 0.24s) loss 0.02405 acc 0.9750/0.9667 | twin 0.02405 0.9750/0.9667 | err W 2^-19.2 b 2^-21.2 | wall 3181s load 
+  copies: lane spread 2^-18.3, block spread 2^-25.0
+epoch 228 13.5s (refresh 1.56s, enc 0.24s) loss 0.02420 acc 0.9833/1.0000 | twin 0.02420 0.9833/1.0000 | err W 2^-19.2 b 2^-21.2 | wall 3195s load 
+  copies: lane spread 2^-18.3, block spread 2^-24.6
+epoch 229 13.6s (refresh 1.56s, enc 0.24s) loss 0.02364 acc 0.9750/1.0000 | twin 0.02364 0.9750/1.0000 | err W 2^-19.2 b 2^-21.2 | wall 3209s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.6
+epoch 230 13.6s (refresh 1.56s, enc 0.24s) loss 0.02472 acc 0.9833/1.0000 | twin 0.02472 0.9833/1.0000 | err W 2^-19.2 b 2^-21.2 | wall 3223s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.7
+epoch 231 13.5s (refresh 1.56s, enc 0.24s) loss 0.02435 acc 0.9750/0.9000 | twin 0.02435 0.9750/0.9000 | err W 2^-19.2 b 2^-21.2 | wall 3237s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.9
+epoch 232 13.6s (refresh 1.56s, enc 0.24s) loss 0.02402 acc 0.9750/0.9000 | twin 0.02402 0.9750/0.9000 | err W 2^-19.2 b 2^-21.2 | wall 3251s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 233 13.6s (refresh 1.56s, enc 0.24s) loss 0.02357 acc 0.9750/0.9667 | twin 0.02357 0.9750/0.9667 | err W 2^-19.2 b 2^-21.2 | wall 3265s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.7
+epoch 234 13.5s (refresh 1.56s, enc 0.24s) loss 0.02393 acc 0.9750/0.9667 | twin 0.02393 0.9750/0.9667 | err W 2^-19.1 b 2^-21.2 | wall 3279s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.8
+epoch 235 13.5s (refresh 1.56s, enc 0.24s) loss 0.02374 acc 0.9750/0.9667 | twin 0.02374 0.9750/0.9667 | err W 2^-19.0 b 2^-21.1 | wall 3293s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.9
+epoch 236 13.5s (refresh 1.56s, enc 0.24s) loss 0.02484 acc 0.9833/1.0000 | twin 0.02484 0.9833/1.0000 | err W 2^-19.0 b 2^-21.1 | wall 3307s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.7
+epoch 237 13.6s (refresh 1.56s, enc 0.24s) loss 0.02545 acc 0.9750/0.9000 | twin 0.02545 0.9750/0.9000 | err W 2^-19.1 b 2^-21.1 | wall 3321s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.9
+epoch 238 13.5s (refresh 1.55s, enc 0.24s) loss 0.02354 acc 0.9750/0.9667 | twin 0.02354 0.9750/0.9667 | err W 2^-19.0 b 2^-21.1 | wall 3334s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.7
+epoch 239 13.5s (refresh 1.55s, enc 0.24s) loss 0.02518 acc 0.9750/0.9333 | twin 0.02518 0.9750/0.9333 | err W 2^-19.0 b 2^-21.1 | wall 3348s load 
+  copies: lane spread 2^-18.2, block spread 2^-25.0
+epoch 240 13.5s (refresh 1.56s, enc 0.24s) loss 0.02337 acc 0.9833/1.0000 | twin 0.02337 0.9833/1.0000 | err W 2^-18.9 b 2^-21.0 | wall 3362s load 1.01 1.02 1.06
+  copies: lane spread 2^-18.2, block spread 2^-24.4
+epoch 241 13.5s (refresh 1.56s, enc 0.24s) loss 0.03016 acc 0.9750/0.9000 | twin 0.03016 0.9750/0.9000 | err W 2^-19.0 b 2^-21.0 | wall 3376s load 
+  copies: lane spread 2^-18.2, block spread 2^-24.8
+epoch 242 13.5s (refresh 1.56s, enc 0.24s) loss 0.02440 acc 0.9750/0.9667 | twin 0.02440 0.9750/0.9667 | err W 2^-18.9 b 2^-21.0 | wall 3390s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 243 13.5s (refresh 1.56s, enc 0.24s) loss 0.02321 acc 0.9750/0.9667 | twin 0.02321 0.9750/0.9667 | err W 2^-19.0 b 2^-21.0 | wall 3404s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.5
+epoch 244 13.5s (refresh 1.56s, enc 0.24s) loss 0.02352 acc 0.9750/1.0000 | twin 0.02352 0.9750/1.0000 | err W 2^-18.9 b 2^-21.1 | wall 3418s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 245 13.6s (refresh 1.56s, enc 0.24s) loss 0.02380 acc 0.9750/0.9667 | twin 0.02380 0.9750/0.9667 | err W 2^-19.0 b 2^-21.1 | wall 3432s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 246 13.5s (refresh 1.56s, enc 0.24s) loss 0.02361 acc 0.9750/0.9667 | twin 0.02361 0.9750/0.9667 | err W 2^-18.9 b 2^-21.1 | wall 3446s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 247 13.6s (refresh 1.58s, enc 0.24s) loss 0.02380 acc 0.9750/0.9667 | twin 0.02380 0.9750/0.9667 | err W 2^-18.9 b 2^-21.1 | wall 3460s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 248 13.6s (refresh 1.56s, enc 0.24s) loss 0.02325 acc 0.9750/0.9667 | twin 0.02325 0.9750/0.9667 | err W 2^-18.9 b 2^-21.1 | wall 3474s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 249 13.5s (refresh 1.56s, enc 0.24s) loss 0.02388 acc 0.9833/1.0000 | twin 0.02388 0.9833/1.0000 | err W 2^-18.8 b 2^-21.1 | wall 3488s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 250 13.5s (refresh 1.56s, enc 0.24s) loss 0.02336 acc 0.9750/0.9667 | twin 0.02336 0.9750/0.9667 | err W 2^-18.8 b 2^-21.1 | wall 3502s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 251 13.5s (refresh 1.57s, enc 0.24s) loss 0.02453 acc 0.9833/1.0000 | twin 0.02453 0.9833/1.0000 | err W 2^-18.9 b 2^-21.1 | wall 3516s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 252 13.5s (refresh 1.56s, enc 0.24s) loss 0.02921 acc 0.9667/0.9000 | twin 0.02921 0.9667/0.9000 | err W 2^-19.0 b 2^-21.1 | wall 3530s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.1
+epoch 253 13.5s (refresh 1.56s, enc 0.24s) loss 0.02332 acc 0.9750/0.9667 | twin 0.02332 0.9750/0.9667 | err W 2^-18.9 b 2^-21.1 | wall 3544s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 254 13.5s (refresh 1.56s, enc 0.24s) loss 0.02311 acc 0.9750/0.9667 | twin 0.02311 0.9750/0.9667 | err W 2^-18.8 b 2^-21.1 | wall 3558s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 255 13.6s (refresh 1.56s, enc 0.24s) loss 0.02386 acc 0.9750/0.9000 | twin 0.02386 0.9750/0.9000 | err W 2^-18.9 b 2^-21.1 | wall 3572s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 256 13.5s (refresh 1.56s, enc 0.24s) loss 0.02314 acc 0.9750/1.0000 | twin 0.02314 0.9750/1.0000 | err W 2^-18.9 b 2^-21.1 | wall 3586s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.1
+epoch 257 13.5s (refresh 1.56s, enc 0.24s) loss 0.02414 acc 0.9833/1.0000 | twin 0.02414 0.9833/1.0000 | err W 2^-18.9 b 2^-21.0 | wall 3599s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 258 13.5s (refresh 1.56s, enc 0.24s) loss 0.03553 acc 0.9583/0.8667 | twin 0.03553 0.9583/0.8667 | err W 2^-18.9 b 2^-20.9 | wall 3613s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 259 13.6s (refresh 1.56s, enc 0.24s) loss 0.02404 acc 0.9750/0.9667 | twin 0.02404 0.9750/0.9667 | err W 2^-18.9 b 2^-21.0 | wall 3627s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 260 13.6s (refresh 1.56s, enc 0.24s) loss 0.02313 acc 0.9750/0.9667 | twin 0.02313 0.9750/0.9667 | err W 2^-18.9 b 2^-21.0 | wall 3641s load 1.05 1.03 1.05
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 261 13.5s (refresh 1.56s, enc 0.24s) loss 0.02381 acc 0.9750/0.9667 | twin 0.02381 0.9750/0.9667 | err W 2^-18.8 b 2^-21.0 | wall 3655s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.4
+epoch 262 13.6s (refresh 1.56s, enc 0.24s) loss 0.02497 acc 0.9750/0.9333 | twin 0.02497 0.9750/0.9333 | err W 2^-19.0 b 2^-21.0 | wall 3669s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 263 13.6s (refresh 1.56s, enc 0.24s) loss 0.02469 acc 0.9750/0.9000 | twin 0.02469 0.9750/0.9000 | err W 2^-18.8 b 2^-21.0 | wall 3683s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 264 13.5s (refresh 1.56s, enc 0.24s) loss 0.02414 acc 0.9750/0.9667 | twin 0.02414 0.9750/0.9667 | err W 2^-18.7 b 2^-21.1 | wall 3697s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 265 13.6s (refresh 1.56s, enc 0.24s) loss 0.02791 acc 0.9750/0.9000 | twin 0.02791 0.9750/0.9000 | err W 2^-18.7 b 2^-21.0 | wall 3711s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 266 13.5s (refresh 1.56s, enc 0.24s) loss 0.02414 acc 0.9750/0.9667 | twin 0.02414 0.9750/0.9667 | err W 2^-18.7 b 2^-21.0 | wall 3725s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 267 13.6s (refresh 1.56s, enc 0.24s) loss 0.02319 acc 0.9833/1.0000 | twin 0.02319 0.9833/1.0000 | err W 2^-18.8 b 2^-21.0 | wall 3739s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 268 13.6s (refresh 1.55s, enc 0.24s) loss 0.02317 acc 0.9750/1.0000 | twin 0.02317 0.9750/1.0000 | err W 2^-18.8 b 2^-21.0 | wall 3753s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 269 13.5s (refresh 1.56s, enc 0.24s) loss 0.02507 acc 0.9750/0.9333 | twin 0.02507 0.9750/0.9333 | err W 2^-18.8 b 2^-21.0 | wall 3767s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 270 13.5s (refresh 1.56s, enc 0.24s) loss 0.02342 acc 0.9750/0.9667 | twin 0.02342 0.9750/0.9667 | err W 2^-18.7 b 2^-21.0 | wall 3781s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.1
+epoch 271 13.5s (refresh 1.56s, enc 0.24s) loss 0.02321 acc 0.9750/0.9667 | twin 0.02321 0.9750/0.9667 | err W 2^-18.8 b 2^-21.0 | wall 3795s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 272 13.6s (refresh 1.56s, enc 0.24s) loss 0.02323 acc 0.9833/1.0000 | twin 0.02323 0.9833/1.0000 | err W 2^-18.8 b 2^-21.0 | wall 3809s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 273 13.6s (refresh 1.56s, enc 0.24s) loss 0.02891 acc 0.9583/0.9000 | twin 0.02891 0.9583/0.9000 | err W 2^-18.9 b 2^-21.0 | wall 3823s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.2
+epoch 274 13.6s (refresh 1.58s, enc 0.24s) loss 0.02308 acc 0.9750/1.0000 | twin 0.02308 0.9750/1.0000 | err W 2^-18.8 b 2^-21.0 | wall 3837s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 275 13.6s (refresh 1.56s, enc 0.26s) loss 0.02324 acc 0.9750/0.9667 | twin 0.02324 0.9750/0.9667 | err W 2^-18.8 b 2^-21.0 | wall 3851s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.1
+epoch 276 13.5s (refresh 1.56s, enc 0.24s) loss 0.02303 acc 0.9750/0.9667 | twin 0.02303 0.9750/0.9667 | err W 2^-18.8 b 2^-21.0 | wall 3865s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 277 13.5s (refresh 1.56s, enc 0.24s) loss 0.02300 acc 0.9750/0.9667 | twin 0.02300 0.9750/0.9667 | err W 2^-18.8 b 2^-20.9 | wall 3879s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.2
+epoch 278 13.5s (refresh 1.55s, enc 0.24s) loss 0.02627 acc 0.9833/1.0000 | twin 0.02627 0.9833/1.0000 | err W 2^-18.8 b 2^-20.9 | wall 3893s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.1
+epoch 279 13.5s (refresh 1.55s, enc 0.24s) loss 0.02372 acc 0.9750/0.9667 | twin 0.02372 0.9750/0.9667 | err W 2^-18.8 b 2^-20.9 | wall 3907s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 280 13.6s (refresh 1.56s, enc 0.24s) loss 0.02349 acc 0.9750/1.0000 | twin 0.02349 0.9750/1.0000 | err W 2^-18.7 b 2^-20.9 | wall 3921s load 1.04 1.04 1.04
+  copies: lane spread 2^-18.0, block spread 2^-25.1
+epoch 281 13.5s (refresh 1.55s, enc 0.24s) loss 0.03942 acc 0.9583/0.8667 | twin 0.03942 0.9583/0.8667 | err W 2^-18.8 b 2^-20.9 | wall 3935s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 282 13.6s (refresh 1.56s, enc 0.24s) loss 0.02347 acc 0.9833/1.0000 | twin 0.02347 0.9833/1.0000 | err W 2^-18.8 b 2^-20.9 | wall 3949s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 283 13.6s (refresh 1.56s, enc 0.24s) loss 0.02346 acc 0.9750/0.9667 | twin 0.02346 0.9750/0.9667 | err W 2^-18.8 b 2^-20.9 | wall 3963s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.5
+epoch 284 13.6s (refresh 1.57s, enc 0.24s) loss 0.02306 acc 0.9750/0.9667 | twin 0.02306 0.9750/0.9667 | err W 2^-18.8 b 2^-20.8 | wall 3977s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 285 13.6s (refresh 1.59s, enc 0.24s) loss 0.02418 acc 0.9750/0.9667 | twin 0.02418 0.9750/0.9667 | err W 2^-18.8 b 2^-20.8 | wall 3991s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 286 13.5s (refresh 1.56s, enc 0.24s) loss 0.02341 acc 0.9750/0.9667 | twin 0.02341 0.9750/0.9667 | err W 2^-18.7 b 2^-20.8 | wall 4005s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 287 13.7s (refresh 1.58s, enc 0.24s) loss 0.02332 acc 0.9833/1.0000 | twin 0.02332 0.9833/1.0000 | err W 2^-18.7 b 2^-20.8 | wall 4019s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.8
+epoch 288 13.5s (refresh 1.55s, enc 0.24s) loss 0.02296 acc 0.9750/0.9667 | twin 0.02296 0.9750/0.9667 | err W 2^-18.7 b 2^-20.8 | wall 4033s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 289 13.6s (refresh 1.56s, enc 0.24s) loss 0.02286 acc 0.9750/0.9667 | twin 0.02286 0.9750/0.9667 | err W 2^-18.7 b 2^-20.8 | wall 4047s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 290 13.6s (refresh 1.56s, enc 0.24s) loss 0.02488 acc 0.9833/1.0000 | twin 0.02488 0.9833/1.0000 | err W 2^-18.8 b 2^-20.7 | wall 4061s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 291 13.5s (refresh 1.56s, enc 0.24s) loss 0.02364 acc 0.9750/0.9667 | twin 0.02364 0.9750/0.9667 | err W 2^-18.7 b 2^-20.7 | wall 4074s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 292 13.6s (refresh 1.56s, enc 0.24s) loss 0.02434 acc 0.9750/0.9000 | twin 0.02434 0.9750/0.9000 | err W 2^-18.8 b 2^-20.7 | wall 4088s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 293 13.6s (refresh 1.56s, enc 0.24s) loss 0.02298 acc 0.9833/1.0000 | twin 0.02298 0.9833/1.0000 | err W 2^-18.8 b 2^-20.7 | wall 4102s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.6
+epoch 294 13.6s (refresh 1.56s, enc 0.27s) loss 0.02308 acc 0.9750/1.0000 | twin 0.02308 0.9750/1.0000 | err W 2^-18.8 b 2^-20.7 | wall 4116s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.1
+epoch 295 13.6s (refresh 1.56s, enc 0.24s) loss 0.02328 acc 0.9833/1.0000 | twin 0.02328 0.9833/1.0000 | err W 2^-18.7 b 2^-20.6 | wall 4130s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 296 13.6s (refresh 1.58s, enc 0.24s) loss 0.02315 acc 0.9750/0.9667 | twin 0.02315 0.9750/0.9667 | err W 2^-18.8 b 2^-20.7 | wall 4144s load 
+  copies: lane spread 2^-18.1, block spread 2^-25.0
+epoch 297 13.6s (refresh 1.56s, enc 0.24s) loss 0.02403 acc 0.9833/1.0000 | twin 0.02403 0.9833/1.0000 | err W 2^-18.8 b 2^-20.6 | wall 4158s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.8
+epoch 298 13.6s (refresh 1.56s, enc 0.24s) loss 0.02281 acc 0.9750/0.9667 | twin 0.02281 0.9750/0.9667 | err W 2^-18.8 b 2^-20.6 | wall 4172s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 299 13.6s (refresh 1.56s, enc 0.24s) loss 0.02312 acc 0.9750/0.9667 | twin 0.02312 0.9750/0.9667 | err W 2^-18.8 b 2^-20.6 | wall 4186s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.5
+epoch 300 13.5s (refresh 1.56s, enc 0.24s) loss 0.02468 acc 0.9833/1.0000 | twin 0.02468 0.9833/1.0000 | err W 2^-18.9 b 2^-20.7 | wall 4200s load 1.02 1.04 1.03
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 301 13.6s (refresh 1.56s, enc 0.24s) loss 0.02559 acc 0.9750/0.9000 | twin 0.02559 0.9750/0.9000 | err W 2^-18.9 b 2^-20.6 | wall 4214s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.9
+epoch 302 13.6s (refresh 1.56s, enc 0.24s) loss 0.02413 acc 0.9833/1.0000 | twin 0.02413 0.9833/1.0000 | err W 2^-18.9 b 2^-20.7 | wall 4228s load 
+  copies: lane spread 2^-18.1, block spread 2^-24.7
+epoch 303 13.6s (refresh 1.56s, enc 0.24s) loss 0.02293 acc 0.9833/1.0000 | twin 0.02293 0.9833/1.0000 | err W 2^-18.8 b 2^-20.7 | wall 4242s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 304 13.6s (refresh 1.57s, enc 0.24s) loss 0.02426 acc 0.9750/0.9667 | twin 0.02426 0.9750/0.9667 | err W 2^-18.8 b 2^-20.7 | wall 4256s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 305 13.6s (refresh 1.56s, enc 0.24s) loss 0.02402 acc 0.9750/0.9667 | twin 0.02402 0.9750/0.9667 | err W 2^-18.8 b 2^-20.7 | wall 4270s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 306 13.6s (refresh 1.57s, enc 0.24s) loss 0.02300 acc 0.9750/0.9667 | twin 0.02300 0.9750/0.9667 | err W 2^-18.8 b 2^-20.6 | wall 4284s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.8
+epoch 307 13.6s (refresh 1.56s, enc 0.24s) loss 0.02331 acc 0.9750/0.9667 | twin 0.02331 0.9750/0.9667 | err W 2^-18.9 b 2^-20.5 | wall 4298s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.6
+epoch 308 13.6s (refresh 1.56s, enc 0.25s) loss 0.02384 acc 0.9750/0.9667 | twin 0.02384 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4312s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 309 13.6s (refresh 1.56s, enc 0.24s) loss 0.02297 acc 0.9750/0.9667 | twin 0.02297 0.9750/0.9667 | err W 2^-18.9 b 2^-20.5 | wall 4326s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.8
+epoch 310 13.7s (refresh 1.57s, enc 0.24s) loss 0.02398 acc 0.9833/1.0000 | twin 0.02398 0.9833/1.0000 | err W 2^-18.9 b 2^-20.5 | wall 4340s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.8
+epoch 311 13.6s (refresh 1.56s, enc 0.24s) loss 0.02343 acc 0.9750/0.9667 | twin 0.02343 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4354s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.0
+epoch 312 13.6s (refresh 1.56s, enc 0.24s) loss 0.02382 acc 0.9750/0.9667 | twin 0.02382 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4368s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.8
+epoch 313 13.6s (refresh 1.56s, enc 0.24s) loss 0.02814 acc 0.9750/0.9000 | twin 0.02814 0.9750/0.9000 | err W 2^-18.8 b 2^-20.5 | wall 4382s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.9
+epoch 314 13.6s (refresh 1.56s, enc 0.24s) loss 0.02288 acc 0.9750/0.9667 | twin 0.02288 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4396s load 
+  copies: lane spread 2^-18.0, block spread 2^-25.1
+epoch 315 13.5s (refresh 1.56s, enc 0.24s) loss 0.02310 acc 0.9833/1.0000 | twin 0.02310 0.9833/1.0000 | err W 2^-18.8 b 2^-20.5 | wall 4410s load 
+  copies: lane spread 2^-18.0, block spread 2^-24.7
+epoch 316 13.6s (refresh 1.56s, enc 0.24s) loss 0.02429 acc 0.9750/0.9333 | twin 0.02429 0.9750/0.9333 | err W 2^-18.8 b 2^-20.5 | wall 4424s load 
+  copies: lane spread 2^-17.9, block spread 2^-24.9
+epoch 317 13.6s (refresh 1.56s, enc 0.24s) loss 0.02444 acc 0.9750/0.9667 | twin 0.02444 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4438s load 
+  copies: lane spread 2^-17.9, block spread 2^-24.8
+epoch 318 13.6s (refresh 1.56s, enc 0.24s) loss 0.02298 acc 0.9750/0.9667 | twin 0.02298 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4452s load 
+  copies: lane spread 2^-17.9, block spread 2^-24.8
+epoch 319 13.6s (refresh 1.56s, enc 0.24s) loss 0.02435 acc 0.9750/0.9667 | twin 0.02435 0.9750/0.9667 | err W 2^-18.8 b 2^-20.4 | wall 4466s load 
+  copies: lane spread 2^-17.9, block spread 2^-25.1
+epoch 320 13.7s (refresh 1.58s, enc 0.24s) loss 0.02560 acc 0.9750/0.9000 | twin 0.02560 0.9750/0.9000 | err W 2^-18.8 b 2^-20.4 | wall 4480s load 1.11 1.05 1.03
+  copies: lane spread 2^-17.8, block spread 2^-25.1
+epoch 321 13.8s (refresh 1.58s, enc 0.24s) loss 0.04564 acc 0.9500/0.8667 | twin 0.04564 0.9500/0.8667 | err W 2^-18.8 b 2^-20.5 | wall 4494s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.0
+epoch 322 13.6s (refresh 1.56s, enc 0.24s) loss 0.02293 acc 0.9750/0.9667 | twin 0.02293 0.9750/0.9667 | err W 2^-18.7 b 2^-20.5 | wall 4508s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 323 13.5s (refresh 1.56s, enc 0.24s) loss 0.02468 acc 0.9833/1.0000 | twin 0.02468 0.9833/1.0000 | err W 2^-18.7 b 2^-20.5 | wall 4522s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 324 13.5s (refresh 1.56s, enc 0.24s) loss 0.02290 acc 0.9750/0.9667 | twin 0.02290 0.9750/0.9667 | err W 2^-18.7 b 2^-20.4 | wall 4536s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.0
+epoch 325 13.5s (refresh 1.56s, enc 0.24s) loss 0.02294 acc 0.9750/0.9667 | twin 0.02294 0.9750/0.9667 | err W 2^-18.8 b 2^-20.5 | wall 4550s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 326 13.7s (refresh 1.58s, enc 0.24s) loss 0.02280 acc 0.9750/0.9667 | twin 0.02280 0.9750/0.9667 | err W 2^-18.7 b 2^-20.5 | wall 4564s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.4
+epoch 327 13.6s (refresh 1.56s, enc 0.24s) loss 0.02321 acc 0.9750/1.0000 | twin 0.02321 0.9750/1.0000 | err W 2^-18.8 b 2^-20.5 | wall 4578s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.1
+epoch 328 13.6s (refresh 1.56s, enc 0.24s) loss 0.02444 acc 0.9750/0.9333 | twin 0.02444 0.9750/0.9333 | err W 2^-18.8 b 2^-20.4 | wall 4592s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 329 13.6s (refresh 1.56s, enc 0.25s) loss 0.02310 acc 0.9750/0.9667 | twin 0.02310 0.9750/0.9667 | err W 2^-18.7 b 2^-20.4 | wall 4606s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 330 13.6s (refresh 1.56s, enc 0.24s) loss 0.02704 acc 0.9833/1.0000 | twin 0.02704 0.9833/1.0000 | err W 2^-18.8 b 2^-20.4 | wall 4620s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 331 13.6s (refresh 1.56s, enc 0.24s) loss 0.02306 acc 0.9750/1.0000 | twin 0.02306 0.9750/1.0000 | err W 2^-18.8 b 2^-20.4 | wall 4634s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.5
+epoch 332 13.6s (refresh 1.56s, enc 0.24s) loss 0.02330 acc 0.9750/0.9667 | twin 0.02330 0.9750/0.9667 | err W 2^-18.8 b 2^-20.4 | wall 4648s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.8
+epoch 333 13.6s (refresh 1.56s, enc 0.24s) loss 0.02483 acc 0.9750/0.9000 | twin 0.02483 0.9750/0.9000 | err W 2^-18.8 b 2^-20.4 | wall 4662s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.7
+epoch 334 13.6s (refresh 1.56s, enc 0.24s) loss 0.02275 acc 0.9750/0.9333 | twin 0.02275 0.9750/0.9333 | err W 2^-18.8 b 2^-20.4 | wall 4676s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.6
+epoch 335 13.5s (refresh 1.56s, enc 0.24s) loss 0.02564 acc 0.9750/0.9333 | twin 0.02564 0.9750/0.9333 | err W 2^-18.8 b 2^-20.4 | wall 4690s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 336 13.7s (refresh 1.61s, enc 0.24s) loss 0.02350 acc 0.9750/0.9667 | twin 0.02350 0.9750/0.9667 | err W 2^-18.8 b 2^-20.4 | wall 4704s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.6
+epoch 337 16.2s (refresh 1.87s, enc 0.29s) loss 0.02303 acc 0.9750/0.9667 | twin 0.02303 0.9750/0.9667 | err W 2^-18.8 b 2^-20.4 | wall 4721s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.9
+epoch 338 15.1s (refresh 1.76s, enc 0.28s) loss 0.02308 acc 0.9750/1.0000 | twin 0.02308 0.9750/1.0000 | err W 2^-18.8 b 2^-20.4 | wall 4736s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.5
+epoch 339 14.8s (refresh 1.72s, enc 0.27s) loss 0.02435 acc 0.9750/0.9333 | twin 0.02435 0.9750/0.9333 | err W 2^-18.8 b 2^-20.4 | wall 4752s load 
+  copies: lane spread 2^-17.5, block spread 2^-25.0
+epoch 340 15.1s (refresh 1.75s, enc 0.27s) loss 0.03009 acc 0.9750/0.9000 | twin 0.03009 0.9750/0.9000 | err W 2^-18.8 b 2^-20.4 | wall 4767s load 5.53 2.48 1.53
+  copies: lane spread 2^-17.6, block spread 2^-24.7
+epoch 341 15.1s (refresh 1.76s, enc 0.27s) loss 0.02294 acc 0.9750/0.9333 | twin 0.02294 0.9750/0.9333 | err W 2^-18.7 b 2^-20.4 | wall 4783s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.1
+epoch 342 15.0s (refresh 1.76s, enc 0.27s) loss 0.02513 acc 0.9833/1.0000 | twin 0.02513 0.9833/1.0000 | err W 2^-18.7 b 2^-20.3 | wall 4798s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.8
+epoch 343 15.0s (refresh 1.75s, enc 0.27s) loss 0.02278 acc 0.9750/0.9667 | twin 0.02278 0.9750/0.9667 | err W 2^-18.7 b 2^-20.3 | wall 4814s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 344 14.8s (refresh 1.72s, enc 0.27s) loss 0.02292 acc 0.9750/1.0000 | twin 0.02292 0.9750/1.0000 | err W 2^-18.7 b 2^-20.3 | wall 4829s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 345 14.8s (refresh 1.73s, enc 0.26s) loss 0.02333 acc 0.9750/1.0000 | twin 0.02333 0.9750/1.0000 | err W 2^-18.7 b 2^-20.3 | wall 4844s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 346 15.1s (refresh 1.76s, enc 0.27s) loss 0.02273 acc 0.9750/0.9667 | twin 0.02273 0.9750/0.9667 | err W 2^-18.7 b 2^-20.3 | wall 4860s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 347 15.0s (refresh 1.75s, enc 0.27s) loss 0.02442 acc 0.9833/1.0000 | twin 0.02442 0.9833/1.0000 | err W 2^-18.6 b 2^-20.3 | wall 4875s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.2
+epoch 348 15.0s (refresh 1.74s, enc 0.27s) loss 0.02474 acc 0.9750/0.9000 | twin 0.02474 0.9750/0.9000 | err W 2^-18.7 b 2^-20.3 | wall 4891s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 349 15.0s (refresh 1.75s, enc 0.27s) loss 0.02362 acc 0.9833/1.0000 | twin 0.02362 0.9833/1.0000 | err W 2^-18.6 b 2^-20.3 | wall 4906s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.6
+epoch 350 15.0s (refresh 1.73s, enc 0.30s) loss 0.03268 acc 0.9667/0.8667 | twin 0.03268 0.9667/0.8667 | err W 2^-18.7 b 2^-20.3 | wall 4922s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.6
+epoch 351 15.0s (refresh 1.75s, enc 0.27s) loss 0.02350 acc 0.9750/0.9333 | twin 0.02350 0.9750/0.9333 | err W 2^-18.7 b 2^-20.3 | wall 4937s load 
+  copies: lane spread 2^-17.6, block spread 2^-25.0
+epoch 352 15.0s (refresh 1.75s, enc 0.27s) loss 0.02536 acc 0.9833/1.0000 | twin 0.02536 0.9833/1.0000 | err W 2^-18.6 b 2^-20.2 | wall 4953s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.8
+epoch 353 15.1s (refresh 1.74s, enc 0.27s) loss 0.02306 acc 0.9750/0.9333 | twin 0.02306 0.9750/0.9333 | err W 2^-18.7 b 2^-20.3 | wall 4968s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.9
+epoch 354 15.0s (refresh 1.75s, enc 0.27s) loss 0.02286 acc 0.9750/0.9333 | twin 0.02286 0.9750/0.9333 | err W 2^-18.7 b 2^-20.2 | wall 4984s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.8
+epoch 355 15.0s (refresh 1.74s, enc 0.27s) loss 0.02315 acc 0.9750/0.9333 | twin 0.02315 0.9750/0.9333 | err W 2^-18.7 b 2^-20.3 | wall 4999s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.8
+epoch 356 15.1s (refresh 1.76s, enc 0.27s) loss 0.02408 acc 0.9750/1.0000 | twin 0.02408 0.9750/1.0000 | err W 2^-18.6 b 2^-20.3 | wall 5014s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 357 15.8s (refresh 1.76s, enc 0.27s) loss 0.02316 acc 0.9750/1.0000 | twin 0.02316 0.9750/1.0000 | err W 2^-18.6 b 2^-20.2 | wall 5031s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.9
+epoch 358 15.0s (refresh 1.77s, enc 0.27s) loss 0.02358 acc 0.9750/0.9333 | twin 0.02358 0.9750/0.9333 | err W 2^-18.6 b 2^-20.2 | wall 5046s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.1
+epoch 359 15.0s (refresh 1.74s, enc 0.27s) loss 0.02309 acc 0.9750/0.9333 | twin 0.02309 0.9750/0.9333 | err W 2^-18.6 b 2^-20.2 | wall 5062s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 360 15.0s (refresh 1.76s, enc 0.27s) loss 0.02323 acc 0.9750/0.9667 | twin 0.02323 0.9750/0.9667 | err W 2^-18.6 b 2^-20.2 | wall 5077s load 6.09 4.86 2.84
+  copies: lane spread 2^-17.7, block spread 2^-24.8
+epoch 361 15.0s (refresh 1.75s, enc 0.27s) loss 0.02264 acc 0.9750/1.0000 | twin 0.02264 0.9750/1.0000 | err W 2^-18.6 b 2^-20.2 | wall 5093s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.3
+epoch 362 15.0s (refresh 1.74s, enc 0.27s) loss 0.02807 acc 0.9750/0.9000 | twin 0.02807 0.9750/0.9000 | err W 2^-18.6 b 2^-20.2 | wall 5108s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.4
+epoch 363 15.0s (refresh 1.74s, enc 0.27s) loss 0.02266 acc 0.9833/0.9667 | twin 0.02266 0.9833/0.9667 | err W 2^-18.6 b 2^-20.2 | wall 5123s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.2
+epoch 364 15.0s (refresh 1.74s, enc 0.27s) loss 0.02303 acc 0.9750/0.9333 | twin 0.02303 0.9750/0.9333 | err W 2^-18.6 b 2^-20.1 | wall 5139s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 365 15.1s (refresh 1.75s, enc 0.27s) loss 0.02383 acc 0.9833/1.0000 | twin 0.02383 0.9833/1.0000 | err W 2^-18.5 b 2^-20.1 | wall 5154s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.1
+epoch 366 15.0s (refresh 1.75s, enc 0.27s) loss 0.02255 acc 0.9750/0.9333 | twin 0.02255 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5170s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 367 15.2s (refresh 1.77s, enc 0.27s) loss 0.02279 acc 0.9750/0.9333 | twin 0.02279 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5186s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 368 15.0s (refresh 1.75s, enc 0.27s) loss 0.02432 acc 0.9750/0.9333 | twin 0.02432 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5201s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 369 15.0s (refresh 1.73s, enc 0.27s) loss 0.02440 acc 0.9750/0.9000 | twin 0.02440 0.9750/0.9000 | err W 2^-18.5 b 2^-20.0 | wall 5216s load 
+  copies: lane spread 2^-17.6, block spread 2^-24.8
+epoch 370 15.0s (refresh 1.74s, enc 0.27s) loss 0.02293 acc 0.9750/0.9333 | twin 0.02293 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5232s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 371 16.0s (refresh 1.95s, enc 0.27s) loss 0.02893 acc 0.9750/0.9667 | twin 0.02893 0.9750/0.9667 | err W 2^-18.5 b 2^-20.1 | wall 5248s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 372 17.3s (refresh 2.09s, enc 0.28s) loss 0.02334 acc 0.9750/1.0000 | twin 0.02334 0.9750/1.0000 | err W 2^-18.5 b 2^-20.0 | wall 5266s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.7
+epoch 373 16.3s (refresh 1.88s, enc 0.30s) loss 0.02263 acc 0.9750/0.9667 | twin 0.02263 0.9750/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5283s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.5
+epoch 374 15.4s (refresh 1.77s, enc 0.28s) loss 0.02300 acc 0.9833/1.0000 | twin 0.02300 0.9833/1.0000 | err W 2^-18.5 b 2^-20.0 | wall 5299s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.8
+epoch 375 15.0s (refresh 1.74s, enc 0.27s) loss 0.02340 acc 0.9833/1.0000 | twin 0.02340 0.9833/1.0000 | err W 2^-18.5 b 2^-20.0 | wall 5314s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.5
+epoch 376 15.1s (refresh 1.75s, enc 0.27s) loss 0.02276 acc 0.9750/0.9333 | twin 0.02276 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5330s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.0
+epoch 377 15.1s (refresh 1.75s, enc 0.27s) loss 0.02515 acc 0.9750/0.9333 | twin 0.02515 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5345s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 378 15.1s (refresh 1.76s, enc 0.27s) loss 0.02513 acc 0.9750/0.9667 | twin 0.02513 0.9750/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5361s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.8
+epoch 379 15.2s (refresh 1.74s, enc 0.27s) loss 0.02312 acc 0.9750/0.9667 | twin 0.02312 0.9750/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5377s load 
+  copies: lane spread 2^-17.7, block spread 2^-25.1
+epoch 380 15.1s (refresh 1.75s, enc 0.27s) loss 0.02270 acc 0.9750/1.0000 | twin 0.02270 0.9750/1.0000 | err W 2^-18.6 b 2^-20.0 | wall 5392s load 6.37 6.75 4.29
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 381 15.0s (refresh 1.76s, enc 0.27s) loss 0.02279 acc 0.9750/0.9333 | twin 0.02279 0.9750/0.9333 | err W 2^-18.6 b 2^-20.0 | wall 5408s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.0
+epoch 382 15.0s (refresh 1.75s, enc 0.27s) loss 0.02339 acc 0.9750/0.9333 | twin 0.02339 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5423s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.9
+epoch 383 15.0s (refresh 1.74s, enc 0.27s) loss 0.02286 acc 0.9750/1.0000 | twin 0.02286 0.9750/1.0000 | err W 2^-18.5 b 2^-20.1 | wall 5439s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.7
+epoch 384 15.0s (refresh 1.76s, enc 0.27s) loss 0.02288 acc 0.9750/0.9333 | twin 0.02288 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5454s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 385 15.0s (refresh 1.75s, enc 0.27s) loss 0.02252 acc 0.9750/0.9667 | twin 0.02252 0.9750/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5470s load 
+  copies: lane spread 2^-17.7, block spread 2^-24.9
+epoch 386 15.0s (refresh 1.74s, enc 0.27s) loss 0.02418 acc 0.9750/0.9333 | twin 0.02418 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5485s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.1
+epoch 387 15.1s (refresh 1.78s, enc 0.27s) loss 0.02247 acc 0.9750/0.9333 | twin 0.02247 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5501s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 388 15.0s (refresh 1.73s, enc 0.26s) loss 0.02712 acc 0.9833/0.9333 | twin 0.02712 0.9833/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5516s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 389 15.0s (refresh 1.74s, enc 0.26s) loss 0.02272 acc 0.9833/1.0000 | twin 0.02272 0.9833/1.0000 | err W 2^-18.5 b 2^-20.0 | wall 5532s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 390 15.0s (refresh 1.74s, enc 0.27s) loss 0.02369 acc 0.9750/0.9000 | twin 0.02369 0.9750/0.9000 | err W 2^-18.5 b 2^-20.0 | wall 5547s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 391 15.0s (refresh 1.75s, enc 0.27s) loss 0.02304 acc 0.9833/1.0000 | twin 0.02304 0.9833/1.0000 | err W 2^-18.5 b 2^-20.0 | wall 5563s load 
+  copies: lane spread 2^-17.9, block spread 2^-25.0
+epoch 392 15.0s (refresh 1.75s, enc 0.27s) loss 0.02282 acc 0.9833/0.9667 | twin 0.02282 0.9833/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5578s load 
+  copies: lane spread 2^-17.9, block spread 2^-25.0
+epoch 393 15.1s (refresh 1.75s, enc 0.27s) loss 0.02319 acc 0.9750/0.9333 | twin 0.02319 0.9750/0.9333 | err W 2^-18.5 b 2^-20.1 | wall 5594s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.0
+epoch 394 15.0s (refresh 1.75s, enc 0.27s) loss 0.02350 acc 0.9750/0.9333 | twin 0.02350 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5609s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 395 15.1s (refresh 1.74s, enc 0.27s) loss 0.02286 acc 0.9750/0.9333 | twin 0.02286 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5625s load 
+  copies: lane spread 2^-17.8, block spread 2^-25.0
+epoch 396 15.0s (refresh 1.74s, enc 0.27s) loss 0.02256 acc 0.9750/0.9333 | twin 0.02256 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5640s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.8
+epoch 397 15.0s (refresh 1.75s, enc 0.27s) loss 0.02282 acc 0.9750/0.9333 | twin 0.02282 0.9750/0.9333 | err W 2^-18.5 b 2^-20.0 | wall 5656s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.9
+epoch 398 15.0s (refresh 1.74s, enc 0.27s) loss 0.02334 acc 0.9750/0.9667 | twin 0.02334 0.9750/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5671s load 
+  copies: lane spread 2^-17.8, block spread 2^-24.9
+epoch 399 15.0s (refresh 1.76s, enc 0.27s) loss 0.02334 acc 0.9833/0.9667 | twin 0.02334 0.9833/0.9667 | err W 2^-18.5 b 2^-20.0 | wall 5686s load 
+# wrote /home/kmihara/hekit-runs/out/iris_20/iris.json; wall 5686 s

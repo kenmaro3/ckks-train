@@ -1,0 +1,23 @@
+   Compiling autocfg v1.5.1
+   Compiling cfg-if v1.0.5
+   Compiling libc v0.2.191
+   Compiling getrandom v0.3.4
+   Compiling zerocopy v0.8.63
+   Compiling rawpointer v0.2.1
+   Compiling cudarc v0.19.0
+   Compiling libloading v0.8.9
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling num-complex v0.4.6
+   Compiling num-integer v0.1.47
+   Compiling ndarray v0.16.1
+   Compiling rand_core v0.9.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.9.0
+   Compiling hekit-core v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-core)
+   Compiling hekit-ckks v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-ckks)
+   Compiling hekit-cuda v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-cuda)
+    Finished `release` profile [optimized] target(s) in 4.87s
+  Executable unittests src/lib.rs (target/release/deps/hekit_cuda-c3b838255b0a5982)
+  Executable tests/gpu.rs (target/release/deps/gpu-7786b32237eed00a)
+  Executable tests/gpu_arith.rs (target/release/deps/gpu_arith-dd6490a0b9ad0a8b)

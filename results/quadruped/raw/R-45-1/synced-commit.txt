@@ -1,0 +1,5 @@
+commit 7519f77
+full 7519f77ef8d3dbbc33d74bc8e3ad219d646743a1
+dirty_files 0
+source git bundle of the Mac HEAD (committed state only), cloned to ~/hekit-r45
+synced_at 2026-11-05T20:47:30+09:00
