@@ -1,0 +1,57 @@
+{
+  "provenance": {
+    "written_by": "the mnist binary (raw output, not assembled)",
+    "git_commit": "f195124fd3a121897420dde1bf74a58d144ac0a7",
+    "git_modified_tracked_files": "M .github/workflows/ci.yml\n M Cargo.lock\n M Cargo.toml\n M crates/hekit-core/src/error.rs\n M docs/quadruped-log.md",
+    "command_line": "./target/release/mnist --mode plain --faithful --batch 32 --indices results/quadruped/raw/reboot_emlp1_official_subset/reboot_subsample_indices.txt",
+    "build": {
+      "debug_assertions": false,
+      "package_version": "0.0.0",
+      "target_os": "macos",
+      "target_arch": "aarch64"
+    },
+    "parallel_feature": false,
+    "rustc_on_path": "rustc 1.85.1 (4eb161250 2025-03-15)",
+    "machine": {
+      "cpu": "Apple M3 Pro",
+      "logical_cpus": 12,
+      "memory_bytes": "38654705664",
+      "os": "Darwin 25.3.0 arm64",
+      "host": "marconi"
+    },
+    "threads": "1 (no parallel feature)",
+    "load_start": "{ 8.95 5.24 4.17 }",
+    "load_end": "{ 8.95 5.24 4.17 }",
+    "started_unix": 1793876761.513835,
+    "finished_unix": 1793876761.671059
+  },
+  "task": "Task 41 fix round 3 (R-M3-12): plaintext twin only",
+  "config": {
+    "dims": [784, 32, 16],
+    "batch": 32,
+    "lr_on_batch_mean_gradient": 0.016,
+    "lr_sum": 0.0005,
+    "momentum": 0.9,
+    "init": "xavier",
+    "biases": false,
+    "output_width": 16,
+    "faithful": true,
+    "seed": 32,
+    "train_samples": 1008,
+    "indices": "results/quadruped/raw/reboot_emlp1_official_subset/reboot_subsample_indices.txt",
+    "epochs": 1,
+    "updates": 32
+  },
+  "epochs": [
+    {
+      "epoch": 0,
+      "test_acc": 0.7109,
+      "test_mse": 0.03580976565829284,
+      "train_acc": 0.7748015873015873
+    }
+  ],
+  "step_batch_loss_sum": [34.908177215874446, 32.54140073563017, 32.15762604597231, 31.780232120307552, 30.008992745692876, 27.760356357319793, 26.87906439853944, 26.85973197848946, 24.70836528619171, 23.969575513382637, 23.539287751745274, 24.243908600773008, 23.28417377115353, 25.463955814362, 23.26650686186308, 20.144300247449625, 21.781829090350257, 18.58655058698847, 20.621405255308638, 18.98513591206526, 19.707463748978277, 19.744934016528163, 20.14528649703368, 20.086968296314556, 18.398034566922732, 19.2738184768808, 19.884325741222362, 18.668641647887362, 17.13318102902285, 15.118975643748737, 20.164202590920468, 5.964527834116525],
+  "step_batch_acc": [0.25, 0.15625, 0.125, 0.21875, 0.375, 0.375, 0.4375, 0.4375, 0.625, 0.6875, 0.625, 0.53125, 0.625, 0.25, 0.5625, 0.71875, 0.625, 0.8125, 0.71875, 0.8125, 0.8125, 0.71875, 0.625, 0.625, 0.75, 0.71875, 0.65625, 0.8125, 0.8125, 0.84375, 0.625, 0.9375],
+  "test_acc_init": 0.12,
+  "test_samples": 10000
+}
