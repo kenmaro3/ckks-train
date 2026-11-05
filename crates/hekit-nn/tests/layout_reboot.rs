@@ -416,6 +416,50 @@ fn outer_small() {
     check_outer(&small(5), 15);
 }
 
+/// Padding hygiene (`d < r`, `k < c`): with zero-padded packings, `vecmat` and `outer` keep
+/// every slot outside the true block at zero (to noise level), and a re-pack from the
+/// decoded `d x k` entries restores exact zeros.
+#[test]
+fn padding_stays_zero() {
+    let c = small(10);
+    let (r, cc) = (c.lay.r(), c.lay.c());
+    let (d, k) = (10, 37);
+    assert!(d < r && k < cc);
+    let mut g = rng(20);
+    let x = rand_vec(&mut g, d, 1.0);
+    let y = rand_vec(&mut g, k, 1.0);
+    let w = rand_mat(&mut g, d, k, 0.3);
+    let xe = c.encrypt(&c.lay.pack_expanded(&x).unwrap(), &mut g);
+    let wr = c.encrypt(&c.lay.pack_row(&w).unwrap(), &mut g);
+    let z = c.decrypt(&c.lay.vecmat(&c.ev, &xe, &wr).unwrap());
+    // Repeated format: every row holds x W in columns < k and zeros beyond.
+    let want = c.lay.pack_repeated(&xw(&x, &w)).unwrap();
+    assert!(max_abs_diff(&z, &want) < TOL);
+    let pad_z = z
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| i % cc >= k)
+        .fold(0.0f64, |m, (_, v)| m.max(v.abs()));
+    assert!(pad_z < TOL, "vecmat padding {pad_z:e}");
+    let ye = c.encrypt(&c.lay.pack_repeated(&y).unwrap(), &mut g);
+    let o = c.decrypt(&c.lay.outer(&c.ev, &xe, &ye).unwrap());
+    let pad_o = o
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| i / cc >= d || i % cc >= k)
+        .fold(0.0f64, |m, (_, v)| m.max(v.abs()));
+    assert!(pad_o < TOL, "outer padding {pad_o:e}");
+    // Re-packing the true entries gives exact zeros in the padding.
+    let m = c.lay.unpack_row(&o, d, k);
+    let repacked = c.lay.pack_row(&m).unwrap();
+    assert!(
+        repacked
+            .iter()
+            .enumerate()
+            .all(|(i, v)| (i / cc < d && i % cc < k) || *v == 0.0)
+    );
+}
+
 /// Batch gradient = sum over the samples' outer products (one sample per ciphertext). Per
 /// sample: 1 tensor and 1 relin (`GradRelin::PerSample`, the cost model's `_reboot` default)
 /// or 1 tensor and one relin for the whole batch (`GradRelin::Lazy`, `lazy_relin=True`); one

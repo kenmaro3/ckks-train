@@ -75,10 +75,24 @@
 //!   would cost more key switches, not fewer.
 //! * Every product is rescaled **before** its rotations (rotations at the lower level are
 //!   cheaper; the counts are the same).
-//! * The batch gradient sums the unrescaled products and rescales once; with
-//!   [`GradRelin::Lazy`] it also relinearizes once (the cost model's hypothetical
-//!   `lazy_relin=True`). [`GradRelin::PerSample`] (one relin per product, as the M0 cost model's
-//!   `_reboot` default) is what the reconciled baseline counts.
+//! * The batch gradient sums the unrescaled products and rescales once. The paper does not
+//!   mention relinearization at all, so the policy is a parameter ([`GradRelin`]):
+//!   [`GradRelin::Lazy`] (one relin per batch sum, the cost model's hypothetical
+//!   `lazy_relin=True`) is the generous baseline and the RQ1 headline; [`GradRelin::PerSample`]
+//!   (one relin per product, the M0 cost model's `_reboot` default) is the baseline "as
+//!   specified" by the cost model. Report both.
+//!
+//! # Not modelled
+//!
+//! * Alg. 1 line 10's delayed gradient (the paper applies a gradient computed one step
+//!   earlier) is not modelled: the update here uses the current batch's gradient. It changes
+//!   accuracy only, never an operation count.
+//! * Padding and refresh: slots outside the `d x k` block (or the vector's length) are zero
+//!   in a fresh packing, but after homomorphic work they only hold noise-sized values, and the
+//!   eq. 5 intermediate slots are garbage by construction. A client that refreshes a value
+//!   (decrypt, re-encrypt) must therefore **re-pack** it with the `pack_*` / `unpack_*`
+//!   functions from the true `d x k` entries, never re-encrypt the raw slot vector: otherwise
+//!   the padding drifts. With zero padding, `vecmat` / `outer` keep padded slots at zero.
 //!
 //! # Exact-scale path (M2 rulings)
 //!
@@ -107,10 +121,10 @@ use ndarray::Array2;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GradRelin {
     /// One relinearization per sample's product (`B` relins): the M0 cost model's `_reboot`
-    /// default, the reconciled baseline.
+    /// default, the baseline "as specified".
     PerSample,
     /// Sum the degree-2 products and relinearize once (1 relin): the cost model's
-    /// hypothetical `lazy_relin=True`, more generous than the baseline.
+    /// hypothetical `lazy_relin=True`: the generous baseline, the RQ1 headline.
     Lazy,
 }
 
