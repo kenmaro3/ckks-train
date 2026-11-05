@@ -968,6 +968,7 @@ pub struct NonInteractiveTrainer<'a> {
     last_booted: bool,
     next_full: Option<bool>,
     act_outputs: Vec<Vec<Ciphertext>>,
+    frozen_biases: bool,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
@@ -1198,6 +1199,7 @@ impl<'a> NonInteractiveTrainer<'a> {
             last_booted: false,
             next_full: None,
             act_outputs: Vec::new(),
+            frozen_biases: false,
             log: Vec::new(),
         };
         let st = t.level_state(mlp);
@@ -1208,6 +1210,14 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// Uses `keys` for the transposes (e.g. [`TransposeKeys::Reuse`] when key memory binds).
     pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> NonInteractiveTrainer<'a> {
         self.transpose_keys = keys;
+        self
+    }
+
+    /// Never updates the biases: the bias gradient's folded constant is 0, so every op and every
+    /// count is unchanged and the biases keep their encrypted values (encrypt them as zeros for
+    /// a bias-free network, ReBoot's `bias=False`; ruling R-M3-12).
+    pub fn with_frozen_biases(mut self) -> NonInteractiveTrainer<'a> {
+        self.frozen_biases = true;
         self
     }
 
@@ -1520,7 +1530,11 @@ impl<'a> NonInteractiveTrainer<'a> {
         let n_total: usize = batches.iter().map(|b| b.2).sum();
         let n = n_total as f64;
         let c_w = self.optim.grad_scale() / n;
-        let c_b = self.optim.bias_grad_scale() / n;
+        let c_b = if self.frozen_biases {
+            0.0
+        } else {
+            self.optim.bias_grad_scale() / n
+        };
         let masks: Vec<Vec<f64>> = batches
             .iter()
             .map(|b| valid_lane_mask(&layout, b.2))

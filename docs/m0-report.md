@@ -182,6 +182,13 @@ H100 を使うなら $500–900 を見込む。spot や Vast は中断と品質�
   - Table 8 のハイパーパラメータは平文ツインの精度実験(論文 Table 4)用で、190.32 s の計時実験と同じとは限らない。RUN.md にも書いた(**修正済み**)。
   - 44 GB の footprint は対話的に読んだ値で、ログは無い(レビュー由来)。代わりに、自前の `/usr/bin/time -l` の要約行(peak footprint 51–54 GB)を `spikes/reboot/logs-summary.txt` としてコミットした(**修正済み**)。
   - weight decay は RUN.md にだけ書かれている。
+  - **`reboot_emlp1.json` は ReBoot の実際の学習設定に忠実ではない(M3 Task 41 修正ラウンド 3、ルーリング R-M3-12)。** 学習率・勾配の縮約・バイアス・初期化の 4 点で違う。
+    - lr: JSON は論文 Table 8 の 0.001。ReBoot の公式実行(リポジトリ既定)は 5e-4。
+    - 勾配の縮約: ReBoot はバッチの**和**、hekit は平均。同じ一歩には lr_mean = 5e-4·B が要る。
+    - バイアス: ReBoot は `bias=False`、JSON の形はバイアスあり。
+    - 初期化: ReBoot は Xavier 一様 ±sqrt(1/(fan_in+fan_out))、hekit は PyTorch 既定。
+    - 結果として、これを使った Task 32 と Task 41 の実行は、精度が公式 ReBoot の 0.75 に対して 0.33(B = 32)と 0.19(B = 64)。鍵切替回数はこの差の影響を受けない。
+    - 忠実な設定は `crates/hekit-bench/configs/reboot_emlp1_faithful.json`(`mnist --faithful`)。既存の実行が使ったので、古いファイルも残す。
   - **`reboot_emlp2/3.json` は eMLP-2/3 に忠実ではない。** 論文 Table 3 では、eMLP-2 = RE-Block(64) → CE-Block(32) で、ブロックごとに局所分類器(CE-FC / RE-FC)と局所損失を持ち、ブロック間に勾配は流れない。JSON は素の BP の形(784-64-32-10 など)しか表せない。スキーマにブロックのフィールドが入るまでは eMLP-2/3 として使わないこと。eMLP-1 は単一ブロックなので影響を受けない(RUN.md に記載)。
   - RUN.md にあった「重みブートストラップは 64 暗号文」は誤りで、正しくは 4 暗号文(W 2 + V 2、`models.py:121-133`)。訂正した(**修正済み**)。
 - **コストモデル**:

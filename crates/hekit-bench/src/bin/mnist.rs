@@ -43,6 +43,25 @@
 //! - A plaintext f64 NAG twin with the same initial weights and batches: the max weight and
 //!   bias differences after training, and the test accuracy of both.
 //!
+//! # Fidelity to ReBoot's training (ruling R-M3-12)
+//!
+//! The defaults above (`configs/reboot_emlp1.json`) are **not** ReBoot's actual training
+//! setup: ReBoot's official run sums the gradient over the batch at lr 5e-4, has no biases,
+//! pads the output to 16 rows and uses a Xavier-uniform init. `--faithful` applies
+//! `configs/reboot_emlp1_faithful.json`: `--init xavier --no-bias --lr-sum 5e-4
+//! --momentum 0.9 --out-width 16`.
+//! - `--lr-sum X` sets the lr of our batch-mean gradient to `X * batch`, the same step as
+//!   ReBoot's batch sum (ReBoot's output delta is `y_hat - y`, like ours: no factor 2). It
+//!   takes precedence over `--lr`.
+//! - `--no-bias` encrypts zero biases that are never updated (non-interactive and plain modes).
+//! - `--out-width 16` pads the 10 classes with zero targets; the accuracy is over the 10 real
+//!   classes.
+//! - `--indices FILE` trains on the listed training images (whitespace- or comma-separated, in
+//!   order; `#` comment lines; a `label<TAB>indices` line keeps the part after the tab, e.g.
+//!   gpu-runner's per-step list of ReBoot's 21 x 48 indices) instead of the first `--subset`.
+//! - `--mode plain` runs the plaintext twin alone and records ReBoot's per-step metrics (batch
+//!   loss summed over the batch and all outputs, batch accuracy).
+//!
 //! Usage: `mnist [--epochs 1] [--subset 1024] [--test-subset 10000] [--batch 32]
 //! [--hidden 32] [--params n16_train|small] [--transpose reuse|dedicated] [--seed 32]
 //! [--lr 0.001] [--momentum 0.9] [--data data/mnist] [--out results/mnist_emlp1.json]
@@ -94,7 +113,31 @@ struct Args {
     plan: bool,
     mode: String,
     placement: String,
+    /// Weight init: `pytorch` (U(+-1/sqrt(fan_in)) for W and b) or `xavier`
+    /// (U(+-sqrt(1/(fan_in + fan_out))), as ReBoot prints it).
+    init: String,
+    /// No biases (zero, never updated): ReBoot's `bias=False`.
+    no_bias: bool,
+    /// ReBoot-style learning rate on the batch-SUMMED gradient; sets `lr = lr_sum * batch` on
+    /// our batch-mean gradient (the same step).
+    lr_sum: Option<f64>,
+    /// Training-sample indices (into the 60000 training images), in training order.
+    indices: Option<PathBuf>,
+    /// `--faithful` was given (ruling R-M3-12, `configs/reboot_emlp1_faithful.json`).
+    faithful: bool,
+    /// Output rows (>= 10): ReBoot pads the 10 classes to 16 rows with zero targets. The
+    /// padded rows are trained toward 0 and their deltas reach the hidden layer, so they change
+    /// the training (accuracy is the argmax over the 10 real classes).
+    out_width: usize,
 }
+
+/// `configs/reboot_emlp1_faithful.json` (ruling R-M3-12), transcribed: ReBoot's printed
+/// hyperparameters of the official subset run. lr 5e-4 on the batch-summed gradient,
+/// momentum 0.9, no biases, Xavier-uniform init, 16 output rows (10 classes padded with zero
+/// targets, as ReBoot does).
+const FAITHFUL_LR_SUM: f64 = 5e-4;
+const FAITHFUL_MOMENTUM: f64 = 0.9;
+const FAITHFUL_OUT_WIDTH: usize = 16;
 
 fn parse_args() -> Result<Args, String> {
     let mut a = Args {
@@ -113,12 +156,39 @@ fn parse_args() -> Result<Args, String> {
         plan: false,
         mode: "interactive".into(),
         placement: "after_update".into(),
+        init: "pytorch".into(),
+        no_bias: false,
+        lr_sum: None,
+        indices: None,
+        faithful: false,
+        out_width: CLASSES,
     };
+    // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
+    // them wherever they appear.
+    if std::env::args().any(|f| f == "--faithful") {
+        a.faithful = true;
+        a.init = "xavier".into();
+        a.no_bias = true;
+        a.lr_sum = Some(FAITHFUL_LR_SUM);
+        a.momentum = FAITHFUL_MOMENTUM;
+        a.out_width = FAITHFUL_OUT_WIDTH;
+    }
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
-        if flag == "--plan" {
-            a.plan = true;
-            continue;
+        match flag.as_str() {
+            "--plan" => {
+                a.plan = true;
+                continue;
+            }
+            "--no-bias" => {
+                a.no_bias = true;
+                continue;
+            }
+            "--faithful" => {
+                a.faithful = true;
+                continue;
+            }
+            _ => {}
         }
         let v = it.next().ok_or_else(|| format!("{flag} needs a value"))?;
         let num = |v: &str| v.parse::<usize>().map_err(|e| format!("{flag} {v}: {e}"));
@@ -138,17 +208,40 @@ fn parse_args() -> Result<Args, String> {
             "--out" => a.out = Some(PathBuf::from(v)),
             "--mode" => a.mode = v,
             "--placement" => a.placement = v,
+            "--init" => a.init = v,
+            "--lr-sum" => a.lr_sum = Some(real(&v)?),
+            "--indices" => a.indices = Some(PathBuf::from(v)),
+            "--out-width" => a.out_width = num(&v)?,
             _ => return Err(format!("unknown flag {flag}")),
         }
     }
     if a.epochs == 0 || a.subset == 0 || a.batch == 0 || a.hidden == 0 {
         return Err("--epochs, --subset, --batch and --hidden must be positive".into());
     }
+    if a.out_width < CLASSES {
+        return Err(format!(
+            "--out-width {} below {CLASSES} classes",
+            a.out_width
+        ));
+    }
+    if !matches!(a.init.as_str(), "pytorch" | "xavier") {
+        return Err(format!("unknown --init {} (pytorch | xavier)", a.init));
+    }
+    if let Some(ls) = a.lr_sum {
+        a.lr = ls * a.batch as f64;
+    }
     let ni = match a.mode.as_str() {
         "interactive" => false,
-        "noninteractive" => true,
-        m => return Err(format!("unknown --mode {m} (interactive | noninteractive)")),
+        "noninteractive" | "plain" => true,
+        m => {
+            return Err(format!(
+                "unknown --mode {m} (interactive | noninteractive | plain)"
+            ));
+        }
     };
+    if a.no_bias && a.mode == "interactive" {
+        return Err("--no-bias is supported in --mode noninteractive and plain only".into());
+    }
     placement_named(&a.placement)?;
     if a.params.is_empty() {
         a.params = if ni { "n16_boot" } else { "n16_train" }.into();
@@ -370,6 +463,7 @@ fn twin_step(
     y: &Array2<f64>,
     lr: f64,
     mu: f64,
+    bias_lr: f64,
 ) {
     let n = x.nrows() as f64;
     let last = net.len() - 1;
@@ -396,7 +490,11 @@ fn twin_step(
         vel[i] = mu * &vel[i] + &g;
         net[i].w = &net[i].w - &(lr * &(&g + &(mu * &vel[i])));
         let gb = dz.sum_axis(Axis(0)) / n;
-        net[i].b.iter_mut().zip(&gb).for_each(|(b, g)| *b -= lr * g);
+        net[i]
+            .b
+            .iter_mut()
+            .zip(&gb)
+            .for_each(|(b, g)| *b -= bias_lr * g);
         delta = next;
     }
 }
@@ -407,8 +505,10 @@ fn accuracy(out: &Array2<f64>, labels: &[u8]) -> f64 {
         .into_iter()
         .zip(labels)
         .filter(|(row, l)| {
+            // The real classes only (a padded output layer has extra rows trained to 0).
             let arg = row
                 .iter()
+                .take(CLASSES)
                 .enumerate()
                 .max_by(|a, b| a.1.total_cmp(b.1))
                 .map(|(j, _)| j)
@@ -597,13 +697,23 @@ fn uni(r: &mut Rng) -> f64 {
     2.0 * ((r.next_u64() >> 11) as f64 * 2f64.powi(-53)) - 1.0
 }
 
-fn init_net(dims: &[usize], r: &mut Rng) -> Vec<Layer> {
+/// The initial network: `pytorch` = `nn.Linear`'s default, W and b uniform in
+/// `±1/sqrt(fan_in)`; `xavier` = W uniform in `±sqrt(1/(fan_in + fan_out))` (ReBoot's printed
+/// bound) and b from the same draw order. `no_bias` zeroes the biases (they are still drawn, so
+/// the weights do not depend on it).
+fn init_net(dims: &[usize], r: &mut Rng, init: &str, no_bias: bool) -> Vec<Layer> {
     dims.windows(2)
         .map(|p| {
-            let bound = 1.0 / (p[0] as f64).sqrt();
+            let bound = if init == "xavier" {
+                (1.0 / (p[0] + p[1]) as f64).sqrt()
+            } else {
+                1.0 / (p[0] as f64).sqrt()
+            };
+            let w = Array2::from_shape_fn((p[1], p[0]), |_| bound * uni(r));
+            let b: Vec<f64> = (0..p[1]).map(|_| bound * uni(r)).collect();
             Layer {
-                w: Array2::from_shape_fn((p[1], p[0]), |_| bound * uni(r)),
-                b: (0..p[1]).map(|_| bound * uni(r)).collect(),
+                w,
+                b: if no_bias { vec![0.0; p[1]] } else { b },
             }
         })
         .collect()
@@ -617,10 +727,10 @@ fn main() {
             std::process::exit(2);
         }
     };
-    let r = if args.mode == "noninteractive" {
-        run_ni(&args)
-    } else {
-        run(&args)
+    let r = match args.mode.as_str() {
+        "noninteractive" => run_ni(&args),
+        "plain" => run_plain(&args),
+        _ => run(&args),
     };
     if let Err(e) = r {
         eprintln!("mnist: {e}");
@@ -630,7 +740,34 @@ fn main() {
 
 fn load(args: &Args) -> Result<(Mnist, Mnist), String> {
     let hint = |e: std::io::Error| format!("{e} (run scripts/fetch_mnist.sh)");
-    let train = load_mnist(&args.data, Split::Train, Some(args.subset)).map_err(hint)?;
+    let train = match &args.indices {
+        None => load_mnist(&args.data, Split::Train, Some(args.subset)).map_err(hint)?,
+        Some(path) => {
+            let all = load_mnist(&args.data, Split::Train, None).map_err(hint)?;
+            let text =
+                std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+            // Lines starting with `#` are comments; a line `label<TAB>indices` keeps the part
+            // after its tab (gpu-runner's per-step format); indices are whitespace- or
+            // comma-separated, in training order.
+            let idx = text
+                .lines()
+                .filter(|l| !l.trim_start().starts_with('#'))
+                .map(|l| l.split_once('\t').map_or(l, |(_, rest)| rest))
+                .flat_map(|l| l.split(|c: char| c.is_whitespace() || c == ','))
+                .filter(|t| !t.is_empty())
+                .map(|t| t.parse::<usize>().map_err(|e| format!("index {t}: {e}")))
+                .collect::<Result<Vec<_>, _>>()?;
+            if let Some(&bad) = idx.iter().find(|&&i| i >= all.len()) {
+                return Err(format!("index {bad} >= {} training images", all.len()));
+            }
+            Mnist {
+                images: all.images.select(Axis(0), &idx),
+                labels: idx.iter().map(|&i| all.labels[i]).collect(),
+                rows: all.rows,
+                cols: all.cols,
+            }
+        }
+    };
     let test = load_mnist(&args.data, Split::Test, Some(args.test_subset)).map_err(hint)?;
     if train.features() != test.features() {
         return Err("train and test images differ in size".into());
@@ -652,7 +789,7 @@ fn run(args: &Args) -> Result<(), String> {
         (Err(e), false) => return Err(e.clone()),
     };
     let params = Arc::new(params_named(&args.params)?);
-    let dims = [features, args.hidden, CLASSES];
+    let dims = [features, args.hidden, args.out_width];
     let acts_flags = [true, false];
     let d = dims
         .iter()
@@ -775,7 +912,7 @@ fn run(args: &Args) -> Result<(), String> {
 
     // Network and twin.
     let mut r = rng(args.seed, 2);
-    let init = init_net(&dims, &mut r);
+    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
     let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
@@ -799,7 +936,7 @@ fn run(args: &Args) -> Result<(), String> {
         .with_transpose_keys(keys);
     let mut twin = init.clone();
     let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
-    let y_train = one_hot(&train.labels, CLASSES);
+    let y_train = one_hot(&train.labels, args.out_width);
 
     // Training.
     let n = train.len();
@@ -823,7 +960,15 @@ fn run(args: &Args) -> Result<(), String> {
             let log = trainer
                 .train_epoch_valid(&mut mlp, &[(xct, yct, end - start)])
                 .map_err(|e| format!("batch at {start}: {e}"))?;
-            twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum);
+            twin_step(
+                &mut twin,
+                &mut vel,
+                &x,
+                &y,
+                args.lr,
+                args.momentum,
+                if args.no_bias { 0.0 } else { args.lr },
+            );
             batch_s.push(log.seconds);
             refresh_s.push(log.refresh_seconds);
             let c = log.counter;
@@ -873,7 +1018,7 @@ fn run(args: &Args) -> Result<(), String> {
         .map(|(t, i)| max_abs(t.w.iter().zip(&i.w).map(|(a, b)| a - b)))
         .collect();
     let max_diff = w_diff.iter().chain(&b_diff).copied().fold(0.0, f64::max);
-    let y_test = one_hot(&test.labels, CLASSES);
+    let y_test = one_hot(&test.labels, args.out_width);
     let out_he = forward_plain(&got, &test.images);
     let out_twin = forward_plain(&twin, &test.images);
     let out_init = forward_plain(&init, &test.images);
@@ -1044,6 +1189,109 @@ fn write_out(out: &std::path::Path, s: &str) -> Result<(), String> {
     std::fs::write(out, s).map_err(|e| format!("{}: {e}", out.display()))?;
     eprintln!("mnist: wrote {}", out.display());
     Ok(())
+}
+
+// ---------------------------------------------------------------------------------------------
+// Plaintext twin only (ruling R-M3-12: validate a configuration's accuracy cheaply).
+// ---------------------------------------------------------------------------------------------
+
+/// `--mode plain`: the plaintext NAG twin alone, on the same data, init, batches and update rule
+/// as the encrypted modes (no keys, no ciphertexts). Batches of `--batch` samples (a last
+/// partial batch is a mean over its rows). Writes the test accuracy and MSE per epoch.
+fn run_plain(args: &Args) -> Result<(), String> {
+    let load_start = loadavg();
+    let started = unix_now();
+    let (train, test) = load(args)?;
+    let dims = [train.features(), args.hidden, args.out_width];
+    let mut r = rng(args.seed, 2);
+    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
+    let mut twin = init.clone();
+    let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
+    let y_train = one_hot(&train.labels, args.out_width);
+    let y_test = one_hot(&test.labels, args.out_width);
+    let n = train.len();
+    let bias_lr = if args.no_bias { 0.0 } else { args.lr };
+    let mut epochs = Vec::new();
+    let mut updates = 0;
+    let (mut step_loss, mut step_acc) = (Vec::new(), Vec::new());
+    for epoch in 0..args.epochs {
+        for start in (0..n).step_by(args.batch) {
+            let end = (start + args.batch).min(n);
+            let x = train.images.slice(s![start..end, ..]).to_owned();
+            let y = y_train.slice(s![start..end, ..]).to_owned();
+            // ReBoot's printed per-step metrics, before the update: the batch loss is the sum
+            // over the batch and all output columns of (y - y_hat)^2; the accuracy is over the
+            // 10 real classes.
+            let o = forward_plain(&twin, &x);
+            let labels = &train.labels[start..end];
+            step_loss.push(J::N((&o - &y).mapv(|v| v * v).sum()));
+            step_acc.push(J::N(accuracy(&o, labels)));
+            twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum, bias_lr);
+            updates += 1;
+        }
+        let out = forward_plain(&twin, &test.images);
+        let tr = forward_plain(&twin, &train.images);
+        let (acc, m) = (accuracy(&out, &test.labels), mse(&out, &y_test));
+        eprintln!(
+            "mnist plain: epoch {epoch}: test acc {acc:.4}, test mse {m:.6}, train acc {:.4}",
+            accuracy(&tr, &train.labels)
+        );
+        epochs.push(obj(vec![
+            ("epoch", J::I(epoch as i64)),
+            ("test_acc", J::N(acc)),
+            ("test_mse", J::N(m)),
+            ("train_acc", J::N(accuracy(&tr, &train.labels))),
+        ]));
+    }
+    let out_init = forward_plain(&init, &test.images);
+    let result = obj(vec![
+        ("provenance", provenance(&load_start, started)),
+        (
+            "task",
+            J::S("Task 41 fix round 3 (R-M3-12): plaintext twin only".into()),
+        ),
+        (
+            "config",
+            obj(vec![
+                ("dims", J::A(dims.iter().map(|&d| J::I(d as i64)).collect())),
+                ("batch", J::I(args.batch as i64)),
+                ("lr_on_batch_mean_gradient", J::N(args.lr)),
+                ("lr_sum", args.lr_sum.map_or(J::N(f64::NAN), J::N)),
+                ("momentum", J::N(args.momentum)),
+                ("init", J::S(args.init.clone())),
+                ("biases", J::B(!args.no_bias)),
+                ("output_width", J::I(args.out_width as i64)),
+                ("faithful", J::B(args.faithful)),
+                ("seed", J::I(args.seed as i64)),
+                ("train_samples", J::I(n as i64)),
+                (
+                    "indices",
+                    J::S(args.indices.as_ref().map_or_else(
+                        || "first --subset training images, file order".into(),
+                        |p| p.display().to_string(),
+                    )),
+                ),
+                ("epochs", J::I(args.epochs as i64)),
+                ("updates", J::I(updates as i64)),
+            ]),
+        ),
+        ("epochs", J::A(epochs)),
+        ("step_batch_loss_sum", J::A(step_loss)),
+        ("step_batch_acc", J::A(step_acc)),
+        ("test_acc_init", J::N(accuracy(&out_init, &test.labels))),
+        ("test_samples", J::I(test.len() as i64)),
+    ]);
+    let mut text = String::new();
+    result.write(&mut text, 0);
+    text.push('\n');
+    let path = args.out.clone().unwrap_or_else(|| {
+        PathBuf::from(format!(
+            "results/mnist_emlp1_plain_{}_b{}.json",
+            if args.faithful { "faithful" } else { "default" },
+            args.batch
+        ))
+    });
+    write_out(&path, &text)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1537,7 +1785,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
         (Err(e), false) => return Err(e.clone()),
     };
     let params = Arc::new(params_named(&args.params)?);
-    let dims = [features, args.hidden, CLASSES];
+    let dims = [features, args.hidden, args.out_width];
     let acts_flags = [true, false];
     let d = dims
         .iter()
@@ -1677,7 +1925,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
 
     // Network, compact state and twin (client side).
     let mut r = rng(args.seed, 2);
-    let init = init_net(&dims, &mut r);
+    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
     let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
@@ -1696,6 +1944,9 @@ fn run_ni(args: &Args) -> Result<(), String> {
         .map_err(|e| e.to_string())?
         .with_transpose_keys(keys.clone())
         .with_micro_batches(micro);
+    if args.no_bias {
+        trainer = trainer.with_frozen_biases();
+    }
     let spec = trainer.batch_spec(&mlp).map_err(|e| e.to_string())?;
     let n = train.len();
     let run_full = fullness(n);
@@ -1721,7 +1972,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
     );
     let mut twin = init.clone();
     let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
-    let y_train = one_hot(&train.labels, CLASSES);
+    let y_train = one_hot(&train.labels, args.out_width);
 
     // Training.
     let mut update_s = Vec::new();
@@ -1792,7 +2043,15 @@ fn run_ni(args: &Args) -> Result<(), String> {
                     }
                 }
             }
-            twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum);
+            twin_step(
+                &mut twin,
+                &mut vel,
+                &x,
+                &y,
+                args.lr,
+                args.momentum,
+                if args.no_bias { 0.0 } else { args.lr },
+            );
             let did_boot = trainer.last_update_booted();
             // The closed form of this update (any fullness: valid lanes change no key switch;
             // the micro-batch count does) with the a-priori schedule, checked against the
@@ -1865,7 +2124,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
         .map(|(t, i)| max_abs(t.w.iter().zip(&i.w).map(|(a, b)| a - b)))
         .collect();
     let max_diff = w_diff.iter().chain(&b_diff).copied().fold(0.0, f64::max);
-    let y_test = one_hot(&test.labels, CLASSES);
+    let y_test = one_hot(&test.labels, args.out_width);
     let out_he = forward_plain(&got, &test.images);
     let out_twin = forward_plain(&twin, &test.images);
     let out_init = forward_plain(&init, &test.images);
@@ -2279,5 +2538,29 @@ mod tests {
             let model_ps = (model.ks.total() + 111 * model.boots) as f64 / b as f64;
             assert!(per_sample / model_ps < 1.10, "{}", per_sample / model_ps);
         }
+    }
+
+    /// `--faithful`'s constants are the values of `configs/reboot_emlp1_faithful.json`
+    /// (ruling R-M3-12), and the lr conversion lr_mean = lr_sum * B gives its listed values.
+    #[test]
+    fn faithful_constants_match_the_config() {
+        let json = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/configs/reboot_emlp1_faithful.json"
+        ))
+        .unwrap();
+        let num = |key: &str| -> f64 {
+            let pat = format!("\"{key}\": ");
+            let at = json.find(&pat).unwrap() + pat.len();
+            let end = json[at..].find([',', '\n']).unwrap() + at;
+            json[at..end].trim().parse().unwrap()
+        };
+        assert_eq!(num("lr_sum"), FAITHFUL_LR_SUM);
+        assert_eq!(num("momentum"), FAITHFUL_MOMENTUM);
+        assert_eq!(num("lr_mean_b32"), FAITHFUL_LR_SUM * 32.0);
+        assert_eq!(num("lr_mean_b64"), FAITHFUL_LR_SUM * 64.0);
+        assert_eq!(num("output_width") as usize, FAITHFUL_OUT_WIDTH);
+        assert!(json.contains("\"init\": \"xavier_uniform\""));
+        assert!(!json.contains("\"bias\": true"));
     }
 }

@@ -731,6 +731,88 @@ fn lazy_placement_partial_batch_after_skip() {
     assert!(log.refresh_seconds > 0.0 && t.bootstrap_seconds() >= log.refresh_seconds);
 }
 
+/// Ruling R-M3-12: a bias-free network (ReBoot's `bias=False`) as zero biases that are never
+/// updated (`with_frozen_biases`): the counts are the closed form's, the biases stay zero and the
+/// weights follow a bias-free twin.
+#[test]
+fn frozen_biases_stay_zero() {
+    let f = fx();
+    let ev = f.ev.clone();
+    let layout = single();
+    let mut r = rng(15);
+    let mut plain = init(&NET_B, &mut r);
+    plain
+        .iter_mut()
+        .for_each(|(_, b)| b.iter_mut().for_each(|v| *v = 0.0));
+    let acts = [Act::Relu2, Act::Id];
+    let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
+        &ev,
+        &f.bs,
+        &plain,
+        acts.iter().map(|a| a.boxed()).collect(),
+        &layout,
+        BootPlacement::AfterUpdate,
+        &f.enc,
+        &f.encoder,
+        &mut r,
+    )
+    .unwrap();
+    let mut t = NonInteractiveTrainer::new(
+        &ev,
+        &f.bs,
+        NAG,
+        layout,
+        BootPlacement::AfterUpdate,
+        &mlp,
+        state,
+    )
+    .unwrap()
+    .with_frozen_biases();
+    let spec = t.batch_spec(&mlp).unwrap();
+    let mut twin = plain.clone();
+    let mut vel: Vec<Array2<f64>> = plain.iter().map(|(w, _)| Array2::zeros(w.dim())).collect();
+    for _ in 0..2 {
+        let x = Array2::from_shape_fn((32, 16), |_| uni(&mut r));
+        let y = Array2::from_shape_fn((32, 4), |_| 0.5 * uni(&mut r));
+        let (xc, yc) = spec
+            .encrypt(&f.enc, &f.encoder, &layout, &x, &y, &mut r)
+            .unwrap();
+        // The twin with biases frozen: its NAG step updates the biases by lr * mean(dz); undo it.
+        let b_before: Vec<Vec<f64>> = twin.iter().map(|(_, b)| b.clone()).collect();
+        twin_step(&mut twin, &mut vel, &acts, &x, &y, true);
+        twin.iter_mut()
+            .zip(b_before)
+            .for_each(|((_, b), old)| *b = old);
+        let before = ev.counter();
+        t.train_batch(&mut mlp, &xc, &yc).unwrap();
+        let got = &ev.counter() - &before;
+        let pred = predict_update(
+            &ev,
+            &mlp,
+            &layout,
+            &TransposeKeys::Dedicated,
+            BootPlacement::AfterUpdate,
+            1,
+            true,
+            true,
+        )
+        .unwrap();
+        assert_eq!(
+            got.key_switches(),
+            pred.key_switches(f.bs.key_switches_per_boot())
+        );
+    }
+    let dec = Decryptor::new(Arc::clone(&f.params), f.sk.clone());
+    let he = decrypt_net(&mlp, &dec, &f.encoder, &layout);
+    let bias_max = he
+        .iter()
+        .flat_map(|(_, b)| b.iter())
+        .fold(0.0f64, |m, v| m.max(v.abs()));
+    assert!(bias_max < 1e-6, "biases stay zero: {bias_max}");
+    let err = max_err(&he, &twin);
+    assert!(err <= TOL_MINI, "2^{}", err.log2());
+}
+
 // ---------------------------------------------------------------------------------------------
 // Levels and errors.
 // ---------------------------------------------------------------------------------------------

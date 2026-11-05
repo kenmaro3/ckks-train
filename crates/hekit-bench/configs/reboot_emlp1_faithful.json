@@ -1,0 +1,43 @@
+{
+  "name": "reboot_emlp1_faithful",
+  "ruling": "R-M3-12 (accuracy fidelity, Task 41 fix round 3)",
+  "source": "the official ReBoot subset run on quadruped-gpu, as plain values published by gpu-runner (results/quadruped/raw/reboot_emlp1_official_subset/reboot_config_values.json, reboot_subsample_indices.txt, stats.json; no ReBoot source): lr 5e-4 constant, momentum 0.9 (Nesterov SGD), weight decay 0, bias=False, 16 outputs, Xavier uniform init, batch 48, 21 steps, 1 epoch; test accuracy 0.7506",
+  "layers": [
+    {
+      "in": 784,
+      "out": 32,
+      "activation": "poly_relu",
+      "bias": false
+    },
+    {
+      "in": 32,
+      "out": 16,
+      "activation": "none",
+      "bias": false
+    }
+  ],
+  "init": "xavier_uniform",
+  "init_bound": "sqrt(1 / (fan_in + fan_out))",
+  "lr_sum": 0.0005,
+  "lr_conversion": "ReBoot's per-sample loss is sum_k (y_k - y_hat_k)^2 over the 16 outputs, but its implemented output delta is y_hat - y (no factor 2; reboot_config_values.json) and the weight gradient sums over the batch (no 1/B). hekit's delta is a - y and its gradient is the batch mean, so the same step needs lr_mean = lr_sum * B (no factor 2): 0.016 at B = 32, 0.032 at B = 64, 0.024 at B = 48. Checked against ReBoot's 21 per-step batch losses with the exact batches (mnist --mode plain --faithful --batch 48 --indices ...): over 8 init seeds the log-loss rms is 0.048 with factor 1 and 0.091 with factor 2 (last-5-step mean loss 28.1 and 24.7 against ReBoot's 27.4). mnist --lr-sum 5e-4 applies it.",
+  "lr_mean_b32": 0.016,
+  "lr_mean_b64": 0.032,
+  "momentum": 0.9,
+  "weight_decay": 0.0,
+  "output_width": 16,
+  "output_width_note": "10 classes padded to 16 rows with zero targets (one-hot padded with zeros), as ReBoot does. The padded rows are trained toward 0 and their deltas reach the hidden layer, so they change the training; the accuracy is the argmax over the 10 real classes. The Xavier bound of layer 2 uses fan_out 16. hekit's layout pads 10 to 16 anyway, so the key-switch counts are unchanged.",
+  "epochs": 1,
+  "subsample": 1024,
+  "subsample_note": "ReBoot trains 21 batches of 48 (1008 of the first 1024 training images, shuffled with seed 42; 16 dropped). mnist --indices <file> with gpu-runner's per-step index list trains exactly those samples in that order; without it hekit uses the first 1024 in file order.",
+  "dataset": "MNIST",
+  "mnist_flags": "--faithful (= --init xavier --no-bias --lr-sum 5e-4 --momentum 0.9 --out-width 16) [--indices <ReBoot step indices>]",
+  "init_bounds": [
+    0.03500700210070024,
+    0.14433756729740643
+  ],
+  "seeds": {
+    "reboot_model_and_epoch_shuffle": 0,
+    "reboot_subsample_shuffle": 42,
+    "hekit_init": "ChaCha20 from mnist --seed (default 32): the initial weights are not ReBoot's draw"
+  }
+}

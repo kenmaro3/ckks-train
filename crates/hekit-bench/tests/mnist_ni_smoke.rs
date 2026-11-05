@@ -49,12 +49,27 @@ fn mnist_binary_noninteractive_mini_boot() {
     fs::create_dir_all(&dir).unwrap();
     write_split(&dir, Split::Train, 32, 7);
     write_split(&dir, Split::Test, 20, 9);
-    for placement in ["after_update", "when_needed"] {
-        let out = dir.join(format!("{placement}.json"));
-        let status = Command::new(env!("CARGO_BIN_EXE_mnist"))
+    for (placement, faithful) in [
+        ("after_update", false),
+        ("when_needed", false),
+        ("after_update", true),
+    ] {
+        let out = dir.join(format!("{placement}_{faithful}.json"));
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_mnist"));
+        if faithful {
+            // R-M3-12: no biases, Xavier init, lr 5e-4 on the batch-summed gradient (the
+            // explicit --lr below is overridden by --lr-sum's conversion).
+            cmd.arg("--faithful");
+        }
+        let status = cmd
             .args(["--mode", "noninteractive", "--placement", placement])
             .args(["--params", "mini_boot", "--hidden", "32", "--subset", "32"])
-            .args(["--test-subset", "20", "--batch", "16", "--lr", "0.05"])
+            .args(["--test-subset", "20", "--batch", "16"])
+            .args(if faithful {
+                vec![]
+            } else {
+                vec!["--lr", "0.05"]
+            })
             .arg("--data")
             .arg(&dir)
             .arg("--out")
