@@ -1,0 +1,11 @@
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+Training on 4800 samples
+R-REB-2 twin test acc {'seeds': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 'values': [0.9041, 0.9084, 0.9093, 0.9053, 0.9075, 0.9021, 0.91, 0.9071, 0.903, 0.908], 'mean': 0.90648, 'std_population': 0.0025713031715455074, 'std_sample': 0.00271039152563282} seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] steps {'0': 1000, '1': 1000, '2': 1000, '3': 1000, '4': 1000, '5': 1000, '6': 1000, '7': 1000, '8': 1000, '9': 1000} inputs 196 acc hits 0

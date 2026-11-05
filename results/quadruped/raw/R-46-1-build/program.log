@@ -1,0 +1,7 @@
+   Compiling hekit-ckks v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-ckks)
+   Compiling hekit-cuda v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-cuda)
+    Finished `release` profile [optimized] target(s) in 2.73s
+  Executable unittests src/lib.rs (target/release/deps/hekit_cuda-c3b838255b0a5982)
+  Executable tests/gpu.rs (target/release/deps/gpu-7786b32237eed00a)
+  Executable tests/gpu_arith.rs (target/release/deps/gpu_arith-dd6490a0b9ad0a8b)
+  Executable tests/gpu_ks.rs (target/release/deps/gpu_ks-48ac62b184b2cd2e)

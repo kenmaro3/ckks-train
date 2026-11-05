@@ -1,0 +1,78 @@
+{
+  "setting": "ReBoot eMLP-1 full setting (precision_analysis.py, 4800 training images at 14x14, 10k test), R-REB-2",
+  "files": [
+    {
+      "file": "train_images_14x14.npy",
+      "shape": [
+        4800,
+        196
+      ],
+      "dtype": "float32",
+      "sha256_npy_file": "7b1590d8884172b853d8037063b290d20b41112f6c0aa5309769639552b9276c",
+      "sha256_raw_array_bytes": "c0501c3eb43788f57f823a0e93586192291fe4104976cefafb1d65540681381f"
+    },
+    {
+      "file": "train_labels.npy",
+      "shape": [
+        4800
+      ],
+      "dtype": "uint8",
+      "sha256_npy_file": "1d63491b1c54835583c5ca6886305d7b83d7c9ca0c3ab24433c431b1f7e84856",
+      "sha256_raw_array_bytes": "d94e8472b108cd7ee460b811c01a6416bb1cf8b1e85aee979a31e48f0ef8426c"
+    },
+    {
+      "file": "test_images_14x14.npy",
+      "shape": [
+        10000,
+        196
+      ],
+      "dtype": "float32",
+      "sha256_npy_file": "9464f6e1544cd65d7387036bab2e71e3826b121b108d2bb4f1360e9bfb0d6d87",
+      "sha256_raw_array_bytes": "a1f684430826b571df70c8f73fae41080fa76cb43b257c2a1e013a28aeb547e9"
+    },
+    {
+      "file": "test_labels.npy",
+      "shape": [
+        10000
+      ],
+      "dtype": "uint8",
+      "sha256_npy_file": "ff7e84b144c037e7215dfa787d6773550c5db83029d9a4e7bae6e90f605f081d",
+      "sha256_raw_array_bytes": "ddeff807876a9661a1110d45c266c86239a3a1b7d37da0c3716a7a683c852ff5"
+    }
+  ],
+  "pipeline": [
+    "MNIST uint8 images (torchvision MNIST from the IDX files), cast to float32 with values 0..255, no padding",
+    "training set: first K = 4800 images (IDX order); test set: all 10000 images",
+    "resize to 14 x 14 with bicubic interpolation (torchvision Resize on the float32 0..255 images, so values may overshoot 0..255)",
+    "min-max scaling AFTER the resize: x' = (x - min) / (max - min), with min and max taken over the resized K training images (values in `scaling`); the test images use the same training min and max, so they can fall slightly outside [0, 1]",
+    "no mean/std normalization (normalize = False)",
+    "flattened row-major to resize*resize features, as the network sees them"
+  ],
+  "scaling": {
+    "train_min_before_scaling": -35.69474792480469,
+    "train_max_before_scaling": 284.47784423828125,
+    "dtype_before_scaling": "float32",
+    "shape_before_scaling": [
+      4800,
+      1,
+      14,
+      14
+    ]
+  },
+  "row_order": "train_images row i = MNIST training image i (i < K); test rows in IDX order",
+  "labels": "uint8 class 0..9 (ReBoot one-hot pads them to 16 columns; padding columns are always 0)",
+  "identical_for_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "provenance": "results/quadruped/raw/R-REB-2/ (run_job), config in results/quadruped/raw/reboot_emlp1_full/config_values.json; byte-identical to a dry run of the same script",
+  "note": "the .npy files are gitignored; this manifest holds their sha256"
+}

@@ -1,0 +1,5 @@
+commit 3e0e99c
+full 3e0e99c95028c4338533ca4001a38daa5699cddd
+dirty_files 0
+source git bundle of the Mac repo (committed state only), cloned to ~/hekit-r44 and checked out at this commit
+synced_at 2026-11-05T20:15:45+09:00

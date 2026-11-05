@@ -8,6 +8,8 @@
 set -u
 ID=$1; OUTJ=$2; NUPD=$3; shift 3; [ "$1" = "--" ] && shift
 H=${HEKIT_DIR:-$HOME/hekit}
+# A file ~/hekit-runs/hold/ID holds this block until it is removed (used to slot other work in before it).
+while [ -e "$HOME/hekit-runs/hold/$ID" ]; do sleep 30; done
 LOG=$HOME/hekit-runs/logs/$ID.log; OUT=$HOME/hekit-runs/out/$ID
 mkdir -p "$OUT"; rm -f "$OUT/partial.txt" "$OUT/time.pid"
 (

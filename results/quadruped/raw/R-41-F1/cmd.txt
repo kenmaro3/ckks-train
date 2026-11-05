@@ -1,0 +1,1 @@
+./target/release/mnist --mode noninteractive --placement when_needed --faithful --indices results/quadruped/raw/reboot_emlp1_official_subset/reboot_subsample_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_official_subset/reboot_init_weights --epochs 1 --transpose reuse --batch 32 --out results/quadruped/mnist_emlp1_ni_when_needed_b32_faithful.json 

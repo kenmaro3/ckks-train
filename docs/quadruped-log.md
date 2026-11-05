@@ -208,3 +208,60 @@ R-REB-2 dry run (`~/hekit-runs/scratch/rebdry`, 20:47–20:48:36, outside run_jo
 numbers in the repo's text files. Twin test accuracy over seeds 0–9: mean 0.9065, sample std 0.0027. It finished
 21 s before R-41-F1 started, so it did not overlap the timed run. The provenance-recorded R-REB-2 run happens in its
 queue slot and will be checked against this dry run.
+
+### 2026-11-05 20:58 Queue: R-REB-3 slotted before R-41-5 (chain5)
+`r41.sh` now waits while `~/hekit-runs/hold/<ID>` exists; it was replaced by an atomic `mv`, so the running
+R-41-F1 is unaffected. `hold/R-41-5` was created. `chain5.sh` waits for R-REB-2's done marker, runs a 1-seed 1-epoch
+smoke test of `scripts/reboot_paper_setting.py` into scratch, then the full R-REB-3 through `run_job.sh` (10 worker
+processes, 1 thread each), and removes the hold. If the smoke test fails, R-REB-3 is skipped with a note and R-41-5 is
+released.
+Setting notes for R-REB-3: ReBoot's `*_decay_inv` model arguments are passed unchanged as the optimizer's weight
+decay (gradient + wd·W), so 0.001 is used for both. The loader's seed-42 shuffle re-seeds the global RNG, and the
+script re-seeds with S before building models, so the per-epoch orders do not depend on the data load.
+
+### 2026-11-05 21:01 Queue: R-45-2 (chain6)
+R-45-2 (hekit-cuda tests at ≥ 8b81f3d, 22 tests) runs in `~/hekit-r45`, re-synced to 44cb42b via a git bundle. The
+first checkout aborted because R-45-1's untracked result copies collided with files now committed; those copies (already
+on the Mac) were removed, the checkout repeated, and `.synced-commit` rewritten (0 dirty files). `chain6.sh` starts
+when R-41-F2 is done, so the build runs beside the untimed R-REB-2/R-REB-3 jobs and not beside a timed run.
+
+### 2026-11-05 21:08 Queue: R-46-1 supersedes R-45-2 (chain7)
+chain6 was stopped while still waiting (no R-45-2 output exists). `~/hekit-r45` was re-synced to 8f01b09 (contains
+f68c05f, 0 dirty files). `chain7.sh` starts R-46-1 (32 hekit-cuda tests) when R-41-F2 is done, and records the free GPU
+memory at start in `R-46-1.gpufree`. GPU free at 21:08: 2987 MiB.
+
+### 2026-11-05 20:49–21:40 R-41-F1: faithful NI eMLP-1, WhenNeeded, B = 32 → `results/quadruped/mnist_emlp1_ni_when_needed_b32_faithful.json`
+Clean clone `~/hekit-r44` at 3e0e99c, in-tree ReBoot indices (1008 samples) and initial weights, `--features
+parallel`, 12 threads. Load 4.02 3.94 4.41 before, 4.27 4.33 4.25 after; the other agent's SLAM processes were
+running again (3 in `nvidia-smi` at start, 1 at end; 1-min load mean 4.53, max 7.95 over 307 samples), so this run's
+wall time had more co-load than R-41-1..4. GPU free at start 2208 MiB.
+- 33.488 KS/sample including bootstraps (26.0 without); 17 of 32 updates bootstrapped (68 bootstraps); every update
+  equals the prediction. These match the request's expectation (33.49 KS/sample, 17 of 32).
+- Epoch 3016.7 s, per update mean 94.0 s (61.6–142.5 s), bootstrap 31.2 s mean. Peak RSS 28.5 GB.
+- Test accuracy 0.7577, equal to the plaintext twin (0.7577) and the twin value in the request. ReBoot's own encrypted
+  subset run gave 0.7506 (`reboot_emlp1_official_subset.json`).
+- 21:45 R-46-1 clone `~/hekit-r45` re-synced to 456a419 (contains b4b9dc3, the Task 46 fix round) before R-46-1 started; 0 dirty files.
+
+### 2026-11-05 21:40–22:08 R-41-F2: faithful NI eMLP-1, WhenNeeded, B = 64 → `results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`
+Clean clone `~/hekit-r44` at 3e0e99c, 12 threads. Load 4.27 4.33 4.25 before, 3.32 4.04 4.04 after; one SLAM process in
+`nvidia-smi` at start and end, 1-min load mean 4.01 (max 5.72).
+- 17.885 KS/sample including bootstraps (13.921 without); 9 of 16 updates bootstrapped (36 bootstraps); every update
+  equals the prediction (the request expected 17.89 and 9 of 16).
+- Epoch 1607.9 s, per update mean 100.0 s, bootstrap 32.9 s mean. Peak RSS 28.4 GB.
+- Test accuracy 0.7358; twin 0.7359 (one test image apart).
+
+### 2026-11-05 22:08 R-REB-2 → `raw/reboot_emlp1_full/`, `data/reboot_emlp1_full/`
+Through `run_job.sh`, 2 threads, about 2 min. Output byte-identical to the 20:47 dry run (`diff -rq`). Data arrays
+(14×14 train 4800 and test 10000, float32, labels uint8) are in `data/reboot_emlp1_full/` (gitignored) with
+`data_manifest.json`; the sha256 values were re-checked on the Mac. Twin test accuracy over seeds 0–9: 0.9065 ± 0.0027.
+
+### 2026-11-05 22:08–22:10 R-46-1: hekit-cuda tests at 456a419 → `results/quadruped/hekit_cuda_task46_tests.txt`
+32 test functions ok, 0 failed. 31 ran on the GPU bit-exact; `hoisted_rotate_16_matches_cpu_n16_train` printed the
+expected SKIP (needs 5816 MiB, 2595 MiB free). GPU free at start 2987 MiB. Peak host RSS 7.6 GB.
+
+### 2026-11-05 22:08 R-REB-3 setback and R-41-5 start
+chain5's smoke test of `reboot_paper_setting.py` (1 seed, 1 epoch) trained and evaluated, but my summary code crashed:
+it asked for epochs 10/20/50 of a 1-epoch run. As designed, chain5 then skipped R-REB-3 and removed the hold, so
+R-41-5 started at 22:09:08. Its first 44 s (setup and keygen, before any timed update) overlapped the R-46-1 GPU tests
+(22:08:52–22:09:52), which run on one CPU thread. The summary is fixed (epochs beyond the run are left out). R-REB-3
+is re-queued in `chain8.sh`, which waits for R-41-5, repeats the smoke test and then runs the full job.

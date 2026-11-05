@@ -64,7 +64,7 @@ M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that c
 block will state its GPU memory need, and the tests skip with a message when the need is not met.
 
 ---
-- **status:** queued in chain4 after R-REB-2, and held (hold file) until R-REB-3 (chain5) finishes; runs last, from the 43f219f tree in ~/hekit.
+- **status:** running (started 22:09:08 JST) from the 43f219f tree in ~/hekit; released early because the R-REB-3 smoke test failed. Its first 44 s (setup/keygen) overlapped the R-46-1 GPU tests.
 
 ## R-REB-1: ReBoot official eMLP-1, initial weights as plain data
 
@@ -119,7 +119,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - Same as R-41-F1, with `--batch 64` and `--out results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`.
 - **expected:** 17.89 KS/sample; 9 of 16 updates bootstrap; about 25–30 min. Plaintext twin accuracy is 0.7359.
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`, `results/quadruped/logs/R-41-F2.log`
-- **status:** queued (20:50 JST) in chain4: R-45-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5. Same as R-41-F1.
+- **status:** done (2026-11-05T21:40–22:08 JST, exit 0, full epoch, partial rule not triggered: projection 1570 s). Result: `results/quadruped/mnist_emlp1_ni_when_needed_b64_faithful.json`; log `results/quadruped/logs/R-41-F2.log`; provenance `results/quadruped/raw/R-41-F2/`. KS/sample incl. bootstraps 17.8849 (without 13.9206), 9 of 16 updates bootstrapped (36 bootstraps), every update equals prediction; epoch 1607.9 s, per update mean 100.0 s; test acc 0.7358 (twin 0.7359); peak RSS 28.4 GB. Clean clone ~/hekit-r44 at 3e0e99c. One SLAM process in nvidia-smi at start and end; 1-min load mean 4.01, max 5.72.
 
 ## R-REB-2: ReBoot official eMLP-1 full training setting, as data
 
@@ -132,7 +132,7 @@ block will state its GPU memory need, and the tests skip with a message when the
   - ReBoot's paper-reported eMLP-1 test accuracy, if it is printed or stored anywhere in the repo's data or logs. Otherwise say "not found".
 - **expected duration:** < 10 min. **GPU memory need:** 0
 - **output path:** `results/quadruped/raw/reboot_emlp1_full/{config_values.json, train_indices.txt}`
-- **status:** queued (20:50 JST) in chain4: R-45-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5. Covers seeds 0–9 (0–2 listed in experiments.sh), the recomputed plaintext twin per seed, and the 14×14 data dump to results/quadruped/data/reboot_emlp1_full/.
+- **status:** done (2026-11-05T22:08–22:08 JST, exit 0; byte-identical to the 20:47 dry run). Outputs: `results/quadruped/raw/reboot_emlp1_full/` (config_values.json; train_indices.txt for seed 0 and train_indices_seed{1..9}.txt; init_weights_seed{0..9}/W1.npy (196×32), W2.npy (32×16); twin_steps_seed{0..9}.tsv) and `results/quadruped/data/reboot_emlp1_full/` (14×14 train/test arrays, gitignored, plus data_manifest.json with sha256). Full setting = precision_analysis.py, 4800 samples, 10 epochs × 100 steps, 196 inputs, lr 5e-4 constant through step 501 then cosine restarts, seeds 0–2 listed in experiments.sh (3–9 same mechanism). Recomputed plaintext twin test accuracy over seeds 0–9: mean 0.9065, sample std 0.0027. Paper-reported accuracy in the repo's text files: not found.
 
 ## R-45-1: hekit-cuda GPU tests at a6ab1e2 (Task 44 + Task 45, 18 tests)
 
@@ -172,7 +172,7 @@ block will state its GPU memory need, and the tests skip with a message when the
   - `results/quadruped/raw/reboot_emlp1_paper_setting/{config_values.json, acc_curves_seed{S}_{const,sched}.tsv, summary.json}`
   - For hekit's twin later: per-seed init weights and per-step indices for the 60k setting under `results/quadruped/data/reboot_emlp1_paper/`, with the `.npy` files gitignored and a manifest JSON. Include the 14×14 60k train and 10k test arrays as float32 there.
 - **order:** after R-REB-2.
-- **status:** queued (20:58 JST) in chain5: starts when R-REB-2 is done; a 1-seed 1-epoch smoke test runs first (scratch), then the full run (10 seeds × 2 schedules × 50 epochs, 10 single-thread worker processes). R-41-5 is held until R-REB-3 ends. Per-epoch orders are stored as uint16 arrays (50, 60000) per seed in data/reboot_emlp1_paper/ (text index files would be ~180 MB).
+- **status:** re-queued (22:14 JST) in chain8 after R-41-5. The first attempt (22:08) did not run: its 1-epoch smoke test trained and evaluated correctly but crashed in my summary code (it asked for epochs 10/20/50 of a 1-epoch run), so chain5 skipped R-REB-3 and released R-41-5. The summary is fixed; chain8 repeats the smoke test and then the full run once R-41-5 is done.
 
 ## R-45-2: hekit-cuda GPU tests at 8b81f3d (22 tests, including near-tie base conversion)
 
@@ -207,4 +207,4 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **RAM need:** about 7 GB
 - **output path:** `results/quadruped/hekit_cuda_task46_tests.txt` and `results/quadruped/logs/R-46-1.log`
 - **order:** next free slot. It is GPU-light on compute and can run alongside the untimed plaintext jobs.
-- **status:** queued (21:08 JST) in chain7: starts as soon as R-41-F2 ends, alongside the untimed R-REB-2 / R-REB-3 jobs, so its build overlaps no timed run. Clean clone `~/hekit-r45` at 8f01b09 (contains f68c05f, 0 dirty files). Always runs; free GPU memory at start is recorded (2987 MiB at 21:08).
+- **status:** done (2026-11-05T22:08–22:09 JST, exit 0): **32 of 32 test functions ok, 0 failed; 31 ran bit-exact on the GPU and 1 printed the expected SKIP** (`hoisted_rotate_16_matches_cpu_n16_train: needs 5816.0 MiB of GPU memory, only 2595.2 MiB free`; cargo counts it as passed). No other SKIP. Clean clone `~/hekit-r45` at 456a419 (contains b4b9dc3). GPU free at start 2987 MiB. Output: `results/quadruped/hekit_cuda_task46_tests.txt`, `results/quadruped/logs/R-46-1.log`; provenance `results/quadruped/raw/R-46-1/`. Overlap note: its test phase (22:08:52–22:09:52) overlapped the first 44 s of R-41-5 (setup and keygen, before any timed update).

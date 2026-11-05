@@ -1,0 +1,39 @@
+date: 2026-11-05T22:08:52+09:00
+uptime:  22:08:52 up 53 days, 12:39,  3 users,  load average: 3.28, 3.93, 4.00
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  843G   26G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312 13105901568 65718464512    54669312 54633385984 119373983744
+Swap:     8589930496   652812288  7937118208
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 21097 MiB, 2987 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+1620940, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB
+--- nvidia-smi
+Thu Nov  5 22:08:52 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.91.07              Driver Version: 595.91.07      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |
+|  0%   32C    P8             24W /  450W |   21097MiB /  24564MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A         1620940      C   ...-mit/persistent_stereo_prefix        384MiB |
+|    0   N/A  N/A         2791212      C   VLLM::EngineCore                      20660MiB |
+|    0   N/A  N/A         4085553      G   /usr/bin/gnome-shell                     10MiB |
+|    0   N/A  N/A         4085847      G   /usr/bin/Xwayland                         8MiB |
++-----------------------------------------------------------------------------------------+

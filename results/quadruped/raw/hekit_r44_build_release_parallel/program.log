@@ -1,0 +1,25 @@
+   Compiling autocfg v1.5.1
+   Compiling libc v0.2.191
+   Compiling crossbeam-utils v0.8.23
+   Compiling getrandom v0.3.4
+   Compiling crossbeam-epoch v0.9.21
+   Compiling zerocopy v0.8.63
+   Compiling cfg-if v1.0.5
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling rawpointer v0.2.1
+   Compiling either v1.19.0
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling num-integer v0.1.47
+   Compiling num-complex v0.4.6
+   Compiling rayon v1.12.0
+   Compiling rand_core v0.9.5
+   Compiling ndarray v0.16.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.9.0
+   Compiling hekit-core v0.0.0 (/home/kmihara/hekit-r44/crates/hekit-core)
+   Compiling hekit-ckks v0.0.0 (/home/kmihara/hekit-r44/crates/hekit-ckks)
+   Compiling hekit-nn v0.0.0 (/home/kmihara/hekit-r44/crates/hekit-nn)
+   Compiling hekit-bench v0.0.0 (/home/kmihara/hekit-r44/crates/hekit-bench)
+    Finished `release` profile [optimized] target(s) in 6.65s
