@@ -307,6 +307,14 @@ impl GaloisKeys {
         self.keys.len()
     }
 
+    /// Every key, in increasing order of Galois element (e.g. for a device backend that
+    /// uploads all of them).
+    pub fn iter(&self) -> impl Iterator<Item = &GaloisKey> {
+        let mut elts: Vec<u64> = self.keys.keys().copied().collect();
+        elts.sort_unstable();
+        elts.into_iter().map(|e| &self.keys[&e])
+    }
+
     /// `true` when no key was generated.
     pub fn is_empty(&self) -> bool {
         self.keys.is_empty()
@@ -655,6 +663,24 @@ mod tests {
     use super::*;
     use crate::encrypt::{Decryptor, Encryptor};
     use crate::{Ciphertext, Encoder};
+
+    /// `GaloisKeys::iter` lists every key once, by increasing element (Task 47: device
+    /// uploads enumerate the keys).
+    #[test]
+    fn galois_keys_iter() {
+        let p = Arc::new(CkksParams::new(10, &[50, 40], &[50], 40, 2).unwrap());
+        let mut kg = KeyGenerator::new(Arc::clone(&p), rng(7)).unwrap();
+        let mut gks = kg.galois_keys(&[3, 1, 2, 1 + 512]);
+        gks.insert(kg.conjugation_key());
+        let elts: Vec<u64> = gks.iter().map(GaloisKey::elt).collect();
+        assert_eq!(elts.len(), gks.len());
+        assert_eq!(elts.len(), 4); // 1 and 1 + N/2 share a key
+        assert!(elts.windows(2).all(|w| w[0] < w[1]));
+        for s in [1, 2, 3] {
+            assert!(elts.contains(&galois_elt(p.n(), s)));
+        }
+        assert!(elts.contains(&conjugation_elt(p.n())));
+    }
 
     fn rng(seed: u8) -> Rng {
         Rng::from_seed([seed; 32])

@@ -257,9 +257,11 @@ dependencies = [
  "criterion",
  "hekit-ckks",
  "hekit-core",
+ "hekit-cuda",
  "hekit-nn",
  "libc",
  "ndarray",
+ "rayon",
 ]
 
 [[package]]

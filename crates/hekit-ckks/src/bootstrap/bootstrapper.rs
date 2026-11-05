@@ -583,6 +583,31 @@ mod tests {
         );
     }
 
+    /// Task 43 review N1/N2 (folded into Task 47): `HostBootstrapper` refuses the backend
+    /// evaluator itself as its host (address check, nothing counted) and, with a fork as host,
+    /// merges exactly one bootstrap's counts after the upload.
+    #[test]
+    fn host_bootstrapper_guards_double_counting() {
+        use crate::ops::{BootstrapOps, HeOps, HostBootstrapper};
+        let fx = fixture(mini(), mini_bp(), 11);
+        let mut r = rng(12);
+        let m = uniform(&mut r, fx.params.slots(), 1.0);
+        let ct = fx.level0(&m, &mut r);
+        let ev = fx.ev.fork();
+        let same = HostBootstrapper::new(&fx.bs, &ev);
+        assert!(matches!(
+            same.bootstrap(&ev, &ct),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert_eq!(ev.counter(), OpCounter::default());
+        let host = ev.fork();
+        let hb = HostBootstrapper::new(&fx.bs, &host);
+        let out = hb.bootstrap(&ev, &ct).unwrap();
+        assert_eq!(ev.counter(), host.counter());
+        assert_eq!(ev.counter().bootstraps, 1);
+        assert_eq!(out.level(), fx.bs.output_level());
+    }
+
     /// Review Focus 1 and 2: every input error is reported before any work, and the counter
     /// does not move.
     #[test]

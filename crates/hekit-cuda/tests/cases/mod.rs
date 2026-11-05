@@ -7,6 +7,7 @@
 //! (plus a few extra extreme or coefficient-form inputs where noted).
 #![allow(dead_code)]
 
+pub mod eval;
 pub mod ks;
 
 use std::sync::Arc;

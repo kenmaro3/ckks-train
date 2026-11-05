@@ -716,8 +716,26 @@ mod tests {
         use std::panic::{AssertUnwindSafe, catch_unwind};
         let p = CkksParams::n16_train();
         let fma = EmuExec::with_fma(&p);
-        cases::check_mod_down(&fma, &p); // random inputs: blind to contraction
-        let fails = |f: &dyn Fn()| catch_unwind(AssertUnwindSafe(f)).is_err();
+        // Random inputs: blind to contraction (both conversions).
+        cases::check_mod_down(&fma, &p);
+        cases::check_mod_up(&fma, &p);
+        // A failure must be a bit mismatch reported by `assert_same` (Task 45 re-review N1),
+        // not some other panic.
+        let fails = |f: &dyn Fn()| match catch_unwind(AssertUnwindSafe(f)) {
+            Ok(()) => false,
+            Err(p) => {
+                let msg = p
+                    .downcast_ref::<String>()
+                    .cloned()
+                    .or_else(|| p.downcast_ref::<&str>().map(|s| s.to_string()))
+                    .unwrap_or_default();
+                assert!(
+                    msg.contains("coefficient") && msg.contains("CPU"),
+                    "near-tie check failed with an unexpected panic: {msg}"
+                );
+                true
+            }
+        };
         assert!(
             fails(&|| cases::check_mod_down_near_ties(&fma, &p)),
             "mod_down near ties did not detect FMA contraction"

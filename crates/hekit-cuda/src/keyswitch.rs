@@ -349,37 +349,39 @@ impl KsBackend for Dev<'_> {
             ip.key_skip as u32,
         );
         let stream = dev.stream();
-        guarded("ks_inner_product", || {
-            // The digit addresses, uploaded as one small array. Each `device_ptr` guard records
-            // the digit's read on drop (event tracking), after the launch below is queued.
-            let (ptrs, _reads): (Vec<u64>, Vec<_>) =
-                digits.iter().map(|d| d.device_ptr(stream)).unzip();
-            let ptr_buf = stream
-                .clone_htod(&ptrs)
-                .map_err(|e| dev_err("uploading the digit addresses", e))?;
-            let mut b = stream.launch_builder(&dev.kernels.ks_inner_product);
-            b.arg(out_b)
-                .arg(out_a)
-                .arg(&ptr_buf)
-                .arg(key)
-                .arg(&dev.ntt_tables.consts)
-                .arg(&*map)
-                .arg(&log_n)
-                .arg(&n_digits)
-                .arg(&q_limbs)
-                .arg(&key_limbs)
-                .arg(&key_skip);
-            // SAFETY: matches `(u64*, u64*, const u64*, const u64*, const u64*, const u32*, u32,
-            // u32, u32, u32, u32)` in kernels/keyswitch.cu. out_b, out_a and every digit hold
-            // rows = q_limbs + k limbs (checked above); ptr_buf holds n_digits addresses of
-            // live digit allocations (borrowed for this call; their frees are stream-ordered
-            // after the launch); the key holds at least 2 * n_digits * key_limbs limbs and
-            // every key limb index t = y or y + key_skip is < key_limbs (y < q_limbs = l + 1
-            // <= max_level + 1, or y - q_limbs < k with y + key_skip = max_level + 1 + (y -
-            // q_limbs)); the map has rows valid prime indices; out_b and out_a are distinct
-            // allocations (`&mut` borrows) not aliasing the inputs.
-            unsafe { b.launch(cfg) }.map_err(|e| dev_err("ks_inner_product", e))?;
-            Ok(())
+        // The digit addresses. Each `device_ptr` guard makes the stream wait for the digit's
+        // last write and records the digit's read on drop (event tracking), after the launch
+        // below is queued. The addresses go through the stream's pinned staging ring
+        // (asynchronous; Task 46 review M4).
+        let (ptrs, _reads): (Vec<u64>, Vec<_>) = guarded("digit addresses", || {
+            Ok(digits.iter().map(|d| d.device_ptr(stream)).unzip())
+        })?;
+        dev.with_staged(&ptrs, |ptr_buf| {
+            guarded("ks_inner_product", || {
+                let mut b = stream.launch_builder(&dev.kernels.ks_inner_product);
+                b.arg(out_b)
+                    .arg(out_a)
+                    .arg(ptr_buf)
+                    .arg(key)
+                    .arg(&dev.ntt_tables.consts)
+                    .arg(&*map)
+                    .arg(&log_n)
+                    .arg(&n_digits)
+                    .arg(&q_limbs)
+                    .arg(&key_limbs)
+                    .arg(&key_skip);
+                // SAFETY: matches `(u64*, u64*, const u64*, const u64*, const u64*, const u32*, u32,
+                // u32, u32, u32, u32)` in kernels/keyswitch.cu. out_b, out_a and every digit hold
+                // rows = q_limbs + k limbs (checked above); ptr_buf starts with n_digits addresses of
+                // live digit allocations (borrowed for this call; their frees are stream-ordered
+                // after the launch); the key holds at least 2 * n_digits * key_limbs limbs and
+                // every key limb index t = y or y + key_skip is < key_limbs (y < q_limbs = l + 1
+                // <= max_level + 1, or y - q_limbs < k with y + key_skip = max_level + 1 + (y -
+                // q_limbs)); the map has rows valid prime indices; out_b and out_a are distinct
+                // allocations (`&mut` borrows) not aliasing the inputs.
+                unsafe { b.launch(cfg) }.map_err(|e| dev_err("ks_inner_product", e))?;
+                Ok(())
+            })
         })
     }
 }

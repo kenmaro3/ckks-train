@@ -14,9 +14,16 @@ hekit-nn = { path = "../hekit-nn" }
 ndarray = "0.16"
 libc = "0.2"
 
+# Task 47: only for the `cuda_ops` benchmark (feature `cuda`).
+hekit-cuda = { path = "../hekit-cuda", optional = true }
+rayon = { version = "1.10", optional = true }
+
 [features]
 # rayon data parallelism in hekit-ckks (bit-identical results; Task 41 runs label it).
 parallel = ["hekit-ckks/parallel"]
+# The GPU-vs-CPU benchmark `cuda_ops` (Task 47): the CUDA backend, and rayon for the CPU
+# baseline on 1 and N threads.
+cuda = ["dep:hekit-cuda", "hekit-cuda/cuda", "dep:rayon", "parallel"]
 
 [dev-dependencies]
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
@@ -24,3 +31,8 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 [[bench]]
 name = "ckks_ops"
 harness = false
+
+[[bench]]
+name = "cuda_ops"
+harness = false
+required-features = ["cuda"]

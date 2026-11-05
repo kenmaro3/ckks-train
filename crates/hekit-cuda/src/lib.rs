@@ -17,6 +17,11 @@
 //!   `hekit_ckks::Evaluator` operations `mul_no_relin`, `relinearize`, `rescale`, `rotate`,
 //!   `conjugate` and `hoisted_rotate`.
 //!
+//! * the evaluator [`CudaEvaluator`]: `hekit_ckks::HeOps` on device ciphertexts (the CPU's
+//!   checks, errors and `OpCounter` counts, the RQ3 flags), BSGS matrix-vector products
+//!   (the shared orchestration of [`matvec`], bit-identical to the CPU's) and
+//!   [`CudaEvaluator::matvec_enc_batch`], independent products on several streams.
+//!
 //! Device ciphertexts, plaintexts, polynomials and keys are shared handles: `Clone` is a
 //! reference-count increment (no device memory, cannot fail), which is safe because every
 //! operation is functional (returns new values; the in-place NTTs copy on write).
@@ -27,7 +32,8 @@
 //! Without the feature only the host-side pieces are compiled: the kernel launch
 //! configurations ([`plan`]), the flat twiddle and prime tables ([`tables`]), the
 //! base-conversion tables and launch sequences ([`basis`]), and the key-switching key layout
-//! and launch sequences ([`ks`]). Their tests replay the CUDA
+//! and launch sequences ([`ks`]), and the backend-neutral BSGS orchestration ([`matvec`]).
+//! Their tests replay the CUDA
 //! kernels thread by thread on the CPU, run the device's launch sequences on the replay, and
 //! compare with the CPU implementation bit for bit (the same checks as the GPU tests).
 //!
@@ -52,6 +58,7 @@
 
 pub mod basis;
 pub mod ks;
+pub mod matvec;
 pub mod plan;
 pub mod tables;
 
@@ -72,6 +79,8 @@ mod ciphertext;
 #[cfg(feature = "cuda")]
 mod device;
 #[cfg(feature = "cuda")]
+pub mod evaluator;
+#[cfg(feature = "cuda")]
 mod keyswitch;
 #[cfg(feature = "cuda")]
 mod poly;
@@ -81,7 +90,9 @@ pub mod testing;
 #[cfg(feature = "cuda")]
 pub use ciphertext::{CudaCiphertext, rotation_elt};
 #[cfg(feature = "cuda")]
-pub use device::{CudaDevice, probe};
+pub use device::{CudaDevice, StreamGuard, probe};
+#[cfg(feature = "cuda")]
+pub use evaluator::CudaEvaluator;
 #[cfg(feature = "cuda")]
 pub use keyswitch::{DeviceKsk, KskPurpose};
 #[cfg(feature = "cuda")]

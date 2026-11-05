@@ -2,12 +2,15 @@
 //! the per-polynomial limb-to-prime maps and conversion tables (cached), and the batched NTT /
 //! inverse NTT over the limbs of a [`DevicePoly`].
 
+use std::cell::Cell;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, Mutex};
 
 use cudarc::driver::{
-    CudaContext, CudaFunction, CudaSlice, CudaStream, LaunchConfig, PushKernelArg, result, sys,
+    CudaContext, CudaFunction, CudaSlice, CudaStream, LaunchConfig, PinnedHostSlice, PushKernelArg,
+    result, sys,
 };
 use cudarc::nvrtc::{CompileOptions, compile_ptx_with_opts};
 use hekit_ckks::{CkksParams, Plaintext, QpPoly};
@@ -121,6 +124,75 @@ struct Caches {
     conv: HashMap<(Vec<u32>, Vec<u32>), Arc<DeviceConvTable>>,
 }
 
+thread_local! {
+    /// The calling thread's current stream index ([`CudaDevice::use_stream`]).
+    static CURRENT_STREAM: Cell<usize> = const { Cell::new(0) };
+}
+
+/// Slots per staging ring (per stream).
+const STAGING_SLOTS: usize = 32;
+
+/// Words per staging slot for `params`: the digit addresses of an inner product (`dnum`) or
+/// the Shoup constants of a scalar product (2 per prime).
+fn staging_words(params: &CkksParams) -> usize {
+    params.dnum().max(2 * (params.q().len() + params.p().len()))
+}
+
+/// A ring of pinned host buffers and device buffers for small per-launch uploads
+/// ([`CudaDevice::with_staged`]).
+struct Staging {
+    slots: Vec<(PinnedHostSlice<u64>, CudaSlice<u64>)>,
+    next: usize,
+}
+
+impl std::fmt::Debug for Staging {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Staging")
+            .field("slots", &self.slots.len())
+            .field("next", &self.next)
+            .finish()
+    }
+}
+
+impl Staging {
+    fn new(ctx: &Arc<CudaContext>, stream: &Arc<CudaStream>, words: usize) -> Result<Staging> {
+        guarded("staging ring", || {
+            let slots = (0..STAGING_SLOTS)
+                .map(|_| {
+                    // SAFETY: the pinned buffer is only written (never read) by the host
+                    // before its first copy; unset words are never read by a kernel (the
+                    // launches read only the words just written).
+                    let mut host = unsafe { ctx.alloc_pinned::<u64>(words) }
+                        .map_err(|e| dev_err("pinned host allocation", e))?;
+                    host.as_mut_slice()
+                        .map_err(|e| dev_err("pinned staging buffer", e))?
+                        .fill(0);
+                    let dev = stream
+                        .alloc_zeros::<u64>(words)
+                        .map_err(|e| dev_err("staging device buffer", e))?;
+                    Ok((host, dev))
+                })
+                .collect::<Result<Vec<_>>>()?;
+            Ok(Staging { slots, next: 0 })
+        })
+    }
+}
+
+/// Selects the calling thread's stream until dropped ([`CudaDevice::use_stream`]); not
+/// `Send` (the selection belongs to the thread that made it).
+#[derive(Debug)]
+#[must_use = "the stream selection ends when the guard is dropped"]
+pub struct StreamGuard {
+    prev: usize,
+    _not_send: PhantomData<*const ()>,
+}
+
+impl Drop for StreamGuard {
+    fn drop(&mut self) {
+        CURRENT_STREAM.with(|c| c.set(self.prev));
+    }
+}
+
 /// A CUDA device prepared for one CKKS parameter set: context, streams, compiled kernels and
 /// the NTT tables of every Q and P prime.
 ///
@@ -129,10 +201,25 @@ struct Caches {
 /// distinct primes (e.g. `Q_l * P`, `[0..=l, L+1..]`) is one polynomial and one launch
 /// sequence.
 ///
-/// All work is issued on `streams[0]`, in order (every operation goes through one internal
-/// stream accessor); the extra streams are for the multi-stream batching of a later task.
+/// # Streams
+///
+/// Every operation is issued, in order, on **the calling thread's current stream**: stream 0
+/// unless the thread holds a [`StreamGuard`] from [`CudaDevice::use_stream`] (every launch,
+/// allocation and copy goes through one internal stream accessor). Work on different streams
+/// may overlap. Cross-stream data dependencies are ordered by cudarc's event tracking (a
+/// buffer written on one stream and read on another waits for the write); a buffer read on
+/// several streams at once records only its last reader, so a caller that shares operands
+/// across streams must [`CudaDevice::sync`] (or synchronize those streams) before the
+/// operands can be dropped. `CudaEvaluator::matvec_enc_batch` does this.
+///
+/// Small per-launch tables (the digit addresses of the key-switching inner product, the
+/// constants of `mul_scalar`) are staged through a per-stream ring of pinned host buffers
+/// and device buffers, so their upload is asynchronous and does not synchronize the stream
+/// (Task 46 review M4).
+///
 /// Device memory held by the device itself is [`CudaDevice::table_bytes`], plus the small
-/// cached limb maps and conversion tables, plus what the CUDA context reserves.
+/// cached limb maps and conversion tables and staging rings, plus what the CUDA context
+/// reserves.
 #[derive(Debug)]
 pub struct CudaDevice {
     ctx: Arc<CudaContext>,
@@ -142,6 +229,10 @@ pub struct CudaDevice {
     params: CkksParams,
     primes: PrimeTable,
     caches: Mutex<Caches>,
+    /// One staging ring per stream (built on first use).
+    staging: Vec<Mutex<Option<Staging>>>,
+    /// Words per staging slot.
+    staging_words: usize,
     n: usize,
     num_primes: usize,
     table_bytes: usize,
@@ -243,6 +334,8 @@ impl CudaDevice {
                 params: params.clone(),
                 primes: PrimeTable::from_params(params),
                 caches: Mutex::new(Caches::default()),
+                staging: (0..n_streams).map(|_| Mutex::new(None)).collect(),
+                staging_words: staging_words(params),
                 n: host.n,
                 num_primes: host.num_primes(),
                 table_bytes: host.device_bytes(),
@@ -300,10 +393,89 @@ impl CudaDevice {
         })
     }
 
-    /// The stream every operation is issued on (stream 0). A multi-stream variant replaces this
-    /// one accessor.
+    /// The stream every operation of the calling thread is issued on: stream 0, or the one
+    /// selected by a live [`StreamGuard`] of this thread (see the type docs, "Streams").
     pub(crate) fn stream(&self) -> &Arc<CudaStream> {
-        &self.streams[0]
+        &self.streams[self.stream_index()]
+    }
+
+    /// The index of the calling thread's current stream (0 without a [`StreamGuard`]).
+    pub fn stream_index(&self) -> usize {
+        CURRENT_STREAM.with(Cell::get) % self.streams.len()
+    }
+
+    /// Issues the calling thread's work on stream `index` until the returned guard is dropped
+    /// (then the previous stream is restored). The selection is per thread, so worker threads
+    /// can drive different streams of one device concurrently.
+    ///
+    /// `InvalidParams` when `index >= n_streams()`.
+    pub fn use_stream(&self, index: usize) -> Result<StreamGuard> {
+        if index >= self.streams.len() {
+            return Err(HekitError::InvalidParams(format!(
+                "stream {index} does not exist ({} stream(s))",
+                self.streams.len()
+            )));
+        }
+        let prev = CURRENT_STREAM.with(|c| c.replace(index));
+        Ok(StreamGuard {
+            prev,
+            _not_send: PhantomData,
+        })
+    }
+
+    /// Waits until all work issued on stream `index` has finished. `InvalidParams` when
+    /// `index >= n_streams()`.
+    pub fn sync_stream(&self, index: usize) -> Result<()> {
+        let s = self
+            .streams
+            .get(index)
+            .ok_or_else(|| HekitError::InvalidParams(format!("stream {index} does not exist")))?;
+        guarded("sync_stream", || {
+            s.synchronize()
+                .map_err(|e| dev_err("stream synchronize", e))
+        })
+    }
+
+    /// Runs `f` with a device copy of `data` (at most the staging slot size, else uploaded
+    /// directly) on the current stream: the words are written to the next pinned host slot of
+    /// this stream's ring and copied asynchronously to that slot's device buffer, which `f`
+    /// passes to a launch. The ring lock is held during `f`, so the slot is not reused before
+    /// the launch is queued; stream order then keeps the copy for the next use of the slot
+    /// behind this launch, and writing a pinned slot first waits for its previous copy (a host
+    /// wait only when the stream lags `STAGING_SLOTS` uploads behind).
+    pub(crate) fn with_staged<R>(
+        &self,
+        data: &[u64],
+        f: impl FnOnce(&CudaSlice<u64>) -> Result<R>,
+    ) -> Result<R> {
+        let stream = self.stream();
+        if data.len() > self.staging_words {
+            let buf = guarded("small upload", || {
+                stream
+                    .clone_htod(data)
+                    .map_err(|e| dev_err("uploading a launch table", e))
+            })?;
+            return f(&buf);
+        }
+        let idx = self.stream_index();
+        let mut ring = self.staging[idx].lock().unwrap_or_else(|e| e.into_inner());
+        if ring.is_none() {
+            *ring = Some(Staging::new(&self.ctx, stream, self.staging_words)?);
+        }
+        let ring = ring.as_mut().expect("initialised above");
+        let slot = ring.next;
+        ring.next = (ring.next + 1) % STAGING_SLOTS;
+        let (host, dev) = &mut ring.slots[slot];
+        guarded("staged upload", || {
+            let h = host
+                .as_mut_slice()
+                .map_err(|e| dev_err("pinned staging buffer", e))?;
+            h[..data.len()].copy_from_slice(data);
+            stream
+                .memcpy_htod(&*host, dev)
+                .map_err(|e| dev_err("staged host-to-device copy", e))
+        })?;
+        f(dev)
     }
 
     /// The device's prime indices (Q then P).
@@ -419,7 +591,7 @@ impl CudaDevice {
 
     /// In-place forward NTT of every limb (no-op when already in NTT form): one launch per
     /// global stage plus one shared-memory launch, each covering all limbs (any prime list,
-    /// e.g. `Q_l * P`). Asynchronous on stream 0 (later downloads / [`CudaDevice::sync`] wait
+    /// e.g. `Q_l * P`). Asynchronous on the current stream (later downloads / [`CudaDevice::sync`] wait
     /// for it).
     ///
     /// Accepts residues in `[0, 4q)` (every polynomial produced by this crate is fully

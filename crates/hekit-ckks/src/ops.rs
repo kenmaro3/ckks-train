@@ -85,7 +85,7 @@
 
 use std::sync::Arc;
 
-use hekit_core::error::Result;
+use hekit_core::error::{HekitError, Result};
 
 use crate::bootstrap::Bootstrapper;
 use crate::ciphertext::Ciphertext;
@@ -538,8 +538,10 @@ impl BootstrapOps<Evaluator> for Bootstrapper {
 ///
 /// `host` must hold the relinearization key of the bootstrapper's parameters, must not be the
 /// evaluator `E` itself (its counts would be added twice; for a CPU `E` pass a
-/// [`HeOps::fork`]), and must not be used by another thread during a bootstrap (the merged
-/// counts are the difference of its counter around the bootstrap).
+/// [`HeOps::fork`]; passing `E` itself is `InvalidParams`, checked by address), and must not
+/// be used by another thread during a bootstrap (the merged counts are the difference of its
+/// counter around the bootstrap). The counts are merged only after the upload succeeded: a
+/// failed bootstrap or upload counts nothing on `E` ([`crate::counter`]).
 #[derive(Debug)]
 pub struct HostBootstrapper<'h> {
     bs: &'h Bootstrapper,
@@ -556,13 +558,26 @@ impl<'h> HostBootstrapper<'h> {
 impl<E: HeOps> BootstrapOps<E> for HostBootstrapper<'_> {
     /// `upload(bootstrap(download(ct)))`, with the bootstrap's counts merged into `ev`.
     ///
-    /// Errors: those of the transfers and of [`Bootstrapper::bootstrap`].
+    /// Errors: `InvalidParams` when `ev` is the host evaluator itself (its counts would be
+    /// merged twice); those of the transfers and of [`Bootstrapper::bootstrap`].
     fn bootstrap(&self, ev: &E, ct: &E::Ct) -> Result<E::Ct> {
+        if std::ptr::eq(
+            ev as *const E as *const u8,
+            self.host as *const Evaluator as *const u8,
+        ) {
+            return Err(HekitError::InvalidParams(
+                "HostBootstrapper: the host evaluator must not be the backend evaluator itself \
+                 (its counts would be merged twice); pass a fork"
+                    .into(),
+            ));
+        }
         let host_ct = ev.download_ct(ct)?;
         let before = self.host.counter();
-        let out = self.bs.bootstrap(self.host, &host_ct);
-        ev.add_counts(&(&self.host.counter() - &before));
-        ev.upload_ct_owned(out?)
+        let out = self.bs.bootstrap(self.host, &host_ct)?;
+        let delta = &self.host.counter() - &before;
+        let up = ev.upload_ct_owned(out)?;
+        ev.add_counts(&delta);
+        Ok(up)
     }
 
     fn output_level(&self) -> usize {

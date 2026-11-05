@@ -4,7 +4,8 @@
 //! the shared ones of [`crate::basis`]).
 //!
 //! Every operation returns a new [`DevicePoly`] and leaves its inputs unchanged. Work is
-//! asynchronous on stream 0; [`DevicePoly::download`] waits for it. Operands must belong to
+//! asynchronous on the calling thread's current stream ([`CudaDevice::use_stream`]; stream 0 by
+//! default); [`DevicePoly::download`] waits for it. Operands must belong to
 //! this device; binary operands must have the same limbs (prime list) and form. Violations
 //! are `InvalidParams`; launch failures are `Device`.
 
@@ -176,7 +177,8 @@ impl CudaDevice {
     }
 
     /// `a * scalar` (either form; any `u64`, reduced modulo each prime):
-    /// `RnsPoly::mul_scalar_assign`. Uploads `2 * num_limbs` words of Shoup constants.
+    /// `RnsPoly::mul_scalar_assign`. Stages `2 * num_limbs` words of Shoup constants
+    /// (through the stream's pinned staging ring: asynchronous).
     pub fn mul_scalar<'d>(&'d self, a: &DevicePoly<'d>, scalar: u64) -> Result<DevicePoly<'d>> {
         self.check_owner(a)?;
         let w = self.prime_table().scalar_shoup(a.primes(), scalar);
@@ -184,23 +186,21 @@ impl CudaDevice {
         let mut out = self.alloc_limbs(a.num_limbs())?;
         let cfg = elem_cfg(self.n(), a.num_limbs())?;
         let log_n = self.n().trailing_zeros();
-        guarded("pw_mul_shoup", || {
-            let w = self
-                .stream()
-                .clone_htod(&w)
-                .map_err(|e| dev_err("uploading scalar constants", e))?;
-            let mut l = self.stream().launch_builder(&self.kernels.pw_mul_shoup);
-            l.arg(&mut out)
-                .arg(a.limbs())
-                .arg(&w)
-                .arg(&self.ntt_tables.consts)
-                .arg(&*map)
-                .arg(&log_n);
-            // SAFETY: matches `(u64*, const u64*, const u64*, const u64*, const u32*, u32)`;
-            // w holds 2 * num_limbs words; sizes as in `binary`. `w` is freed stream-ordered
-            // after the launch.
-            unsafe { l.launch(cfg) }.map_err(|e| dev_err("pw_mul_shoup", e))?;
-            Ok(())
+        self.with_staged(&w, |w| {
+            guarded("pw_mul_shoup", || {
+                let mut l = self.stream().launch_builder(&self.kernels.pw_mul_shoup);
+                l.arg(&mut out)
+                    .arg(a.limbs())
+                    .arg(w)
+                    .arg(&self.ntt_tables.consts)
+                    .arg(&*map)
+                    .arg(&log_n);
+                // SAFETY: matches `(u64*, const u64*, const u64*, const u64*, const u32*,
+                // u32)`; w holds at least 2 * num_limbs words (the staged constants); sizes
+                // as in `binary`.
+                unsafe { l.launch(cfg) }.map_err(|e| dev_err("pw_mul_shoup", e))?;
+                Ok(())
+            })
         })?;
         Ok(self.new_poly(out, Arc::clone(a.primes_arc()), a.is_ntt_form()))
     }
@@ -311,7 +311,8 @@ impl CudaDevice {
 }
 
 /// [`Backend`] and [`KsBackend`] on the device: the kernels of `kernels/basis.cu`,
-/// `pointwise.cu` and `keyswitch.cu`, the batched NTT and device copies, all on stream 0.
+/// `pointwise.cu` and `keyswitch.cu`, the batched NTT and device copies, all on the current
+/// stream.
 pub(crate) struct Dev<'a>(pub(crate) &'a CudaDevice);
 
 impl Backend for Dev<'_> {

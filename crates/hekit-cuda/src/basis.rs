@@ -153,8 +153,8 @@ impl PrimeTable {
             Ok(&self.basis_p)
         } else {
             Err(invalid(
-                "limbs are not a prefix of the Q or P primes (a Q_l * P polynomial needs \
-                 download_qp)",
+                "limbs are not a prefix of the Q or P primes (a Q_l * P polynomial is \
+                 downloaded with download_qp and divided with mod_down, not rescaled)",
             ))
         }
     }
