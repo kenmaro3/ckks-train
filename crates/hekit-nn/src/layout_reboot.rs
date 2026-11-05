@@ -102,8 +102,8 @@
 //!
 //! # Exact-scale path (M2 rulings)
 //!
-//! The eq. 5 mask is encoded at [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) of the rotated sum and
-//! multiplied with [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale), so the expanded result has **exactly**
+//! The eq. 5 mask is encoded at [`Evaluator::target_plain_scale`] of the rotated sum and
+//! multiplied with [`Evaluator::mul_plain_to_scale`], so the expanded result has **exactly**
 //! the target scale (`Delta = params.scale()` for [`RebootLayout::expand`] and
 //! [`RebootLayout::vecmat_col`]; always reachable, it is a power of two). Additions inside
 //! eq. 4 / eq. 5 add a ciphertext to its own rotation (identical scale); [`RebootLayout::outer_sum`]
@@ -119,6 +119,8 @@
 //! for `row_sum` / `vecmat`, [`RebootLayout::expand_steps`] for `expand` / `vecmat_col`
 //! ([`RebootLayout::galois_steps`] = both).
 
+#[cfg(doc)]
+use hekit_ckks::Evaluator;
 use hekit_ckks::{DiagonalEntry, Encoder, HeOps};
 use hekit_core::error::{HekitError, Result};
 use ndarray::Array2;
@@ -310,7 +312,7 @@ impl RebootLayout {
 
     /// [`RebootLayout::expand`] with the constant `mask_value` folded into the mask (the
     /// result is `mask_value` times the row sums, at no extra cost) and an explicit target
-    /// scale (exactly the result's scale; see [`Evaluator::exact_product_scale`](hekit_ckks::Evaluator::exact_product_scale) for which
+    /// scale (exactly the result's scale; see [`Evaluator::exact_product_scale`] for which
     /// targets are reachable, e.g. any power of two).
     pub fn expand_to_scale<E: HeOps>(
         &self,

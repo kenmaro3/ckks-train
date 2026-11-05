@@ -193,6 +193,23 @@ impl<T> Diagonals<T> {
         })
     }
 
+    /// [`Diagonals::try_map`] by value: `f` takes each entry (e.g. a move to another backend);
+    /// `d`, the split, the stride and the offset are kept.
+    pub fn try_map_owned<U>(self, f: impl FnMut(T) -> Result<U>) -> Result<Diagonals<U>> {
+        Ok(Diagonals {
+            d: self.d,
+            baby: self.baby,
+            giant: self.giant,
+            stride: self.stride,
+            offset: self.offset,
+            entries: self
+                .entries
+                .into_iter()
+                .map(f)
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+
     /// The rotation steps whose Galois keys the products need:
     /// [`bsgs_rotation_steps_with_offset`]`(d, stride, offset)` (that is
     /// [`bsgs_rotation_steps`]`(d, stride)` for offset 0).
@@ -564,8 +581,8 @@ impl Evaluator {
     /// Costs `d` [`Evaluator::mul_plain`], `baby + giant - 2` rotations (`baby - 1` of them
     /// hoisted; one more giant rotation for an offset that is not a multiple of `baby`) and no
     /// relinearization. With [`crate::ops::EvalConfig::bsgs`] off: `d - 1` rotations (offset
-    /// 0); with `hoist` off the baby rotations are individual (same count). Returns the unrescaled product: level `x.level()`, scale
-    /// `x.scale() * entry scale`.
+    /// 0); with `hoist` off the baby rotations are individual (same count). Returns the
+    /// unrescaled product: level `x.level()`, scale `x.scale() * entry scale`.
     ///
     /// Errors, all reported before any work: `InvalidParams` if `x` is not a 2-component
     /// ciphertext over this evaluator's basis, an entry is not over it, `d * stride` does
@@ -759,8 +776,8 @@ impl Evaluator {
     /// rotations and giant blocks only they would use). All terms share one shape. The
     /// callers have validated everything, so no step fails part-way.
     ///
-    /// With `share_giant == false` ([`crate::ops::EvalConfig::bsgs`] off, the RQ3 ablation) the giant
-    /// rotation is not shared: every kept product with a nonzero giant shift is finished and
+    /// With `share_giant == false` ([`crate::ops::EvalConfig::bsgs`] off, the RQ3 ablation)
+    /// the giant rotation is not shared: every kept product with a nonzero giant shift is finished and
     /// rotated on its own, `rot(finish(mul(entry, rot(x_t, k2 s))), (offset + g k1) s)`, and
     /// only the products of a zero shift are summed before one `finish`. Same keys, same
     /// value; for `offset = 0` and no skipped entry that is `d - 1` rotations (`baby - 1`

@@ -6,7 +6,7 @@
 //! For `W` (`d_out x d_in`) in a [`Layout`] with `B = layout.batch` lanes,
 //! `(baby, giant) = bsgs_split(m)`, `m = min(n_out, n_in)`:
 //!
-//! 1. `y = matvec_enc(W, x)`: M1's [`Evaluator::matvec_enc`](hekit_ckks::Evaluator::matvec_enc) on the `m` generalised diagonals
+//! 1. `y = matvec_enc(W, x)`: M1's [`Evaluator::matvec_enc`] on the `m` generalised diagonals
 //!    ([`crate::layout::pack_weight_diagonals`], already pre-rotated for BSGS) wrapped by
 //!    `Diagonals::from_prerotated(m, B, ·)`. The generalised diagonals need no variant of the
 //!    BSGS loop: M1's loop with `d = m`, `stride = B` is exactly [`crate::sim::sim_matvec`]
@@ -37,7 +37,7 @@
 //! [`crate::layout::transpose_sources`]`[i]` of `W` rotated by
 //! [`crate::layout::rotations_for_transpose`]`[i]`, op for op
 //! [`crate::sim::sim_transpose`] (`m - 1` rotations, one distinct ciphertext each, so plain
-//! [`Evaluator::rotate`](hekit_ckks::Evaluator::rotate); there is nothing to hoist). [`TransposeKeys::Reuse`] is the
+//! [`Evaluator::rotate`]; there is nothing to hoist). [`TransposeKeys::Reuse`] is the
 //! zero-new-key form: each amount is split into a shortest chain of steps whose keys the
 //! training step already has ([`training_key_pool`]), usually 2 rotations per entry.
 //!
@@ -50,6 +50,8 @@ use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
+#[cfg(doc)]
+use hekit_ckks::Evaluator;
 use hekit_ckks::linalg::{Diagonals, bsgs_rotation_steps};
 use hekit_ckks::{Ciphertext, Decryptor, DiagonalEntry, Encoder, Encryptor, HeCiphertext, HeOps};
 use hekit_core::error::{HekitError, Result};
@@ -114,7 +116,7 @@ pub fn forward_rotation_steps(d_out: usize, d_in: usize, layout: &Layout) -> Vec
 /// the fold of the backward `W^T` matvec (Task 27: call with the dimensions of `W^T`).
 ///
 /// Errors: `InvalidParams` if the layer does not fit `layout` or a fold key is missing, and
-/// those of [`Evaluator::rotate`](hekit_ckks::Evaluator::rotate).
+/// those of [`Evaluator::rotate`].
 pub fn fold<E: HeOps>(
     ev: &E,
     y: &E::Ct,
@@ -258,15 +260,8 @@ impl EncWeights {
     ///
     /// Errors: those of the upload.
     pub fn upload_owned<E: HeOps>(self, ev: &E) -> Result<EncWeights<E::Ct>> {
-        let (d, stride) = (self.diags.d(), self.diags.stride());
-        let entries = self
-            .diags
-            .into_entries()
-            .into_iter()
-            .map(|c| ev.upload_ct_owned(c))
-            .collect::<Result<Vec<_>>>()?;
         Ok(EncWeights {
-            diags: Diagonals::from_prerotated(d, stride, entries)?,
+            diags: self.diags.try_map_owned(|c| ev.upload_ct_owned(c))?,
             d_out: self.d_out,
             d_in: self.d_in,
         })
@@ -466,7 +461,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     /// `InvalidParams` if `layout` is not the weights' (slot count, batch) or a forward key is
     /// missing; `LevelMismatch` if `W` or `b` is below `x.level()`; `ScaleMismatch` unless
     /// `b.scale() == x.scale() * W.scale()` exactly; and the checks of
-    /// [`Evaluator::matvec_enc`](hekit_ckks::Evaluator::matvec_enc) (`NoLevelsLeft` at level 0, a missing relin key, ...).
+    /// [`Evaluator::matvec_enc`] (`NoLevelsLeft` at level 0, a missing relin key, ...).
     pub fn forward<E: HeOps<Ct = C>>(&self, ev: &E, x: &C, layout: &Layout) -> Result<C> {
         let sh = self.w.shape(layout)?;
         check_slots(layout, ev.params().slots())?;
@@ -677,7 +672,7 @@ impl<C: HeCiphertext + Clone> EncWeights<C> {
     }
 
     /// The encrypted `W^T` (`d_in x d_out`), by rotations only: entry `i` is entry `c` of `W`
-    /// rotated by the steps of [`transpose_rotation_plan`] (one [`Evaluator::rotate`](hekit_ckks::Evaluator::rotate) per step;
+    /// rotated by the steps of [`transpose_rotation_plan`] (one [`Evaluator::rotate`] per step;
     /// each entry is a distinct ciphertext, so there is nothing to hoist). No addition, product,
     /// relin or rescale: the result has the level and the scale of `W`, and its diagonals are
     /// `pack_weight_diagonals(W^T)` up to the key-switch noise of the rotations.
@@ -688,7 +683,7 @@ impl<C: HeCiphertext + Clone> EncWeights<C> {
     /// Errors, all reported before any homomorphic work (the counter does not move):
     /// `InvalidParams` if `layout` is not the weights' (slot count, batch), a reuse amount is
     /// not reachable from the pool, or a key of [`transpose_rotation_steps`] is missing; and
-    /// those of [`Evaluator::rotate`](hekit_ckks::Evaluator::rotate).
+    /// those of [`Evaluator::rotate`].
     pub fn transpose_with<E: HeOps<Ct = C>>(
         &self,
         ev: &E,
@@ -760,7 +755,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     /// Errors, all reported before any homomorphic work (the counter does not move):
     /// `InvalidParams` if `wt` is not `d_in x d_out`, `layout` is not the weights' or a key of
     /// [`backward_rotation_steps`] is missing; `LevelMismatch` if `wt` is below
-    /// `delta.level()`; and the checks of [`Evaluator::matvec_enc`](hekit_ckks::Evaluator::matvec_enc).
+    /// `delta.level()`; and the checks of [`Evaluator::matvec_enc`].
     pub fn backward_input<E: HeOps<Ct = C>>(
         &self,
         ev: &E,
@@ -898,7 +893,7 @@ pub fn grad_rotation_steps(d_out: usize, d_in: usize, layout: &Layout) -> Vec<i3
 
 /// Steps 3–5 of the batch sum (`docs/layout.md` §3, [`crate::sim::sim_batchsum`]) of `v`
 /// (2 components, level `l >= 1`): reduce (`log2 B` rotations), multiply by the lane-0 mask
-/// `mask` (encoded at [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale)`(v_reduced, target)`; the folded
+/// `mask` (encoded at [`Evaluator::target_plain_scale`]`(v_reduced, target)`; the folded
 /// constant is inside it) and rescale (1 ct-pt, 1 level), replicate (`log2 B` rotations). The
 /// result is at level `l - 1` with scale exactly `target`.
 fn batch_sum<E: HeOps>(
@@ -977,8 +972,8 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     ///    hoisted rotations of `A` and `giant - 1` hoisted rotations of `delta`;
     /// 2. per diagonal `mul` (1 tensor, 1 relin) and `rescale` (level `l - 1`);
     /// 3. reduce `v += rot(v, 2^t)`, `t < log2 B`;
-    /// 4. [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale) by `c * lane0_mask` (encoded at
-    ///    [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale), target `self.w.scale()`) and `rescale`
+    /// 4. [`Evaluator::mul_plain_to_scale`] by `c * lane0_mask` (encoded at
+    ///    [`Evaluator::target_plain_scale`], target `self.w.scale()`) and `rescale`
     ///    (level `l - 2`, scale **exactly** `self.w.scale()`);
     /// 5. replicate `v += rot(v, -2^t)`.
     ///
@@ -997,7 +992,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     /// the inputs are not 2-component ciphertexts over the evaluator's basis; `NoLevelsLeft`
     /// if `min(delta.level(), a_prev.level()) < 2`; `ScaleMismatch` if `self.w.scale()` is
     /// not reachable by a rescale from level `l - 1`
-    /// ([`Evaluator::exact_product_scale`](hekit_ckks::Evaluator::exact_product_scale); never for power-of-two weight scales).
+    /// ([`Evaluator::exact_product_scale`]; never for power-of-two weight scales).
     pub fn weight_grad_scaled<E: HeOps<Ct = C>>(
         &self,
         ev: &E,
@@ -1057,7 +1052,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
 
     /// The bias gradient `c * sum_b delta_b` (`d_out` values) in canonical form, replicated in
     /// every lane, op for op [`crate::sim::sim_batchsum`]: reduce (`log2 B` rotations),
-    /// [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale) by `c * lane0_mask` with target `self.b.scale()` and
+    /// [`Evaluator::mul_plain_to_scale`] by `c * lane0_mask` with target `self.b.scale()` and
     /// `rescale` (1 ct-pt, 1 level), replicate (`log2 B` rotations). The result is at
     /// `delta.level() - 1` with scale **exactly** `self.b.scale()`, so `b - db` (after
     /// switching `b` down) is a plain `sub` and the updated bias still has the exact scale
@@ -1067,7 +1062,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     /// weights', a key of [`bias_grad_rotation_steps`] is missing, `c` is not finite or
     /// `delta` is not a 2-component ciphertext over the evaluator's basis; `NoLevelsLeft` at
     /// level 0; `ScaleMismatch` if `self.b.scale()` is not reachable by a rescale from
-    /// `delta.level()` ([`Evaluator::exact_product_scale`](hekit_ckks::Evaluator::exact_product_scale); possible but rare for a bias
+    /// `delta.level()` ([`Evaluator::exact_product_scale`]; possible but rare for a bias
     /// encrypted for a rescaled input scale: switch `delta` down a level and retry).
     pub fn bias_grad_scaled<E: HeOps<Ct = C>>(
         &self,
@@ -1167,11 +1162,11 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     ///
     /// 1. all inputs are switched down (free) to their lowest level `l`; per micro-batch
     ///    `baby - 1` hoisted rotations of `A` and `giant - 1` hoisted rotations of `delta`;
-    /// 2. per diagonal: one [`Evaluator::mul_no_relin`](hekit_ckks::Evaluator::mul_no_relin) per micro-batch, summed (degree 2),
+    /// 2. per diagonal: one [`Evaluator::mul_no_relin`] per micro-batch, summed (degree 2),
     ///    then one relin and one rescale (level `l - 1`);
     /// 3. reduce `v += rot(v, 2^t)`, `t < log2 B` (lane 0 of each feature now holds the sum);
-    /// 4. [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale) by `c * mask0_L` (encoded at
-    ///    [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale), target `self.w.scale()`) and rescale (level
+    /// 4. [`Evaluator::mul_plain_to_scale`] by `c * mask0_L` (encoded at
+    ///    [`Evaluator::target_plain_scale`], target `self.w.scale()`) and rescale (level
     ///    `l - 2`, scale **exactly** `self.w.scale()`).
     ///
     /// Costs `k ((baby - 1) + (giant - 1)) + m log2 B` rotations, `k m` tensors, `m` relins,
@@ -1270,7 +1265,7 @@ impl<C: HeCiphertext + Clone> Dense<C> {
     /// micro-batch differs in level or scale, `layout` is not the weights', a reduce key is
     /// missing, `c` is not finite, `period` is not a power of two in `n_out..=layout.d`, or an
     /// input is not a 2-component ciphertext over the evaluator's basis; and those of
-    /// [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) (`NoLevelsLeft` at level 0, `ScaleMismatch`).
+    /// [`Evaluator::target_plain_scale`] (`NoLevelsLeft` at level 0, `ScaleMismatch`).
     pub fn bias_grad_reduced<E: HeOps<Ct = C>>(
         &self,
         ev: &E,

@@ -29,6 +29,6 @@ pub use linalg::{
     DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_rotation_steps_with_offset, bsgs_split,
     diagonals_from_matrix,
 };
-pub use ops::{BootstrapOps, EvalConfig, HeCiphertext, HeOps};
+pub use ops::{BootstrapOps, EvalConfig, HeCiphertext, HeOps, HostBootstrapper};
 pub use params::CkksParams;
 pub use plaintext::Plaintext;

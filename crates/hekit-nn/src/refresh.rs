@@ -335,11 +335,22 @@ impl<E: HeOps, B: BootstrapOps<E>> Refresher<E> for BootstrapRefresher<'_, E, B>
 /// refresh downloads the ciphertext ([`HeOps::download_ct`]), refreshes it on the host and
 /// uploads the result ([`HeOps::upload_ct_owned`]). This is the interactive mode on a device
 /// backend, and "level operations on the device, bootstrapping on the CPU" for the
-/// bootstrapping refresher (research plan §5, M4 split). The host refresher's own evaluator
-/// counts its operations (a CPU bootstrap shows on the CPU evaluator's counter, not on `E`'s).
+/// bootstrapping refresher (research plan §5, M4 split).
+///
+/// # Counts
+///
+/// The host refresher's operations run on its own CPU evaluator. Built with
+/// [`HostRefresher::counting`] (pass that host evaluator), every refresh merges the host
+/// evaluator's counts of the refresh into `E`'s counter ([`HeOps::add_counts`]), so a
+/// trainer's [`crate::trainer::EpochLog`] and `key_switches()` include them: the totals are
+/// those of the native refresher on `E`. [`HostRefresher::new`] merges nothing (right for a
+/// [`ClientRefresher`], which performs no evaluator operation). The host evaluator must not
+/// be `E` itself (for a CPU `E`, use a [`HeOps::fork`]) and must not be used by another
+/// thread during a refresh.
 pub struct HostRefresher<'e, E: HeOps, R: Refresher<Evaluator>> {
     ev: &'e E,
     inner: R,
+    host: Option<&'e Evaluator>,
 }
 
 impl<E: HeOps, R: Refresher<Evaluator> + std::fmt::Debug> std::fmt::Debug
@@ -353,9 +364,25 @@ impl<E: HeOps, R: Refresher<Evaluator> + std::fmt::Debug> std::fmt::Debug
 }
 
 impl<'e, E: HeOps, R: Refresher<Evaluator>> HostRefresher<'e, E, R> {
-    /// Wraps the host refresher `inner` for the ciphertexts of `ev`.
+    /// Wraps the host refresher `inner` for the ciphertexts of `ev`, merging no counts
+    /// (for a refresher that performs no evaluator operation, e.g. [`ClientRefresher`]).
     pub fn new(ev: &'e E, inner: R) -> HostRefresher<'e, E, R> {
-        HostRefresher { ev, inner }
+        HostRefresher {
+            ev,
+            inner,
+            host: None,
+        }
+    }
+
+    /// Wraps the host refresher `inner`, which runs on the host evaluator `host` (e.g. a
+    /// [`BootstrapRefresher`] built on `host`), and merges `host`'s counts of every refresh
+    /// into `ev`'s counter (see the type docs).
+    pub fn counting(ev: &'e E, inner: R, host: &'e Evaluator) -> HostRefresher<'e, E, R> {
+        HostRefresher {
+            ev,
+            inner,
+            host: Some(host),
+        }
     }
 
     /// The host refresher.
@@ -370,13 +397,17 @@ impl<'e, E: HeOps, R: Refresher<Evaluator>> HostRefresher<'e, E, R> {
 }
 
 impl<E: HeOps, R: Refresher<Evaluator>> Refresher<E> for HostRefresher<'_, E, R> {
-    /// `upload(inner.refresh(download(ct)))`.
+    /// `upload(inner.refresh(download(ct)))`, merging the host evaluator's counts (if any).
     ///
     /// Errors: those of the transfers and of the host refresher.
     fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct> {
-        let host = self.ev.download_ct(ct)?;
-        let fresh = self.inner.refresh(&host)?;
-        self.ev.upload_ct_owned(fresh)
+        let host_ct = self.ev.download_ct(ct)?;
+        let before = self.host.map(Evaluator::counter);
+        let fresh = self.inner.refresh(&host_ct);
+        if let (Some(h), Some(b)) = (self.host, before) {
+            self.ev.add_counts(&(&h.counter() - &b));
+        }
+        self.ev.upload_ct_owned(fresh?)
     }
 
     /// The host refresher's [`Refresher::bind_layout`].

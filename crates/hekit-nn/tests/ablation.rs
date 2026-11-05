@@ -13,7 +13,10 @@
 //! - A non-interactive update (real bootstrapper on the `mini` chain, 2 micro-batches, NAG)
 //!   under every flag combination: the measured counter equals the config-aware closed form
 //!   `predict_update` (plus the bootstraps' planned counts), and the state agrees with the
-//!   default run within 2^-18.
+//!   default run within 2^-18; also SGD / WhenNeeded / one micro-batch.
+//! - Fix round 1 (I1): host-side refreshes and bootstraps (`HostRefresher::counting`,
+//!   `HostBootstrapper`) merge their counts into the backend's counter: the totals equal the
+//!   native ones.
 //! - The backend helpers on the CPU: `Dense::upload` / `download` / `upload_owned`,
 //!   `Mlp::predict_plain_on`, and `HostRefresher` around a `ClientRefresher`.
 
@@ -21,8 +24,8 @@ use std::sync::{Arc, OnceLock};
 
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{
-    Ciphertext, CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, HeOps,
-    KeyGenerator, OpCounter,
+    BootstrapOps, Ciphertext, CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator,
+    HeOps, HostBootstrapper, KeyGenerator, OpCounter,
 };
 use hekit_core::sampler::Rng;
 use hekit_nn::activation::PolyRelu2;
@@ -31,7 +34,7 @@ use hekit_nn::dense::{Dense, TransposeKeys, grad_reduced_rotation_steps};
 use hekit_nn::layout::{LayerShape, Layout, pack_activations};
 use hekit_nn::layout_reboot::{GradRelin, RebootLayout};
 use hekit_nn::optim::Sgd;
-use hekit_nn::refresh::{ClientRefresher, HostRefresher, Refresher};
+use hekit_nn::refresh::{BootstrapRefresher, ClientRefresher, HostRefresher, Refresher};
 use hekit_nn::trainer::{LayerOptimizer, Mlp, Trainer, mlp_rotation_steps};
 use hekit_nn::trainer_ni::{
     BootPlacement, NiOptimizer, NonInteractiveTrainer, ni_rotation_steps, predict_update,
@@ -375,6 +378,99 @@ fn mini() -> &'static Mini {
     })
 }
 
+/// What one non-interactive update reports.
+struct NiStep {
+    got: OpCounter,
+    state: Vec<Vec<f64>>,
+}
+
+/// One non-interactive update of `NI_DIMS` on `ev` with bootstrapper `bs`; checks the measured
+/// counter against the config-aware closed form (plus the bootstraps' planned counts).
+fn ni_step<B: BootstrapOps<Evaluator>>(
+    ev: &Evaluator,
+    bs: &B,
+    optim: NiOptimizer,
+    placement: BootPlacement,
+    micro: usize,
+) -> NiStep {
+    let f = mini();
+    let cfg = *ev.config();
+    let mut r = rng(11);
+    let plain: Vec<(Array2<f64>, Vec<f64>)> = NI_DIMS
+        .windows(2)
+        .map(|p| {
+            (
+                rand_mat(&mut r, p[1], p[0], 0.2),
+                (0..p[1]).map(|_| 0.1 * uni(&mut r)).collect(),
+            )
+        })
+        .collect();
+    let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(PolyRelu2)];
+    let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
+        ev, bs, &plain, acts, &f.layout, placement, &f.enc, &f.encoder, &mut r,
+    )
+    .unwrap();
+    let mut t =
+        NonInteractiveTrainer::new(ev, bs, optim, f.layout, placement, &mlp, state).unwrap();
+    let spec = t.batch_spec(&mlp).unwrap();
+    let cts: Vec<(Ciphertext, Ciphertext)> = (0..micro)
+        .map(|_| {
+            let x = rand_mat(&mut r, f.layout.batch, NI_DIMS[0], 1.0);
+            let y = rand_mat(&mut r, f.layout.batch, NI_DIMS[2], 0.5);
+            spec.encrypt(&f.enc, &f.encoder, &f.layout, &x, &y, &mut r)
+                .unwrap()
+        })
+        .collect();
+    let before = ev.counter();
+    t.train_step(&mut mlp, &cts).unwrap();
+    let got = &ev.counter() - &before;
+    let pred = predict_update(
+        ev,
+        &mlp,
+        &f.layout,
+        &TransposeKeys::Dedicated,
+        placement,
+        micro,
+        optim.has_velocity(),
+        t.last_update_booted(),
+    )
+    .unwrap();
+    let per = f.bs.cost_per_boot();
+    let nb = pred.bootstraps();
+    assert_eq!(got.bootstraps, nb, "{cfg:?}");
+    assert_eq!(
+        got.rotations,
+        pred.rotations() + nb * per.rotations,
+        "{cfg:?}"
+    );
+    assert_eq!(got.relins, pred.relins() + nb * per.relins, "{cfg:?}");
+    assert_eq!(got.sse_switches, nb * per.sse_switches, "{cfg:?}");
+    let state = t
+        .state()
+        .weights
+        .iter()
+        .map(|c| f.encoder.decode(&f.dec.decrypt(c)))
+        .collect();
+    NiStep { got, state }
+}
+
+fn mini_eval(cfg: EvalConfig) -> Evaluator {
+    let f = mini();
+    Evaluator::with_config(
+        Arc::clone(&f.params),
+        f.ev.relin_key().cloned(),
+        f.ev.galois_keys().cloned(),
+        cfg,
+    )
+}
+
+fn state_diff(a: &[Vec<f64>], b: &[Vec<f64>]) -> f64 {
+    a.iter()
+        .zip(b)
+        .map(|(x, y)| max_diff(x, y))
+        .fold(0.0, f64::max)
+}
+
 #[test]
 fn non_interactive_update_honours_the_flags() {
     let f = mini();
@@ -383,91 +479,108 @@ fn non_interactive_update_honours_the_flags() {
         momentum: 0.9,
     };
     let placement = BootPlacement::AfterUpdate;
-    let micro = 2;
-    let run = |cfg: EvalConfig| {
-        let ev = Evaluator::with_config(
-            Arc::clone(&f.params),
-            f.ev.relin_key().cloned(),
-            f.ev.galois_keys().cloned(),
-            cfg,
-        );
-        let mut r = rng(11);
-        let plain: Vec<(Array2<f64>, Vec<f64>)> = NI_DIMS
-            .windows(2)
-            .map(|p| {
-                (
-                    rand_mat(&mut r, p[1], p[0], 0.2),
-                    (0..p[1]).map(|_| 0.1 * uni(&mut r)).collect(),
-                )
-            })
-            .collect();
-        let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(PolyRelu2)];
-        let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
-            &ev, &f.bs, &plain, acts, &f.layout, placement, &f.enc, &f.encoder, &mut r,
-        )
-        .unwrap();
-        let mut t =
-            NonInteractiveTrainer::new(&ev, &f.bs, nag, f.layout, placement, &mlp, state).unwrap();
-        let spec = t.batch_spec(&mlp).unwrap();
-        let cts: Vec<(Ciphertext, Ciphertext)> = (0..micro)
-            .map(|_| {
-                let x = rand_mat(&mut r, f.layout.batch, NI_DIMS[0], 1.0);
-                let y = rand_mat(&mut r, f.layout.batch, NI_DIMS[2], 0.5);
-                spec.encrypt(&f.enc, &f.encoder, &f.layout, &x, &y, &mut r)
-                    .unwrap()
-            })
-            .collect();
-        let before = ev.counter();
-        t.train_step(&mut mlp, &cts).unwrap();
-        let got = &ev.counter() - &before;
-        let pred = predict_update(
-            &ev,
-            &mlp,
-            &f.layout,
-            &TransposeKeys::Dedicated,
-            placement,
-            micro,
-            true,
-            t.last_update_booted(),
-        )
-        .unwrap();
-        let per = f.bs.cost_per_boot();
-        let nb = pred.bootstraps();
-        assert!(nb > 0);
-        assert_eq!(got.bootstraps, nb, "{cfg:?}");
-        assert_eq!(
-            got.rotations,
-            pred.rotations() + nb * per.rotations,
-            "{cfg:?}"
-        );
-        assert_eq!(got.relins, pred.relins() + nb * per.relins, "{cfg:?}");
-        let state: Vec<Vec<f64>> = t
-            .state()
-            .weights
-            .iter()
-            .map(|c| f.encoder.decode(&f.dec.decrypt(c)))
-            .collect();
-        (got, state)
-    };
-    let (base, s0) = run(EvalConfig::default());
+    let base = ni_step(&mini_eval(EvalConfig::default()), &f.bs, nag, placement, 2);
+    assert!(base.got.bootstraps > 0);
     for cfg in EvalConfig::all() {
-        let (got, s) = run(cfg);
-        let err = s0
-            .iter()
-            .zip(&s)
-            .map(|(a, b)| max_diff(a, b))
-            .fold(0.0, f64::max);
+        let s = ni_step(&mini_eval(cfg), &f.bs, nag, placement, 2);
+        let err = state_diff(&base.state, &s.state);
         eprintln!(
             "{cfg:?}: rotations {} relins {} (default {} / {}), state vs default 2^{:.1}",
-            got.rotations,
-            got.relins,
-            base.rotations,
-            base.relins,
+            s.got.rotations,
+            s.got.relins,
+            base.got.rotations,
+            base.got.relins,
             err.log2()
         );
         assert!(err < 2f64.powi(-18), "{cfg:?}: {err:e}");
-        if cfg.hoist != EvalConfig::default().hoist && cfg.bsgs && cfg.lazy_relin {
-            assert_eq!(got, base, "hoist changes no count");
+        if cfg.bsgs && cfg.lazy_relin {
+            assert_eq!(s.got, base.got, "hoist changes no count");
         }
     }
+}
+
+/// Review M6: the flags on another placement, optimizer and micro-batch count (SGD,
+/// WhenNeeded, one micro-batch): the counts still follow the closed form.
+#[test]
+fn non_interactive_flags_sgd_when_needed() {
+    let f = mini();
+    let sgd = NiOptimizer::Sgd { lr: 0.05 };
+    let base = ni_step(
+        &mini_eval(EvalConfig::default()),
+        &f.bs,
+        sgd,
+        BootPlacement::WhenNeeded,
+        1,
+    );
+    let naive = ni_step(
+        &mini_eval(EvalConfig::NAIVE),
+        &f.bs,
+        sgd,
+        BootPlacement::WhenNeeded,
+        1,
+    );
+    assert!(naive.got.key_switches() > base.got.key_switches());
+    assert!(state_diff(&base.state, &naive.state) < 2f64.powi(-18));
+}
+
+/// Review I1: work done on a host evaluator for a backend is merged into the backend's
+/// counter (`HeOps::add_counts`). With a CPU backend, the totals through `HostRefresher` /
+/// `HostBootstrapper` equal those of the native refresher / bootstrapper, and so do the
+/// results (bit for bit: the host evaluator has the same keys).
+#[test]
+fn host_side_counts_are_merged() {
+    let f = mini();
+    // A ciphertext at Delta on level 3.
+    let mut r = rng(21);
+    let v: Vec<f64> = (0..f.params.slots()).map(|_| 0.5 * uni(&mut r)).collect();
+    let ct = f
+        .enc
+        .encrypt(&f.encoder.encode(&v, f.params.scale(), 3).unwrap(), &mut r);
+
+    // Refresh: native BootstrapRefresher on E vs HostRefresher(BootstrapRefresher on a fork).
+    let native_ev = mini_eval(EvalConfig::default());
+    let mut native = BootstrapRefresher::new(&f.bs, &native_ev);
+    let a = native.refresh(&ct).unwrap();
+    let e = mini_eval(EvalConfig::default());
+    let host = e.fork();
+    let mut wrapped = HostRefresher::counting(&e, BootstrapRefresher::new(&f.bs, &host), &host);
+    let b = Refresher::<Evaluator>::refresh(&mut wrapped, &ct).unwrap();
+    assert_eq!(native_ev.counter().bootstraps, 1);
+    assert_eq!(e.counter(), native_ev.counter(), "merged refresh counts");
+    assert_eq!(
+        e.counter().key_switches(),
+        native_ev.counter().key_switches()
+    );
+    assert_eq!(
+        f.encoder.decode(&f.dec.decrypt(&a)),
+        f.encoder.decode(&f.dec.decrypt(&b))
+    );
+    // Without `counting`, nothing is merged (the documented ClientRefresher form).
+    let e2 = mini_eval(EvalConfig::default());
+    let host2 = e2.fork();
+    let mut silent = HostRefresher::new(&e2, BootstrapRefresher::new(&f.bs, &host2));
+    Refresher::<Evaluator>::refresh(&mut silent, &ct).unwrap();
+    assert_eq!(e2.counter(), OpCounter::default());
+    assert_eq!(host2.counter(), native_ev.counter());
+
+    // A whole non-interactive update with the CPU bootstrapper behind HostBootstrapper: the
+    // same counter (bootstraps included) and the same state as with the native bootstrapper.
+    let nag = NiOptimizer::Nag {
+        lr: 0.05,
+        momentum: 0.9,
+    };
+    let native = ni_step(
+        &mini_eval(EvalConfig::default()),
+        &f.bs,
+        nag,
+        BootPlacement::AfterUpdate,
+        1,
+    );
+    let ev = mini_eval(EvalConfig::default());
+    let host = ev.fork();
+    let hb = HostBootstrapper::new(&f.bs, &host);
+    let via_host = ni_step(&ev, &hb, nag, BootPlacement::AfterUpdate, 1);
+    assert!(native.got.bootstraps > 0);
+    assert_eq!(via_host.got, native.got, "merged bootstrap counts");
+    assert_eq!(via_host.state, native.state);
 }

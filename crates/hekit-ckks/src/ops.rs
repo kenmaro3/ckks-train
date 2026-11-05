@@ -26,26 +26,62 @@
 //! # The ablation flags ([`EvalConfig`]) and the code paths they change
 //!
 //! All three default to `true` (the optimised library). They change only costs, never the
-//! value (up to CKKS noise; bit-identical for `hoist`). Every other operation ignores them,
-//! and the bootstrapper always runs its own evaluator with the default flags (bootstrapping is
-//! not part of the ablation).
+//! value (up to CKKS noise; bit-identical for `hoist`). Every other operation ignores them.
+//! The bootstrapper always runs its own evaluator with the default flags: bootstrapping
+//! (its DFT included) is not part of the ablation, and
+//! [`Bootstrapper::cost_per_boot`](crate::bootstrap::Bootstrapper::cost_per_boot) holds
+//! under every configuration (tested).
 //!
 //! | flag | `true` (default) | `false` (naive) | code paths |
 //! |---|---|---|---|
-//! | `hoist` | [`Evaluator::hoisted_rotate`] shares one digit decomposition | one [`Evaluator::rotate`] per step (same results bit for bit, same counts) | every `hoisted_rotate`: the baby steps of `matvec_plain` / `matvec_enc` (forward, `backward_input`) and of the bootstrapping DFT; the input and `delta` rotations of `Dense::weight_grad_scaled` / `Dense::weight_grad_reduced` |
-//! | `bsgs` | the giant rotation is shared by the `baby` products of its block | every product with a nonzero giant shift is finished and rotated on its own: `d - 1` rotations instead of `baby + giant - 2` (offset 0), same Galois keys | `matvec_plain`, `matvec_enc` (so `Dense::forward`, `Dense::backward_input`), `matvec_plain_sum[_sparse]` |
-//! | `lazy_relin` | degree-2 products are summed and relinearized once | every product is relinearized at once ([`Evaluator::mul`]) | `matvec_enc` (`giant` relins become `d`); [`HeOps::mul_lazy`] / [`HeOps::relin_lazy`]: the micro-batch sum of `Dense::weight_grad_reduced` (`m` relins become `k m`); `RebootLayout::outer_sum` with `GradRelin::Lazy` (acts as `PerSample`) |
+//! | `hoist` | [`Evaluator::hoisted_rotate`] shares one digit decomposition | one [`Evaluator::rotate`] per step (same results bit for bit, same counts) | every `hoisted_rotate` of the training step: the baby steps of `matvec_plain` / `matvec_enc` (`Dense::forward`, `Dense::backward_input`) and the input and `delta` rotations of `Dense::weight_grad_scaled` / `Dense::weight_grad_reduced` |
+//! | `bsgs` | the giant rotation is shared by the `baby` products of its block | the giant rotation is not shared (definition below) | `matvec_plain`, `matvec_enc` (so `Dense::forward`, `Dense::backward_input`), `matvec_plain_sum[_sparse]` |
+//! | `lazy_relin` | degree-2 products are summed and relinearized once | every product is relinearized at once ([`Evaluator::mul`]) | `matvec_enc`; [`HeOps::mul_lazy`] / [`HeOps::relin_lazy`]: the micro-batch sum of `Dense::weight_grad_reduced` (`m` relins become `k m`); `RebootLayout::outer_sum` with `GradRelin::Lazy` (acts as `PerSample`) |
 //!
-//! With `bsgs` off and `lazy_relin` on, `matvec_enc` relinearizes the zero-shift block once
-//! and every other product on its own (a rotation needs a 2-component ciphertext): for
-//! `offset = 0`, `1 + d - baby` relins. With all three off, `matvec_enc` of dimension `d`
-//! costs `d - 1` rotations, `d` relins and `d` tensors (tested).
+//! ## What the RQ3 table must state (Task 48 copies this)
 //!
-//! The gradient's outer product (`Dense::weight_grad_scaled`) is not a BSGS product: its
-//! `(baby - 1) + (giant - 1)` input rotations are what the pre-rotated weight layout requires,
-//! so `bsgs` does not change it (only `hoist` does). The interactive gradient multiplies each
-//! diagonal with one [`Evaluator::mul`] (nothing to sum lazily), so `lazy_relin` does not
-//! change it either.
+//! 1. **Definition of `bsgs = false`.** The giant rotation is not shared; the weights keep
+//!    the same pre-rotated (BSGS) layout and the same Galois keys. Every product with a
+//!    nonzero giant shift is finished (relinearized) and rotated on its own; the products of
+//!    the zero-shift block are summed as with BSGS. Per matvec of dimension `d` (offset 0):
+//!    `d - 1` rotations, of which only the `baby - 1` rotations of `x` can be hoisted; with
+//!    `lazy_relin` `1 + d - baby` relins, without it `d`
+//!    ([`EvalConfig::matvec_rotations`], [`EvalConfig::matvec_enc_relins`]). At `d = 16`
+//!    (`baby = giant = 4`), as (hoistable rotations / individual rotations / relins):
+//!
+//!    | form | hoistable rot. | individual rot. | relins (lazy) | relins (not lazy) |
+//!    |---|---|---|---|---|
+//!    | default BSGS | 3 | 3 | 4 | 16 |
+//!    | `bsgs = false` (this library) | 3 | 12 | 13 | 16 |
+//!    | textbook diagonal method (not implemented) | 15 | 0 | 1 | 16 |
+//!
+//!    The textbook (Halevi-Shoup) diagonal method rotates `x` by all `d - 1` steps (all
+//!    hoistable) and sums the products lazily; it needs un-pre-rotated diagonals, i.e.
+//!    another weight layout and gradient form, so it is not implemented. The all-off
+//!    configuration has the same counts in both forms (15 rotations, 16 relins at `d = 16`).
+//! 2. **Bias.** Against the strongest naive baseline (the textbook method with hoisting and
+//!    lazy relinearization), the cost of the `bsgs = false` rows overstates what BSGS gains:
+//!    the measured BSGS gain is an **upper bound**. Conversely, the marginal gains of `hoist`
+//!    and `lazy_relin` measured inside `bsgs = false` configurations are **lower bounds** (only
+//!    `baby - 1` rotations can be hoisted and only the zero-shift block summed lazily: e.g.
+//!    `lazy_relin` saves 3 relins at `d = 16` instead of 15).
+//! 3. **`hoist` changes no [`OpCounter`] value.** The counter does not distinguish hoisted from
+//!    individual rotations, so the effect of `hoist` shows only in wall-clock time, never in
+//!    key-switch counts.
+//! 4. **`bsgs` does not touch the gradient's outer product** (`Dense::weight_grad_scaled`,
+//!    `Dense::weight_grad_reduced`): its `(baby - 1) + (giant - 1)` input rotations are what
+//!    the pre-rotated weight layout requires, not a BSGS choice; only `hoist` changes how they
+//!    run. The interactive gradient multiplies each diagonal with one [`Evaluator::mul`]
+//!    (nothing to sum lazily), so `lazy_relin` does not change it either.
+//!
+//! # Counters across evaluators ([`HeOps::add_counts`])
+//!
+//! Work done for a backend on another evaluator (a refresh or bootstrap on the CPU for a
+//! device backend: `hekit_nn::refresh::HostRefresher`, [`HostBootstrapper`]) is merged into
+//! the backend's counter with [`HeOps::add_counts`], so its epoch counts and
+//! [`OpCounter::key_switches`] include it. Every implementation must honour `add_counts`
+//! (add field by field, like [`Evaluator`]); otherwise host-side work silently drops out of
+//! the counts.
 
 use std::sync::Arc;
 
@@ -61,6 +97,16 @@ use crate::plaintext::Plaintext;
 
 /// The RQ3 ablation flags of an evaluator (see the [module docs](self) for the code paths
 /// each one changes). [`EvalConfig::default`] has all three on.
+///
+/// Caveats for reporting (module docs, "What the RQ3 table must state"):
+/// * `bsgs = false` means the giant rotation is not shared, with the same pre-rotated layout
+///   and Galois keys: per matvec `d - 1` rotations (`baby - 1` hoistable) and `1 + d - baby`
+///   relins with `lazy_relin`, `d` without; at `d = 16`: 15 rotations (3 hoistable) and 13 or
+///   16 relins, against BSGS's 6 and 4 or 16. Compared with the textbook diagonal method
+///   (15 hoistable rotations, 1 relin), the measured BSGS gain is an upper bound and the
+///   `hoist` / `lazy_relin` gains inside `bsgs = false` configurations are lower bounds.
+/// * `hoist` changes no [`OpCounter`] value (wall-clock time only).
+/// * `bsgs` does not touch the gradient's outer product.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct EvalConfig {
     /// Hoisted rotations: one shared digit decomposition per [`HeOps::hoisted_rotate`].
@@ -167,6 +213,12 @@ pub trait HeOps: Sized {
 
     /// Zeroes the operation counts ([`Evaluator::reset_counter`]).
     fn reset_counter(&self);
+
+    /// Adds `counts` to this evaluator's counter, field by field: merges the operations done
+    /// for this backend on another evaluator (a CPU refresh or bootstrap of a device
+    /// ciphertext, see the [module docs](self)). Required: every implementation must honour
+    /// it, or that work drops out of the counts.
+    fn add_counts(&self, counts: &OpCounter);
 
     /// An evaluator with the same parameters, keys (shared, not copied) and flags and an own
     /// counter starting at zero: for probes whose operations must not show on this
@@ -323,6 +375,10 @@ impl HeOps for Evaluator {
     fn reset_counter(&self) {
         Evaluator::reset_counter(self)
     }
+    #[inline]
+    fn add_counts(&self, counts: &OpCounter) {
+        self.count(|c| *c += counts);
+    }
     fn fork(&self) -> Evaluator {
         let e = self.clone();
         e.reset_counter();
@@ -475,6 +531,45 @@ impl BootstrapOps<Evaluator> for Bootstrapper {
     }
 }
 
+/// The CPU [`Bootstrapper`] serving the ciphertexts of any backend `E` ("level operations on
+/// the device, bootstrapping on the CPU", research plan §5): every bootstrap downloads the
+/// ciphertext, bootstraps it on the host evaluator `host` and uploads the result, and merges
+/// the host evaluator's counts of that bootstrap into `E`'s counter ([`HeOps::add_counts`]).
+///
+/// `host` must hold the relinearization key of the bootstrapper's parameters, must not be the
+/// evaluator `E` itself (its counts would be added twice; for a CPU `E` pass a
+/// [`HeOps::fork`]), and must not be used by another thread during a bootstrap (the merged
+/// counts are the difference of its counter around the bootstrap).
+#[derive(Debug)]
+pub struct HostBootstrapper<'h> {
+    bs: &'h Bootstrapper,
+    host: &'h Evaluator,
+}
+
+impl<'h> HostBootstrapper<'h> {
+    /// Bootstraps with `bs` on the host evaluator `host` (see the type docs).
+    pub fn new(bs: &'h Bootstrapper, host: &'h Evaluator) -> HostBootstrapper<'h> {
+        HostBootstrapper { bs, host }
+    }
+}
+
+impl<E: HeOps> BootstrapOps<E> for HostBootstrapper<'_> {
+    /// `upload(bootstrap(download(ct)))`, with the bootstrap's counts merged into `ev`.
+    ///
+    /// Errors: those of the transfers and of [`Bootstrapper::bootstrap`].
+    fn bootstrap(&self, ev: &E, ct: &E::Ct) -> Result<E::Ct> {
+        let host_ct = ev.download_ct(ct)?;
+        let before = self.host.counter();
+        let out = self.bs.bootstrap(self.host, &host_ct);
+        ev.add_counts(&(&self.host.counter() - &before));
+        ev.upload_ct_owned(out?)
+    }
+
+    fn output_level(&self) -> usize {
+        self.bs.output_level()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -555,6 +650,14 @@ mod tests {
         assert_eq!(ev.upload_pt(&pt).unwrap().poly().limbs(), pt.poly().limbs());
         assert!(ev.has_relin_key() && ev.has_galois_key(1) && !ev.has_galois_key(2));
         assert_eq!(HeCiphertext::size(&ct), 2);
+
+        // add_counts adds field by field.
+        let g = ev.fork();
+        g.add_counts(&counts);
+        g.add_counts(&counts);
+        let mut twice = counts.clone();
+        twice += &counts;
+        assert_eq!(g.counter(), twice);
 
         let f = ev.fork();
         assert_eq!(HeOps::counter(&f), OpCounter::default());
