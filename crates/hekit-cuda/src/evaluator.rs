@@ -37,6 +37,12 @@
 //!   would succeed. With full keys (`key_level = L`, [`CudaEvaluator::new`]) there is no
 //!   difference.
 //! * `has_galois_key` / `has_relin_key` say whether a key is present, whatever its level.
+//! * **Freed device memory** stays in the device's memory pool for reuse, up to
+//!   [`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`] (256 MiB) beyond the live set, or more if
+//!   [`CudaDevice::set_pool_release_threshold`] raised it. On a shared GPU, a training loop
+//!   (Task 48) **must call [`CudaDevice::trim_pool`]`(0)` at every epoch boundary and after
+//!   one-off peaks** (key uploads, a `matvec_enc_batch`, top-level operations whose
+//!   temporaries exceed the steady state), so that hekit's footprint is its live set.
 //!
 //! # Interface deviations from the Task 47 brief
 //!

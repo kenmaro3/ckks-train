@@ -198,6 +198,23 @@ impl Drop for StreamGuard<'_> {
     }
 }
 
+/// Sets the release threshold of the default memory pool of `ctx`'s device.
+fn set_release_threshold(ctx: &Arc<CudaContext>, bytes: u64) -> Result<()> {
+    let pool = default_mem_pool(ctx)?;
+    let mut threshold = bytes;
+    // SAFETY: `pool` is the device's default pool; the release threshold is a `cuuint64_t`
+    // attribute, `threshold` lives across the call.
+    unsafe {
+        sys::cuMemPoolSetAttribute(
+            pool,
+            sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_RELEASE_THRESHOLD,
+            &mut threshold as *mut u64 as *mut std::ffi::c_void,
+        )
+    }
+    .result()
+    .map_err(|e| dev_err("memory pool release threshold", e))
+}
+
 /// The default memory pool of `ctx`'s device (the pool of the stream-ordered allocations).
 fn default_mem_pool(ctx: &Arc<CudaContext>) -> Result<sys::CUmemoryPool> {
     ctx.bind_to_thread()
@@ -344,23 +361,9 @@ impl CudaDevice {
                 consts: up(&host.consts, "prime constants")?,
             };
             s.synchronize().map_err(|e| dev_err("synchronize", e))?;
-            // Keep freed memory in the device's default pool instead of returning it to the
-            // driver at every synchronization (the default threshold is 0): repeated
-            // operations then reuse their temporaries without re-mapping physical memory
-            // (Task 47 review I2). `CudaDevice::trim_pool` gives it back.
-            let pool = default_mem_pool(&ctx)?;
-            let mut threshold: u64 = u64::MAX;
-            // SAFETY: `pool` is the device's default pool; the release threshold is a
-            // `cuuint64_t` attribute, `threshold` lives across the call.
-            unsafe {
-                sys::cuMemPoolSetAttribute(
-                    pool,
-                    sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_RELEASE_THRESHOLD,
-                    &mut threshold as *mut u64 as *mut std::ffi::c_void,
-                )
-            }
-            .result()
-            .map_err(|e| dev_err("memory pool release threshold", e))?;
+            // Bounded reuse of freed memory (Task 47 re-review N1): see
+            // `CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`.
+            set_release_threshold(&ctx, CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD)?;
             Ok(CudaDevice {
                 ctx,
                 streams,
@@ -439,9 +442,30 @@ impl CudaDevice {
         Ok(free + reserved.saturating_sub(used) as usize)
     }
 
+    /// The release threshold [`CudaDevice::new`] sets on the device's default memory pool:
+    /// 256 MiB. Memory freed by hekit stays in the pool for reuse (no re-mapping of physical
+    /// memory for the next operation's temporaries) up to this much beyond what is in use;
+    /// the rest goes back to the driver at the next synchronization. A bounded default suits
+    /// a GPU shared with other processes: hekit's footprint is its live set plus at most
+    /// 256 MiB, not its peak.
+    pub const DEFAULT_POOL_RELEASE_THRESHOLD: u64 = 256 << 20;
+
+    /// Sets the release threshold of the device's default memory pool (see
+    /// [`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`]). `0` gives every freed byte back at
+    /// the next synchronization (the CUDA default; temporaries are re-mapped every time);
+    /// `u64::MAX` keeps **hekit's peak footprint** until [`CudaDevice::trim_pool`] (fastest
+    /// for repeated large operations, but on a shared GPU it can starve other processes, so
+    /// call `trim_pool(0)` after peaks). The pool belongs to the physical device, so the
+    /// setting applies to every `CudaDevice` on this ordinal in this process.
+    pub fn set_pool_release_threshold(&self, bytes: u64) -> Result<()> {
+        guarded("memory pool", || set_release_threshold(&self.ctx, bytes))
+    }
+
     /// Returns the memory the default pool holds but does not use to the driver, keeping at
-    /// most `keep_bytes` (after a peak, to leave room for other processes on a shared GPU).
-    /// Waits for every stream first, so frees already queued are included.
+    /// most `keep_bytes`: call `trim_pool(0)` after a one-off peak (key uploads, a batch, a
+    /// top-level operation) and at epoch boundaries of a training loop, to leave room for
+    /// other processes on a shared GPU. Waits for every stream first, so frees already
+    /// queued are included.
     pub fn trim_pool(&self, keep_bytes: usize) -> Result<()> {
         self.sync()?;
         let pool = guarded("memory pool", || default_mem_pool(&self.ctx))?;

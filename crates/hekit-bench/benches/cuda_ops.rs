@@ -13,9 +13,11 @@
 //!   `t` threads for every `t` of `HEKIT_BENCH_THREADS` (comma separated; default
 //!   `1,<available cores, at most 12>`).
 //!
-//! **GPU memory.** Every GPU operation first checks that its keys, inputs and working set
-//! fit in the free device memory and otherwise prints `<op>: skipped: needs X MiB (Y MiB
-//! free)`. A full n16_train key is 288 MiB, so `hoisted_rotate_16` (16 keys) and
+//! **GPU memory.** Every GPU operation first trims the device's memory pool
+//! (`CudaDevice::trim_pool(0)`, the previous block's memory goes back to the driver) and
+//! checks that its keys, inputs and working set fit in the available device memory
+//! (`CudaDevice::available_memory`), and otherwise prints `<op>: skipped: needs X MiB (Y MiB
+//! available)`. The pool's release threshold is the device default (256 MiB). A full n16_train key is 288 MiB, so `hoisted_rotate_16` (16 keys) and
 //! `matvec_enc_d64` (15 keys and 64 top-level encrypted diagonals) do not fit next to the
 //! server's other tenant. They are also measured **at a lower level with keys capped at that
 //! level** (`..._L9`, `..._L5`: inputs at level 9 or 5, keys uploaded for levels `<= 9` / `<= 5`,
@@ -229,17 +231,21 @@ fn bench_cpu(c: &mut Criterion, x: &Inputs) {
 
 /// `true` if `need` bytes are free on the device, else prints the skip line.
 fn fits(dev: &CudaDevice, label: &str, need: usize) -> bool {
-    let free = dev.mem_info().map(|(f, _)| f).unwrap_or(0);
+    // The previous block's keys and temporaries are dropped by now: give the memory the pool
+    // kept back to the driver (shared GPU, re-review N1), then count what is available
+    // (driver free memory plus the pool's unused reserve).
+    dev.trim_pool(0).unwrap();
+    let free = dev.available_memory().unwrap_or(0);
     if free >= need {
         eprintln!(
-            "gpu/{label}: needs {:.0} MiB, {:.0} MiB free",
+            "gpu/{label}: needs {:.0} MiB, {:.0} MiB available",
             need as f64 / MIB,
             free as f64 / MIB
         );
         true
     } else {
         println!(
-            "gpu/{label}: skipped: needs {:.0} MiB ({:.0} MiB free)",
+            "gpu/{label}: skipped: needs {:.0} MiB ({:.0} MiB available)",
             need as f64 / MIB,
             free as f64 / MIB
         );
@@ -431,6 +437,8 @@ fn bench_gpu(c: &mut Criterion, x: &Inputs) {
         }
     }
     g.finish();
+    // Leave nothing cached for the other processes on the GPU.
+    dev.trim_pool(0).unwrap();
 }
 
 fn bench(c: &mut Criterion) {
