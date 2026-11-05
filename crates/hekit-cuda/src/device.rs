@@ -443,12 +443,45 @@ impl CudaDevice {
     }
 
     /// The release threshold [`CudaDevice::new`] sets on the device's default memory pool:
-    /// 256 MiB. Memory freed by hekit stays in the pool for reuse (no re-mapping of physical
-    /// memory for the next operation's temporaries) up to this much beyond what is in use;
-    /// the rest goes back to the driver at the next synchronization. A bounded default suits
-    /// a GPU shared with other processes: hekit's footprint is its live set plus at most
-    /// 256 MiB, not its peak.
+    /// 256 MiB.
+    ///
+    /// The CUDA release threshold caps the pool's **reserved** memory, which includes the
+    /// memory in use. At each synchronization the pool releases unused memory until its
+    /// reservation is at most `max(in use, threshold)`. So with 256 MiB the pool keeps freed
+    /// memory for reuse only while hekit's live set is below 256 MiB. At n16_train the keys
+    /// and inputs alone exceed that (one full key is 288 MiB), so **the default behaves
+    /// almost like threshold 0 there**: temporaries are re-mapped after every sync.
+    ///
+    /// The shared-GPU protection holds in every case: hekit's footprint after a sync is at
+    /// most `in use + 256 MiB`, never its past peak.
+    ///
+    /// Two documented ways to keep temporaries for reuse at n16_train, without changing this
+    /// default (for Task 48):
+    /// * after the keys are uploaded, set the threshold to
+    ///   `pool_used_memory()? + 256 MiB` with [`CudaDevice::set_pool_release_threshold`]
+    ///   (keeps up to 256 MiB of temporaries beyond the keys and inputs);
+    /// * or set `u64::MAX` and follow the [`CudaDevice::trim_pool`] rule (`trim_pool(0)` at
+    ///   every epoch boundary and after one-off peaks).
     pub const DEFAULT_POOL_RELEASE_THRESHOLD: u64 = 256 << 20;
+
+    /// Device memory currently in use by allocations from the device's default memory pool
+    /// (every device buffer of this process on this device), in bytes: the base for a
+    /// threshold of `in use + margin` (see [`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`]).
+    pub fn pool_used_memory(&self) -> Result<usize> {
+        let pool = guarded("memory pool", || default_mem_pool(&self.ctx))?;
+        let mut v: u64 = 0;
+        // SAFETY: the used-memory attribute is a `cuuint64_t`; `v` lives across the call.
+        unsafe {
+            sys::cuMemPoolGetAttribute(
+                pool,
+                sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_USED_MEM_CURRENT,
+                &mut v as *mut u64 as *mut std::ffi::c_void,
+            )
+        }
+        .result()
+        .map_err(|e| dev_err("memory pool attribute", e))?;
+        Ok(v as usize)
+    }
 
     /// Sets the release threshold of the device's default memory pool (see
     /// [`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`]). `0` gives every freed byte back at
@@ -691,8 +724,8 @@ impl CudaDevice {
 
     /// In-place forward NTT of every limb (no-op when already in NTT form): one launch per
     /// global stage plus one shared-memory launch, each covering all limbs (any prime list,
-    /// e.g. `Q_l * P`). Asynchronous on the current stream (later downloads / [`CudaDevice::sync`] wait
-    /// for it).
+    /// e.g. `Q_l * P`). Asynchronous on the current stream (later downloads /
+    /// [`CudaDevice::sync`] wait for it).
     ///
     /// Accepts residues in `[0, 4q)` (every polynomial produced by this crate is fully
     /// reduced). After an `Err` the polynomial's contents are unspecified (some stages may

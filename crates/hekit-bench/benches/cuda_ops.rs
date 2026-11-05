@@ -17,7 +17,9 @@
 //! (`CudaDevice::trim_pool(0)`, the previous block's memory goes back to the driver) and
 //! checks that its keys, inputs and working set fit in the available device memory
 //! (`CudaDevice::available_memory`), and otherwise prints `<op>: skipped: needs X MiB (Y MiB
-//! available)`. The pool's release threshold is the device default (256 MiB). A full n16_train key is 288 MiB, so `hoisted_rotate_16` (16 keys) and
+//! available)`. The pool's release threshold is the device default (256 MiB; below the keys
+//! and inputs in use at n16_train, so it acts almost like threshold 0 here). A full n16_train
+//! key is 288 MiB, so `hoisted_rotate_16` (16 keys) and
 //! `matvec_enc_d64` (15 keys and 64 top-level encrypted diagonals) do not fit next to the
 //! server's other tenant. They are also measured **at a lower level with keys capped at that
 //! level** (`..._L9`, `..._L5`: inputs at level 9 or 5, keys uploaded for levels `<= 9` / `<= 5`,

@@ -2,7 +2,9 @@
 //! times, one after the other on one stream, against `CudaEvaluator::matvec_enc_batch` of the
 //! same four products on devices with 2 and 4 streams (Task 47 review I2), under two memory
 //! pool release thresholds: the default (`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`,
-//! 256 MiB) and `u64::MAX` (the pool keeps everything; re-review N1). Prints, per variant,
+//! 256 MiB; the threshold caps the pool's whole reservation, in-use memory included, and the
+//! keys and inputs here exceed 256 MiB, so the `[default]` rows are **≈ threshold 0 at
+//! n16_train**) and `u64::MAX` (the pool keeps everything; re-review N1). Prints, per variant,
 //! the median / min / standard deviation of `HEKIT_BATCH_REPS` (default 30) timed
 //! repetitions after 3 warm-up runs, each ending with `CudaDevice::sync`, and checks that every
 //! batch result equals the sequential one bit for bit. `HEKIT_POOL_THRESHOLDS=default` or
@@ -26,6 +28,9 @@ const D: usize = 64;
 const LEVEL: usize = 5;
 const JOBS: usize = 4;
 const MIB: f64 = (1u64 << 20) as f64;
+/// The default threshold's row label: 256 MiB is below the in-use keys and inputs, so the
+/// pool releases its temporaries at every sync, as with threshold 0.
+const DEFAULT_LABEL: &str = "default 256 MiB, ~threshold 0 at n16_train";
 
 fn rand_vals(r: &mut Rng, len: usize) -> Vec<f64> {
     (0..len)
@@ -92,10 +97,10 @@ fn main() {
         t0.elapsed().as_secs_f64()
     );
     let thresholds: Vec<(&str, u64)> = match std::env::var("HEKIT_POOL_THRESHOLDS").as_deref() {
-        Ok("default") => vec![("default", CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD)],
+        Ok("default") => vec![(DEFAULT_LABEL, CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD)],
         Ok("max") => vec![("max", u64::MAX)],
         _ => vec![
-            ("default", CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD),
+            (DEFAULT_LABEL, CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD),
             ("max", u64::MAX),
         ],
     };
@@ -127,8 +132,8 @@ fn main() {
                     dev.sync().unwrap();
                 });
                 println!(
-                    "[{tname}] sequential x{JOBS}, 1 stream:   median {med:8.3} ms  min {min:8.3}  sd {sd:6.3}  \
-                 ({:.3} ms per product)",
+                    "[{tname}] sequential x{JOBS}, 1 stream: median {med:8.3} ms  min {min:8.3}  \
+                     sd {sd:6.3}  ({:.3} ms per product)",
                     med / JOBS as f64
                 );
                 let one = ev.matvec_enc(&ud, &ux).unwrap().download().unwrap();
@@ -139,7 +144,8 @@ fn main() {
                     dev.sync().unwrap();
                 });
                 println!(
-                    "[{tname}] batch x{JOBS}, {streams} streams:    median {med:8.3} ms  min {min:8.3}  sd {sd:6.3}"
+                    "[{tname}] batch x{JOBS}, {streams} streams: median {med:8.3} ms  \
+                     min {min:8.3}  sd {sd:6.3}"
                 );
                 let got = ev.matvec_enc_batch(&ds, &xs).unwrap();
                 for (g, w) in got.iter().zip(reference.as_ref().unwrap()) {

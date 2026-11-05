@@ -37,12 +37,18 @@
 //!   would succeed. With full keys (`key_level = L`, [`CudaEvaluator::new`]) there is no
 //!   difference.
 //! * `has_galois_key` / `has_relin_key` say whether a key is present, whatever its level.
-//! * **Freed device memory** stays in the device's memory pool for reuse, up to
-//!   [`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`] (256 MiB) beyond the live set, or more if
-//!   [`CudaDevice::set_pool_release_threshold`] raised it. On a shared GPU, a training loop
-//!   (Task 48) **must call [`CudaDevice::trim_pool`]`(0)` at every epoch boundary and after
-//!   one-off peaks** (key uploads, a `matvec_enc_batch`, top-level operations whose
-//!   temporaries exceed the steady state), so that hekit's footprint is its live set.
+//! * **Freed device memory.** The device's memory pool keeps at most
+//!   `max(in use, threshold)` reserved after each synchronization
+//!   ([`CudaDevice::DEFAULT_POOL_RELEASE_THRESHOLD`], 256 MiB by default). At n16_train the
+//!   keys and inputs alone exceed 256 MiB, so with the default freed temporaries go back to
+//!   the driver at every sync (almost like threshold 0). The footprint is always at most
+//!   `in use + 256 MiB`. For reuse at n16_train, either set the threshold to
+//!   [`CudaDevice::pool_used_memory`] after the key upload plus 256 MiB, or set `u64::MAX`.
+//!   With any raised threshold, a training loop (Task 48) on a shared GPU **must call
+//!   [`CudaDevice::trim_pool`]`(0)` at every epoch boundary and after one-off peaks** (key
+//!   uploads, a `matvec_enc_batch`, top-level operations whose temporaries exceed the
+//!   steady state), so that hekit's footprint returns to its live set; with the default it
+//!   is harmless and cheap.
 //!
 //! # Interface deviations from the Task 47 brief
 //!
