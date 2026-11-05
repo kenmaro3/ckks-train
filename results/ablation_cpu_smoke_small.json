@@ -1,0 +1,343 @@
+{
+  "all_checks_pass": true,
+  "backend": {
+    "bootstrap": "none (interactive: client refresh on the host, behind HostRefresher on the GPU)",
+    "device": "cpu",
+    "facts": {},
+    "gpu_need_estimate": {
+      "keys_mib": 198.0,
+      "state_mib": 67.4,
+      "tables_mib": 65.5,
+      "total_mib": 396.9,
+      "work_mib": 66.0
+    },
+    "memory_after_trims": [],
+    "options": {
+      "backend": "cpu",
+      "eval_config": {
+        "bsgs": true,
+        "default": true,
+        "hoist": true,
+        "lazy_relin": true
+      },
+      "gpu_pool": "default (256 MiB release threshold)",
+      "matvec": "sequential",
+      "top_level": null
+    }
+  },
+  "caveats": [
+    "1. **Definition of `bsgs = false`.** The giant rotation is not shared; the weights keep the same pre-rotated (BSGS) layout and the same Galois keys. Every product with a nonzero giant shift is finished (relinearized) and rotated on its own; the products of the zero-shift block are summed as with BSGS. Per matvec of dimension `d` (offset 0): `d - 1` rotations, of which only the `baby - 1` rotations of `x` can be hoisted; with `lazy_relin` `1 + d - baby` relins, without it `d` ([`EvalConfig::matvec_rotations`], [`EvalConfig::matvec_enc_relins`]). At `d = 16` (`baby = giant = 4`), as (hoistable rotations / individual rotations / relins): | form | hoistable rot. | individual rot. | relins (lazy) | relins (not lazy) | |---|---|---|---|---| | default BSGS | 3 | 3 | 4 | 16 | | `bsgs = false` (this library) | 3 | 12 | 13 | 16 | | textbook diagonal method (not implemented) | 15 | 0 | 1 | 16 | The textbook (Halevi-Shoup) diagonal method rotates `x` by all `d - 1` steps (all hoistable) and sums the products lazily; it needs un-pre-rotated diagonals, i.e. another weight layout and gradient form, so it is not implemented. The all-off configuration has the same counts in both forms (15 rotations, 16 relins at `d = 16`).",
+    "2. **Bias.** Against the strongest naive baseline (the textbook method with hoisting and lazy relinearization), the cost of the `bsgs = false` rows overstates what BSGS gains: the measured BSGS gain is an **upper bound**. Conversely, the marginal gains of `hoist` and `lazy_relin` measured inside `bsgs = false` configurations are **lower bounds** (only `baby - 1` rotations can be hoisted and only the zero-shift block summed lazily: e.g. `lazy_relin` saves 3 relins at `d = 16` instead of 15).",
+    "3. **`hoist` changes no [`OpCounter`] value.** The counter does not distinguish hoisted from individual rotations, so the effect of `hoist` shows only in wall-clock time, never in key-switch counts.",
+    "4. **`bsgs` does not touch the gradient's outer product** (`Dense::weight_grad_scaled`, `Dense::weight_grad_reduced`): its `(baby - 1) + (giant - 1)` input rotations are what the pre-rotated weight layout requires, not a BSGS choice; only `hoist` changes how they run. The interactive gradient multiplies each diagonal with one [`Evaluator::mul`] (nothing to sum lazily), so `lazy_relin` does not change it either."
+  ],
+  "configs": [
+    {
+      "bsgs": true,
+      "closed_form": {
+        "relins": 62,
+        "rotations": 171
+      },
+      "closed_form_matches": true,
+      "config": "hoist=1 bsgs=1 lazy_relin=1",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 233,
+        "relins": 62,
+        "rescales": 201,
+        "rotations": 171
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": true,
+      "iteration_s_median": 0.8086097860000001,
+      "lazy_relin": true,
+      "log2_max_abs_weight_diff_vs_default": null,
+      "max_abs_weight_diff_vs_default": 0.0,
+      "refresh_s_median": 0.24823441000000002,
+      "step_s": [
+        0.5645665440000001,
+        0.5603753760000001,
+        0.55839209
+      ],
+      "step_s_median": 0.5603753760000001,
+      "step_speedup_over_all_off": 1.8081622273138567,
+      "step_time_over_default": 1.0
+    },
+    {
+      "bsgs": true,
+      "closed_form": {
+        "relins": 114,
+        "rotations": 171
+      },
+      "closed_form_matches": true,
+      "config": "hoist=1 bsgs=1 lazy_relin=0",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 285,
+        "relins": 114,
+        "rescales": 201,
+        "rotations": 171
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": true,
+      "iteration_s_median": 1.008039169,
+      "lazy_relin": false,
+      "log2_max_abs_weight_diff_vs_default": -26.927874736227544,
+      "max_abs_weight_diff_vs_default": 7.832528519866044e-9,
+      "refresh_s_median": 0.24560475200000004,
+      "step_s": [
+        0.7624344169999999,
+        0.771868415,
+        0.755991581
+      ],
+      "step_s_median": 0.7624344169999999,
+      "step_speedup_over_all_off": 1.3289662237270174,
+      "step_time_over_default": 1.3605780154765397
+    },
+    {
+      "bsgs": false,
+      "closed_form": {
+        "relins": 101,
+        "rotations": 210
+      },
+      "closed_form_matches": true,
+      "config": "hoist=1 bsgs=0 lazy_relin=1",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 311,
+        "relins": 101,
+        "rescales": 201,
+        "rotations": 210
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": true,
+      "iteration_s_median": 1.106136834,
+      "lazy_relin": true,
+      "log2_max_abs_weight_diff_vs_default": -27.110326121570928,
+      "max_abs_weight_diff_vs_default": 6.902058646840459e-9,
+      "refresh_s_median": 0.24739821399999995,
+      "step_s": [
+        0.8587386200000001,
+        0.8571620750000001,
+        0.8616927030000001
+      ],
+      "step_s_median": 0.8587386200000001,
+      "step_speedup_over_all_off": 1.1799278201788572,
+      "step_time_over_default": 1.5324346086184915
+    },
+    {
+      "bsgs": false,
+      "closed_form": {
+        "relins": 114,
+        "rotations": 210
+      },
+      "closed_form_matches": true,
+      "config": "hoist=1 bsgs=0 lazy_relin=0",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 324,
+        "relins": 114,
+        "rescales": 201,
+        "rotations": 210
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": true,
+      "iteration_s_median": 1.258707955,
+      "lazy_relin": false,
+      "log2_max_abs_weight_diff_vs_default": -27.011738098370234,
+      "max_abs_weight_diff_vs_default": 7.390206901297658e-9,
+      "refresh_s_median": 0.264563084,
+      "step_s": [
+        0.908312209,
+        1.017324124,
+        0.9941448709999999
+      ],
+      "step_s_median": 0.9941448709999999,
+      "step_speedup_over_all_off": 1.0192172363981347,
+      "step_time_over_default": 1.7740695140751506
+    },
+    {
+      "bsgs": true,
+      "closed_form": {
+        "relins": 62,
+        "rotations": 171
+      },
+      "closed_form_matches": true,
+      "config": "hoist=0 bsgs=1 lazy_relin=1",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 233,
+        "relins": 62,
+        "rescales": 201,
+        "rotations": 171
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": false,
+      "iteration_s_median": 0.852871334,
+      "lazy_relin": true,
+      "log2_max_abs_weight_diff_vs_default": null,
+      "max_abs_weight_diff_vs_default": 0.0,
+      "refresh_s_median": 0.24649612799999998,
+      "step_s": [
+        0.6197638299999999,
+        0.597429628,
+        0.606375206
+      ],
+      "step_s_median": 0.606375206,
+      "step_speedup_over_all_off": 1.670994423871612,
+      "step_time_over_default": 1.082087529127975
+    },
+    {
+      "bsgs": true,
+      "closed_form": {
+        "relins": 114,
+        "rotations": 171
+      },
+      "closed_form_matches": true,
+      "config": "hoist=0 bsgs=1 lazy_relin=0",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 285,
+        "relins": 114,
+        "rescales": 201,
+        "rotations": 171
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": false,
+      "iteration_s_median": 1.038549381,
+      "lazy_relin": false,
+      "log2_max_abs_weight_diff_vs_default": -26.927874736227544,
+      "max_abs_weight_diff_vs_default": 7.832528519866044e-9,
+      "refresh_s_median": 0.24549892200000004,
+      "step_s": [
+        0.795273746,
+        0.7930504589999999,
+        0.792257286
+      ],
+      "step_s_median": 0.7930504589999999,
+      "step_speedup_over_all_off": 1.2776609312825582,
+      "step_time_over_default": 1.4152128965067154
+    },
+    {
+      "bsgs": false,
+      "closed_form": {
+        "relins": 101,
+        "rotations": 210
+      },
+      "closed_form_matches": true,
+      "config": "hoist=0 bsgs=0 lazy_relin=1",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 311,
+        "relins": 101,
+        "rescales": 201,
+        "rotations": 210
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": false,
+      "iteration_s_median": 1.152792585,
+      "lazy_relin": true,
+      "log2_max_abs_weight_diff_vs_default": -27.110326121570928,
+      "max_abs_weight_diff_vs_default": 6.902058646840459e-9,
+      "refresh_s_median": 0.2597003319999999,
+      "step_s": [
+        0.8930922530000001,
+        0.892844323,
+        1.154406543
+      ],
+      "step_s_median": 0.8930922530000001,
+      "step_speedup_over_all_off": 1.1345407874677869,
+      "step_time_over_default": 1.5937392884301183
+    },
+    {
+      "bsgs": false,
+      "closed_form": {
+        "relins": 114,
+        "rotations": 210
+      },
+      "closed_form_matches": true,
+      "config": "hoist=0 bsgs=0 lazy_relin=0",
+      "counter_constant_over_iterations": true,
+      "counter_per_iteration": {
+        "bootstraps": 0,
+        "ct_ct_tensor": 114,
+        "ct_pt_mults": 148,
+        "key_switches": 324,
+        "relins": 114,
+        "rescales": 201,
+        "rotations": 210
+      },
+      "counts_equal_hoist_on_counterpart": true,
+      "hoist": false,
+      "iteration_s_median": 1.2754205440000002,
+      "lazy_relin": false,
+      "log2_max_abs_weight_diff_vs_default": -27.011738098370234,
+      "max_abs_weight_diff_vs_default": 7.390206901297658e-9,
+      "refresh_s_median": 0.26217095600000007,
+      "step_s": [
+        1.013249588,
+        1.0668297939999998,
+        0.9482981709999999
+      ],
+      "step_s_median": 1.013249588,
+      "step_speedup_over_all_off": 1.0,
+      "step_time_over_default": 1.8081622273138567
+    }
+  ],
+  "machine": {
+    "threads": "single (no parallel feature)",
+    "wall_total_s": 36.130060833
+  },
+  "protocol": "per configuration: same keys, same initial network and batches; warm-up iterations untimed; step = server side incl. the wait for the device queue; refresh = host client refresh (unchanged by the flags); medians over the timed iterations; closed form = default count + per-matvec deltas of EvalConfig::matvec_rotations / matvec_enc_relins",
+  "setup": {
+    "data": "MNIST training images (first in file order)",
+    "dims": [
+      784,
+      32,
+      10
+    ],
+    "galois_keys": 23,
+    "keygen_s": 0.340832041,
+    "lanes_b": 2,
+    "layout_d": 1024,
+    "level_capped": false,
+    "log_n": 12,
+    "lr": 0.001,
+    "matvec_dims_per_step": [
+      32,
+      16,
+      16
+    ],
+    "max_level": 10,
+    "momentum": 0.9,
+    "optimizer": "nag",
+    "params": "small",
+    "seed": 48,
+    "start_level": 10,
+    "timed_iterations": 3,
+    "transpose_keys": "reuse (mlp_key_pool)",
+    "warmup_iterations": 1
+  },
+  "task": "Task 48: RQ3 ablation (hoist x bsgs x lazy_relin), one interactive eMLP-1 iteration"
+}

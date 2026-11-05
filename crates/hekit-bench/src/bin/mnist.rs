@@ -83,10 +83,36 @@
 //! - `--mode plain` runs the plaintext twin alone and records ReBoot's per-step metrics (batch
 //!   loss summed over the batch and all outputs, batch accuracy).
 //!
+//! # Backends and ablation flags (Task 48)
+//!
+//! `--backend cpu|cuda` (`cuda` needs the `cuda` feature), `--no-hoist --no-bsgs
+//! --no-lazy-relin`, `--matvec sequential` (the only mode wired into training), `--gpu-pool
+//! default|after-keys` and `--top-level L` (interactive) are the options of
+//! `hekit_bench::backend` (see its docs). On the GPU:
+//! - the interactive client refresh runs behind `HostRefresher` (download, client refresh on
+//!   the host, upload) and the non-interactive bootstraps behind `HostBootstrapper` (level
+//!   operations on the GPU, bootstrapping on the CPU, its counts merged into the GPU
+//!   evaluator's);
+//! - the keys are uploaded for levels `<= L` only (the start level; the bootstrap output level
+//!   in non-interactive mode), and `trim_pool(0)` runs after the key upload, after the
+//!   network upload and at every epoch boundary;
+//! - the device-memory need is estimated before any key exists; a run that does not fit the
+//!   free memory prints `SKIP ...` and exits with code 3 (GPU run unmeasured).
+//!
+//! The closed-form checks are flag-aware: interactive `predict` uses
+//! `EvalConfig::matvec_rotations` / `matvec_enc_relins` for the matvecs (checked against the
+//! measured counter for all 8 combinations, `tests/mnist_flags.rs`), non-interactive uses
+//! `predict_update_with`. The cost model and its corrections stay those of the default flags.
+//! `per_batch_step` is the server step including the wait for the device queue
+//! (`SyncedRefresher`), `per_batch_refresh` the host refresh. `--dump-weights` writes the
+//! decrypted final weights (`final_weights`) for a CPU/GPU comparison (`tests/mnist_cuda.rs`).
+//!
 //! Usage: `mnist [--epochs 1] [--subset 1024] [--test-subset 10000] [--batch 32]
 //! [--hidden 32] [--params n16_train|small] [--transpose reuse|dedicated] [--seed 32]
 //! [--lr 0.001] [--momentum 0.9] [--data data/mnist] [--out results/mnist_emlp1.json]
-//! [--plan]`. `--plan` prints the layout, key count and predicted counts without generating
+//! [--plan] [--backend cpu|cuda] [--no-hoist] [--no-bsgs] [--no-lazy-relin]
+//! [--matvec sequential] [--gpu-pool default|after-keys] [--top-level L] [--dump-weights]`.
+//! `--plan` prints the layout, key count, predicted counts and GPU need without generating
 //! keys.
 
 use std::fmt::Write as _;
@@ -95,6 +121,10 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
+use hekit_bench::backend::{
+    Backend, BackendOpts, CpuHooks, DeviceHooks, GpuNeed, SKIP_EXIT_CODE, SKIP_PREFIX,
+    SyncedRefresher, config_json, mlp_gpu_need,
+};
 use hekit_bench::data::{
     Mnist, Split, load_mnist, load_npy_dataset, manifest_sha256, one_hot, parse_npy_f64,
     read_npy_f64, sha256_hex,
@@ -103,17 +133,20 @@ use hekit_bench::twin::{
     Layer, WeightDecay, accuracy_over, affine, forward_plain, init_net, rng, twin_step,
 };
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
-use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
+use hekit_ckks::{
+    BootstrapOps, CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, HeOps,
+    KeyGenerator, OpCounter,
+};
 use hekit_core::sampler::Rng;
 use hekit_nn::activation::{Activation, Identity, PolyRelu2};
 use hekit_nn::dense::{TransposeKeys, transpose_rotation_plan};
 use hekit_nn::layout::{LayerShape, Layout, unpack_activations};
 use hekit_nn::optim::Nag;
-use hekit_nn::refresh::ClientRefresher;
+use hekit_nn::refresh::{ClientRefresher, Refresher};
 use hekit_nn::trainer::{LayerOptimizer, Mlp, Trainer, mlp_key_pool, mlp_rotation_steps};
 use hekit_nn::trainer_ni::{
     ActCost, BootPlacement, CompactLayout, NiOptimizer, NonInteractiveTrainer, UpdateCost,
-    boot_schedule, levels_per_iter, ni_rotation_steps, predict_update_for, ref_shift_rotations,
+    boot_schedule, levels_per_iter, ni_rotation_steps, predict_update_with, ref_shift_rotations,
 };
 use ndarray::{Array2, Axis, s};
 
@@ -190,6 +223,12 @@ struct Args {
     /// padded rows are trained toward 0 and their deltas reach the hidden layer, so they change
     /// the training (accuracy is the argmax over the 10 real classes).
     out_width: usize,
+    /// Task 48: the backend, the RQ3 ablation flags, the matvec mode, the GPU pool policy and
+    /// the interactive start level (`hekit_bench::backend`).
+    be: BackendOpts,
+    /// Task 48: write the decrypted final weights and biases into the output JSON
+    /// (`final_weights`), e.g. to compare a CPU and a GPU run.
+    dump_weights: bool,
 }
 
 /// `configs/reboot_emlp1_faithful.json` (ruling R-M3-12), transcribed: ReBoot's printed
@@ -242,6 +281,8 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
         epoch_orders: None,
         subset_given: false,
         test_subset_given: false,
+        be: BackendOpts::default(),
+        dump_weights: false,
     };
     // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
     // them wherever they appear.
@@ -255,7 +296,14 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
     }
     let mut it = argv.iter().cloned();
     while let Some(flag) = it.next() {
+        if a.be.take(&flag, &mut || it.next())? {
+            continue;
+        }
         match flag.as_str() {
+            "--dump-weights" => {
+                a.dump_weights = true;
+                continue;
+            }
             "--plan" => {
                 a.plan = true;
                 continue;
@@ -373,6 +421,17 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
         return Err("--no-bias is supported in --mode noninteractive and plain only".into());
     }
     placement_named(&a.placement)?;
+    a.be.validate()?;
+    if a.mode == "plain" && (a.be.backend != Backend::Cpu || a.be.config != EvalConfig::default()) {
+        return Err("--mode plain has no evaluator: --backend / --no-* flags do not apply".into());
+    }
+    if a.mode == "noninteractive" && a.be.top_level.is_some() {
+        return Err(
+            "--top-level is interactive only (the non-interactive start level is the \
+             bootstrap's output level)"
+                .into(),
+        );
+    }
     if a.params.is_empty() {
         a.params = if ni { "n16_boot" } else { "n16_train" }.into();
     }
@@ -510,11 +569,21 @@ impl Terms {
 /// activations `acts` (`true`: a polynomial activation with a ciphertext derivative, `false`:
 /// the identity), from the library's layer shapes and transpose plan, and the corrections
 /// from [`cost_model_interactive`] to it.
+///
+/// Task 48 (Task 43 M5): the count is flag-aware. The forward and backward matvecs
+/// (`matvec_enc` on encrypted weights) cost [`EvalConfig::matvec_rotations`] rotations and
+/// [`EvalConfig::matvec_enc_relins`] relins of their dimension `m`; nothing else in an
+/// interactive step depends on the flags (`hoist` changes no count; the gradient's outer
+/// product multiplies one product per diagonal, so `bsgs` and `lazy_relin` leave it alone:
+/// `hekit_ckks::ops`, "What the RQ3 table must state"). Checked against the measured counter
+/// for all 8 combinations (`flag_aware_prediction_matches_measured_counts`). The corrections
+/// [`Terms`] are those of the default flags (the cost model is a BSGS model).
 fn predict(
     dims: &[usize],
     acts: &[bool],
     layout: &Layout,
     keys: &TransposeKeys,
+    cfg: &EvalConfig,
 ) -> Result<(Ks, Terms), String> {
     let b = layout.batch;
     let lb = log2(b);
@@ -523,8 +592,10 @@ fn predict(
     for (i, p) in dims.windows(2).enumerate() {
         let sh = LayerShape::new(p[1], p[0], layout);
         let (n1, n2) = spike_split(sh.m);
+        let mv_rot = |m: usize| cfg.matvec_rotations(m) as usize;
+        let mv_relin = |m: usize| cfg.matvec_enc_relins(m) as usize;
         // forward
-        k.add(sh.baby + sh.giant - 2 + sh.fold_steps(), sh.giant);
+        k.add(mv_rot(sh.m) + sh.fold_steps(), mv_relin(sh.m));
         if acts[i] {
             k.add(0, 1);
         }
@@ -539,7 +610,7 @@ fn predict(
             k.add(tr, 0);
             t.transpose += (tr - (sh.m - 1)) as u64;
             let st = sh.transposed();
-            k.add(st.baby + st.giant - 2 + st.fold_steps(), st.giant);
+            k.add(mv_rot(st.m) + st.fold_steps(), mv_relin(st.m));
         }
         // weight gradient and bias gradient
         k.add((sh.baby - 1) + (sh.giant - 1) + 2 * sh.m * lb, sh.m);
@@ -581,6 +652,8 @@ enum J {
     B(bool),
     A(Vec<J>),
     O(Vec<(String, J)>),
+    /// Already-serialized JSON, written as is (`hekit_bench::backend`'s objects).
+    R(String),
 }
 
 impl J {
@@ -592,6 +665,7 @@ impl J {
             J::I(v) => write!(out, "{v}").unwrap(),
             J::S(s) => json_string(out, s),
             J::B(b) => write!(out, "{b}").unwrap(),
+            J::R(raw) => out.push_str(raw),
             J::A(v) => {
                 if v.iter().all(|x| matches!(x, J::N(_) | J::I(_))) {
                     out.push('[');
@@ -857,7 +931,12 @@ fn main() {
     };
     if let Err(e) = r {
         eprintln!("mnist: {e}");
-        std::process::exit(1);
+        // A GPU run that does not fit the free device memory is a skip (Task 48), not a failure.
+        std::process::exit(if e.starts_with(SKIP_PREFIX) {
+            SKIP_EXIT_CODE
+        } else {
+            1
+        });
     }
 }
 
@@ -1211,12 +1290,21 @@ fn run(args: &Args) -> Result<(), String> {
     let steps = mlp_rotation_steps(&dims, &layout, &keys).map_err(|e| e.to_string())?;
     let limbs = params.q().len() + params.p().len();
     let key_bytes = params.dnum() * 2 * limbs * params.n() * 8;
-    let (pred, terms) = predict(&dims, &acts_flags, &layout, &keys)?;
+    let cfg = args.be.config;
+    let (pred, terms) = predict(&dims, &acts_flags, &layout, &keys, &cfg)?;
     let model = cost_model_interactive(&dims, &acts_flags, layout.batch);
     // docs/layout.md §5 items 1, 2 and 5 (written before this task): replication, recomputed
     // babies, transpose keys. The bias term (§3) and the BSGS split are not in §5.
     let pre_registered = model.total() + terms.replication + terms.babies + terms.transpose;
     let b = layout.batch as f64;
+    // Task 48: the level the network, the batches and every refresh live on (`--top-level`),
+    // and the GPU need at that key level.
+    let top = args.be.start_level(&params)?;
+    let m_layers: Vec<usize> = dims
+        .windows(2)
+        .map(|p| LayerShape::new(p[1], p[0], &layout).m)
+        .collect();
+    let gpu_need = mlp_gpu_need(&params, steps.len(), top, &m_layers, true);
     eprintln!(
         "mnist: {} N = 2^{} ({} slots, {} levels), dims {dims:?}, layout d = {d}, B = {}, \
          transpose {}: {} Galois keys + relin ({:.1} GB at {:.0} MB each)",
@@ -1229,6 +1317,12 @@ fn run(args: &Args) -> Result<(), String> {
         steps.len(),
         ((steps.len() + 1) * key_bytes) as f64 / 1e9,
         key_bytes as f64 / 1e6
+    );
+    eprintln!(
+        "mnist: backend {}, {}, start level {top}; GPU need {}",
+        args.be.backend.name(),
+        hekit_bench::backend::config_label(&cfg),
+        gpu_need.json()
     );
     eprintln!(
         "mnist: predicted per update {} rot + {} relin = {} KS ({:.3}/sample); cost model \
@@ -1245,6 +1339,7 @@ fn run(args: &Args) -> Result<(), String> {
         ("log_n", J::I(params.log_n() as i64)),
         ("slots", J::I(params.slots() as i64)),
         ("max_level", J::I(params.max_level() as i64)),
+        ("start_level", J::I(top as i64)),
         ("scale_bits", J::N(params.scale().log2())),
         ("dims", J::A(dims.iter().map(|&x| J::I(x as i64)).collect())),
         ("layout_d", J::I(d as i64)),
@@ -1263,6 +1358,16 @@ fn run(args: &Args) -> Result<(), String> {
         ),
     ]);
     let prediction_json = obj(vec![
+        ("eval_config", J::R(config_json(&cfg))),
+        (
+            "exact_is_flag_aware",
+            J::S(
+                "exact: forward and backward matvecs at EvalConfig::matvec_rotations / \
+                 matvec_enc_relins of the flags above (Task 48); the cost model and its \
+                 corrections are those of the default flags"
+                    .into(),
+            ),
+        ),
         ("cost_model_interactive", ks_json(&model, b)),
         (
             "corrections",
@@ -1292,6 +1397,8 @@ fn run(args: &Args) -> Result<(), String> {
         let mut s = String::new();
         obj(vec![
             ("setup", layout_json),
+            ("backend", J::R(args.be.json())),
+            ("gpu_need_estimate", J::R(gpu_need.json())),
             ("prediction_per_update", prediction_json),
         ])
         .write(&mut s, 0);
@@ -1300,6 +1407,14 @@ fn run(args: &Args) -> Result<(), String> {
     }
     let (train, test) = loaded?;
 
+    // Task 48: on the GPU, check the device memory before any key exists (a skip, not a
+    // failure, when the shared card has too little free).
+    #[cfg(feature = "cuda")]
+    let dev = match args.be.backend {
+        Backend::Cuda => Some(hekit_bench::backend::open_gpu("mnist", &params, &gpu_need)?),
+        Backend::Cpu => None,
+    };
+
     // Keys and the client.
     let t_keys = Instant::now();
     let mut kg =
@@ -1307,38 +1422,200 @@ fn run(args: &Args) -> Result<(), String> {
     let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
     let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
     let encoder = Encoder::new(Arc::clone(&params));
-    let ev = Evaluator::new(
-        Arc::clone(&params),
-        Some(kg.relin_key()),
-        Some(kg.galois_keys(&steps)),
-    );
+    let rk = kg.relin_key();
+    let gks = kg.galois_keys(&steps);
     drop(kg);
     let keygen_s = t_keys.elapsed().as_secs_f64();
     eprintln!("mnist: keys in {keygen_s:.1} s");
+    let client = ClientRefresher::new(
+        dec.clone(),
+        enc.clone(),
+        Encoder::new(Arc::clone(&params)),
+        rng(args.seed, 3),
+    )
+    .with_output_level(top)
+    .map_err(|e| e.to_string())?;
+    let ctx = Interactive {
+        args,
+        params: Arc::clone(&params),
+        dims,
+        layout,
+        keys,
+        top,
+        pred,
+        model,
+        terms,
+        pre_registered,
+        layout_json,
+        prediction_json,
+        gpu_need,
+        train,
+        test,
+        enc,
+        dec,
+        encoder,
+        keygen_s,
+        t_all,
+        load_start,
+    };
+    match args.be.backend {
+        Backend::Cpu => {
+            let ev = Evaluator::with_config(Arc::clone(&params), Some(rk), Some(gks), cfg);
+            train_interactive(ctx, &ev, client, &CpuHooks, Vec::new())
+        }
+        Backend::Cuda => {
+            #[cfg(feature = "cuda")]
+            {
+                let dev = dev.as_ref().expect("opened above");
+                cuda_interactive(ctx, dev, &rk, &gks, &steps, client)
+            }
+            #[cfg(not(feature = "cuda"))]
+            {
+                drop((ctx, rk, gks, client));
+                Err("--backend cuda needs the `cuda` feature".into())
+            }
+        }
+    }
+}
+
+/// The host side of an interactive run, shared by the backends (Task 48): the data, the
+/// client's keys and encoder, the layout, the start level and the predictions.
+struct Interactive<'a> {
+    args: &'a Args,
+    /// The parameters (the GPU evaluator is built on them).
+    #[cfg_attr(not(feature = "cuda"), allow(dead_code))]
+    params: Arc<CkksParams>,
+    dims: [usize; 3],
+    layout: Layout,
+    keys: TransposeKeys,
+    top: usize,
+    pred: Ks,
+    model: Ks,
+    terms: Terms,
+    pre_registered: u64,
+    layout_json: J,
+    prediction_json: J,
+    gpu_need: GpuNeed,
+    train: Mnist,
+    test: Mnist,
+    enc: Encryptor,
+    dec: Decryptor,
+    encoder: Encoder,
+    keygen_s: f64,
+    t_all: Instant,
+    load_start: String,
+}
+
+/// The interactive run on the GPU: uploads the relinearization key and the step's Galois keys
+/// for levels `<= top` (`CudaEvaluator::with_keys`), trims the pool after the upload, and
+/// trains with the client refresh behind `HostRefresher` (download, client refresh on the
+/// host, upload).
+#[cfg(feature = "cuda")]
+fn cuda_interactive(
+    ctx: Interactive<'_>,
+    dev: &hekit_cuda::CudaDevice,
+    rk: &hekit_ckks::RelinKey,
+    gks: &hekit_ckks::GaloisKeys,
+    steps: &[i32],
+    client: ClientRefresher,
+) -> Result<(), String> {
+    let hooks = hekit_bench::backend::GpuHooks::new(dev);
+    let keys = steps
+        .iter()
+        .map(|&s| {
+            gks.get(s)
+                .ok_or_else(|| format!("no Galois key for step {s}"))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let t = Instant::now();
+    let ev = hekit_cuda::CudaEvaluator::with_keys(
+        dev,
+        Arc::clone(&ctx.params),
+        Some(rk),
+        &keys,
+        ctx.args.be.config,
+        ctx.top,
+    )
+    .map_err(|e| e.to_string())?;
+    hooks.sync()?;
+    let upload_s = t.elapsed().as_secs_f64();
+    hooks.trim("key upload")?;
+    eprintln!(
+        "mnist: {} device keys for levels <= {} ({:.1} MiB) in {upload_s:.2} s on {}",
+        ev.num_galois_keys() + 1,
+        ev.key_level(),
+        ev.key_bytes() as f64 / hekit_bench::backend::MIB,
+        hooks.describe()
+    );
+    let facts = vec![
+        ("device_key_level", J::I(ev.key_level() as i64)),
+        ("device_keys", J::I(ev.num_galois_keys() as i64 + 1)),
+        ("device_key_bytes", J::I(ev.key_bytes() as i64)),
+        ("device_key_upload_s", J::N(upload_s)),
+    ];
+    let refresher = hekit_nn::refresh::HostRefresher::new(&ev, client);
+    train_interactive(ctx, &ev, refresher, &hooks, facts)
+}
+
+/// The interactive training and its report on the evaluator `ev` of any backend (Task 48;
+/// the code of Task 32 with uploads and downloads): `refresher` is the client refresh for
+/// `ev`'s ciphertexts (the [`ClientRefresher`] itself on the CPU, behind `HostRefresher` on
+/// the GPU); `hooks` trims the device pool after the network upload and at every epoch
+/// boundary and syncs the device before every refresh ([`SyncedRefresher`]); `backend_facts`
+/// go into the report's `backend` object.
+fn train_interactive<'e, E: HeOps, R: Refresher<E> + 'e>(
+    ctx: Interactive<'_>,
+    ev: &'e E,
+    refresher: R,
+    hooks: &'e dyn DeviceHooks,
+    backend_facts: Vec<(&str, J)>,
+) -> Result<(), String> {
+    let Interactive {
+        args,
+        params: _,
+        dims,
+        layout,
+        keys,
+        top,
+        pred,
+        model,
+        terms,
+        pre_registered,
+        layout_json,
+        prediction_json,
+        gpu_need,
+        train,
+        test,
+        enc,
+        dec,
+        encoder,
+        keygen_s,
+        t_all,
+        load_start,
+    } = ctx;
+    let e2s = |e: hekit_core::error::HekitError| e.to_string();
 
     // Network and twin.
     let mut r = rng(args.seed, 2);
     let init = initial_net(&dims, &mut r, args)?;
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
-    let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
+    let acts: Vec<Box<dyn Activation<E>>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
     let t_enc = Instant::now();
-    let mut mlp = Mlp::encrypt(&ev, &plain, acts, &layout, &enc, &encoder, &mut r)
-        .map_err(|e| e.to_string())?;
-    let spec = mlp.batch_spec(&ev, &encoder).map_err(|e| e.to_string())?;
+    let mut mlp =
+        Mlp::encrypt_at(ev, &plain, acts, &layout, top, &enc, &encoder, &mut r).map_err(e2s)?;
+    let spec = mlp.batch_spec_at(ev, &encoder, top).map_err(e2s)?;
+    hooks.sync()?;
     let encrypt_net_s = t_enc.elapsed().as_secs_f64();
-    let client = ClientRefresher::new(
-        dec.clone(),
-        enc.clone(),
-        Encoder::new(Arc::clone(&params)),
-        rng(args.seed, 3),
-    );
-    let optims: Vec<Box<dyn LayerOptimizer>> = vec![
-        Box::new(Nag::new(args.lr, args.momentum)),
-        Box::new(Nag::new(args.lr, args.momentum)),
+    hooks.trim("network upload")?;
+    hooks.apply_pool_policy(args.be.pool)?;
+    let (synced, wait) = SyncedRefresher::new(refresher, hooks);
+    let optims: Vec<Box<dyn LayerOptimizer<E> + 'e>> = vec![
+        Box::new(Nag::<E::Ct>::new_for(args.lr, args.momentum)),
+        Box::new(Nag::<E::Ct>::new_for(args.lr, args.momentum)),
     ];
-    let mut trainer = Trainer::new(&ev, Box::new(client), optims, layout)
-        .map_err(|e| e.to_string())?
+    let mut trainer = Trainer::new(ev, Box::new(synced), optims, layout)
+        .map_err(e2s)?
         .with_transpose_keys(keys);
     let mut twin = init.clone();
     let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
@@ -1347,8 +1624,11 @@ fn run(args: &Args) -> Result<(), String> {
     // Training.
     let n = train.len();
     let mut batch_s = Vec::new();
+    let mut step_s = Vec::new();
     let mut refresh_s = Vec::new();
+    let mut wait_s = Vec::new();
     let mut client_enc_s = Vec::new();
+    let mut upload_s = Vec::new();
     let mut per_batch: Vec<OpCounter> = Vec::new();
     let mut total = OpCounter::default();
     let mut samples = 0usize;
@@ -1361,11 +1641,19 @@ fn run(args: &Args) -> Result<(), String> {
             let t0 = Instant::now();
             let (xct, yct) = spec
                 .encrypt(&enc, &encoder, &layout, &x, &y, &mut r)
-                .map_err(|e| e.to_string())?;
+                .map_err(e2s)?;
             client_enc_s.push(t0.elapsed().as_secs_f64());
+            let t1 = Instant::now();
+            let xct = ev.upload_ct_owned(xct).map_err(e2s)?;
+            let yct = ev.upload_ct_owned(yct).map_err(e2s)?;
+            upload_s.push(t1.elapsed().as_secs_f64());
+            let w0 = wait.get();
             let log = trainer
                 .train_epoch_valid(&mut mlp, &[(xct, yct, end - start)])
                 .map_err(|e| format!("batch at {start}: {e}"))?;
+            // The device time of the step: the trainer's time without its refreshes, plus the
+            // wait for the queued step at the first refresh (zero on the CPU).
+            let w = wait.get() - w0;
             twin_step(
                 &mut twin,
                 &mut vel,
@@ -1377,17 +1665,20 @@ fn run(args: &Args) -> Result<(), String> {
                 WeightDecay::NONE,
             );
             batch_s.push(log.seconds);
-            refresh_s.push(log.refresh_seconds);
+            step_s.push(log.seconds - log.refresh_seconds + w);
+            refresh_s.push(log.refresh_seconds - w);
+            wait_s.push(w);
             let c = log.counter;
             total += &c;
             samples += end - start;
             eprintln!(
-                "mnist: epoch {epoch} batch {} ({} samples): {:.1} s (refresh {:.1} s), \
-                 {} rot + {} relin; elapsed {:.0} s, load {}",
+                "mnist: epoch {epoch} batch {} ({} samples): {:.2} s (step {:.2} s, refresh \
+                 {:.2} s), {} rot + {} relin; elapsed {:.0} s, load {}",
                 per_batch.len(),
                 end - start,
                 log.seconds,
-                log.refresh_seconds,
+                log.seconds - log.refresh_seconds + w,
+                log.refresh_seconds - w,
                 c.rotations,
                 c.relins,
                 t_all.elapsed().as_secs_f64(),
@@ -1395,20 +1686,21 @@ fn run(args: &Args) -> Result<(), String> {
             );
             per_batch.push(c);
         }
+        hooks.trim(&format!("epoch {epoch} end"))?;
     }
     let train_s = t_train.elapsed().as_secs_f64();
 
-    // Results.
-    let got: Vec<Layer> = mlp
-        .layers
-        .iter()
-        .map(|(dn, _)| Layer {
-            w: dn.w.decrypt(&dec, &encoder, &layout),
-            b: unpack_activations(&encoder.decode(&dec.decrypt(&dn.b)), &layout, dn.w.d_out())
+    // Results (the client downloads and decrypts).
+    let mut got = Vec::with_capacity(mlp.layers.len());
+    for (dn, _) in &mlp.layers {
+        let h = dn.download(ev).map_err(e2s)?;
+        got.push(Layer {
+            w: h.w.decrypt(&dec, &encoder, &layout),
+            b: unpack_activations(&encoder.decode(&dec.decrypt(&h.b)), &layout, h.w.d_out())
                 .row(0)
                 .to_vec(),
-        })
-        .collect();
+        });
+    }
     let w_diff: Vec<f64> = got
         .iter()
         .zip(&twin)
@@ -1448,10 +1740,31 @@ fn run(args: &Args) -> Result<(), String> {
         measured.total(),
         measured.total() as f64 / samples_f
     );
-    let result = obj(vec![
+    let mut backend = vec![
+        ("options", J::R(args.be.json())),
+        ("device", J::S(hooks.describe())),
+        ("gpu_need_estimate", J::R(gpu_need.json())),
+        ("memory_after_trims", J::R(hooks.memory_json())),
+        (
+            "timing_note",
+            J::S(
+                "per_batch_step = trainer time without its refreshes + the wait for the \
+                 device queue at the first refresh (SyncedRefresher); per_batch_refresh is the \
+                 host refresh (download, client decrypt/encrypt, upload); identical to the \
+                 Task 32 split on the CPU"
+                    .into(),
+            ),
+        ),
+    ];
+    backend.extend(backend_facts);
+    let mut fields = vec![
         (
             "task",
-            J::S("Task 32: MNIST eMLP-1 interactive training (RQ1 counts)".into()),
+            J::S(
+                "Task 32 / Task 48: MNIST eMLP-1 interactive training (RQ1 counts; CPU or GPU \
+                 backend, RQ3 flags)"
+                    .into(),
+            ),
         ),
         (
             "network",
@@ -1461,6 +1774,15 @@ fn run(args: &Args) -> Result<(), String> {
             )),
         ),
         ("setup", layout_json),
+        (
+            "backend",
+            J::O(
+                backend
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), v))
+                    .collect(),
+            ),
+        ),
         (
             "training",
             obj(vec![
@@ -1482,6 +1804,20 @@ fn run(args: &Args) -> Result<(), String> {
                 ("per_sample", ks_json(&measured, samples_f)),
                 ("per_batch_first", counter_json(&per_batch[0])),
                 ("every_batch_equals_prediction", J::B(constant)),
+                (
+                    "per_batch_counters",
+                    obj(vec![
+                        (
+                            "fields",
+                            J::S(
+                                "rotations, relins, key_switches, ct_ct_tensor, ct_pt_mults, \
+                                 rescales, bootstraps"
+                                    .into(),
+                            ),
+                        ),
+                        ("rows", J::A(per_batch.iter().map(counter_row).collect())),
+                    ]),
+                ),
             ]),
         ),
         ("prediction_per_update", prediction_json),
@@ -1504,8 +1840,11 @@ fn run(args: &Args) -> Result<(), String> {
                 ("encrypt_network", J::N(encrypt_net_s)),
                 ("epoch_total", J::N(train_s)),
                 ("per_batch_step_incl_refresh", stats(&batch_s)),
+                ("per_batch_step", stats(&step_s)),
                 ("per_batch_refresh", stats(&refresh_s)),
+                ("per_batch_device_wait", stats(&wait_s)),
                 ("per_batch_client_encrypt", stats(&client_enc_s)),
+                ("per_batch_upload", stats(&upload_s)),
                 ("wall_total", J::N(t_all.elapsed().as_secs_f64())),
             ]),
         ),
@@ -1572,21 +1911,73 @@ fn run(args: &Args) -> Result<(), String> {
                 ("load_start", J::S(load_start)),
                 ("load_end", J::S(loadavg())),
                 ("build", build_info()),
-                (
-                    "threads",
-                    J::S("single (the library is single-threaded)".into()),
-                ),
+                ("threads", J::S(threads_note())),
             ]),
         ),
-    ]);
+    ];
+    if args.dump_weights {
+        fields.push(("final_weights", weights_json(&got)));
+    }
     let mut s = String::new();
-    result.write(&mut s, 0);
+    obj(fields).write(&mut s, 0);
     s.push('\n');
     let out = args
         .out
         .clone()
         .unwrap_or_else(|| PathBuf::from("results/mnist_emlp1.json"));
     write_out(&out, &s)
+}
+
+/// One counter as a row `[rotations, relins, key_switches, ct_ct_tensor, ct_pt_mults,
+/// rescales, bootstraps]` (Task 48: per-batch comparison of two runs).
+fn counter_row(c: &OpCounter) -> J {
+    J::A(
+        [
+            c.rotations,
+            c.relins,
+            c.key_switches(),
+            c.ct_ct_tensor,
+            c.ct_pt_mults,
+            c.rescales,
+            c.bootstraps,
+        ]
+        .iter()
+        .map(|&v| J::I(v as i64))
+        .collect(),
+    )
+}
+
+/// The decrypted layers as `{"W1": [rows...], "b1": [...], ...}` (`--dump-weights`).
+fn weights_json(layers: &[Layer]) -> J {
+    let mut kv = Vec::new();
+    for (i, l) in layers.iter().enumerate() {
+        kv.push((
+            format!("W{}", i + 1),
+            J::A(
+                l.w.rows()
+                    .into_iter()
+                    .map(|r| J::A(r.iter().map(|&v| J::N(v)).collect()))
+                    .collect(),
+            ),
+        ));
+        kv.push((
+            format!("b{}", i + 1),
+            J::A(l.b.iter().map(|&v| J::N(v)).collect()),
+        ));
+    }
+    J::O(kv)
+}
+
+/// The threading of this build: single-threaded, or rayon with its thread count.
+fn threads_note() -> String {
+    if cfg!(feature = "parallel") {
+        format!(
+            "rayon (parallel feature), RAYON_NUM_THREADS={}",
+            std::env::var("RAYON_NUM_THREADS").unwrap_or_else(|_| "unset (all cores)".into())
+        )
+    } else {
+        "single (the library is single-threaded)".into()
+    }
 }
 
 fn write_out(out: &std::path::Path, s: &str) -> Result<(), String> {
@@ -1954,7 +2345,7 @@ fn cost_model_ni(dims: &[usize], acts: &[bool], batch: usize, slots: usize) -> N
 }
 
 /// The corrections from [`cost_model_ni`] to the implementation's closed form
-/// ([`predict_update_for`]), one update, key switches (Task 32's terms where they apply).
+/// ([`hekit_nn::trainer_ni::predict_update_for`]), one update, key switches (Task 32's terms where they apply).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct NiTerms {
     /// The gradient recomputes the layer input's baby rotations: `k (n1 - 1)` per layer.
@@ -2005,7 +2396,9 @@ fn lib_acts(acts: &[bool]) -> Vec<ActCost> {
 }
 
 /// The closed form of one update and its corrections from the model, for `boots_per_update`
-/// weight bootstraps (2 nW for AfterUpdate; the lazy average otherwise) at `boot_ks`.
+/// weight bootstraps (2 nW for AfterUpdate; the lazy average otherwise) at `boot_ks`, with the
+/// ablation flags `cfg` ([`predict_update_with`]; the corrections are measured against the
+/// default-flag cost model).
 #[allow(clippy::too_many_arguments)]
 fn ni_terms(
     dims: &[usize],
@@ -2016,8 +2409,10 @@ fn ni_terms(
     model: &NiModel,
     weight_boots_per_update: f64,
     boot_ks: u64,
+    cfg: EvalConfig,
 ) -> Result<(UpdateCost, NiTerms, f64), String> {
-    let cost = predict_update_for(
+    // Task 48 (Task 43 M5): the closed form of the evaluator's flags.
+    let cost = predict_update_with(
         dims,
         &lib_acts(acts),
         layout,
@@ -2026,6 +2421,7 @@ fn ni_terms(
         model.k,
         true,
         true,
+        cfg,
     )
     .map_err(|e| e.to_string())?;
     let k = model.k as i64;
@@ -2249,6 +2645,40 @@ fn rq1_json(
 const REBOOT_MEASURED: &str = "results/mnist_reboot_layout.json";
 
 #[allow(clippy::too_many_lines)]
+/// Per-update fullness of the run (all epochs): a group is full when every lane of its
+/// ciphertexts is valid (its sample count is a multiple of `lanes`), whatever the number of
+/// ciphertexts: the trainer's definition (review N1).
+fn run_fullness(args: &Args, lanes: usize, n: usize) -> Vec<bool> {
+    (0..args.epochs)
+        .flat_map(|_| {
+            (0..n)
+                .step_by(args.batch)
+                .map(move |s| ((s + args.batch).min(n) - s) % lanes == 0)
+        })
+        .collect()
+}
+
+/// The a-priori weight-bootstrap schedule of eMLP-1 (`z^2 + z`, identity) for the fullness
+/// `full`, from `start` with bootstraps to `out` ([`boot_schedule`]).
+fn schedule_for(
+    dims: &[usize],
+    layout: &Layout,
+    placement: BootPlacement,
+    full: &[bool],
+    start: usize,
+    out: usize,
+) -> Result<Vec<bool>, String> {
+    let act_objs: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
+    boot_schedule(dims, &act_objs, layout, placement, true, start, out, full)
+        .map_err(|e| e.to_string())
+}
+
+/// Weight bootstraps per update, averaged over the schedule.
+fn weight_boots_avg_of(cl: &CompactLayout, sched: &[bool]) -> f64 {
+    sched.iter().filter(|&&x| x).count() as f64 * cl.bootstraps(true) as f64
+        / sched.len().max(1) as f64
+}
+
 fn run_ni(args: &Args) -> Result<(), String> {
     let started_unix = unix_now();
     let load_start = loadavg();
@@ -2319,27 +2749,11 @@ fn run_ni(args: &Args) -> Result<(), String> {
         ((steps.len() + 1) * key_bytes) as f64 / 1e9
     );
 
-    let act_objs: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
-    // Per-update fullness of the run (all epochs): a group is full when every lane of its
-    // ciphertexts is valid (its sample count is a multiple of `lanes`), whatever the number of
-    // ciphertexts: the trainer's definition (review N1).
-    let fullness = |n: usize| -> Vec<bool> {
-        (0..args.epochs)
-            .flat_map(|_| {
-                (0..n)
-                    .step_by(args.batch)
-                    .map(move |s| ((s + args.batch).min(n) - s) % lanes == 0)
-            })
-            .collect()
-    };
+    let fullness = |n: usize| run_fullness(args, lanes, n);
     let schedule_of = |full: &[bool], start: usize, out: usize| {
-        boot_schedule(&dims, &act_objs, &layout, placement, true, start, out, full)
-            .map_err(|e| e.to_string())
+        schedule_for(&dims, &layout, placement, full, start, out)
     };
-    let weight_boots_avg = |sched: &[bool]| {
-        sched.iter().filter(|&&x| x).count() as f64 * cl.bootstraps(true) as f64
-            / sched.len().max(1) as f64
-    };
+    let weight_boots_avg = |sched: &[bool]| weight_boots_avg_of(&cl, sched);
     let ref_shift = ref_shift_rotations(&dims, &layout).map_err(|e| e.to_string())?;
     if args.plan {
         let out_level = hekit_ckks::bootstrap::levels_after_boot(&params, &bp);
@@ -2364,6 +2778,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
             &model,
             weight_boots_avg(&sched),
             boot_ks_he,
+            args.be.config,
         )?;
         let pred_ks = cost.rotations() + cost.relins();
         let pred_total = pred_ks as f64 + shift_avg + boots * boot_ks_he as f64;
@@ -2428,6 +2843,27 @@ fn run_ni(args: &Args) -> Result<(), String> {
         max / min
     });
 
+    // Task 48: on the GPU, check the device memory before any key exists.
+    let out_level = hekit_ckks::bootstrap::levels_after_boot(&params, &bp);
+    let m_layers: Vec<usize> = dims
+        .windows(2)
+        .map(|p| LayerShape::new(p[1], p[0], &layout).m)
+        .collect();
+    let mut gpu_need = mlp_gpu_need(&params, steps.len(), out_level, &m_layers, true);
+    // The compact state (weights and velocities packed for the bootstraps) next to the layers.
+    gpu_need.state += 2 * cl.containers.len() * hekit_bench::backend::ct_bytes(&params, out_level);
+    eprintln!(
+        "mnist: backend {}, {}; GPU need {} (keys for levels <= {out_level})",
+        args.be.backend.name(),
+        hekit_bench::backend::config_label(&args.be.config),
+        gpu_need.json()
+    );
+    #[cfg(feature = "cuda")]
+    let dev = match args.be.backend {
+        Backend::Cuda => Some(hekit_bench::backend::open_gpu("mnist", &params, &gpu_need)?),
+        Backend::Cpu => None,
+    };
+
     // Keys: the client generates everything, keeps the secret key, and hands the server the
     // evaluation keys only.
     let t_keys = Instant::now();
@@ -2439,11 +2875,8 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let boot_setup_s = t_keys.elapsed().as_secs_f64();
     let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
     let sk = kg.secret_key();
-    let ev = Evaluator::new(
-        Arc::clone(&params),
-        Some(kg.relin_key()),
-        Some(kg.galois_keys(&steps)),
-    );
+    let rk = kg.relin_key();
+    let gks = kg.galois_keys(&steps);
     drop(kg);
     let keygen_s = t_keys.elapsed().as_secs_f64();
     let per_boot = bs.cost_per_boot();
@@ -2454,24 +2887,207 @@ fn run_ni(args: &Args) -> Result<(), String> {
         bs.keys().bytes() as f64 / 1e9
     );
 
+    let ctx = NiCtx {
+        args,
+        params: Arc::clone(&params),
+        placement,
+        dims,
+        acts_flags,
+        d,
+        lanes,
+        micro,
+        layout,
+        keys,
+        steps: steps.len(),
+        key_bytes,
+        cl,
+        model,
+        b,
+        ref_shift,
+        train,
+        test,
+        lr_sched,
+        orders,
+        lr_ref,
+        lr_ratio_max,
+        enc,
+        encoder,
+        sk,
+        boot_setup_s,
+        keygen_s,
+        per_boot,
+        boot_ks,
+        gpu_need,
+        started_unix,
+        load_start,
+        t_all,
+    };
+    match args.be.backend {
+        Backend::Cpu => {
+            let ev =
+                Evaluator::with_config(Arc::clone(&params), Some(rk), Some(gks), args.be.config);
+            ni_train(ctx, &ev, &bs, &bs, &CpuHooks, Vec::new())
+        }
+        Backend::Cuda => {
+            #[cfg(feature = "cuda")]
+            {
+                let dev = dev.as_ref().expect("opened above");
+                let hooks = hekit_bench::backend::GpuHooks::new(dev);
+                let keys = steps
+                    .iter()
+                    .map(|&s| {
+                        gks.get(s)
+                            .ok_or_else(|| format!("no Galois key for step {s}"))
+                    })
+                    .collect::<Result<Vec<_>, String>>()?;
+                let t = Instant::now();
+                let ev = hekit_cuda::CudaEvaluator::with_keys(
+                    dev,
+                    Arc::clone(&params),
+                    Some(&rk),
+                    &keys,
+                    args.be.config,
+                    bs.output_level(),
+                )
+                .map_err(|e| e.to_string())?;
+                hooks.sync()?;
+                let upload_s = t.elapsed().as_secs_f64();
+                hooks.trim("key upload")?;
+                // Bootstrapping stays on the CPU (Task 49 is the GPU bootstrap): download,
+                // bootstrap on a host evaluator with the relinearization key, upload; the
+                // host's counts are merged into the GPU evaluator's.
+                let host = Evaluator::new(Arc::clone(&params), Some(rk), None);
+                let hb = hekit_ckks::HostBootstrapper::new(&bs, &host);
+                let facts = vec![
+                    ("device_key_level", J::I(ev.key_level() as i64)),
+                    ("device_keys", J::I(ev.num_galois_keys() as i64 + 1)),
+                    ("device_key_bytes", J::I(ev.key_bytes() as i64)),
+                    ("device_key_upload_s", J::N(upload_s)),
+                    (
+                        "bootstrap",
+                        J::S(
+                            "CPU (HostBootstrapper: download, bootstrap on the host, upload)"
+                                .into(),
+                        ),
+                    ),
+                ];
+                ni_train(ctx, &ev, &hb, &bs, &hooks, facts)
+            }
+            #[cfg(not(feature = "cuda"))]
+            {
+                drop((ctx, rk, gks));
+                Err("--backend cuda needs the `cuda` feature".into())
+            }
+        }
+    }
+}
+
+/// The host side of a non-interactive run, shared by the backends (Task 48).
+struct NiCtx<'a> {
+    args: &'a Args,
+    params: Arc<CkksParams>,
+    placement: BootPlacement,
+    dims: [usize; 3],
+    acts_flags: [bool; 2],
+    d: usize,
+    lanes: usize,
+    micro: usize,
+    layout: Layout,
+    keys: TransposeKeys,
+    steps: usize,
+    key_bytes: usize,
+    cl: CompactLayout,
+    model: NiModel,
+    b: f64,
+    ref_shift: u64,
+    train: Mnist,
+    test: Mnist,
+    lr_sched: Option<Vec<f64>>,
+    orders: Option<Vec<Vec<usize>>>,
+    lr_ref: f64,
+    lr_ratio_max: f64,
+    enc: Encryptor,
+    encoder: Encoder,
+    sk: hekit_ckks::SecretKey,
+    boot_setup_s: f64,
+    keygen_s: f64,
+    per_boot: OpCounter,
+    boot_ks: u64,
+    gpu_need: GpuNeed,
+    started_unix: f64,
+    load_start: String,
+    t_all: Instant,
+}
+
+/// The non-interactive training and its report on the evaluator `ev` of any backend (Task 48;
+/// the code of Task 41 with uploads and downloads). `bops` bootstraps `ev`'s ciphertexts (the
+/// CPU [`Bootstrapper`] itself, or [`hekit_ckks::HostBootstrapper`] around it for the GPU);
+/// `bs` is that CPU bootstrapper (its output level and per-bootstrap costs).
+fn ni_train<E: HeOps, B: BootstrapOps<E>>(
+    ctx: NiCtx<'_>,
+    ev: &E,
+    bops: &B,
+    bs: &Bootstrapper,
+    hooks: &dyn DeviceHooks,
+    backend_facts: Vec<(&str, J)>,
+) -> Result<(), String> {
+    let NiCtx {
+        args,
+        params,
+        placement,
+        dims,
+        acts_flags,
+        d,
+        lanes,
+        micro,
+        layout,
+        keys,
+        steps,
+        key_bytes,
+        cl,
+        model,
+        b,
+        ref_shift,
+        train,
+        test,
+        lr_sched,
+        orders,
+        lr_ref,
+        lr_ratio_max,
+        enc,
+        encoder,
+        sk,
+        boot_setup_s,
+        keygen_s,
+        per_boot,
+        boot_ks,
+        gpu_need,
+        started_unix,
+        load_start,
+        t_all,
+    } = ctx;
+    let e2s = |e: hekit_core::error::HekitError| e.to_string();
     // Network, compact state and twin (client side).
     let mut r = rng(args.seed, 2);
     let init = initial_net(&dims, &mut r, args)?;
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
-    let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
+    let acts: Vec<Box<dyn Activation<E>>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
     let t_enc = Instant::now();
     let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
-        &ev, &bs, &plain, acts, &layout, placement, &enc, &encoder, &mut r,
+        ev, bops, &plain, acts, &layout, placement, &enc, &encoder, &mut r,
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(e2s)?;
+    hooks.sync()?;
     let encrypt_net_s = t_enc.elapsed().as_secs_f64();
+    hooks.trim("network upload")?;
+    hooks.apply_pool_policy(args.be.pool)?;
     let optim = NiOptimizer::Nag {
         lr: lr_ref,
         momentum: args.momentum,
     };
     let lpi = levels_per_iter(&mlp, placement);
-    let mut trainer = NonInteractiveTrainer::new(&ev, &bs, optim, layout, placement, &mlp, state)
+    let mut trainer = NonInteractiveTrainer::new(ev, bops, optim, layout, placement, &mlp, state)
         .map_err(|e| e.to_string())?
         .with_transpose_keys(keys.clone())
         .with_micro_batches(micro);
@@ -2480,8 +3096,15 @@ fn run_ni(args: &Args) -> Result<(), String> {
     }
     let spec = trainer.batch_spec(&mlp).map_err(|e| e.to_string())?;
     let n = train.len();
-    let run_full = fullness(n);
-    let schedule = schedule_of(&run_full, trainer.start_level(), bs.output_level())?;
+    let run_full = run_fullness(args, lanes, n);
+    let schedule = schedule_for(
+        &dims,
+        &layout,
+        placement,
+        &run_full,
+        trainer.start_level(),
+        bs.output_level(),
+    )?;
     let (cost, terms, boots_avg) = ni_terms(
         &dims,
         &acts_flags,
@@ -2489,8 +3112,9 @@ fn run_ni(args: &Args) -> Result<(), String> {
         &keys,
         placement,
         &model,
-        weight_boots_avg(&schedule),
+        weight_boots_avg_of(&cl, &schedule),
         boot_ks,
+        args.be.config,
     )?;
     let pred_nonboot = cost.rotations() + cost.relins();
     let shift_avg = ref_shift_avg(&lr_sched, ref_shift);
@@ -2526,6 +3150,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let mut update_index = 0usize;
     let mut pred_run_ks = 0u64;
     let mut boot_s = Vec::new();
+    let mut upload_s = Vec::new();
     let t_train = Instant::now();
     for epoch in 0..args.epochs {
         let order = epoch_order(&orders, epoch, n)?;
@@ -2555,19 +3180,30 @@ fn run_ni(args: &Args) -> Result<(), String> {
             let y = y_train.select(Axis(0), &order[start..end]);
             let h = affine(&x, &twin[0]).mapv(|v| v * v + v);
             max_hidden = max_hidden.max(max_abs(h.iter().copied()));
+            let t_up = Instant::now();
+            let cts = cts
+                .into_iter()
+                .map(|(x, y, k)| Ok((ev.upload_ct_owned(x)?, ev.upload_ct_owned(y)?, k)))
+                .collect::<hekit_core::error::Result<Vec<_>>>()
+                .map_err(e2s)?;
+            upload_s.push(t_up.elapsed().as_secs_f64());
             let refs: Vec<_> = cts.iter().map(|(x, y, k)| (x, y, *k)).collect();
             let before = ev.counter();
             let t1 = Instant::now();
             trainer
                 .train_step_valid(&mut mlp, &refs)
                 .map_err(|e| format!("update at {start}: {e}"))?;
+            // The update ends with the bootstraps' uploads; wait for the device queue so the
+            // update time is the device time (no-op on the CPU).
+            hooks.sync()?;
             let secs = t1.elapsed().as_secs_f64();
             let c = &ev.counter() - &before;
             boot_s.push(trainer.bootstrap_seconds() - boot_s0);
             for (mb, outs) in trainer.last_activation_bootstraps().iter().enumerate() {
                 let (sub, nv) = (mb * lanes, refs[mb].2);
+                let host_a = ev.download_ct(&outs[0]).map_err(e2s)?;
                 let dec_a = unpack_activations(
-                    &encoder.decode(&diag_dec.decrypt(&outs[0])),
+                    &encoder.decode(&diag_dec.decrypt(&host_a)),
                     &layout,
                     args.hidden,
                 );
@@ -2596,7 +3232,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
             // the micro-batch count does) with the a-priori schedule, checked against the
             // counter and the observed bootstrap decision.
             let planned = schedule[update_index - 1];
-            let mut p = predict_update_for(
+            let mut p = predict_update_with(
                 &dims,
                 &lib_acts(&acts_flags),
                 &layout,
@@ -2605,6 +3241,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 refs.len(),
                 true,
                 planned,
+                args.be.config,
             )
             .map_err(|e| e.to_string())?;
             // A step below the reference lr takes the reference gradient's second lane shift.
@@ -2638,21 +3275,22 @@ fn run_ni(args: &Args) -> Result<(), String> {
             );
             per_update.push(c);
         }
+        hooks.trim(&format!("epoch {epoch} end"))?;
     }
     let train_s = t_train.elapsed().as_secs_f64();
 
     // Results (the client decrypts only now).
     let dec = Decryptor::new(Arc::clone(&params), sk);
-    let got: Vec<Layer> = mlp
-        .layers
-        .iter()
-        .map(|(dn, _)| Layer {
-            w: dn.w.decrypt(&dec, &encoder, &layout),
-            b: unpack_activations(&encoder.decode(&dec.decrypt(&dn.b)), &layout, dn.w.d_out())
+    let mut got = Vec::with_capacity(mlp.layers.len());
+    for (dn, _) in &mlp.layers {
+        let h = dn.download(ev).map_err(e2s)?;
+        got.push(Layer {
+            w: h.w.decrypt(&dec, &encoder, &layout),
+            b: unpack_activations(&encoder.decode(&dec.decrypt(&h.b)), &layout, h.w.d_out())
                 .row(0)
                 .to_vec(),
-        })
-        .collect();
+        });
+    }
     let w_diff: Vec<f64> = got
         .iter()
         .zip(&twin)
@@ -2707,6 +3345,21 @@ fn run_ni(args: &Args) -> Result<(), String> {
             )),
         ),
         (
+            "backend",
+            J::O(
+                [
+                    ("options", J::R(args.be.json())),
+                    ("device", J::S(hooks.describe())),
+                    ("gpu_need_estimate", J::R(gpu_need.json())),
+                    ("memory_after_trims", J::R(hooks.memory_json())),
+                ]
+                .into_iter()
+                .chain(backend_facts)
+                .map(|(k, v)| (k.to_string(), v))
+                .collect(),
+            ),
+        ),
+        (
             "setup",
             obj(vec![
                 ("params", J::S(args.params.clone())),
@@ -2725,7 +3378,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 ("micro_batches_per_update", J::I(micro as i64)),
                 ("layout_d", J::I(d as i64)),
                 ("transpose_keys", J::S(args.transpose.clone())),
-                ("training_galois_keys", J::I(steps.len() as i64)),
+                ("training_galois_keys", J::I(steps as i64)),
                 ("key_bytes_each", J::I(key_bytes as i64)),
                 ("bootstrap_key_bytes", J::I(bs.keys().bytes() as i64)),
                 ("boot_ks", J::I(boot_ks as i64)),
@@ -2777,6 +3430,13 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 (
                     "cost_model_ni_ks_per_sample_at_hekit_boot",
                     J::N(model_per_sample),
+                ),
+                ("eval_config", J::R(config_json(&args.be.config))),
+                (
+                    "closed_form_is_flag_aware",
+                    J::S("predict_update_with(EvalConfig) (Task 48); the cost model and its \
+                          corrections are those of the default flags"
+                        .into()),
                 ),
                 ("closed_form_per_update", ni_cost_json(&cost)),
                 ("bootstraps_per_update_avg", J::N(boots_avg)),
@@ -2862,6 +3522,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 ),
                 ("per_update", stats(&update_s)),
                 ("per_update_client_encrypt", stats(&client_enc_s)),
+                ("per_update_upload", stats(&upload_s)),
                 (
                     "bootstrap_time_total",
                     J::N(trainer.bootstrap_seconds()),
@@ -3016,7 +3677,14 @@ mod tests {
         let model = cost_model_interactive(&EMLP1, &[true, false], 32);
         let reuse = TransposeKeys::Reuse(mlp_key_pool(&EMLP1, &layout).unwrap());
         for (keys, ks, n_keys) in [(reuse, 633, 31), (TransposeKeys::Dedicated, 621, 45)] {
-            let (k, t) = predict(&EMLP1, &[true, false], &layout, &keys).unwrap();
+            let (k, t) = predict(
+                &EMLP1,
+                &[true, false],
+                &layout,
+                &keys,
+                &EvalConfig::default(),
+            )
+            .unwrap();
             assert_eq!(k.total(), ks);
             assert_eq!(model.total() as i64 + t.total(), ks as i64);
             assert_eq!(
@@ -3087,6 +3755,7 @@ mod tests {
                 &model,
                 4.0,
                 111,
+                EvalConfig::default(),
             )
             .unwrap();
             assert_eq!(

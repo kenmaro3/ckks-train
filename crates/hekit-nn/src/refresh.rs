@@ -103,6 +103,9 @@ pub struct ClientRefresher {
     rng: Rng,
     refreshed: u64,
     block: Option<usize>,
+    /// The level of every fresh ciphertext (`max_level` unless
+    /// [`ClientRefresher::with_output_level`] lowered it).
+    level: usize,
 }
 
 impl std::fmt::Debug for ClientRefresher {
@@ -113,6 +116,7 @@ impl std::fmt::Debug for ClientRefresher {
             .field("max_level", &self.encoder.params().max_level())
             .field("refreshed", &self.refreshed)
             .field("block", &self.block)
+            .field("level", &self.level)
             .finish()
     }
 }
@@ -121,6 +125,7 @@ impl ClientRefresher {
     /// A client with the decryptor (secret key), an encryptor and an encoder of one parameter
     /// set (share one `Arc<CkksParams>`), and its own randomness (`rng`, ChaCha20).
     pub fn new(dec: Decryptor, enc: Encryptor, encoder: Encoder, rng: Rng) -> ClientRefresher {
+        let level = encoder.params().max_level();
         ClientRefresher {
             dec,
             enc,
@@ -128,7 +133,28 @@ impl ClientRefresher {
             rng,
             refreshed: 0,
             block: None,
+            level,
         }
+    }
+
+    /// Encrypts every refreshed ciphertext on `level` instead of the top level (Task 48): a
+    /// level-capped interactive run, whose network starts on `level`
+    /// ([`crate::trainer::Mlp::encrypt_at`], [`crate::trainer::Mlp::batch_spec_at`]) so that
+    /// a device backend needs its keys only for the levels `<= level` (much smaller device
+    /// keys). The client encrypts with the same public key and parameters; a ciphertext on a
+    /// lower level is what the top-level one becomes after dropping limbs, so this changes no
+    /// security property, only how many levels a step may use ([`Refresher::output_level`]).
+    ///
+    /// Errors: `InvalidParams` for `level > max_level`.
+    pub fn with_output_level(mut self, level: usize) -> Result<ClientRefresher> {
+        let max = self.encoder.params().max_level();
+        if level > max {
+            return Err(HekitError::InvalidParams(format!(
+                "refresh level {level} above max_level {max}"
+            )));
+        }
+        self.level = level;
+        Ok(self)
     }
 
     /// [`Refresher::bind_layout`] as a builder: re-lays the canonical form of `layout` on
@@ -175,7 +201,7 @@ impl ClientRefresher {
         if let Some(bk) = self.block {
             average_blocks(&mut values, bk);
         }
-        let pt = self.encoder.encode(&values, scale, params.max_level())?;
+        let pt = self.encoder.encode(&values, scale, self.level)?;
         let fresh = self.enc.encrypt(&pt, &mut self.rng);
         self.refreshed += 1;
         Ok(fresh)
@@ -225,9 +251,10 @@ impl Refresher for ClientRefresher {
         Ok(())
     }
 
-    /// The top level, `max_level`: the client encrypts afresh.
+    /// The top level, `max_level`: the client encrypts afresh (or the level set with
+    /// [`ClientRefresher::with_output_level`]).
     fn output_level(&self) -> usize {
-        self.encoder.params().max_level()
+        self.level
     }
 }
 
@@ -345,8 +372,12 @@ impl<E: HeOps, B: BootstrapOps<E>> Refresher<E> for BootstrapRefresher<'_, E, B>
 /// trainer's [`crate::trainer::EpochLog`] and `key_switches()` include them: the totals are
 /// those of the native refresher on `E`. [`HostRefresher::new`] merges nothing (right for a
 /// [`ClientRefresher`], which performs no evaluator operation). The host evaluator must not
-/// be `E` itself (for a CPU `E`, use a [`HeOps::fork`]) and must not be used by another
-/// thread during a refresh.
+/// be `E` itself (its counts would be merged twice; for a CPU `E`, use a [`HeOps::fork`]):
+/// a refresh with `E` as its host is `InvalidParams` before any work, checked by address, as
+/// in [`hekit_ckks::HostBootstrapper`]. It must not be used by another thread during a
+/// refresh (the merged counts are the difference of its counter around the refresh). The
+/// counts are merged only after the upload of the refreshed ciphertext succeeded: a failed
+/// refresh or upload counts nothing on `E` (Task 48, Task 43 review N1/N2).
 pub struct HostRefresher<'e, E: HeOps, R: Refresher<Evaluator>> {
     ev: &'e E,
     inner: R,
@@ -397,17 +428,38 @@ impl<'e, E: HeOps, R: Refresher<Evaluator>> HostRefresher<'e, E, R> {
 }
 
 impl<E: HeOps, R: Refresher<Evaluator>> Refresher<E> for HostRefresher<'_, E, R> {
-    /// `upload(inner.refresh(download(ct)))`, merging the host evaluator's counts (if any).
+    /// `upload(inner.refresh(download(ct)))`, merging the host evaluator's counts (if any)
+    /// after the upload succeeded.
     ///
-    /// Errors: those of the transfers and of the host refresher.
+    /// Errors: `InvalidParams` when the host evaluator of [`HostRefresher::counting`] is `E`
+    /// itself (its counts would be merged twice; nothing is done); those of the transfers and
+    /// of the host refresher (nothing is counted on `E`).
     fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct> {
+        let is_self = |h: &Evaluator| {
+            std::ptr::eq(
+                self.ev as *const E as *const u8,
+                h as *const Evaluator as *const u8,
+            )
+        };
+        if self.host.is_some_and(is_self) {
+            return Err(HekitError::InvalidParams(
+                "HostRefresher: the host evaluator must not be the backend evaluator itself \
+                 (its counts would be merged twice); pass a fork"
+                    .into(),
+            ));
+        }
         let host_ct = self.ev.download_ct(ct)?;
         let before = self.host.map(Evaluator::counter);
-        let fresh = self.inner.refresh(&host_ct);
-        if let (Some(h), Some(b)) = (self.host, before) {
-            self.ev.add_counts(&(&h.counter() - &b));
+        let fresh = self.inner.refresh(&host_ct)?;
+        let delta = match (self.host, before) {
+            (Some(h), Some(b)) => Some(&h.counter() - &b),
+            _ => None,
+        };
+        let up = self.ev.upload_ct_owned(fresh)?;
+        if let Some(d) = delta {
+            self.ev.add_counts(&d);
         }
-        self.ev.upload_ct_owned(fresh?)
+        Ok(up)
     }
 
     /// The host refresher's [`Refresher::bind_layout`].
@@ -508,5 +560,236 @@ mod tests {
             );
         }
         assert_eq!(ev.counter(), before);
+    }
+
+    /// A CPU backend whose uploads fail on demand (Task 48, Task 43 review N2): every other
+    /// operation is the wrapped [`Evaluator`]'s.
+    struct FlakyUpload {
+        inner: Evaluator,
+        fail: std::cell::Cell<bool>,
+    }
+
+    impl HeOps for FlakyUpload {
+        type Ct = Ciphertext;
+        type Pt = hekit_ckks::Plaintext;
+        fn params(&self) -> &Arc<CkksParams> {
+            HeOps::params(&self.inner)
+        }
+        fn config(&self) -> &hekit_ckks::EvalConfig {
+            HeOps::config(&self.inner)
+        }
+        fn counter(&self) -> hekit_ckks::OpCounter {
+            HeOps::counter(&self.inner)
+        }
+        fn reset_counter(&self) {
+            HeOps::reset_counter(&self.inner)
+        }
+        fn add_counts(&self, counts: &hekit_ckks::OpCounter) {
+            self.inner.add_counts(counts)
+        }
+        fn fork(&self) -> FlakyUpload {
+            FlakyUpload {
+                inner: self.inner.fork(),
+                fail: std::cell::Cell::new(self.fail.get()),
+            }
+        }
+        fn has_relin_key(&self) -> bool {
+            HeOps::has_relin_key(&self.inner)
+        }
+        fn has_galois_key(&self, step: i32) -> bool {
+            HeOps::has_galois_key(&self.inner, step)
+        }
+        fn owns(&self, ct: &Ciphertext) -> bool {
+            HeOps::owns(&self.inner, ct)
+        }
+        fn upload_ct(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+            if self.fail.get() {
+                return Err(HekitError::Device("injected upload failure".into()));
+            }
+            self.inner.upload_ct(ct)
+        }
+        fn download_ct(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+            self.inner.download_ct(ct)
+        }
+        fn upload_pt(&self, pt: &hekit_ckks::Plaintext) -> Result<hekit_ckks::Plaintext> {
+            self.inner.upload_pt(pt)
+        }
+        fn add(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::add(&self.inner, a, b)
+        }
+        fn sub(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::sub(&self.inner, a, b)
+        }
+        fn negate(&self, a: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::negate(&self.inner, a)
+        }
+        fn add_plain(&self, a: &Ciphertext, p: &hekit_ckks::Plaintext) -> Result<Ciphertext> {
+            HeOps::add_plain(&self.inner, a, p)
+        }
+        fn mul_plain(&self, a: &Ciphertext, p: &hekit_ckks::Plaintext) -> Result<Ciphertext> {
+            HeOps::mul_plain(&self.inner, a, p)
+        }
+        fn mul_scalar(&self, ct: &Ciphertext, v: f64, t: f64) -> Result<Ciphertext> {
+            HeOps::mul_scalar(&self.inner, ct, v, t)
+        }
+        fn mul_plain_to_scale(
+            &self,
+            a: &Ciphertext,
+            p: &hekit_ckks::Plaintext,
+            t: f64,
+        ) -> Result<Ciphertext> {
+            HeOps::mul_plain_to_scale(&self.inner, a, p, t)
+        }
+        fn mul_no_relin(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::mul_no_relin(&self.inner, a, b)
+        }
+        fn relinearize(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::relinearize(&self.inner, ct)
+        }
+        fn mul(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::mul(&self.inner, a, b)
+        }
+        fn rescale(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::rescale(&self.inner, ct)
+        }
+        fn mod_switch_to_level(&self, ct: &Ciphertext, level: usize) -> Result<Ciphertext> {
+            HeOps::mod_switch_to_level(&self.inner, ct, level)
+        }
+        fn relabel(&self, ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
+            HeOps::relabel(&self.inner, ct, scale)
+        }
+        fn rotate(&self, ct: &Ciphertext, steps: i32) -> Result<Ciphertext> {
+            HeOps::rotate(&self.inner, ct, steps)
+        }
+        fn conjugate(&self, ct: &Ciphertext) -> Result<Ciphertext> {
+            HeOps::conjugate(&self.inner, ct)
+        }
+        fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Result<Vec<Ciphertext>> {
+            HeOps::hoisted_rotate(&self.inner, ct, steps)
+        }
+        fn matvec_plain(
+            &self,
+            diag: &hekit_ckks::Diagonals<hekit_ckks::Plaintext>,
+            x: &Ciphertext,
+        ) -> Result<Ciphertext> {
+            HeOps::matvec_plain(&self.inner, diag, x)
+        }
+        fn matvec_enc(
+            &self,
+            diag: &hekit_ckks::Diagonals<Ciphertext>,
+            x: &Ciphertext,
+        ) -> Result<Ciphertext> {
+            HeOps::matvec_enc(&self.inner, diag, x)
+        }
+    }
+
+    /// The miniature bootstrapping fixture: params, keys, a bootstrapper, an evaluator with
+    /// the relinearization key, and a level-3 ciphertext at `Delta`.
+    struct Boot {
+        params: Arc<CkksParams>,
+        bs: Bootstrapper,
+        ev: Evaluator,
+        ct: Ciphertext,
+    }
+
+    fn boot_fixture(seed: u8) -> Boot {
+        let params = Arc::new(mini());
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(seed)).unwrap();
+        let encoder = Encoder::new(Arc::clone(&params));
+        let bp = BootParams {
+            log_slots: 9,
+            ..BootParams::default_n16()
+        };
+        let bs = Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg).unwrap();
+        let ev = Evaluator::new(Arc::clone(&params), Some(kg.relin_key()), None);
+        let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
+        let mut r = rng(seed.wrapping_add(1));
+        let m: Vec<f64> = (0..params.slots())
+            .map(|_| ((r.next_u64() >> 11) as f64 * 2f64.powi(-53)) - 0.5)
+            .collect();
+        let ct = enc.encrypt(&encoder.encode(&m, params.scale(), 3).unwrap(), &mut r);
+        Boot { params, bs, ev, ct }
+    }
+
+    /// Task 48 (Task 43 review N1): `HostRefresher::counting` refuses the backend evaluator
+    /// itself as its host (its counts would be merged twice): `InvalidParams` before any work,
+    /// nothing counted. A fork as host works and merges exactly the host's delta.
+    #[test]
+    fn host_refresher_refuses_the_backend_as_host() {
+        let f = boot_fixture(31);
+        let ev = f.ev.fork();
+        let mut same = HostRefresher::counting(&ev, BootstrapRefresher::new(&f.bs, &ev), &ev);
+        let r = Refresher::<Evaluator>::refresh(&mut same, &f.ct);
+        assert!(matches!(r, Err(HekitError::InvalidParams(_))), "{r:?}");
+        assert_eq!(ev.counter(), hekit_ckks::OpCounter::default());
+
+        let host = ev.fork();
+        let mut ok = HostRefresher::counting(&ev, BootstrapRefresher::new(&f.bs, &host), &host);
+        let out = Refresher::<Evaluator>::refresh(&mut ok, &f.ct).unwrap();
+        assert_eq!(out.level(), f.bs.output_level());
+        assert_eq!(ev.counter(), host.counter());
+        assert_eq!(ev.counter().bootstraps, 1);
+    }
+
+    /// Task 48 (Task 43 review N2): the host's counts are merged only after the upload of the
+    /// refreshed ciphertext succeeded; a failed upload counts nothing on the backend.
+    #[test]
+    fn host_refresher_merges_counts_only_after_the_upload() {
+        let f = boot_fixture(41);
+        let w = FlakyUpload {
+            inner: f.ev.fork(),
+            fail: std::cell::Cell::new(true),
+        };
+        let host = f.ev.fork();
+        let mut rf = HostRefresher::counting(&w, BootstrapRefresher::new(&f.bs, &host), &host);
+        let r = rf.refresh(&f.ct);
+        assert!(matches!(r, Err(HekitError::Device(_))), "{r:?}");
+        assert_eq!(w.counter(), hekit_ckks::OpCounter::default());
+        assert_eq!(host.counter().bootstraps, 1, "the host did the work");
+        w.fail.set(false);
+        let before = host.counter();
+        let out = rf.refresh(&f.ct).unwrap();
+        assert_eq!(w.counter(), &host.counter() - &before);
+        assert_eq!(w.counter().bootstraps, 1);
+        assert_eq!(
+            (out.level(), out.scale()),
+            (f.bs.output_level(), f.ct.scale())
+        );
+        assert_eq!(f.params.slots(), 512);
+    }
+
+    /// Task 48: a client refresh on a chosen output level (level-capped interactive runs):
+    /// the fresh ciphertext lands on that level at the exact input scale, with the message;
+    /// a level above `max_level` is refused.
+    #[test]
+    fn client_refresher_on_a_lower_output_level() {
+        let params = Arc::new(mini());
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(51)).unwrap();
+        let encoder = Encoder::new(Arc::clone(&params));
+        let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
+        let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
+        let client = || {
+            ClientRefresher::new(
+                dec.clone(),
+                enc.clone(),
+                Encoder::new(Arc::clone(&params)),
+                rng(52),
+            )
+        };
+        assert!(matches!(
+            client().with_output_level(params.max_level() + 1),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let mut rf = client().with_output_level(5).unwrap();
+        assert_eq!(rf.output_level(), 5);
+        assert_eq!(client().output_level(), params.max_level());
+        let mut r = rng(53);
+        let m: Vec<f64> = (0..params.slots()).map(|i| (i % 7) as f64 / 8.0).collect();
+        let scale = params.scale() * (1.0 + 2f64.powi(-12));
+        let ct = enc.encrypt(&encoder.encode(&m, scale, 1).unwrap(), &mut r);
+        let out = rf.refresh(&ct).unwrap();
+        assert_eq!((out.level(), out.scale()), (5, scale));
+        let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
+        assert!(bits >= 20.0, "{bits}");
     }
 }

@@ -52,23 +52,42 @@
 //!   `--batch` samples, timed as client encryption of `(x, y)`, server step (everything but the
 //!   refresh) and client refresh; output `results/iris_<B>_timing.json`.
 //!
+//! # Backends and ablation flags (Task 48)
+//!
+//! `--backend cpu|cuda`, `--no-hoist --no-bsgs --no-lazy-relin`, `--matvec sequential`,
+//! `--gpu-pool default|after-keys` and `--top-level L` (interactive) as in
+//! `hekit_bench::backend`. On the GPU the client refresh runs behind `HostRefresher` and the
+//! non-interactive bootstraps behind `HostBootstrapper` (CPU bootstrapping); `trim_pool(0)`
+//! runs after the key and network uploads and at every epoch boundary. The GPU memory need is
+//! checked after key generation (a skip exits with code 3). Without these options the CPU run
+//! is unchanged (same random streams, bit-identical results). The timing mode's server time
+//! includes the wait for the device queue (`SyncedRefresher`).
+//!
 //! Usage: `iris [--epochs 400] [--batch 20] [--preset seal_2020] [--seed 2020] [--lr 0.1]
 //! [--optimizer sgd|nag] [--momentum 0.9] [--time-iters K] [--warmup W] [--out PATH]
-//! [--data PATH] [--split PATH]`.
+//! [--data PATH] [--split PATH] [--backend cpu|cuda] [--no-hoist] [--no-bsgs]
+//! [--no-lazy-relin] [--top-level L]`.
 
 use std::fmt::Write as _;
 use std::sync::Arc;
 use std::time::Instant;
 
+use hekit_bench::backend::{
+    Backend, BackendOpts, CpuHooks, DeviceHooks, SKIP_EXIT_CODE, SKIP_PREFIX, SyncedRefresher,
+    config_label, mlp_gpu_need,
+};
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
-use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
-use hekit_core::error::Result;
+use hekit_ckks::{
+    BootstrapOps, CkksParams, Decryptor, Encoder, Encryptor, Evaluator, GaloisKeys, HeOps,
+    KeyGenerator, OpCounter, RelinKey,
+};
+use hekit_core::error::{HekitError, Result};
 use hekit_core::sampler::Rng;
 use hekit_nn::activation::{Activation, Square};
 use hekit_nn::dense::TransposeKeys;
-use hekit_nn::layout::{Layout, unpack_activations};
+use hekit_nn::layout::{LayerShape, Layout, unpack_activations};
 use hekit_nn::optim::{Nag, Sgd};
-use hekit_nn::refresh::ClientRefresher;
+use hekit_nn::refresh::{ClientRefresher, Refresher};
 use hekit_nn::trainer::{BatchSpec, EpochLog, LayerOptimizer, Mlp, Trainer, mlp_rotation_steps};
 use hekit_nn::trainer_ni::{BootPlacement, NiOptimizer, NonInteractiveTrainer, ni_rotation_steps};
 use ndarray::{Array1, Array2, Axis};
@@ -98,6 +117,8 @@ struct Opts {
     checkpoint_every: usize,
     mode: String,
     placement: String,
+    /// Task 48: backend, ablation flags, matvec mode, GPU pool, start level.
+    be: BackendOpts,
 }
 
 impl Default for Opts {
@@ -119,6 +140,7 @@ impl Default for Opts {
             checkpoint_every: 10,
             mode: "interactive".into(),
             placement: "after_update".into(),
+            be: BackendOpts::default(),
         }
     }
 }
@@ -129,8 +151,9 @@ fn usage() -> ! {
          [--lr LR] [--optimizer sgd|nag] [--momentum MU] [--sigma SIG] [--time-iters K] \
          [--warmup W] [--out PATH] [--data PATH] [--split PATH] [--checkpoint-every E] \
          [--mode interactive|noninteractive] \
-         [--placement after_update|after_activation|when_needed] \
-         (noninteractive: --preset n16_boot | mini_boot)"
+         [--placement after_update|after_activation|when_needed] {} \
+         (noninteractive: --preset n16_boot | mini_boot)",
+        hekit_bench::backend::USAGE
     );
     std::process::exit(2)
 }
@@ -139,6 +162,14 @@ fn parse_opts() -> Opts {
     let mut o = Opts::default();
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
+        match o.be.take(&a, &mut || args.next()) {
+            Ok(true) => continue,
+            Ok(false) => {}
+            Err(e) => {
+                eprintln!("iris: {e}");
+                usage();
+            }
+        }
         let mut val = || args.next().unwrap_or_else(|| usage());
         fn num<T: std::str::FromStr>(s: String) -> T {
             s.parse().unwrap_or_else(|_| usage())
@@ -169,6 +200,14 @@ fn parse_opts() -> Opts {
         || placement(&o.placement).is_none()
     {
         usage();
+    }
+    if let Err(e) = o.be.validate() {
+        eprintln!("iris: {e}");
+        std::process::exit(2);
+    }
+    if o.mode == "noninteractive" && o.be.top_level.is_some() {
+        eprintln!("iris: --top-level is interactive only");
+        std::process::exit(2);
     }
     o
 }
@@ -398,14 +437,20 @@ struct Client {
     dec: Decryptor,
 }
 
+/// A device error from the backend hooks (Task 48), keeping the `SKIP` prefix.
+fn dev_err(e: String) -> HekitError {
+    HekitError::Device(e)
+}
+
 /// Copy spread of every refreshed vector (weight diagonals and biases): each is meant to be
 /// the same in every lane and every replicated block, so the max deviation from its lane-0,
 /// block-0 value over the other lanes (`lane`) and the other blocks (`block`) measures how far
-/// the redundant copies have drifted apart.
-fn copy_spread(c: &Client, mlp: &Mlp, layout: &Layout) -> (f64, f64) {
+/// the redundant copies have drifted apart. The network is downloaded from `ev` first.
+fn copy_spread<E: HeOps>(c: &Client, ev: &E, mlp: &Mlp<E>, layout: &Layout) -> Result<(f64, f64)> {
     let (bk, lanes) = (layout.block(), layout.batch);
     let mut spread = (0.0f64, 0.0f64);
     for (d, _) in &mlp.layers {
+        let d = d.download(ev)?;
         for ct in
             d.w.diagonals()
                 .entries()
@@ -425,28 +470,21 @@ fn copy_spread(c: &Client, mlp: &Mlp, layout: &Layout) -> (f64, f64) {
             }
         }
     }
-    spread
+    Ok(spread)
 }
 
-/// The decrypted network (logical shapes).
-fn decrypt_net(c: &Client, mlp: &Mlp, layout: &Layout) -> Net {
-    Net {
-        layers: mlp
-            .layers
-            .iter()
-            .map(|(d, _)| {
-                let w = d.w.decrypt(&c.dec, &c.encoder, layout);
-                let b = unpack_activations(
-                    &c.encoder.decode(&c.dec.decrypt(&d.b)),
-                    layout,
-                    d.w.d_out(),
-                )
-                .row(0)
-                .to_owned();
-                (w, b)
-            })
-            .collect(),
+/// The decrypted network (logical shapes), downloaded from `ev`.
+fn decrypt_net<E: HeOps>(c: &Client, ev: &E, mlp: &Mlp<E>, layout: &Layout) -> Result<Net> {
+    let mut layers = Vec::with_capacity(mlp.layers.len());
+    for (d, _) in &mlp.layers {
+        let d = d.download(ev)?;
+        let w = d.w.decrypt(&c.dec, &c.encoder, layout);
+        let b = unpack_activations(&c.encoder.decode(&c.dec.decrypt(&d.b)), layout, d.w.d_out())
+            .row(0)
+            .to_owned();
+        layers.push((w, b));
     }
+    Ok(Net { layers })
 }
 
 /// `(max |W - W'|, max |b - b'|)` over all layers.
@@ -465,11 +503,11 @@ fn net_error(a: &Net, b: &Net) -> (f64, f64) {
     e
 }
 
-fn optims(o: &Opts, lr_eff: f64) -> Vec<Box<dyn LayerOptimizer>> {
+fn optims<'e, E: HeOps + 'e>(o: &Opts, lr_eff: f64) -> Vec<Box<dyn LayerOptimizer<E> + 'e>> {
     (0..DIMS.len() - 1)
-        .map(|_| -> Box<dyn LayerOptimizer> {
+        .map(|_| -> Box<dyn LayerOptimizer<E> + 'e> {
             if o.optimizer == "nag" {
-                Box::new(Nag::new(lr_eff, o.momentum))
+                Box::new(Nag::<E::Ct>::new_for(lr_eff, o.momentum))
             } else {
                 Box::new(Sgd { lr: lr_eff })
             }
@@ -536,17 +574,27 @@ fn write_json(path: &str, body: &str) {
 // Main.
 // ---------------------------------------------------------------------------------------------
 
+/// The host side of an interactive run: the client, the evaluation keys (the backend's
+/// evaluator is built from them), the layout and the start level.
 struct Setup {
     client: Client,
-    ev: Evaluator,
+    rk: RelinKey,
+    gks: GaloisKeys,
+    /// The Galois steps (the GPU uploads exactly these keys).
+    #[cfg_attr(not(feature = "cuda"), allow(dead_code))]
+    steps: Vec<i32>,
     layout: Layout,
     keys: usize,
     keygen_seconds: f64,
     lanes: usize,
+    top: usize,
 }
 
-fn setup(o: &Opts, rng: &mut Rng) -> Setup {
+fn setup(o: &Opts, rng: &mut Rng) -> Result<Setup> {
     let params = Arc::new(preset(&o.preset));
+    let top =
+        o.be.start_level(&params)
+            .map_err(HekitError::InvalidParams)?;
     let lanes = o.batch.next_power_of_two();
     let d = DIMS
         .iter()
@@ -568,32 +616,38 @@ fn setup(o: &Opts, rng: &mut Rng) -> Setup {
         params: Arc::clone(&params),
     };
     eprintln!(
-        "# preset {} (N = 2^{}, max_level {}), layout d = {d}, B = {lanes}, {} Galois keys \
-         {steps:?}, keygen {keygen_seconds:.1} s",
+        "# preset {} (N = 2^{}, max_level {}, start level {top}), layout d = {d}, B = {lanes}, \
+         {} Galois keys {steps:?}, keygen {keygen_seconds:.1} s; backend {}, {}",
         o.preset,
         params.n().trailing_zeros(),
         params.max_level(),
-        steps.len()
+        steps.len(),
+        o.be.backend.name(),
+        config_label(&o.be.config)
     );
-    Setup {
-        ev: Evaluator::new(Arc::clone(&params), Some(rk), Some(gks)),
+    Ok(Setup {
         client,
+        rk,
+        gks,
         layout,
         keys: steps.len(),
+        steps,
         keygen_seconds,
         lanes,
-    }
+        top,
+    })
 }
 
-fn config_json(o: &Opts, s: &Setup, lr_eff: f64, data: &Data) -> String {
+fn config_json(o: &Opts, s: &Setup, lr_eff: f64, data: &Data, hooks: &dyn DeviceHooks) -> String {
     format!(
         "{{\"network\": \"4-10-3\", \"activation\": \"square\", \"loss\": \"mse_mean_over_outputs\", \
          \"optimizer\": {}, \"lr\": {}, \"lr_eff\": {}, \"momentum\": {}, \"batch\": {}, \
          \"lanes\": {}, \"layout_d\": {}, \"padded_dims\": [4, 16, 4], \"epochs\": {}, \
          \"seed\": {}, \"init\": \"N(0, {}^2) ChaCha20\", \"preset\": {}, \"n\": {}, \
-         \"max_level\": {}, \"galois_keys\": {}, \"keygen_seconds\": {}, \"train\": {}, \
-         \"test\": {}, \"split\": \"spikes/seal-2020 split_80_20 seed 2020\", \
-         \"preprocessing\": \"z-score, training-set mean and population sd\"}}",
+         \"max_level\": {}, \"start_level\": {}, \"galois_keys\": {}, \"keygen_seconds\": {}, \
+         \"train\": {}, \"test\": {}, \"split\": \"spikes/seal-2020 split_80_20 seed 2020\", \
+         \"preprocessing\": \"z-score, training-set mean and population sd\", \
+         \"backend\": {}, \"device\": {}, \"memory_after_trims\": {}}}",
         jstr(&o.optimizer),
         o.lr,
         lr_eff,
@@ -608,61 +662,168 @@ fn config_json(o: &Opts, s: &Setup, lr_eff: f64, data: &Data) -> String {
         jstr(&o.preset),
         s.client.params.n(),
         s.client.params.max_level(),
+        s.top,
         s.keys,
         jnum(s.keygen_seconds),
         data.train.len(),
-        data.test.len()
+        data.test.len(),
+        o.be.json(),
+        jstr(&hooks.describe()),
+        hooks.memory_json()
     )
 }
 
-fn main() -> Result<()> {
+/// The random streams of an interactive run (forked from the master seed in this order,
+/// then the client refresh's).
+struct Rngs {
+    init: Rng,
+    shuffle: Rng,
+    enc: Rng,
+}
+
+fn main() {
     let o = parse_opts();
     let data = load(&o);
-    if o.mode == "noninteractive" {
-        return run_ni(&o, &data);
+    let r = if o.mode == "noninteractive" {
+        run_ni(&o, &data)
+    } else {
+        run_interactive(&o, &data)
+    };
+    match r {
+        Ok(()) => {}
+        // A GPU run that does not fit the free device memory is a skip, not a failure.
+        Err(HekitError::Device(m)) if m.starts_with(SKIP_PREFIX) => {
+            eprintln!("{m}");
+            std::process::exit(SKIP_EXIT_CODE);
+        }
+        Err(e) => {
+            eprintln!("iris: {e}");
+            std::process::exit(1);
+        }
     }
+}
+
+/// The interactive run (Task 31) on the chosen backend (Task 48).
+fn run_interactive(o: &Opts, data: &Data) -> Result<()> {
     let mut seed = [0u8; 32];
     seed[..8].copy_from_slice(&o.seed.to_le_bytes());
     let mut master = Rng::from_seed(seed);
-    let mut init_rng = master.fork();
-    let mut shuffle_rng = master.fork();
-    let mut enc_rng = master.fork();
+    let rngs = Rngs {
+        init: master.fork(),
+        shuffle: master.fork(),
+        enc: master.fork(),
+    };
     let refresh_rng = master.fork();
-
     let load_start = load_avg();
-    let s = setup(&o, &mut master);
+    let s = setup(o, &mut master)?;
+    let params = Arc::clone(&s.client.params);
+    let m: Vec<usize> = DIMS
+        .windows(2)
+        .map(|p| LayerShape::new(p[1], p[0], &s.layout).m)
+        .collect();
+    let need = mlp_gpu_need(&params, s.keys, s.top, &m, o.optimizer == "nag");
+    match o.be.backend {
+        Backend::Cpu => {
+            let ev = Evaluator::with_config(
+                Arc::clone(&params),
+                Some(s.rk.clone()),
+                Some(s.gks.clone()),
+                o.be.config,
+            );
+            let refresher = client_refresher(&s, refresh_rng)?;
+            interactive(o, data, &s, &ev, refresher, &CpuHooks, rngs, load_start)
+        }
+        Backend::Cuda => {
+            #[cfg(feature = "cuda")]
+            {
+                let dev =
+                    hekit_bench::backend::open_gpu("iris", &params, &need).map_err(dev_err)?;
+                let hooks = hekit_bench::backend::GpuHooks::new(&dev);
+                let keys = s
+                    .steps
+                    .iter()
+                    .map(|&st| s.gks.get(st).expect("generated"))
+                    .collect::<Vec<_>>();
+                let ev = hekit_cuda::CudaEvaluator::with_keys(
+                    &dev,
+                    Arc::clone(&params),
+                    Some(&s.rk),
+                    &keys,
+                    o.be.config,
+                    s.top,
+                )?;
+                hooks.trim("key upload").map_err(dev_err)?;
+                let refresher =
+                    hekit_nn::refresh::HostRefresher::new(&ev, client_refresher(&s, refresh_rng)?);
+                interactive(o, data, &s, &ev, refresher, &hooks, rngs, load_start)
+            }
+            #[cfg(not(feature = "cuda"))]
+            {
+                let _ = (need, rngs, load_start, refresh_rng);
+                Err(HekitError::InvalidParams(
+                    "--backend cuda needs the `cuda` feature".into(),
+                ))
+            }
+        }
+    }
+}
+
+/// The client refresh on the start level, re-laying the replicated blocks.
+fn client_refresher(s: &Setup, rng: Rng) -> Result<ClientRefresher> {
+    let c = &s.client;
+    ClientRefresher::new(
+        c.dec.clone(),
+        c.enc.clone(),
+        Encoder::new(Arc::clone(&c.params)),
+        rng,
+    )
+    .with_layout(s.layout)?
+    .with_output_level(s.top)
+}
+
+/// The interactive training (or timing) on the evaluator `ev` of any backend: the Task 31
+/// run with uploads and downloads, the pool trimmed after the network upload and at every
+/// epoch boundary, and the device synced before every refresh ([`SyncedRefresher`]).
+#[allow(clippy::too_many_arguments)]
+fn interactive<'e, E: HeOps + 'e, R: Refresher<E> + 'e>(
+    o: &Opts,
+    data: &Data,
+    s: &Setup,
+    ev: &'e E,
+    refresher: R,
+    hooks: &'e dyn DeviceHooks,
+    mut rngs: Rngs,
+    load_start: String,
+) -> Result<()> {
     let c = &s.client;
     let lr_eff = o.lr * 2.0 / CLASSES as f64;
 
-    let twin0 = Net::init(&mut init_rng, o.sigma);
+    let twin0 = Net::init(&mut rngs.init, o.sigma);
     let plain: Vec<(Array2<f64>, Vec<f64>)> = twin0
         .layers
         .iter()
         .map(|(w, b)| (w.clone(), b.to_vec()))
         .collect();
-    let acts: Vec<Box<dyn Activation>> = vec![Box::new(Square), Box::new(Square)];
-    let mut mlp = Mlp::encrypt(
-        &s.ev,
+    let acts: Vec<Box<dyn Activation<E>>> = vec![Box::new(Square), Box::new(Square)];
+    let mut mlp = Mlp::encrypt_at(
+        ev,
         &plain,
         acts,
         &s.layout,
+        s.top,
         &c.enc,
         &c.encoder,
-        &mut enc_rng,
+        &mut rngs.enc,
     )?;
-    let spec: BatchSpec = mlp.batch_spec(&s.ev, &c.encoder)?;
-    let refresher = ClientRefresher::new(
-        c.dec.clone(),
-        c.enc.clone(),
-        Encoder::new(Arc::clone(&c.params)),
-        refresh_rng,
-    )
-    .with_layout(s.layout)?;
-    let mut trainer = Trainer::new(&s.ev, Box::new(refresher), optims(&o, lr_eff), s.layout)?;
+    let spec: BatchSpec = mlp.batch_spec_at(ev, &c.encoder, s.top)?;
+    hooks.trim("network upload").map_err(dev_err)?;
+    hooks.apply_pool_policy(o.be.pool).map_err(dev_err)?;
+    let (synced, wait) = SyncedRefresher::new(refresher, hooks);
+    let mut trainer = Trainer::new(ev, Box::new(synced), optims::<E>(o, lr_eff), s.layout)?;
     let mut twin = twin0.clone();
     let x_train = rows(&data.x, &data.train);
     let x_test = rows(&data.x, &data.test);
-    let e0 = net_error(&decrypt_net(c, &mlp, &s.layout), &twin);
+    let e0 = net_error(&decrypt_net(c, ev, &mlp, &s.layout)?, &twin);
     eprintln!(
         "# init: encrypted vs twin W 2^{:.1}, b 2^{:.1}; x at level {}, y at level {}",
         e0.0.log2(),
@@ -674,15 +835,17 @@ fn main() -> Result<()> {
     let wall = Instant::now();
     let body = if o.time_iters > 0 {
         timing(
-            &o,
-            &s,
-            &data,
+            o,
+            s,
+            data,
             &spec,
+            ev,
             &mut mlp,
             &mut trainer,
             &mut twin,
-            &mut shuffle_rng,
-            &mut enc_rng,
+            &mut rngs.shuffle,
+            &mut rngs.enc,
+            &wait,
         )?
     } else {
         let mut epochs_json = Vec::new();
@@ -694,7 +857,7 @@ fn main() -> Result<()> {
             .unwrap_or_else(|| format!("results/iris_{}.json", o.batch));
         let mut summary = String::new();
         for epoch in 0..o.epochs {
-            shuffle(&mut order, &mut shuffle_rng);
+            shuffle(&mut order, &mut rngs.shuffle);
             let t_enc = Instant::now();
             let mut batches = Vec::new();
             let mut plain_batches = Vec::new();
@@ -702,17 +865,23 @@ fn main() -> Result<()> {
                 let xb = rows(&data.x, chunk);
                 let yb = onehot(&data.labels, chunk);
                 let (xc, yc) =
-                    spec.encrypt(&c.enc, &c.encoder, &s.layout, &xb, &yb, &mut enc_rng)?;
-                batches.push((xc, yc, chunk.len()));
+                    spec.encrypt(&c.enc, &c.encoder, &s.layout, &xb, &yb, &mut rngs.enc)?;
+                batches.push((
+                    ev.upload_ct_owned(xc)?,
+                    ev.upload_ct_owned(yc)?,
+                    chunk.len(),
+                ));
                 plain_batches.push((xb, yb));
             }
             let enc_seconds = t_enc.elapsed().as_secs_f64();
             let log: EpochLog = trainer.train_epoch_valid(&mut mlp, &batches)?;
+            drop(batches);
+            hooks.trim(&format!("epoch {epoch} end")).map_err(dev_err)?;
             for (xb, yb) in &plain_batches {
                 twin.sgd_step(xb, yb, o.lr);
             }
-            let he = decrypt_net(c, &mlp, &s.layout);
-            let (spread_lane, spread_block) = copy_spread(c, &mlp, &s.layout);
+            let he = decrypt_net(c, ev, &mlp, &s.layout)?;
+            let (spread_lane, spread_block) = copy_spread(c, ev, &mlp, &s.layout)?;
             eprintln!(
                 "  copies: lane spread 2^{:.1}, block spread 2^{:.1}",
                 spread_lane.log2(),
@@ -787,14 +956,14 @@ fn main() -> Result<()> {
             if !last && o.checkpoint_every > 0 && (epoch + 1) % o.checkpoint_every == 0 {
                 write_json(
                     &out,
-                    &train_json(&o, &s, lr_eff, &data, &summary, &trainer, &epochs_json),
+                    &train_json(o, s, lr_eff, data, &summary, &trainer, &epochs_json, hooks),
                 );
             }
             if diverged {
                 break;
             }
         }
-        let body = train_json(&o, &s, lr_eff, &data, &summary, &trainer, &epochs_json);
+        let body = train_json(o, s, lr_eff, data, &summary, &trainer, &epochs_json, hooks);
         write_json(&out, &body);
         eprintln!("# wrote {out}; wall {:.0} s", wall.elapsed().as_secs_f64());
         return Ok(());
@@ -806,7 +975,7 @@ fn main() -> Result<()> {
     let full = format!(
         "{{\"task\": \"31\", \"mode\": \"timing\", \"config\": {}, \"load_start\": {}, \
          \"load_end\": {}, {body}, \"trace\": {}}}\n",
-        config_json(&o, &s, lr_eff, &data),
+        config_json(o, s, lr_eff, data, hooks),
         jstr(&load_start),
         jstr(&load_avg()),
         trace_json(&trainer)
@@ -816,25 +985,27 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn train_json(
+#[allow(clippy::too_many_arguments)]
+fn train_json<E: HeOps>(
     o: &Opts,
     s: &Setup,
     lr_eff: f64,
     data: &Data,
     summary: &str,
-    trainer: &Trainer<'_>,
+    trainer: &Trainer<'_, E>,
     epochs: &[String],
+    hooks: &dyn DeviceHooks,
 ) -> String {
     format!(
         "{{\"task\": \"31\", \"mode\": \"train\", \"config\": {}, {summary}, \"trace\": {}, \
          \"epochs\": [\n  {}\n]}}\n",
-        config_json(o, s, lr_eff, data),
+        config_json(o, s, lr_eff, data, hooks),
         trace_json(trainer),
         epochs.join(",\n  ")
     )
 }
 
-fn trace_json(t: &Trainer<'_>) -> String {
+fn trace_json<E: HeOps>(t: &Trainer<'_, E>) -> String {
     let items: Vec<String> = t
         .trace()
         .iter()
@@ -850,18 +1021,22 @@ fn mean_sd(v: &[f64]) -> (f64, f64) {
     (mu, var.sqrt())
 }
 
-/// `warmup + time_iters` single iterations; returns the JSON fields.
+/// `warmup + time_iters` single iterations; returns the JSON fields. The server time is the
+/// trainer's time without its refreshes plus the wait for the device queue at the first
+/// refresh (`wait`, zero on the CPU); the refresh time is the host refresh.
 #[allow(clippy::too_many_arguments)]
-fn timing(
+fn timing<E: HeOps>(
     o: &Opts,
     s: &Setup,
     data: &Data,
     spec: &BatchSpec,
-    mlp: &mut Mlp,
-    trainer: &mut Trainer<'_>,
+    ev: &E,
+    mlp: &mut Mlp<E>,
+    trainer: &mut Trainer<'_, E>,
     twin: &mut Net,
     shuffle_rng: &mut Rng,
     enc_rng: &mut Rng,
+    wait: &std::cell::Cell<f64>,
 ) -> Result<String> {
     let c = &s.client;
     let mut order = data.train.clone();
@@ -879,17 +1054,20 @@ fn timing(
         let yb = onehot(&data.labels, &idx);
         let t0 = Instant::now();
         let (xc, yc) = spec.encrypt(&c.enc, &c.encoder, &s.layout, &xb, &yb, enc_rng)?;
+        let (xc, yc) = (ev.upload_ct_owned(xc)?, ev.upload_ct_owned(yc)?);
         let enc = t0.elapsed().as_secs_f64();
+        let w0 = wait.get();
         let log = trainer.train_epoch_valid(mlp, &[(xc, yc, idx.len())])?;
+        let w = wait.get() - w0;
         twin.sgd_step(&xb, &yb, o.lr);
-        let (ew, eb) = net_error(&decrypt_net(c, mlp, &s.layout), twin);
+        let (ew, eb) = net_error(&decrypt_net(c, ev, mlp, &s.layout)?, twin);
         max_err = max_err.max(ew.max(eb));
-        let server = log.seconds - log.refresh_seconds;
+        let server = log.seconds - log.refresh_seconds + w;
+        let refresh = log.refresh_seconds - w;
         eprintln!(
-            "iter {it:2}{} enc {enc:.4}s server {server:.4}s refresh {:.4}s ({} cts) | \
+            "iter {it:2}{} enc {enc:.4}s server {server:.4}s refresh {refresh:.4}s ({} cts) | \
              err W 2^{:.1} b 2^{:.1} | {:?}",
             if it < o.warmup { " (warm-up)" } else { "" },
-            log.refresh_seconds,
             log.refreshes,
             ew.log2(),
             eb.log2(),
@@ -902,7 +1080,7 @@ fn timing(
             it < o.warmup,
             jnum(enc),
             jnum(server),
-            jnum(log.refresh_seconds),
+            jnum(refresh),
             log.refreshes,
             jnum(ew),
             jnum(eb)
@@ -910,7 +1088,7 @@ fn timing(
         if it >= o.warmup {
             enc_t.push(enc);
             server_t.push(server);
-            refresh_t.push(log.refresh_seconds);
+            refresh_t.push(refresh);
             total_t.push(enc + log.seconds);
             counter = log.counter;
         }
@@ -956,19 +1134,39 @@ fn timing(
 // Task 41: non-interactive mode (bootstrapping, no client in the loop).
 // ---------------------------------------------------------------------------------------------
 
+/// The host side of a non-interactive run (Task 48: shared by the backends).
+struct NiSetup {
+    pl: BootPlacement,
+    params: Arc<CkksParams>,
+    layout: Layout,
+    lanes: usize,
+    steps: usize,
+    keygen_seconds: f64,
+    c: Client,
+    init_rng: Rng,
+    shuffle_rng: Rng,
+    enc_rng: Rng,
+    load_start: String,
+}
+
 /// The training run of `main` without a client: [`NonInteractiveTrainer`] with a
 /// [`Bootstrapper`] on `--preset n16_boot` (or the insecure `mini_boot`), the same data, split,
 /// initialisation, batches and plaintext twin. Per epoch: the twin error, losses and accuracies,
 /// key switches per sample (bootstraps included) and bootstraps. The secret key is used only
 /// after each epoch, for the evaluation.
+///
+/// Task 48: on `--backend cuda` the level operations run on the GPU and every bootstrap on the
+/// CPU ([`hekit_ckks::HostBootstrapper`]: download, bootstrap, upload; its counts are merged
+/// into the GPU evaluator's). The GPU memory is checked after key generation (iris's keys are
+/// generated before the need is known).
 fn run_ni(o: &Opts, data: &Data) -> Result<()> {
     let pl = placement(&o.placement).expect("checked");
     let mut seed = [0u8; 32];
     seed[..8].copy_from_slice(&o.seed.to_le_bytes());
     let mut master = Rng::from_seed(seed);
-    let mut init_rng = master.fork();
-    let mut shuffle_rng = master.fork();
-    let mut enc_rng = master.fork();
+    let init_rng = master.fork();
+    let shuffle_rng = master.fork();
+    let enc_rng = master.fork();
     let load_start = load_avg();
     let params = Arc::new(preset(&o.preset));
     let d = DIMS
@@ -994,11 +1192,8 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         ..BootParams::default_n16()
     };
     let bs = Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg)?;
-    let ev = Evaluator::new(
-        Arc::clone(&params),
-        Some(kg.relin_key()),
-        Some(kg.galois_keys(&steps)),
-    );
+    let rk = kg.relin_key();
+    let gks = kg.galois_keys(&steps);
     let c = Client {
         encoder: Encoder::new(Arc::clone(&params)),
         enc: Encryptor::new(Arc::clone(&params), kg.public_key()),
@@ -1007,6 +1202,89 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
     };
     drop(kg);
     let keygen_seconds = t0.elapsed().as_secs_f64();
+    let ns = NiSetup {
+        pl,
+        params: Arc::clone(&params),
+        layout,
+        lanes,
+        steps: steps.len(),
+        keygen_seconds,
+        c,
+        init_rng,
+        shuffle_rng,
+        enc_rng,
+        load_start,
+    };
+    match o.be.backend {
+        Backend::Cpu => {
+            let ev = Evaluator::with_config(Arc::clone(&params), Some(rk), Some(gks), o.be.config);
+            ni_body(o, data, ns, &ev, &bs, &bs, &CpuHooks)
+        }
+        Backend::Cuda => {
+            #[cfg(feature = "cuda")]
+            {
+                let out_level = bs.output_level();
+                let m: Vec<usize> = DIMS
+                    .windows(2)
+                    .map(|p| LayerShape::new(p[1], p[0], &layout).m)
+                    .collect();
+                let need = mlp_gpu_need(&params, steps.len(), out_level, &m, o.optimizer == "nag");
+                let dev =
+                    hekit_bench::backend::open_gpu("iris", &params, &need).map_err(dev_err)?;
+                let hooks = hekit_bench::backend::GpuHooks::new(&dev);
+                let keys = steps
+                    .iter()
+                    .map(|&st| gks.get(st).expect("generated"))
+                    .collect::<Vec<_>>();
+                let ev = hekit_cuda::CudaEvaluator::with_keys(
+                    &dev,
+                    Arc::clone(&params),
+                    Some(&rk),
+                    &keys,
+                    o.be.config,
+                    out_level,
+                )?;
+                hooks.trim("key upload").map_err(dev_err)?;
+                let host = Evaluator::new(Arc::clone(&params), Some(rk), None);
+                let hb = hekit_ckks::HostBootstrapper::new(&bs, &host);
+                ni_body(o, data, ns, &ev, &hb, &bs, &hooks)
+            }
+            #[cfg(not(feature = "cuda"))]
+            {
+                let _ = (ns, rk, gks);
+                Err(HekitError::InvalidParams(
+                    "--backend cuda needs the `cuda` feature".into(),
+                ))
+            }
+        }
+    }
+}
+
+/// The non-interactive training on the evaluator `ev` of any backend; `bops` bootstraps its
+/// ciphertexts (the CPU [`Bootstrapper`] itself, or [`hekit_ckks::HostBootstrapper`] for the
+/// GPU), `bs` is that CPU bootstrapper (for its key-switch count).
+fn ni_body<E: HeOps, B: BootstrapOps<E>>(
+    o: &Opts,
+    data: &Data,
+    ns: NiSetup,
+    ev: &E,
+    bops: &B,
+    bs: &Bootstrapper,
+    hooks: &dyn DeviceHooks,
+) -> Result<()> {
+    let NiSetup {
+        pl,
+        params,
+        layout,
+        lanes,
+        steps,
+        keygen_seconds,
+        c,
+        mut init_rng,
+        mut shuffle_rng,
+        mut enc_rng,
+        load_start,
+    } = ns;
     let lr_eff = o.lr * 2.0 / CLASSES as f64;
     let optim = if o.optimizer == "nag" {
         NiOptimizer::Nag {
@@ -1022,10 +1300,10 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         .iter()
         .map(|(w, b)| (w.clone(), b.to_vec()))
         .collect();
-    let acts: Vec<Box<dyn Activation>> = vec![Box::new(Square), Box::new(Square)];
+    let acts: Vec<Box<dyn Activation<E>>> = vec![Box::new(Square), Box::new(Square)];
     let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
-        &ev,
-        &bs,
+        ev,
+        bops,
         &plain,
         acts,
         &layout,
@@ -1034,18 +1312,22 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         &c.encoder,
         &mut enc_rng,
     )?;
+    hooks.trim("network upload").map_err(dev_err)?;
+    hooks.apply_pool_policy(o.be.pool).map_err(dev_err)?;
     // The server side: evaluation keys and the bootstrapper only.
-    let mut trainer = NonInteractiveTrainer::new(&ev, &bs, optim, layout, pl, &mlp, state)?;
+    let mut trainer = NonInteractiveTrainer::new(ev, bops, optim, layout, pl, &mlp, state)?;
     let spec = trainer.batch_spec(&mlp)?;
     eprintln!(
-        "# non-interactive {} on {} (N = 2^{}), layout d = {d}, B = {lanes}, {} Galois keys + \
-         bootstrap keys, keygen {keygen_seconds:.1} s, {} levels per step of {}",
+        "# non-interactive {} on {} (N = 2^{}), layout d = {}, B = {lanes}, {steps} Galois keys + \
+         bootstrap keys, keygen {keygen_seconds:.1} s, {} levels per step of {}; backend {}, {}",
         pl.name(),
         o.preset,
         params.n().trailing_zeros(),
-        steps.len(),
+        layout.d,
         trainer.levels_per_iter(),
-        trainer.start_level()
+        trainer.start_level(),
+        o.be.backend.name(),
+        config_label(&o.be.config)
     );
     let mut twin = twin0.clone();
     let x_train = rows(&data.x, &data.train);
@@ -1061,7 +1343,11 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             let xb = rows(&data.x, chunk);
             let yb = onehot(&data.labels, chunk);
             let (xc, yc) = spec.encrypt(&c.enc, &c.encoder, &layout, &xb, &yb, &mut enc_rng)?;
-            batches.push((xc, yc, chunk.len()));
+            batches.push((
+                ev.upload_ct_owned(xc)?,
+                ev.upload_ct_owned(yc)?,
+                chunk.len(),
+            ));
             plain_batches.push((xb, yb));
         }
         let before = ev.counter();
@@ -1076,13 +1362,14 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             trainer.set_next_batch_full(batches.get(i + 1).map(|b| b.2 == lanes));
             let t_b = Instant::now();
             trainer.train_batch_valid(&mut mlp, xc, yc, *n)?;
+            hooks.sync().map_err(dev_err)?;
             secs += t_b.elapsed().as_secs_f64();
             // Against the SGD twin only when training with SGD: under NAG the twin's
             // activations differ by the optimizer, not the bootstrap (review N4).
             let first = trainer.last_activation_bootstraps().first();
             if let Some(outs) = first.filter(|_| o.optimizer == "sgd") {
                 let a = unpack_activations(
-                    &c.encoder.decode(&c.dec.decrypt(&outs[0])),
+                    &c.encoder.decode(&c.dec.decrypt(&ev.download_ct(&outs[0])?)),
                     &layout,
                     DIMS[1],
                 );
@@ -1094,8 +1381,10 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             }
             twin.sgd_step(xb, yb, o.lr);
         }
+        drop(batches);
+        hooks.trim(&format!("epoch {epoch} end")).map_err(dev_err)?;
         let counter = &ev.counter() - &before;
-        let he = decrypt_net(&c, &mlp, &layout);
+        let he = decrypt_net(&c, ev, &mlp, &layout)?;
         let (err_w, err_b) = net_error(&he, &twin);
         let (tr_loss, tr_acc) = metrics(&he.predict(&x_train), &data.labels, &data.train);
         let (te_loss, te_acc) = metrics(&he.predict(&x_test), &data.labels, &data.test);
@@ -1144,8 +1433,9 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
              activations decrypted by the client after each update against the twin's; inputs \
              above 1 violate the bootstrap's |m| <= 1 precondition and are not clipped; the error is null \
              under --optimizer nag (the SGD twin's activations differ by the optimizer)\", \
-             \"levels_per_iter\": {}, \"galois_keys\": {}, \"boot_ks\": {}, \"load_start\": {}, \
-             \"load_end\": {}, \"wall_seconds\": {}, \"epochs\": [\n  {}\n]}}\n",
+             \"levels_per_iter\": {}, \"galois_keys\": {steps}, \"boot_ks\": {}, \"load_start\": {}, \
+             \"load_end\": {}, \"wall_seconds\": {}, \"backend\": {}, \"device\": {}, \
+             \"bootstrap\": {}, \"memory_after_trims\": {}, \"epochs\": [\n  {}\n]}}\n",
             jstr(pl.name()),
             jstr(&o.preset),
             o.batch,
@@ -1153,11 +1443,17 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             lr_eff,
             jstr(&o.optimizer),
             trainer.levels_per_iter(),
-            steps.len(),
             bs.key_switches_per_boot(),
             jstr(&load_start),
             jstr(&load_avg()),
             jnum(wall.elapsed().as_secs_f64()),
+            o.be.json(),
+            jstr(&hooks.describe()),
+            jstr(match o.be.backend {
+                Backend::Cpu => "CPU (Bootstrapper)",
+                Backend::Cuda => "CPU (HostBootstrapper: download, bootstrap on the host, upload)",
+            }),
+            hooks.memory_json(),
             epochs_json.join(",\n  ")
         ),
     );
