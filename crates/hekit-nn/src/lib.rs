@@ -11,3 +11,4 @@ pub mod optim;
 pub mod refresh;
 pub mod sim;
 pub mod trainer;
+pub mod trainer_ni;

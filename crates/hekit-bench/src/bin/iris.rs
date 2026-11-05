@@ -60,6 +60,7 @@ use std::fmt::Write as _;
 use std::sync::Arc;
 use std::time::Instant;
 
+use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
 use hekit_core::error::Result;
 use hekit_core::sampler::Rng;
@@ -69,6 +70,7 @@ use hekit_nn::layout::{Layout, unpack_activations};
 use hekit_nn::optim::{Nag, Sgd};
 use hekit_nn::refresh::ClientRefresher;
 use hekit_nn::trainer::{BatchSpec, EpochLog, LayerOptimizer, Mlp, Trainer, mlp_rotation_steps};
+use hekit_nn::trainer_ni::{BootPlacement, NiOptimizer, NonInteractiveTrainer, ni_rotation_steps};
 use ndarray::{Array1, Array2, Axis};
 
 const DIMS: [usize; 3] = [4, 10, 3];
@@ -94,6 +96,8 @@ struct Opts {
     data: String,
     split: String,
     checkpoint_every: usize,
+    mode: String,
+    placement: String,
 }
 
 impl Default for Opts {
@@ -113,6 +117,8 @@ impl Default for Opts {
             data: concat!(env!("CARGO_MANIFEST_DIR"), "/data/iris.csv").into(),
             split: concat!(env!("CARGO_MANIFEST_DIR"), "/data/iris_split_seed2020.txt").into(),
             checkpoint_every: 10,
+            mode: "interactive".into(),
+            placement: "after_update".into(),
         }
     }
 }
@@ -121,7 +127,10 @@ fn usage() -> ! {
     eprintln!(
         "usage: iris [--epochs E] [--batch B] [--preset seal_2020] [--seed S] \
          [--lr LR] [--optimizer sgd|nag] [--momentum MU] [--sigma SIG] [--time-iters K] \
-         [--warmup W] [--out PATH] [--data PATH] [--split PATH] [--checkpoint-every E]"
+         [--warmup W] [--out PATH] [--data PATH] [--split PATH] [--checkpoint-every E] \
+         [--mode interactive|noninteractive] \
+         [--placement after_update|after_activation|when_needed] \
+         (noninteractive: --preset n16_boot | mini_boot)"
     );
     std::process::exit(2)
 }
@@ -149,10 +158,16 @@ fn parse_opts() -> Opts {
             "--data" => o.data = val(),
             "--split" => o.split = val(),
             "--checkpoint-every" => o.checkpoint_every = num(val()),
+            "--mode" => o.mode = val(),
+            "--placement" => o.placement = val(),
             _ => usage(),
         }
     }
-    if o.batch == 0 || !matches!(o.optimizer.as_str(), "sgd" | "nag") {
+    if o.batch == 0
+        || !matches!(o.optimizer.as_str(), "sgd" | "nag")
+        || !matches!(o.mode.as_str(), "interactive" | "noninteractive")
+        || placement(&o.placement).is_none()
+    {
         usage();
     }
     o
@@ -161,10 +176,28 @@ fn parse_opts() -> Opts {
 fn preset(name: &str) -> CkksParams {
     match name {
         "seal_2020" => CkksParams::seal_2020(),
+        "n16_boot" => CkksParams::n16_boot(),
+        // Insecure (N = 2^10): n16_boot's chain in miniature, tests and smoke runs only.
+        "mini_boot" => {
+            let (q, p) = hekit_ckks::params::n16_boot_bits();
+            CkksParams::new(10, &q, &p, 42, 8).expect("mini_boot")
+        }
         _ => {
-            eprintln!("unknown preset {name} (seal_2020 is the only Iris preset)");
+            eprintln!(
+                "unknown preset {name} (seal_2020 interactive; n16_boot or mini_boot \
+                 non-interactive)"
+            );
             std::process::exit(2)
         }
+    }
+}
+
+fn placement(name: &str) -> Option<BootPlacement> {
+    match name {
+        "after_update" => Some(BootPlacement::AfterUpdate),
+        "after_activation" => Some(BootPlacement::AfterActivation),
+        "when_needed" => Some(BootPlacement::WhenNeeded),
+        _ => None,
     }
 }
 
@@ -473,9 +506,16 @@ fn jnum(v: f64) -> String {
 
 fn jcounter(c: &OpCounter) -> String {
     format!(
-        "{{\"rotations\": {}, \"relins\": {}, \"ct_ct_tensor\": {}, \"ct_pt_mults\": {}, \
-         \"rescales\": {}, \"bootstraps\": {}}}",
-        c.rotations, c.relins, c.ct_ct_tensor, c.ct_pt_mults, c.rescales, c.bootstraps
+        "{{\"rotations\": {}, \"relins\": {}, \"sse_switches\": {}, \"key_switches\": {}, \
+         \"ct_ct_tensor\": {}, \"ct_pt_mults\": {}, \"rescales\": {}, \"bootstraps\": {}}}",
+        c.rotations,
+        c.relins,
+        c.sse_switches,
+        c.key_switches(),
+        c.ct_ct_tensor,
+        c.ct_pt_mults,
+        c.rescales,
+        c.bootstraps
     )
 }
 
@@ -578,6 +618,9 @@ fn config_json(o: &Opts, s: &Setup, lr_eff: f64, data: &Data) -> String {
 fn main() -> Result<()> {
     let o = parse_opts();
     let data = load(&o);
+    if o.mode == "noninteractive" {
+        return run_ni(&o, &data);
+    }
     let mut seed = [0u8; 32];
     seed[..8].copy_from_slice(&o.seed.to_le_bytes());
     let mut master = Rng::from_seed(seed);
@@ -907,4 +950,183 @@ fn timing(
     )
     .expect("write to string");
     Ok(out)
+}
+
+// ---------------------------------------------------------------------------------------------
+// Task 41: non-interactive mode (bootstrapping, no client in the loop).
+// ---------------------------------------------------------------------------------------------
+
+/// The training run of `main` without a client: [`NonInteractiveTrainer`] with a
+/// [`Bootstrapper`] on `--preset n16_boot` (or the insecure `mini_boot`), the same data, split,
+/// initialisation, batches and plaintext twin. Per epoch: the twin error, losses and accuracies,
+/// key switches per sample (bootstraps included) and bootstraps. The secret key is used only
+/// after each epoch, for the evaluation.
+fn run_ni(o: &Opts, data: &Data) -> Result<()> {
+    let pl = placement(&o.placement).expect("checked");
+    let mut seed = [0u8; 32];
+    seed[..8].copy_from_slice(&o.seed.to_le_bytes());
+    let mut master = Rng::from_seed(seed);
+    let mut init_rng = master.fork();
+    let mut shuffle_rng = master.fork();
+    let mut enc_rng = master.fork();
+    let load_start = load_avg();
+    let params = Arc::new(preset(&o.preset));
+    let d = DIMS
+        .iter()
+        .map(|d| d.next_power_of_two())
+        .max()
+        .expect("dims");
+    let lanes = o.batch.next_power_of_two().min(params.slots() / d);
+    if lanes < o.batch {
+        eprintln!(
+            "batch {} does not fit one ciphertext of {lanes} lanes",
+            o.batch
+        );
+        std::process::exit(2);
+    }
+    let layout = Layout::new(params.slots(), d, lanes)?;
+    let steps = ni_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated)?;
+    let t0 = Instant::now();
+    let mut kg = KeyGenerator::new(Arc::clone(&params), master.fork())?;
+    let encoder = Encoder::new(Arc::clone(&params));
+    let bp = BootParams {
+        log_slots: params.slots().trailing_zeros(),
+        ..BootParams::default_n16()
+    };
+    let bs = Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg)?;
+    let ev = Evaluator::new(
+        Arc::clone(&params),
+        Some(kg.relin_key()),
+        Some(kg.galois_keys(&steps)),
+    );
+    let c = Client {
+        encoder: Encoder::new(Arc::clone(&params)),
+        enc: Encryptor::new(Arc::clone(&params), kg.public_key()),
+        dec: Decryptor::new(Arc::clone(&params), kg.secret_key()),
+        params: Arc::clone(&params),
+    };
+    drop(kg);
+    let keygen_seconds = t0.elapsed().as_secs_f64();
+    let lr_eff = o.lr * 2.0 / CLASSES as f64;
+    let optim = if o.optimizer == "nag" {
+        NiOptimizer::Nag {
+            lr: lr_eff,
+            momentum: o.momentum,
+        }
+    } else {
+        NiOptimizer::Sgd { lr: lr_eff }
+    };
+    let twin0 = Net::init(&mut init_rng, o.sigma);
+    let plain: Vec<(Array2<f64>, Vec<f64>)> = twin0
+        .layers
+        .iter()
+        .map(|(w, b)| (w.clone(), b.to_vec()))
+        .collect();
+    let acts: Vec<Box<dyn Activation>> = vec![Box::new(Square), Box::new(Square)];
+    let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
+        &ev,
+        &bs,
+        &plain,
+        acts,
+        &layout,
+        pl,
+        &c.enc,
+        &c.encoder,
+        &mut enc_rng,
+    )?;
+    // The server side: evaluation keys and the bootstrapper only.
+    let mut trainer = NonInteractiveTrainer::new(&ev, &bs, optim, layout, pl, &mlp, state)?;
+    let spec = trainer.batch_spec(&mlp)?;
+    eprintln!(
+        "# non-interactive {} on {} (N = 2^{}), layout d = {d}, B = {lanes}, {} Galois keys + \
+         bootstrap keys, keygen {keygen_seconds:.1} s, {} levels per step of {}",
+        pl.name(),
+        o.preset,
+        params.n().trailing_zeros(),
+        steps.len(),
+        trainer.levels_per_iter(),
+        trainer.start_level()
+    );
+    let mut twin = twin0.clone();
+    let x_train = rows(&data.x, &data.train);
+    let x_test = rows(&data.x, &data.test);
+    let mut order = data.train.clone();
+    let mut epochs_json = Vec::new();
+    let wall = Instant::now();
+    for epoch in 0..o.epochs {
+        shuffle(&mut order, &mut shuffle_rng);
+        let mut batches = Vec::new();
+        let mut plain_batches = Vec::new();
+        for chunk in order.chunks(o.batch) {
+            let xb = rows(&data.x, chunk);
+            let yb = onehot(&data.labels, chunk);
+            let (xc, yc) = spec.encrypt(&c.enc, &c.encoder, &layout, &xb, &yb, &mut enc_rng)?;
+            batches.push((xc, yc, chunk.len()));
+            plain_batches.push((xb, yb));
+        }
+        let before = ev.counter();
+        let t_ep = Instant::now();
+        for (xc, yc, n) in &batches {
+            trainer.train_batch_valid(&mut mlp, xc, yc, *n)?;
+        }
+        let secs = t_ep.elapsed().as_secs_f64();
+        let counter = &ev.counter() - &before;
+        for (xb, yb) in &plain_batches {
+            twin.sgd_step(xb, yb, o.lr);
+        }
+        let he = decrypt_net(&c, &mlp, &layout);
+        let (err_w, err_b) = net_error(&he, &twin);
+        let (tr_loss, tr_acc) = metrics(&he.predict(&x_train), &data.labels, &data.train);
+        let (te_loss, te_acc) = metrics(&he.predict(&x_test), &data.labels, &data.test);
+        let samples = data.train.len() as f64;
+        eprintln!(
+            "epoch {epoch:3} {secs:.1}s loss {tr_loss:.5} acc {tr_acc:.4}/{te_acc:.4} | err W \
+             2^{:.1} b 2^{:.1} | {:.1} KS/sample, {} bootstraps | wall {:.0}s",
+            err_w.log2(),
+            err_b.log2(),
+            counter.key_switches() as f64 / samples,
+            counter.bootstraps,
+            wall.elapsed().as_secs_f64()
+        );
+        epochs_json.push(format!(
+            "{{\"epoch\": {epoch}, \"seconds\": {}, \"counter\": {}, \
+             \"key_switches_per_sample\": {}, \"train_loss\": {}, \"train_acc\": {tr_acc}, \
+             \"test_loss\": {}, \"test_acc\": {te_acc}, \"weight_err\": {}, \"bias_err\": {}}}",
+            jnum(secs),
+            jcounter(&counter),
+            jnum(counter.key_switches() as f64 / samples),
+            jnum(tr_loss),
+            jnum(te_loss),
+            jnum(err_w),
+            jnum(err_b)
+        ));
+    }
+    let out = o
+        .out
+        .clone()
+        .unwrap_or_else(|| format!("results/iris_ni_{}_{}.json", pl.name(), o.batch));
+    write_json(
+        &out,
+        &format!(
+            "{{\"task\": \"41\", \"mode\": \"noninteractive\", \"placement\": {}, \"preset\": {}, \
+             \"batch\": {}, \"lanes\": {lanes}, \"lr\": {}, \"lr_eff\": {}, \"optimizer\": {}, \
+             \"levels_per_iter\": {}, \"galois_keys\": {}, \"boot_ks\": {}, \"load_start\": {}, \
+             \"load_end\": {}, \"wall_seconds\": {}, \"epochs\": [\n  {}\n]}}\n",
+            jstr(pl.name()),
+            jstr(&o.preset),
+            o.batch,
+            o.lr,
+            lr_eff,
+            jstr(&o.optimizer),
+            trainer.levels_per_iter(),
+            steps.len(),
+            bs.key_switches_per_boot(),
+            jstr(&load_start),
+            jstr(&load_avg()),
+            jnum(wall.elapsed().as_secs_f64()),
+            epochs_json.join(",\n  ")
+        ),
+    );
+    eprintln!("# wrote {out}");
+    Ok(())
 }

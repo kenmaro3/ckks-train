@@ -13,6 +13,13 @@
 //! |---|---|---|---|---|
 //! | [`compact_pack`] | `m - n_ct` | `m` | 0 | 1 |
 //! | [`compact_unpack`] | `(m - n_ct) + m log2(S / L)` | `m` | 0 | 1 |
+//! | [`compact_shift`] (pack without its mask, Task 41) | `m - n_ct` | 0 | 0 | 0 |
+//! | [`compact_extract`] (one position, e.g. a bias, Task 41) | `[o(t) != 0] + log2(S / L)` | 1 | 0 | 1 |
+//!
+//! The non-interactive trainer ([`crate::trainer_ni`], `docs/layout.md` §6.4 and §7) keeps the
+//! weights, the NAG velocity and the biases in compact form between steps: the masked,
+//! reduce-only gradient goes in by [`compact_shift`] (its batch-sum mask is the pack mask),
+//! and the weights and biases come out by [`compact_unpack`] and [`compact_extract`].
 //!
 //! # Layout of a compact ciphertext
 //!
@@ -140,7 +147,7 @@ impl CompactPlan {
     }
 
     /// The number of tree levels a ciphertext of `n` diagonals uses: `ceil(log2 n)`.
-    fn tree_bits(n: usize) -> usize {
+    pub(crate) fn tree_bits(n: usize) -> usize {
         n.next_power_of_two().trailing_zeros() as usize
     }
 
@@ -204,12 +211,10 @@ fn check_keys(ev: &Evaluator, steps: &[i32]) -> Result<()> {
     }
 }
 
-/// `mask0` (lane 0 of the first period: slots `j B`, `j < L`) encoded so that
-/// `rescale(mul_plain_to_scale(ct, mask, ct.scale()))` is exactly `ct.scale()` on
-/// `ct.level() - 1`.
-fn mask0(ev: &Evaluator, plan: &CompactPlan, ct: &Ciphertext) -> Result<Plaintext> {
+/// The values of `mask0`: 1 on lane 0 of the first period (slots `j B`, `j < L`), 0 elsewhere.
+fn mask0_values(plan: &CompactPlan) -> Vec<f64> {
     let span = plan.diag_len() * plan.batch;
-    let values: Vec<f64> = (0..plan.slots())
+    (0..plan.slots())
         .map(|s| {
             if s < span && s % plan.batch == 0 {
                 1.0
@@ -217,9 +222,15 @@ fn mask0(ev: &Evaluator, plan: &CompactPlan, ct: &Ciphertext) -> Result<Plaintex
                 0.0
             }
         })
-        .collect();
+        .collect()
+}
+
+/// `mask0` (lane 0 of the first period: slots `j B`, `j < L`) encoded so that
+/// `rescale(mul_plain_to_scale(ct, mask, ct.scale()))` is exactly `ct.scale()` on
+/// `ct.level() - 1`.
+fn mask0(ev: &Evaluator, plan: &CompactPlan, ct: &Ciphertext) -> Result<Plaintext> {
     let scale = ev.target_plain_scale(ct, ct.scale())?;
-    Encoder::new(Arc::clone(ev.params())).encode(&values, scale, ct.level())
+    Encoder::new(Arc::clone(ev.params())).encode(&mask0_values(plan), scale, ct.level())
 }
 
 /// `rescale(ct * mask)` at exactly `ct.scale()`.
@@ -243,13 +254,17 @@ fn check_input(ev: &Evaluator, ct: &Ciphertext) -> Result<()> {
 
 /// Packs the layer's `m` diagonals into [`CompactPlan::ciphertexts`] compact ciphertexts
 /// (`docs/layout.md` §6.2): per diagonal, `rescale(mul_plain_to_scale(P_c, mask0, scale))`
-/// keeps lane 0 of the first period. Then, per ciphertext, a tree over the bits of the
-/// position `t` adds the groups as `left + rot(right, -step_k)`. Ciphertext `i` holds entry
-/// `i cap + t` on slots `offset(t) + j B`, `j < L`.
+/// keeps lane 0 of the first period. Then [`compact_shift`] (per ciphertext, a tree over the
+/// bits of the position `t` adds the groups as `left + rot(right, -step_k)`). Ciphertext `i`
+/// holds entry `i cap + t` on slots `offset(t) + j B`, `j < L`.
 ///
 /// Costs `m - n_ct` rotations, `m` ct-pt products, `m` rescales and no relin. The outputs are
 /// on `w.level() - 1` with exactly `w.scale()`. Only slots `j B` (`j < L`) of each input
 /// diagonal are read.
+///
+/// When the input is already zero outside those slots (a gradient masked by the batch-sum
+/// mask, `docs/layout.md` §6.4), call [`compact_shift`] directly: the same rotations, no mask
+/// and no level.
 ///
 /// Errors, before any homomorphic work: `InvalidParams` if `w` is not the plan's layer
 /// (`d_out`, `d_in`, lanes), the plan's slot count is not the parameters', an entry is not a
@@ -280,30 +295,201 @@ pub fn compact_pack(ev: &Evaluator, w: &EncWeights, plan: &CompactPlan) -> Resul
         .try_for_each(|c| check_input(ev, c))?;
     check_keys(ev, &compact_rotation_steps(plan))?;
     let mask = mask0(ev, plan, &diags.entries()[0])?;
+    let masked = diags
+        .entries()
+        .iter()
+        .map(|p| apply_mask(ev, p, &mask))
+        .collect::<Result<Vec<_>>>()?;
+    Ok(shift_tree(ev, &masked, plan))
+}
+
+/// The mask-free half of [`compact_pack`] (`docs/layout.md` §6.4): `entries` are the layer's
+/// `m` diagonals (BSGS order) that are **already zero outside** lane 0 of the first period
+/// (slots `j B`, `j < L`; e.g. the reduce-only gradient after its batch-sum mask), and the
+/// result is the [`CompactPlan::ciphertexts`] compact ciphertexts: per ciphertext, the tree
+/// `left + rot(right, -step_k)` over the bits of the position. Ciphertext `i` holds entry
+/// `i cap + t` on slots `offset(t) + j B`.
+///
+/// Costs exactly `m - n_ct` rotations ([`CompactPlan::pack_rotations`]) and nothing else: no
+/// product, no level, no relin. The outputs keep the level and the scale of the inputs. This
+/// is the cost model's "1 lane shift per diagonal into compact ciphertexts (m - nW
+/// rotations)", whose mask is the batch-sum mask (`spikes/costmodel/costmodel.py`,
+/// `_diag_batched`, `compact=True`).
+///
+/// The precondition is not checked (it is a property of the slots): a nonzero slot outside
+/// `{j B : j < L}` lands on another position's slots and corrupts it.
+///
+/// Errors, before any homomorphic work: `InvalidParams` if there are not
+/// [`CompactPlan::diagonals`] entries, the plan's slot count is not the parameters', an entry
+/// is not a 2-component ciphertext over the evaluator's basis, or a key `-step_k` of the tree
+/// is missing; `LevelMismatch` / `ScaleMismatch` unless all entries share one level and
+/// exactly one scale.
+pub fn compact_shift(
+    ev: &Evaluator,
+    entries: &[Ciphertext],
+    plan: &CompactPlan,
+) -> Result<Vec<Ciphertext>> {
+    if entries.len() != plan.diagonals() {
+        return Err(HekitError::InvalidParams(format!(
+            "compact_shift: {} entries for a plan of {} diagonals",
+            entries.len(),
+            plan.diagonals()
+        )));
+    }
+    plan.check_layout_slots(ev.params().slots())?;
+    entries.iter().try_for_each(|c| check_input(ev, c))?;
+    check_uniform_slice(entries)?;
+    check_keys(ev, &shift_steps(plan))?;
+    Ok(shift_tree(ev, entries, plan))
+}
+
+/// The Galois steps of [`compact_shift`]: `-step_k` for `k < ceil(log2 min(m, cap))`.
+pub fn shift_steps(plan: &CompactPlan) -> Vec<i32> {
+    let bits = CompactPlan::tree_bits(plan.diagonals().min(plan.diags_per_ct));
+    plan.steps()[..bits].iter().map(|&k| -(k as i32)).collect()
+}
+
+/// `LevelMismatch` / `ScaleMismatch` unless all of `cts` share one level and one scale.
+fn check_uniform_slice(cts: &[Ciphertext]) -> Result<()> {
+    for c in cts {
+        if c.level() != cts[0].level() {
+            return Err(HekitError::LevelMismatch);
+        }
+        if c.scale() != cts[0].scale() {
+            return Err(HekitError::ScaleMismatch);
+        }
+    }
+    Ok(())
+}
+
+/// The shift tree of [`compact_shift`] on checked inputs. Rotations by `-step_k` and
+/// additions of equal level and scale cannot fail on checked inputs, so this panics instead
+/// of returning an error there.
+fn shift_tree(ev: &Evaluator, entries: &[Ciphertext], plan: &CompactPlan) -> Vec<Ciphertext> {
     let steps = plan.steps();
     let cap = plan.diags_per_ct;
     (0..plan.ciphertexts())
         .map(|i| {
             let n = plan.diagonals_in(i);
-            let mut groups = diags.entries()[i * cap..i * cap + n]
-                .iter()
-                .map(|p| apply_mask(ev, p, &mask))
-                .collect::<Result<Vec<_>>>()?;
+            let mut groups: Vec<Ciphertext> = entries[i * cap..i * cap + n].to_vec();
             // Bit k: groups[2u] (bit 0) absorbs groups[2u + 1] (bit 1) shifted right by step_k.
             for &step in steps.iter().take(CompactPlan::tree_bits(n)) {
                 let mut next = Vec::with_capacity(groups.len().div_ceil(2));
                 let mut it = groups.into_iter();
                 while let Some(left) = it.next() {
                     next.push(match it.next() {
-                        Some(right) => ev.add(&left, &ev.rotate(&right, -(step as i32))?)?,
+                        Some(right) => {
+                            let r = ev
+                                .rotate(&right, -(step as i32))
+                                .expect("checked: key present, 2 components");
+                            ev.add(&left, &r).expect("checked: equal level and scale")
+                        }
                         None => left,
                     });
                 }
                 groups = next;
             }
-            Ok(groups.pop().expect("n >= 1 diagonals per ciphertext"))
+            groups.pop().expect("n >= 1 diagonals per ciphertext")
         })
         .collect()
+}
+
+/// The slots `offset(t) + j B` (`j < L`) of position `t`, as a plaintext layout helper: the
+/// compact form of plaintext vectors. `entries[c]` is a vector of all slots whose lane-0,
+/// first-period slots `j B` (`j < L`) hold the values of entry `c` (e.g.
+/// [`crate::layout::pack_weight_diagonals`]); the result is the
+/// [`CompactPlan::ciphertexts`] compact slot vectors (`docs/layout.md` §6.1), what
+/// [`compact_pack`] computes homomorphically. For the client (encrypting an initial state)
+/// and for tests.
+///
+/// # Panics
+/// If `entries` does not have [`CompactPlan::diagonals`] vectors of [`CompactPlan::slots`]
+/// values.
+pub fn compact_pack_plain(entries: &[Vec<f64>], plan: &CompactPlan) -> Vec<Vec<f64>> {
+    assert_eq!(entries.len(), plan.diagonals(), "one vector per diagonal");
+    let (l, b, cap) = (plan.diag_len(), plan.batch, plan.diags_per_ct);
+    (0..plan.ciphertexts())
+        .map(|i| {
+            let mut out = vec![0.0; plan.slots()];
+            for t in 0..plan.diagonals_in(i) {
+                place_plain(&mut out, &entries[i * cap + t], plan, t);
+            }
+            debug_assert!(l * b <= plan.slots());
+            out
+        })
+        .collect()
+}
+
+/// Writes lane 0 of the first period of `v` (slots `j B`, `j < L`) to position `t` of the
+/// compact slot vector `out` (slots `offset(t) + j B`).
+///
+/// # Panics
+/// If `v` or `out` does not have [`CompactPlan::slots`] values or `t >= diags_per_ct`.
+pub fn place_plain(out: &mut [f64], v: &[f64], plan: &CompactPlan, t: usize) {
+    let (l, b) = (plan.diag_len(), plan.batch);
+    assert!(t < plan.diags_per_ct, "position {t} out of range");
+    assert_eq!(v.len(), plan.slots(), "input slot count");
+    assert_eq!(out.len(), plan.slots(), "output slot count");
+    let o = plan.offset(t);
+    for j in 0..l {
+        out[o + j * b] = v[j * b];
+    }
+}
+
+/// The Galois steps of [`compact_extract`] at position `t`: `offset(t)` (if nonzero) and the replication steps `-step_k`, `k < log2(diags_per_ct)`.
+pub fn extract_steps(plan: &CompactPlan, t: usize) -> Vec<i32> {
+    let mut out: Vec<i32> = plan.steps().iter().map(|&k| -(k as i32)).collect();
+    let o = plan.offset(t);
+    if o != 0 {
+        out.push(o as i32);
+    }
+    out.sort_unstable();
+    out
+}
+
+/// One position of a compact ciphertext back in replicated form (`docs/layout.md` §7.3, the
+/// bias path): `y = rescale(mul_plain_to_scale(rot(ct, offset(t)), mask0, target))`, then the
+/// replication `y = y + rot(y, -step_k)` for every `k < log2(cap)`. Slot `j B + b + p L B`
+/// of the result holds position `t`'s value at feature `j < L` for every lane `b` and copy `p`:
+/// an `L`-periodic vector, i.e. the canonical form of any vector of period `n | L` stored
+/// there (a bias of `n_out <= L` values).
+///
+/// Costs `[offset(t) != 0] + log2(cap)` rotations, 1 ct-pt, 1 rescale, no relin. The result
+/// is on `ct.level() - 1` with **exactly** `target_scale` (the mask plaintext carries the
+/// scale change, e.g. from the compact `Delta` to a bias's product scale).
+///
+/// Errors, before any homomorphic work: `InvalidParams` if `t >= diags_per_ct`, the plan's
+/// slot count is not the parameters', `ct` is not a 2-component ciphertext over the
+/// evaluator's basis, or a key of [`extract_steps`] is missing. Then those of
+/// [`Evaluator::target_plain_scale`] (`NoLevelsLeft` at level 0, `ScaleMismatch` when
+/// `target_scale` is not reachable from this level, `InvalidParams` for a plaintext scale
+/// below `2^20`).
+pub fn compact_extract(
+    ev: &Evaluator,
+    ct: &Ciphertext,
+    plan: &CompactPlan,
+    t: usize,
+    target_scale: f64,
+) -> Result<Ciphertext> {
+    if t >= plan.diags_per_ct {
+        return Err(HekitError::InvalidParams(format!(
+            "compact_extract: position {t} of {}",
+            plan.diags_per_ct
+        )));
+    }
+    plan.check_layout_slots(ev.params().slots())?;
+    check_input(ev, ct)?;
+    check_keys(ev, &extract_steps(plan, t))?;
+    let mask = mask0_values(plan);
+    let sp = ev.target_plain_scale(ct, target_scale)?;
+    let pt = Encoder::new(Arc::clone(ev.params())).encode(&mask, sp, ct.level())?;
+    let leaf = ev.rotate(ct, plan.offset(t) as i32)?;
+    let mut y = ev.rescale(&ev.mul_plain_to_scale(&leaf, &pt, target_scale)?)?;
+    for &step in &plan.steps() {
+        let r = ev.rotate(&y, -(step as i32))?;
+        y = ev.add(&y, &r)?;
+    }
+    Ok(y)
 }
 
 /// Unpacks compact ciphertexts ([`compact_pack`]'s output, e.g. after bootstrapping) into

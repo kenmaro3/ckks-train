@@ -130,7 +130,7 @@ impl LayerOptimizer for Nag {
 
 /// `InvalidParams` unless `dims` has at least two entries, all nonzero with padded dimension
 /// at most `layout.d`.
-fn check_dims(dims: &[usize], layout: &Layout) -> Result<()> {
+pub(crate) fn check_dims(dims: &[usize], layout: &Layout) -> Result<()> {
     if dims.len() < 2 {
         return Err(HekitError::InvalidParams(format!(
             "an MLP needs at least 2 dimensions (got {dims:?})"
@@ -148,7 +148,7 @@ fn check_dims(dims: &[usize], layout: &Layout) -> Result<()> {
     Ok(())
 }
 
-fn sorted(mut v: Vec<i32>) -> Vec<i32> {
+pub(crate) fn sorted(mut v: Vec<i32>) -> Vec<i32> {
     v.sort_unstable();
     v.dedup();
     v
@@ -200,7 +200,12 @@ pub fn mlp_rotation_steps(
 /// `(level, scale)` of [`Dense::forward`]'s output for an input at `(level, x_scale)` and
 /// weights of scale `w_scale`: one rescale of the exact product scale (the bias has exactly
 /// that scale, so the addition keeps it).
-fn dense_out(ev: &Evaluator, level: usize, x_scale: f64, w_scale: f64) -> Result<(usize, f64)> {
+pub(crate) fn dense_out(
+    ev: &Evaluator,
+    level: usize,
+    x_scale: f64,
+    w_scale: f64,
+) -> Result<(usize, f64)> {
     if level == 0 {
         return Err(HekitError::NoLevelsLeft);
     }
@@ -214,16 +219,16 @@ fn dense_out(ev: &Evaluator, level: usize, x_scale: f64, w_scale: f64) -> Result
 /// deterministic function of the input scale and the primes, and this reads it from the
 /// activation's own code. A clone of the training evaluator: it shares the keys (`Arc`, no
 /// key copy) and has its own counter, so the training evaluator's counter does not move.
-struct ScaleProbe {
+pub(crate) struct ScaleProbe {
     ev: Evaluator,
 }
 
 impl ScaleProbe {
-    fn new(ev: &Evaluator) -> ScaleProbe {
+    pub(crate) fn new(ev: &Evaluator) -> ScaleProbe {
         ScaleProbe { ev: ev.clone() }
     }
 
-    fn activation(
+    pub(crate) fn activation(
         &self,
         act: &dyn Activation,
         encoder: &Encoder,
@@ -244,7 +249,7 @@ impl ScaleProbe {
 /// to the same scales).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BatchSpec {
-    /// Level of the input batch (the top level).
+    /// Level of the input batch (the top level, or the refresher's output level).
     pub x_level: usize,
     /// Scale of the input batch (`Delta`).
     pub x_scale: f64,
@@ -300,19 +305,43 @@ pub struct Mlp {
 
 impl Mlp {
     /// Encrypts the plaintext layers `(W_l, b_l)` (`W_l` is `d_l x d_{l-1}`) at the top level
-    /// for inputs encrypted at the top level with scale `Delta` (as [`BatchSpec`] does): the
-    /// weights at `Delta`, each bias at the exact product scale its forward adds it to (the
-    /// input scale of layer `l` follows from the chain; the activation scales are read with a
-    /// zero-ciphertext probe on a clone of `ev`, which shares its keys).
+    /// for inputs encrypted at the top level with scale `Delta` (as [`BatchSpec`] does):
+    /// [`Mlp::encrypt_at`] at `max_level`, the level [`crate::refresh::ClientRefresher`]
+    /// refreshes to. For any other refresher, start at its
+    /// [`crate::refresh::Refresher::output_level`] with [`Mlp::encrypt_at`].
     ///
-    /// Errors: `InvalidParams` if `layers` is empty, `acts` has another length, the shapes do
-    /// not chain or do not fit `layout`; `NoLevelsLeft` if the chain runs out of levels; and
-    /// the errors of [`Dense::encrypt`] and of the activations.
+    /// Errors as [`Mlp::encrypt_at`].
     pub fn encrypt(
         ev: &Evaluator,
         layers: &[(Array2<f64>, Vec<f64>)],
         acts: Vec<Box<dyn Activation>>,
         layout: &Layout,
+        enc: &Encryptor,
+        encoder: &Encoder,
+        rng: &mut Rng,
+    ) -> Result<Mlp> {
+        let top = encoder.params().max_level();
+        Mlp::encrypt_at(ev, layers, acts, layout, top, enc, encoder, rng)
+    }
+
+    /// Encrypts the plaintext layers `(W_l, b_l)` (`W_l` is `d_l x d_{l-1}`) at `level` for
+    /// inputs encrypted at `level` with scale `Delta` (as [`Mlp::batch_spec_at`] does): the
+    /// weights at `Delta`, each bias at the exact product scale its forward adds it to (the
+    /// input scale of layer `l` follows from the chain; the activation scales are read with a
+    /// zero-ciphertext probe on a clone of `ev`, which shares its keys). `level` is where the
+    /// refreshed values land between steps ([`crate::refresh::Refresher::output_level`]), so
+    /// the first step sees the same levels and scales as every later one.
+    ///
+    /// Errors: `InvalidParams` if `layers` is empty, `acts` has another length, the shapes do
+    /// not chain or do not fit `layout`, or `level > max_level`; `NoLevelsLeft` if the chain
+    /// runs out of levels; and the errors of [`Dense::encrypt_at`] and of the activations.
+    #[allow(clippy::too_many_arguments)]
+    pub fn encrypt_at(
+        ev: &Evaluator,
+        layers: &[(Array2<f64>, Vec<f64>)],
+        acts: Vec<Box<dyn Activation>>,
+        layout: &Layout,
+        level: usize,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
@@ -335,12 +364,19 @@ impl Mlp {
         }
         check_dims(&dims, layout)?;
         let params = encoder.params();
+        if level > params.max_level() {
+            return Err(HekitError::InvalidParams(format!(
+                "level {level} above max_level {}",
+                params.max_level()
+            )));
+        }
         let delta = params.scale();
         let probe = ScaleProbe::new(ev);
-        let (mut level, mut scale) = (params.max_level(), delta);
+        let (start, mut scale) = (level, delta);
+        let mut level = start;
         let mut out = Vec::with_capacity(layers.len());
         for ((w, b), act) in layers.iter().zip(acts) {
-            let dense = Dense::encrypt(w, b, layout, scale, enc, encoder, rng)?;
+            let dense = Dense::encrypt_at(w, b, layout, scale, start, enc, encoder, rng)?;
             let (l, s) = dense_out(ev, level, scale, dense.w.scale())?;
             (level, scale) = probe.activation(act.as_ref(), encoder, l, s)?;
             out.push((dense, act));
@@ -361,19 +397,39 @@ impl Mlp {
     }
 
     /// Where the client encrypts batches for this network ([`BatchSpec`]): `x` on the top
-    /// level at `Delta`, `y` at the output's exact level and scale, computed from the public
-    /// parameters, the weights' scales and the activations (zero-ciphertext probe, see
-    /// [`Mlp::encrypt`]; the probe shares `ev`'s keys, so this is cheap).
+    /// level at `Delta`, `y` at the output's exact level and scale: [`Mlp::batch_spec_at`] at
+    /// `max_level` (the interactive client refresh's level).
     ///
-    /// Errors: `InvalidParams` for an empty network; `NoLevelsLeft` if the forward does not
-    /// fit the levels; the activations' errors.
+    /// Errors as [`Mlp::batch_spec_at`].
     pub fn batch_spec(&self, ev: &Evaluator, encoder: &Encoder) -> Result<BatchSpec> {
+        self.batch_spec_at(ev, encoder, ev.params().max_level())
+    }
+
+    /// [`Mlp::batch_spec`] for inputs at `x_level` (the level of the refreshed weights,
+    /// [`crate::refresh::Refresher::output_level`]), computed from the public parameters, the
+    /// weights' scales and the activations (zero-ciphertext probe, see [`Mlp::encrypt_at`];
+    /// the probe shares `ev`'s keys, so this is cheap).
+    ///
+    /// Errors: `InvalidParams` for an empty network or `x_level > max_level`; `NoLevelsLeft`
+    /// if the forward does not fit the levels; the activations' errors.
+    pub fn batch_spec_at(
+        &self,
+        ev: &Evaluator,
+        encoder: &Encoder,
+        x_level: usize,
+    ) -> Result<BatchSpec> {
         if self.layers.is_empty() {
             return Err(HekitError::InvalidParams("empty network".into()));
         }
         let params = ev.params();
+        if x_level > params.max_level() {
+            return Err(HekitError::InvalidParams(format!(
+                "level {x_level} above max_level {}",
+                params.max_level()
+            )));
+        }
         let probe = ScaleProbe::new(ev);
-        let (x_level, x_scale) = (params.max_level(), params.scale());
+        let x_scale = params.scale();
         let (mut level, mut scale) = (x_level, x_scale);
         for (dense, act) in &self.layers {
             let (l, s) = dense_out(ev, level, scale, dense.w.scale())?;
@@ -487,7 +543,7 @@ fn bias_grad(
 /// ([`Activation::constant_derivative`], e.g. the identity): `delta` itself when `k = 1` and
 /// every lane is valid (no op, no level); otherwise one plaintext multiply at `delta`'s exact
 /// scale and a rescale (one level, no relinearization).
-fn constant_dz(
+pub(crate) fn constant_dz(
     ev: &Evaluator,
     enc: &Encoder,
     delta: &Ciphertext,

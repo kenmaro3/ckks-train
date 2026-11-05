@@ -26,7 +26,8 @@ use hekit_ckks::{
 use hekit_core::error::HekitError;
 use hekit_core::sampler::Rng;
 use hekit_nn::compact::{
-    CompactPlan, boot_count, compact_pack, compact_rotation_steps, compact_unpack,
+    CompactPlan, boot_count, compact_extract, compact_pack, compact_pack_plain,
+    compact_rotation_steps, compact_shift, compact_unpack, extract_steps, shift_steps,
 };
 use hekit_nn::dense::EncWeights;
 use hekit_nn::layout::{LayerShape, Layout, pack_weight_diagonals};
@@ -422,6 +423,96 @@ fn compact_round_trip_small() {
         let plan = CompactPlan::for_layer(&layout, d_out, d_in);
         let c = ctx(small(), &compact_rotation_steps(&plan), 3);
         round_trip(&c, &layout, d_out, d_in, 2, drift, &mut r);
+    }
+}
+
+/// Task 41: `compact_shift` on inputs that are already zero outside lane 0 of the first
+/// period is `compact_pack` without the mask: the same compact layout
+/// (`compact_pack_plain`), `m - n_ct` rotations and nothing else (no ct-pt, no level). And
+/// `compact_extract` returns one position in replicated form at an exact target scale with
+/// `[o(t) != 0] + log2(cap)` rotations, 1 ct-pt and 1 level.
+#[test]
+fn compact_shift_and_extract() {
+    let layout = Layout::new(512, 32, 4).unwrap();
+    let mut r = rng(6);
+    for (d_out, d_in) in [(32, 32), (8, 32), (10, 20)] {
+        let plan = CompactPlan::for_layer(&layout, d_out, d_in);
+        let mut steps = compact_rotation_steps(&plan);
+        steps.extend(shift_steps(&plan));
+        for t in 0..plan.diags_per_ct {
+            steps.extend(extract_steps(&plan, t));
+        }
+        let mut seen = std::collections::HashSet::new();
+        steps.retain(|&k| k.rem_euclid(512) != 0 && seen.insert(k.rem_euclid(512)));
+        let c = ctx(small(), &steps, 7);
+        let sh = LayerShape::new(d_out, d_in, &layout);
+        let (l, b) = (sh.l, layout.batch);
+        let w = Array2::from_shape_fn((d_out, d_in), |_| uni(&mut r));
+        let clean = pack_weight_diagonals(&w, &layout, (sh.baby, sh.giant));
+        // Zero outside the slots the pack reads.
+        let masked: Vec<Vec<f64>> = clean
+            .iter()
+            .map(|v| {
+                v.iter()
+                    .enumerate()
+                    .map(|(s, x)| if s < l * b && s % b == 0 { *x } else { 0.0 })
+                    .collect()
+            })
+            .collect();
+        let delta = c.params.scale();
+        let cts: Vec<Ciphertext> = masked
+            .iter()
+            .map(|v| {
+                c.enc
+                    .encrypt(&c.encoder.encode(v, delta, 2).unwrap(), &mut r)
+            })
+            .collect();
+        let before = c.ev.counter();
+        let packed = compact_shift(&c.ev, &cts, &plan).unwrap();
+        let got = &c.ev.counter() - &before;
+        assert_eq!(
+            got,
+            OpCounter {
+                rotations: plan.pack_rotations() as u64,
+                ..OpCounter::default()
+            },
+            "{d_out} x {d_in}: only the lane shifts"
+        );
+        let want = compact_pack_plain(&masked, &plan);
+        for (ct, v) in packed.iter().zip(&want) {
+            assert_eq!(
+                (ct.level(), ct.scale()),
+                (2, delta),
+                "no level, exact scale"
+            );
+            let e = vec_diff(&c.encoder.decode(&c.dec.decrypt(ct)), v);
+            assert!(e <= TOL, "{d_out} x {d_in}: 2^{}", e.log2());
+        }
+        // Every position back in replicated form at another exact scale.
+        let target = delta * delta / c.params.q()[2] as f64 * 2.0;
+        for (i, ct) in packed.iter().enumerate() {
+            for t in 0..plan.diagonals_in(i) {
+                let before = c.ev.counter();
+                let y = compact_extract(&c.ev, ct, &plan, t, target).unwrap();
+                let got = &c.ev.counter() - &before;
+                let rot =
+                    usize::from(plan.offset(t) != 0) + plan.diags_per_ct.trailing_zeros() as usize;
+                assert_eq!(
+                    (got.rotations, got.ct_pt_mults, got.relins),
+                    (rot as u64, 1, 0)
+                );
+                assert_eq!((y.level(), y.scale()), (1, target));
+                let e = vec_diff(
+                    &c.encoder.decode(&c.dec.decrypt(&y)),
+                    &clean[i * plan.diags_per_ct + t],
+                );
+                assert!(e <= TOL, "extract {t}: 2^{}", e.log2());
+            }
+        }
+        // Wrong entry count: refused before any work.
+        let before = c.ev.counter();
+        assert!(compact_shift(&c.ev, &cts[1..], &plan).is_err());
+        assert_eq!(c.ev.counter(), before);
     }
 }
 

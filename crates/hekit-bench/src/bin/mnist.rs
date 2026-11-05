@@ -56,6 +56,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hekit_bench::data::{Mnist, Split, load_mnist, one_hot};
+use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
 use hekit_core::sampler::Rng;
 use hekit_nn::activation::{Activation, Identity, PolyRelu2};
@@ -64,6 +65,10 @@ use hekit_nn::layout::{LayerShape, Layout, unpack_activations};
 use hekit_nn::optim::Nag;
 use hekit_nn::refresh::ClientRefresher;
 use hekit_nn::trainer::{LayerOptimizer, Mlp, Trainer, mlp_key_pool, mlp_rotation_steps};
+use hekit_nn::trainer_ni::{
+    ActCost, BootPlacement, CompactLayout, NiOptimizer, NonInteractiveTrainer, UpdateCost,
+    boot_schedule, levels_per_iter, ni_rotation_steps, predict_update_for,
+};
 use ndarray::{Array2, Axis, s};
 
 const CLASSES: usize = 10;
@@ -85,8 +90,10 @@ struct Args {
     lr: f64,
     momentum: f64,
     data: PathBuf,
-    out: PathBuf,
+    out: Option<PathBuf>,
     plan: bool,
+    mode: String,
+    placement: String,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -96,14 +103,16 @@ fn parse_args() -> Result<Args, String> {
         test_subset: 10_000,
         batch: 32,
         hidden: 32,
-        params: "n16_train".into(),
+        params: String::new(),
         transpose: "reuse".into(),
         seed: 32,
         lr: 0.001,
         momentum: 0.9,
         data: PathBuf::from("data/mnist"),
-        out: PathBuf::from("results/mnist_emlp1.json"),
+        out: None,
         plan: false,
+        mode: "interactive".into(),
+        placement: "after_update".into(),
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -126,26 +135,58 @@ fn parse_args() -> Result<Args, String> {
             "--lr" => a.lr = real(&v)?,
             "--momentum" => a.momentum = real(&v)?,
             "--data" => a.data = PathBuf::from(v),
-            "--out" => a.out = PathBuf::from(v),
+            "--out" => a.out = Some(PathBuf::from(v)),
+            "--mode" => a.mode = v,
+            "--placement" => a.placement = v,
             _ => return Err(format!("unknown flag {flag}")),
         }
     }
     if a.epochs == 0 || a.subset == 0 || a.batch == 0 || a.hidden == 0 {
         return Err("--epochs, --subset, --batch and --hidden must be positive".into());
     }
+    let ni = match a.mode.as_str() {
+        "interactive" => false,
+        "noninteractive" => true,
+        m => return Err(format!("unknown --mode {m} (interactive | noninteractive)")),
+    };
+    placement_named(&a.placement)?;
+    if a.params.is_empty() {
+        a.params = if ni { "n16_boot" } else { "n16_train" }.into();
+    }
     Ok(a)
+}
+
+fn placement_named(name: &str) -> Result<BootPlacement, String> {
+    match name {
+        "after_update" => Ok(BootPlacement::AfterUpdate),
+        "after_activation" => Ok(BootPlacement::AfterActivation),
+        "when_needed" => Ok(BootPlacement::WhenNeeded),
+        p => Err(format!(
+            "unknown --placement {p} (after_update | after_activation | when_needed)"
+        )),
+    }
 }
 
 fn params_named(name: &str) -> Result<CkksParams, String> {
     match name {
         "n16_train" => Ok(CkksParams::n16_train()),
+        "n16_boot" => Ok(CkksParams::n16_boot()),
+        // Insecure (N = 2^10): n16_boot's chain in miniature, the non-interactive smoke test's
+        // stand-in for n16_boot (512 slots, bootstrapping with BootParams::default_n16 at 9
+        // log-slots).
+        "mini_boot" => {
+            let (q, p) = hekit_ckks::params::n16_boot_bits();
+            CkksParams::new(10, &q, &p, 42, 8).map_err(|e| e.to_string())
+        }
         // Insecure (N = 2^12 with 11 primes): the smoke test's fast stand-in for n16_train.
         "small" => {
             let mut q = vec![58];
             q.extend([42; 10]);
             CkksParams::new(12, &q, &[60], 42, 11).map_err(|e| e.to_string())
         }
-        _ => Err(format!("unknown --params {name} (n16_train | small)")),
+        _ => Err(format!(
+            "unknown --params {name} (n16_train | small | n16_boot | mini_boot)"
+        )),
     }
 }
 
@@ -576,7 +617,12 @@ fn main() {
             std::process::exit(2);
         }
     };
-    if let Err(e) = run(&args) {
+    let r = if args.mode == "noninteractive" {
+        run_ni(&args)
+    } else {
+        run(&args)
+    };
+    if let Err(e) = r {
         eprintln!("mnist: {e}");
         std::process::exit(1);
     }
@@ -778,12 +824,7 @@ fn run(args: &Args) -> Result<(), String> {
             batch_s.push(log.seconds);
             refresh_s.push(log.refresh_seconds);
             let c = log.counter;
-            total.rotations += c.rotations;
-            total.relins += c.relins;
-            total.ct_ct_tensor += c.ct_ct_tensor;
-            total.ct_pt_mults += c.ct_pt_mults;
-            total.rescales += c.rescales;
-            total.bootstraps += c.bootstraps;
+            total += &c;
             samples += end - start;
             eprintln!(
                 "mnist: epoch {epoch} batch {} ({} samples): {:.1} s (refresh {:.1} s), \
@@ -835,12 +876,14 @@ fn run(args: &Args) -> Result<(), String> {
     let out_init = forward_plain(&init, &test.images);
     let samples_f = samples as f64;
     let batches = per_batch.len();
-    let constant = per_batch
-        .iter()
-        .all(|c| (c.rotations, c.relins) == (pred.rot, pred.relin));
+    let constant = per_batch.iter().all(|c| {
+        (c.rotations, c.relins) == (pred.rot, pred.relin) && c.key_switches() == pred.total()
+    });
+    // Every key switch (OpCounter::key_switches: rotations, relins and SSE switches; there are
+    // no bootstraps in interactive mode).
     let measured = Ks {
         rot: total.rotations,
-        relin: total.relins,
+        relin: total.key_switches() - total.rotations,
     };
     let replication_adjusted = (model.total() + terms.replication) as f64 * batches as f64;
     let pre_registered_total = pre_registered as f64 * batches as f64;
@@ -984,12 +1027,857 @@ fn run(args: &Args) -> Result<(), String> {
     let mut s = String::new();
     result.write(&mut s, 0);
     s.push('\n');
-    if let Some(dir) = args.out.parent().filter(|p| !p.as_os_str().is_empty()) {
+    let out = args
+        .out
+        .clone()
+        .unwrap_or_else(|| PathBuf::from("results/mnist_emlp1.json"));
+    write_out(&out, &s)
+}
+
+fn write_out(out: &std::path::Path, s: &str) -> Result<(), String> {
+    if let Some(dir) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
-    std::fs::write(&args.out, &s).map_err(|e| format!("{}: {e}", args.out.display()))?;
-    eprintln!("mnist: wrote {}", args.out.display());
+    std::fs::write(out, s).map_err(|e| format!("{}: {e}", out.display()))?;
+    eprintln!("mnist: wrote {}", out.display());
     Ok(())
+}
+
+// ---------------------------------------------------------------------------------------------
+// Task 41: non-interactive mode.
+// ---------------------------------------------------------------------------------------------
+
+/// ReBoot's bootstrap key switches in the M0 cost model: OpenFHE `EvalBootstrap` with
+/// Meta-BTS, 2 iterations (`spikes/costmodel/costmodel.py` `bootstrap_key_switches(2^15)`:
+/// 436 linear-transform rotations + 2 conjugations + 64 EvalMod relins; `spikes/RESULTS.md`
+/// Task 6, `docs/bootstrap.md` §11.2).
+const REBOOT_BOOT_KS: u64 = 502;
+/// hekit's measured bootstrap key switches on n16_boot (`docs/bootstrap.md` §11.2), the
+/// model's `HEKIT_BOOT_KS` for the prediction before keys exist.
+const HEKIT_BOOT_KS: u64 = 111;
+/// ReBoot's key switches per sample without bootstraps (M0 cost model, ReBoot as shipped at
+/// N = 2^16, eMLP-1; independent of B) and its bootstraps per update (W and V of 2 layers).
+const REBOOT_KS_PER_SAMPLE: f64 = 37.0;
+const REBOOT_BOOTS_PER_UPDATE: f64 = 4.0;
+/// ReBoot's own batch size (Table 8).
+const REBOOT_BATCH: usize = 48;
+
+/// The spike's transpose count (`costmodel._transpose_rotations`) with its BSGS split.
+fn spike_transpose_rotations(din: usize, dout: usize, n1: usize) -> usize {
+    let (m, l) = (din.min(dout), din.max(dout));
+    (0..m)
+        .filter(|&i| {
+            let (c, t) = if din >= dout {
+                let c = (dout - i % dout) % dout;
+                (c, -(c as i64))
+            } else {
+                let c = (din - i % din) % din;
+                (c, i as i64)
+            };
+            let amount = (t - ((i / n1) * n1) as i64 + ((c / n1) * n1) as i64).rem_euclid(l as i64);
+            amount != 0
+        })
+        .count()
+}
+
+/// `spikes/costmodel/costmodel.py` `network_cost("diag_batched", layers, batch, slots)`
+/// (non-interactive, `compact=True`, `momentum=True`) for one update: rotations, relins,
+/// bootstraps, the ciphertexts per batch `k` and the lanes `B'`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct NiModel {
+    ks: Ks,
+    boots: u64,
+    k: usize,
+    lanes: usize,
+}
+
+fn cost_model_ni(dims: &[usize], acts: &[bool], batch: usize, slots: usize) -> NiModel {
+    let lmax = dims
+        .iter()
+        .map(|d| d.next_power_of_two())
+        .max()
+        .expect("dims");
+    let bp = batch.next_power_of_two().min(slots / lmax);
+    let k = batch.div_ceil(bp);
+    let mut ks = Ks::default();
+    let mut boots = 0;
+    for (i, p) in dims.windows(2).enumerate() {
+        let (din, dout) = (p[0].next_power_of_two(), p[1].next_power_of_two());
+        let (m, l) = (din.min(dout), din.max(dout));
+        let (n1, n2) = spike_split(m);
+        let f_fwd = if din > dout { log2(din / dout) } else { 0 };
+        let f_bwd = if dout > din { log2(dout / din) } else { 0 };
+        let nw = m.div_ceil(slots / l);
+        ks.add(k * ((n1 - 1) + (n2 - 1) + f_fwd), k * n2);
+        if acts[i] {
+            ks.add(0, 2 * k); // forward activation and derivative product
+        }
+        if i > 0 {
+            ks.add(spike_transpose_rotations(din, dout, n1), 0);
+            ks.add(k * ((n1 - 1) + (n2 - 1) + f_bwd), k * n2);
+        }
+        ks.add(k * (n2 - 1) + m * log2(bp) + (m - nw), m);
+        ks.add((m - nw) + m * log2(slots / l), 0);
+        boots += 2 * nw as u64;
+    }
+    NiModel {
+        ks,
+        boots,
+        k,
+        lanes: bp,
+    }
+}
+
+/// The corrections from [`cost_model_ni`] to the implementation's closed form
+/// ([`predict_update_for`]), one update, key switches (Task 32's terms where they apply).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct NiTerms {
+    /// The gradient recomputes the layer input's baby rotations: `k (n1 - 1)` per layer.
+    babies: i64,
+    /// The library's BSGS split against the model's (gradient `(b-1)+(g-1)` against
+    /// `(n1-1)+(n2-1)`; the matvec key switches are equal).
+    split: i64,
+    /// The transpose's rotations beyond the model's count (Reuse keys).
+    transpose: i64,
+    /// Not in the model: the bias gradients (reduce `log2 B` and the shift to the compact
+    /// position) and the bias extraction (shift and `log2(S / L_host)` replications).
+    bias: i64,
+    /// Bootstraps beyond the model's `2 nW` per update (activation bootstraps, bias-only
+    /// containers, the lazy schedule), times the bootstrap's key switches.
+    boots: i64,
+}
+
+impl NiTerms {
+    fn total(&self) -> i64 {
+        self.babies + self.split + self.transpose + self.bias + self.boots
+    }
+}
+
+fn lib_acts(acts: &[bool]) -> Vec<ActCost> {
+    acts.iter()
+        .map(|&a| {
+            if a {
+                ActCost::QUADRATIC
+            } else {
+                ActCost::IDENTITY
+            }
+        })
+        .collect()
+}
+
+/// The closed form of one update and its corrections from the model, for `boots_per_update`
+/// weight bootstraps (2 nW for AfterUpdate; the lazy average otherwise) at `boot_ks`.
+#[allow(clippy::too_many_arguments)]
+fn ni_terms(
+    dims: &[usize],
+    acts: &[bool],
+    layout: &Layout,
+    keys: &TransposeKeys,
+    placement: BootPlacement,
+    model: &NiModel,
+    weight_boots_per_update: f64,
+    boot_ks: u64,
+) -> Result<(UpdateCost, NiTerms, f64), String> {
+    let cost = predict_update_for(
+        dims,
+        &lib_acts(acts),
+        layout,
+        keys,
+        placement,
+        model.k,
+        true,
+        true,
+    )
+    .map_err(|e| e.to_string())?;
+    let k = model.k as i64;
+    let mut t = NiTerms::default();
+    let lb = layout.log_batch() as i64;
+    let cl = CompactLayout::new(dims, layout).map_err(|e| e.to_string())?;
+    for (i, p) in dims.windows(2).enumerate() {
+        let sh = LayerShape::new(p[1], p[0], layout);
+        let (n1, n2) = spike_split(sh.m);
+        t.babies += k * (n1 as i64 - 1);
+        let lib_grad = (sh.baby - 1 + sh.giant - 1) as i64;
+        t.split += k * (lib_grad - (n1 + n2 - 2) as i64);
+        // Forward and backward matvecs: key switches equal under both splits (asserted).
+        let fwd = |b: usize, g: usize, f: usize| (b + g - 2 + f + g) as i64;
+        assert_eq!(
+            fwd(sh.baby, sh.giant, sh.fold_steps()),
+            fwd(n1, n2, sh.fold_steps()),
+            "matvec key switches differ between the splits"
+        );
+        if i > 0 {
+            let plan =
+                transpose_rotation_plan(p[1], p[0], layout, keys).map_err(|e| e.to_string())?;
+            let tr: usize = plan.iter().map(|(_, s)| s.len()).sum();
+            let (din, dout) = (p[0].next_power_of_two(), p[1].next_power_of_two());
+            t.transpose += tr as i64 - spike_transpose_rotations(din, dout, n1) as i64;
+        }
+        let bp = cl.bias_plan(i);
+        let o = i64::from(bp.offset(cl.biases[i].position) != 0);
+        t.bias += lb + o + o + bp.diags_per_ct.trailing_zeros() as i64;
+    }
+    let lib_boots = weight_boots_per_update + cost.activation_bootstraps as f64;
+    let extra = (lib_boots - model.boots as f64) * boot_ks as f64;
+    t.boots = extra.round() as i64;
+    Ok((cost, t, lib_boots))
+}
+
+fn ni_cost_json(c: &UpdateCost) -> J {
+    obj(vec![
+        ("forward_rot", J::I(c.forward_rot as i64)),
+        ("forward_relin", J::I(c.forward_relin as i64)),
+        ("transpose_rot", J::I(c.transpose_rot as i64)),
+        ("backward_rot", J::I(c.backward_rot as i64)),
+        ("backward_relin", J::I(c.backward_relin as i64)),
+        ("gradient_rot", J::I(c.gradient_rot as i64)),
+        ("gradient_relin", J::I(c.gradient_relin as i64)),
+        ("shift_rot", J::I(c.shift_rot as i64)),
+        ("bias_grad_rot", J::I(c.bias_grad_rot as i64)),
+        ("unpack_rot", J::I(c.unpack_rot as i64)),
+        ("bias_extract_rot", J::I(c.bias_extract_rot as i64)),
+        ("rotations", J::I(c.rotations() as i64)),
+        ("relins", J::I(c.relins() as i64)),
+        (
+            "weight_bootstraps_when_booted",
+            J::I(c.weight_bootstraps as i64),
+        ),
+        (
+            "activation_bootstraps",
+            J::I(c.activation_bootstraps as i64),
+        ),
+    ])
+}
+
+fn ni_counter_json(c: &OpCounter) -> J {
+    obj(vec![
+        ("rotations", J::I(c.rotations as i64)),
+        ("relins", J::I(c.relins as i64)),
+        ("sse_switches", J::I(c.sse_switches as i64)),
+        ("key_switches", J::I(c.key_switches() as i64)),
+        ("bootstraps", J::I(c.bootstraps as i64)),
+        ("ct_ct_tensor", J::I(c.ct_ct_tensor as i64)),
+        ("ct_pt_mults", J::I(c.ct_pt_mults as i64)),
+        ("rescales", J::I(c.rescales as i64)),
+    ])
+}
+
+/// The RQ1 ratio three ways (parent's reporting rule): hekit's key switches per sample with
+/// its bootstraps priced at `p_he`, over ReBoot's at `p_rb`, against ReBoot at its own B = 48
+/// and at hekit's B.
+fn rq1_json(nonboot_per_sample: f64, boots_per_sample: f64, batch: usize, source: &str) -> J {
+    let he = |p: f64| nonboot_per_sample + boots_per_sample * p;
+    let rb = |p: f64, b: usize| REBOOT_KS_PER_SAMPLE + REBOOT_BOOTS_PER_UPDATE * p / b as f64;
+    let way = |name: &str, p_he: u64, p_rb: u64| {
+        let (ph, pr) = (p_he as f64, p_rb as f64);
+        obj(vec![
+            ("way", J::S(name.into())),
+            ("hekit_boot_ks", J::I(p_he as i64)),
+            ("reboot_boot_ks", J::I(p_rb as i64)),
+            ("hekit_ks_per_sample", J::N(he(ph))),
+            ("reboot_ks_per_sample_b48", J::N(rb(pr, REBOOT_BATCH))),
+            ("ratio_vs_reboot_b48", J::N(he(ph) / rb(pr, REBOOT_BATCH))),
+            ("reboot_ks_per_sample_same_b", J::N(rb(pr, batch))),
+            ("ratio_vs_reboot_same_b", J::N(he(ph) / rb(pr, batch))),
+        ])
+    };
+    obj(vec![
+        (
+            "metric",
+            J::S("key switches per sample (rotations + relins + SSE switches), bootstraps included".into()),
+        ),
+        (
+            "a_own_bootstrap_costs",
+            way("(a) own bootstrap costs: hekit 111 (measured), ReBoot 502", 111, REBOOT_BOOT_KS),
+        ),
+        ("b_both_502", way("(b) both 502: layout/packing gain only (conservative)", REBOOT_BOOT_KS, REBOOT_BOOT_KS)),
+        ("c_both_111", way("(c) both 111: ReBoot's layout on hekit's bootstrapper", 111, 111)),
+        (
+            "reboot_side",
+            obj(vec![
+                ("source", J::S(source.into())),
+                ("ks_per_sample_without_bootstraps", J::N(REBOOT_KS_PER_SAMPLE)),
+                ("bootstraps_per_update", J::N(REBOOT_BOOTS_PER_UPDATE)),
+                ("batch", J::I(REBOOT_BATCH as i64)),
+                (
+                    "boot_ks_502_provenance",
+                    J::S("OpenFHE EvalBootstrap, Meta-BTS with 2 iterations, as configured by ReBoot \
+                          (level budget [2, 2]): 2 x (218 linear-transform rotations + 1 conjugation \
+                          + 32 EvalMod relins) = 502, counted from the OpenFHE code by the M0 cost \
+                          model (spikes/costmodel/costmodel.py bootstrap_key_switches; \
+                          spikes/RESULTS.md Task 6; docs/bootstrap.md 11.2). A model count, not a \
+                          measurement.".into()),
+                ),
+            ]),
+        ),
+    ])
+}
+
+/// The updates of the run `args` describes (the subset in batches, all epochs).
+fn n_updates_plan(args: &Args) -> usize {
+    args.subset.div_ceil(args.batch) * args.epochs
+}
+
+/// Where Task 33's measured ReBoot-layout baseline would be (not parsed here: the crate has no
+/// JSON dependency; when it exists the report states its values next to these).
+const REBOOT_MEASURED: &str = "results/mnist_reboot_layout.json";
+
+#[allow(clippy::too_many_lines)]
+fn run_ni(args: &Args) -> Result<(), String> {
+    let load_start = loadavg();
+    let t_all = Instant::now();
+    let placement = placement_named(&args.placement)?;
+    let loaded = load(args);
+    let features = match (&loaded, args.plan) {
+        (Ok((train, _)), _) => train.features(),
+        (Err(_), true) => 28 * 28,
+        (Err(e), false) => return Err(e.clone()),
+    };
+    let params = Arc::new(params_named(&args.params)?);
+    let dims = [features, args.hidden, CLASSES];
+    let acts_flags = [true, false];
+    let d = dims
+        .iter()
+        .map(|x| x.next_power_of_two())
+        .max()
+        .expect("dims");
+    // B lanes per ciphertext; a larger batch is k micro-batch ciphertexts (ruling R-M3-4).
+    let lanes = args.batch.next_power_of_two().min(params.slots() / d);
+    let micro = args.batch.div_ceil(lanes);
+    if micro * lanes != args.batch {
+        return Err(format!(
+            "--batch {} is not a whole number of {lanes}-lane ciphertexts (power-of-two lanes, \
+             ruling R-M3-4: B = 48 is not run)",
+            args.batch
+        ));
+    }
+    let layout = Layout::new(params.slots(), d, lanes).map_err(|e| e.to_string())?;
+    let keys = match args.transpose.as_str() {
+        "reuse" => TransposeKeys::Reuse(mlp_key_pool(&dims, &layout).map_err(|e| e.to_string())?),
+        "dedicated" => TransposeKeys::Dedicated,
+        t => return Err(format!("unknown --transpose {t} (reuse | dedicated)")),
+    };
+    let steps = ni_rotation_steps(&dims, &layout, &keys).map_err(|e| e.to_string())?;
+    let limbs = params.q().len() + params.p().len();
+    let key_bytes = params.dnum() * 2 * limbs * params.n() * 8;
+    let bp = BootParams {
+        log_slots: params.slots().trailing_zeros(),
+        ..BootParams::default_n16()
+    };
+    let cl = CompactLayout::new(&dims, &layout).map_err(|e| e.to_string())?;
+
+    // The prediction, before any key exists (stated in the report before the run).
+    let model = cost_model_ni(&dims, &acts_flags, args.batch, params.slots());
+    let boot_ks_he = HEKIT_BOOT_KS;
+    let b = args.batch as f64;
+    eprintln!(
+        "mnist: noninteractive {} on {} (N = 2^{}, {} slots), dims {dims:?}, d = {d}, {lanes} lanes \
+         x {micro} micro-batches, transpose {}: {} training Galois keys + relin ({:.1} GB) + \
+         bootstrap keys",
+        placement.name(),
+        args.params,
+        params.log_n(),
+        params.slots(),
+        args.transpose,
+        steps.len(),
+        ((steps.len() + 1) * key_bytes) as f64 / 1e9
+    );
+
+    let act_objs: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
+    let schedule_of = |updates: usize, start: usize, out: usize| {
+        boot_schedule(
+            &dims, &act_objs, &layout, placement, true, start, out, updates,
+        )
+        .map_err(|e| e.to_string())
+    };
+    let weight_boots_avg = |sched: &[bool]| {
+        sched.iter().filter(|&&x| x).count() as f64 * cl.bootstraps(true) as f64
+            / sched.len().max(1) as f64
+    };
+    if args.plan {
+        let out_level = hekit_ckks::bootstrap::levels_after_boot(&params, &bp);
+        let sched = schedule_of(n_updates_plan(args), out_level - 1, out_level)?;
+        let (cost, terms, boots) = ni_terms(
+            &dims,
+            &acts_flags,
+            &layout,
+            &keys,
+            placement,
+            &model,
+            weight_boots_avg(&sched),
+            boot_ks_he,
+        )?;
+        let pred_ks = cost.rotations() + cost.relins();
+        let pred_total = pred_ks as f64 + boots * boot_ks_he as f64;
+        let mut s = String::new();
+        obj(vec![
+            (
+                "cost_model_ni_key_switches_without_boots",
+                J::I(model.ks.total() as i64),
+            ),
+            ("cost_model_ni_bootstraps", J::I(model.boots as i64)),
+            (
+                "cost_model_ni_ks_per_sample_111",
+                J::N((model.ks.total() + model.boots * boot_ks_he) as f64 / b),
+            ),
+            ("closed_form", ni_cost_json(&cost)),
+            ("terms", J::S(format!("{terms:?}"))),
+            ("bootstraps_per_update_avg", J::N(boots)),
+            ("predicted_ks_per_sample", J::N(pred_total / b)),
+            (
+                "boot_schedule",
+                J::A(sched.iter().map(|&x| J::I(i64::from(x))).collect()),
+            ),
+            ("galois_keys", J::I(steps.len() as i64)),
+        ])
+        .write(&mut s, 0);
+        println!("{s}");
+        return Ok(());
+    }
+    let (train, test) = loaded?;
+
+    // Keys: the client generates everything, keeps the secret key, and hands the server the
+    // evaluation keys only.
+    let t_keys = Instant::now();
+    let mut kg =
+        KeyGenerator::new(Arc::clone(&params), rng(args.seed, 1)).map_err(|e| e.to_string())?;
+    let encoder = Encoder::new(Arc::clone(&params));
+    let bs =
+        Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg).map_err(|e| e.to_string())?;
+    let boot_setup_s = t_keys.elapsed().as_secs_f64();
+    let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
+    let sk = kg.secret_key();
+    let ev = Evaluator::new(
+        Arc::clone(&params),
+        Some(kg.relin_key()),
+        Some(kg.galois_keys(&steps)),
+    );
+    drop(kg);
+    let keygen_s = t_keys.elapsed().as_secs_f64();
+    let per_boot = bs.cost_per_boot();
+    let boot_ks = bs.key_switches_per_boot();
+    eprintln!(
+        "mnist: bootstrapper {boot_setup_s:.1} s, all keys {keygen_s:.1} s; {boot_ks} KS per \
+         bootstrap; bootstrap keys {:.2} GB",
+        bs.keys().bytes() as f64 / 1e9
+    );
+
+    // Network, compact state and twin (client side).
+    let mut r = rng(args.seed, 2);
+    let init = init_net(&dims, &mut r);
+    let plain: Vec<(Array2<f64>, Vec<f64>)> =
+        init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
+    let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
+    let t_enc = Instant::now();
+    let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
+        &ev, &bs, &plain, acts, &layout, placement, &enc, &encoder, &mut r,
+    )
+    .map_err(|e| e.to_string())?;
+    let encrypt_net_s = t_enc.elapsed().as_secs_f64();
+    let optim = NiOptimizer::Nag {
+        lr: args.lr,
+        momentum: args.momentum,
+    };
+    let lpi = levels_per_iter(&mlp, placement);
+    let mut trainer = NonInteractiveTrainer::new(&ev, &bs, optim, layout, placement, &mlp, state)
+        .map_err(|e| e.to_string())?
+        .with_transpose_keys(keys.clone())
+        .with_micro_batches(micro);
+    let spec = trainer.batch_spec(&mlp).map_err(|e| e.to_string())?;
+    let n = train.len();
+    let updates_per_epoch = n.div_ceil(args.batch);
+    let schedule = schedule_of(
+        updates_per_epoch * args.epochs,
+        trainer.start_level(),
+        bs.output_level(),
+    )?;
+    let (cost, terms, boots_avg) = ni_terms(
+        &dims,
+        &acts_flags,
+        &layout,
+        &keys,
+        placement,
+        &model,
+        weight_boots_avg(&schedule),
+        boot_ks,
+    )?;
+    let pred_nonboot = cost.rotations() + cost.relins();
+    let pred_per_sample = (pred_nonboot as f64 + boots_avg * boot_ks as f64) / b;
+    let model_per_sample = (model.ks.total() + model.boots * boot_ks) as f64 / b;
+    eprintln!(
+        "mnist: levels per step {lpi} (of {} after a bootstrap and an unpack); predicted per \
+         update {pred_nonboot} KS + {boots_avg:.2} bootstraps = {pred_per_sample:.3} KS/sample; \
+         cost model {model_per_sample:.3} KS/sample; corrections {terms:?}",
+        trainer.start_level()
+    );
+    let mut twin = init.clone();
+    let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
+    let y_train = one_hot(&train.labels, CLASSES);
+
+    // Training.
+    let mut update_s = Vec::new();
+    let mut client_enc_s = Vec::new();
+    let mut per_update: Vec<OpCounter> = Vec::new();
+    let mut booted = Vec::new();
+    let mut matches = true;
+    let mut total = OpCounter::default();
+    let mut samples = 0usize;
+    let mut max_hidden: f64 = 0.0;
+    let t_train = Instant::now();
+    for epoch in 0..args.epochs {
+        for start in (0..n).step_by(args.batch) {
+            let end = (start + args.batch).min(n);
+            let t0 = Instant::now();
+            let mut cts = Vec::new();
+            for sub in (start..end).step_by(lanes) {
+                let se = (sub + lanes).min(end);
+                let x = train.images.slice(s![sub..se, ..]).to_owned();
+                let y = y_train.slice(s![sub..se, ..]).to_owned();
+                let (xc, yc) = spec
+                    .encrypt(&enc, &encoder, &layout, &x, &y, &mut r)
+                    .map_err(|e| e.to_string())?;
+                cts.push((xc, yc, se - sub));
+            }
+            client_enc_s.push(t0.elapsed().as_secs_f64());
+            let x = train.images.slice(s![start..end, ..]).to_owned();
+            let y = y_train.slice(s![start..end, ..]).to_owned();
+            let h = affine(&x, &twin[0]).mapv(|v| v * v + v);
+            max_hidden = max_hidden.max(max_abs(h.iter().copied()));
+            let refs: Vec<_> = cts.iter().map(|(x, y, k)| (x, y, *k)).collect();
+            let before = ev.counter();
+            let t1 = Instant::now();
+            trainer
+                .train_step_valid(&mut mlp, &refs)
+                .map_err(|e| format!("update at {start}: {e}"))?;
+            let secs = t1.elapsed().as_secs_f64();
+            let c = &ev.counter() - &before;
+            twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum);
+            let did_boot = trainer.last_update_booted();
+            let full = refs.iter().all(|r| r.2 == lanes) && refs.len() == micro;
+            if full {
+                let p = predict_update_for(
+                    &dims,
+                    &lib_acts(&acts_flags),
+                    &layout,
+                    &keys,
+                    placement,
+                    micro,
+                    true,
+                    did_boot,
+                )
+                .map_err(|e| e.to_string())?;
+                let nb = p.bootstraps();
+                matches &= c.bootstraps == nb
+                    && c.rotations == p.rotations() + nb * per_boot.rotations
+                    && c.relins == p.relins() + nb * per_boot.relins
+                    && c.key_switches() == p.key_switches(boot_ks);
+            }
+            total += &c;
+            samples += end - start;
+            update_s.push(secs);
+            booted.push(did_boot);
+            eprintln!(
+                "mnist: epoch {epoch} update {} ({} samples, {} cts): {secs:.1} s, {} KS \
+                 ({} bootstraps{}), matches prediction {matches}; elapsed {:.0} s, load {}",
+                per_update.len(),
+                end - start,
+                refs.len(),
+                c.key_switches(),
+                c.bootstraps,
+                if did_boot { ", weights booted" } else { "" },
+                t_all.elapsed().as_secs_f64(),
+                loadavg()
+            );
+            per_update.push(c);
+        }
+    }
+    let train_s = t_train.elapsed().as_secs_f64();
+
+    // Results (the client decrypts only now).
+    let dec = Decryptor::new(Arc::clone(&params), sk);
+    let got: Vec<Layer> = mlp
+        .layers
+        .iter()
+        .map(|(dn, _)| Layer {
+            w: dn.w.decrypt(&dec, &encoder, &layout),
+            b: unpack_activations(&encoder.decode(&dec.decrypt(&dn.b)), &layout, dn.w.d_out())
+                .row(0)
+                .to_vec(),
+        })
+        .collect();
+    let w_diff: Vec<f64> = got
+        .iter()
+        .zip(&twin)
+        .map(|(g, t)| max_abs(g.w.iter().zip(&t.w).map(|(a, b)| a - b)))
+        .collect();
+    let b_diff: Vec<f64> = got
+        .iter()
+        .zip(&twin)
+        .map(|(g, t)| max_abs(g.b.iter().zip(&t.b).map(|(a, b)| a - b)))
+        .collect();
+    let w_moved: Vec<f64> = twin
+        .iter()
+        .zip(&init)
+        .map(|(t, i)| max_abs(t.w.iter().zip(&i.w).map(|(a, b)| a - b)))
+        .collect();
+    let max_diff = w_diff.iter().chain(&b_diff).copied().fold(0.0, f64::max);
+    let y_test = one_hot(&test.labels, CLASSES);
+    let out_he = forward_plain(&got, &test.images);
+    let out_twin = forward_plain(&twin, &test.images);
+    let out_init = forward_plain(&init, &test.images);
+    let sf = samples as f64;
+    let updates = per_update.len();
+    let ks = total.key_switches();
+    let boots = total.bootstraps;
+    let nonboot = ks - boots * boot_ks;
+    let measured_per_sample = ks as f64 / sf;
+    let epoch_full_s = if samples == n * args.epochs {
+        train_s
+    } else {
+        f64::NAN
+    };
+    let per_update_mean = update_s.iter().sum::<f64>() / updates.max(1) as f64;
+    let extrapolated_1024 = per_update_mean * 1024f64.div_euclid(b).max(1.0);
+    eprintln!(
+        "mnist: {updates} updates, {samples} samples in {train_s:.1} s; {ks} KS = \
+         {measured_per_sample:.3}/sample incl. {boots} bootstraps (predicted \
+         {pred_per_sample:.3}, model {model_per_sample:.3}); matches {matches}; max |W_he - W_twin| \
+         = {max_diff:e}"
+    );
+    let reboot_source = if std::path::Path::new(REBOOT_MEASURED).exists() {
+        format!(
+            "M0 cost model (ReBoot as shipped, N = 2^16); Task 33's measurement exists at \
+             {REBOOT_MEASURED} and is compared in the report"
+        )
+    } else {
+        format!(
+            "M0 cost model (ReBoot as shipped, N = 2^16); {REBOOT_MEASURED} (Task 33) not present"
+        )
+    };
+    let result = obj(vec![
+        (
+            "task",
+            J::S("Task 41: MNIST eMLP-1 non-interactive training with bootstrapping (RQ1)".into()),
+        ),
+        (
+            "network",
+            J::S(format!(
+                "{} -> {} (z^2 + z) -> {} (linear), MSE, NAG (biases SGD)",
+                dims[0], dims[1], dims[2]
+            )),
+        ),
+        (
+            "setup",
+            obj(vec![
+                ("params", J::S(args.params.clone())),
+                ("log_n", J::I(params.log_n() as i64)),
+                ("slots", J::I(params.slots() as i64)),
+                ("max_level", J::I(params.max_level() as i64)),
+                ("bootstrap_output_level", J::I(bs.output_level() as i64)),
+                (
+                    "start_level_after_unpack",
+                    J::I(trainer.start_level() as i64),
+                ),
+                ("levels_per_iter", J::I(lpi as i64)),
+                ("placement", J::S(placement.name().into())),
+                ("batch", J::I(args.batch as i64)),
+                ("lanes_per_ciphertext", J::I(lanes as i64)),
+                ("micro_batches_per_update", J::I(micro as i64)),
+                ("layout_d", J::I(d as i64)),
+                ("transpose_keys", J::S(args.transpose.clone())),
+                ("training_galois_keys", J::I(steps.len() as i64)),
+                ("key_bytes_each", J::I(key_bytes as i64)),
+                ("bootstrap_key_bytes", J::I(bs.keys().bytes() as i64)),
+                ("boot_ks", J::I(boot_ks as i64)),
+                ("compact_containers", J::I(cl.containers.len() as i64)),
+                ("bias_slots", J::S(format!("{:?}", cl.biases))),
+            ]),
+        ),
+        (
+            "training",
+            obj(vec![
+                ("epochs", J::I(args.epochs as i64)),
+                ("subset", J::I(n as i64)),
+                ("updates", J::I(updates as i64)),
+                ("samples", J::I(samples as i64)),
+                ("lr", J::N(args.lr)),
+                ("momentum", J::N(args.momentum)),
+                ("weight_decay", J::N(0.0)),
+                ("seed", J::I(args.seed as i64)),
+            ]),
+        ),
+        (
+            "prediction",
+            obj(vec![
+                ("cost_model_ni_without_boots", ks_json(&model.ks, b)),
+                (
+                    "cost_model_ni_bootstraps_per_update",
+                    J::I(model.boots as i64),
+                ),
+                (
+                    "cost_model_ni_ks_per_sample_at_hekit_boot",
+                    J::N(model_per_sample),
+                ),
+                ("closed_form_per_update", ni_cost_json(&cost)),
+                ("bootstraps_per_update_avg", J::N(boots_avg)),
+                (
+                    "corrections_per_update",
+                    obj(vec![
+                        ("recomputed_babies", J::I(terms.babies)),
+                        ("bsgs_split", J::I(terms.split)),
+                        ("transpose_beyond_model", J::I(terms.transpose)),
+                        ("bias_gradients_and_extraction", J::I(terms.bias)),
+                        ("bootstraps_beyond_model_x_boot_ks", J::I(terms.boots)),
+                        ("total", J::I(terms.total())),
+                    ]),
+                ),
+                ("predicted_ks_per_sample", J::N(pred_per_sample)),
+                (
+                    "boot_schedule",
+                    J::A(schedule.iter().map(|&x| J::I(i64::from(x))).collect()),
+                ),
+            ]),
+        ),
+        (
+            "measured",
+            obj(vec![
+                ("total", ni_counter_json(&total)),
+                ("ks_per_sample_incl_bootstraps", J::N(measured_per_sample)),
+                (
+                    "ks_per_sample_without_bootstraps",
+                    J::N(nonboot as f64 / sf),
+                ),
+                ("bootstraps_per_update", J::N(boots as f64 / updates as f64)),
+                ("bootstraps_per_sample", J::N(boots as f64 / sf)),
+                (
+                    "weight_booted",
+                    J::A(booted.iter().map(|&x| J::I(i64::from(x))).collect()),
+                ),
+                ("every_update_equals_prediction", J::B(matches)),
+                (
+                    "measured_over_predicted",
+                    J::N(measured_per_sample / pred_per_sample),
+                ),
+                (
+                    "measured_over_cost_model",
+                    J::N(measured_per_sample / model_per_sample),
+                ),
+                ("per_update_first", ni_counter_json(&per_update[0])),
+            ]),
+        ),
+        (
+            "rq1",
+            rq1_json(
+                nonboot as f64 / sf,
+                boots as f64 / sf,
+                args.batch,
+                &reboot_source,
+            ),
+        ),
+        (
+            "time_s",
+            obj(vec![
+                ("bootstrapper_setup", J::N(boot_setup_s)),
+                ("keygen_total", J::N(keygen_s)),
+                ("encrypt_network", J::N(encrypt_net_s)),
+                ("train_total", J::N(train_s)),
+                ("epoch_measured", J::N(epoch_full_s)),
+                (
+                    "epoch_1024_extrapolated_from_mean_update",
+                    J::N(extrapolated_1024),
+                ),
+                ("per_update", stats(&update_s)),
+                ("per_update_client_encrypt", stats(&client_enc_s)),
+                (
+                    "bootstrap_time_total",
+                    J::N(trainer.log.iter().map(|l| l.refresh_seconds).sum::<f64>()),
+                ),
+                ("wall_total", J::N(t_all.elapsed().as_secs_f64())),
+            ]),
+        ),
+        (
+            "twin",
+            obj(vec![
+                (
+                    "max_abs_w_diff_per_layer",
+                    J::A(w_diff.iter().map(|&v| J::N(v)).collect()),
+                ),
+                (
+                    "max_abs_b_diff_per_layer",
+                    J::A(b_diff.iter().map(|&v| J::N(v)).collect()),
+                ),
+                ("max_abs_diff", J::N(max_diff)),
+                ("log2_max_abs_diff", J::N(max_diff.log2())),
+                (
+                    "max_abs_w_update_per_layer",
+                    J::A(w_moved.iter().map(|&v| J::N(v)).collect()),
+                ),
+                ("max_abs_hidden_activation", J::N(max_hidden)),
+            ]),
+        ),
+        (
+            "evaluation",
+            obj(vec![
+                ("test_samples", J::I(test.len() as i64)),
+                (
+                    "test_acc_encrypted_trained",
+                    J::N(accuracy(&out_he, &test.labels)),
+                ),
+                ("test_acc_twin", J::N(accuracy(&out_twin, &test.labels))),
+                ("test_acc_init", J::N(accuracy(&out_init, &test.labels))),
+                ("test_mse_encrypted_trained", J::N(mse(&out_he, &y_test))),
+                ("test_mse_twin", J::N(mse(&out_twin, &y_test))),
+            ]),
+        ),
+        (
+            "levels_last_step",
+            J::O(
+                trainer
+                    .trace()
+                    .iter()
+                    .map(|(k, v)| (k.clone(), J::I(*v as i64)))
+                    .collect(),
+            ),
+        ),
+        (
+            "memory",
+            obj(vec![(
+                "peak_rss_bytes",
+                peak_rss_bytes().map_or(J::N(f64::NAN), |b| J::I(b as i64)),
+            )]),
+        ),
+        (
+            "machine",
+            obj(vec![
+                ("load_start", J::S(load_start)),
+                ("load_end", J::S(loadavg())),
+                ("build", build_info()),
+                ("parallel_feature", J::B(cfg!(feature = "parallel"))),
+                (
+                    "threads",
+                    J::S(if cfg!(feature = "parallel") {
+                        format!(
+                            "rayon, {} available (this Mac); quadruped-gpu 32-thread figure: pending (user-driven session)",
+                            std::thread::available_parallelism().map_or(0, |n| n.get())
+                        )
+                    } else {
+                        "single".into()
+                    }),
+                ),
+            ]),
+        ),
+    ]);
+    let mut out = String::new();
+    result.write(&mut out, 0);
+    out.push('\n');
+    let path = args.out.clone().unwrap_or_else(|| {
+        PathBuf::from(format!(
+            "results/mnist_emlp1_ni_{}_b{}.json",
+            placement.name(),
+            args.batch
+        ))
+    });
+    write_out(&path, &out)
 }
 
 #[cfg(test)]
@@ -1049,6 +1937,75 @@ mod tests {
                 mlp_rotation_steps(&EMLP1, &layout, &keys).unwrap().len(),
                 n_keys
             );
+        }
+    }
+
+    /// The non-interactive port equals `spikes/costmodel` (`network_cost("diag_batched",
+    /// layers, B, slots, boot_ks=111)`, compact, NAG): rotations, relins and bootstraps per
+    /// update, from a run of the spike.
+    #[test]
+    fn cost_model_ni_port_matches_the_spike() {
+        let em = [true, false];
+        for (dims, b, slots, rot, relin, boots) in [
+            (&EMLP1[..], 32, 1 << 15, 703, 58, 4),
+            (&EMLP1[..], 64, 1 << 15, 739, 68, 4),
+            (&EMLP1[..], 48, 1 << 15, 739, 68, 4),
+            (&[64, 32, 10][..], 8, 512, 437, 58, 10),
+            (&[64, 32, 10][..], 16, 512, 469, 68, 10),
+        ] {
+            let m = cost_model_ni(dims, &em, b, slots);
+            assert_eq!(
+                (m.ks.rot, m.ks.relin, m.boots),
+                (rot, relin, boots),
+                "{dims:?} B {b}"
+            );
+        }
+        // The spike's KS_spec per sample at 111: 37.656 (B 32), 19.547 (B 64), 26.063 (B 48).
+        for (b, ks) in [(32, 37.65625), (64, 19.546875), (48, 26.0625)] {
+            let m = cost_model_ni(&EMLP1, &em, b, 1 << 15);
+            assert_eq!((m.ks.total() + 111 * m.boots) as f64 / b as f64, ks);
+        }
+    }
+
+    /// eMLP-1 non-interactive (AfterUpdate) on 2^15 slots: the library's closed form is the
+    /// model plus the listed corrections, term by term, for B = 32 (one ciphertext) and
+    /// B = 64 (two micro-batches), with both transpose key sets.
+    #[test]
+    fn emlp1_ni_closed_form_is_model_plus_corrections() {
+        let layout = Layout::new(1 << 15, 1024, 32).unwrap();
+        let em = [true, false];
+        let reuse = TransposeKeys::Reuse(mlp_key_pool(&EMLP1, &layout).unwrap());
+        for (b, keys, terms, per_sample) in [
+            (32, reuse.clone(), (14, -2, 12, 34), 39.46875),
+            (64, reuse, (28, -4, 12, 34), 20.640625),
+            (32, TransposeKeys::Dedicated, (14, -2, 0, 34), 39.09375),
+        ] {
+            let model = cost_model_ni(&EMLP1, &em, b, 1 << 15);
+            let (cost, t, boots) = ni_terms(
+                &EMLP1,
+                &em,
+                &layout,
+                &keys,
+                BootPlacement::AfterUpdate,
+                &model,
+                4.0,
+                111,
+            )
+            .unwrap();
+            assert_eq!(
+                (t.babies, t.split, t.transpose, t.bias, t.boots),
+                (terms.0, terms.1, terms.2, terms.3, 0)
+            );
+            assert_eq!(boots, 4.0);
+            let closed = (cost.rotations() + cost.relins() + 4 * 111) as i64;
+            assert_eq!(
+                closed,
+                (model.ks.total() + 111 * model.boots) as i64 + t.total()
+            );
+            assert_eq!(closed as f64 / b as f64, per_sample, "B {b}");
+            // Within 10% of the model (plan owner's gate).
+            let model_ps = (model.ks.total() + 111 * model.boots) as f64 / b as f64;
+            assert!(per_sample / model_ps < 1.10, "{}", per_sample / model_ps);
         }
     }
 }

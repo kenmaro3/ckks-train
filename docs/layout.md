@@ -492,6 +492,22 @@ replicated layout (ruling R-M3-3; its `bind_layout` still refuses such layouts).
 - A round trip pack, then bootstrap (to `levels_after_boot`, 16 on n16_boot, at `Delta`), then
   unpack costs `+2` levels per update. Weights refreshed this way arrive on level `16 - 1 = 15`
   of n16_boot: `Refresher::output_level` for the bootstrap minus the unpack level.
+- **The fused path (Task 41, ruling R-M3-11): `compact_shift`.** `compact_pack(EncWeights)` is
+  the mask of §6.2 followed by the shift tree. Composed literally with the replicated gradient of
+  §3 (`tensor → mask0 → replicate → W − dW → pack mask → boot → unpack`) it costs, against the
+  cost model, **one more level per update**, `m log2 B` replication rotations, `m` more ct-pt
+  and, for NAG, a pack and an unpack of the velocity too (≈ +650 KS per eMLP-1 update). The
+  model's path never builds an expanded gradient: the reduce-only gradient (§3, steps 1–3) is
+  masked once by the **first-period** lane-0 mask `mask0_L[s] = [s < L B and s mod B = 0]`, with
+  the constant `c = grad_scale / n` folded in (`Dense::weight_grad_reduced`, 1 level), and that
+  mask is also the pack mask. `compact_shift(ev, entries, plan)` is the shift tree alone: its
+  precondition is that every entry is zero outside `{j B : j < L}`, and it costs exactly
+  `m - n_ct` rotations, no ct-pt, **no level**, no relin (keys: `-step_k`,
+  `k < ceil(log2 min(m, cap))`). The weights and the velocity then stay in compact form
+  between steps (the optimizer runs on the compact ciphertexts, §7). Pack (with its mask) is
+  only for a state that starts expanded. `compact_extract(ev, ct, plan, t, target)` is the
+  unpack of one position (§7.3): `rot(ct, o(t))`, `mask0_L` at an exact target scale, and the
+  `log2(cap)` replications (`[o(t) != 0] + log2(cap)` rotations, 1 ct-pt, 1 level).
 - Galois steps (`compact_rotation_steps`), one key per distinct element:
   `{-step_k : k < log cap}` (pack tree and replication) and `{+step_k : k < log2 min(m, cap)}`
   (unpack tree). That is `log2(S/L) + log2(min(m, S/L))` keys. In a single-block layout
@@ -508,3 +524,139 @@ The rotation counts and `n_ct` are the cost model's `gradient` lane shifts (`194
 against `interactive=True`), its `update` rotations (191 and 175) and its `weight_ciphertexts`,
 for the same `(d_in, d_out, batch, slots)`. The test `compact_round_trip_n16_boot` checks the
 first row on the real n16_boot preset.
+
+## 7. Non-interactive training (M3, Task 41)
+
+`crates/hekit-nn/src/trainer_ni.rs` (`NonInteractiveTrainer`) trains with no client in the
+loop: every level is restored by bootstrapping (`docs/bootstrap.md` §11). The trainer holds an
+`Evaluator` (relinearization and Galois keys) and a `Bootstrapper` (its evaluation keys), and no
+`Decryptor`: the type has no field that can hold a secret key, and its tests build the
+`Decryptor` only after training.
+
+### 7.1 One update (ruling R-M3-11, the cost model's compact path)
+
+`k` micro-batch ciphertexts of `B` lanes (ruling R-M3-4: `B = 64` is `k = 2` ciphertexts of 32
+lanes, `B = 48` is not a power of two and is not run):
+
+| step | per | ops | levels |
+|---|---|---|---|
+| forward, loss gradient, backward (as §4; `W^T` once per update) | micro-batch | as interactive | as §4 |
+| weight gradient `Dense::weight_grad_reduced`: babies `(b-1)` + giants `(g-1)` (hoisted), `m` tensors **summed over the `k` micro-batches before one relin per diagonal**, reduce `m log2 B`, `mask0_L` with `c` folded | update | `k(b+g-2) + m log2 B` rot, `m` relin, `m` ct-pt | 2 |
+| `compact_shift` into the compact layout (§6.4) | update | `m - n_ct` rot | 0 |
+| bias gradient `Dense::bias_grad_reduced`: the `k` `dz` summed, reduce, `mask0_{L_host}` with `lr / n`; shift to its position | update | `log2 B + [o(t) != 0]` rot, 1 ct-pt | 1 |
+| optimizer on the compact state (NAG on `W`, `U`; SGD on the biases, §7.3) | update | `2 n_ct` scalar products | 0 on the critical path |
+| bootstrap every compact `W` and `U` (§7.2 says when) | update | `2 n_ct` per layer (+1 per bias-only container) | → `levels_after_boot` |
+| `compact_unpack` of `W` only | update | `(m - n_ct) + m log2(S/L)` rot, `m` ct-pt | 1 |
+| `compact_extract` of every bias, at the exact product scale of its next forward | update | `[o(t) != 0] + log2(S/L_host)` rot, 1 ct-pt | 1 |
+
+The NAG update on a compact container `i` of layer `l` is, at level
+`lv = min(W_i, h_i, h_b of the biases it hosts, U_i - 1)`:
+`W_i' = W_i - h_i - sum h_b - (mu^2 / (1 + mu)) U_i` and `U_i' = mu U_i + h_i` (`U = 0` before
+the first step: `U' = h`, `W' = W - h - sum h_b`). The velocity's bias positions stay zero, so
+the biases take plain SGD steps (the M2 deviation).
+
+### 7.2 Placements (`BootPlacement`)
+
+- **`AfterUpdate`** (the cost model's): every compact `W` and `U` is bootstrapped after every
+  update. The next step starts from `levels_after_boot - 1` (15 on n16_boot) after the unpack.
+- **`AfterActivation`**: in every forward, each hidden activation output `a_l` (`l < L`, each
+  micro-batch ciphertext) is multiplied by 1 onto exactly `Delta` (1 ct-pt, 1 level, so the next
+  layer's bias is at `Delta^2`), dropped to level 0 and bootstrapped; the next layer and its
+  weight gradient use the bootstrapped `a_l`. The weights are bootstrapped **only when the next
+  step would not fit** their remaining levels (the structural level arithmetic of §7.4, run on
+  the state the update leaves). Cost: `(L - 1) k` activation bootstraps per update.
+- **`WhenNeeded`** (not in the brief): the same lazy weight schedule without the activation
+  bootstraps.
+
+For eMLP-1 on n16_boot: a step takes 7 levels from the unpacked weights (5 with activation
+bootstraps), and 15 are left after a bootstrap and an unpack. So `WhenNeeded` bootstraps the
+weights every second update (`15 → 8`, unpack `→ 7`, `→ 0`), and so does `AfterActivation`
+(`15 → 10`, `9 → 4`; a third step would need `3 → -2`). **`AfterActivation` does not bootstrap the
+weights less often than `WhenNeeded` for eMLP-1** and pays one activation bootstrap per
+micro-batch on top. It halves the weight bootstraps only against `AfterUpdate`. Its real gain is
+depth: the forward of the upper layers restarts at every activation, so a deep network that does
+not fit after a bootstrap may fit with it (the depth-overflow configuration of §7.4: 25 levels
+with `AfterUpdate`, 13 with `AfterActivation`). The backward still descends through every layer
+(2 levels per layer).
+
+### 7.3 The compact state and the biases (`CompactLayout`, `CompactState`)
+
+- Per layer its `CompactPlan` and `n_ct` compact ciphertexts, all at exactly `Delta`. The client
+  encrypts the initial state (`NonInteractiveTrainer::encrypt_network`): the compact containers
+  at `levels_after_boot` (as a bootstrap leaves them), zero velocity, and the expanded `Mlp` at
+  `levels_after_boot - 1` with every bias at the exact product scale of its first forward (Task
+  40 carry-in: the chain starts at the refresh level, `Mlp::encrypt_at`, `Mlp::batch_spec_at`).
+- **Biases ride in the weight containers.** A bias of padded length `n` takes one free position
+  `t` of a container whose period `L >= n` (canonical form: slot `o(t) + j B` holds
+  `b[j mod n]`, `j < L`). Rule: containers with the largest `L` first (fewest extraction
+  rotations), a free power-of-two position first (its offset is a tree step, whose keys exist),
+  else the lowest free one. eMLP-1: W1's container is full (32 of 32 positions); both biases go
+  to W2's container (`L = 32`, 16 of 1024 positions used) at `t = 16` (`o = 16`) and `t = 32`
+  (`o = 1024`): **no extra bootstrap and no new key**. A bias that finds no room gets a
+  bias-only container (`L = layout.d`, one more bootstrap per update, SGD only).
+- The bias gradient is masked by `mask0_{L_host}` (first period of the host's `L`) at exactly
+  `Delta`, then shifted by `-o(t)`. The bias for the next forward is `compact_extract` at the
+  exact product scale `s_x Delta` of that forward's input (`Delta^2` for the first layer and
+  after an activation bootstrap; the activation chain's scale otherwise). When no rescale from
+  the container's level reaches that scale (`ScaleMismatch`, about 11% of arbitrary targets),
+  the extraction is retried one level lower, but never below the level its forward runs at, so
+  the levels of §7.4 do not change.
+- Bootstrapping refreshes every slot independently, so a replicated layout (`d B < S`) keeps
+  drifting copies under `BootstrapRefresher` (ruling R-M3-3). The compact path re-lays them by
+  construction: extraction and unpack write every lane and block copy from one slot. Tested on a
+  4-copy layout (block spread 2^-31.5 after 3 updates). The activation bootstraps of
+  `AfterActivation` act on transient values recomputed every step, so their per-copy noise does
+  not accumulate.
+
+### 7.4 Levels (`levels_per_iter`)
+
+`levels_per_iter(mlp, placement)` is the exact level count of one step from the unpacked
+weights (all on one level `w`) to the lowest level of the step: the updated compact state. It is
+the same op-by-op level arithmetic the trainer runs (`z = in - 1`, `a = z - depth`, `s = z -
+derivative_depth`, `dz = min(s, delta) - 1` or `delta` for a linear layer on a full batch,
+`delta_{l-1} = dz - 1`, `h_l = min(dz_l, a_{l-1}) - 2`, `h_b = dz - 1`, an activation bootstrap
+restarts at `levels_after_boot`), and the tests compare every value's level with the trainer's
+trace. `NonInteractiveTrainer::new` returns `InvalidParams` when `levels_per_iter >
+levels_after_boot - 1` (Review Focus 3).
+
+eMLP-1, `AfterUpdate`, from 15: `z1 14, a1 13, z2 12, a2 = delta2 = dz2 12, delta1 11, s1 13,
+dz1 10, h1 8, hb1 9, h2 10, hb2 11`; W1's container lands on 8, W2's (which hosts both biases) on
+9. **7 levels**, against `4L + 1 = 9` for two quadratic layers (the linear output layer saves the
+activation and the `dz` product). With the unpack, 8 levels per update: the M0 premise "+2
+levels per update" (mask and unpack) over the 6 of the mask-free interactive step.
+
+| network | `AfterUpdate` / `WhenNeeded` | `AfterActivation` |
+|---|---|---|
+| eMLP-1 (z² + z, linear) | 7 | 5 |
+| 16 → 16 → 4, z² + z twice | 9 | 7 |
+| degree-4 polynomial × 4 layers (the depth-overflow configuration) | **25 > 15: refused** | 13 |
+
+### 7.5 Counts against the cost model
+
+`predict_update_for` is the closed form of one update, op for op the trainer's (the tests assert
+the measured counter equal to it, bootstraps included, on every update). Against
+`network_cost("diag_batched", …, compact=True)` (ported in `crates/hekit-bench/src/bin/mnist.rs`,
+`cost_model_ni`, and checked against the spike's numbers), with Task 32's terms where they apply:
+
+| eMLP-1, n16_boot, `AfterUpdate`, Reuse transpose | B = 32 (k = 1) | B = 64 (k = 2) | B = 48 (formula only, k = 2) |
+|---|---|---|---|
+| model: rot + relin / bootstraps per update | 703 + 58 / 4 | 739 + 68 / 4 | 739 + 68 / 4 |
+| + recomputed babies `k (n1 - 1)` per layer (Task 32 §5.2) | +14 | +28 | +28 |
+| + BSGS split, gradient `(b-1)+(g-1) - (n1-1)-(n2-1)` (matvec KS equal) | −2 | −4 | −4 |
+| + Reuse transpose (27 against `m - 1 = 15`) | +12 | +12 | +12 |
+| + bias gradients (`log2 B + 1` per layer) and extraction (`1 + log2(S / 32)` per bias), not in the model | +34 | +34 | +34 |
+| = closed form, KS without bootstraps | 819 | 877 | 877 |
+| KS per sample with 4 × 111 per update | **39.47** (model 37.66, ×1.048) | **20.64** (model 19.55, ×1.056) | 27.52 (model 26.06) |
+
+The interactive corrections of Task 32 that do not apply here: the replication `m log2 B` (the
+gradient is reduce-only) and the bias's replicate half (`log2 B` instead of `2 log2 B`). The lazy
+placements change only the bootstrap term: `WhenNeeded` 2 bootstraps per update on average
+(32.53 KS/sample at B = 32, 17.17 at B = 64), `AfterActivation` 2 + `k` (36.00 at B = 32, 20.64 at
+B = 64).
+
+### 7.6 Keys (eMLP-1, n16_boot)
+
+`ni_rotation_steps`: 35 training Galois keys with the Reuse transpose (forward, reduce-only
+gradient, backward, transpose, the compact pack/unpack trees and the bias offsets), plus the
+relinearization key: ≈ 10.9 GB at 0.302 GB each, next to the bootstrapper's 10.27 GB of keys and
+≈ 3 GB of encoded CtS/StC diagonals.

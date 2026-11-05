@@ -14,6 +14,10 @@ hekit-nn = { path = "../hekit-nn" }
 ndarray = "0.16"
 libc = "0.2"
 
+[features]
+# rayon data parallelism in hekit-ckks (bit-identical results; Task 41 runs label it).
+parallel = ["hekit-ckks/parallel"]
+
 [dev-dependencies]
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 

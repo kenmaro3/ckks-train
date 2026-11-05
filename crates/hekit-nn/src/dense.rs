@@ -176,14 +176,31 @@ pub struct EncWeights {
 
 impl EncWeights {
     /// Packs `w` (`d_out x d_in`) with [`pack_weight_diagonals`] and encrypts every diagonal at
-    /// `params.scale()` and the top level.
+    /// `params.scale()` and the top level: [`EncWeights::encrypt_at`] at `max_level`.
     ///
-    /// Errors: `InvalidParams` if `w` does not fit `layout` (a padded dimension above
-    /// `layout.d`) or the layout's slot count is not the parameters', and the
-    /// [`Encoder::encode`] errors (e.g. a non-finite weight).
+    /// Errors as [`EncWeights::encrypt_at`].
     pub fn encrypt(
         w: &Array2<f64>,
         layout: &Layout,
+        enc: &Encryptor,
+        encoder: &Encoder,
+        rng: &mut Rng,
+    ) -> Result<EncWeights> {
+        let top = encoder.params().max_level();
+        EncWeights::encrypt_at(w, layout, top, enc, encoder, rng)
+    }
+
+    /// [`EncWeights::encrypt`] at `level` instead of the top level (e.g. the level a refresher
+    /// returns weights on, [`crate::refresh::Refresher::output_level`], or the non-interactive
+    /// trainer's start level, [`crate::trainer_ni::NonInteractiveTrainer::start_level`]).
+    ///
+    /// Errors: `InvalidParams` if `w` does not fit `layout` (a padded dimension above
+    /// `layout.d`) or the layout's slot count is not the parameters', and the
+    /// [`Encoder::encode`] errors (e.g. a non-finite weight, a level above `max_level`).
+    pub fn encrypt_at(
+        w: &Array2<f64>,
+        layout: &Layout,
+        level: usize,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
@@ -194,7 +211,7 @@ impl EncWeights {
         check_slots(layout, params.slots())?;
         let entries = pack_weight_diagonals(w, layout, (sh.baby, sh.giant))
             .iter()
-            .map(|v| Ok(enc.encrypt(&encoder.encode(v, params.scale(), params.max_level())?, rng)))
+            .map(|v| Ok(enc.encrypt(&encoder.encode(v, params.scale(), level)?, rng)))
             .collect::<Result<Vec<_>>>()?;
         EncWeights::from_diagonals(
             Diagonals::from_prerotated(sh.m, layout.batch, entries)?,
@@ -303,15 +320,34 @@ pub struct Dense {
 
 impl Dense {
     /// Encrypts `w` ([`EncWeights::encrypt`]) and `bias` (`d_out` values, [`encrypt_bias`]) at
-    /// the top level, the bias at `x_scale * Delta` for inputs of scale `x_scale`.
+    /// the top level, the bias at `x_scale * Delta` for inputs of scale `x_scale`:
+    /// [`Dense::encrypt_at`] at `max_level`.
     ///
-    /// Errors: those of [`EncWeights::encrypt`] and [`encrypt_bias`], and `InvalidParams` if
-    /// `bias.len() != d_out`.
+    /// Errors as [`Dense::encrypt_at`].
     pub fn encrypt(
         w: &Array2<f64>,
         bias: &[f64],
         layout: &Layout,
         x_scale: f64,
+        enc: &Encryptor,
+        encoder: &Encoder,
+        rng: &mut Rng,
+    ) -> Result<Dense> {
+        let top = encoder.params().max_level();
+        Dense::encrypt_at(w, bias, layout, x_scale, top, enc, encoder, rng)
+    }
+
+    /// [`Dense::encrypt`] at `level` instead of the top level.
+    ///
+    /// Errors: those of [`EncWeights::encrypt_at`] and [`encrypt_bias`], and `InvalidParams` if
+    /// `bias.len() != d_out`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn encrypt_at(
+        w: &Array2<f64>,
+        bias: &[f64],
+        layout: &Layout,
+        x_scale: f64,
+        level: usize,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
@@ -323,13 +359,12 @@ impl Dense {
                 w.nrows()
             )));
         }
-        let w = EncWeights::encrypt(w, layout, enc, encoder, rng)?;
-        let top = encoder.params().max_level();
+        let w = EncWeights::encrypt_at(w, layout, level, enc, encoder, rng)?;
         let b = encrypt_bias(
             bias,
             layout,
             w.product_scale(x_scale),
-            top,
+            level,
             enc,
             encoder,
             rng,
@@ -973,5 +1008,225 @@ impl Dense {
         let mask_scale = ev.target_plain_scale(delta, target)?;
         let mask = lane0_plaintext(ev, layout, c, mask_scale, delta.level())?;
         batch_sum(ev, delta, &mask, target, layout)
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Task 41: reduce-only gradients for the non-interactive (compact) update.
+// ---------------------------------------------------------------------------------------------
+
+/// The Galois steps of [`Dense::weight_grad_reduced`] for a `d_out x d_in` layer, sorted and
+/// distinct: the baby rotations of the layer input `k2 batch` (`1 <= k2 < baby`), the giant
+/// rotations of `delta` `-g k1 batch` (`1 <= k1 < giant`) and the batch reduce `2^t`
+/// (`t < log2 batch`). No replication steps (the gradient stays in lane 0). The bias's
+/// [`Dense::bias_grad_reduced`] needs only the reduce steps.
+///
+/// # Panics
+/// If the layer does not fit the layout ([`LayerShape::new`]).
+pub fn grad_reduced_rotation_steps(d_out: usize, d_in: usize, layout: &Layout) -> Vec<i32> {
+    let sh = LayerShape::new(d_out, d_in, layout);
+    let b = layout.batch;
+    let mut steps: Vec<i32> = (1..sh.baby).map(|k2| (k2 * b) as i32).collect();
+    steps.extend((1..sh.giant).map(|k1| -((sh.baby * k1 * b) as i32)));
+    steps.extend(lane_steps(layout).0);
+    steps.sort_unstable();
+    steps.dedup();
+    steps
+}
+
+/// `c` on lane 0 of the first `period` features (slots `j batch`, `j < period`), 0 elsewhere,
+/// encoded at `scale` and `level`: the batch-sum mask that is also the compact pack mask
+/// (`docs/layout.md` §6.4).
+fn first_period_plaintext(
+    ev: &Evaluator,
+    layout: &Layout,
+    period: usize,
+    c: f64,
+    scale: f64,
+    level: usize,
+) -> Result<Plaintext> {
+    if !c.is_finite() {
+        return Err(HekitError::InvalidParams(format!(
+            "gradient constant {c} must be finite"
+        )));
+    }
+    let span = period * layout.batch;
+    let mask: Vec<f64> = (0..layout.slots)
+        .map(|s| {
+            if s < span && s % layout.batch == 0 {
+                c
+            } else {
+                0.0
+            }
+        })
+        .collect();
+    Encoder::new(Arc::clone(ev.params())).encode(&mask, scale, level)
+}
+
+/// `InvalidParams` unless `xs` is nonempty with one level and exactly one scale for all.
+fn check_micro(xs: &[&Ciphertext], what: &str) -> Result<()> {
+    let Some(first) = xs.first() else {
+        return Err(HekitError::InvalidParams(format!("no {what} ciphertexts")));
+    };
+    if xs
+        .iter()
+        .any(|x| x.level() != first.level() || x.scale() != first.scale())
+    {
+        return Err(HekitError::InvalidParams(format!(
+            "the {what} micro-batches must share one level and one scale"
+        )));
+    }
+    Ok(())
+}
+
+impl Dense {
+    /// The weight gradient `c * sum_mb delta_mb^T A_mb` for the compact update
+    /// (`docs/layout.md` §6.4, ruling R-M3-11): the outer product of
+    /// [`Dense::weight_grad_scaled`], summed over the micro-batches `mb` of one update before
+    /// a single relinearization per diagonal, then the batch **reduce only** and the
+    /// first-period lane-0 mask with `c` folded in. Entry `e` (BSGS order) is zero outside slots
+    /// `j B`, `j < L`, where it holds `c * G_e[j]` (the pre-rotated diagonal of §3): exactly the
+    /// precondition of [`crate::compact::compact_shift`]. No replication.
+    ///
+    /// 1. all inputs are switched down (free) to their lowest level `l`; per micro-batch
+    ///    `baby - 1` hoisted rotations of `A` and `giant - 1` hoisted rotations of `delta`;
+    /// 2. per diagonal: one [`Evaluator::mul_no_relin`] per micro-batch, summed (degree 2),
+    ///    then one relin and one rescale (level `l - 1`);
+    /// 3. reduce `v += rot(v, 2^t)`, `t < log2 B` (lane 0 of each feature now holds the sum);
+    /// 4. [`Evaluator::mul_plain_to_scale`] by `c * mask0_L` (encoded at
+    ///    [`Evaluator::target_plain_scale`], target `self.w.scale()`) and rescale (level
+    ///    `l - 2`, scale **exactly** `self.w.scale()`).
+    ///
+    /// Costs `k ((baby - 1) + (giant - 1)) + m log2 B` rotations, `k m` tensors, `m` relins,
+    /// `m` ct-pt and `2 m` rescales (2 levels) for `k` micro-batches. Against
+    /// [`Dense::weight_grad_scaled`] (k = 1): `m log2 B` fewer rotations (no replication).
+    ///
+    /// Errors, all before any homomorphic work: `InvalidParams` if `deltas` and `a_prevs` are
+    /// empty or of different lengths, a micro-batch differs in level or scale from the first,
+    /// `layout` is not the weights', a key of [`grad_reduced_rotation_steps`] or the
+    /// relinearization key is missing, `c` is not finite, or an input is not a 2-component
+    /// ciphertext over the evaluator's basis; `NoLevelsLeft` if `l < 2`; `ScaleMismatch` if
+    /// `self.w.scale()` is not reachable by a rescale from level `l - 1`.
+    pub fn weight_grad_reduced(
+        &self,
+        ev: &Evaluator,
+        deltas: &[&Ciphertext],
+        a_prevs: &[&Ciphertext],
+        layout: &Layout,
+        c: f64,
+    ) -> Result<Vec<Ciphertext>> {
+        let sh = self.w.shape(layout)?;
+        check_slots(layout, ev.params().slots())?;
+        self.w.check_batch(layout)?;
+        if deltas.len() != a_prevs.len() {
+            return Err(HekitError::InvalidParams(format!(
+                "{} delta and {} input micro-batches",
+                deltas.len(),
+                a_prevs.len()
+            )));
+        }
+        check_micro(deltas, "delta")?;
+        check_micro(a_prevs, "layer input")?;
+        check_keys(ev, &grad_reduced_rotation_steps(sh.d_out, sh.d_in, layout))?;
+        if ev.relin_key().is_none() {
+            return Err(HekitError::InvalidParams(
+                "evaluator has no relinearization key".into(),
+            ));
+        }
+        for ct in deltas.iter().chain(a_prevs) {
+            check_input(ev, ct)?;
+        }
+        let level = deltas[0].level().min(a_prevs[0].level());
+        if level < 2 {
+            return Err(HekitError::NoLevelsLeft);
+        }
+        let prod_scale = deltas[0].scale() * a_prevs[0].scale() / ev.params().q()[level] as f64;
+        let target = self.w.scale();
+        let mask_scale = ev.exact_product_scale(level - 1, target)? / prod_scale;
+        let mask = first_period_plaintext(ev, layout, sh.l, c, mask_scale, level - 1)?;
+
+        let b = layout.batch;
+        let a_steps: Vec<i32> = (0..sh.baby).map(|k2| (k2 * b) as i32).collect();
+        let d_steps: Vec<i32> = (0..sh.giant)
+            .map(|k1| -((sh.baby * k1 * b) as i32))
+            .collect();
+        let mut rots = Vec::with_capacity(deltas.len());
+        for (d, a) in deltas.iter().zip(a_prevs) {
+            let d = ev.mod_switch_to_level(d, level)?;
+            let a = ev.mod_switch_to_level(a, level)?;
+            rots.push((
+                ev.hoisted_rotate(&d, &d_steps)?,
+                ev.hoisted_rotate(&a, &a_steps)?,
+            ));
+        }
+        let (reduce, _) = lane_steps(layout);
+        (0..sh.m)
+            .map(|e| {
+                let mut acc: Option<Ciphertext> = None;
+                for (d_rot, a_rot) in &rots {
+                    let p = ev.mul_no_relin(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?;
+                    acc = Some(match acc {
+                        None => p,
+                        Some(s) => ev.add(&s, &p)?,
+                    });
+                }
+                let p = acc.expect("at least one micro-batch");
+                let mut v = ev.rescale(&ev.relinearize(&p)?)?;
+                for &s in &reduce {
+                    let r = ev.rotate(&v, s)?;
+                    v = ev.add(&v, &r)?;
+                }
+                ev.rescale(&ev.mul_plain_to_scale(&v, &mask, target)?)
+            })
+            .collect()
+    }
+
+    /// The bias gradient `c * sum_mb sum_b dz_mb,b` for the compact update: the micro-batch
+    /// `dz`s summed (no op beyond additions), the batch **reduce only** (`log2 B` rotations)
+    /// and the first-`period` lane-0 mask with `c` folded in (1 ct-pt, 1 level), landing on
+    /// exactly `target_scale`. Slot `j B` (`j < period`) holds `c * sum dz[j mod n_out]`, every
+    /// other slot is 0: the input of one compact position of period `period >= n_out`
+    /// (`docs/layout.md` §7.3).
+    ///
+    /// Errors, all before any homomorphic work: `InvalidParams` if `dzs` is empty or a
+    /// micro-batch differs in level or scale, `layout` is not the weights', a reduce key is
+    /// missing, `c` is not finite, `period` is not a power of two in `n_out..=layout.d`, or an
+    /// input is not a 2-component ciphertext over the evaluator's basis; and those of
+    /// [`Evaluator::target_plain_scale`] (`NoLevelsLeft` at level 0, `ScaleMismatch`).
+    pub fn bias_grad_reduced(
+        &self,
+        ev: &Evaluator,
+        dzs: &[&Ciphertext],
+        layout: &Layout,
+        c: f64,
+        period: usize,
+        target_scale: f64,
+    ) -> Result<Ciphertext> {
+        let sh = self.w.shape(layout)?;
+        check_slots(layout, ev.params().slots())?;
+        self.w.check_batch(layout)?;
+        check_micro(dzs, "dz")?;
+        let (reduce, _) = lane_steps(layout);
+        check_keys(ev, &reduce)?;
+        if !(period.is_power_of_two() && period >= sh.n_out && period <= layout.d) {
+            return Err(HekitError::InvalidParams(format!(
+                "bias period {period} for {} outputs in layout d = {}",
+                sh.n_out, layout.d
+            )));
+        }
+        for ct in dzs {
+            check_input(ev, ct)?;
+        }
+        let mask_scale = ev.target_plain_scale(dzs[0], target_scale)?;
+        let mask = first_period_plaintext(ev, layout, period, c, mask_scale, dzs[0].level())?;
+        let mut v = dzs[0].clone();
+        for d in &dzs[1..] {
+            v = ev.add(&v, d)?;
+        }
+        for s in reduce {
+            let r = ev.rotate(&v, s)?;
+            v = ev.add(&v, &r)?;
+        }
+        ev.rescale(&ev.mul_plain_to_scale(&v, &mask, target_scale)?)
     }
 }
