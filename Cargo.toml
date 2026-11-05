@@ -5,6 +5,7 @@ members = [
     "crates/hekit-ckks",
     "crates/hekit-nn",
     "crates/hekit-bench",
+    "crates/hekit-cuda",
 ]
 exclude = ["spikes"]
 

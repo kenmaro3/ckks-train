@@ -1,0 +1,29 @@
+[package]
+name = "hekit-cuda"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "hekit-cuda: CUDA backend for hekit RNS-CKKS (temporary crate name)"
+
+[dependencies]
+hekit-core = { path = "../hekit-core" }
+hekit-ckks = { path = "../hekit-ckks" }
+# cudarc: CUDA 13.1 bindings (`cuda-13010`, matching NVRTC 13.1 at /usr/local/cuda-13.1 on
+# quadruped-gpu; its driver 595.91 supports CUDA 13.2) with `dynamic-loading`: libcuda / libnvrtc
+# are dlopened at first use, so the crate builds and `cargo check --features cuda` passes on
+# machines without CUDA. Kernels are compiled at runtime with NVRTC. MIT OR Apache-2.0.
+# Pinned to 0.19.0: it is the newest release whose `libloading` (0.8, ISC) builds with the
+# workspace toolchain 1.85; 0.19.1 .. 0.19.10 need libloading 0.9, i.e. rustc >= 1.88.
+# (The M0 spike used 0.12.1 with `cuda-12060`, which has no CUDA 13 bindings.)
+cudarc = { version = "=0.19.0", default-features = false, features = ["std", "driver", "nvrtc", "cuda-13010", "dynamic-loading"], optional = true }
+
+[features]
+# CUDA backend (device context, device polynomials, kernels). Off by default: without it the
+# crate only has the host-side launch plans and twiddle tables (and their CPU tests).
+cuda = ["dep:cudarc"]
+
+[dev-dependencies]
+rand_chacha = "0.9"
+rand_core = "0.9"
