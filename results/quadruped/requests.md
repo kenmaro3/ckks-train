@@ -245,3 +245,34 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** 20–30 min
 - **GPU memory need:** at most about 1.6 GiB (rows that don't fit print "skipped: needs …"). **RAM need:** about 10 GB.
 - **output path:** `results/quadruped/cuda_ops_r47.log` and `results/quadruped/raw/R-47-2/criterion/`
+
+## R-41-FULL-1: faithful full-length encrypted run, 196 inputs, WhenNeeded B=64, seed 0 (RQ1 headline)
+
+- **purpose:** the RQ1 headline at ReBoot's full released setting: 196 inputs, 4800 samples, 1000 ReBoot steps (48 000 samples), ReBoot's per-step lr schedule (sample-aligned to B=64), and ReBoot's seed-0 initial weights. The run measures KS/sample including bootstraps, epoch time, and test accuracy against the twin. The 196 twin already reproduces ReBoot's twin for all 10 seeds (test accuracy identical, seed 0 = 0.9041).
+- **commit to sync:** ff3042d or later (clean clone)
+- **working dir:** clean clone, e.g. `~/hekit-r41full`
+- **build:** `cargo build --release -p hekit-bench --features parallel --bins`
+- **command:**
+  ```
+  RAYON_NUM_THREADS=12 /usr/bin/time -v ./target/release/mnist --mode noninteractive --placement when_needed --batch 64 --faithful --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/quadruped/raw/reboot_emlp1_full/train_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_full/init_weights_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-schedule results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-key lr_per_step --lr-schedule-batch 48 --epochs 1 --transpose reuse --out results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json
+  ```
+  The data arrays must be present at `results/quadruped/data/reboot_emlp1_full/`. They are gitignored, so copy them in; their sha256 is checked against data_manifest.json.
+- **expected:** 18.27 KS/sample (750 updates, every one checked against the closed form). About 18.5 h, extrapolated from the 784-input runs.
+- **partial rule:** after the first 10 updates, write the projected total to the log. If it exceeds 30 h, stop and mark the block `partial` with the projection. Do not stop below that.
+- **GPU memory need:** 0. **RAM need:** about 25 GB
+- **output path:** `results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json`, `results/quadruped/logs/R-41-FULL-1.log`
+- **order:** after R-47-2. It is a long timed run, so nothing of ours should overlap it. Untimed jobs may run only if you record them.
+
+## R-41-FULL-2: faithful full-length encrypted run, 196 inputs, B=48 in 64 lanes, seed 0 (±0.5 pt accuracy check)
+
+- **purpose:** ReBoot's own batch size. The in-binary twin is ReBoot's twin, so this checks encrypted test accuracy against seed 0's 0.9041.
+- **commit and dir:** as R-41-FULL-1
+- **command:**
+  ```
+  RAYON_NUM_THREADS=12 /usr/bin/time -v ./target/release/mnist --mode noninteractive --placement when_needed --batch 48 --faithful --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/quadruped/raw/reboot_emlp1_full/train_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_full/init_weights_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-schedule results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-key lr_per_step --epochs 1 --transpose reuse --out results/quadruped/mnist196_ni_b48_full_seed0.json
+  ```
+- **expected:** 28.99 KS/sample (1000 updates, every update bootstraps). About 38.6 h.
+- **partial rule:** after the first 10 updates, log the projected total. If it exceeds 55 h, stop and mark `partial`.
+- **GPU memory need:** 0. **RAM need:** about 25 GB
+- **output path:** `results/quadruped/mnist196_ni_b48_full_seed0.json`, `results/quadruped/logs/R-41-FULL-2.log`
+- **order:** after R-41-FULL-1
