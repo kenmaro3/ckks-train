@@ -1,0 +1,1 @@
+env LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64: HEKIT_BENCH_THREADS=1\,12 cargo bench -p hekit-bench --features cuda --bench cuda_ops 

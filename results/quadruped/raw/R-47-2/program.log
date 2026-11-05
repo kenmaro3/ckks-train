@@ -1,0 +1,216 @@
+    Finished `bench` profile [optimized] target(s) in 0.02s
+     Running benches/cuda_ops.rs (target/release/deps/cuda_ops-b26f8f347e3569b8)
+cuda_ops_n16_train: N = 2^16, level 31, dnum 8, alpha 4, 4 special primes, 21 Galois keys; setup 30.9 s
+gpu: NVIDIA GeForce RTX 4090 (sm_89), 2889 MiB free of 24083 MiB, tables 72 MiB
+gpu/add: needs 168 MiB, 2889 MiB free
+Benchmarking cuda_ops_n16_train/gpu/add
+Benchmarking cuda_ops_n16_train/gpu/add: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/add: Collecting 10 samples in estimated 3.0005 s (27k iterations)
+Benchmarking cuda_ops_n16_train/gpu/add: Analyzing
+cuda_ops_n16_train/gpu/add
+                        time:   [110.87 µs 110.89 µs 110.92 µs]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+gpu/mul_relin_rescale: needs 908 MiB, 2793 MiB free
+Benchmarking cuda_ops_n16_train/gpu/relinearize
+Benchmarking cuda_ops_n16_train/gpu/relinearize: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/relinearize: Collecting 10 samples in estimated 3.0341 s (650 iterations)
+Benchmarking cuda_ops_n16_train/gpu/relinearize: Analyzing
+cuda_ops_n16_train/gpu/relinearize
+                        time:   [4.6666 ms 4.6718 ms 4.6771 ms]
+Benchmarking cuda_ops_n16_train/gpu/mul_relin_rescale
+Benchmarking cuda_ops_n16_train/gpu/mul_relin_rescale: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/mul_relin_rescale: Collecting 10 samples in estimated 3.0279 s (520 iterations)
+Benchmarking cuda_ops_n16_train/gpu/mul_relin_rescale: Analyzing
+cuda_ops_n16_train/gpu/mul_relin_rescale
+                        time:   [5.8226 ms 5.8233 ms 5.8239 ms]
+gpu/rotate1: needs 844 MiB, 2377 MiB free
+Benchmarking cuda_ops_n16_train/gpu/rotate1
+Benchmarking cuda_ops_n16_train/gpu/rotate1: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/rotate1: Collecting 10 samples in estimated 3.0353 s (760 iterations)
+Benchmarking cuda_ops_n16_train/gpu/rotate1: Analyzing
+cuda_ops_n16_train/gpu/rotate1
+                        time:   [3.9892 ms 3.9898 ms 3.9905 ms]
+gpu/hoisted_rotate_16: skipped: needs 5580 MiB (2377 MiB free)
+gpu/hoisted_rotate_16_L9: needs 958 MiB, 2377 MiB free
+Benchmarking cuda_ops_n16_train/gpu/hoisted_rotate_16_L9
+Benchmarking cuda_ops_n16_train/gpu/hoisted_rotate_16_L9: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/hoisted_rotate_16_L9: Collecting 10 samples in estimated 3.0396 s (610 iterations)
+Benchmarking cuda_ops_n16_train/gpu/hoisted_rotate_16_L9: Analyzing
+cuda_ops_n16_train/gpu/hoisted_rotate_16_L9
+                        time:   [4.9829 ms 4.9854 ms 4.9882 ms]
+gpu/matvec_enc_d64: skipped: needs 7276 MiB (1929 MiB free)
+gpu/matvec_enc_d64_L9: needs 1536 MiB, 1929 MiB free
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L9
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L9: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L9: Collecting 10 samples in estimated 3.0590 s (190 iterations)
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L9: Analyzing
+cuda_ops_n16_train/gpu/matvec_enc_d64_L9
+                        time:   [16.119 ms 16.121 ms 16.123 ms]
+gpu/matvec_enc_d64_L5: needs 856 MiB, 1513 MiB free
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L5
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L5: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L5: Collecting 10 samples in estimated 3.0597 s (320 iterations)
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_d64_L5: Analyzing
+cuda_ops_n16_train/gpu/matvec_enc_d64_L5
+                        time:   [9.5076 ms 9.5094 ms 9.5114 ms]
+gpu/matvec_enc_batch4_L5: needs 544 MiB, 1993 MiB free
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_batch4_L5
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_batch4_L5: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_batch4_L5: Collecting 10 samples in estimated 3.3976 s (80 iterations)
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_batch4_L5: Analyzing
+cuda_ops_n16_train/gpu/matvec_enc_batch4_L5
+                        time:   [41.215 ms 42.412 ms 43.684 ms]
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_x4_L5
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_x4_L5: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_x4_L5: Collecting 10 samples in estimated 3.1518 s (90 iterations)
+Benchmarking cuda_ops_n16_train/gpu/matvec_enc_x4_L5: Analyzing
+cuda_ops_n16_train/gpu/matvec_enc_x4_L5
+                        time:   [34.923 ms 34.964 ms 35.001 ms]
+
+Benchmarking cuda_ops_n16_train/cpu_1t/add
+Benchmarking cuda_ops_n16_train/cpu_1t/add: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/cpu_1t/add: Collecting 10 samples in estimated 3.1171 s (200 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/add: Analyzing
+cuda_ops_n16_train/cpu_1t/add
+                        time:   [15.169 ms 15.501 ms 15.811 ms]
+Benchmarking cuda_ops_n16_train/cpu_1t/relinearize
+Benchmarking cuda_ops_n16_train/cpu_1t/relinearize: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 6.9s.
+Benchmarking cuda_ops_n16_train/cpu_1t/relinearize: Collecting 10 samples in estimated 6.8711 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/relinearize: Analyzing
+cuda_ops_n16_train/cpu_1t/relinearize
+                        time:   [639.91 ms 649.18 ms 659.47 ms]
+Benchmarking cuda_ops_n16_train/cpu_1t/mul_relin_rescale
+Benchmarking cuda_ops_n16_train/cpu_1t/mul_relin_rescale: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 7.8s.
+Benchmarking cuda_ops_n16_train/cpu_1t/mul_relin_rescale: Collecting 10 samples in estimated 7.8414 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/mul_relin_rescale: Analyzing
+cuda_ops_n16_train/cpu_1t/mul_relin_rescale
+                        time:   [725.18 ms 733.55 ms 745.07 ms]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking cuda_ops_n16_train/cpu_1t/rotate1
+Benchmarking cuda_ops_n16_train/cpu_1t/rotate1: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 6.5s.
+Benchmarking cuda_ops_n16_train/cpu_1t/rotate1: Collecting 10 samples in estimated 6.4775 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/rotate1: Analyzing
+cuda_ops_n16_train/cpu_1t/rotate1
+                        time:   [621.16 ms 633.01 ms 646.07 ms]
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 38.2s.
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16: Collecting 10 samples in estimated 38.244 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16: Analyzing
+cuda_ops_n16_train/cpu_1t/hoisted_rotate_16
+                        time:   [3.6724 s 3.7480 s 3.8192 s]
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16_L9
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16_L9: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 10.3s.
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16_L9: Collecting 10 samples in estimated 10.341 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/hoisted_rotate_16_L9: Analyzing
+cuda_ops_n16_train/cpu_1t/hoisted_rotate_16_L9
+                        time:   [976.74 ms 999.16 ms 1.0211 s]
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 129.0s.
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64: Collecting 10 samples in estimated 129.00 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64: Analyzing
+cuda_ops_n16_train/cpu_1t/matvec_enc_d64
+                        time:   [12.903 s 12.972 s 13.045 s]
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L9
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L9: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 25.2s.
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L9: Collecting 10 samples in estimated 25.181 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L9: Analyzing
+cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L9
+                        time:   [2.5227 s 2.5509 s 2.6019 s]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high severe
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L5
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L5: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 15.0s.
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L5: Collecting 10 samples in estimated 15.015 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L5: Analyzing
+cuda_ops_n16_train/cpu_1t/matvec_enc_d64_L5
+                        time:   [1.3842 s 1.4043 s 1.4307 s]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high severe
+
+Benchmarking cuda_ops_n16_train/cpu_12t/add
+Benchmarking cuda_ops_n16_train/cpu_12t/add: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/cpu_12t/add: Collecting 10 samples in estimated 3.1035 s (210 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/add: Analyzing
+cuda_ops_n16_train/cpu_12t/add
+                        time:   [14.592 ms 14.862 ms 15.200 ms]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+Benchmarking cuda_ops_n16_train/cpu_12t/relinearize
+Benchmarking cuda_ops_n16_train/cpu_12t/relinearize: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/cpu_12t/relinearize: Collecting 10 samples in estimated 4.8393 s (20 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/relinearize: Analyzing
+cuda_ops_n16_train/cpu_12t/relinearize
+                        time:   [236.92 ms 239.74 ms 242.50 ms]
+Benchmarking cuda_ops_n16_train/cpu_12t/mul_relin_rescale
+Benchmarking cuda_ops_n16_train/cpu_12t/mul_relin_rescale: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 3.5s.
+Benchmarking cuda_ops_n16_train/cpu_12t/mul_relin_rescale: Collecting 10 samples in estimated 3.4917 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/mul_relin_rescale: Analyzing
+cuda_ops_n16_train/cpu_12t/mul_relin_rescale
+                        time:   [330.88 ms 336.50 ms 342.10 ms]
+Benchmarking cuda_ops_n16_train/cpu_12t/rotate1
+Benchmarking cuda_ops_n16_train/cpu_12t/rotate1: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/cpu_12t/rotate1: Collecting 10 samples in estimated 4.5230 s (20 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/rotate1: Analyzing
+cuda_ops_n16_train/cpu_12t/rotate1
+                        time:   [220.92 ms 224.08 ms 227.46 ms]
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 7.3s.
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16: Collecting 10 samples in estimated 7.3321 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16: Analyzing
+cuda_ops_n16_train/cpu_12t/hoisted_rotate_16
+                        time:   [682.52 ms 687.73 ms 693.11 ms]
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16_L9
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16_L9: Warming up for 1.0000 s
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16_L9: Collecting 10 samples in estimated 3.4426 s (20 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/hoisted_rotate_16_L9: Analyzing
+cuda_ops_n16_train/cpu_12t/hoisted_rotate_16_L9
+                        time:   [171.35 ms 176.08 ms 181.92 ms]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 23.8s.
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64: Collecting 10 samples in estimated 23.783 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64: Analyzing
+cuda_ops_n16_train/cpu_12t/matvec_enc_d64
+                        time:   [2.3055 s 2.3185 s 2.3302 s]
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L9
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L9: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 5.5s.
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L9: Collecting 10 samples in estimated 5.4783 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L9: Analyzing
+cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L9
+                        time:   [546.52 ms 549.80 ms 553.40 ms]
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L5
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L5: Warming up for 1.0000 s
+
+Warning: Unable to complete 10 samples in 3.0s. You may wish to increase target time to 3.2s.
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L5: Collecting 10 samples in estimated 3.1588 s (10 iterations)
+Benchmarking cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L5: Analyzing
+cuda_ops_n16_train/cpu_12t/matvec_enc_d64_L5
+                        time:   [311.39 ms 314.87 ms 318.24 ms]
+

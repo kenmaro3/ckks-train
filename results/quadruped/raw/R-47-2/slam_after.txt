@@ -1,0 +1,12 @@
+date: 2026-11-05T23:21:38+09:00
+ 23:21:38 up 53 days, 13:52,  2 users,  load average: 5.60, 3.34, 3.37
+--- SLAM processes (pid %cpu etime cmd)
+--- top CPU processes
+    PID USER     %CPU COMMAND
+    523 root      3.4 @usr/sbin/plymouthd --mode=boot --pid-file=/run/plymouth/pid --attach-to-session
+3021686 syslog    3.4 /usr/sbin/rsyslogd -n -iNONE
+2791212 root      1.5 VLLM::EngineCore
+    684 root      1.2 /usr/lib/systemd/systemd-journald
+3635175 root      0.3 /usr/local/bin/python3 -m uvicorn open_webui.main:app --host 0.0.0.0 --port 8080 --forwarded-allow-ips * --workers 1 --ws-per-message-deflate true
+   6607 root      0.1 /usr/bin/containerd
+2790266 root      0.1 /usr/bin/python3 /usr/local/bin/vllm serve --model Qwen/Qwen3-14B-FP8 --served-model-name aisac-jp-v0 --gpu-memory-utilization 0.90 --max-model-len 8192 --api-key fed6d9354fd3fa1a4fae3030e68bd0e4804a7f32f5325d51 --enable-auto-tool-choice --tool-call-parser hermes --host 0.0.0.0 --port 8000

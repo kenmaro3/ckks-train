@@ -1,0 +1,23 @@
+	Command being timed: "env REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONPATH=/home/kmihara/reboot/src/ReBoot OMP_NUM_THREADS=1 /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_paper_setting.py /home/kmihara/hekit-runs/out/R-REB-3/reboot_emlp1_paper_setting /home/kmihara/hekit-runs/out/R-REB-3/reboot_emlp1_paper 10"
+	User time (seconds): 919.40
+	System time (seconds): 0.88
+	Percent of CPU this job got: 2485%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:37.03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1028612
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 390966
+	Voluntary context switches: 11617
+	Involuntary context switches: 153632
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 225960
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -3,11 +3,13 @@
 # HEKIT_DIR (default ~/hekit) selects the tree. Usage: r41.sh ID OUT_JSON_REL NUM_UPDATES -- mnist args...
 # The request's `RAYON_NUM_THREADS=12 /usr/bin/time -v ./target/release/mnist ...` is run through run_job.sh, which
 # sets RAYON_NUM_THREADS=12 and wraps the command in `nice -n 10 /usr/bin/time -v`.
-# Partial rule (requests.md): after 2 updates, project setup + mean(update 0,1) * NUM_UPDATES; if > 5 h, stop the
-# job after 8 updates have been logged and mark it partial (out/ID/partial.txt).
+# Partial rule (requests.md): after PARTIAL_AFTER updates (default 2), project setup + mean(those updates) * NUM_UPDATES;
+# if > PARTIAL_LIMIT_S (default 18000 = 5 h), stop the job once PARTIAL_STOP_AT updates are logged (default 8) and mark
+# it partial (out/ID/partial.txt). The R-41-FULL blocks use PARTIAL_AFTER=10, PARTIAL_STOP_AT=10 (stop at once).
 set -u
 ID=$1; OUTJ=$2; NUPD=$3; shift 3; [ "$1" = "--" ] && shift
 H=${HEKIT_DIR:-$HOME/hekit}
+PA=${PARTIAL_AFTER:-2}; PL=${PARTIAL_LIMIT_S:-18000}; PS=${PARTIAL_STOP_AT:-8}
 # A file ~/hekit-runs/hold/ID holds this block until it is removed (used to slot other work in before it).
 while [ -e "$HOME/hekit-runs/hold/$ID" ]; do sleep 30; done
 LOG=$HOME/hekit-runs/logs/$ID.log; OUT=$HOME/hekit-runs/out/$ID
@@ -18,13 +20,13 @@ mkdir -p "$OUT"; rm -f "$OUT/partial.txt" "$OUT/time.pid"
   TPID=$(cat "$OUT/time.pid"); decided=0; partial=0
   while kill -0 "$TPID" 2>/dev/null; do
     n=$(grep -c "^mnist: epoch .* update " "$LOG" 2>/dev/null)
-    if [ "$decided" = 0 ] && [ "${n:-0}" -ge 2 ]; then
-      proj=$(grep "^mnist: epoch .* update " "$LOG" | head -2 | sed -E 's/.*\): ([0-9.]+) s,.*elapsed ([0-9]+) s.*/\1 \2/' |
-        awk -v N="$NUPD" '{s+=$1; e=$2} END {mean=s/2; setup=e-s; printf "%.0f", setup + mean*N}')
-      echo "projection after 2 updates: ${proj} s for ${NUPD} updates" > "$OUT/projection.txt"
-      decided=1; [ "$proj" -gt 18000 ] && partial=1
+    if [ "$decided" = 0 ] && [ "${n:-0}" -ge "$PA" ]; then
+      proj=$(grep "^mnist: epoch .* update " "$LOG" | head -"$PA" | sed -E 's/.*\): ([0-9.]+) s,.*elapsed ([0-9]+) s.*/\1 \2/' |
+        awk -v N="$NUPD" -v K="$PA" '{s+=$1; e=$2} END {mean=s/K; setup=e-s; printf "%.0f", setup + mean*N}')
+      echo "projection after $PA updates: ${proj} s for ${NUPD} updates (limit ${PL} s)" > "$OUT/projection.txt"
+      decided=1; [ "$proj" -gt "$PL" ] && partial=1
     fi
-    if [ "$partial" = 1 ] && [ "${n:-0}" -ge 8 ]; then
+    if [ "$partial" = 1 ] && [ "${n:-0}" -ge "$PS" ]; then
       echo "partial: projected > 5 h ($(cat $OUT/projection.txt)); stopped after $n updates at $(date -Is)" > "$OUT/partial.txt"
       for p in $(pgrep -P "$TPID") "$TPID"; do kill -TERM "$p" 2>/dev/null; done
       break

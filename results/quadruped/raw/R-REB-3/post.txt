@@ -1,0 +1,16 @@
+date: 2026-11-05T23:11:16+09:00
+uptime:  23:11:16 up 53 days, 13:41,  2 users,  load average: 19.92, 7.86, 4.61
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  843G   26G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312 14109573120 64559173632    56758272 54793211904 118370312192
+Swap:     8589930496   652812288  7937118208
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 21483 MiB, 2601 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+1654428, /home/kmihara/hekit-r45/target/release/deps/gpu_eval-26d15f96a31f36c8, 770 MiB
+JOB_DONE rc=0

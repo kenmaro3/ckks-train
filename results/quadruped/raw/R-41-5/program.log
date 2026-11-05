@@ -1,0 +1,37 @@
+mnist: noninteractive after_activation on n16_boot (N = 2^16, 32768 slots), dims [784, 32, 10], d = 1024, 32 lanes x 1 micro-batches, transpose reuse: 35 training Galois keys + relin (10.9 GB) + bootstrap keys
+mnist: bootstrapper 28.3 s, all keys 53.5 s; 111 KS per bootstrap; bootstrap keys 10.27 GB
+mnist: levels per step 5 (of 15 after a bootstrap and an unpack); predicted per update 819 KS + 3.00 bootstraps = 36.000 KS/sample; cost model 37.656 KS/sample; corrections NiTerms { babies: 14, split: -2, transpose: 12, bias: 34, boots: -111 }
+mnist: epoch 0 update 0 (32 samples, 1 cts): 90.3 s, 930 KS (1 bootstraps), matches prediction true; elapsed 151 s, load 2.82 3.42 3.78 2/1455 1642433
+mnist: epoch 0 update 1 (32 samples, 1 cts): 146.5 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 298 s, load 3.92 3.83 3.90 2/1455 1642863
+mnist: epoch 0 update 2 (32 samples, 1 cts): 87.2 s, 930 KS (1 bootstraps), matches prediction true; elapsed 386 s, load 2.14 3.32 3.71 1/1401 1643388
+mnist: epoch 0 update 3 (32 samples, 1 cts): 139.4 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 526 s, load 3.13 3.55 3.76 1/1404 1643846
+mnist: epoch 0 update 4 (32 samples, 1 cts): 84.4 s, 930 KS (1 bootstraps), matches prediction true; elapsed 610 s, load 2.31 3.27 3.65 1/1403 1644337
+mnist: epoch 0 update 5 (32 samples, 1 cts): 139.7 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 750 s, load 3.53 3.55 3.70 1/1406 1644781
+mnist: epoch 0 update 6 (32 samples, 1 cts): 84.5 s, 930 KS (1 bootstraps), matches prediction true; elapsed 835 s, load 2.46 3.25 3.58 1/1406 1645172
+mnist: epoch 0 update 7 (32 samples, 1 cts): 139.1 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 974 s, load 2.57 3.00 3.45 1/1402 1645579
+mnist: epoch 0 update 8 (32 samples, 1 cts): 84.2 s, 930 KS (1 bootstraps), matches prediction true; elapsed 1059 s, load 2.26 2.85 3.36 1/1401 1645881
+mnist: epoch 0 update 9 (32 samples, 1 cts): 138.6 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 1198 s, load 2.60 2.89 3.30 1/1403 1646287
+mnist: epoch 0 update 10 (32 samples, 1 cts): 84.5 s, 930 KS (1 bootstraps), matches prediction true; elapsed 1283 s, load 2.51 2.89 3.27 2/1405 1646522
+mnist: epoch 0 update 11 (32 samples, 1 cts): 139.7 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 1423 s, load 3.98 3.16 3.30 1/1405 1646947
+mnist: epoch 0 update 12 (32 samples, 1 cts): 84.4 s, 930 KS (1 bootstraps), matches prediction true; elapsed 1507 s, load 2.63 2.97 3.22 1/1405 1647207
+mnist: epoch 0 update 13 (32 samples, 1 cts): 140.1 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 1648 s, load 2.53 2.91 3.17 1/1403 1647602
+mnist: epoch 0 update 14 (32 samples, 1 cts): 85.9 s, 930 KS (1 bootstraps), matches prediction true; elapsed 1734 s, load 2.15 2.74 3.09 1/1401 1647831
+mnist: epoch 0 update 15 (32 samples, 1 cts): 139.1 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 1873 s, load 2.08 2.54 2.97 2/1403 1648259
+mnist: epoch 0 update 16 (32 samples, 1 cts): 84.4 s, 930 KS (1 bootstraps), matches prediction true; elapsed 1958 s, load 1.75 2.32 2.85 1/1404 1648508
+mnist: epoch 0 update 17 (32 samples, 1 cts): 138.6 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 2097 s, load 2.86 2.60 2.88 1/1404 1648889
+mnist: epoch 0 update 18 (32 samples, 1 cts): 83.8 s, 930 KS (1 bootstraps), matches prediction true; elapsed 2181 s, load 1.81 2.34 2.76 1/1402 1649147
+mnist: epoch 0 update 19 (32 samples, 1 cts): 138.9 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 2320 s, load 3.28 3.02 2.97 1/1402 1649567
+mnist: epoch 0 update 20 (32 samples, 1 cts): 84.3 s, 930 KS (1 bootstraps), matches prediction true; elapsed 2405 s, load 2.59 2.94 2.95 1/1402 1649813
+mnist: epoch 0 update 21 (32 samples, 1 cts): 138.2 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 2543 s, load 3.31 3.25 3.08 1/1403 1650197
+mnist: epoch 0 update 22 (32 samples, 1 cts): 85.7 s, 930 KS (1 bootstraps), matches prediction true; elapsed 2629 s, load 2.52 3.09 3.04 1/1404 1650447
+mnist: epoch 0 update 23 (32 samples, 1 cts): 138.5 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 2768 s, load 2.77 2.97 3.00 1/1402 1650869
+mnist: epoch 0 update 24 (32 samples, 1 cts): 84.2 s, 930 KS (1 bootstraps), matches prediction true; elapsed 2853 s, load 2.40 2.87 2.96 1/1402 1651109
+mnist: epoch 0 update 25 (32 samples, 1 cts): 138.3 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 2991 s, load 1.96 2.68 2.89 1/1402 1651493
+mnist: epoch 0 update 26 (32 samples, 1 cts): 85.5 s, 930 KS (1 bootstraps), matches prediction true; elapsed 3077 s, load 2.09 2.58 2.84 1/1403 1651758
+mnist: epoch 0 update 27 (32 samples, 1 cts): 139.0 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 3216 s, load 2.53 2.62 2.82 1/1405 1652182
+mnist: epoch 0 update 28 (32 samples, 1 cts): 86.4 s, 930 KS (1 bootstraps), matches prediction true; elapsed 3303 s, load 2.96 2.89 2.91 1/1405 1652413
+mnist: epoch 0 update 29 (32 samples, 1 cts): 139.5 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 3443 s, load 2.59 2.76 2.85 1/1401 1652810
+mnist: epoch 0 update 30 (32 samples, 1 cts): 84.4 s, 930 KS (1 bootstraps), matches prediction true; elapsed 3528 s, load 3.35 2.87 2.88 1/1401 1653068
+mnist: epoch 0 update 31 (32 samples, 1 cts): 139.6 s, 1374 KS (5 bootstraps, weights booted), matches prediction true; elapsed 3667 s, load 3.90 3.30 3.04 1/1403 1653500
+mnist: 32 updates, 1024 samples in 3606.6 s; 36864 KS = 36.000/sample incl. 96 bootstraps (predicted 36.000, model 37.656); matches true; max |W_he - W_twin| = 6.740752873129162e-5
+mnist: wrote results/quadruped/mnist_emlp1_ni_after_activation_b32.json

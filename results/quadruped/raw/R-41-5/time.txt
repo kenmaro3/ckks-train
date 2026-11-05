@@ -1,0 +1,23 @@
+	Command being timed: "./target/release/mnist --mode noninteractive --subset 1024 --epochs 1 --transpose reuse --placement after_activation --batch 32 --out results/quadruped/mnist_emlp1_ni_after_activation_b32.json"
+	User time (seconds): 10633.83
+	System time (seconds): 110.11
+	Percent of CPU this job got: 292%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:01:10
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 28183720
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 77709779
+	Voluntary context switches: 1884697
+	Involuntary context switches: 170813
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 312
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

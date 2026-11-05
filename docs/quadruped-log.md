@@ -265,3 +265,62 @@ it asked for epochs 10/20/50 of a 1-epoch run. As designed, chain5 then skipped 
 R-41-5 started at 22:09:08. Its first 44 s (setup and keygen, before any timed update) overlapped the R-46-1 GPU tests
 (22:08:52–22:09:52), which run on one CPU thread. The summary is fixed (epochs beyond the run are left out). R-REB-3
 is re-queued in `chain8.sh`, which waits for R-41-5, repeats the smoke test and then runs the full job.
+
+### 2026-11-05 22:25 Queue: chain9 (R-47-1, R-47-2)
+`~/hekit-r45` re-synced to ce4730a (contains feff7ed). chain9: R-47-1 after R-41-5 (alongside R-REB-3), then R-47-2 after R-REB-3 and R-47-1. Session stopped here (usage limit); results of R-41-5, R-REB-3, R-47-1, R-47-2 are not yet collected.
+
+
+## 2026-11-06 07:14 Resume after the usage-limit stop
+State found: R-41-5, R-REB-3, R-47-1 and R-47-2 had all finished overnight (exit 0); chains 4, 8 and 9 had ended; no job
+of ours was running. Machine idle: load 0.11, no SLAM processes, vLLM 20660 MiB on the GPU (3376 MiB free), disk 26 GB
+free, RAM 115 GB available.
+
+### 2026-11-05 22:09–23:10 R-41-5: NI eMLP-1, AfterActivation, B = 32 → `results/quadruped/mnist_emlp1_ni_after_activation_b32.json`
+43f219f tree in `~/hekit`, 12 threads. 36 KS/sample including bootstraps
+(25.59375 without), 3 bootstraps per update; every update equals the prediction. Epoch
+3606.6 s, per update mean 112.4 s. Test accuracy 0.3322 (twin 0.3324). Peak RSS
+28.2 GB. Load 2.92, 3.80, 3.95 before, 3.59, 3.24, 3.02 after. The first 44 s overlapped the R-46-1 tests (setup/keygen only).
+
+### 2026-11-05 23:10–23:11 R-REB-3: ReBoot paper setting, plaintext → `raw/reboot_emlp1_paper_setting/`, `data/reboot_emlp1_paper/`
+chain8: the smoke test (1 seed, 1 epoch) passed, then the full run through `run_job.sh`: 10 worker processes, 1 thread
+each, 20 runs (seeds 0–9 × const/sched) × 50 epochs × 1250 steps, 12–17 s per run (the plaintext 196-32-16 step takes
+about 0.25 ms), wall 34 s. All 20 curves have 50 epochs with finite outputs. The 60k pre-scaling min/max were
+−35.76 / 292.40. The data dir (110 MB, gitignored) holds the arrays, the per-seed init weights and the epoch orders, with
+`manifest.json`; all 34 sha256 values were re-checked on the Mac.
+Test accuracy over seeds 0–9 (mean ± sample std):
+| schedule | best epoch | epoch 10 | epoch 20 | epoch 50 |
+|---|---|---|---|---|
+| const 0.001 | 0.9535 ± 0.0010 | 0.9494 ± 0.0020 | 0.9513 ± 0.0012 | 0.9515 ± 0.0019 |
+| ReBoot scheduler | 0.9546 ± 0.0009 | 0.9495 ± 0.0023 | 0.9516 ± 0.0008 | 0.9525 ± 0.0008 |
+Paper Table 4: 94.61 ± 0.27. Under this reading of the paper's setting, the released plaintext path is about 0.8–0.9 pt
+above the paper's figure at epochs 10–50, not below it.
+
+### 2026-11-05 23:10–23:14 R-47-1: hekit-cuda tests at ce4730a → `results/quadruped/hekit_cuda_task47_tests.txt`
+45 of 45 test functions ok, 0 failed. 42 ran bit-exact on the GPU; 3 printed expected SKIPs:
+`matvec_d64_matches_cpu_n16_train_full` (8436 MiB), `sequence_and_counts_match_cpu_n16_train_full_keys` (2996 MiB, with
+2984.6 MiB free, 11 MiB short) and `hoisted_rotate_16_matches_cpu_n16_train` (5816 MiB). The level-9 matvec ran and
+passed. It took 3 min 14 s, not the expected 15–20 min. It ran alongside R-REB-3; both are untimed.
+
+### 2026-11-05 23:14–23:22 R-47-2: cuda_ops benchmark → `results/quadruped/cuda_ops_r47.log`, `raw/R-47-2/criterion/`
+Run after R-REB-3 and R-47-1 had ended, with no other job of ours; no SLAM processes before or after. Load 2.13 4.64
+3.95 at start (decaying from the jobs just finished). Setup 30.9 s (N = 2^16, level 31, dnum 8, 21 Galois keys).
+Medians from criterion (GPU / CPU 1 thread / CPU 12 threads):
+- add 110.89 µs / 15.50 ms / 14.86 ms
+- mul_relin_rescale 5.82 ms / 733.6 ms / 336.5 ms
+- rotate1 3.99 ms / 633.0 ms / 224.1 ms
+- hoisted_rotate_16 L9: 4.99 ms / 999.2 ms / 176.1 ms; at full level the GPU was skipped (needs 5580 MiB),
+  CPU 3.748 s / 687.7 ms
+- matvec_enc d64 L9: 16.12 ms / 2.551 s / 549.8 ms; L5 9.51 ms / 1.404 s / 314.9 ms; at full level the GPU was
+  skipped (needs 7276 MiB), CPU 12.97 s / 2.319 s
+- 4 matvecs at L5: batched on 4 streams 42.41 ms, sequential 34.96 ms
+The program output was captured by `run_job.sh` and copied to `cuda_ops_r47.log` instead of using `tee`, which has
+the same content.
+
+### 2026-11-06 07:17 Queue: chain10 (R-41-FULL-1, R-41-FULL-2)
+New clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d). The R-REB-2 14×14 arrays were copied in from the
+server's original R-REB-2 output; all four sha256 values matched the committed `data_manifest.json`. `r41.sh` now
+takes `PARTIAL_AFTER`, `PARTIAL_STOP_AT` and `PARTIAL_LIMIT_S`. For FULL-1 these are 10 / 10 / 108000 s (30 h); for
+FULL-2, 10 / 10 / 198000 s (55 h); the projection goes to `projection.txt`. The swap happened with no `r41.sh` running.
+chain10 runs an untimed build, then FULL-1 (750 updates), then FULL-2 (1000 updates), with nothing of ours alongside.
+Headroom: 26 GB disk (these jobs write only logs and JSON), 115 GB RAM available against the ~28 GB per run seen in
+the 784-input NI runs.

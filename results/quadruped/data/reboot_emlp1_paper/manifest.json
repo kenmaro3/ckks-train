@@ -1,0 +1,358 @@
+{
+  "setting": "R-REB-3 paper setting (60k train at 14x14, 10k test)",
+  "files": [
+    {
+      "file": "train_images_14x14.npy",
+      "shape": [
+        60000,
+        196
+      ],
+      "dtype": "float32",
+      "sha256": "4f4ce9ea58c8658091fc1b02b2d33b3ef78f4babac78b384ad8e1c8067ea710b"
+    },
+    {
+      "file": "train_labels.npy",
+      "shape": [
+        60000
+      ],
+      "dtype": "uint8",
+      "sha256": "5dd4d822cab3e20099239bc9d433d587ae3ce00e084d191079dd30b38380b336"
+    },
+    {
+      "file": "test_images_14x14.npy",
+      "shape": [
+        10000,
+        196
+      ],
+      "dtype": "float32",
+      "sha256": "4a58342c18046ad1f23a654e93929179c11d2a05d464123d82c9060e8059dffd"
+    },
+    {
+      "file": "test_labels.npy",
+      "shape": [
+        10000
+      ],
+      "dtype": "uint8",
+      "sha256": "ff7e84b144c037e7215dfa787d6773550c5db83029d9a4e7bae6e90f605f081d"
+    },
+    {
+      "file": "epoch_orders_seed0.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "5176cb949aa52ed5886daf0bb8eabc5d39f1c3d525c6fc0f6df3266f37ffd7d2"
+    },
+    {
+      "file": "init_weights_seed0_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "92ab56cd70584de0410b43f06f014d9a1f474d0f57282dfc2b3a23a3e445bc69"
+    },
+    {
+      "file": "init_weights_seed0_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "e2e5192130aea10834790f00d401d6a4a86fe508f5c472ddeb847b7b12db86f8"
+    },
+    {
+      "file": "epoch_orders_seed1.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "236d2e07caa827bf819711206e0e22f2e890b8c4f318e21912faa01b6019cd0d"
+    },
+    {
+      "file": "init_weights_seed1_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "215020048aa9700681a3f8d131b15eb6ccf5207b3c88340383ce4ae788431ab5"
+    },
+    {
+      "file": "init_weights_seed1_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "b4a8590fd67e8723a18a6b9071afacaaf062a5176a298e469dd3b291f3f20f36"
+    },
+    {
+      "file": "epoch_orders_seed2.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "605b4a3b0f97558c024887fbd47d39ef783498ded00db9496ced5f42422470dd"
+    },
+    {
+      "file": "init_weights_seed2_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "d2742d265851d0a8edb4f3d8a4290c9688f96b0dc47909e522311c8091ed40e0"
+    },
+    {
+      "file": "init_weights_seed2_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "d39ad5bc4c7d8a843dc6707a8cd6e4f7ca7667c78f044aea165ae3f2abf1d3b0"
+    },
+    {
+      "file": "epoch_orders_seed3.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "ccb5b79f81c40c49179bb78e496b05436231fcedf9e396863d9fc4a4dc1c7263"
+    },
+    {
+      "file": "init_weights_seed3_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "bd349ceaa42846475e7b6f53c97196fd4a89a85ffc806e2d1f6a7969366da55d"
+    },
+    {
+      "file": "init_weights_seed3_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "5c81822f1f737a9c23e80acd943a2215b400d050c084b7cdbb67bdff07fe8932"
+    },
+    {
+      "file": "epoch_orders_seed4.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "ae4bdfa37b10efe0704ed2f37e4d3c4c5558329fd3a469ba4caa5617a576c2e8"
+    },
+    {
+      "file": "init_weights_seed4_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "0be7bf6db036062d24b9f376ed30aa61013e63960a6f63bb87fee9600609fef4"
+    },
+    {
+      "file": "init_weights_seed4_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "3daf5ccccbdc664f2b44acc75775f1b642b8f272601c93b71743cb0b5cb84cd5"
+    },
+    {
+      "file": "epoch_orders_seed5.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "d2d58a8e6a244dc76203ebcd86314c3216d1dc6eeb0f93199cf671ef94c8ae66"
+    },
+    {
+      "file": "init_weights_seed5_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "eef7b66059b4167396e9b26b4d613937c4fe35e32651ea0f9e5715b0aff455f6"
+    },
+    {
+      "file": "init_weights_seed5_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "8dd60742d8b425f6059ba0fa41bf72f3dbf3d11b60c6cce0c831a54f1a2a4872"
+    },
+    {
+      "file": "epoch_orders_seed6.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "09e0bf1d3dc40aac236331530c2ac9c505e3ff1425fba01eae7d939ba9606470"
+    },
+    {
+      "file": "init_weights_seed6_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "5535e9dfe5c30cb60fb68d5cd103af8f1beace9f9b6d5e3ca05b1d4a90e9533a"
+    },
+    {
+      "file": "init_weights_seed6_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "a73e43232e71205ad2f88a624a93eee9b340eb430006ebbd8696a356e8f6b519"
+    },
+    {
+      "file": "epoch_orders_seed7.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "1f5e5d71aa9ab4da85b5112c5e317be32ad66f530b818c39ae6d1faa87e27776"
+    },
+    {
+      "file": "init_weights_seed7_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "f0236dab294df0cb36afa008f1afbe8bf8224a12d1b2a00ed362c400660b6896"
+    },
+    {
+      "file": "init_weights_seed7_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "54bcceb2be5f659f93fe527a5c958bae4ec2ac28760f5d9f1f933cc7f6f5432b"
+    },
+    {
+      "file": "epoch_orders_seed8.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "8d850c065fa5e68eed2db4c92a850c5e4216679981102881fe1f96d4e153d562"
+    },
+    {
+      "file": "init_weights_seed8_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "eb14555f6080a503b09975b6f47c304cf59449a432402365c536f8f0c5e10ca1"
+    },
+    {
+      "file": "init_weights_seed8_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "d58da2cd3cade0847f74b04a5b5713fd51226aefbbe2e08109b73d84d5275328"
+    },
+    {
+      "file": "epoch_orders_seed9.npy",
+      "shape": [
+        50,
+        60000
+      ],
+      "dtype": "uint16",
+      "meaning": "row e = original MNIST training indices in training order for epoch e+1; step b of that epoch uses columns b*48..b*48+47",
+      "sha256": "938b39103f5a29bc92015d73be01942f642647eb1a4c3c3579d1151a7e26874c"
+    },
+    {
+      "file": "init_weights_seed9_W1.npy",
+      "shape": [
+        196,
+        32
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "a8ce168a2360e6877892f4cd7f8ed4403d1e6cf00d3ac70fe483703f54be0f53"
+    },
+    {
+      "file": "init_weights_seed9_W2.npy",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out",
+      "dtype": "float64 (exact upcast of float32)",
+      "sha256": "f27e45ac2d5ba2e7ae166f6add5618b5cb3385dddc8feed2ce607581323ebfa0"
+    }
+  ],
+  "pipeline": [
+    "MNIST uint8 -> float32 0..255, no padding",
+    "all 60000 training images, all 10000 test images",
+    "bicubic resize to 14x14 by ReBoot's loader",
+    "min-max scaling AFTER the resize over the resized training set (constants in `scaling`); test uses the training min/max",
+    "no mean/std normalization",
+    "row-major flatten to 196 features"
+  ],
+  "scaling": {
+    "train_min_before_scaling": -35.76190185546875,
+    "train_max_before_scaling": 292.40020751953125,
+    "shape_before_scaling": [
+      60000,
+      1,
+      14,
+      14
+    ]
+  },
+  "row_order": "train_images row i = MNIST training image i"
+}

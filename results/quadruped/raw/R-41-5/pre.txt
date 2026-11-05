@@ -1,0 +1,16 @@
+date: 2026-11-05T22:09:08+09:00
+uptime:  22:09:08 up 53 days, 12:39,  3 users,  load average: 2.92, 3.80, 3.95
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  843G   26G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312 13863702528 65025191936    63057920 54642733056 118616182784
+Swap:     8589930496   652812288  7937118208
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 21584 MiB, 2500 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+1620940, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB
+1641781, /home/kmihara/hekit-r45/target/release/deps/gpu_ks-48ac62b184b2cd2e, 482 MiB

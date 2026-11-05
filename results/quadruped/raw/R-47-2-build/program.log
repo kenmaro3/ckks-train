@@ -1,0 +1,64 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling autocfg v1.5.1
+   Compiling cfg-if v1.0.5
+   Compiling zerocopy v0.8.63
+   Compiling libc v0.2.191
+   Compiling crossbeam-utils v0.8.23
+   Compiling getrandom v0.3.4
+   Compiling crossbeam-epoch v0.9.21
+   Compiling either v1.19.0
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling rawpointer v0.2.1
+   Compiling serde_core v1.0.229
+   Compiling cudarc v0.19.0
+   Compiling libloading v0.8.9
+   Compiling serde v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling regex-syntax v0.8.11
+   Compiling itoa v1.0.18
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling memchr v2.8.3
+   Compiling ciborium-io v0.2.2
+   Compiling clap_lex v1.1.1
+   Compiling anstyle v1.0.14
+   Compiling clap_builder v4.6.7
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling itertools v0.10.5
+   Compiling num-complex v0.4.6
+   Compiling num-integer v0.1.47
+   Compiling rand_core v0.9.5
+   Compiling regex-automata v0.4.18
+   Compiling ndarray v0.16.1
+   Compiling cast v0.3.0
+   Compiling same-file v1.0.6
+   Compiling rayon v1.12.0
+   Compiling walkdir v2.5.0
+   Compiling clap v4.6.7
+   Compiling is-terminal v0.4.17
+   Compiling criterion-plot v0.5.0
+   Compiling oorandom v11.1.5
+   Compiling once_cell v1.21.4
+   Compiling anes v0.1.6
+   Compiling regex v1.13.1
+   Compiling zerocopy-derive v0.8.63
+   Compiling serde_derive v1.0.229
+   Compiling tinytemplate v1.2.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling rand_chacha v0.9.0
+   Compiling ciborium v0.2.2
+   Compiling hekit-core v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-core)
+   Compiling hekit-ckks v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-ckks)
+   Compiling criterion v0.5.1
+   Compiling hekit-cuda v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-cuda)
+   Compiling hekit-nn v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-nn)
+   Compiling hekit-bench v0.0.0 (/home/kmihara/hekit-r45/crates/hekit-bench)
+    Finished `bench` profile [optimized] target(s) in 24.54s
+  Executable benches/cuda_ops.rs (target/release/deps/cuda_ops-b26f8f347e3569b8)

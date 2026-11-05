@@ -1,0 +1,76 @@
+{
+  "job": "R-47-2",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      37%"
+  ],
+  "workdir": "/home/kmihara/hekit-r45",
+  "command": "env LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64: HEKIT_BENCH_THREADS=1\\,12 cargo bench -p hekit-bench --features cuda --bench cuda_ops",
+  "threads_cap": 12,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "12",
+    "RAYON_NUM_THREADS": "12",
+    "CARGO_BUILD_JOBS": "12"
+  },
+  "nice": 10,
+  "gpu_job": true,
+  "hekit_synced_commit": [
+    "commit ce4730a",
+    "full ce4730a6764ba114cf164b00886665374b011333",
+    "dirty_files 0",
+    "source git bundle of the Mac HEAD (committed state only), fetched into the clean clone ~/hekit-r45",
+    "synced_at 2026-11-05T22:26:29+09:00"
+  ],
+  "start": "2026-11-05T23:14:36+09:00",
+  "end": "2026-11-05T23:21:38+09:00",
+  "wall_s_runner": 422.2648615837097,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 23:14:36 up 53 days, 13:45,  2 users,  load average: 2.13, 4.64, 3.95",
+  "uptime_after": " 23:21:38 up 53 days, 13:52,  2 users,  load average: 6.00, 3.38, 3.38",
+  "load_before": [
+    2.13,
+    4.64,
+    3.95
+  ],
+  "load_after": [
+    6.0,
+    3.38,
+    3.38
+  ],
+  "peak_rss_kb_time_v": 13555852,
+  "peak_rss_kb_tree_sampled_10s": 13311908,
+  "time_v": {
+    "Command being timed": "\"env LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64: HEKIT_BENCH_THREADS=1,12 cargo bench -p hekit-bench --features cuda --bench cuda_ops\"",
+    "User time (seconds)": "834.23",
+    "System time (seconds)": "36.79",
+    "Percent of CPU this job got": "209%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "6:56.10",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "13555852",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "0",
+    "Minor (reclaiming a frame) page faults": "21499237",
+    "Voluntary context switches": "2969190",
+    "Involuntary context switches": "7789",
+    "Swaps": "0",
+    "File system inputs": "552",
+    "File system outputs": "2152",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T23:14:36+09:00\nuptime:  23:14:36 up 53 days, 13:45,  2 users,  load average: 2.13, 4.64, 3.95\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  844G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8354570240 70043459584    48369664 54990049280 124125315072\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n--- nvidia-smi\nThu Nov  5 23:14:36 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.91.07              Driver Version: 595.91.07      CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |\n|  0%   35C    P8             27W /  450W |   20707MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A         2791212      C   VLLM::EngineCore                      20660MiB |\n|    0   N/A  N/A         4085553      G   /usr/bin/gnome-shell                     10MiB |\n|    0   N/A  N/A         4085847      G   /usr/bin/Xwayland                         8MiB |\n+-----------------------------------------------------------------------------------------+\n",
+  "snapshot_after": "date: 2026-11-05T23:21:38+09:00\nuptime:  23:21:38 up 53 days, 13:52,  2 users,  load average: 6.00, 3.38, 3.38\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  844G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8166670336 70229270528    48369664 54992142336 124313214976\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n--- nvidia-smi\nThu Nov  5 23:21:38 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.91.07              Driver Version: 595.91.07      CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |\n|  0%   32C    P8             26W /  450W |   20707MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A         2791212      C   VLLM::EngineCore                      20660MiB |\n|    0   N/A  N/A         4085553      G   /usr/bin/gnome-shell                     10MiB |\n|    0   N/A  N/A         4085847      G   /usr/bin/Xwayland                         8MiB |\n+-----------------------------------------------------------------------------------------+\n"
+}

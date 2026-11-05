@@ -64,7 +64,7 @@ M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that c
 block will state its GPU memory need, and the tests skip with a message when the need is not met.
 
 ---
-- **status:** running (started 22:09:08 JST) from the 43f219f tree in ~/hekit; released early because the R-REB-3 smoke test failed. Its first 44 s (setup/keygen) overlapped the R-46-1 GPU tests.
+- **status:** done (2026-11-05T22:09–23:10 JST, exit 0, full epoch, partial rule not triggered: projection 3850 s). Result: `results/quadruped/mnist_emlp1_ni_after_activation_b32.json`; log `results/quadruped/logs/R-41-5.log`; provenance `results/quadruped/raw/R-41-5/`. KS/sample incl. bootstraps 36 (without 25.59375), 3 bootstraps per update (96 total), every update equals prediction; epoch 3606.6 s, per update mean 112.4 s; test acc 0.3322 (twin 0.3324); peak RSS 28.2 GB. 43f219f tree in ~/hekit. Its first 44 s (setup/keygen) overlapped the single-thread R-46-1 GPU tests; one SLAM process in nvidia-smi at start, none at end.
 
 ## R-REB-1: ReBoot official eMLP-1, initial weights as plain data
 
@@ -172,7 +172,7 @@ block will state its GPU memory need, and the tests skip with a message when the
   - `results/quadruped/raw/reboot_emlp1_paper_setting/{config_values.json, acc_curves_seed{S}_{const,sched}.tsv, summary.json}`
   - For hekit's twin later: per-seed init weights and per-step indices for the 60k setting under `results/quadruped/data/reboot_emlp1_paper/`, with the `.npy` files gitignored and a manifest JSON. Include the 14×14 60k train and 10k test arrays as float32 there.
 - **order:** after R-REB-2.
-- **status:** re-queued (22:14 JST) in chain8 after R-41-5. The first attempt (22:08) did not run: its 1-epoch smoke test trained and evaluated correctly but crashed in my summary code (it asked for epochs 10/20/50 of a 1-epoch run), so chain5 skipped R-REB-3 and released R-41-5. The summary is fixed; chain8 repeats the smoke test and then the full run once R-41-5 is done.
+- **status:** done (2026-11-05T23:10–23:11 JST, exit 0; smoke test passed first; 20 runs in 10 single-thread workers, 12–17 s each, total wall 34 s). Outputs: `results/quadruped/raw/reboot_emlp1_paper_setting/` (config_values.json, acc_curves_seed{0..9}_{const,sched}.tsv, summary.json) and `results/quadruped/data/reboot_emlp1_paper/` (60k/10k 14×14 arrays, per-seed init weights, per-seed epoch orders as uint16 (50, 60000); gitignored, manifest.json with sha256, re-checked on the Mac). Test accuracy over seeds 0–9 (mean ± sample std): const best epoch 0.9535 ± 0.0010, epoch 10 0.9494 ± 0.0020, 20 0.9513 ± 0.0012, 50 0.9515 ± 0.0019; sched best epoch 0.9546 ± 0.0009, epoch 10 0.9495 ± 0.0023, 20 0.9516 ± 0.0008, 50 0.9525 ± 0.0008. Paper Table 4: 94.61 ± 0.27.
 
 ## R-45-2: hekit-cuda GPU tests at 8b81f3d (22 tests, including near-tie base conversion)
 
@@ -230,6 +230,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most about 1.95 GiB per test. **RAM need:** about 10 GB.
 - **timing:** heavy on CPU (key generation), so don't overlap a timed run. Run it after R-41-5, alongside R-REB-3 (untimed) if you like.
 - **output path:** `results/quadruped/hekit_cuda_task47_tests.txt`, `results/quadruped/logs/R-47-1.log`
+- **status:** done (2026-11-05T23:10–23:14 JST, exit 0, 3 min 14 s): **45 of 45 test functions ok, 0 failed; 42 ran bit-exact on the GPU, 3 printed expected SKIPs**: `matvec_d64_matches_cpu_n16_train_full` (needs 8436 MiB, 2984.6 free), `sequence_and_counts_match_cpu_n16_train_full_keys` (needs 2996 MiB, 2984.6 free), `hoisted_rotate_16_matches_cpu_n16_train` (needs 5816 MiB). `matvec_d64_matches_cpu_n16_train_level9` ran and passed. Clean clone `~/hekit-r45` at ce4730a (contains feff7ed); GPU free at start 3376 MiB; ran alongside R-REB-3 (untimed). Output `results/quadruped/hekit_cuda_task47_tests.txt`, `logs/R-47-1.log`; provenance `raw/R-47-1/`.
 
 ## R-47-2: Task 47 benchmark (CPU 1/12 threads vs GPU, n16_train)
 
@@ -245,6 +246,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** 20–30 min
 - **GPU memory need:** at most about 1.6 GiB (rows that don't fit print "skipped: needs …"). **RAM need:** about 10 GB.
 - **output path:** `results/quadruped/cuda_ops_r47.log` and `results/quadruped/raw/R-47-2/criterion/`
+- **status:** done (2026-11-05T23:14–23:21 JST, exit 0), after R-REB-3 and R-47-1 had ended, with no other job of ours; untimed bench build before it. SLAM processes: none before or after (`raw/R-47-2/slam_{before,after}.txt`); load 2.13, 4.64, 3.95 before (decaying from the jobs that had just ended), 6.00, 3.38, 3.38 after. GPU rows `hoisted_rotate_16` (needs 5580 MiB) and `matvec_enc_d64` full (needs 7276 MiB) printed `skipped`; the capped L9/L5 rows ran. Output `results/quadruped/cuda_ops_r47.log` (full program output, captured by run_job instead of tee) and `results/quadruped/raw/R-47-2/criterion/` (estimates.json and benchmark.json only). Clean clone `~/hekit-r45` at ce4730a.
 
 ## R-41-FULL-1: faithful full-length encrypted run, 196 inputs, WhenNeeded B=64, seed 0 (RQ1 headline)
 
@@ -262,6 +264,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** 0. **RAM need:** about 25 GB
 - **output path:** `results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json`, `results/quadruped/logs/R-41-FULL-1.log`
 - **order:** after R-47-2. It is a long timed run, so nothing of ours should overlap it. Untimed jobs may run only if you record them.
+- **status:** running/queued in chain10 (started 07:17 JST 2026-11-06): untimed build, then R-41-FULL-1, then R-41-FULL-2, nothing else of ours alongside. Clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d, 0 dirty files); the R-REB-2 14×14 arrays were copied in from the server's original R-REB-2 output and their sha256 matched data_manifest.json. Same flags as the block (argument order differs: `--batch` comes after the shared flags). Disk 26 GB free, RAM 115 GB available, machine idle (load 0.1, no SLAM processes) at 07:14. Partial rule: projection after 10 updates to `raw/R-41-FULL-1/projection.txt`; stop at once if over 30 h (108000 s).
 
 ## R-41-FULL-2: faithful full-length encrypted run, 196 inputs, B=48 in 64 lanes, seed 0 (±0.5 pt accuracy check)
 
@@ -276,3 +279,4 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** 0. **RAM need:** about 25 GB
 - **output path:** `results/quadruped/mnist196_ni_b48_full_seed0.json`, `results/quadruped/logs/R-41-FULL-2.log`
 - **order:** after R-41-FULL-1
+- **status:** running/queued in chain10 (started 07:17 JST 2026-11-06): untimed build, then R-41-FULL-1, then R-41-FULL-2, nothing else of ours alongside. Clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d, 0 dirty files); the R-REB-2 14×14 arrays were copied in from the server's original R-REB-2 output and their sha256 matched data_manifest.json. Same flags as the block (argument order differs: `--batch` comes after the shared flags). Disk 26 GB free, RAM 115 GB available, machine idle (load 0.1, no SLAM processes) at 07:14. Partial rule: projection after 10 updates; stop at once if over 55 h (198000 s).

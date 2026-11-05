@@ -1,0 +1,1 @@
+cargo bench -p hekit-bench --features cuda --bench cuda_ops --no-run 
