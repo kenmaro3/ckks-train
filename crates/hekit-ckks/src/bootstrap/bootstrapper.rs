@@ -194,6 +194,8 @@ pub struct Bootstrapper {
     ctos: Vec<LinearTransform>,
     stoc: Vec<LinearTransform>,
     keys: BootstrapKeys,
+    /// The CoeffToSlot output scale, which EvalMod keeps exactly.
+    evalmod_scale: f64,
     /// The scale SlotToCoeff expects: the EvalMod output scale times `Delta / q_0`.
     stoc_input_scale: f64,
     cost: OpCounter,
@@ -280,6 +282,7 @@ impl Bootstrapper {
             ctos,
             stoc,
             keys,
+            evalmod_scale,
             stoc_input_scale,
             cost,
         })
@@ -399,6 +402,11 @@ impl Bootstrapper {
         keep(&[&re, &im]);
         let start = self.stoc[0].level;
         let to_stoc = |c: Ciphertext| -> Result<Ciphertext> {
+            // The relabel to S Delta / q_0 is only valid from exactly the planned EvalMod
+            // scale S (review m2); eval_mod guarantees it, this keeps a future change honest.
+            if c.scale() != self.evalmod_scale {
+                return Err(HekitError::ScaleMismatch);
+            }
             let c = inner.mod_switch_to_level(&c, start)?;
             Ciphertext::new(c.into_polys(), self.stoc_input_scale)
         };
@@ -840,6 +848,7 @@ mod tests {
     /// the encoded diagonals).** The gate ([`n16_boot_gate`]) on n16_boot, dense main key.
     /// The model predicts 17.4 bits.
     #[test]
+    #[ignore = "heavy: n16_boot keys (N = 2^16, ~13 GB); run with `-- --ignored n16_boot_keys`, see docs/bootstrap.md §11.6"]
     fn n16_boot_keys_bootstrap() {
         n16_boot_gate(
             "n16_boot",
@@ -855,6 +864,7 @@ mod tests {
     /// mod-raise, so the EvalMod constants (K = 13) apply unchanged; the smaller main key only
     /// lowers the rescale and key-switch rounding terms (model 21.0 bits).
     #[test]
+    #[ignore = "heavy: n16_boot keys (N = 2^16, ~13 GB); run with `-- --ignored n16_boot_keys`, see docs/bootstrap.md §11.6"]
     fn n16_boot_keys_bootstrap_sparse() {
         let params = CkksParams::n16_boot_sparse();
         assert_eq!(params.hamming_weight(), Some(192));
@@ -870,7 +880,7 @@ mod tests {
     /// Observation (ignored; run with `--ignored`): n16_boot at `|m| = 1` (random signs),
     /// with the per-stage error breakdown. Prints only.
     #[test]
-    #[ignore = "observation: heavy (N = 2^16, ~13 GB), prints the precision"]
+    #[ignore = "observation, heavy: n16_boot keys (N = 2^16, ~13 GB); run with `-- --ignored n16_boot_keys`, see docs/bootstrap.md §11.6"]
     fn n16_boot_keys_observe_m1() {
         let fx = fixture(CkksParams::n16_boot(), BootParams::default_n16(), 40);
         let mut r = rng(41);
@@ -885,7 +895,7 @@ mod tests {
     /// Observation (ignored): n16_boot at `|m| = 4` (random signs), outside the `|m| <= 1`
     /// precondition: the sine-versus-modulus term grows quadratically. Prints only.
     #[test]
-    #[ignore = "observation: heavy (N = 2^16, ~13 GB), prints the precision"]
+    #[ignore = "observation, heavy: n16_boot keys (N = 2^16, ~13 GB); run with `-- --ignored n16_boot_keys`, see docs/bootstrap.md §11.6"]
     fn n16_boot_keys_observe_m4() {
         let fx = fixture(CkksParams::n16_boot(), BootParams::default_n16(), 42);
         let mut r = rng(43);

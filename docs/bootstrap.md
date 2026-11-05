@@ -586,8 +586,39 @@ The rows show uniform m. The \|m\| = 1 run gives the same numbers to within 0.1 
 
 | run | threads | time per bootstrap |
 |---|---|---|
-| `n16_boot_keys_bootstrap` (default build, no `parallel`), Mac | 1 | 37.8 s, 38.8 s, 39.1 s (three runs, with Task 33's timed baseline running on the same machine) |
-| criterion `benches/bootstrap.rs` (`--features parallel`), Mac | 1 and 12 | **pending: needs an idle machine** |
+| `n16_boot_keys_bootstrap` (test profile, no `parallel`), Mac | 1 | 37.8 s, 38.8 s, 39.1 s (three runs, with Task 33's timed baseline running on the same machine) |
+| criterion `benches/bootstrap.rs` (`--features parallel`, bench profile with LTO), Mac | 1 | **23.8 s** (95% interval 22.4–25.5 s, 10 samples) |
+| the same | 12 | **7.70 s** (7.41–8.05 s, 10 samples): a 3.1× speedup |
 | criterion, quadruped-gpu | 1 and 32 | **pending (user-driven session)** |
 
-The Mac has 12 cores, so the brief's "32 threads" runs as 12 threads there. The brief's target is ≤ 10 s with 32 threads; it is a target, not a gate, and it is not yet evaluated. In the single-thread run, EvalMod takes about 10 s (2 × 5.0 s, §10.2). The rest is the 69 rotations of CoeffToSlot and SlotToCoeff at levels 31–17 and the two SSE switches.
+Run: `cargo bench -p hekit-ckks --features parallel --bench bootstrap` on 2026-11-05, setup 22.5 s. The load average was 6.30 / 5.52 / 5.89 before and 10.96 / 8.10 / 6.89 after (1 / 5 / 15 min). The before value includes the bench build that had just finished. A reviewer's single-threaded Sage estimator held one core for the whole run, so the 12-thread run shared that core.
+
+**Target (≤ 10 s with 32 threads): met on the Mac with 12 threads (7.70 s).** The Mac has 12 cores, so the brief's "32 threads" runs as 12 threads here. The 32-thread figure on quadruped-gpu is pending.
+
+The test-profile runs are slower than the criterion 1-thread run (38 s against 23.8 s). They use no LTO and ran next to Task 33's baseline. In the single-thread run, EvalMod takes about 10 s (2 × 5.0 s, §10.2). The rest is the 69 rotations of CoeffToSlot and SlotToCoeff at levels 31–17 and the two SSE switches. The parallel speedup is limited by what stays sequential:
+- the Chebyshev recursion (only the two EvalMods run side by side);
+- `mod_down` and the NTTs inside each key switch, which are in hekit-core and not parallelized;
+- rescales and plaintext products.
+
+### 11.6 Heavy tests
+
+The tests that generate the full set of n16_boot bootstrapping keys (about 13 GB) are `#[ignore]`d, because CI runners cannot hold them. They are all named `n16_boot_keys_*`:
+
+| test | file | peak memory | default |
+|---|---|---|---|
+| `n16_boot_keys_bootstrap`, the **precision gate**, dense main key (17.46 bits) | bootstrapper.rs | ~13 GB (keys 10.27 GB + diagonals) | ignored |
+| `n16_boot_keys_bootstrap_sparse`, the precision gate on `n16_boot_sparse` (Task 39) | bootstrapper.rs | ~13 GB | ignored |
+| `n16_boot_keys_observe_m1` and `_m4`, observations with the per-stage breakdown | bootstrapper.rs | ~13 GB | ignored |
+| `n16_boot_keys_eval_mod` (§10.2) | evalmod.rs | 1.19 GB measured (one relinearization key), 9 s | runs |
+| `n16_boot_keys_sse_mod_raise` (§10.3) | modraise.rs | 0.74 GB measured (SSE keys only), 2 s | runs |
+
+The last two stay in the default run, because they need far less than the ~10 GB threshold.
+
+The n16_boot tests that need no keys (layouts, scale history, stage values: `n16_boot_rotation_steps`, `n16_boot_stages_match_a_direct_dft` and the params tests) still run by default. On a machine with at least 16 GB free, run the ignored ones one at a time:
+
+```
+RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys --skip observe
+RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys_observe --nocapture
+```
+
+hekit-nn's n16_boot tests (`tests/compact.rs`, `tests/trainer_ni.rs`) were already ignored on the same grounds.

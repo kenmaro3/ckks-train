@@ -374,13 +374,29 @@ mod tests {
             let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
             assert!(bits >= 16.0, "level {level}: {bits}");
         }
-        // A scale far from Delta is refused before any work.
-        let pt = encoder.encode(&m, 4.0 * delta, 0).unwrap();
+        // Review m4: the window edges Delta / 2 and 2 Delta are accepted (the bootstrap then
+        // sees m / 2 and 2 m), scales just outside and far outside are refused before any work.
+        for edge in [delta / 2.0, 2.0 * delta] {
+            let pt = encoder.encode(&m, edge, 0).unwrap();
+            let out = rf.refresh(&enc.encrypt(&pt, &mut r)).unwrap();
+            assert_eq!((out.level(), out.scale()), (bs.output_level(), edge));
+            let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
+            assert!(bits >= 16.0, "edge 2^{}: {bits}", edge.log2());
+        }
         let before = ev.counter();
-        assert_eq!(
-            rf.refresh(&enc.encrypt(&pt, &mut r)).unwrap_err(),
-            HekitError::ScaleMismatch
-        );
+        let outside = [
+            delta / 2.0 * (1.0 - 2f64.powi(-40)),
+            2.0 * delta * (1.0 + 2f64.powi(-40)),
+            4.0 * delta,
+        ];
+        for s in outside {
+            let pt = encoder.encode(&m, s, 0).unwrap();
+            assert_eq!(
+                rf.refresh(&enc.encrypt(&pt, &mut r)).unwrap_err(),
+                HekitError::ScaleMismatch,
+                "scale {s:e}"
+            );
+        }
         assert_eq!(ev.counter(), before);
     }
 }

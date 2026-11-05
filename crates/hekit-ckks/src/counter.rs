@@ -95,16 +95,22 @@ impl std::ops::Sub for &OpCounter {
     /// Field-by-field difference `self - rhs` (the counts between two snapshots).
     ///
     /// # Panics
-    /// In debug builds, if a field of `rhs` exceeds that of `self`.
+    /// In every build (not only with debug assertions), if a field of `rhs` exceeds that of
+    /// `self`: snapshots in the wrong order, or of two different counters.
     fn sub(self, rhs: &OpCounter) -> OpCounter {
+        let d = |a: u64, b: u64, field: &str| {
+            a.checked_sub(b).unwrap_or_else(|| {
+                panic!("OpCounter subtraction: {field} {b} exceeds {a} (snapshots out of order?)")
+            })
+        };
         OpCounter {
-            rotations: self.rotations - rhs.rotations,
-            relins: self.relins - rhs.relins,
-            ct_ct_tensor: self.ct_ct_tensor - rhs.ct_ct_tensor,
-            ct_pt_mults: self.ct_pt_mults - rhs.ct_pt_mults,
-            rescales: self.rescales - rhs.rescales,
-            sse_switches: self.sse_switches - rhs.sse_switches,
-            bootstraps: self.bootstraps - rhs.bootstraps,
+            rotations: d(self.rotations, rhs.rotations, "rotations"),
+            relins: d(self.relins, rhs.relins, "relins"),
+            ct_ct_tensor: d(self.ct_ct_tensor, rhs.ct_ct_tensor, "ct_ct_tensor"),
+            ct_pt_mults: d(self.ct_pt_mults, rhs.ct_pt_mults, "ct_pt_mults"),
+            rescales: d(self.rescales, rhs.rescales, "rescales"),
+            sse_switches: d(self.sse_switches, rhs.sse_switches, "sse_switches"),
+            bootstraps: d(self.bootstraps, rhs.bootstraps, "bootstraps"),
         }
     }
 }
@@ -183,6 +189,17 @@ mod tests {
             (10, 6, 8, 4)
         );
         assert_eq!(&d - &c, c);
+    }
+
+    /// Review m1: a subtraction of snapshots in the wrong order panics in every build.
+    #[test]
+    #[should_panic(expected = "OpCounter subtraction: relins 3 exceeds 0")]
+    fn subtraction_out_of_order_panics() {
+        let later = OpCounter {
+            relins: 3,
+            ..Default::default()
+        };
+        let _ = &OpCounter::default() - &later;
     }
 
     #[test]
