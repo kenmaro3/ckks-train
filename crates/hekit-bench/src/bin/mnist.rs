@@ -1070,6 +1070,41 @@ fn unix_now() -> f64 {
         .map_or(f64::NAN, |d| d.as_secs_f64())
 }
 
+/// The CPU model: `sysctl machdep.cpu.brand_string` (macOS), else the first `model name` of
+/// `/proc/cpuinfo` (Linux), else `"unknown"`.
+fn cpu_name() -> String {
+    let mac = cmd_out("sysctl", &["-n", "machdep.cpu.brand_string"]);
+    if mac != "unknown" {
+        return mac;
+    }
+    std::fs::read_to_string("/proc/cpuinfo")
+        .ok()
+        .and_then(|s| {
+            s.lines()
+                .find(|l| l.starts_with("model name"))
+                .and_then(|l| l.split(':').nth(1))
+                .map(|v| v.trim().to_string())
+        })
+        .unwrap_or_else(|| "unknown".into())
+}
+
+/// Physical memory in bytes: `sysctl hw.memsize` (macOS), else `MemTotal` of `/proc/meminfo`
+/// (Linux, converted from kB), else `"unknown"`.
+fn memory_bytes() -> String {
+    let mac = cmd_out("sysctl", &["-n", "hw.memsize"]);
+    if mac != "unknown" {
+        return mac;
+    }
+    std::fs::read_to_string("/proc/meminfo")
+        .ok()
+        .and_then(|s| {
+            s.lines()
+                .find(|l| l.starts_with("MemTotal:"))
+                .and_then(|l| l.split_whitespace().nth(1)?.parse::<u64>().ok())
+        })
+        .map_or_else(|| "unknown".into(), |kb| (kb * 1024).to_string())
+}
+
 /// Where a result comes from, written by the binary itself: the git commit and the files that
 /// differ from it, the command line, the build, the machine, the threads and the load.
 fn provenance(load_start: &str, started_unix: f64) -> J {
@@ -1100,15 +1135,9 @@ fn provenance(load_start: &str, started_unix: f64) -> J {
         (
             "machine",
             obj(vec![
-                (
-                    "cpu",
-                    J::S(cmd_out("sysctl", &["-n", "machdep.cpu.brand_string"])),
-                ),
+                ("cpu", J::S(cpu_name())),
                 ("logical_cpus", J::I(threads as i64)),
-                (
-                    "memory_bytes",
-                    J::S(cmd_out("sysctl", &["-n", "hw.memsize"])),
-                ),
+                ("memory_bytes", J::S(memory_bytes())),
                 ("os", J::S(cmd_out("uname", &["-srm"]))),
                 ("host", J::S(cmd_out("hostname", &["-s"]))),
             ]),
