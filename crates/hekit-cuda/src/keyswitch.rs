@@ -104,29 +104,51 @@ impl CudaDevice {
     /// count, primes by value, NTT form); `Device` when it does not fit in device memory (the
     /// allocation fails, nothing is allocated: never an abort) or the copy fails.
     pub fn upload_ksk<'d>(&'d self, key: &KskKey) -> Result<DeviceKsk<'d>> {
-        self.upload_ksk_with(key, KskPurpose::Generic, self.params().max_level())
+        self.upload_ksk_with(key, self.params().max_level())
     }
 
     /// [`CudaDevice::upload_ksk`] of a relinearization key ([`KskPurpose::Relin`]).
     pub fn upload_relin_key<'d>(&'d self, rk: &RelinKey) -> Result<DeviceKsk<'d>> {
-        self.upload_ksk_with(rk.key(), KskPurpose::Relin, self.params().max_level())
+        self.upload_relin_key_with(rk, self.params().max_level())
     }
 
     /// [`CudaDevice::upload_ksk`] of a Galois key ([`KskPurpose::Galois`] with its element).
     pub fn upload_galois_key<'d>(&'d self, gk: &GaloisKey) -> Result<DeviceKsk<'d>> {
-        let purpose = KskPurpose::Galois(gk.elt());
-        self.upload_ksk_with(gk.key(), purpose, self.params().max_level())
+        self.upload_galois_key_with(gk, self.params().max_level())
     }
 
-    /// Copies the part of `key` that key switching at levels `<= max_level` reads (the parts
-    /// of the digits of `max_level`, the `Q` limbs `0..=max_level` and the `P` limbs; see
-    /// [`KskShape`]), labelled `purpose`. With `max_level` below `L` the device key is smaller
-    /// (n16_train at `max_level = 3`: 8 MiB instead of 288 MiB); switching above `max_level`
+    /// A [`KskPurpose::Generic`] key uploaded for levels `<= max_level` only: the parts of the
+    /// digits of `max_level`, the `Q` limbs `0..=max_level` and the `P` limbs (see
+    /// [`KskShape`]). With `max_level` below `L` the device key is smaller (n16_train at
+    /// `max_level = 9`: 42 MiB, at 3: 8 MiB, instead of 288 MiB); switching above `max_level`
     /// is then `InvalidParams`.
     ///
-    /// Errors as [`CudaDevice::upload_ksk`]; `InvalidParams` also for `max_level > L` or a
-    /// Galois purpose with an invalid element.
-    pub fn upload_ksk_with<'d>(
+    /// Errors as [`CudaDevice::upload_ksk`]; `InvalidParams` also for `max_level > L`.
+    pub fn upload_ksk_with<'d>(&'d self, key: &KskKey, max_level: usize) -> Result<DeviceKsk<'d>> {
+        self.upload_key(key, KskPurpose::Generic, max_level)
+    }
+
+    /// [`CudaDevice::upload_relin_key`] for levels `<= max_level` only (as
+    /// [`CudaDevice::upload_ksk_with`]); the purpose comes from the key's type.
+    pub fn upload_relin_key_with<'d>(
+        &'d self,
+        rk: &RelinKey,
+        max_level: usize,
+    ) -> Result<DeviceKsk<'d>> {
+        self.upload_key(rk.key(), KskPurpose::Relin, max_level)
+    }
+
+    /// [`CudaDevice::upload_galois_key`] for levels `<= max_level` only (as
+    /// [`CudaDevice::upload_ksk_with`]); the purpose comes from the key's type.
+    pub fn upload_galois_key_with<'d>(
+        &'d self,
+        gk: &GaloisKey,
+        max_level: usize,
+    ) -> Result<DeviceKsk<'d>> {
+        self.upload_key(gk.key(), KskPurpose::Galois(gk.elt()), max_level)
+    }
+
+    fn upload_key<'d>(
         &'d self,
         key: &KskKey,
         purpose: KskPurpose,

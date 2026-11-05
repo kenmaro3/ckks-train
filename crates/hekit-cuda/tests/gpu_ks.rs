@@ -73,16 +73,14 @@ impl<'d> GpuKs<'d> {
         let l = fx.key_level;
         let relin = relin.then(|| {
             let rk = fx.relin_key().expect("fixture has a relinearization key");
-            dev.upload_ksk_with(rk.key(), KskPurpose::Relin, l).unwrap()
+            dev.upload_relin_key_with(rk, l).unwrap()
         });
         let galois = fx
             .galois_keys()
             .into_iter()
             .take(galois)
             .map(|gk| {
-                let k = dev
-                    .upload_ksk_with(gk.key(), KskPurpose::Galois(gk.elt()), l)
-                    .unwrap();
+                let k = dev.upload_galois_key_with(gk, l).unwrap();
                 assert_eq!(k.device_bytes(), ksk_bytes(&fx.params, l).unwrap());
                 k
             })
@@ -322,7 +320,8 @@ fn hoisted_16_test(
     let e = GpuKs::new(&dev, fx, false, 16);
     assert_eq!(e.galois.len(), 16);
     if key_level < params.max_level() {
-        check_key_switch(&e, fx); // the capped keys' layout (key_skip > 0)
+        // The capped layout: the first Galois key at the key level and below (key_skip > 0).
+        check_key_switch(&e, fx);
     }
     check_hoisted_rotate(&e, fx, levels);
     dev.sync().unwrap();
@@ -358,9 +357,10 @@ fn hoisted_rotate_16_matches_cpu_n16_train() {
     );
 }
 
-/// n16_train, the same 16 keys uploaded for levels <= 3 only (16 x 8 MiB; the key's level-l
-/// limbs are skipped in place, `key_skip > 0`), at levels 3 and 1, plus key switching at 3,
-/// 1, 0: need 356 MiB.
+/// n16_train, the same 16 keys uploaded for levels <= 9 only (16 x 42 MiB, 3 key parts):
+/// hoisted rotations at levels 9 (digits 4 + 4 + 2 clipped, key_skip 0), 5 (4 + 2 clipped,
+/// key_skip 4) and 1 (one 2-prime digit, key_skip 8), and key switching with the first Galois
+/// key at 9, 5, 3, 1 and 0. Need 1084 MiB.
 #[test]
 #[ignore = "needs an NVIDIA GPU (run on quadruped-gpu)"]
 fn hoisted_rotate_16_low_level_matches_cpu_n16_train() {
@@ -368,8 +368,8 @@ fn hoisted_rotate_16_low_level_matches_cpu_n16_train() {
         "hoisted_rotate_16_low_level_matches_cpu_n16_train",
         n16_16,
         CkksParams::n16_train(),
-        3,
-        &[3, 1],
+        9,
+        &[9, 5, 1],
     );
 }
 
@@ -403,8 +403,9 @@ fn ks_errors_sharing_and_oom() {
     let rk = dev.upload_relin_key(fx.relin_key().unwrap()).unwrap();
     let gk = dev.upload_galois_key(fx.galois_keys()[0]).unwrap();
     let low = dev
-        .upload_ksk_with(fx.relin_key().unwrap().key(), KskPurpose::Relin, 2)
+        .upload_relin_key_with(fx.relin_key().unwrap(), 2)
         .unwrap();
+    assert_eq!(low.purpose(), KskPurpose::Relin);
     assert_eq!(gk.galois_elt(), Some(fx.galois_keys()[0].elt()));
     assert_eq!((rk.max_level(), low.max_level()), (l, 2));
     let a = dev.upload_ct(&fx.encrypt(l, 1)).unwrap();

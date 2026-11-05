@@ -16,16 +16,17 @@
 use std::sync::Arc;
 
 use cudarc::driver::CudaSlice;
-use hekit_ckks::keys::{conjugation_elt, galois_elt};
+use hekit_ckks::Ciphertext;
+use hekit_ckks::keys::conjugation_elt;
 use hekit_ckks::linalg::DiagonalEntry;
 use hekit_ckks::ops::HeCiphertext;
-use hekit_ckks::{Ciphertext, CkksParams};
 use hekit_core::{HekitError, Result};
 
 use crate::arith::Dev;
 use crate::device::CudaDevice;
 use crate::keyswitch::{DeviceKsk, KskPurpose};
-use crate::ks::{KeyRef, q_primes};
+pub use crate::ks::rotation_elt;
+use crate::ks::{KeyRef, merge_hoisted, q_primes, rescaled_scale};
 use crate::poly::DevicePoly;
 
 fn invalid(msg: impl Into<String>) -> HekitError {
@@ -252,11 +253,15 @@ impl CudaDevice {
         if a.level() == 0 {
             return Err(HekitError::NoLevelsLeft);
         }
+        let scale = a.scale() * b.scale();
+        if !(scale.is_finite() && scale > 0.0) {
+            return Err(invalid("ciphertext scale must be positive and finite"));
+        }
         let (x, y) = (a.bufs(), b.bufs());
         let d = self
             .ks(&Dev(self))
             .tensor([x[0], x[1]], [y[0], y[1]], a.level())?;
-        self.ct_from(d, a.level(), a.scale() * b.scale())
+        self.ct_from(d, a.level(), scale)
     }
 
     /// `Evaluator::relinearize`: `(c0 + kb, c1 + ka)` for a 3-component ciphertext, `(kb, ka)`
@@ -297,7 +302,7 @@ impl CudaDevice {
             return Err(HekitError::NoLevelsLeft);
         }
         let c = self.ks(&Dev(self)).rescale(&ct.bufs(), l)?;
-        self.ct_from(c, l - 1, ct.scale() / self.params().q()[l] as f64)
+        self.ct_from(c, l - 1, rescaled_scale(self.params(), ct.scale(), l))
     }
 
     fn check_galois_input(&self, ct: &CudaCiphertext<'_>) -> Result<()> {
@@ -311,23 +316,29 @@ impl CudaDevice {
         Ok(())
     }
 
-    /// The key of `keys` for Galois element `elt` (`InvalidParams("missing galois key")`
-    /// when none; another device's key, or a key uploaded for levels below `level`, is
-    /// `InvalidParams` too).
+    /// The first key of `keys` for Galois element `elt` that belongs to this device and serves
+    /// `level`. `InvalidParams("missing galois key")` when `keys` has no key for `elt`;
+    /// otherwise, when none of them is usable, the error of the first one (another device's
+    /// key, or a key uploaded for levels below `level`).
     fn galois_key<'k, 'd>(
         &self,
         keys: &[&'k DeviceKsk<'d>],
         elt: u64,
         level: usize,
     ) -> Result<&'k DeviceKsk<'d>> {
-        let k = keys
-            .iter()
-            .find(|k| k.galois_elt() == Some(elt))
-            .copied()
-            .ok_or_else(|| invalid("missing galois key"))?;
-        self.check_key_owner(k)?;
-        check_key_level(k, level)?;
-        Ok(k)
+        let mut first_err = None;
+        for &k in keys.iter().filter(|k| k.galois_elt() == Some(elt)) {
+            match self
+                .check_key_owner(k)
+                .and_then(|()| check_key_level(k, level))
+            {
+                Ok(()) => return Ok(k),
+                Err(e) => {
+                    first_err.get_or_insert(e);
+                }
+            }
+        }
+        Err(first_err.unwrap_or_else(|| invalid("missing galois key")))
     }
 
     /// The Galois element of a rotation by `steps`, `None` for a multiple of the slot count.
@@ -409,21 +420,15 @@ impl CudaDevice {
             .map(|&g| Ok((g, self.galois_key(keys, g, ct.level())?.key_ref())))
             .collect::<Result<Vec<(u64, KeyRef<'_, CudaSlice<u64>>)>>>()?;
         let c = ct.bufs();
-        let mut done = self
+        let done = self
             .ks(&Dev(self))
-            .hoisted([c[0], c[1]], ct.level(), &rots)?
-            .into_iter();
-        elts.iter()
-            .map(|e| match e {
-                None => Ok(ct.clone()),
-                Some(_) => {
-                    let r = done
-                        .next()
-                        .ok_or_else(|| invalid("hoisted rotation count (internal error)"))?;
-                    self.ct_from(r, ct.level(), ct.scale())
-                }
-            })
-            .collect()
+            .hoisted([c[0], c[1]], ct.level(), &rots)?;
+        merge_hoisted(
+            &elts,
+            done,
+            || Ok(ct.clone()),
+            |r| self.ct_from(r, ct.level(), ct.scale()),
+        )
     }
 }
 
@@ -437,12 +442,4 @@ pub(crate) fn check_key_level(key: &DeviceKsk<'_>, level: usize) -> Result<()> {
             key.max_level()
         )))
     }
-}
-
-/// The Galois element of a rotation by `steps` (`galois_elt(N, steps mod slots)`), `None` for
-/// a multiple of the slot count (as `Evaluator::rotate`).
-pub fn rotation_elt(params: &CkksParams, steps: i32) -> Option<u64> {
-    let slots = params.slots() as i64;
-    let k = (steps as i64).rem_euclid(slots);
-    (k != 0).then(|| galois_elt(params.n(), k as i32))
 }

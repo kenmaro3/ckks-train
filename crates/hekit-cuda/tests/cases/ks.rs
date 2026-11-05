@@ -172,17 +172,19 @@ pub fn assert_same_ct(got: &Ciphertext, want: &Ciphertext, what: &str) {
     }
 }
 
-/// The levels most checks use: top, top - 1 (a level-clipped last digit when `alpha > 1`),
-/// `L/2 - 2` (another clipped digit), 1 and 0 (one digit), restricted to the fixture's key
-/// level.
+/// The levels most checks use: the key level, top, top - 1 (a level-clipped last digit when
+/// `alpha > 1`), `L/2 - 2` (another clipped digit), `key_level / 2 + 1`, 3, 1 and 0 (one
+/// digit), restricted to the fixture's key level (keys capped at 9 on n16_train: 9, 5, 3, 1,
+/// 0, i.e. 3, 2 and 1 digits and `key_skip` 0, 4, 6, 8, 9).
 fn spread(fx: &KsFixture) -> Vec<usize> {
     let l = fx.params.max_level();
-    fx.levels(&[fx.key_level, l, l - 1, l / 2 - 2, 3, 1, 0])
+    let k = fx.key_level;
+    fx.levels(&[k, l, l - 1, l / 2 - 2, k / 2 + 1, 3, 1, 0])
 }
 
 /// `key_switch` of random NTT-form polynomials against `hekit_ckks::keyswitch::key_switch`:
-/// with the relinearization key at every level of [`spread`], with the first Galois key at the
-/// top level.
+/// with the relinearization key (if any) and with the first Galois key (if any), each at every
+/// level of [`spread`].
 pub fn check_key_switch<E: KsExec>(e: &E, fx: &KsFixture) {
     let p = &fx.params;
     let mut cases: Vec<(usize, KeyChoice)> = Vec::new();
@@ -190,7 +192,8 @@ pub fn check_key_switch<E: KsExec>(e: &E, fx: &KsFixture) {
         cases.extend(spread(fx).into_iter().map(|l| (l, KeyChoice::Relin)));
     }
     if let Some(gk) = fx.galois_keys().first() {
-        cases.push((fx.key_level, KeyChoice::Galois(gk.elt())));
+        let g = KeyChoice::Galois(gk.elt());
+        cases.extend(spread(fx).into_iter().map(|l| (l, g)));
     }
     assert!(!cases.is_empty(), "fixture without keys");
     for (i, (level, key)) in cases.into_iter().enumerate() {

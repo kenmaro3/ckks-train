@@ -13,6 +13,7 @@
 //! operation by operation. Every step's output is the unique reduced residue the CPU step
 //! computes, so the results are bit-identical.
 
+use hekit_ckks::keys::galois_elt;
 use hekit_ckks::keyswitch::digit_ranges;
 use hekit_ckks::{CkksParams, KskKey};
 use hekit_core::{HekitError, Result};
@@ -240,6 +241,43 @@ pub(crate) struct Ks<'a, B> {
     pub params: &'a CkksParams,
     /// Its prime table.
     pub table: &'a PrimeTable,
+}
+
+/// The Galois element of a rotation by `steps` (`galois_elt(N, steps mod slots)`), `None` for
+/// a multiple of the slot count (as `Evaluator::rotate`; shared by the device ciphertext
+/// operations and the replay).
+pub fn rotation_elt(params: &CkksParams, steps: i32) -> Option<u64> {
+    let slots = params.slots() as i64;
+    let k = (steps as i64).rem_euclid(slots);
+    (k != 0).then(|| galois_elt(params.n(), k as i32))
+}
+
+/// The scale after rescaling a level-`level` ciphertext of scale `scale`: `scale / q_level`
+/// as `f64` (`Evaluator::rescale`; shared by the device and the replay).
+pub fn rescaled_scale(params: &CkksParams, scale: f64, level: usize) -> f64 {
+    scale / params.q()[level] as f64
+}
+
+/// The results of a hoisted rotation in the order of the steps: `trivial()` (a copy) for a
+/// step without a Galois element, the next of `done` (the nontrivial results, in order)
+/// through `wrap` otherwise (shared by the device and the replay).
+#[cfg_attr(not(any(test, feature = "cuda")), allow(dead_code))]
+pub(crate) fn merge_hoisted<T, R>(
+    elts: &[Option<u64>],
+    done: Vec<R>,
+    mut trivial: impl FnMut() -> Result<T>,
+    mut wrap: impl FnMut(R) -> Result<T>,
+) -> Result<Vec<T>> {
+    let mut done = done.into_iter();
+    elts.iter()
+        .map(|e| match e {
+            None => trivial(),
+            Some(_) => wrap(
+                done.next()
+                    .ok_or_else(|| invalid("hoisted rotation count (internal error)"))?,
+            ),
+        })
+        .collect()
 }
 
 /// `[0, ..., level]`: the limbs of a level-`level` ciphertext component.

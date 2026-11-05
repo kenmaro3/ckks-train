@@ -10,7 +10,7 @@
 use std::collections::HashMap;
 
 use hekit_ckks::Ciphertext;
-use hekit_ckks::keys::{conjugation_elt, galois_elt};
+use hekit_ckks::keys::conjugation_elt;
 use hekit_core::{HekitError, Result, RnsPoly};
 
 use crate::basis::check_galois_elt;
@@ -19,7 +19,10 @@ use crate::emu_arith::{
     Binary, EmuBackend, add_mod, automorphism_coeff, automorphism_ntt, each_thread, limb, mul_mod,
     pw_binary,
 };
-use crate::ks::{InnerProduct, KeyRef, Ks, KsBackend, KskShape, PwOp, ksk_limbs, q_primes};
+use crate::ks::{
+    InnerProduct, KeyRef, Ks, KsBackend, KskShape, PwOp, ksk_limbs, merge_hoisted, q_primes,
+    rescaled_scale, rotation_elt,
+};
 use crate::plan::ElemLaunch;
 
 /// `ks_inner_product` (the kernel's argument list).
@@ -213,13 +216,6 @@ impl<'f> EmuKs<'f> {
             .ok_or_else(|| HekitError::InvalidParams("missing galois key".into()))
     }
 
-    /// The Galois element of a rotation by `steps`, `None` for a multiple of the slot count.
-    fn rotation_elt(&self, steps: i32) -> Option<u64> {
-        let slots = self.fx.params.slots() as i64;
-        let k = (steps as i64).rem_euclid(slots);
-        (k != 0).then(|| galois_elt(self.fx.params.n(), k as i32))
-    }
-
     fn galois(&self, ct: &Ciphertext, elt: u64) -> Ciphertext {
         let c = self.up(ct);
         let key = self.galois_key(elt).unwrap();
@@ -253,16 +249,15 @@ impl KsExec for EmuKs<'_> {
         let rk = self.relin.as_ref().unwrap().r();
         let r = ks.relinearize([&t[0], &t[1], &t[2]], l, rk).unwrap();
         let s = ks.rescale(&[&r[0], &r[1]], l).unwrap();
-        let q_l = self.fx.params.q()[l] as f64;
         [
             self.down(&t, l, scale),
             self.down(&r, l, scale),
-            self.down(&s, l - 1, scale / q_l),
+            self.down(&s, l - 1, rescaled_scale(&self.fx.params, scale, l)),
         ]
     }
 
     fn rotate(&self, ct: &Ciphertext, steps: i32) -> Ciphertext {
-        match self.rotation_elt(steps) {
+        match rotation_elt(&self.fx.params, steps) {
             None => ct.clone(),
             Some(elt) => self.galois(ct, elt),
         }
@@ -274,23 +269,26 @@ impl KsExec for EmuKs<'_> {
 
     fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Vec<Ciphertext> {
         let c = self.up(ct);
-        let elts: Vec<Option<u64>> = steps.iter().map(|&s| self.rotation_elt(s)).collect();
+        let elts: Vec<Option<u64>> = steps
+            .iter()
+            .map(|&s| rotation_elt(&self.fx.params, s))
+            .collect();
         let rots: Vec<(u64, KeyRef<'_, Vec<u64>>)> = elts
             .iter()
             .flatten()
             .map(|&g| (g, self.galois_key(g).unwrap().r()))
             .collect();
-        let mut done = self
+        let done = self
             .ks()
             .hoisted([&c[0], &c[1]], ct.level(), &rots)
-            .unwrap()
-            .into_iter();
-        elts.iter()
-            .map(|e| match e {
-                None => ct.clone(),
-                Some(_) => self.down(&done.next().unwrap(), ct.level(), ct.scale()),
-            })
-            .collect()
+            .unwrap();
+        merge_hoisted(
+            &elts,
+            done,
+            || Ok(ct.clone()),
+            |r| Ok(self.down(&r, ct.level(), ct.scale())),
+        )
+        .unwrap()
     }
 }
 
@@ -395,14 +393,18 @@ mod tests {
         check_hoisted_rotate(&e, fx, &[fx.params.max_level(), 1]);
     }
 
-    /// Keys put on the device for levels <= 3 only (`key_skip > 0`, fewer key parts than
-    /// `dnum`): the layout of `hoisted_rotate_16_low_level_matches_cpu_n16_train`.
+    /// Keys put on the device for levels <= 9 only (3 of 8 key parts, `key_skip` 0 to 9):
+    /// the cap, levels and checks of `hoisted_rotate_16_low_level_matches_cpu_n16_train`
+    /// (key switching at 9, 5, 3, 1, 0; hoisted at 9, 5, 1 with 3- / 2- / 1-digit
+    /// accumulation and clipped digits), with the 2 Galois keys of the n16_train fixture
+    /// instead of 16 (16 n16_train keys are 4.8 GB of host memory) plus its relinearization
+    /// key.
     #[test]
     fn replay_capped_keys_n16_train() {
-        let fx = n16().capped(3);
+        let fx = n16().capped(9);
         let e = EmuKs::new(&fx);
         check_key_switch(&e, &fx);
-        check_hoisted_rotate(&e, &fx, &[3, 1]);
+        check_hoisted_rotate(&e, &fx, &[9, 5, 1]);
     }
 
     #[test]

@@ -36,7 +36,7 @@ pub fn table_bytes(params: &CkksParams) -> usize {
 }
 
 /// Device memory of a key-switching key for `params` uploaded for levels `<= max_level`
-/// ([`CudaDevice::upload_ksk_with`]; `max_level = L` for a full key: n16_train 288 MiB,
+/// ([`CudaDevice::upload_ksk_with`] and the other `_with` uploads; `max_level = L` for a full key: n16_train 288 MiB,
 /// seal_2020 55 MiB). `InvalidParams` above `L`.
 pub fn ksk_bytes(params: &CkksParams, max_level: usize) -> hekit_core::Result<usize> {
     Ok(KskShape::new(params, max_level)?.device_bytes(params.n()))
