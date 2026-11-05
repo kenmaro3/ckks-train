@@ -117,7 +117,6 @@
 
 use std::fmt::Write as _;
 use std::path::PathBuf;
-use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -129,6 +128,7 @@ use hekit_bench::data::{
     Mnist, Split, load_mnist, load_npy_dataset, manifest_sha256, one_hot, parse_npy_f64,
     read_npy_f64, sha256_hex,
 };
+use hekit_bench::provenance::{loadavg, peak_rss_bytes, unix_now};
 use hekit_bench::twin::{
     Layer, WeightDecay, accuracy_over, affine, forward_plain, init_net, rng, twin_step,
 };
@@ -744,47 +744,9 @@ fn counter_json(c: &OpCounter) -> J {
     ])
 }
 
-/// The load averages: `sysctl -n vm.loadavg` (macOS), else `/proc/loadavg` (Linux), else
-/// `"unknown"`.
-fn loadavg() -> String {
-    Command::new("sysctl")
-        .args(["-n", "vm.loadavg"])
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .or_else(|| std::fs::read_to_string("/proc/loadavg").ok())
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "unknown".into())
-}
-
-/// This process's peak resident set size in bytes (`getrusage(RUSAGE_SELF)`; `ru_maxrss` is
-/// in bytes on macOS and in KiB on Linux), or `None` if the call fails.
-fn peak_rss_bytes() -> Option<u64> {
-    // SAFETY: `getrusage` only writes the `rusage` struct it is given, which is plain data
-    // and fully initialised by `zeroed`.
-    let mut ru: libc::rusage = unsafe { std::mem::zeroed() };
-    let rc = unsafe { libc::getrusage(libc::RUSAGE_SELF, &mut ru) };
-    if rc != 0 {
-        return None;
-    }
-    let raw = u64::try_from(ru.ru_maxrss).ok()?;
-    Some(if cfg!(target_os = "macos") {
-        raw
-    } else {
-        raw * 1024
-    })
-}
-
-/// How this binary was built (from compile-time facts only).
+/// How this binary was built (`hekit_bench::provenance::build_info`).
 fn build_info() -> J {
-    obj(vec![
-        ("debug_assertions", J::B(cfg!(debug_assertions))),
-        ("package_version", J::S(env!("CARGO_PKG_VERSION").into())),
-        ("target_os", J::S(std::env::consts::OS.into())),
-        ("target_arch", J::S(std::env::consts::ARCH.into())),
-    ])
+    J::R(hekit_bench::provenance::build_info().to_string())
 }
 
 fn stats(v: &[f64]) -> J {
@@ -2154,113 +2116,17 @@ fn run_plain(args: &Args) -> Result<(), String> {
 // Task 41: non-interactive mode.
 // ---------------------------------------------------------------------------------------------
 
-/// The stdout of `cmd args` (trimmed), or `"unknown"`.
-fn cmd_out(cmd: &str, args: &[&str]) -> String {
-    Command::new(cmd)
-        .args(args)
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "unknown".into())
-}
-
-/// Seconds since the Unix epoch.
-fn unix_now() -> f64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(f64::NAN, |d| d.as_secs_f64())
-}
-
-/// The CPU model: `sysctl machdep.cpu.brand_string` (macOS), else the first `model name` of
-/// `/proc/cpuinfo` (Linux), else `"unknown"`.
-fn cpu_name() -> String {
-    let mac = cmd_out("sysctl", &["-n", "machdep.cpu.brand_string"]);
-    if mac != "unknown" {
-        return mac;
-    }
-    std::fs::read_to_string("/proc/cpuinfo")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("model name"))
-                .and_then(|l| l.split(':').nth(1))
-                .map(|v| v.trim().to_string())
-        })
-        .unwrap_or_else(|| "unknown".into())
-}
-
-/// Physical memory in bytes: `sysctl hw.memsize` (macOS), else `MemTotal` of `/proc/meminfo`
-/// (Linux, converted from kB), else `"unknown"`.
-fn memory_bytes() -> String {
-    let mac = cmd_out("sysctl", &["-n", "hw.memsize"]);
-    if mac != "unknown" {
-        return mac;
-    }
-    std::fs::read_to_string("/proc/meminfo")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("MemTotal:"))
-                .and_then(|l| l.split_whitespace().nth(1)?.parse::<u64>().ok())
-        })
-        .map_or_else(|| "unknown".into(), |kb| (kb * 1024).to_string())
-}
-
-/// Where a result comes from, written by the binary itself: the git commit and the files that
-/// differ from it, the command line, the build, the machine, the threads and the load.
+/// Where a result comes from, written by the binary itself
+/// (`hekit_bench::provenance::provenance`, shared with the `ablation` bin).
 fn provenance(load_start: &str, started_unix: f64) -> J {
-    let threads = std::thread::available_parallelism().map_or(0, |n| n.get());
-    let rayon = std::env::var("RAYON_NUM_THREADS").unwrap_or_else(|_| "unset".into());
-    let dirty = cmd_out("git", &["status", "--porcelain", "--untracked-files=no"]);
-    obj(vec![
-        (
-            "written_by",
-            J::S("the mnist binary (raw output, not assembled)".into()),
-        ),
-        ("git_commit", J::S(cmd_out("git", &["rev-parse", "HEAD"]))),
-        (
-            "git_modified_tracked_files",
-            J::S(if dirty == "unknown" {
-                "none".into()
-            } else {
-                dirty
-            }),
-        ),
-        (
-            "command_line",
-            J::S(std::env::args().collect::<Vec<_>>().join(" ")),
-        ),
-        ("build", build_info()),
-        ("parallel_feature", J::B(cfg!(feature = "parallel"))),
-        ("rustc_on_path", J::S(cmd_out("rustc", &["-V"]))),
-        (
-            "machine",
-            obj(vec![
-                ("cpu", J::S(cpu_name())),
-                ("logical_cpus", J::I(threads as i64)),
-                ("memory_bytes", J::S(memory_bytes())),
-                ("os", J::S(cmd_out("uname", &["-srm"]))),
-                ("host", J::S(cmd_out("hostname", &["-s"]))),
-            ]),
-        ),
-        (
-            "threads",
-            J::S(if cfg!(feature = "parallel") {
-                format!(
-                    "rayon (feature parallel), RAYON_NUM_THREADS = {rayon}, {threads} logical CPUs"
-                )
-            } else {
-                "1 (no parallel feature)".into()
-            }),
-        ),
-        ("load_start", J::S(load_start.into())),
-        ("load_end", J::S(loadavg())),
-        ("started_unix", J::N(started_unix)),
-        ("finished_unix", J::N(unix_now())),
-    ])
+    J::R(
+        hekit_bench::provenance::provenance(
+            "the mnist binary (raw output, not assembled)",
+            load_start,
+            started_unix,
+        )
+        .to_string(),
+    )
 }
 
 /// ReBoot's bootstrap key switches in the M0 cost model: OpenFHE `EvalBootstrap` with

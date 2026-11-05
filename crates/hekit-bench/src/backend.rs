@@ -420,6 +420,12 @@ impl DeviceHooks for CpuHooks {
 /// refresh would otherwise wait for the whole step. The step's device time is then
 /// `seconds - refresh_seconds + wait`, the host refresh `refresh_seconds - wait`
 /// ([`SyncedRefresher::wait_seconds`]). On the CPU the wait is zero.
+///
+/// It syncs before **every** refresh, not only the first of a step: from the second refresh
+/// on, the wait also covers the completion of the previous refresh's (asynchronous) upload,
+/// so a little upload time moves from the refresh into the step (review M2). Callers that do
+/// not sync after uploading the batch (the `mnist` interactive loop) also count that upload's
+/// device time in the step; the `ablation` runner syncs after it.
 pub struct SyncedRefresher<'h, R> {
     inner: R,
     hooks: &'h dyn DeviceHooks,

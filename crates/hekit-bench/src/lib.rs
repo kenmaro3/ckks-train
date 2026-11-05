@@ -3,4 +3,5 @@
 
 pub mod backend;
 pub mod data;
+pub mod provenance;
 pub mod twin;

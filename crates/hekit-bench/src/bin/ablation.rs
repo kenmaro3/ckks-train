@@ -59,6 +59,7 @@ use hekit_bench::backend::{
     config_label, mlp_gpu_need,
 };
 use hekit_bench::data::{Mnist, Split, load_mnist, one_hot};
+use hekit_bench::provenance::{loadavg, provenance, unix_now};
 use hekit_bench::twin::{Layer, init_net, rng, uni};
 use hekit_ckks::{
     CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, HeOps, KeyGenerator,
@@ -385,6 +386,8 @@ fn configs(o: &Opts) -> Vec<EvalConfig> {
 
 fn run(o: &Opts) -> Result<(), String> {
     let t_all = Instant::now();
+    let started_unix = unix_now();
+    let load_start = loadavg();
     let params = Arc::new(params_named(&o.params)?);
     let n = (o.warmup + o.iters) * o.batch;
     let (data, data_note) = batches(o, n);
@@ -422,6 +425,18 @@ fn run(o: &Opts) -> Result<(), String> {
         Backend::Cuda => Some(hekit_bench::backend::open_gpu("ablation", &params, &need)?),
         Backend::Cpu => None,
     };
+    // The GPU and its free memory before any key exists (provenance; null on the CPU).
+    #[cfg(feature = "cuda")]
+    let gpu = match &dev {
+        Some(d) => {
+            let (free, total) = d.mem_info().map_err(|e| e.to_string())?;
+            let mib = |b: usize| b as f64 / hekit_bench::backend::MIB;
+            json!({"name": d.describe(), "free_mib_at_start": mib(free), "total_mib": mib(total)})
+        }
+        None => Value::Null,
+    };
+    #[cfg(not(feature = "cuda"))]
+    let gpu = Value::Null;
 
     let t_keys = Instant::now();
     let mut kg =
@@ -490,9 +505,14 @@ fn run(o: &Opts) -> Result<(), String> {
             }
         }
     };
+    let prov = Prov {
+        load_start,
+        started_unix,
+        gpu,
+    };
     report(
         &ctx, &results, &matvecs, &steps, keygen_s, &need, data_note, &device, &memory, facts,
-        t_all,
+        t_all, prov,
     )
 }
 
@@ -569,6 +589,14 @@ fn max_weight_diff(a: &[Layer], b: &[Layer]) -> f64 {
         .fold(0.0, f64::max)
 }
 
+/// What the provenance block needs besides the shared helper (Task 48 fix round 1, I1).
+struct Prov {
+    load_start: String,
+    started_unix: f64,
+    /// The GPU's name and free memory before any key existed (`null` on the CPU).
+    gpu: Value,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn report(
     ctx: &Ctx<'_>,
@@ -582,6 +610,7 @@ fn report(
     memory: &str,
     facts: Value,
     t_all: Instant,
+    prov: Prov,
 ) -> Result<(), String> {
     let o = ctx.o;
     let def = EvalConfig::default();
@@ -623,8 +652,24 @@ fn report(
                     }
             })
             .map(|x| &x.counters[0] == c);
+        // hoist off computes the same values bit for bit as its hoist-on counterpart.
+        let hoist_identical = (!m.cfg.hoist)
+            .then(|| {
+                results
+                    .iter()
+                    .find(|x| {
+                        x.cfg
+                            == EvalConfig {
+                                hoist: true,
+                                ..m.cfg
+                            }
+                    })
+                    .map(|x| max_weight_diff(&m.weights, &x.weights) == 0.0)
+            })
+            .flatten();
         let wdiff = max_weight_diff(&m.weights, &base.weights);
-        all_ok &= constant && matches && hoist_pair != Some(false);
+        all_ok &=
+            constant && matches && hoist_pair != Some(false) && hoist_identical != Some(false);
         let step = median(&m.step_s);
         rows.push(json!({
             "config": config_label(&m.cfg),
@@ -636,6 +681,7 @@ fn report(
             "closed_form": {"rotations": pred_rot, "relins": pred_relin},
             "closed_form_matches": matches,
             "counts_equal_hoist_on_counterpart": hoist_pair,
+            "weights_bit_identical_to_hoist_on_counterpart": hoist_identical,
             "step_s_median": step,
             "step_s": m.step_s,
             "refresh_s_median": median(&m.refresh_s),
@@ -657,7 +703,14 @@ fn report(
             wdiff.log2()
         );
     }
+    let mut provenance = provenance(
+        "the ablation binary (raw output, not assembled)",
+        &prov.load_start,
+        prov.started_unix,
+    );
+    provenance["gpu"] = prov.gpu;
     let result = json!({
+        "provenance": provenance,
         "task": "Task 48: RQ3 ablation (hoist x bsgs x lazy_relin), one interactive eMLP-1 iteration",
         "backend": {
             "options": serde_json::from_str::<Value>(&o.be.json()).map_err(|e| e.to_string())?,
@@ -692,7 +745,13 @@ fn report(
                      iterations untimed; step = server side incl. the wait for the device queue; \
                      refresh = host client refresh (unchanged by the flags); medians over the \
                      timed iterations; closed form = default count + per-matvec deltas of \
-                     EvalConfig::matvec_rotations / matvec_enc_relins",
+                     EvalConfig::matvec_rotations / matvec_enc_relins (relative: the default \
+                     row matches by construction; its absolute count is checked against the \
+                     mnist bin's structural predict in tests/mnist_flags.rs); \
+                     all_checks_pass = counters constant over iterations, closed form, \
+                     hoist-off counts equal and weights bit-identical to the hoist-on \
+                     counterpart; log2_max_abs_weight_diff_vs_default is null when the \
+                     difference is 0",
         "caveats": CAVEATS,
         "all_checks_pass": all_ok,
         "configs": rows,
