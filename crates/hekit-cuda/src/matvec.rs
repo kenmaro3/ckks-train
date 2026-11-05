@@ -22,6 +22,28 @@ use hekit_ckks::linalg::DiagonalEntry;
 use hekit_ckks::{CkksParams, Diagonals, EvalConfig, HeOps};
 use hekit_core::{HekitError, Result};
 
+/// Runs the composite operation `f` on a fork of `ev` (same keys and flags, own counter)
+/// and adds the fork's counts to `ev` **only if `f` succeeds**: a composite operation that
+/// fails part-way (e.g. a device allocation failure in its 40th product) counts nothing, as
+/// the counter contract requires (Task 47 review I1). The device backend runs `mul`,
+/// `hoisted_rotate` without hoisting and the matrix-vector products through it.
+pub fn counted<E: HeOps, R>(ev: &E, f: impl FnOnce(&E) -> Result<R>) -> Result<R> {
+    let local = ev.fork();
+    let r = f(&local)?;
+    ev.add_counts(&local.counter());
+    Ok(r)
+}
+
+/// `relinearize(mul_no_relin(a, b))`: `Evaluator::mul` after its checks.
+pub fn mul_relin<E: HeOps>(ev: &E, a: &E::Ct, b: &E::Ct) -> Result<E::Ct> {
+    ev.relinearize(&ev.mul_no_relin(a, b)?)
+}
+
+/// One `rotate` per step: `Evaluator::hoisted_rotate` with `hoist` off, after its key checks.
+pub fn rotate_each<E: HeOps>(ev: &E, ct: &E::Ct, steps: &[i32]) -> Result<Vec<E::Ct>> {
+    steps.iter().map(|&s| ev.rotate(ct, s)).collect()
+}
+
 /// `W x` by BSGS for the pre-rotated diagonals `diag` (any offset, no skipped entry):
 /// `sum_{k1} rot(finish(sum_{k2} mul(entries[k1 baby + k2], rot(x, k2 s))), (offset + baby
 /// k1) s)` with `share_giant` (the `bsgs` flag), else every product of a nonzero giant shift
@@ -244,14 +266,16 @@ mod tests {
         let mut fx = fixture(small(), 41);
         let (slots, top, delta) = (fx.params.slots(), fx.params.max_level(), fx.params.scale());
         // (d, stride, offset)
-        let shapes: [(usize, usize, i64); 7] = [
+        let shapes: [(usize, usize, i64); 9] = [
             (1, 1, 0),
             (2, 1, 0),
             (4, 2, 0),
             (8, 1, -3),
             (16, 1, 0),
+            (16, 1, -15),
             (32, 4, -17),
             (64, 1, 0),
+            (64, 2, -5),
         ];
         let mut steps: Vec<i32> = Vec::new();
         for &(d, s, o) in &shapes {
@@ -389,6 +413,125 @@ mod tests {
             let (a, b) = (fx.cpu(config), fx.cpu(config));
             check_matvec_conformance(&a, &b, &fx, fx.params.max_level(), 5);
         }
+    }
+
+    /// Task 47 review I1: a composite operation run through [`counted`] that fails at any of
+    /// its primitives (an injected `Device` error, as a device allocation failure part-way)
+    /// leaves the counter unchanged; without a failure its counts are the CPU's. Without
+    /// `counted` the same failure leaves partial counts (the test is sensitive).
+    #[test]
+    fn composites_count_nothing_on_failure() {
+        use crate::cases::eval::EvalFixture;
+        use crate::cases::failing::Failing;
+        let fx = EvalFixture::new(small(), 8, 49);
+        let top = fx.params.max_level();
+        let x = fx.encrypt(top, 1);
+        let y = fx.encrypt(top, 2);
+        let (pd, cd) = fx.diagonals(top, 3);
+        let steps = [0, 1, 2, 1, fx.steps[fx.steps.len() - 1]];
+        for config in [EvalConfig::OPTIMIZED, EvalConfig::NAIVE] {
+            let cpu = fx.cpu(config);
+            let w = Failing::new(fx.cpu(config));
+            type Op<'a> = Box<dyn Fn(&Failing) -> Result<Vec<Ciphertext>> + 'a>;
+            let ops: Vec<(&str, Op<'_>, OpCounter)> = vec![
+                (
+                    "matvec_enc",
+                    Box::new(|e| matvec_enc_bsgs(e, &cd, &x).map(|c| vec![c])),
+                    {
+                        cpu.reset_counter();
+                        cpu.matvec_enc(&cd, &x).unwrap();
+                        cpu.counter()
+                    },
+                ),
+                (
+                    "matvec_plain",
+                    Box::new(|e| matvec_plain_bsgs(e, &pd, &x).map(|c| vec![c])),
+                    {
+                        cpu.reset_counter();
+                        cpu.matvec_plain(&pd, &x).unwrap();
+                        cpu.counter()
+                    },
+                ),
+                (
+                    "mul",
+                    Box::new(|e| mul_relin(e, &x, &y).map(|c| vec![c])),
+                    {
+                        cpu.reset_counter();
+                        cpu.mul(&x, &y).unwrap();
+                        cpu.counter()
+                    },
+                ),
+                ("rotate_each", Box::new(|e| rotate_each(e, &x, &steps)), {
+                    cpu.reset_counter();
+                    cpu.hoisted_rotate(&x, &steps).unwrap();
+                    cpu.counter()
+                }),
+            ];
+            for (name, op, want) in &ops {
+                let what = format!("{name} {config:?}");
+                w.reset_counter();
+                w.fail_at(None);
+                counted(&w, |e| op(e)).unwrap();
+                assert_eq!(w.counter(), *want, "{what}: counts");
+                let n = w.calls();
+                assert!(n >= 2, "{what}: {n} primitives");
+                for k in 0..n {
+                    w.reset_counter();
+                    w.fail_at(Some(k));
+                    let r = counted(&w, |e| op(e));
+                    assert!(
+                        matches!(r, Err(HekitError::Device(_))),
+                        "{what}: fail at {k}"
+                    );
+                    assert_eq!(w.counter(), OpCounter::default(), "{what}: fail at {k}");
+                }
+                // Sensitivity: the same failure without `counted` leaves partial counts.
+                w.reset_counter();
+                w.fail_at(Some(n - 1));
+                assert!(op(&w).is_err());
+                assert_ne!(w.counter(), OpCounter::default(), "{what}: partial counts");
+            }
+        }
+    }
+
+    /// Task 47 review M4 (Task 43 N2): `HostBootstrapper` merges nothing when the upload of
+    /// the bootstrapped ciphertext fails (the host evaluator did the work, the backend's
+    /// counter is unchanged).
+    #[test]
+    fn host_bootstrapper_merges_nothing_on_failed_upload() {
+        use crate::cases::failing::Failing;
+        use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
+        use hekit_ckks::{BootstrapOps, HostBootstrapper};
+        let (q, p) = hekit_ckks::params::n16_boot_bits();
+        let params = Arc::new(CkksParams::new(10, &q, &p, 42, 8).unwrap());
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(51)).unwrap();
+        let enc = Encoder::new(Arc::clone(&params));
+        let bp = BootParams {
+            log_slots: 9,
+            ..BootParams::default_n16()
+        };
+        let bs = Bootstrapper::new(Arc::clone(&params), bp, &enc, &mut kg).unwrap();
+        let ev = Evaluator::new(Arc::clone(&params), Some(kg.relin_key()), None);
+        let encryptor = Encryptor::new(Arc::clone(&params), kg.public_key());
+        let mut r = rng(52);
+        let pt = enc
+            .encode(&rand_vals(&mut r, params.slots()), params.scale(), 0)
+            .unwrap();
+        let ct = encryptor.encrypt(&pt, &mut r);
+        let w = Failing::new(ev.fork());
+        let host = ev.fork();
+        let hb = HostBootstrapper::new(&bs, &host);
+        w.fail_uploads(true);
+        let r = hb.bootstrap(&w, &ct);
+        assert!(matches!(r, Err(HekitError::Device(_))), "{:?}", r.err());
+        assert_eq!(w.counter(), OpCounter::default());
+        assert_eq!(host.counter().bootstraps, 1, "the host did bootstrap");
+        // With uploads working, exactly the host's delta of one bootstrap is merged.
+        w.fail_uploads(false);
+        let before = host.counter();
+        hb.bootstrap(&w, &ct).unwrap();
+        assert_eq!(w.counter(), &host.counter() - &before);
+        assert_eq!(w.counter().bootstraps, 1);
     }
 
     #[test]

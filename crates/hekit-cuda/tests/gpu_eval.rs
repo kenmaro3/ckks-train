@@ -93,9 +93,10 @@ fn evaluator<'d>(
 // The operation sequence: every HeOps operation, results and counters against the CPU.
 // ---------------------------------------------------------------------------------------
 
-/// Polynomials alive in `run_sequence` at once (inputs, diagonals, results), generously.
+/// Polynomials alive in `run_sequence` at once (inputs, diagonals, results), with margin
+/// (trimmed in fix round 1: the full-key n16_train variant missed 2984.6 MiB free by 11 MiB).
 fn sequence_polys(d: usize) -> usize {
-    3 * d + 40
+    3 * d + 32
 }
 
 #[test]
@@ -151,7 +152,7 @@ fn sequence_and_counts_match_cpu_n16_train_capped() {
 #[test]
 #[ignore = "needs an NVIDIA GPU (run on quadruped-gpu)"]
 fn sequence_and_counts_match_cpu_n16_train_full_keys() {
-    // Full keys (288 MiB each) at the top level: the honest need; skips below ~2.6 GiB free.
+    // Full keys (288 MiB each) at the top level: 2868 MiB; skips below that free.
     let p = CkksParams::n16_train();
     let (d, l) = (4, p.max_level());
     let n = need(&p, 5, l, l, sequence_polys(d), d, 1);

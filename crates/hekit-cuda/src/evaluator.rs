@@ -16,7 +16,12 @@
 //!
 //! As the CPU ([`hekit_ckks::counter`]): `rotations` for every nontrivial rotation (each step
 //! of a hoisted rotation) and every conjugation, `relins`, `ct_ct_tensor`, `ct_pt_mults`,
-//! `rescales`; composite operations count their parts. A failed operation counts nothing.
+//! `rescales`; composite operations count their parts. A failed operation counts nothing:
+//! simple operations count after their work, and the composite ones (`mul`,
+//! `hoisted_rotate` without hoisting, `matvec_plain`, `matvec_enc`, `matvec_enc_batch`) run
+//! on a forked counter that is merged only on success ([`crate::matvec::counted`]), so a
+//! device error part-way (an allocation failure in the 40th product of a matvec) leaves the
+//! counter unchanged.
 //! `sse_switches` and `bootstraps` are never incremented here (no mod-raise or bootstrap runs
 //! on the device); host-side bootstraps merge theirs with [`HeOps::add_counts`]
 //! (`hekit_ckks::HostBootstrapper`). Counts are taken when the work is queued, not when the
@@ -57,7 +62,10 @@ use crate::basis::Backend;
 use crate::device::CudaDevice;
 use crate::keyswitch::DeviceKsk;
 use crate::ks::{q_primes, rotation_elt};
-use crate::matvec::{check_shape, matvec_enc_bsgs, matvec_enc_workspace_limbs, matvec_plain_bsgs};
+use crate::matvec::{
+    check_shape, counted, matvec_enc_bsgs, matvec_enc_workspace_limbs, matvec_plain_bsgs,
+    mul_relin, rotate_each,
+};
 use crate::poly::{DevicePlaintext, DevicePoly};
 
 /// Bound on the integer constant of `mul_scalar`, `2^62` (as the CPU).
@@ -105,7 +113,7 @@ pub struct CudaEvaluator<'d> {
     params: Arc<CkksParams>,
     relin: Option<DeviceKsk<'d>>,
     /// Galois keys by Galois element.
-    galois: HashMap<u64, DeviceKsk<'d>>,
+    galois: Arc<HashMap<u64, DeviceKsk<'d>>>,
     key_level: usize,
     config: EvalConfig,
     counter: Mutex<OpCounter>,
@@ -178,7 +186,7 @@ impl<'d> CudaEvaluator<'d> {
             dev,
             params,
             relin,
-            galois: keys,
+            galois: Arc::new(keys),
             key_level,
             config,
             counter: Mutex::new(OpCounter::default()),
@@ -364,20 +372,28 @@ impl<'d> CudaEvaluator<'d> {
         8 * self.params.n() * matvec_enc_workspace_limbs(&self.params, level, d)
     }
 
-    /// `[matvec_enc(diags[i], xs[i]) for i]`, the independent products spread over the
-    /// device's streams: job `i` runs on stream `i mod w`, `w = min(n_streams, jobs)`, each
-    /// stream driven by its own worker thread. Results (in job order), counts and errors are
-    /// those of the sequential loop; every result is bit-identical to `matvec_enc`'s (and the
+    /// `[matvec_enc(diags[i], xs[i]) for i]`, the independent products issued on the device's
+    /// streams: job `i` is queued on stream `i mod w`, `w = min(n_streams, jobs)`, from the
+    /// calling thread (kernel launches are asynchronous, so the streams can overlap on the
+    /// device; no threads are spawned). Results (in job order), counts and errors are those
+    /// of the sequential loop; every result is bit-identical to `matvec_enc`'s (and the
     /// CPU's).
     ///
-    /// Before any work, every job is checked (as `matvec_enc`), and the working set of each
-    /// worker stream ([`CudaEvaluator::matvec_enc_workspace_bytes`] of its largest job) is
-    /// pre-allocated on that stream, all at once: `Device` (no abort, nothing counted) when
-    /// the `w` reservations exceed the device's total memory or do not fit now. The
-    /// reservations are then freed into the stream-ordered pool the jobs allocate from.
-    /// After the jobs, every worker stream is synchronized, so no read of a shared operand
-    /// is in flight when the call returns (cudarc tracks only the last reader of a buffer;
-    /// Task 46 review M7g). Counts are merged only when every job succeeded.
+    /// **Performance (R-47-2):** at n16_train one product already keeps the RTX 4090 busy
+    /// (an element-wise kernel at N = 2^16 runs at about 90% of peak bandwidth), and 4
+    /// products on 4 streams took 41.67 ms against 34.99 ms one after the other on one
+    /// stream. Do not assume a speedup; measure (`examples/batch_streams.rs`).
+    ///
+    /// Before any work every job is checked (as `matvec_enc`) and the working sets of the
+    /// `w` streams ([`CudaEvaluator::matvec_enc_workspace_bytes`] of each stream's largest
+    /// job) are compared with the device memory: `Device` (no abort, nothing allocated,
+    /// nothing counted) when they exceed the total memory or the memory available now
+    /// ([`CudaDevice::available_memory`]: free plus the pool's unused reserve). This is a
+    /// check, not a reservation: an allocation failure during the jobs is still `Device`.
+    /// After the jobs every worker stream is synchronized, even after an error, so no read of
+    /// a shared operand is in flight when the call returns (cudarc tracks only the last
+    /// reader of a buffer; Task 46 review M7g). Counts are merged only when every job
+    /// succeeded.
     ///
     /// Errors: `InvalidParams` when `diags` and `xs` differ in length; those of
     /// `matvec_enc` (the first failing job in order); `Device` as above.
@@ -399,16 +415,15 @@ impl<'d> CudaEvaluator<'d> {
         let jobs = xs.len();
         let workers = self.dev.n_streams().min(jobs);
         if workers <= 1 {
-            let local = self.fork();
-            let out = diags
-                .iter()
-                .zip(xs)
-                .map(|(d, x)| local.matvec_enc(d, x))
-                .collect::<Result<Vec<_>>>()?;
-            self.add_counts(&local.counter());
-            return Ok(out);
+            return counted(self, |e| {
+                diags
+                    .iter()
+                    .zip(xs)
+                    .map(|(d, x)| matvec_enc_bsgs(e, d, x))
+                    .collect()
+            });
         }
-        // Per worker: its jobs and the largest working set among them.
+        // Per worker stream: the largest working set among its jobs.
         let ws: Vec<usize> = (0..workers)
             .map(|w| {
                 (w..jobs)
@@ -418,36 +433,14 @@ impl<'d> CudaEvaluator<'d> {
                     .unwrap_or(0)
             })
             .collect();
-        self.reserve(&ws)?;
-        type Done<'a> =
-            std::result::Result<(Vec<(usize, CudaCiphertext<'a>)>, OpCounter), (usize, HekitError)>;
-        let results: Vec<Done<'d>> = std::thread::scope(|s| {
-            let handles: Vec<_> = (0..workers)
-                .map(|w| {
-                    s.spawn(move || -> Done<'d> {
-                        let _g = self.dev.use_stream(w).map_err(|e| (w, e))?;
-                        let local = self.fork();
-                        let mut out = Vec::new();
-                        for i in (w..jobs).step_by(workers) {
-                            let r = local.matvec_enc(&diags[i], &xs[i]).map_err(|e| (i, e))?;
-                            out.push((i, r));
-                        }
-                        Ok((out, local.counter()))
-                    })
+        self.check_room(&ws)?;
+        let out = counted(self, |e| {
+            (0..jobs)
+                .map(|i| {
+                    let _g = self.dev.use_stream(i % workers)?;
+                    matvec_enc_bsgs(e, &diags[i], &xs[i])
                 })
-                .collect();
-            handles
-                .into_iter()
-                .enumerate()
-                .map(|(w, h)| {
-                    h.join().unwrap_or_else(|_| {
-                        Err((
-                            w,
-                            HekitError::Device("matvec_enc_batch: a worker thread panicked".into()),
-                        ))
-                    })
-                })
-                .collect()
+                .collect::<Result<Vec<_>>>()
         });
         // Join every worker stream before shared operands can be dropped (all of them, even
         // after an error).
@@ -458,72 +451,33 @@ impl<'d> CudaEvaluator<'d> {
                 synced = r;
             }
         }
-        let mut slots: Vec<Option<CudaCiphertext<'d>>> = vec![None; jobs];
-        let mut total = OpCounter::default();
-        let mut first_err: Option<(usize, HekitError)> = None;
-        for r in results {
-            match r {
-                Ok((out, c)) => {
-                    total += &c;
-                    for (i, ct) in out {
-                        slots[i] = Some(ct);
-                    }
-                }
-                // The error of the earliest failing job (job order), as the sequential loop.
-                Err((i, e)) => {
-                    if first_err.as_ref().is_none_or(|(j, _)| i < *j) {
-                        first_err = Some((i, e));
-                    }
-                }
-            }
-        }
-        if let Some((_, e)) = first_err {
-            return Err(e);
-        }
+        let out = out?;
         synced?;
-        self.add_counts(&total);
-        slots
-            .into_iter()
-            .map(|c| c.ok_or_else(|| HekitError::Device("matvec_enc_batch: missing result".into())))
-            .collect()
+        Ok(out)
     }
 
-    /// Pre-allocates `ws[w]` bytes on stream `w` for every `w` at once, then frees them
-    /// (stream-ordered, into the pool the jobs allocate from): `Device` when they cannot all
-    /// be held, checked first against the device's total memory (then nothing is allocated).
-    fn reserve(&self, ws: &[usize]) -> Result<()> {
+    /// `Device` when the working sets `ws` (one per worker stream) exceed the device's total
+    /// memory or the memory available now; allocates nothing (so it never takes memory
+    /// from other processes on a shared GPU).
+    fn check_room(&self, ws: &[usize]) -> Result<()> {
         const MIB: f64 = (1u64 << 20) as f64;
         let need: usize = ws.iter().sum();
         let (_free, total) = self.dev.mem_info()?;
-        if need > total {
+        let avail = self.dev.available_memory()?;
+        if need > total || need > avail {
+            let (what, have) = if need > total {
+                ("the device's total", total)
+            } else {
+                ("the available", avail)
+            };
             return Err(HekitError::Device(format!(
                 "matvec_enc_batch: {} worker streams need {:.1} MiB of working memory, more \
-                 than the device's {:.1} MiB (use fewer streams)",
+                 than {what} {:.1} MiB (use fewer streams or smaller batches)",
                 ws.len(),
                 need as f64 / MIB,
-                total as f64 / MIB
+                have as f64 / MIB
             )));
         }
-        let limbs_per = |b: usize| b.div_ceil(8 * self.params.n()).max(1);
-        let mut held = Vec::with_capacity(ws.len());
-        for (w, &b) in ws.iter().enumerate() {
-            let _g = self.dev.use_stream(w)?;
-            match self.dev.alloc_limbs(limbs_per(b)) {
-                Ok(buf) => held.push(buf),
-                Err(e) => {
-                    return Err(HekitError::Device(format!(
-                        "matvec_enc_batch: reserving {:.1} MiB on each of {} streams \
-                         ({:.1} MiB in all) failed at stream {w}: {e}",
-                        b as f64 / MIB,
-                        ws.len(),
-                        need as f64 / MIB
-                    )));
-                }
-            }
-        }
-        // Each buffer is freed on the stream it was allocated on (the guard is not needed for
-        // the free: cudarc frees on the allocating stream).
-        drop(held);
         Ok(())
     }
 }
@@ -560,7 +514,7 @@ impl<'d> HeOps for CudaEvaluator<'d> {
             dev: self.dev,
             params: Arc::clone(&self.params),
             relin: self.relin.clone(),
-            galois: self.galois.clone(),
+            galois: Arc::clone(&self.galois),
             key_level: self.key_level,
             config: self.config,
             counter: Mutex::new(OpCounter::default()),
@@ -726,7 +680,7 @@ impl<'d> HeOps for CudaEvaluator<'d> {
     fn mul(&self, a: &CudaCiphertext<'d>, b: &CudaCiphertext<'d>) -> Result<CudaCiphertext<'d>> {
         self.check_mul_operands(a, b)?;
         self.relin_key(a.level())?;
-        self.relinearize(&self.mul_no_relin(a, b)?)
+        counted(self, |e| mul_relin(e, a, b))
     }
 
     fn rescale(&self, ct: &CudaCiphertext<'d>) -> Result<CudaCiphertext<'d>> {
@@ -790,7 +744,7 @@ impl<'d> HeOps for CudaEvaluator<'d> {
         self.check_galois_input(ct)?;
         self.check_rotation_keys(steps, ct.level())?;
         if !self.config.hoist {
-            return steps.iter().map(|&s| self.rotate(ct, s)).collect();
+            return counted(self, |e| rotate_each(e, ct, steps));
         }
         let mut keys: Vec<&DeviceKsk<'d>> = Vec::new();
         let mut nontrivial = 0u64;
@@ -819,7 +773,7 @@ impl<'d> HeOps for CudaEvaluator<'d> {
         }
         check_shape(diag, x.level(), self.params.slots())?;
         self.check_rotation_keys(&diag.rotation_steps(), x.level())?;
-        matvec_plain_bsgs(self, diag, x)
+        counted(self, |e| matvec_plain_bsgs(e, diag, x))
     }
 
     fn matvec_enc(
@@ -828,6 +782,6 @@ impl<'d> HeOps for CudaEvaluator<'d> {
         x: &CudaCiphertext<'d>,
     ) -> Result<CudaCiphertext<'d>> {
         self.check_matvec_enc(diag, x)?;
-        matvec_enc_bsgs(self, diag, x)
+        counted(self, |e| matvec_enc_bsgs(e, diag, x))
     }
 }

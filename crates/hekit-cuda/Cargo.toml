@@ -27,3 +27,8 @@ cuda = ["dep:cudarc"]
 [dev-dependencies]
 rand_chacha = "0.9"
 rand_core = "0.9"
+
+# R-47-3: batch vs sequential matvec_enc on 1, 2 and 4 streams (needs a GPU).
+[[example]]
+name = "batch_streams"
+required-features = ["cuda"]

@@ -125,8 +125,10 @@ struct Caches {
 }
 
 thread_local! {
-    /// The calling thread's current stream index ([`CudaDevice::use_stream`]).
-    static CURRENT_STREAM: Cell<usize> = const { Cell::new(0) };
+    /// The calling thread's current stream selection ([`CudaDevice::use_stream`]): the
+    /// address of the device it was made for and the stream index (`(0, 0)`: none). A
+    /// selection applies to that device only; every other device uses its stream 0.
+    static CURRENT_STREAM: Cell<(usize, usize)> = const { Cell::new((0, 0)) };
 }
 
 /// Slots per staging ring (per stream).
@@ -178,19 +180,34 @@ impl Staging {
     }
 }
 
-/// Selects the calling thread's stream until dropped ([`CudaDevice::use_stream`]); not
-/// `Send` (the selection belongs to the thread that made it).
+/// Selects the calling thread's stream on one device until dropped
+/// ([`CudaDevice::use_stream`]). It borrows the device (so it cannot outlive it) and is not
+/// `Send` (the selection belongs to the thread that made it). Dropping restores the previous
+/// selection, so nested guards must be dropped in reverse order (as scopes do).
 #[derive(Debug)]
 #[must_use = "the stream selection ends when the guard is dropped"]
-pub struct StreamGuard {
-    prev: usize,
+pub struct StreamGuard<'d> {
+    prev: (usize, usize),
+    _dev: PhantomData<&'d CudaDevice>,
     _not_send: PhantomData<*const ()>,
 }
 
-impl Drop for StreamGuard {
+impl Drop for StreamGuard<'_> {
     fn drop(&mut self) {
         CURRENT_STREAM.with(|c| c.set(self.prev));
     }
+}
+
+/// The default memory pool of `ctx`'s device (the pool of the stream-ordered allocations).
+fn default_mem_pool(ctx: &Arc<CudaContext>) -> Result<sys::CUmemoryPool> {
+    ctx.bind_to_thread()
+        .map_err(|e| dev_err("bind context", e))?;
+    let mut pool: sys::CUmemoryPool = std::ptr::null_mut();
+    // SAFETY: `pool` is a valid out-pointer; the device handle comes from the live context.
+    unsafe { sys::cuDeviceGetDefaultMemPool(&mut pool, ctx.cu_device()) }
+        .result()
+        .map_err(|e| dev_err("cuDeviceGetDefaultMemPool", e))?;
+    Ok(pool)
 }
 
 /// A CUDA device prepared for one CKKS parameter set: context, streams, compiled kernels and
@@ -203,8 +220,9 @@ impl Drop for StreamGuard {
 ///
 /// # Streams
 ///
-/// Every operation is issued, in order, on **the calling thread's current stream**: stream 0
-/// unless the thread holds a [`StreamGuard`] from [`CudaDevice::use_stream`] (every launch,
+/// Every operation is issued, in order, on **the calling thread's current stream of this
+/// device**: stream 0 unless the thread holds a [`StreamGuard`] of this device from
+/// [`CudaDevice::use_stream`] (a selection made on another device does not apply; every launch,
 /// allocation and copy goes through one internal stream accessor). Work on different streams
 /// may overlap. Cross-stream data dependencies are ordered by cudarc's event tracking (a
 /// buffer written on one stream and read on another waits for the write); a buffer read on
@@ -326,6 +344,23 @@ impl CudaDevice {
                 consts: up(&host.consts, "prime constants")?,
             };
             s.synchronize().map_err(|e| dev_err("synchronize", e))?;
+            // Keep freed memory in the device's default pool instead of returning it to the
+            // driver at every synchronization (the default threshold is 0): repeated
+            // operations then reuse their temporaries without re-mapping physical memory
+            // (Task 47 review I2). `CudaDevice::trim_pool` gives it back.
+            let pool = default_mem_pool(&ctx)?;
+            let mut threshold: u64 = u64::MAX;
+            // SAFETY: `pool` is the device's default pool; the release threshold is a
+            // `cuuint64_t` attribute, `threshold` lives across the call.
+            unsafe {
+                sys::cuMemPoolSetAttribute(
+                    pool,
+                    sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_RELEASE_THRESHOLD,
+                    &mut threshold as *mut u64 as *mut std::ffi::c_void,
+                )
+            }
+            .result()
+            .map_err(|e| dev_err("memory pool release threshold", e))?;
             Ok(CudaDevice {
                 ctx,
                 streams,
@@ -382,6 +417,40 @@ impl CudaDevice {
         })
     }
 
+    /// Device memory available for new allocations, in bytes: the driver's free memory plus
+    /// what this process's default memory pool holds but does not use (freed memory kept for
+    /// reuse, see [`CudaDevice::trim_pool`]).
+    pub fn available_memory(&self) -> Result<usize> {
+        let (free, _) = self.mem_info()?;
+        let pool = guarded("memory pool", || default_mem_pool(&self.ctx))?;
+        let attr = |a: sys::CUmemPool_attribute| -> Result<u64> {
+            let mut v: u64 = 0;
+            // SAFETY: the reserved / used attributes are `cuuint64_t`; `v` lives across the
+            // call.
+            unsafe {
+                sys::cuMemPoolGetAttribute(pool, a, &mut v as *mut u64 as *mut std::ffi::c_void)
+            }
+            .result()
+            .map_err(|e| dev_err("memory pool attribute", e))?;
+            Ok(v)
+        };
+        let reserved = attr(sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_RESERVED_MEM_CURRENT)?;
+        let used = attr(sys::CUmemPool_attribute::CU_MEMPOOL_ATTR_USED_MEM_CURRENT)?;
+        Ok(free + reserved.saturating_sub(used) as usize)
+    }
+
+    /// Returns the memory the default pool holds but does not use to the driver, keeping at
+    /// most `keep_bytes` (after a peak, to leave room for other processes on a shared GPU).
+    /// Waits for every stream first, so frees already queued are included.
+    pub fn trim_pool(&self, keep_bytes: usize) -> Result<()> {
+        self.sync()?;
+        let pool = guarded("memory pool", || default_mem_pool(&self.ctx))?;
+        // SAFETY: `pool` is the device's default pool.
+        unsafe { sys::cuMemPoolTrimTo(pool, keep_bytes) }
+            .result()
+            .map_err(|e| dev_err("cuMemPoolTrimTo", e))
+    }
+
     /// Waits until all work issued on every stream of this device has finished.
     pub fn sync(&self) -> Result<()> {
         guarded("sync", || {
@@ -399,9 +468,15 @@ impl CudaDevice {
         &self.streams[self.stream_index()]
     }
 
-    /// The index of the calling thread's current stream (0 without a [`StreamGuard`]).
+    /// The index of the calling thread's current stream on this device (0 without a
+    /// [`StreamGuard`] of this device).
     pub fn stream_index(&self) -> usize {
-        CURRENT_STREAM.with(Cell::get) % self.streams.len()
+        let (dev, idx) = CURRENT_STREAM.with(Cell::get);
+        if dev == self as *const CudaDevice as usize && idx < self.streams.len() {
+            idx
+        } else {
+            0
+        }
     }
 
     /// Issues the calling thread's work on stream `index` until the returned guard is dropped
@@ -409,16 +484,17 @@ impl CudaDevice {
     /// can drive different streams of one device concurrently.
     ///
     /// `InvalidParams` when `index >= n_streams()`.
-    pub fn use_stream(&self, index: usize) -> Result<StreamGuard> {
+    pub fn use_stream(&self, index: usize) -> Result<StreamGuard<'_>> {
         if index >= self.streams.len() {
             return Err(HekitError::InvalidParams(format!(
                 "stream {index} does not exist ({} stream(s))",
                 self.streams.len()
             )));
         }
-        let prev = CURRENT_STREAM.with(|c| c.replace(index));
+        let prev = CURRENT_STREAM.with(|c| c.replace((self as *const CudaDevice as usize, index)));
         Ok(StreamGuard {
             prev,
+            _dev: PhantomData,
             _not_send: PhantomData,
         })
     }
