@@ -396,3 +396,19 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 ```
 - **Pass:** exit 0 and `all_checks_pass: true`.
 - **Threads:** 12. **RAM:** ~25 GB. **Duration:** ~60–90 min (estimate).
+
+## R-52-1 / R-52-2: Task 52 encrypted block-MLP subset runs (eMLP-2, eMLP-3), ReBoot's first 21 steps (1008 samples), seed 0, B=48
+
+- **purpose:** check the encrypted block MLP's KS against its closed form (every update) and its accuracy against the twin, on ReBoot's own subset. Full-length runs are not queued; they are on the user's decision list.
+- **commit to sync:** 91efa6e or later (clean clone). This needs the R-REB-2 data arrays in `results/quadruped/data/reboot_emlp1_full/`, as for FULL-1/2.
+- **build:** `cargo build --release -p hekit-bench --features parallel --bins`
+- **R-52-1 (eMLP-2):**
+  ```
+  RAYON_NUM_THREADS=12 /usr/bin/time -v ./target/release/mnist --mode noninteractive --placement when_needed --batch 48 --faithful --blocks 64 --hidden 32 --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/reboot_emlp2_seed0_steps1-21_indices.txt --init-weights results/quadruped/raw/reboot_emlp23_full/init_weights_emlp2_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp23_full/config_values.json --epochs 1 --transpose reuse --out results/quadruped/mnist196_emlp2_ni_b48_subset1008_seed0.json
+  ```
+  - **expected:** 71.35 KS/sample, about 1.7 h, about 27 GB RAM
+- **R-52-2 (eMLP-3):** same command, with `--blocks 128,64`, `--indices results/reboot_emlp3_seed0_steps1-21_indices.txt`, `--init-weights results/quadruped/raw/reboot_emlp23_full/init_weights_emlp3_seed0`, and `--out results/quadruped/mnist196_emlp3_ni_b48_subset1008_seed0.json`
+  - **expected:** 135.46 KS/sample, about 3.2 h, about 31 GB RAM
+- **GPU memory need:** 0
+- **timing:** timed CPU runs. Run them alone, after R-41-FULL-2 and before R-47-3 / R-48, or after those; nothing of ours may overlap. Partial rule: after 5 updates, log the projected total; if it is more than 2× the estimate, stop and mark `partial`.
+- **output path:** as given in `--out`, plus `results/quadruped/logs/R-52-{1,2}.log`
