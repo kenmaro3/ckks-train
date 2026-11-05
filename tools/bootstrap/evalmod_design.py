@@ -249,6 +249,9 @@ def main():
     print(f"  sine error K=13, r=0, d=127: 2^{math.log2(err):.1f}")
     bits, _ = predict(dict(CHOSEN, log_qd_over_p=0.0))
     print(f"  same with P = 4 x 58 (digit term at worst case): {bits:.1f}")
+    bits, t = predict(CHOSEN, h_noise=192)
+    print(f"  n16_boot_sparse (same chain, main key h = 192, SSE h' = 32; Task 39): {bits:.1f}  ["
+          + ", ".join(f"{k} {v:.1f}" for k, v in t.items()) + "]")
     bits, _ = predict(dict(CHOSEN, q0=52))
     print(f"  fallback q0 = 52 bits (q0/Delta = 2^10, log PQ {CHOSEN['log_pq'] - 2}): {bits:.1f}")
     bits, t = predict(FALLBACK)

@@ -5,7 +5,8 @@
 use hekit_core::error::{HekitError, Result};
 
 use crate::params::{
-    CkksParams, N16_BOOT_CTOS_LEVELS, N16_BOOT_EVALMOD_LEVELS, N16_BOOT_STOC_LEVELS,
+    CkksParams, N16_BOOT_CTOS_LEVELS, N16_BOOT_EVALMOD_LEVELS, N16_BOOT_SPARSE_HW,
+    N16_BOOT_STOC_LEVELS,
 };
 
 /// Ephemeral Hamming weight h' of [`BootParams::default_n16`]: sparse-secret encapsulation
@@ -75,6 +76,19 @@ impl BootParams {
             double_angle: N16_DOUBLE_ANGLE,
             sparse_hw: None,
             ephemeral_hw: Some(N16_EPHEMERAL_HW),
+        }
+    }
+
+    /// Parameters for [`CkksParams::n16_boot_sparse`] (ruling R-M3-10): [`Self::default_n16`]
+    /// with `sparse_hw = Some(192)`. The mod-raise still runs under the h' = 32 ephemeral key,
+    /// so K = 13, degree 127 and r = 0 stay valid; the smaller main key only lowers the
+    /// rescale and key-switch rounding noise (predicted 21.0 bits,
+    /// `tools/bootstrap/evalmod_design.py` §6). An alternative only: docs/security.md decides
+    /// whether `n16_boot_sparse` may be used.
+    pub fn sparse_n16() -> BootParams {
+        BootParams {
+            sparse_hw: Some(N16_BOOT_SPARSE_HW),
+            ..Self::default_n16()
         }
     }
 
@@ -218,6 +232,32 @@ mod tests {
         );
         assert_eq!(bp.sparse_hw, None);
         assert_eq!(bp.ephemeral_hw, Some(32));
+    }
+
+    /// `sparse_n16` is `default_n16` with the main-key weight 192; each validates only against
+    /// its own preset, and both leave 16 levels after bootstrapping.
+    #[test]
+    fn sparse_n16_matches_its_preset() {
+        let s = BootParams::sparse_n16();
+        assert_eq!(s.sparse_hw, Some(192));
+        assert_eq!(
+            BootParams {
+                sparse_hw: None,
+                ..s.clone()
+            },
+            BootParams::default_n16()
+        );
+        let sp = CkksParams::n16_boot_sparse();
+        let dp = CkksParams::n16_boot();
+        s.validate(&sp).unwrap();
+        BootParams::default_n16().validate(&dp).unwrap();
+        assert!(s.validate(&dp).is_err());
+        assert!(BootParams::default_n16().validate(&sp).is_err());
+        assert_eq!(
+            s.min_k_intervals(&sp),
+            BootParams::default_n16().min_k_intervals(&dp)
+        );
+        assert_eq!(levels_after_boot(&sp, &s), 16);
     }
 
     #[test]

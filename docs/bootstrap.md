@@ -284,6 +284,13 @@ That is above 128 with a margin of about 2 bits under MATZOV. For comparison, th
 - (b) the SSE switching key s → s': N = 2^16, ternary secret with h = 32. The modulus is q_0·P with log(q_0·P) = 54 + 240 = 294 as ruled, or 114 with a single 60-bit special prime (§7, option 1). This is a sparse-secret instance, so the hybrid and MITM attacks must be enabled. The s' → s key uses the dense main key at modulus Q·P and is covered by (a);
 - (c) h = 192 as an alternative only, at log PQ 1748 (it needs the 8-level chain B). The rough model in docs/security.md gave 107 bits at 1592, so I expect this to come in below 128.
 
+**Result (Task 39, `docs/security.md`).** Under ruling R-M3-10, h = 192 uses the same chain with SSE, so only 1732 was needed; the fallback chains were not estimated.
+- (a) dense n16_boot at 1732: 131.5 bits (BDGL16) and 129.3 (MATZOV); Core-SVP 95.2.
+- (b) SSE key at log 294: 134.4 / 135.0, from the dual MITM hybrid (grid minimum).
+- (c) `n16_boot_sparse` (h = 192) at 1732: 122.2 / 121.7, below 128, so it is **not used in the paper**. Its bootstrap measures 21.12 bits (model 21.0).
+
+n16_boot is kept unchanged, with no EvalMod prime trimmed.
+
 ## 9. CoeffToSlot and SlotToCoeff (Task 36)
 
 `crates/hekit-ckks/src/bootstrap/linear.rs` implements both transforms. Its tests check them on `CkksParams::test_tiny()` (N = 2^5, log_slots 4, insecure, tests only). They count the n16_boot layouts and keys without generating any key.

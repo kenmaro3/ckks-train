@@ -22,4 +22,15 @@ It needs SageMath, is a development tool only, and `_ext/` (Sage, estimator) is 
     _ext/sage-env/bin/python estimate.py --rough               # crude screening only
 
 Results and interpretation: `docs/security.md`.
-Options: `--m oo`, `--hamming-weight h` (sparse secret; enables hybrid attacks, slow).
+Options: `--m oo`, `--hamming-weight h` (sparse secret; enables hybrid attacks, slow),
+`--only n16_boot,n16_boot_sse_to_sparse` (run a subset of the exported entries),
+`--attacks usvp,bdd_mitm_hybrid,...` (run a subset of the attacks).
+
+`params.json` also holds `n16_boot_sse_to_sparse`: the SSE switching key s -> s' of n16_boot, an
+RLWE sample under the h' = 32 ephemeral key at modulus q_0 * P (docs/security.md, Task 39).
+
+`dual_mitm_scan.py NAME --cost-model M` grid-scans the EJK20 dual MITM hybrid over the splitting
+dimension (the estimator's own optimiser for it depends on `opt_step`; docs/security.md, Task 39):
+
+    _ext/sage-env/bin/python dual_mitm_scan.py n16_boot_sse_to_sparse --cost-model bdgl16 \
+        --zeta-min 40000 --zeta-max 65000 --step 500 --refine 25

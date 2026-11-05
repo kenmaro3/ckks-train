@@ -2,7 +2,7 @@
 
 Usage (from this directory):
     _ext/sage-env/bin/python estimate.py [--rough] [--cost-model bdgl16|matzov|adps16]
-                                         [--m n|oo] [params.json]
+                                         [--m n|oo] [--only NAME[,NAME...]] [params.json]
 
 Modelling choices:
   * n = N, q = 2^ceil(log PQ): the attacker's modulus for RLWE key-switching keys is Q*P (a
@@ -23,11 +23,16 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "_ext" / "lattice-estimator"))
 
 from estimator import LWE, ND, RC  # noqa: E402
+from estimator.lwe_dual import dual_hybrid as dual_hybrid_ejk20  # noqa: E402
 from sage.all import oo  # noqa: E402
 
 # Attack families reported: uSVP, BDD and (hybrid) dual. Arora-GB and BKW are skipped (assumed not
 # competitive at these dimensions, not checked here, and very slow); the hybrid/MITM variants are skipped for the
 # dense default secret but enabled when a Hamming weight is set (sparse secrets favour them).
+# LWE.estimate at the pinned commit has no "dual_mitm_hybrid" entry: its "dual_hybrid" is MATZOV's dual
+# (LWE.dual_hybrid = lwe_dual.matzov). For sparse secrets the EJK20 dual hybrid with the MITM guessing
+# step, lwe_dual.dual_hybrid(mitm_optimization=True), is run separately as "dual_mitm_hybrid".
+ALL_ATTACKS = ("usvp", "bdd", "bdd_hybrid", "bdd_mitm_hybrid", "dual", "dual_hybrid", "dual_mitm_hybrid")
 DENY_DENSE = ("arora-gb", "bkw", "bdd_hybrid", "bdd_mitm_hybrid", "dual_mitm_hybrid")
 DENY_SPARSE = ("arora-gb", "bkw")
 
@@ -50,8 +55,20 @@ def main():
     ap.add_argument("--cost-model", default="bdgl16", choices=["bdgl16", "matzov", "adps16"])
     ap.add_argument("--m", default="n", choices=["n", "oo"])
     ap.add_argument("--hamming-weight", type=int, help="override the secret with weight h")
+    ap.add_argument("--only", help="comma-separated preset names to run (default: all)")
+    ap.add_argument("--dual-opt-step", type=int, default=8,
+                    help="opt_step of the dual MITM hybrid optimizer (estimator default 8; smaller is "
+                    "more robust and slower)")
+    ap.add_argument("--attacks", help=f"comma-separated subset of {','.join(ALL_ATTACKS)} "
+                    "(default: all that apply to the secret)")
     args = ap.parse_args()
     presets = json.load(open(args.params))["presets"]
+    if args.only:
+        names = args.only.split(",")
+        unknown = set(names) - {p["name"] for p in presets}
+        if unknown:
+            sys.exit(f"unknown preset(s): {sorted(unknown)}")
+        presets = [p for p in presets if p["name"] in names]
     summary = {}
     for p in presets:
         n, log_pq = p["n"], p["log_pq"]
@@ -66,8 +83,17 @@ def main():
             res = LWE.estimate.rough(params)
         else:
             deny = DENY_DENSE if spec == "ternary_default" else DENY_SPARSE
-            res = LWE.estimate(params, red_cost_model=cost_model(args.cost_model),
-                               deny_list=deny)
+            if args.attacks:
+                keep = args.attacks.split(",")
+                deny = tuple(set(deny) | (set(ALL_ATTACKS) - set(keep)))
+            res = {}
+            if set(ALL_ATTACKS) - {"dual_mitm_hybrid"} - set(deny):
+                res = LWE.estimate(params, red_cost_model=cost_model(args.cost_model),
+                                   deny_list=deny + ("dual_mitm_hybrid",))
+            if "dual_mitm_hybrid" not in deny:
+                res["dual_mitm_hybrid"] = dual_hybrid_ejk20(
+                    params, red_cost_model=cost_model(args.cost_model), mitm_optimization=True,
+                    opt_step=args.dual_opt_step)
         for k, v in res.items():
             print(f"{k:20s}:: {v}", flush=True)
         bits = {k: math.log2(float(v["rop"])) for k, v in res.items()}

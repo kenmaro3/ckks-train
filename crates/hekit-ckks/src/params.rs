@@ -40,6 +40,9 @@ pub const N16_BOOT_CTOS_LEVELS: usize = 4;
 pub const N16_BOOT_K: usize = 4;
 /// `n16_boot` digit count (32 q primes, 4 per digit).
 pub const N16_BOOT_DNUM: usize = 8;
+/// Main-key Hamming weight of [`CkksParams::n16_boot_sparse`] (ruling R-M3-10). An alternative
+/// only: see docs/security.md for its estimate and whether it may be used.
+pub const N16_BOOT_SPARSE_HW: usize = 192;
 
 /// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
 /// `[54, 42 x 16 (compute), 34 x 4 (SlotToCoeff), 58 x 7 (EvalMod), 56 x 4 (CoeffToSlot)]`,
@@ -171,11 +174,21 @@ impl CkksParams {
 
     /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
     /// 31, log PQ = 1732), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
-    /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`; the
-    /// 128-bit security estimate is Task 39's.
+    /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`.
+    /// Security (Task 39, `docs/security.md`): 131.5 bits under BDGL16 and 129.3 under MATZOV
+    /// at log PQ 1732; the SSE key s -> s' (h' = 32, modulus q_0 P) is estimated separately.
     pub fn n16_boot() -> CkksParams {
         let (q_bits, p_bits) = n16_boot_bits();
         Self::new(16, &q_bits, &p_bits, 42, N16_BOOT_DNUM).expect("n16_boot preset is valid")
+    }
+
+    /// Sparse-main-key variant of [`CkksParams::n16_boot`] (ruling R-M3-10): the same chain
+    /// (log PQ = 1732, dnum 8), with a ternary main key of exactly [`N16_BOOT_SPARSE_HW`] = 192
+    /// nonzero coefficients. Bootstrapping still uses sparse-secret encapsulation with
+    /// h' = 32, so `BootParams::default_n16()` (K = 13) applies unchanged. **An alternative
+    /// only**: its lattice estimate (docs/security.md) decides whether it may be used.
+    pub fn n16_boot_sparse() -> CkksParams {
+        Self::n16_boot().with_hamming_weight(N16_BOOT_SPARSE_HW)
     }
 
     /// **Insecure toy parameters, for tests only** (N = 2^5 gives no security at all): the
@@ -401,6 +414,18 @@ mod tests {
         assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
         assert_eq!(p.scale(), 2f64.powi(42));
         assert_eq!(p.hamming_weight(), None);
+    }
+
+    /// Same chain as `n16_boot`, only the main-key weight differs.
+    #[test]
+    fn n16_boot_sparse_shape() {
+        let s = CkksParams::n16_boot_sparse();
+        let d = CkksParams::n16_boot();
+        assert_eq!(s.hamming_weight(), Some(192));
+        assert_eq!(s.q(), d.q());
+        assert_eq!(s.p(), d.p());
+        assert_eq!((s.dnum(), s.scale()), (d.dnum(), d.scale()));
+        assert_eq!(s.log_pq(), d.log_pq());
     }
 
     /// Level i is a ciphertext over primes 0..=i; the bands from the bottom are base, compute,

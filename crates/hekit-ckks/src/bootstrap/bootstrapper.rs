@@ -804,23 +804,20 @@ mod tests {
         assert!(bits >= 16.0, "{bits}");
     }
 
-    /// **Heavy (N = 2^16; about 13 GB: 33 Galois keys, the SSE and relinearization keys and
-    /// the encoded diagonals).** The brief's gate: random `m` in [-1, 1] on all 2^15 slots of
-    /// n16_boot, bootstrapped from level 0, comes back with `precision_bits >= 16` at level
-    /// `levels_after_boot` = 16 and exactly `Delta`, with exactly the planned counts
-    /// (`key_switches_per_boot`) and `bootstraps == 1`. The model predicts 17.4 bits.
-    #[test]
-    fn n16_boot_keys_bootstrap() {
-        let params = CkksParams::n16_boot();
-        let fx = fixture(params, BootParams::default_n16(), 38);
+    /// The brief's gate on an n16_boot chain (`n16_boot` or `n16_boot_sparse`): random `m` in
+    /// [-1, 1] on all 2^15 slots, bootstrapped from level 0, comes back with
+    /// `precision_bits >= 16` at level `levels_after_boot` = 16 and exactly `Delta`, with
+    /// exactly the planned counts (`key_switches_per_boot`) and `bootstraps == 1`.
+    fn n16_boot_gate(name: &str, params: CkksParams, bp: BootParams, model: f64, seed: u8) {
+        let fx = fixture(params, bp, seed);
         assert_eq!(fx.bs.output_level(), 16);
         assert_eq!(fx.bs.keys().rotation_steps().len(), 32);
-        let mut r = rng(39);
+        let mut r = rng(seed + 1);
         let m = uniform(&mut r, fx.params.slots(), 1.0);
         let (bits, secs) = fx.run(&m, &mut r);
         let k = fx.bs.cost_per_boot();
         eprintln!(
-            "n16_boot bootstrap: {bits:.2} bits (model 17.4), {secs:.1} s on this thread, \
+            "{name} bootstrap: {bits:.2} bits (model {model}), {secs:.1} s on this thread, \
              level {} ; key switches per boot {} = {} rotations (incl. 2 conjugations) + {} \
              relins + {} SSE; {} products, {} plaintext/constant products, {} rescales; keys \
              {} Galois ({:.3} GB) and SSE: {:.2} GB",
@@ -836,7 +833,38 @@ mod tests {
             ksk_bytes(fx.bs.keys().galois().get(1).unwrap().key()) as f64 / 1e9,
             fx.bs.keys().bytes() as f64 / 1e9
         );
-        assert!(bits >= 16.0, "{bits}");
+        assert!(bits >= 16.0, "{name}: {bits}");
+    }
+
+    /// **Heavy (N = 2^16; about 13 GB: 33 Galois keys, the SSE and relinearization keys and
+    /// the encoded diagonals).** The gate ([`n16_boot_gate`]) on n16_boot, dense main key.
+    /// The model predicts 17.4 bits.
+    #[test]
+    fn n16_boot_keys_bootstrap() {
+        n16_boot_gate(
+            "n16_boot",
+            CkksParams::n16_boot(),
+            BootParams::default_n16(),
+            17.4,
+            38,
+        );
+    }
+
+    /// **Heavy (as above).** The same gate on `n16_boot_sparse` (main-key weight h = 192,
+    /// ruling R-M3-10) with [`BootParams::sparse_n16`]. SSE with h' = 32 still runs the
+    /// mod-raise, so the EvalMod constants (K = 13) apply unchanged; the smaller main key only
+    /// lowers the rescale and key-switch rounding terms (model 21.0 bits).
+    #[test]
+    fn n16_boot_keys_bootstrap_sparse() {
+        let params = CkksParams::n16_boot_sparse();
+        assert_eq!(params.hamming_weight(), Some(192));
+        n16_boot_gate(
+            "n16_boot_sparse",
+            params,
+            BootParams::sparse_n16(),
+            21.0,
+            38,
+        );
     }
 
     /// Observation (ignored; run with `--ignored`): n16_boot at `|m| = 1` (random signs),
