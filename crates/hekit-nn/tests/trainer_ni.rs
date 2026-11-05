@@ -28,7 +28,7 @@ use hekit_nn::activation::{Activation, Identity, Poly, PolyRelu2};
 use hekit_nn::compact::boot_count;
 use hekit_nn::dense::{Dense, TransposeKeys};
 use hekit_nn::layout::{Layout, pack_activations, unpack_activations};
-use hekit_nn::trainer::Mlp;
+use hekit_nn::trainer::{Mlp, mlp_key_pool};
 use hekit_nn::trainer_ni::{
     ActCost, BootPlacement, CompactLayout, NiOptimizer, NonInteractiveTrainer, boot_schedule,
     levels_per_iter, ni_rotation_steps, predict_update,
@@ -147,9 +147,14 @@ impl Act {
 type Net = Vec<(Array2<f64>, Vec<f64>)>;
 
 fn init(dims: &[usize], r: &mut Rng) -> Net {
+    init_scaled(dims, r, 0.2)
+}
+
+/// Weights uniform in `±scale`, biases in `±0.1`.
+fn init_scaled(dims: &[usize], r: &mut Rng, scale: f64) -> Net {
     dims.windows(2)
         .map(|p| {
-            let w = Array2::from_shape_fn((p[1], p[0]), |_| 0.2 * uni(r));
+            let w = Array2::from_shape_fn((p[1], p[0]), |_| scale * uni(r));
             let b = (0..p[1]).map(|_| 0.1 * uni(r)).collect();
             (w, b)
         })
@@ -243,6 +248,10 @@ struct Run {
     spread: f64,
     boots: Vec<bool>,
     counters: Vec<OpCounter>,
+    /// AfterActivation: max |bootstrapped hidden activation - twin's| over all updates.
+    act_err: f64,
+    /// Max |hidden activation| the twin sees (the activation bootstraps' input).
+    act_max: f64,
 }
 
 /// Trains `dims` with `acts` for `updates` updates of `micro` micro-batches on `layout`,
@@ -259,16 +268,48 @@ fn run(
     updates: usize,
     seed: u8,
 ) -> Run {
+    run_with(
+        dims,
+        acts,
+        layout,
+        placement,
+        optim,
+        micro,
+        updates,
+        seed,
+        TransposeKeys::Dedicated,
+        0.2,
+    )
+}
+
+/// [`run`] with the transpose keys and the weight range.
+#[allow(clippy::too_many_arguments)]
+fn run_with(
+    dims: &[usize],
+    acts: &[Act],
+    layout: Layout,
+    placement: BootPlacement,
+    optim: NiOptimizer,
+    micro: usize,
+    updates: usize,
+    seed: u8,
+    keys: TransposeKeys,
+    wscale: f64,
+) -> Run {
     let f = fx();
     let mut r = rng(seed);
-    let plain = init(dims, &mut r);
+    let plain = init_scaled(dims, &mut r, wscale);
     let boxed: Vec<Box<dyn Activation>> = acts.iter().map(|a| a.boxed()).collect();
     let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
         &f.ev, &f.bs, &plain, boxed, &layout, placement, &f.enc, &f.encoder, &mut r,
     )
     .unwrap();
-    let mut t =
-        NonInteractiveTrainer::new(&f.ev, &f.bs, optim, layout, placement, &mlp, state).unwrap();
+    let mut t = NonInteractiveTrainer::new(&f.ev, &f.bs, optim, layout, placement, &mlp, state)
+        .unwrap()
+        .with_transpose_keys(keys.clone());
+    // The client keeps the secret key; it decrypts only for the activation diagnostic below
+    // (after an update, outside the trainer) and at the end.
+    let diag = Decryptor::new(Arc::clone(&f.params), f.sk.clone());
     let spec = t.batch_spec(&mlp).unwrap();
     assert_eq!(spec.x_level, f.bs.output_level() - 1);
     let nag = optim.has_velocity();
@@ -281,8 +322,10 @@ fn run(
         spread: 0.0,
         boots: Vec::new(),
         counters: Vec::new(),
+        act_err: 0.0,
+        act_max: 0.0,
     };
-    for _ in 0..updates {
+    for it in 0..updates {
         let mut cts = Vec::new();
         let mut xs = Vec::new();
         let mut ys = Vec::new();
@@ -300,10 +343,15 @@ fn run(
             .unwrap();
         let y_all = ndarray::concatenate(Axis(0), &ys.iter().map(|x| x.view()).collect::<Vec<_>>())
             .unwrap();
+        let hidden = affine(&x_all, &twin[0].0, &twin[0].1).mapv(|v| acts[0].f(v));
+        out.act_max = out
+            .act_max
+            .max(hidden.iter().fold(0.0, |m, v| m.max(v.abs())));
         twin_step(&mut twin, &mut vel, acts, &x_all, &y_all, nag);
 
         let predicted_levels = t.predicted_trace(&mlp);
         let before = f.ev.counter();
+        t.set_next_batch_full((it + 1 < updates).then_some(true));
         t.train_step(&mut mlp, &cts).unwrap();
         let got = &f.ev.counter() - &before;
         // Levels: every value of the step, as predicted.
@@ -315,17 +363,18 @@ fn run(
         assert_eq!(measured, predicted_levels, "levels of the step");
         // Counts: the closed form, plus the bootstraps' own counts.
         let booted = t.last_update_booted();
-        let pred = predict_update(
-            &f.ev,
-            &mlp,
-            &layout,
-            &TransposeKeys::Dedicated,
-            placement,
-            micro,
-            nag,
-            booted,
-        )
-        .unwrap();
+        for (mb, outs) in t.last_activation_bootstraps().iter().enumerate() {
+            let a =
+                unpack_activations(&f.encoder.decode(&diag.decrypt(&outs[0])), &layout, dims[1]);
+            for i in 0..layout.batch {
+                for j in 0..dims[1] {
+                    let e = (a[[i, j]] - hidden[[mb * layout.batch + i, j]]).abs();
+                    out.act_err = out.act_err.max(e);
+                }
+            }
+        }
+        let pred =
+            predict_update(&f.ev, &mlp, &layout, &keys, placement, micro, nag, booted).unwrap();
         let per = f.bs.cost_per_boot();
         let nb = pred.bootstraps();
         assert_eq!(got.bootstraps, nb, "bootstraps");
@@ -367,25 +416,26 @@ fn run(
         nag,
         f.bs.output_level() - 1,
         f.bs.output_level(),
-        updates,
+        &vec![true; updates],
     )
     .unwrap();
     assert_eq!(out.boots, schedule, "the structural schedule");
-    // Only now does a secret key exist on the client side.
-    let dec = Decryptor::new(Arc::clone(&f.params), f.sk.clone());
+    let dec = diag;
     let he = decrypt_net(&mlp, &dec, &f.encoder, &layout);
     out.err = max_err(&he, &twin);
     out.spread = block_spread(&mlp, &dec, &f.encoder, &layout);
     let moved = max_err(&plain, &twin);
     eprintln!(
         "{dims:?} B {} x {micro} {:?}: twin error 2^{:.1} (weights moved 2^{:.1}), block spread \
-         2^{:.1}, boots {:?}",
+         2^{:.1}, boots {:?}, max |a1| {:.3}, activation-bootstrap error 2^{:.1}",
         layout.batch,
         placement,
         out.err.log2(),
         moved.log2(),
         out.spread.log2(),
-        out.boots
+        out.boots,
+        out.act_max,
+        out.act_err.log2()
     );
     assert!(
         moved > 4.0 * out.err,
@@ -394,7 +444,11 @@ fn run(
     out
 }
 
+/// The brief's gate (n16_boot, 17.5-bit bootstrap).
 const TOL: f64 = 1.0 / 256.0;
+/// The small tests' bound: `mini` bootstraps at about 26 bits (`docs/bootstrap.md` §11), so a
+/// cross-position leak or a wrong-scale bias (~2^-9 and above) cannot hide under it.
+const TOL_MINI: f64 = 1.0 / (1u64 << 20) as f64;
 
 const NAG: NiOptimizer = NiOptimizer::Nag {
     lr: LR,
@@ -413,7 +467,7 @@ fn after_update_matches_plaintext_nag_single_block() {
         3,
         7,
     );
-    assert!(r.err <= TOL, "2^{}", r.err.log2());
+    assert!(r.err <= TOL_MINI, "2^{}", r.err.log2());
     assert_eq!(
         r.boots,
         vec![true; 3],
@@ -438,7 +492,7 @@ fn after_update_relays_replicated_blocks() {
         3,
         8,
     );
-    assert!(r.err <= TOL, "2^{}", r.err.log2());
+    assert!(r.err <= TOL_MINI, "2^{}", r.err.log2());
     assert!(
         r.spread <= 1e-5,
         "block copies re-laid: 2^{}",
@@ -461,7 +515,7 @@ fn lazy_placements_skip_weight_bootstraps() {
         4,
         9,
     );
-    assert!(a.err <= TOL, "2^{}", a.err.log2());
+    assert!(a.err <= TOL_MINI, "2^{}", a.err.log2());
     assert_eq!(
         a.boots,
         vec![false, true, false, true],
@@ -477,7 +531,7 @@ fn lazy_placements_skip_weight_bootstraps() {
         4,
         9,
     );
-    assert!(w.err <= TOL, "2^{}", w.err.log2());
+    assert!(w.err <= TOL_MINI, "2^{}", w.err.log2());
     assert_eq!(w.boots, vec![false, true, false, true]);
     // AfterActivation adds one activation bootstrap per update.
     for (ca, cw) in a.counters.iter().zip(&w.counters) {
@@ -497,7 +551,7 @@ fn micro_batches_accumulate_before_one_update() {
         2,
         10,
     );
-    assert!(r.err <= TOL, "2^{}", r.err.log2());
+    assert!(r.err <= TOL_MINI, "2^{}", r.err.log2());
     // 4 bootstraps per update for 2 x 32 samples.
     assert!(r.counters.iter().all(|c| c.bootstraps == 4));
 }
@@ -520,8 +574,142 @@ fn sgd_with_bias_only_container() {
         2,
         11,
     );
-    assert!(r.err <= TOL, "2^{}", r.err.log2());
+    assert!(r.err <= TOL_MINI, "2^{}", r.err.log2());
     assert!(r.counters.iter().all(|c| c.bootstraps == 2));
+}
+
+/// AfterActivation with the zero-new-key (Reuse) transpose, the configuration the predictions
+/// are for, and hidden activations above 1 (outside the bootstrap's `|m| <= 1` range: not
+/// clipped, the error is measured against the twin).
+#[test]
+fn after_activation_reuse_and_large_activations() {
+    let layout = single();
+    let reuse = TransposeKeys::Reuse(mlp_key_pool(&NET_B, &layout).unwrap());
+    let r = run_with(
+        &NET_B,
+        &[Act::Relu2, Act::Id],
+        layout,
+        BootPlacement::AfterActivation,
+        NAG,
+        1,
+        2,
+        13,
+        reuse,
+        0.6,
+    );
+    assert!(r.act_max > 1.0, "activations above 1: {}", r.act_max);
+    // The bootstrap still runs; its absolute error grows with |m| but stays far below the
+    // update.
+    assert!(r.act_err < 1e-4, "2^{}", r.act_err.log2());
+    assert!(r.err <= 1e-4, "2^{}", r.err.log2());
+}
+
+/// Review I1: a lazy placement skips a bootstrap only if the next step fits, and a partial
+/// batch costs one more level at a linear output layer. Undeclared next steps are planned as
+/// partial; a declared-full next step that turns out partial is refused before any work; and
+/// `train_epoch_valid` declares the fullness itself.
+#[test]
+fn lazy_placement_partial_batch_after_skip() {
+    let f = fx();
+    let layout = single();
+    let acts = || -> Vec<Box<dyn Activation>> { vec![Box::new(PolyRelu2), Box::new(Identity)] };
+    let mut r = rng(14);
+    let plain = init(&NET_B, &mut r);
+    let fresh = |r: &mut Rng| {
+        let (mlp, state) = NonInteractiveTrainer::encrypt_network(
+            &f.ev,
+            &f.bs,
+            &plain,
+            acts(),
+            &layout,
+            BootPlacement::WhenNeeded,
+            &f.enc,
+            &f.encoder,
+            r,
+        )
+        .unwrap();
+        let t = NonInteractiveTrainer::new(
+            &f.ev,
+            &f.bs,
+            NAG,
+            layout,
+            BootPlacement::WhenNeeded,
+            &mlp,
+            state,
+        )
+        .unwrap();
+        (mlp, t)
+    };
+    let batch = |t: &NonInteractiveTrainer<'_>, mlp: &Mlp, r: &mut Rng| {
+        let x = Array2::from_shape_fn((32, 16), |_| uni(r));
+        let y = Array2::from_shape_fn((32, 4), |_| 0.5 * uni(r));
+        t.batch_spec(mlp)
+            .unwrap()
+            .encrypt(&f.enc, &f.encoder, &layout, &x, &y, r)
+            .unwrap()
+    };
+
+    // (a) Undeclared: full, then 31 of 32 lanes. The first update bootstraps (conservative).
+    let (mut mlp, mut t) = fresh(&mut r);
+    let (x, y) = batch(&t, &mlp, &mut r);
+    t.train_batch(&mut mlp, &x, &y).unwrap();
+    assert!(
+        t.last_update_booted(),
+        "unknown next step: planned as partial"
+    );
+    let (x, y) = batch(&t, &mlp, &mut r);
+    t.train_batch_valid(&mut mlp, &x, &y, 31).unwrap();
+
+    // (b) Declared full, then partial: the skip happens and the partial step is refused before
+    // any work.
+    let (mut mlp, mut t) = fresh(&mut r);
+    let (x, y) = batch(&t, &mlp, &mut r);
+    t.set_next_batch_full(Some(true));
+    t.train_batch(&mut mlp, &x, &y).unwrap();
+    assert!(!t.last_update_booted(), "declared full next step: skipped");
+    let (x, y) = batch(&t, &mlp, &mut r);
+    let before = f.ev.counter();
+    let e = t.train_batch_valid(&mut mlp, &x, &y, 31).unwrap_err();
+    assert!(matches!(e, HekitError::InvalidParams(_)), "{e:?}");
+    assert_eq!(f.ev.counter(), before, "refused before any work");
+    // A full step still fits.
+    t.train_batch(&mut mlp, &x, &y).unwrap();
+
+    // (c) Declared partial: bootstraps, then the partial step trains.
+    let (mut mlp, mut t) = fresh(&mut r);
+    let (x, y) = batch(&t, &mlp, &mut r);
+    t.set_next_batch_full(Some(false));
+    t.train_batch(&mut mlp, &x, &y).unwrap();
+    assert!(t.last_update_booted());
+    let (x, y) = batch(&t, &mlp, &mut r);
+    t.train_batch_valid(&mut mlp, &x, &y, 31).unwrap();
+
+    // (d) An epoch whose last batch is partial: the look-ahead plans it, as boot_schedule does.
+    let (mut mlp, mut t) = fresh(&mut r);
+    let mut batches = Vec::new();
+    for n in [32, 32, 32, 31] {
+        let (x, y) = batch(&t, &mlp, &mut r);
+        batches.push((x, y, n));
+    }
+    let log = t.train_epoch_valid(&mut mlp, &batches).unwrap();
+    let refs: Vec<&dyn Activation> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
+    let sched = boot_schedule(
+        &NET_B,
+        &refs,
+        &layout,
+        BootPlacement::WhenNeeded,
+        true,
+        f.bs.output_level() - 1,
+        f.bs.output_level(),
+        &[true, true, true, false],
+    )
+    .unwrap();
+    // full -> skip, full -> boot, full (next partial) -> boot, partial (last) -> boot.
+    assert_eq!(sched, vec![false, true, true, true]);
+    let boots = sched.iter().filter(|&&b| b).count() as u64 * 4;
+    assert_eq!(log.counter.bootstraps, boots);
+    assert_eq!(log.refreshes as u64, boots);
+    assert!(log.refresh_seconds > 0.0 && t.bootstrap_seconds() >= log.refresh_seconds);
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -1265,7 +1265,13 @@ fn ni_counter_json(c: &OpCounter) -> J {
 /// The RQ1 ratio three ways (parent's reporting rule): hekit's key switches per sample with
 /// its bootstraps priced at `p_he`, over ReBoot's at `p_rb`, against ReBoot at its own B = 48
 /// and at hekit's B.
-fn rq1_json(nonboot_per_sample: f64, boots_per_sample: f64, batch: usize, source: &str) -> J {
+fn rq1_json(
+    nonboot_per_sample: f64,
+    boots_per_sample: f64,
+    batch: usize,
+    he_boot: u64,
+    source: &str,
+) -> J {
     let he = |p: f64| nonboot_per_sample + boots_per_sample * p;
     let rb = |p: f64, b: usize| REBOOT_KS_PER_SAMPLE + REBOOT_BOOTS_PER_UPDATE * p / b as f64;
     let way = |name: &str, p_he: u64, p_rb: u64| {
@@ -1288,10 +1294,28 @@ fn rq1_json(nonboot_per_sample: f64, boots_per_sample: f64, batch: usize, source
         ),
         (
             "a_own_bootstrap_costs",
-            way("(a) own bootstrap costs: hekit 111 (measured), ReBoot 502", 111, REBOOT_BOOT_KS),
+            way(
+                &format!("(a) own bootstrap costs: hekit {he_boot} (measured), ReBoot 502"),
+                he_boot,
+                REBOOT_BOOT_KS,
+            ),
         ),
-        ("b_both_502", way("(b) both 502: layout/packing gain only (conservative)", REBOOT_BOOT_KS, REBOOT_BOOT_KS)),
-        ("c_both_111", way("(c) both 111: ReBoot's layout on hekit's bootstrapper", 111, 111)),
+        (
+            "b_both_502",
+            way(
+                "(b) both 502: layout/packing gain only (conservative)",
+                REBOOT_BOOT_KS,
+                REBOOT_BOOT_KS,
+            ),
+        ),
+        (
+            "c_both_hekit",
+            way(
+                &format!("(c) both {he_boot}: ReBoot's layout on hekit's bootstrapper"),
+                he_boot,
+                he_boot,
+            ),
+        ),
         (
             "reboot_side",
             obj(vec![
@@ -1311,11 +1335,6 @@ fn rq1_json(nonboot_per_sample: f64, boots_per_sample: f64, batch: usize, source
             ]),
         ),
     ])
-}
-
-/// The updates of the run `args` describes (the subset in batches, all epochs).
-fn n_updates_plan(args: &Args) -> usize {
-    args.subset.div_ceil(args.batch) * args.epochs
 }
 
 /// Where Task 33's measured ReBoot-layout baseline would be (not parsed here: the crate has no
@@ -1384,11 +1403,20 @@ fn run_ni(args: &Args) -> Result<(), String> {
     );
 
     let act_objs: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
-    let schedule_of = |updates: usize, start: usize, out: usize| {
-        boot_schedule(
-            &dims, &act_objs, &layout, placement, true, start, out, updates,
-        )
-        .map_err(|e| e.to_string())
+    // Per-update fullness of the run (all epochs): a group is full when it has `micro`
+    // ciphertexts of `lanes` samples.
+    let fullness = |n: usize| -> Vec<bool> {
+        (0..args.epochs)
+            .flat_map(|_| {
+                (0..n)
+                    .step_by(args.batch)
+                    .map(move |s| (s + args.batch).min(n) - s == args.batch)
+            })
+            .collect()
+    };
+    let schedule_of = |full: &[bool], start: usize, out: usize| {
+        boot_schedule(&dims, &act_objs, &layout, placement, true, start, out, full)
+            .map_err(|e| e.to_string())
     };
     let weight_boots_avg = |sched: &[bool]| {
         sched.iter().filter(|&&x| x).count() as f64 * cl.bootstraps(true) as f64
@@ -1396,7 +1424,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
     };
     if args.plan {
         let out_level = hekit_ckks::bootstrap::levels_after_boot(&params, &bp);
-        let sched = schedule_of(n_updates_plan(args), out_level - 1, out_level)?;
+        let sched = schedule_of(&fullness(args.subset), out_level - 1, out_level)?;
         let (cost, terms, boots) = ni_terms(
             &dims,
             &acts_flags,
@@ -1485,12 +1513,8 @@ fn run_ni(args: &Args) -> Result<(), String> {
         .with_micro_batches(micro);
     let spec = trainer.batch_spec(&mlp).map_err(|e| e.to_string())?;
     let n = train.len();
-    let updates_per_epoch = n.div_ceil(args.batch);
-    let schedule = schedule_of(
-        updates_per_epoch * args.epochs,
-        trainer.start_level(),
-        bs.output_level(),
-    )?;
+    let run_full = fullness(n);
+    let schedule = schedule_of(&run_full, trainer.start_level(), bs.output_level())?;
     let (cost, terms, boots_avg) = ni_terms(
         &dims,
         &acts_flags,
@@ -1523,10 +1547,24 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let mut total = OpCounter::default();
     let mut samples = 0usize;
     let mut max_hidden: f64 = 0.0;
+    // Client-side diagnostic of the activation bootstraps (AfterActivation): the client
+    // decrypts the bootstrapped activations after each update, outside the trainer (which holds
+    // no key) and outside the timed step, and compares them with the twin's.
+    let diag_dec = Decryptor::new(Arc::clone(&params), sk.clone());
+    let mut act_boot_err: f64 = 0.0;
+    let mut act_boot_max_out: f64 = 0.0;
+    let mut act_boot_inputs = 0usize;
+    let mut act_boot_inputs_above_1 = 0usize;
+    let mut update_index = 0usize;
+    let mut pred_run_ks = 0u64;
+    let mut boot_s = Vec::new();
     let t_train = Instant::now();
     for epoch in 0..args.epochs {
         for start in (0..n).step_by(args.batch) {
             let end = (start + args.batch).min(n);
+            trainer.set_next_batch_full(run_full.get(update_index + 1).copied());
+            update_index += 1;
+            let boot_s0 = trainer.bootstrap_seconds();
             let t0 = Instant::now();
             let mut cts = Vec::new();
             for sub in (start..end).step_by(lanes) {
@@ -1551,27 +1589,48 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 .map_err(|e| format!("update at {start}: {e}"))?;
             let secs = t1.elapsed().as_secs_f64();
             let c = &ev.counter() - &before;
+            boot_s.push(trainer.bootstrap_seconds() - boot_s0);
+            for (mb, outs) in trainer.last_activation_bootstraps().iter().enumerate() {
+                let (sub, nv) = (mb * lanes, refs[mb].2);
+                let dec_a = unpack_activations(
+                    &encoder.decode(&diag_dec.decrypt(&outs[0])),
+                    &layout,
+                    args.hidden,
+                );
+                for i in 0..nv {
+                    for j in 0..args.hidden {
+                        let (he, tw) = (dec_a[[i, j]], h[[sub + i, j]]);
+                        act_boot_err = act_boot_err.max((he - tw).abs());
+                        act_boot_max_out = act_boot_max_out.max(he.abs());
+                        act_boot_inputs += 1;
+                        act_boot_inputs_above_1 += usize::from(tw.abs() > 1.0);
+                    }
+                }
+            }
             twin_step(&mut twin, &mut vel, &x, &y, args.lr, args.momentum);
             let did_boot = trainer.last_update_booted();
-            let full = refs.iter().all(|r| r.2 == lanes) && refs.len() == micro;
-            if full {
-                let p = predict_update_for(
-                    &dims,
-                    &lib_acts(&acts_flags),
-                    &layout,
-                    &keys,
-                    placement,
-                    micro,
-                    true,
-                    did_boot,
-                )
-                .map_err(|e| e.to_string())?;
-                let nb = p.bootstraps();
-                matches &= c.bootstraps == nb
-                    && c.rotations == p.rotations() + nb * per_boot.rotations
-                    && c.relins == p.relins() + nb * per_boot.relins
-                    && c.key_switches() == p.key_switches(boot_ks);
-            }
+            // The closed form of this update (any fullness: valid lanes change no key switch;
+            // the micro-batch count does) with the a-priori schedule, checked against the
+            // counter and the observed bootstrap decision.
+            let planned = schedule[update_index - 1];
+            let p = predict_update_for(
+                &dims,
+                &lib_acts(&acts_flags),
+                &layout,
+                &keys,
+                placement,
+                refs.len(),
+                true,
+                planned,
+            )
+            .map_err(|e| e.to_string())?;
+            let nb = p.bootstraps();
+            pred_run_ks += p.key_switches(boot_ks);
+            matches &= did_boot == planned
+                && c.bootstraps == nb
+                && c.rotations == p.rotations() + nb * per_boot.rotations
+                && c.relins == p.relins() + nb * per_boot.relins
+                && c.key_switches() == p.key_switches(boot_ks);
             total += &c;
             samples += end - start;
             update_s.push(secs);
@@ -1754,9 +1813,21 @@ fn run_ni(args: &Args) -> Result<(), String> {
                     J::A(booted.iter().map(|&x| J::I(i64::from(x))).collect()),
                 ),
                 ("every_update_equals_prediction", J::B(matches)),
+                ("predicted_ks_this_run", J::I(pred_run_ks as i64)),
                 (
                     "measured_over_predicted",
+                    J::N(ks as f64 / pred_run_ks as f64),
+                ),
+                (
+                    "measured_over_predicted_full_batch_per_sample",
                     J::N(measured_per_sample / pred_per_sample),
+                ),
+                (
+                    "measured_over_model_plus_corrections",
+                    J::N(
+                        measured_per_sample
+                            / (model_per_sample + terms.total() as f64 / b),
+                    ),
                 ),
                 (
                     "measured_over_cost_model",
@@ -1771,6 +1842,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 nonboot as f64 / sf,
                 boots as f64 / sf,
                 args.batch,
+                boot_ks,
                 &reboot_source,
             ),
         ),
@@ -1790,8 +1862,9 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 ("per_update_client_encrypt", stats(&client_enc_s)),
                 (
                     "bootstrap_time_total",
-                    J::N(trainer.log.iter().map(|l| l.refresh_seconds).sum::<f64>()),
+                    J::N(trainer.bootstrap_seconds()),
                 ),
+                ("per_update_bootstrap", stats(&boot_s)),
                 ("wall_total", J::N(t_all.elapsed().as_secs_f64())),
             ]),
         ),
@@ -1813,6 +1886,28 @@ fn run_ni(args: &Args) -> Result<(), String> {
                     J::A(w_moved.iter().map(|&v| J::N(v)).collect()),
                 ),
                 ("max_abs_hidden_activation", J::N(max_hidden)),
+                (
+                    "activation_bootstraps",
+                    obj(vec![
+                        (
+                            "note",
+                            J::S("AfterActivation only: the bootstrapped hidden activations of every \
+                                  update, decrypted by the client after the update, against the \
+                                  twin's activations from the same pre-update weights (bootstrap \
+                                  error plus the accumulated training error, which the weight \
+                                  diff bounds). Inputs above 1 violate the bootstrap's |m| <= 1 \
+                                  precondition; they are not clipped."
+                                .into()),
+                        ),
+                        ("slots_compared", J::I(act_boot_inputs as i64)),
+                        ("max_abs_input_twin", J::N(max_hidden)),
+                        ("inputs_above_1", J::I(act_boot_inputs_above_1 as i64)),
+                        ("precondition_hit", J::B(act_boot_inputs_above_1 > 0)),
+                        ("max_abs_output", J::N(act_boot_max_out)),
+                        ("max_abs_err_vs_twin", J::N(act_boot_err)),
+                        ("log2_max_abs_err_vs_twin", J::N(act_boot_err.log2())),
+                    ]),
+                ),
             ]),
         ),
         (

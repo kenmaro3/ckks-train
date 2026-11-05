@@ -1065,15 +1065,33 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             plain_batches.push((xb, yb));
         }
         let before = ev.counter();
-        let t_ep = Instant::now();
-        for (xc, yc, n) in &batches {
+        let mut secs = 0.0;
+        // Activation-bootstrap diagnostic (AfterActivation; client side, after each update and
+        // outside the timed step): the bootstrapped hidden activations against the twin's.
+        let (mut act_err, mut act_max, mut act_above_1) = (0.0f64, 0.0f64, 0usize);
+        for (i, ((xc, yc, n), (xb, yb))) in batches.iter().zip(&plain_batches).enumerate() {
+            let hidden = twin.forward(xb)[0].1.clone();
+            act_max = act_max.max(hidden.iter().fold(0.0, |m, v| m.max(v.abs())));
+            act_above_1 += hidden.iter().filter(|v| v.abs() > 1.0).count();
+            trainer.set_next_batch_full(batches.get(i + 1).map(|b| b.2 == lanes));
+            let t_b = Instant::now();
             trainer.train_batch_valid(&mut mlp, xc, yc, *n)?;
-        }
-        let secs = t_ep.elapsed().as_secs_f64();
-        let counter = &ev.counter() - &before;
-        for (xb, yb) in &plain_batches {
+            secs += t_b.elapsed().as_secs_f64();
+            if let Some(outs) = trainer.last_activation_bootstraps().first() {
+                let a = unpack_activations(
+                    &c.encoder.decode(&c.dec.decrypt(&outs[0])),
+                    &layout,
+                    DIMS[1],
+                );
+                for r in 0..*n {
+                    for j in 0..DIMS[1] {
+                        act_err = act_err.max((a[[r, j]] - hidden[[r, j]]).abs());
+                    }
+                }
+            }
             twin.sgd_step(xb, yb, o.lr);
         }
+        let counter = &ev.counter() - &before;
         let he = decrypt_net(&c, &mlp, &layout);
         let (err_w, err_b) = net_error(&he, &twin);
         let (tr_loss, tr_acc) = metrics(&he.predict(&x_train), &data.labels, &data.train);
@@ -1091,14 +1109,18 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         epochs_json.push(format!(
             "{{\"epoch\": {epoch}, \"seconds\": {}, \"counter\": {}, \
              \"key_switches_per_sample\": {}, \"train_loss\": {}, \"train_acc\": {tr_acc}, \
-             \"test_loss\": {}, \"test_acc\": {te_acc}, \"weight_err\": {}, \"bias_err\": {}}}",
+             \"test_loss\": {}, \"test_acc\": {te_acc}, \"weight_err\": {}, \"bias_err\": {}, \
+             \"max_abs_hidden_activation\": {}, \"hidden_activations_above_1\": {act_above_1}, \
+             \"activation_bootstrap_err_vs_twin\": {}}}",
             jnum(secs),
             jcounter(&counter),
             jnum(counter.key_switches() as f64 / samples),
             jnum(tr_loss),
             jnum(te_loss),
             jnum(err_w),
-            jnum(err_b)
+            jnum(err_b),
+            jnum(act_max),
+            jnum(act_err)
         ));
     }
     let out = o
@@ -1110,6 +1132,10 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         &format!(
             "{{\"task\": \"41\", \"mode\": \"noninteractive\", \"placement\": {}, \"preset\": {}, \
              \"batch\": {}, \"lanes\": {lanes}, \"lr\": {}, \"lr_eff\": {}, \"optimizer\": {}, \
+             \"twin_optimizer\": \"sgd (the twin is SGD for every --optimizer, as in interactive \
+             mode)\", \"activation_bootstrap_note\": \"after_activation only: bootstrapped hidden \
+             activations decrypted by the client after each update against the twin's; inputs \
+             above 1 violate the bootstrap's |m| <= 1 precondition and are not clipped\", \
              \"levels_per_iter\": {}, \"galois_keys\": {}, \"boot_ks\": {}, \"load_start\": {}, \
              \"load_end\": {}, \"wall_seconds\": {}, \"epochs\": [\n  {}\n]}}\n",
             jstr(pl.name()),

@@ -66,7 +66,7 @@ use crate::compact::{
     compact_unpack, extract_steps, place_plain,
 };
 use crate::dense::{
-    EncWeights, TransposeKeys, backward_rotation_steps, encrypt_bias, forward_rotation_steps,
+    Dense, EncWeights, TransposeKeys, backward_rotation_steps, forward_rotation_steps,
     grad_reduced_rotation_steps, transpose_rotation_plan, transpose_rotation_steps,
 };
 use crate::layout::{LayerShape, Layout, pack_bias, pack_weight_diagonals};
@@ -95,6 +95,15 @@ pub enum BootPlacement {
     /// then consumes fewer weight levels (the forward of the upper layers no longer descends
     /// from the lower ones), so the weights are bootstrapped less often, at the price of
     /// `(L - 1) k` activation bootstraps per update.
+    ///
+    /// **Precondition of the activation bootstraps: `|a_l| <= 1` in every slot**
+    /// ([`Bootstrapper::bootstrap`]'s EvalMod range). Larger activations are **not clipped**:
+    /// the bootstrap still runs, and its error grows (quadratically in `|m|` above 1; Task 38
+    /// measured 17.38 bits absolute at `|m| = 4` on n16_boot, against 17.46 at `|m| <= 1`,
+    /// `docs/bootstrap.md` §11.4). The caller is responsible for the range (e.g. the input
+    /// scaling or the initialisation) and should measure it: the client can decrypt
+    /// [`NonInteractiveTrainer::last_activation_bootstraps`] after an update and compare with
+    /// a plaintext twin, as the `mnist` and `iris` benches do.
     AfterActivation,
     /// Not in the brief: no activation bootstrap, and the weights are bootstrapped only when the
     /// next step would not fit their remaining levels (the schedule of
@@ -553,7 +562,7 @@ fn pass_levels(
 ///
 /// eMLP-1 (784 → 32 z² + z → 10 linear): 7 for [`BootPlacement::AfterUpdate`] and
 /// [`BootPlacement::WhenNeeded`], 5 for [`BootPlacement::AfterActivation`].
-/// [`NonInteractiveTrainer::new`] requires `levels_per_iter <= levels_after_boot`, the levels
+/// [`NonInteractiveTrainer::new`] requires `levels_per_iter <=` the levels after a bootstrap and an unpack, the levels
 /// left after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
 pub fn levels_per_iter(mlp: &Mlp, placement: BootPlacement) -> usize {
     let meta = metas(mlp);
@@ -840,12 +849,44 @@ pub fn predict_update_for(
     Ok(c)
 }
 
-/// Which updates bootstrap the weights, from a fresh (bootstrapped) state, for `updates`
-/// updates: always for [`BootPlacement::AfterUpdate`]; for the lazy placements, an update
-/// bootstraps when the next step would not fit (the trainer's rule, from the structural
-/// levels). `start` is the level of the unpacked weights after a bootstrap
-/// ([`NonInteractiveTrainer::start_level_for`]), `out` the bootstrap output level. Full
-/// batches.
+/// The bootstrap decision after an update that leaves the levels `next` (the one rule of both
+/// [`NonInteractiveTrainer`] and [`boot_schedule`]): always for [`BootPlacement::AfterUpdate`];
+/// for a lazy placement, unless the next step fits from `next` (every container unpackable and
+/// every level of the step non-negative). `next_full` is what is known of the next step:
+/// `Some(true)` a full batch; `Some(false)` or `None` (unknown) a partial one, which costs one
+/// more level at a linear output layer ([`crate::activation::Activation::constant_derivative`]),
+/// so an unknown next step is planned conservatively.
+fn must_boot(
+    meta: &[ActMeta],
+    placement: BootPlacement,
+    next: &LevelState,
+    start: i64,
+    out: i64,
+    next_full: Option<bool>,
+) -> bool {
+    if !placement.lazy() {
+        return true;
+    }
+    let fits_unpack = next.c.iter().all(|&c| c >= 1);
+    let p = pass_levels(
+        meta,
+        placement.boots_activations(),
+        &next.w,
+        &next.b,
+        start,
+        out,
+        next_full == Some(true),
+    );
+    !(fits_unpack && p.min >= 0)
+}
+
+/// Which updates bootstrap the weights, from a fresh (bootstrapped) state, for updates whose
+/// batches are full (`full[i]`) or partial: always for [`BootPlacement::AfterUpdate`]; for the
+/// lazy placements the trainer's rule ([`NonInteractiveTrainer::set_next_batch_full`]): an
+/// update bootstraps when the next step would not fit, the next step's fullness being
+/// `full[i + 1]` (the trainer's `train_epoch_valid` look-ahead) and unknown after the last
+/// update (planned as partial). `start` is the level of the unpacked weights after a bootstrap
+/// ([`NonInteractiveTrainer::start_level_for`]), `out` the bootstrap output level.
 ///
 /// Errors: `InvalidParams` if `acts` does not have one entry per layer; as
 /// [`CompactLayout::new`].
@@ -858,7 +899,7 @@ pub fn boot_schedule(
     nag: bool,
     start: usize,
     out: usize,
-    updates: usize,
+    full: &[bool],
 ) -> Result<Vec<bool>> {
     let cl = CompactLayout::new(dims, layout)?;
     if acts.len() != cl.plans.len() {
@@ -878,17 +919,9 @@ pub fn boot_schedule(
         u: vec![u.then_some(o); cl.containers.len()],
     };
     let mut st = fresh(false);
-    let mut out_v = Vec::with_capacity(updates);
-    for _ in 0..updates {
-        let p = pass_levels(
-            &meta,
-            placement.boots_activations(),
-            &st.w,
-            &st.b,
-            s,
-            o,
-            true,
-        );
+    let mut out_v = Vec::with_capacity(full.len());
+    for (i, &f) in full.iter().enumerate() {
+        let p = pass_levels(&meta, placement.boots_activations(), &st.w, &st.b, s, o, f);
         let c = update_levels(&cl, &st, &p, nag);
         let mut next = LevelState {
             w: Vec::new(),
@@ -902,20 +935,7 @@ pub fn boot_schedule(
             c,
         };
         (next.w, next.b) = unpacked(&cl, &next.c);
-        let boot = !placement.lazy() || {
-            let fits = next.c.iter().all(|&x| x >= 1);
-            !(fits
-                && pass_levels(
-                    &meta,
-                    placement.boots_activations(),
-                    &next.w,
-                    &next.b,
-                    s,
-                    o,
-                    true,
-                )
-                .min >= 0)
-        };
+        let boot = must_boot(&meta, placement, &next, s, o, full.get(i + 1).copied());
         out_v.push(boot);
         st = if boot { fresh(nag) } else { next };
     }
@@ -946,6 +966,8 @@ pub struct NonInteractiveTrainer<'a> {
     act_boots: u64,
     boot_seconds: f64,
     last_booted: bool,
+    next_full: Option<bool>,
+    act_outputs: Vec<Vec<Ciphertext>>,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
@@ -1016,8 +1038,9 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// bias at the exact product scale of its first forward, and the [`CompactState`] at
     /// `bs.output_level()` (as a bootstrap leaves it) with zero velocity.
     ///
-    /// Errors: those of [`Mlp::encrypt_at`] and [`CompactState::encrypt`]; `NoLevelsLeft` if
-    /// the forward does not fit.
+    /// Errors: `InvalidParams` if `layers` is empty, `acts` has another length, or the shapes
+    /// do not chain or fit `layout`; those of [`Dense::encrypt_at`] and [`CompactState::encrypt`];
+    /// `NoLevelsLeft` if the forward does not fit.
     #[allow(clippy::too_many_arguments)]
     pub fn encrypt_network(
         ev: &Evaluator,
@@ -1031,10 +1054,28 @@ impl<'a> NonInteractiveTrainer<'a> {
         rng: &mut Rng,
     ) -> Result<(Mlp, CompactState)> {
         let start = NonInteractiveTrainer::start_level_for(bs);
-        let mut mlp = Mlp::encrypt_at(ev, layers, acts, layout, start, enc, encoder, rng)?;
-        // Re-encrypt the biases at the placement's chain (the bootstrapped activations restart
-        // at Delta).
-        let meta = metas(&mlp);
+        if layers.is_empty() || acts.len() != layers.len() {
+            return Err(HekitError::InvalidParams(format!(
+                "{} layers and {} activations",
+                layers.len(),
+                acts.len()
+            )));
+        }
+        let mut dims = vec![layers[0].0.ncols()];
+        for (w, _) in layers {
+            if w.ncols() != *dims.last().expect("nonempty") {
+                return Err(HekitError::InvalidParams(
+                    "layer shapes do not chain".into(),
+                ));
+            }
+            dims.push(w.nrows());
+        }
+        check_dims(&dims, layout)?;
+        // The input scale of every layer's first forward on the placement's chain (the
+        // bootstrapped activations restart at Delta); each bias is encrypted once, at its exact
+        // product scale (the weights are at Delta).
+        let refs: Vec<&dyn Activation> = acts.iter().map(|a| a.as_ref()).collect();
+        let meta = metas_of(&refs);
         let n = meta.len();
         let s = start as i64;
         let p = pass_levels(
@@ -1046,25 +1087,30 @@ impl<'a> NonInteractiveTrainer<'a> {
             bs.output_level() as i64,
             true,
         );
-        let acts: Vec<&dyn Activation> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
-        let w_scales: Vec<f64> = mlp.layers.iter().map(|(d, _)| d.w.scale()).collect();
+        let delta = encoder.params().scale();
+        let w_scales = vec![delta; n];
         let scales = input_scales(
             ev,
             encoder,
-            &acts,
+            &refs,
             &w_scales,
             &p.inputs,
             placement.boots_activations(),
         )?;
-        let biases = layers
-            .iter()
-            .zip(&scales)
-            .zip(&w_scales)
-            .map(|(((_, b), s), w)| encrypt_bias(b, layout, s * w, start, enc, encoder, rng))
-            .collect::<Result<Vec<_>>>()?;
-        for ((dense, _), b) in mlp.layers.iter_mut().zip(biases) {
-            dense.b = b;
-        }
+        drop(refs);
+        let mlp = Mlp {
+            layers: layers
+                .iter()
+                .zip(acts)
+                .zip(&scales)
+                .map(|(((w, b), act), &sx)| {
+                    Ok((
+                        Dense::encrypt_at(w, b, layout, sx, start, enc, encoder, rng)?,
+                        act,
+                    ))
+                })
+                .collect::<Result<Vec<_>>>()?,
+        };
         let cl = CompactLayout::new(&mlp.dims(), layout)?;
         let state =
             CompactState::encrypt(&cl, layers, layout, bs.output_level(), enc, encoder, rng)?;
@@ -1150,6 +1196,8 @@ impl<'a> NonInteractiveTrainer<'a> {
             act_boots: 0,
             boot_seconds: 0.0,
             last_booted: false,
+            next_full: None,
+            act_outputs: Vec::new(),
             log: Vec::new(),
         };
         let st = t.level_state(mlp);
@@ -1213,6 +1261,30 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// Whether the last update bootstrapped the weights.
     pub fn last_update_booted(&self) -> bool {
         self.last_booted
+    }
+
+    /// Wall-clock seconds spent in bootstraps so far (weights, velocities and activations).
+    pub fn bootstrap_seconds(&self) -> f64 {
+        self.boot_seconds
+    }
+
+    /// The bootstrapped hidden activations of the last update ([`BootPlacement::AfterActivation`]
+    /// only; empty otherwise): `[micro-batch][l]` is the bootstrap output of `a_{l+1}` at
+    /// `Delta`, canonical with period `pow2(d_{l+1})`. For a client-side diagnostic of the
+    /// activation bootstraps' precision (the trainer itself never decrypts).
+    pub fn last_activation_bootstraps(&self) -> &[Vec<Ciphertext>] {
+        &self.act_outputs
+    }
+
+    /// Declares whether the **next** step's micro-batches are all full (one shot: consumed by
+    /// the next update's bootstrap decision). A lazy placement skips the weight bootstrap only
+    /// if the step after it fits; without a declaration (`None`) that step is planned as a
+    /// partial batch, which costs one more level at a linear output layer, so the decision is
+    /// conservative. [`NonInteractiveTrainer::train_epoch_valid`] declares it for every update
+    /// but the last of the epoch. A declared full step that turns out partial and does not fit
+    /// is refused before any work (`InvalidParams`).
+    pub fn set_next_batch_full(&mut self, full: Option<bool>) {
+        self.next_full = full;
     }
 
     /// The levels of the last step (labels: `z{l}`, `a{l}`, `a{l}_to_delta`, `a{l}_boot`,
@@ -1546,10 +1618,15 @@ impl<'a> NonInteractiveTrainer<'a> {
         };
         (next.w, next.b) = unpacked(&self.cl, &next.c);
         let start = self.start_level() as i64;
-        let boot = !self.placement.lazy() || {
-            let fits_unpack = next.c.iter().all(|&c| c >= 1);
-            !(fits_unpack && self.pass(&next, start, true).min >= 0)
-        };
+        let next_full = self.next_full.take();
+        let boot = must_boot(
+            &self.meta,
+            self.placement,
+            &next,
+            start,
+            self.bs.output_level() as i64,
+            next_full,
+        );
         let mut weight_boots = 0;
         if boot {
             let t0 = Instant::now();
@@ -1617,6 +1694,11 @@ impl<'a> NonInteractiveTrainer<'a> {
         self.act_boots += act_boots;
         self.boot_seconds += t_boot;
         self.last_booted = boot;
+        self.act_outputs = if boot_acts {
+            acts.into_iter().map(|a| a[1..n_layers].to_vec()).collect()
+        } else {
+            Vec::new()
+        };
         self.trace = trace;
         Ok(())
     }
@@ -1697,25 +1779,49 @@ impl<'a> NonInteractiveTrainer<'a> {
     }
 
     /// One epoch: [`NonInteractiveTrainer::train_step`] on every group of
-    /// [`NonInteractiveTrainer::with_micro_batches`] consecutive `(x, y)` (a last, shorter
-    /// group is one update too), then an [`EpochLog`] appended to
+    /// [`NonInteractiveTrainer::with_micro_batches`] consecutive full `(x, y)` (a last,
+    /// shorter group is one update too), then an [`EpochLog`] appended to
     /// [`NonInteractiveTrainer::log`] and returned (`batches` = updates, `refreshes` =
     /// bootstraps, `refresh_seconds` = their time).
     ///
-    /// Errors: the first error of an update (the epoch is not logged; the updates before it
-    /// stay trained).
+    /// Errors as [`NonInteractiveTrainer::train_epoch_valid`].
     pub fn train_epoch(
         &mut self,
         mlp: &mut Mlp,
         batches: &[(Ciphertext, Ciphertext)],
     ) -> Result<EpochLog> {
+        let b = self.layout.batch;
+        let v: Vec<_> = batches
+            .iter()
+            .map(|(x, y)| (x.clone(), y.clone(), b))
+            .collect();
+        self.train_epoch_valid(mlp, &v)
+    }
+
+    /// [`NonInteractiveTrainer::train_epoch`] with the valid sample count of every batch (e.g.
+    /// a last, partial one). Before every update but the last it declares whether the next
+    /// group is full ([`NonInteractiveTrainer::set_next_batch_full`]), so a lazy placement plans
+    /// its bootstraps around the partial batches.
+    ///
+    /// Errors: the first error of an update (the epoch is not logged; the updates before it
+    /// stay trained).
+    pub fn train_epoch_valid(
+        &mut self,
+        mlp: &mut Mlp,
+        batches: &[(Ciphertext, Ciphertext, usize)],
+    ) -> Result<EpochLog> {
         let before = self.ev.counter();
         let (b0, bs0) = (self.weight_boots + self.act_boots, self.boot_seconds);
         let t0 = Instant::now();
-        let mut count = 0;
-        for group in batches.chunks(self.micro) {
-            self.train_step(mlp, group)?;
-            count += 1;
+        let (lanes, micro) = (self.layout.batch, self.micro);
+        let groups: Vec<_> = batches.chunks(micro).collect();
+        let full = |g: &[(Ciphertext, Ciphertext, usize)]| {
+            g.len() == micro && g.iter().all(|b| b.2 == lanes)
+        };
+        for (i, group) in groups.iter().enumerate() {
+            self.next_full = groups.get(i + 1).map(|g| full(g));
+            let refs: Vec<_> = group.iter().map(|(x, y, n)| (x, y, *n)).collect();
+            self.train_step_valid(mlp, &refs)?;
         }
         let log = EpochLog {
             epoch: self.log.len(),
@@ -1723,7 +1829,7 @@ impl<'a> NonInteractiveTrainer<'a> {
             seconds: t0.elapsed().as_secs_f64(),
             refresh_seconds: self.boot_seconds - bs0,
             loss: None,
-            batches: count,
+            batches: groups.len(),
             refreshes: (self.weight_boots + self.act_boots - b0) as usize,
         };
         self.log.push(log.clone());

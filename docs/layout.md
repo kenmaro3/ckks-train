@@ -565,8 +565,22 @@ the biases take plain SGD steps (the M2 deviation).
   weight gradient use the bootstrapped `a_l`. The weights are bootstrapped **only when the next
   step would not fit** their remaining levels (the structural level arithmetic of §7.4, run on
   the state the update leaves). Cost: `(L - 1) k` activation bootstraps per update.
+  **Precondition: `|a_l| <= 1` in every slot** (the bootstrap's EvalMod range). Larger
+  activations are not clipped: the bootstrap runs and its error grows (quadratically in `|m|`
+  above 1; Task 38 measured 17.38 bits absolute at `|m| = 4` against 17.46 at `|m| <= 1`,
+  `docs/bootstrap.md` §11.4). The range is the caller's: the `mnist` and `iris` benches record
+  the largest bootstrapped activation the plaintext twin sees, decrypt the bootstrapped
+  activations of every update on the client side (`last_activation_bootstraps`) and report
+  their error against the twin, and flag any input above 1.
 - **`WhenNeeded`** (not in the brief): the same lazy weight schedule without the activation
   bootstraps.
+
+**The lazy decision and partial batches.** The weights skip a bootstrap only if the *next*
+step fits. A partial batch costs one more level at a linear output layer (the valid-lane mask
+on `dz`), so the decision needs the next step's fullness: `train_epoch_valid` declares it for
+every update but the epoch's last (`set_next_batch_full`), and an undeclared next step is
+planned as partial (conservative: an update that could have skipped bootstraps instead).
+`boot_schedule` follows the same rule (one function, `must_boot`).
 
 For eMLP-1 on n16_boot: a step takes 7 levels from the unpacked weights (5 with activation
 bootstraps), and 15 are left after a bootstrap and an unpack. So `WhenNeeded` bootstraps the
