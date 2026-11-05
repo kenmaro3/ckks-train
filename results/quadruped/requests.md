@@ -208,3 +208,40 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **output path:** `results/quadruped/hekit_cuda_task46_tests.txt` and `results/quadruped/logs/R-46-1.log`
 - **order:** next free slot. It is GPU-light on compute and can run alongside the untimed plaintext jobs.
 - **status:** done (2026-11-05T22:08–22:09 JST, exit 0): **32 of 32 test functions ok, 0 failed; 31 ran bit-exact on the GPU and 1 printed the expected SKIP** (`hoisted_rotate_16_matches_cpu_n16_train: needs 5816.0 MiB of GPU memory, only 2595.2 MiB free`; cargo counts it as passed). No other SKIP. Clean clone `~/hekit-r45` at 456a419 (contains b4b9dc3). GPU free at start 2987 MiB. Output: `results/quadruped/hekit_cuda_task46_tests.txt`, `results/quadruped/logs/R-46-1.log`; provenance `results/quadruped/raw/R-46-1/`. Overlap note: its test phase (22:08:52–22:09:52) overlapped the first 44 s of R-41-5 (setup and keygen, before any timed update).
+
+## R-47-1: hekit-cuda GPU tests at feff7ed (all 45 GPU tests of Tasks 44–47)
+
+- **purpose:** check that `CudaEvaluator` (the HeOps impl, BSGS matvec, multi-stream batch, counters) matches the CPU bit for bit and count for count. Rerun the Task 44–46 tests at the same commit.
+- **commit to sync:** feff7ed or later, in a clean clone
+- **working dir:** a clean clone, e.g. `~/hekit-r45` re-synced to feff7ed
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1
+  ```
+- **pass criterion:** every test passes. Expected SKIPs:
+  - `hoisted_rotate_16_matches_cpu_n16_train` (5816 MiB)
+  - `matvec_d64_matches_cpu_n16_train_full` (8436 MiB)
+  - `sequence_and_counts_match_cpu_n16_train_full_keys` (2996 MiB)
+  - `matvec_d64_matches_cpu_n16_train_level9` (1948 MiB), only if free memory is short at that moment
+
+  Record every SKIP line as-is.
+- **expected duration:** 15–20 min, including about 55 n16_train CPU key generations
+- **GPU memory need:** at most about 1.95 GiB per test. **RAM need:** about 10 GB.
+- **timing:** heavy on CPU (key generation), so don't overlap a timed run. Run it after R-41-5, alongside R-REB-3 (untimed) if you like.
+- **output path:** `results/quadruped/hekit_cuda_task47_tests.txt`, `results/quadruped/logs/R-47-1.log`
+
+## R-47-2: Task 47 benchmark (CPU 1/12 threads vs GPU, n16_train)
+
+- **purpose:** the M4 ops benchmark table: add, mul+relin+rescale, rotate, hoisted_rotate×16, matvec_enc d=64 (capped levels where full keys don't fit), and 4-stream vs sequential. These go next to HEonGPU's RTX 4090 values.
+- **commit to sync:** feff7ed or later (same clean clone as R-47-1)
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  HEKIT_BENCH_THREADS=1,12 cargo bench -p hekit-bench --features cuda --bench cuda_ops 2>&1 | tee results/quadruped/cuda_ops_r47.log
+  ```
+  Afterwards, copy `target/criterion/cuda_ops_n16_train/` (only the `estimates.json` and `benchmark.json` files) into `results/quadruped/raw/R-47-2/criterion/`.
+- **timing:** this is a timed CPU+GPU benchmark, so run it with no other hekit or ReBoot job on the machine: after R-REB-3 and R-41-5. Record the SLAM load before and after.
+- **expected duration:** 20–30 min
+- **GPU memory need:** at most about 1.6 GiB (rows that don't fit print "skipped: needs …"). **RAM need:** about 10 GB.
+- **output path:** `results/quadruped/cuda_ops_r47.log` and `results/quadruped/raw/R-47-2/criterion/`
