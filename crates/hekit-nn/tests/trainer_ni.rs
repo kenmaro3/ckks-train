@@ -178,6 +178,20 @@ fn twin_step(
     y: &Array2<f64>,
     nag: bool,
 ) {
+    twin_step_lr(net, vel, acts, x, y, nag, LR);
+}
+
+/// [`twin_step`] at learning rate `lr` (Sutskever NAG with the lr outside: `v = mu v + g`,
+/// `W -= lr (g + mu v)`; biases SGD at `lr`).
+fn twin_step_lr(
+    net: &mut Net,
+    vel: &mut [Array2<f64>],
+    acts: &[Act],
+    x: &Array2<f64>,
+    y: &Array2<f64>,
+    nag: bool,
+    lr: f64,
+) {
     let n = x.nrows() as f64;
     let mut a = vec![x.clone()];
     let mut zs = Vec::new();
@@ -193,12 +207,12 @@ fn twin_step(
         let g = dz.t().dot(&a[i]) / n;
         if nag {
             vel[i] = MU * &vel[i] + &g;
-            net[i].0 = &net[i].0 - &(LR * &(&g + &(MU * &vel[i])));
+            net[i].0 = &net[i].0 - &(lr * &(&g + &(MU * &vel[i])));
         } else {
-            net[i].0 = &net[i].0 - &(LR * &g);
+            net[i].0 = &net[i].0 - &(lr * &g);
         }
         let gb = dz.sum_axis(Axis(0)) / n;
-        net[i].1.iter_mut().zip(&gb).for_each(|(b, g)| *b -= LR * g);
+        net[i].1.iter_mut().zip(&gb).for_each(|(b, g)| *b -= lr * g);
         delta = next;
     }
 }
@@ -811,6 +825,132 @@ fn frozen_biases_stay_zero() {
     assert!(bias_max < 1e-6, "biases stay zero: {bias_max}");
     let err = max_err(&he, &twin);
     assert!(err <= TOL_MINI, "2^{}", err.log2());
+}
+
+/// Ruling R-M3-14: a per-step learning rate. A 3-step schedule (rising, falling) under NAG:
+/// the velocity formed at the previous lr is rescaled inside the update's two scalar products,
+/// and the weights follow a plaintext NAG twin with the same schedule; the counts stay the closed
+/// form's. Setting the unchanged lr every step is bit-identical to never setting it.
+#[test]
+fn per_step_lr_schedule_matches_the_twin() {
+    let f = fx();
+    let ev = f.ev.clone();
+    let layout = single();
+    let acts = [Act::Relu2, Act::Id];
+    let schedule = [0.05, 0.02, 0.08];
+    let make = |r: &mut Rng| {
+        let plain = init(&NET_B, &mut rng(16));
+        let (mlp, state) = NonInteractiveTrainer::encrypt_network(
+            &ev,
+            &f.bs,
+            &plain,
+            acts.iter().map(|a| a.boxed()).collect(),
+            &layout,
+            BootPlacement::WhenNeeded,
+            &f.enc,
+            &f.encoder,
+            r,
+        )
+        .unwrap();
+        let t = NonInteractiveTrainer::new(
+            &ev,
+            &f.bs,
+            NAG,
+            layout,
+            BootPlacement::WhenNeeded,
+            &mlp,
+            state,
+        )
+        .unwrap();
+        (plain, mlp, t)
+    };
+    let batches = |r: &mut Rng| -> Vec<(Array2<f64>, Array2<f64>)> {
+        (0..3)
+            .map(|_| {
+                (
+                    Array2::from_shape_fn((32, 16), |_| uni(r)),
+                    Array2::from_shape_fn((32, 4), |_| 0.5 * uni(r)),
+                )
+            })
+            .collect()
+    };
+    let dec = Decryptor::new(Arc::clone(&f.params), f.sk.clone());
+
+    // The schedule against the twin.
+    let mut r = rng(17);
+    let (plain, mut mlp, mut t) = make(&mut r);
+    let data = batches(&mut r);
+    let spec = t.batch_spec(&mlp).unwrap();
+    let mut twin = plain.clone();
+    let mut vel: Vec<Array2<f64>> = plain.iter().map(|(w, _)| Array2::zeros(w.dim())).collect();
+    for (i, ((x, y), &lr)) in data.iter().zip(&schedule).enumerate() {
+        let (xc, yc) = spec
+            .encrypt(&f.enc, &f.encoder, &layout, x, y, &mut r)
+            .unwrap();
+        t.set_lr(lr).unwrap();
+        t.set_next_batch_full((i + 1 < schedule.len()).then_some(true));
+        let before = ev.counter();
+        t.train_batch(&mut mlp, &xc, &yc).unwrap();
+        let got = &ev.counter() - &before;
+        let pred = predict_update(
+            &ev,
+            &mlp,
+            &layout,
+            &TransposeKeys::Dedicated,
+            BootPlacement::WhenNeeded,
+            1,
+            true,
+            t.last_update_booted(),
+        )
+        .unwrap();
+        assert_eq!(
+            got.key_switches(),
+            pred.key_switches(f.bs.key_switches_per_boot())
+        );
+        twin_step_lr(&mut twin, &mut vel, &acts, x, y, true, lr);
+    }
+    let err = max_err(&decrypt_net(&mlp, &dec, &f.encoder, &layout), &twin);
+    // The same schedule's effect is visible: a constant-lr twin is far off.
+    let mut flat = plain.clone();
+    let mut v2: Vec<Array2<f64>> = plain.iter().map(|(w, _)| Array2::zeros(w.dim())).collect();
+    for (x, y) in &data {
+        twin_step_lr(&mut flat, &mut v2, &acts, x, y, true, schedule[0]);
+    }
+    let off = max_err(&flat, &twin);
+    eprintln!(
+        "lr schedule: twin error 2^{:.1}, constant-lr twin 2^{:.1} away",
+        err.log2(),
+        off.log2()
+    );
+    assert!(err <= TOL_MINI, "2^{}", err.log2());
+    assert!(off > 1e3 * err, "the schedule matters");
+
+    // set_lr(current) every step is bit-identical to never calling it.
+    let run = |set: bool| {
+        let mut r = rng(18);
+        let (_, mut mlp, mut t) = make(&mut r);
+        let data = batches(&mut r);
+        let spec = t.batch_spec(&mlp).unwrap();
+        for (x, y) in &data {
+            let (xc, yc) = spec
+                .encrypt(&f.enc, &f.encoder, &layout, x, y, &mut r)
+                .unwrap();
+            if set {
+                t.set_lr(LR).unwrap();
+            }
+            t.train_batch(&mut mlp, &xc, &yc).unwrap();
+        }
+        mlp.layers
+            .iter()
+            .flat_map(|(d, _)| {
+                d.w.diagonals()
+                    .entries()
+                    .iter()
+                    .map(|c| f.encoder.decode(&dec.decrypt(c)))
+            })
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(run(false), run(true));
 }
 
 // ---------------------------------------------------------------------------------------------

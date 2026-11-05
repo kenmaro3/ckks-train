@@ -557,6 +557,26 @@ The NAG update on a compact container `i` of layer `l` is, at level
 the first step: `U' = h`, `W' = W - h - sum h_b`). The velocity's bias positions stay zero, so
 the biases take plain SGD steps (the M2 deviation).
 
+**Per-step learning rate (ruling R-M3-14, `NonInteractiveTrainer::set_lr`).** The plaintext
+rule is NAG with the lr outside (ReBoot's and the twin's form): `v_t = mu v_{t-1} + g_t`,
+`W_t = W_{t-1} - lr_t (g_t + mu v_t) = W_{t-1} - lr_t (1 + mu) g_t - lr_t mu^2 v_{t-1}`. The
+trainer stores `U_t = lr_t (1 + mu) v_t`, the velocity scaled by the lr it was formed with, and
+the gradient arrives as `h_t = lr_t (1 + mu) g_t` (the lr is folded into the batch-sum mask).
+With `r_t = lr_t / lr_{t-1}`:
+
+```
+U_t = lr_t (1 + mu) (mu v_{t-1} + g_t)          = (mu r_t) U_{t-1} + h_t
+W_t = W_{t-1} - h_t - lr_t mu^2 v_{t-1}         = W_{t-1} - h_t - (mu^2 / (1 + mu)) r_t U_{t-1}
+```
+
+So the ratio folds into the two scalar products the update already has (`mu` → `mu r_t`,
+`kappa` → `kappa r_t`): **no extra product, level or key switch**, and `predict_update_with`
+is unchanged. For an unchanged lr `r_t = 1` exactly, and the products are bit-identical to the
+constant-lr trainer (tested). The biases take `lr_t` through their own folded constant. A zero
+lr is refused (it would lose the velocity's scale). Tested on mini: a 3-step schedule
+(0.05, 0.02, 0.08) under WhenNeeded follows the twin with the same schedule to 2^-26, while a
+constant-lr twin is 2^-8.7 away.
+
 ### 7.2 Placements (`BootPlacement`)
 
 - **`AfterUpdate`** (the cost model's): every compact `W` and `U` is bootstrapped after every

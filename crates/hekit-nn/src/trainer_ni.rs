@@ -187,6 +187,21 @@ impl NiOptimizer {
     pub fn has_velocity(&self) -> bool {
         matches!(self, NiOptimizer::Nag { .. })
     }
+
+    /// The learning rate.
+    pub fn lr(&self) -> f64 {
+        match *self {
+            NiOptimizer::Sgd { lr } | NiOptimizer::Nag { lr, .. } => lr,
+        }
+    }
+
+    /// The same optimizer with learning rate `lr`.
+    pub fn with_lr(self, lr: f64) -> NiOptimizer {
+        match self {
+            NiOptimizer::Sgd { .. } => NiOptimizer::Sgd { lr },
+            NiOptimizer::Nag { momentum, .. } => NiOptimizer::Nag { lr, momentum },
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1039,6 +1054,10 @@ pub struct NonInteractiveTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = 
     next_full: Option<bool>,
     act_outputs: Vec<Vec<E::Ct>>,
     frozen_biases: bool,
+    /// The lr with which the stored velocity `U = lr (1 + mu) V` was formed (`None` before the
+    /// first step): a step at another lr rescales `U` by `lr / u_lr` inside the two existing
+    /// scalar products (`docs/layout.md` §7.1, per-step learning rate).
+    u_lr: Option<f64>,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
@@ -1279,6 +1298,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             next_full: None,
             act_outputs: Vec::new(),
             frozen_biases: false,
+            u_lr: None,
             log: Vec::new(),
         };
         let st = t.level_state(mlp);
@@ -1290,6 +1310,37 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> NonInteractiveTrainer<'a, E, B> {
         self.transpose_keys = keys;
         self
+    }
+
+    /// The optimizer.
+    pub fn optimizer(&self) -> NiOptimizer {
+        self.optim
+    }
+
+    /// Sets the learning rate of the following updates (a per-step schedule, e.g. ReBoot's
+    /// scheduler). The weight and bias gradients take it through their folded constants; with
+    /// NAG the stored velocity, formed at the previous lr, is rescaled by `lr / lr_prev` inside
+    /// the two scalar products of the update (`docs/layout.md` §7.1): no extra op, level or key
+    /// switch. Setting the current lr again changes nothing (bit-identical).
+    ///
+    /// Errors (`InvalidParams`): `lr` not finite and positive (a zero lr would lose the
+    /// velocity's scale).
+    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        if !(lr.is_finite() && lr > 0.0) {
+            return Err(HekitError::InvalidParams(format!(
+                "learning rate {lr} must be finite and positive"
+            )));
+        }
+        self.optim = self.optim.with_lr(lr);
+        Ok(())
+    }
+
+    /// `lr / lr_prev` for the stored velocity (1 before the first step or at an unchanged lr).
+    fn velocity_ratio(&self) -> f64 {
+        match self.u_lr {
+            Some(prev) if prev != self.optim.lr() => self.optim.lr() / prev,
+            _ => 1.0,
+        }
     }
 
     /// Never updates the biases: the bias gradient's folded constant is 0, so every op and every
@@ -1780,6 +1831,9 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             layer.b = b;
         }
         self.state = CompactState { weights, velocity };
+        if self.optim.has_velocity() {
+            self.u_lr = Some(self.optim.lr());
+        }
         self.weight_boots += weight_boots;
         self.act_boots += act_boots;
         self.boot_seconds += t_boot;
@@ -1851,9 +1905,13 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                     Some(match u {
                         None => h,
                         Some(u) => {
-                            let kappa = mu * mu / (1.0 + mu);
+                            // A changed lr rescales U = lr_old (1 + mu) V by r = lr / lr_old,
+                            // folded into both scalars (no extra op or level; r = 1 exactly
+                            // when the lr is unchanged, so the products are bit-identical).
+                            let r = self.velocity_ratio();
+                            let kappa = mu * mu / (1.0 + mu) * r;
                             let ue = ev.mod_switch_to_level(u, lv + 1)?;
-                            let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, delta)?)?;
+                            let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu * r, delta)?)?;
                             let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, delta)?)?;
                             w_new = ev.sub(&w_new, &k_u)?;
                             ev.add(&mu_u, &h)?

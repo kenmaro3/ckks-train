@@ -70,7 +70,13 @@
 //!   that many valid lanes, e.g. 48 of 64). `--input-dim N` sets it for `--plan` without data.
 //! - `--lr-schedule FILE` gives one lr per step (ReBoot's scheduler, in `--lr-sum` units; a
 //!   JSON array, the array under the first `lr` key of a JSON object, or one value per line),
-//!   plaintext mode only for now (the encrypted trainers need an optimizer lr update in hekit-nn).
+//!   in plain and non-interactive modes (the trainer rescales its NAG velocity exactly at no
+//!   cost, `docs/layout.md` §7.1).
+//! - `--epoch-orders FILE`: a 2-D `.npy` of per-epoch training orders (row `e` = epoch `e + 1`,
+//!   step `b` = columns `b B .. b B + B - 1`), instead of `--indices`.
+//! - `--weight-decay WD --wd-form coupled|decoupled` (plain mode only): ReBoot's
+//!   `weight_decay` (torch convention, coupled: `g += wd W` before Nesterov; in `--lr-sum`
+//!   units it becomes `wd / B` on our mean gradient), on the weights only.
 //! - `--mode plain` runs the plaintext twin alone and records ReBoot's per-step metrics (batch
 //!   loss summed over the batch and all outputs, batch accuracy).
 //!
@@ -148,6 +154,14 @@ struct Args {
     lr_schedule: Option<PathBuf>,
     /// The input dimension `--plan` assumes when no data is loaded (default 784).
     input_dim: usize,
+    /// Weight decay of the plaintext twin (plain mode): ReBoot's `weight_decay` (in `--lr-sum`
+    /// units when that is set), applied in `wd_form`.
+    weight_decay: f64,
+    /// `coupled` (torch SGD convention, ReBoot's: `g += wd W` before Nesterov) or `decoupled`.
+    wd_form: String,
+    /// Per-epoch training orders: a 2-D `.npy` (epochs x samples; row `e` is epoch `e + 1`'s
+    /// order into the training set, step `b` takes columns `b B .. b B + B - 1`).
+    epoch_orders: Option<PathBuf>,
     /// `--subset` / `--test-subset` were given (an .npy data set is otherwise used whole).
     subset_given: bool,
     test_subset_given: bool,
@@ -192,6 +206,9 @@ fn parse_args() -> Result<Args, String> {
         dataset_npy: None,
         lr_schedule: None,
         input_dim: 28 * 28,
+        weight_decay: 0.0,
+        wd_form: "coupled".into(),
+        epoch_orders: None,
         subset_given: false,
         test_subset_given: false,
     };
@@ -238,6 +255,9 @@ fn parse_args() -> Result<Args, String> {
             "--dataset-npy" => a.dataset_npy = Some(PathBuf::from(v)),
             "--lr-schedule" => a.lr_schedule = Some(PathBuf::from(v)),
             "--input-dim" => a.input_dim = num(&v)?,
+            "--weight-decay" => a.weight_decay = real(&v)?,
+            "--wd-form" => a.wd_form = v,
+            "--epoch-orders" => a.epoch_orders = Some(PathBuf::from(v)),
             "--batch" => a.batch = num(&v)?,
             "--hidden" => a.hidden = num(&v)?,
             "--params" => a.params = v,
@@ -281,10 +301,25 @@ fn parse_args() -> Result<Args, String> {
             ));
         }
     };
-    if a.lr_schedule.is_some() && a.mode != "plain" {
+    if a.lr_schedule.is_some() && a.mode == "interactive" {
+        return Err("--lr-schedule is supported in --mode noninteractive and plain".into());
+    }
+    if a.weight_decay != 0.0 && a.mode != "plain" {
         return Err(
-            "--lr-schedule is supported in --mode plain only: a per-step lr in the encrypted \
-             trainers needs an optimizer lr update in hekit-nn (pending, Task 43 owns hekit-nn)"
+            "--weight-decay is supported in --mode plain only (the encrypted trainers have no \
+             decay term)"
+                .into(),
+        );
+    }
+    if !matches!(a.wd_form.as_str(), "coupled" | "decoupled") {
+        return Err(format!(
+            "unknown --wd-form {} (coupled | decoupled)",
+            a.wd_form
+        ));
+    }
+    if a.epoch_orders.is_some() && (a.indices.is_some() || a.mode == "interactive") {
+        return Err(
+            "--epoch-orders replaces --indices and is supported in noninteractive and plain modes"
                 .into(),
         );
     }
@@ -505,6 +540,25 @@ fn forward_plain(net: &[Layer], x: &Array2<f64>) -> Array2<f64> {
 
 /// One plaintext NAG step, the trainer's update rule: `delta = a - y`, `G = dz^T a_in / n`,
 /// `V' = mu V + G`, `W' = W - lr (G + mu V')`, biases `b' = b - lr sum(dz) / n`.
+/// Weight decay of the twin (plain mode, ruling R-M3-14), in our batch-mean units.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct WeightDecay {
+    /// The decay on the batch-mean gradient: ReBoot's `weight_decay / B` when the lr is given
+    /// in `--lr-sum` units (ReBoot sums the gradient), else `--weight-decay` as is.
+    mean: f64,
+    /// `false`: coupled (torch SGD `weight_decay`: `g += wd W` before the momentum buffer and
+    /// Nesterov); `true`: decoupled (`W -= lr wd W` beside the step).
+    decoupled: bool,
+}
+
+impl WeightDecay {
+    const NONE: WeightDecay = WeightDecay {
+        mean: 0.0,
+        decoupled: false,
+    };
+}
+
+#[allow(clippy::too_many_arguments)]
 fn twin_step(
     net: &mut [Layer],
     vel: &mut [Array2<f64>],
@@ -513,6 +567,7 @@ fn twin_step(
     lr: f64,
     mu: f64,
     bias_lr: f64,
+    wd: WeightDecay,
 ) {
     let n = x.nrows() as f64;
     let last = net.len() - 1;
@@ -535,9 +590,17 @@ fn twin_step(
             &delta * &zs[i].mapv(|v| 2.0 * v + 1.0)
         };
         let next = dz.dot(&net[i].w);
-        let g = dz.t().dot(&acts[i]) / n;
+        let mut g = dz.t().dot(&acts[i]) / n;
+        let w_old = net[i].w.clone();
+        if wd.mean != 0.0 && !wd.decoupled {
+            // Coupled L2 (torch SGD weight_decay): on the weights, not the biases.
+            g = &g + &(wd.mean * &w_old);
+        }
         vel[i] = mu * &vel[i] + &g;
         net[i].w = &net[i].w - &(lr * &(&g + &(mu * &vel[i])));
+        if wd.mean != 0.0 && wd.decoupled {
+            net[i].w = &net[i].w - &((lr * wd.mean) * &w_old);
+        }
         let gb = dz.sum_axis(Axis(0)) / n;
         net[i]
             .b
@@ -924,6 +987,56 @@ fn load(args: &Args) -> Result<(Mnist, Mnist), String> {
     Ok((train, test))
 }
 
+/// The per-epoch training orders of `--epoch-orders FILE` (a 2-D `.npy`, any integer dtype:
+/// row `e` is epoch `e + 1`'s order), each index checked against `n_train`.
+fn read_epoch_orders(path: &std::path::Path, n_train: usize) -> Result<Vec<Vec<usize>>, String> {
+    let m = read_npy_f64(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    m.rows()
+        .into_iter()
+        .map(|row| {
+            row.iter()
+                .map(|&v| {
+                    if v.fract() == 0.0 && v >= 0.0 && (v as usize) < n_train {
+                        Ok(v as usize)
+                    } else {
+                        Err(format!(
+                            "epoch order entry {v} is not an index below {n_train}"
+                        ))
+                    }
+                })
+                .collect()
+        })
+        .collect()
+}
+
+/// The order of epoch `e`: row `e` of the epoch orders, else the training set in order.
+fn epoch_order(orders: &Option<Vec<Vec<usize>>>, e: usize, n: usize) -> Result<Vec<usize>, String> {
+    match orders {
+        None => Ok((0..n).collect()),
+        Some(o) => o.get(e).cloned().ok_or_else(|| {
+            format!(
+                "the epoch orders have {} epochs, epoch {} needs one",
+                o.len(),
+                e + 1
+            )
+        }),
+    }
+}
+
+/// The lr of update `step` on our batch-mean gradient: the schedule's value (in `--lr-sum`
+/// units, times `batch`) or `args.lr`.
+fn step_lr(schedule: &Option<Vec<f64>>, step: usize, args: &Args) -> Result<f64, String> {
+    match schedule {
+        None => Ok(args.lr),
+        Some(v) => v.get(step).map(|ls| ls * args.batch as f64).ok_or_else(|| {
+            format!(
+                "the lr schedule has {} values, step {step} needs one",
+                v.len()
+            )
+        }),
+    }
+}
+
 /// Per-step learning rates from `--lr-schedule FILE`: a JSON object (the array under the first
 /// key whose name contains `lr`), a JSON array, or one value per line / separated by commas;
 /// `#` starts a comment line. Easy to adapt to gpu-runner's final format.
@@ -1162,6 +1275,7 @@ fn run(args: &Args) -> Result<(), String> {
                 args.lr,
                 args.momentum,
                 if args.no_bias { 0.0 } else { args.lr },
+                WeightDecay::NONE,
             );
             batch_s.push(log.seconds);
             refresh_s.push(log.refresh_seconds);
@@ -1404,7 +1518,6 @@ fn run_plain(args: &Args) -> Result<(), String> {
     let y_train = one_hot(&train.labels, args.out_width);
     let y_test = one_hot(&test.labels, args.out_width);
     let n = train.len();
-    let bias_lr = if args.no_bias { 0.0 } else { args.lr };
     let mut epochs = Vec::new();
     let mut updates = 0;
     let (mut step_loss, mut step_acc) = (Vec::new(), Vec::new());
@@ -1413,36 +1526,39 @@ fn run_plain(args: &Args) -> Result<(), String> {
         .as_deref()
         .map(read_lr_schedule)
         .transpose()?;
+    let orders = args
+        .epoch_orders
+        .as_deref()
+        .map(|p| read_epoch_orders(p, n))
+        .transpose()?;
+    let wd = WeightDecay {
+        mean: if args.lr_sum.is_some() {
+            args.weight_decay / args.batch as f64
+        } else {
+            args.weight_decay
+        },
+        decoupled: args.wd_form == "decoupled",
+    };
     let mut lrs = Vec::new();
     for epoch in 0..args.epochs {
-        for start in (0..n).step_by(args.batch) {
-            let end = (start + args.batch).min(n);
-            let x = train.images.slice(s![start..end, ..]).to_owned();
-            let y = y_train.slice(s![start..end, ..]).to_owned();
+        let order = epoch_order(&orders, epoch, n)?;
+        for start in (0..order.len()).step_by(args.batch) {
+            let end = (start + args.batch).min(order.len());
+            let idx = &order[start..end];
+            let x = train.images.select(Axis(0), idx);
+            let y = y_train.select(Axis(0), idx);
             // ReBoot's printed per-step metrics, before the update: the batch loss is the sum
             // over the batch and all output columns of (y - y_hat)^2; the accuracy is over the
             // 10 real classes.
             let o = forward_plain(&twin, &x);
-            let labels = &train.labels[start..end];
+            let labels: Vec<u8> = idx.iter().map(|&i| train.labels[i]).collect();
             step_loss.push(J::N((&o - &y).mapv(|v| v * v).sum()));
-            step_acc.push(J::N(accuracy(&o, labels)));
+            step_acc.push(J::N(accuracy(&o, &labels)));
             // A scheduled step's lr is in --lr-sum units (ReBoot's lr on the summed gradient).
-            let (lr, blr) = match &schedule {
-                Some(v) => {
-                    let ls = *v.get(updates).ok_or_else(|| {
-                        format!(
-                            "the lr schedule has {} values, step {} needs one",
-                            v.len(),
-                            updates
-                        )
-                    })?;
-                    let lr = ls * args.batch as f64;
-                    (lr, if args.no_bias { 0.0 } else { lr })
-                }
-                None => (args.lr, bias_lr),
-            };
+            let lr = step_lr(&schedule, updates, args)?;
+            let blr = if args.no_bias { 0.0 } else { lr };
             lrs.push(J::N(lr));
-            twin_step(&mut twin, &mut vel, &x, &y, lr, args.momentum, blr);
+            twin_step(&mut twin, &mut vel, &x, &y, lr, args.momentum, blr, wd);
             updates += 1;
         }
         let out = forward_plain(&twin, &test.images);
@@ -2240,27 +2356,43 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let mut update_index = 0usize;
     let mut pred_run_ks = 0u64;
     let mut boot_s = Vec::new();
+    let lr_sched = args
+        .lr_schedule
+        .as_deref()
+        .map(read_lr_schedule)
+        .transpose()?;
+    let orders = args
+        .epoch_orders
+        .as_deref()
+        .map(|p| read_epoch_orders(p, n))
+        .transpose()?;
     let t_train = Instant::now();
     for epoch in 0..args.epochs {
-        for start in (0..n).step_by(args.batch) {
-            let end = (start + args.batch).min(n);
+        let order = epoch_order(&orders, epoch, n)?;
+        for start in (0..order.len()).step_by(args.batch) {
+            let end = (start + args.batch).min(order.len());
             trainer.set_next_batch_full(run_full.get(update_index + 1).copied());
+            // Per-step lr (R-M3-14): the trainer rescales its velocity exactly, at no cost.
+            let lr = step_lr(&lr_sched, update_index, args)?;
+            if lr_sched.is_some() {
+                trainer.set_lr(lr).map_err(|e| e.to_string())?;
+            }
             update_index += 1;
             let boot_s0 = trainer.bootstrap_seconds();
             let t0 = Instant::now();
             let mut cts = Vec::new();
             for sub in (start..end).step_by(lanes) {
                 let se = (sub + lanes).min(end);
-                let x = train.images.slice(s![sub..se, ..]).to_owned();
-                let y = y_train.slice(s![sub..se, ..]).to_owned();
+                let x = train.images.select(Axis(0), &order[sub..se]);
+                let y = y_train.select(Axis(0), &order[sub..se]);
                 let (xc, yc) = spec
                     .encrypt(&enc, &encoder, &layout, &x, &y, &mut r)
                     .map_err(|e| e.to_string())?;
                 cts.push((xc, yc, se - sub));
             }
             client_enc_s.push(t0.elapsed().as_secs_f64());
-            let x = train.images.slice(s![start..end, ..]).to_owned();
-            let y = y_train.slice(s![start..end, ..]).to_owned();
+            let x = train.images.select(Axis(0), &order[start..end]);
+            let y = y_train.select(Axis(0), &order[start..end]);
             let h = affine(&x, &twin[0]).mapv(|v| v * v + v);
             max_hidden = max_hidden.max(max_abs(h.iter().copied()));
             let refs: Vec<_> = cts.iter().map(|(x, y, k)| (x, y, *k)).collect();
@@ -2294,9 +2426,10 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 &mut vel,
                 &x,
                 &y,
-                args.lr,
+                lr,
                 args.momentum,
-                if args.no_bias { 0.0 } else { args.lr },
+                if args.no_bias { 0.0 } else { lr },
+                WeightDecay::NONE,
             );
             let did_boot = trainer.last_update_booted();
             // The closed form of this update (any fullness: valid lanes change no key switch;
@@ -2444,6 +2577,20 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 ("lr", J::N(args.lr)),
                 ("momentum", J::N(args.momentum)),
                 ("weight_decay", J::N(0.0)),
+                (
+                    "lr_schedule",
+                    J::S(args.lr_schedule.as_ref().map_or_else(
+                        || "constant".into(),
+                        |p| p.display().to_string(),
+                    )),
+                ),
+                (
+                    "epoch_orders",
+                    J::S(args.epoch_orders.as_ref().map_or_else(
+                        || "none".into(),
+                        |p| p.display().to_string(),
+                    )),
+                ),
                 ("seed", J::I(args.seed as i64)),
             ]),
         ),

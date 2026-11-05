@@ -56,9 +56,25 @@ fn mnist_binary_noninteractive_mini_boot() {
         ("when_needed", false, "16", 2.0, 2.0),
         ("after_update", true, "16", 2.0, 2.0),
         ("when_needed", true, "6", 6.0, 1.0),
+        ("when_needed", true, "16s", 2.0, 2.0),
     ] {
-        let out = dir.join(format!("{placement}_{faithful}_{batch}.json"));
+        // "16s": batch 16 with a per-step lr schedule (R-M3-14), in --lr-sum units.
+        let (batch, schedule) = match batch.strip_suffix('s') {
+            Some(b) => {
+                let f = dir.join("lr.txt");
+                fs::write(&f, "# lr per step\n0.0005\n0.0002\n").unwrap();
+                (b, Some(f))
+            }
+            None => (batch, None),
+        };
+        let out = dir.join(format!(
+            "{placement}_{faithful}_{batch}_{}.json",
+            schedule.is_some()
+        ));
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_mnist"));
+        if let Some(f) = &schedule {
+            cmd.arg("--lr-schedule").arg(f);
+        }
         if faithful {
             // R-M3-12: no biases, Xavier init, lr 5e-4 on the batch-summed gradient (the
             // explicit --lr below is overridden by --lr-sum's conversion).
