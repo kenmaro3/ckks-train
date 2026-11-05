@@ -81,3 +81,18 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** 0 MiB. **RAM need:** < 2 GB
 - **output path:** `results/quadruped/raw/reboot_emlp1_official_subset/reboot_init_weights/{W1.npy, W2.npy, init_weights.json}`
 - **note:** data only. No ReBoot source in any output file.
+
+## R-44-1: Task 44 hekit-cuda GPU tests (device, batched NTT/INTT)
+
+- **purpose:** check that the GPU NTT and INTT match the CPU bit for bit (n16_train, 32 limbs), and that a bad ordinal returns a Device error. This is the first run of cudarc 0.19.0 (cuda-13010, dynamic-loading) on the server.
+- **commit to sync:** 8b39a57 or later
+- **working dir:** `~/hekit`
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1
+  ```
+- **pass criterion:** every test passes, and no `SKIP` line appears. Each GPU test prints `<test>: NVIDIA GeForce RTX 4090 (sm_89) (need X MiB, free Y MiB)`. Any SKIP line counts as not passed; record it as-is.
+- **expected duration:** 1–2 min for the build, under 1 min for the tests
+- **GPU memory need:** at most 104 MiB per test, about 512 MiB peak including the CUDA context. **RAM need:** < 4 GB
+- **output path:** `results/quadruped/hekit_cuda_task44_tests.txt` (full stdout and stderr) and `results/quadruped/logs/R-44-1.log`
