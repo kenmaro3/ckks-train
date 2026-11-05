@@ -7,6 +7,8 @@
 //! (plus a few extra extreme or coefficient-form inputs where noted).
 #![allow(dead_code)]
 
+pub mod ks;
+
 use std::sync::Arc;
 
 use hekit_ckks::keys::{conjugation_elt, galois_elt};

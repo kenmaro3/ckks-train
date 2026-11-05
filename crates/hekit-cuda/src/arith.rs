@@ -18,6 +18,7 @@ use crate::basis::{
     rescale_keep,
 };
 use crate::device::{CudaDevice, DeviceConvTable, dev_err, guarded};
+use crate::ks::PwOp;
 use crate::plan::ElemLaunch;
 use crate::poly::DevicePoly;
 
@@ -34,16 +35,8 @@ fn elem_cfg(n: usize, rows: usize) -> Result<LaunchConfig> {
     })
 }
 
-/// The pointwise kernels with two inputs.
-#[derive(Clone, Copy)]
-enum Binary {
-    Add,
-    Sub,
-    Mul,
-}
-
 impl CudaDevice {
-    fn alloc_limbs(&self, limbs: usize) -> Result<CudaSlice<u64>> {
+    pub(crate) fn alloc_limbs(&self, limbs: usize) -> Result<CudaSlice<u64>> {
         guarded("alloc", || {
             // SAFETY: device memory, not read by the host before every element is written:
             // each caller fills the whole buffer (kernel over all limbs and coefficients, or
@@ -53,7 +46,19 @@ impl CudaDevice {
         })
     }
 
-    fn new_poly(
+    /// A private device copy of `src` (copy on write of [`DevicePoly`]; `Device` on
+    /// out-of-memory).
+    pub(crate) fn clone_limbs(&self, src: &CudaSlice<u64>) -> Result<CudaSlice<u64>> {
+        let mut out = self.alloc_limbs(src.len() / self.n())?;
+        guarded("limb copy", || {
+            self.stream()
+                .memcpy_dtod(src, &mut out)
+                .map_err(|e| dev_err("device-to-device copy", e))
+        })?;
+        Ok(out)
+    }
+
+    pub(crate) fn new_poly(
         &self,
         limbs: CudaSlice<u64>,
         primes: Arc<[u32]>,
@@ -74,48 +79,65 @@ impl CudaDevice {
         Ok(())
     }
 
-    fn binary<'d>(
-        &'d self,
-        op: Binary,
-        a: &DevicePoly<'d>,
-        b: &DevicePoly<'d>,
-    ) -> Result<DevicePoly<'d>> {
-        self.check_pair(a, b)?;
+    /// Launches `pw_add` / `pw_sub` / `pw_mul` into `out` (all `primes.len()` limbs).
+    pub(crate) fn launch_binary(
+        &self,
+        op: PwOp,
+        out: &mut CudaSlice<u64>,
+        a: &CudaSlice<u64>,
+        b: &CudaSlice<u64>,
+        primes: &[u32],
+    ) -> Result<()> {
+        let len = primes.len() * self.n();
+        if out.len() != len || a.len() != len || b.len() != len {
+            return Err(invalid("pointwise buffers do not match their limbs"));
+        }
         let k = &self.kernels;
         let (f, name): (&CudaFunction, _) = match op {
-            Binary::Add => (&k.pw_add, "pw_add"),
-            Binary::Sub => (&k.pw_sub, "pw_sub"),
-            Binary::Mul => (&k.pw_mul, "pw_mul"),
+            PwOp::Add => (&k.pw_add, "pw_add"),
+            PwOp::Sub => (&k.pw_sub, "pw_sub"),
+            PwOp::Mul => (&k.pw_mul, "pw_mul"),
         };
-        let map = self.limb_map(a.primes())?;
-        let mut out = self.alloc_limbs(a.num_limbs())?;
-        let cfg = elem_cfg(self.n(), a.num_limbs())?;
+        let map = self.limb_map(primes)?;
+        let cfg = elem_cfg(self.n(), primes.len())?;
         let log_n = self.n().trailing_zeros();
         guarded(name, || {
             let mut l = self.stream().launch_builder(f);
-            l.arg(&mut out)
-                .arg(a.limbs())
-                .arg(b.limbs())
+            l.arg(out)
+                .arg(a)
+                .arg(b)
                 .arg(&self.ntt_tables.consts)
                 .arg(&*map)
                 .arg(&log_n);
             // SAFETY: matches `(u64*, const u64*, const u64*, const u64*, const u32*, u32)` in
-            // kernels/pointwise.cu; out, a, b hold num_limbs * N entries, the map num_limbs
-            // valid prime indices; grid (ceil(N/256), num_limbs), threads c >= N return.
+            // kernels/pointwise.cu; out, a, b hold num_limbs * N entries (checked above), the
+            // map num_limbs valid prime indices; grid (ceil(N/256), num_limbs), threads c >= N
+            // return.
             unsafe { l.launch(cfg) }.map_err(|e| dev_err(name, e))?;
             Ok(())
-        })?;
+        })
+    }
+
+    fn binary<'d>(
+        &'d self,
+        op: PwOp,
+        a: &DevicePoly<'d>,
+        b: &DevicePoly<'d>,
+    ) -> Result<DevicePoly<'d>> {
+        self.check_pair(a, b)?;
+        let mut out = self.alloc_limbs(a.num_limbs())?;
+        self.launch_binary(op, &mut out, a.limbs(), b.limbs(), a.primes())?;
         Ok(self.new_poly(out, Arc::clone(a.primes_arc()), a.is_ntt_form()))
     }
 
     /// `a + b` (either form, same limbs and form): `RnsPoly::add_assign`.
     pub fn add<'d>(&'d self, a: &DevicePoly<'d>, b: &DevicePoly<'d>) -> Result<DevicePoly<'d>> {
-        self.binary(Binary::Add, a, b)
+        self.binary(PwOp::Add, a, b)
     }
 
     /// `a - b` (either form, same limbs and form): `RnsPoly::sub_assign`.
     pub fn sub<'d>(&'d self, a: &DevicePoly<'d>, b: &DevicePoly<'d>) -> Result<DevicePoly<'d>> {
-        self.binary(Binary::Sub, a, b)
+        self.binary(PwOp::Sub, a, b)
     }
 
     /// The ring product `a * b` of two NTT-form polynomials (pointwise, same limbs):
@@ -128,7 +150,7 @@ impl CudaDevice {
         if !a.is_ntt_form() || !b.is_ntt_form() {
             return Err(invalid("mul_pointwise needs both operands in NTT form"));
         }
-        self.binary(Binary::Mul, a, b)
+        self.binary(PwOp::Mul, a, b)
     }
 
     /// `-a` (either form): `RnsPoly::neg`.
@@ -194,25 +216,45 @@ impl CudaDevice {
         self.check_owner(a)?;
         check_galois_elt(self.n(), galois_elt)?;
         let mut out = self.alloc_limbs(a.num_limbs())?;
-        let cfg = elem_cfg(self.n(), a.num_limbs())?;
+        self.launch_automorphism(&mut out, a.limbs(), a.primes(), a.is_ntt_form(), galois_elt)?;
+        Ok(self.new_poly(out, Arc::clone(a.primes_arc()), a.is_ntt_form()))
+    }
+
+    /// Launches `automorphism_ntt` (NTT form) or `automorphism_coeff` into `out` (a distinct
+    /// allocation of `primes.len()` limbs). `galois_elt` must be odd and `< 2N`.
+    pub(crate) fn launch_automorphism(
+        &self,
+        out: &mut CudaSlice<u64>,
+        a: &CudaSlice<u64>,
+        primes: &[u32],
+        ntt_form: bool,
+        galois_elt: u64,
+    ) -> Result<()> {
+        check_galois_elt(self.n(), galois_elt)?;
+        let len = primes.len() * self.n();
+        if out.len() != len || a.len() != len {
+            return Err(invalid("automorphism buffers do not match their limbs"));
+        }
+        let cfg = elem_cfg(self.n(), primes.len())?;
         let log_n = self.n().trailing_zeros();
-        if a.is_ntt_form() {
+        if ntt_form {
             guarded("automorphism_ntt", || {
                 let mut l = self.stream().launch_builder(&self.kernels.automorphism_ntt);
-                l.arg(&mut out).arg(a.limbs()).arg(&log_n).arg(&galois_elt);
+                l.arg(out).arg(a).arg(&log_n).arg(&galois_elt);
                 // SAFETY: matches `(u64*, const u64*, u32, u64)`; out and a are distinct
-                // allocations of num_limbs * N entries; source indices are < N.
+                // allocations (`&mut` and `&` borrows) of num_limbs * N entries (checked
+                // above); source indices are < N.
                 unsafe { l.launch(cfg) }.map_err(|e| dev_err("automorphism_ntt", e))?;
                 Ok(())
-            })?;
+            })
         } else {
-            let map = self.limb_map(a.primes())?;
+            let map = self.limb_map(primes)?;
             guarded("automorphism_coeff", || {
                 let mut l = self
                     .stream()
                     .launch_builder(&self.kernels.automorphism_coeff);
-                l.arg(&mut out)
-                    .arg(a.limbs())
+                l.arg(out)
+                    .arg(a)
                     .arg(&self.ntt_tables.consts)
                     .arg(&*map)
                     .arg(&log_n)
@@ -222,9 +264,8 @@ impl CudaDevice {
                 // output element is written exactly once.
                 unsafe { l.launch(cfg) }.map_err(|e| dev_err("automorphism_coeff", e))?;
                 Ok(())
-            })?;
+            })
         }
-        Ok(self.new_poly(out, Arc::clone(a.primes_arc()), a.is_ntt_form()))
     }
 
     /// Divides by the last limb's prime with rounding and drops that limb (either form; at
@@ -269,9 +310,9 @@ impl CudaDevice {
     }
 }
 
-/// [`Backend`] on the device: the kernels of `kernels/basis.cu`, the batched NTT and device
-/// copies, all on stream 0.
-struct Dev<'a>(&'a CudaDevice);
+/// [`Backend`] and [`KsBackend`] on the device: the kernels of `kernels/basis.cu`,
+/// `pointwise.cu` and `keyswitch.cu`, the batched NTT and device copies, all on stream 0.
+pub(crate) struct Dev<'a>(pub(crate) &'a CudaDevice);
 
 impl Backend for Dev<'_> {
     type Buf = CudaSlice<u64>;

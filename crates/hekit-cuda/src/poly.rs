@@ -3,8 +3,9 @@
 use std::sync::Arc;
 
 use cudarc::driver::CudaSlice;
+use hekit_ckks::linalg::DiagonalEntry;
 use hekit_ckks::{Plaintext, QpPoly};
-use hekit_core::{Result, RnsPoly};
+use hekit_core::{HekitError, Result, RnsPoly};
 
 use crate::device::{CudaDevice, dev_err, guarded};
 
@@ -16,9 +17,14 @@ use crate::device::{CudaDevice, dev_err, guarded};
 /// Invariant: every residue is fully reduced (`< q`): uploads check it and every kernel
 /// preserves it, which is what the inverse NTT's `< 2q` precondition needs.
 ///
-/// Not `Clone`: a copy allocates device memory and can fail (cudarc's `CudaSlice::clone`
-/// panics on out-of-memory). Cheap shared handles (`Arc`) are a later task's; the prime list
-/// is already an `Arc<[u32]>`.
+/// **`Clone` is a shared handle**: the limbs live in an `Arc`'d device allocation, so `clone`
+/// is a reference-count increment. It never allocates device memory and never fails, as
+/// `hekit_ckks::HeOps` requires of ciphertexts and plaintexts. Sharing is safe because every
+/// operation of this crate is functional: it reads its operands and returns a **new**
+/// polynomial. The two in-place operations, [`CudaDevice::ntt`] and [`CudaDevice::intt`],
+/// copy on write: on a polynomial whose storage is shared, they first make a private copy of
+/// the limbs. That copy is fallible (`Device` on out-of-memory), so other handles never see
+/// the change. The allocation is freed when the last handle is dropped (stream-ordered).
 ///
 /// It borrows the [`CudaDevice`] it was uploaded to, so it cannot outlive it (stable rustdoc
 /// does not check the error code of a `compile_fail` example; the `no_run` twin below differs
@@ -49,9 +55,10 @@ use crate::device::{CudaDevice, dev_err, guarded};
 /// let _ = poly.download();
 /// drop(dev);
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DevicePoly<'d> {
-    limbs: CudaSlice<u64>,
+    /// Shared device storage (see the type docs: functional operations, copy on write).
+    limbs: Arc<CudaSlice<u64>>,
     n: usize,
     dev: &'d CudaDevice,
     /// Prime index (in the device tables) of every limb; distinct.
@@ -69,7 +76,7 @@ impl<'d> DevicePoly<'d> {
     ) -> DevicePoly<'d> {
         debug_assert_eq!(limbs.len(), n * primes.len());
         DevicePoly {
-            limbs,
+            limbs: Arc::new(limbs),
             n,
             dev,
             primes,
@@ -124,15 +131,29 @@ impl<'d> DevicePoly<'d> {
         self.ntt_form = ntt_form;
     }
 
-    pub(crate) fn limbs_mut(&mut self) -> &mut CudaSlice<u64> {
-        &mut self.limbs
+    /// Mutable access to the limbs for an in-place operation: when the storage is shared
+    /// with another handle (a clone), the limbs are first copied to a private allocation
+    /// (copy on write; `Device` on out-of-memory).
+    pub(crate) fn limbs_mut(&mut self) -> Result<&mut CudaSlice<u64>> {
+        if Arc::get_mut(&mut self.limbs).is_none() {
+            let private = self.dev.clone_limbs(&self.limbs)?;
+            self.limbs = Arc::new(private);
+        }
+        Arc::get_mut(&mut self.limbs).ok_or_else(|| {
+            HekitError::Device("copy-on-write left the limbs shared (internal error)".into())
+        })
+    }
+
+    /// `true` when another handle shares this polynomial's storage.
+    pub fn is_shared(&self) -> bool {
+        Arc::strong_count(&self.limbs) > 1
     }
 
     fn download_flat(&self) -> Result<Vec<u64>> {
         guarded("download", || {
             self.dev
                 .stream()
-                .clone_dtoh(&self.limbs)
+                .clone_dtoh(&*self.limbs)
                 .map_err(|e| dev_err("device-to-host copy", e))
         })
     }
@@ -158,8 +179,9 @@ impl<'d> DevicePoly<'d> {
 }
 
 /// A plaintext in device memory: NTT-form polynomial, scale and level (as
-/// [`hekit_ckks::Plaintext`]). Borrows its [`CudaDevice`] like [`DevicePoly`].
-#[derive(Debug)]
+/// [`hekit_ckks::Plaintext`]). Borrows its [`CudaDevice`] like [`DevicePoly`]; `Clone` is a
+/// shared handle (a reference-count increment, see [`DevicePoly`]).
+#[derive(Debug, Clone)]
 pub struct DevicePlaintext<'d> {
     poly: DevicePoly<'d>,
     scale: f64,
@@ -189,5 +211,17 @@ impl<'d> DevicePlaintext<'d> {
     /// Copies the plaintext back to the host.
     pub fn download(&self) -> Result<Plaintext> {
         Plaintext::new(self.poly.download()?, self.scale)
+    }
+}
+
+impl DiagonalEntry for DevicePlaintext<'_> {
+    fn level(&self) -> usize {
+        self.level
+    }
+    fn scale(&self) -> f64 {
+        self.scale
+    }
+    fn slots(&self) -> usize {
+        self.poly.n() / 2
     }
 }

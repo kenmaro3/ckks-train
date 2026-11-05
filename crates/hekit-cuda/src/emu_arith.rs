@@ -31,7 +31,7 @@ fn brev(x: u32) -> u32 {
 }
 
 /// [P1] / [B1]
-fn add_mod(a: u64, b: u64, q: u64) -> u64 {
+pub(crate) fn add_mod(a: u64, b: u64, q: u64) -> u64 {
     debug_assert!(a < q && b < q);
     let s = a + b;
     if s >= q { s - q } else { s }
@@ -59,7 +59,7 @@ fn barrett_est(x0: u64, x1: u64, r0: u64, r1: u64) -> u64 {
 }
 
 /// [P3]
-fn mul_mod(a: u64, b: u64, q: u64, r0: u64, r1: u64) -> u64 {
+pub(crate) fn mul_mod(a: u64, b: u64, q: u64, r0: u64, r1: u64) -> u64 {
     debug_assert!(a < q && b < q);
     let x0 = a.wrapping_mul(b);
     let x1 = umul64hi(a, b);
@@ -84,7 +84,7 @@ fn mul_shoup(a: u64, w: u64, ws: u64, q: u64) -> u64 {
 
 /// Runs `body(blockIdx.y, c)` for every thread of an element-wise launch with `c < N`
 /// ([P5] / [P12] / [P15] / [B4] / [B11]).
-fn each_thread(l: &ElemLaunch, log_n: u32, mut body: impl FnMut(u32, u32)) {
+pub(crate) fn each_thread(l: &ElemLaunch, log_n: u32, mut body: impl FnMut(u32, u32)) {
     for by in 0..l.grid.1 {
         for bx in 0..l.grid.0 {
             for tx in 0..l.block.0 {
@@ -99,7 +99,7 @@ fn each_thread(l: &ElemLaunch, log_n: u32, mut body: impl FnMut(u32, u32)) {
 }
 
 /// `i` of [P6] and the prime's constants.
-fn limb<'a>(
+pub(crate) fn limb<'a>(
     by: u32,
     c: u32,
     log_n: u32,
@@ -113,21 +113,21 @@ fn limb<'a>(
 
 /// Element-wise binary kernels (`pw_add`, `pw_sub`, `pw_mul`).
 #[derive(Clone, Copy, Debug)]
-enum Binary {
+pub(crate) enum Binary {
     Add,
     Sub,
     Mul,
 }
 
 /// Arguments common to the element-wise kernels.
-struct Pw<'a> {
+pub(crate) struct Pw<'a> {
     launch: ElemLaunch,
     consts: &'a [u64],
     limb_prime: &'a [u32],
     log_n: u32,
 }
 
-fn pw_binary(k: &Pw<'_>, op: Binary, out: &mut [u64], a: &[u64], b: &[u64]) {
+pub(crate) fn pw_binary(k: &Pw<'_>, op: Binary, out: &mut [u64], a: &[u64], b: &[u64]) {
     each_thread(&k.launch, k.log_n, |by, c| {
         let (i, cp) = limb(by, c, k.log_n, k.consts, k.limb_prime);
         out[i] = match op {
@@ -156,7 +156,7 @@ fn pw_mul_shoup(k: &Pw<'_>, out: &mut [u64], a: &[u64], w: &[u64]) {
 }
 
 /// `automorphism_ntt`
-fn automorphism_ntt(l: &ElemLaunch, out: &mut [u64], a: &[u64], log_n: u32, g: u64) {
+pub(crate) fn automorphism_ntt(l: &ElemLaunch, out: &mut [u64], a: &[u64], log_n: u32, g: u64) {
     let n = 1u32 << log_n;
     each_thread(l, log_n, |by, c| {
         let base = (by as usize) << log_n;
@@ -168,7 +168,7 @@ fn automorphism_ntt(l: &ElemLaunch, out: &mut [u64], a: &[u64], log_n: u32, g: u
 }
 
 /// `automorphism_coeff` (asserts every output element is written exactly once).
-fn automorphism_coeff(k: &Pw<'_>, out: &mut [u64], a: &[u64], g: u64) {
+pub(crate) fn automorphism_coeff(k: &Pw<'_>, out: &mut [u64], a: &[u64], g: u64) {
     let log_n = k.log_n;
     let n = 1u64 << log_n;
     let mut touched = vec![0u8; out.len()];
@@ -263,9 +263,9 @@ fn basis_div_finish(l: &ElemLaunch, t_out: &mut [u64], a: &[u64], tab: &[u64], k
 /// The replay backend: buffers are `Vec<u64>`, kernels are the replays above and the NTT
 /// replay of [`crate::emu`].
 pub struct EmuBackend {
-    primes: PrimeTable,
-    tables: HostNttTables,
-    log_n: u32,
+    pub(crate) primes: PrimeTable,
+    pub(crate) tables: HostNttTables,
+    pub(crate) log_n: u32,
     /// Replace the f64 product-and-sum of `basis_convert` by an FMA (a deliberately wrong
     /// mutant, to show that the near-tie inputs detect contraction). Always `false` except
     /// in `fma_contraction_is_caught_by_near_ties`.
@@ -283,11 +283,11 @@ impl EmuBackend {
         }
     }
 
-    fn n(&self) -> usize {
+    pub(crate) fn n(&self) -> usize {
         1 << self.log_n
     }
 
-    fn pw<'a>(&'a self, limb_prime: &'a [u32]) -> Pw<'a> {
+    pub(crate) fn pw<'a>(&'a self, limb_prime: &'a [u32]) -> Pw<'a> {
         Pw {
             launch: ElemLaunch::new(self.n(), limb_prime.len()).unwrap(),
             consts: &self.tables.consts,

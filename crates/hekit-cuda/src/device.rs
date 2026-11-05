@@ -17,7 +17,7 @@ use crate::basis::PrimeTable;
 use crate::plan::NttPlan;
 use crate::poly::{DevicePlaintext, DevicePoly};
 use crate::tables::HostNttTables;
-use crate::{BASIS_KERNEL_SRC, NTT_KERNEL_SRC, POINTWISE_KERNEL_SRC};
+use crate::{BASIS_KERNEL_SRC, KEYSWITCH_KERNEL_SRC, NTT_KERNEL_SRC, POINTWISE_KERNEL_SRC};
 
 /// `HekitError::Device` from any displayable error, with context.
 pub(crate) fn dev_err(what: &str, e: impl std::fmt::Display) -> HekitError {
@@ -82,7 +82,8 @@ pub(crate) struct DeviceNttTables {
     pub(crate) consts: CudaSlice<u64>,
 }
 
-/// The compiled kernels (three NVRTC modules: `ntt.cu`, `pointwise.cu`, `basis.cu`).
+/// The compiled kernels (four NVRTC modules: `ntt.cu`, `pointwise.cu`, `basis.cu`,
+/// `keyswitch.cu`).
 #[derive(Debug)]
 pub(crate) struct Kernels {
     fwd_global: CudaFunction,
@@ -98,6 +99,7 @@ pub(crate) struct Kernels {
     pub(crate) automorphism_coeff: CudaFunction,
     pub(crate) basis_convert: CudaFunction,
     pub(crate) basis_div_finish: CudaFunction,
+    pub(crate) ks_inner_product: CudaFunction,
 }
 
 /// A [`crate::basis::ConvTable`] on the device.
@@ -191,10 +193,11 @@ impl CudaDevice {
                 ctx.load_module(ptx)
                     .map_err(|e| dev_err(&format!("loading the module of kernels/{file}"), e))
             };
-            let (ntt, pw, basis) = (
+            let (ntt, pw, basis, ks) = (
                 module(NTT_KERNEL_SRC, "ntt.cu")?,
                 module(POINTWISE_KERNEL_SRC, "pointwise.cu")?,
                 module(BASIS_KERNEL_SRC, "basis.cu")?,
+                module(KEYSWITCH_KERNEL_SRC, "keyswitch.cu")?,
             );
             let load = |m: &Arc<cudarc::driver::CudaModule>, f: &str| {
                 m.load_function(f)
@@ -214,6 +217,7 @@ impl CudaDevice {
                 automorphism_coeff: load(&pw, "automorphism_coeff")?,
                 basis_convert: load(&basis, "basis_convert")?,
                 basis_div_finish: load(&basis, "basis_div_finish")?,
+                ks_inner_product: load(&ks, "ks_inner_product")?,
             };
             let streams = (0..n_streams)
                 .map(|_| ctx.new_stream().map_err(|e| dev_err("stream creation", e)))
@@ -421,13 +425,17 @@ impl CudaDevice {
     /// Accepts residues in `[0, 4q)` (every polynomial produced by this crate is fully
     /// reduced). After an `Err` the polynomial's contents are unspecified (some stages may
     /// have run; the form flag is unchanged).
+    ///
+    /// Copy on write: when `poly`'s storage is shared with a clone, the limbs are first copied
+    /// to a private allocation, so the clones are unchanged (`Device` if that copy does not
+    /// fit in device memory).
     pub fn ntt(&self, poly: &mut DevicePoly<'_>) -> Result<()> {
         self.check_owner(poly)?;
         if poly.is_ntt_form() {
             return Ok(());
         }
         let primes = Arc::clone(poly.primes_arc());
-        self.launch_ntt(poly.limbs_mut(), &primes, false)?;
+        self.launch_ntt(poly.limbs_mut()?, &primes, false)?;
         poly.set_ntt_form(true);
         Ok(())
     }
@@ -438,14 +446,15 @@ impl CudaDevice {
     /// **Precondition: every residue is `< 2q`** (the Gentleman-Sande butterflies compute
     /// `x + 2q - y`, which wraps for `y >= x + 2q`). Uploads and every kernel of this crate
     /// produce fully reduced residues (`< q`), so this holds for every [`DevicePoly`]. After an
-    /// `Err` the contents are unspecified, as for [`CudaDevice::ntt`].
+    /// `Err` the contents are unspecified, as for [`CudaDevice::ntt`]. Copy on write, as
+    /// [`CudaDevice::ntt`].
     pub fn intt(&self, poly: &mut DevicePoly<'_>) -> Result<()> {
         self.check_owner(poly)?;
         if !poly.is_ntt_form() {
             return Ok(());
         }
         let primes = Arc::clone(poly.primes_arc());
-        self.launch_ntt(poly.limbs_mut(), &primes, true)?;
+        self.launch_ntt(poly.limbs_mut()?, &primes, true)?;
         poly.set_ntt_form(false);
         Ok(())
     }

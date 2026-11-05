@@ -8,6 +8,7 @@ use cudarc::driver::{CudaContext, result};
 use hekit_ckks::CkksParams;
 
 use crate::device::{dev_err, guarded, probe};
+use crate::ks::KskShape;
 use crate::{CudaDevice, tables};
 
 /// Free device memory (bytes) on device `ordinal`, or why it cannot be measured (no driver,
@@ -32,6 +33,20 @@ pub fn free_device_memory(ordinal: usize) -> hekit_core::Result<usize> {
 /// Device memory of the NTT tables for `params` (what [`CudaDevice::new`] allocates).
 pub fn table_bytes(params: &CkksParams) -> usize {
     tables::device_bytes_for(params.n(), params.q().len() + params.p().len())
+}
+
+/// Device memory of a key-switching key for `params` uploaded for levels `<= max_level`
+/// ([`CudaDevice::upload_ksk_with`]; `max_level = L` for a full key: n16_train 288 MiB,
+/// seal_2020 55 MiB). `InvalidParams` above `L`.
+pub fn ksk_bytes(params: &CkksParams, max_level: usize) -> hekit_core::Result<usize> {
+    Ok(KskShape::new(params, max_level)?.device_bytes(params.n()))
+}
+
+/// Allocates (and frees) `limbs` limbs of device memory through the allocation path every
+/// device operation and [`CudaDevice::upload_ksk`] use, to observe that out-of-memory is a
+/// `Device` error and never an abort.
+pub fn try_alloc_limbs(dev: &CudaDevice, limbs: usize) -> hekit_core::Result<()> {
+    dev.alloc_limbs(limbs).map(drop)
 }
 
 /// Opens device 0 for `params` (one stream) if the test can run there, else prints
