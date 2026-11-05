@@ -297,14 +297,17 @@ fn run_with(
     wscale: f64,
 ) -> Run {
     let f = fx();
+    // Our own counter: tests run in parallel on the shared keys (Evaluator::clone shares the
+    // keys and starts a separate counter).
+    let ev = f.ev.clone();
     let mut r = rng(seed);
     let plain = init_scaled(dims, &mut r, wscale);
     let boxed: Vec<Box<dyn Activation>> = acts.iter().map(|a| a.boxed()).collect();
     let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
-        &f.ev, &f.bs, &plain, boxed, &layout, placement, &f.enc, &f.encoder, &mut r,
+        &ev, &f.bs, &plain, boxed, &layout, placement, &f.enc, &f.encoder, &mut r,
     )
     .unwrap();
-    let mut t = NonInteractiveTrainer::new(&f.ev, &f.bs, optim, layout, placement, &mlp, state)
+    let mut t = NonInteractiveTrainer::new(&ev, &f.bs, optim, layout, placement, &mlp, state)
         .unwrap()
         .with_transpose_keys(keys.clone());
     // The client keeps the secret key; it decrypts only for the activation diagnostic below
@@ -350,10 +353,10 @@ fn run_with(
         twin_step(&mut twin, &mut vel, acts, &x_all, &y_all, nag);
 
         let predicted_levels = t.predicted_trace(&mlp);
-        let before = f.ev.counter();
+        let before = ev.counter();
         t.set_next_batch_full((it + 1 < updates).then_some(true));
         t.train_step(&mut mlp, &cts).unwrap();
-        let got = &f.ev.counter() - &before;
+        let got = &ev.counter() - &before;
         // Levels: every value of the step, as predicted.
         let measured: Vec<(String, i64)> = t
             .trace()
@@ -374,7 +377,7 @@ fn run_with(
             }
         }
         let pred =
-            predict_update(&f.ev, &mlp, &layout, &keys, placement, micro, nag, booted).unwrap();
+            predict_update(&ev, &mlp, &layout, &keys, placement, micro, nag, booted).unwrap();
         let per = f.bs.cost_per_boot();
         let nb = pred.bootstraps();
         assert_eq!(got.bootstraps, nb, "bootstraps");
@@ -611,13 +614,16 @@ fn after_activation_reuse_and_large_activations() {
 #[test]
 fn lazy_placement_partial_batch_after_skip() {
     let f = fx();
+    // Our own counter: tests run in parallel on the shared keys (Evaluator::clone shares the
+    // keys and starts a separate counter).
+    let ev = f.ev.clone();
     let layout = single();
     let acts = || -> Vec<Box<dyn Activation>> { vec![Box::new(PolyRelu2), Box::new(Identity)] };
     let mut r = rng(14);
     let plain = init(&NET_B, &mut r);
     let fresh = |r: &mut Rng| {
         let (mlp, state) = NonInteractiveTrainer::encrypt_network(
-            &f.ev,
+            &ev,
             &f.bs,
             &plain,
             acts(),
@@ -629,7 +635,7 @@ fn lazy_placement_partial_batch_after_skip() {
         )
         .unwrap();
         let t = NonInteractiveTrainer::new(
-            &f.ev,
+            &ev,
             &f.bs,
             NAG,
             layout,
@@ -668,10 +674,10 @@ fn lazy_placement_partial_batch_after_skip() {
     t.train_batch(&mut mlp, &x, &y).unwrap();
     assert!(!t.last_update_booted(), "declared full next step: skipped");
     let (x, y) = batch(&t, &mlp, &mut r);
-    let before = f.ev.counter();
+    let before = ev.counter();
     let e = t.train_batch_valid(&mut mlp, &x, &y, 31).unwrap_err();
     assert!(matches!(e, HekitError::InvalidParams(_)), "{e:?}");
-    assert_eq!(f.ev.counter(), before, "refused before any work");
+    assert_eq!(ev.counter(), before, "refused before any work");
     // A full step still fits.
     t.train_batch(&mut mlp, &x, &y).unwrap();
 
@@ -684,10 +690,22 @@ fn lazy_placement_partial_batch_after_skip() {
     let (x, y) = batch(&t, &mlp, &mut r);
     t.train_batch_valid(&mut mlp, &x, &y, 31).unwrap();
 
-    // (d) An epoch whose last batch is partial: the look-ahead plans it, as boot_schedule does.
+    // (d) Four updates with explicit declarations (the epoch's look-ahead): every update's
+    // decision equals boot_schedule's.
+    let lanes_of = [32, 32, 32, 31];
+    let (mut mlp, mut t) = fresh(&mut r);
+    let mut decided = Vec::new();
+    for (i, &n) in lanes_of.iter().enumerate() {
+        let (x, y) = batch(&t, &mlp, &mut r);
+        t.set_next_batch_full(lanes_of.get(i + 1).map(|&k| k == 32));
+        t.train_step_valid(&mut mlp, &[(&x, &y, n)]).unwrap();
+        decided.push(t.last_update_booted());
+    }
+
+    // (e) The same epoch through train_epoch_valid (which declares the fullness itself).
     let (mut mlp, mut t) = fresh(&mut r);
     let mut batches = Vec::new();
-    for n in [32, 32, 32, 31] {
+    for n in lanes_of {
         let (x, y) = batch(&t, &mlp, &mut r);
         batches.push((x, y, n));
     }
@@ -706,6 +724,7 @@ fn lazy_placement_partial_batch_after_skip() {
     .unwrap();
     // full -> skip, full -> boot, full (next partial) -> boot, partial (last) -> boot.
     assert_eq!(sched, vec![false, true, true, true]);
+    assert_eq!(decided, sched, "every update's decision");
     let boots = sched.iter().filter(|&&b| b).count() as u64 * 4;
     assert_eq!(log.counter.bootstraps, boots);
     assert_eq!(log.refreshes as u64, boots);
@@ -718,13 +737,13 @@ fn lazy_placement_partial_batch_after_skip() {
 
 fn mlp_of(dims: &[usize], acts: Vec<Box<dyn Activation>>, layout: &Layout) -> Mlp {
     let f = fx();
+    // Our own counter: tests run in parallel on the shared keys (Evaluator::clone shares the
+    // keys and starts a separate counter).
+    let ev = f.ev.clone();
     let mut r = rng(3);
     let plain = init(dims, &mut r);
     let start = NonInteractiveTrainer::start_level_for(&f.bs);
-    Mlp::encrypt_at(
-        &f.ev, &plain, acts, layout, start, &f.enc, &f.encoder, &mut r,
-    )
-    .unwrap()
+    Mlp::encrypt_at(&ev, &plain, acts, layout, start, &f.enc, &f.encoder, &mut r).unwrap()
 }
 
 fn poly4() -> Box<dyn Activation> {
@@ -734,6 +753,9 @@ fn poly4() -> Box<dyn Activation> {
 #[test]
 fn levels_per_iter_exact_and_depth_overflow_refused() {
     let f = fx();
+    // Our own counter: tests run in parallel on the shared keys (Evaluator::clone shares the
+    // keys and starts a separate counter).
+    let ev = f.ev.clone();
     let layout = single();
     use BootPlacement::*;
     // eMLP-1's structure: z^2 + z, then linear.
@@ -745,11 +767,8 @@ fn levels_per_iter_exact_and_depth_overflow_refused() {
     assert_eq!(levels_per_iter(&b, AfterUpdate), 7);
     assert_eq!(levels_per_iter(&b, WhenNeeded), 7);
     assert_eq!(levels_per_iter(&b, AfterActivation), 5);
-    assert_eq!(
-        ActCost::probe(&f.ev, &PolyRelu2).unwrap(),
-        ActCost::QUADRATIC
-    );
-    assert_eq!(ActCost::probe(&f.ev, &Identity).unwrap(), ActCost::IDENTITY);
+    assert_eq!(ActCost::probe(&ev, &PolyRelu2).unwrap(), ActCost::QUADRATIC);
+    assert_eq!(ActCost::probe(&ev, &Identity).unwrap(), ActCost::IDENTITY);
     let a = mlp_of(
         &NET_A,
         vec![Box::new(PolyRelu2), Box::new(PolyRelu2)],
@@ -790,27 +809,30 @@ fn levels_per_iter_exact_and_depth_overflow_refused() {
         &mut rng(6),
     )
     .unwrap();
-    let before = f.ev.counter();
+    let before = ev.counter();
     let err =
-        NonInteractiveTrainer::new(&f.ev, &f.bs, NAG, layout, AfterUpdate, &deep, state.clone())
+        NonInteractiveTrainer::new(&ev, &f.bs, NAG, layout, AfterUpdate, &deep, state.clone())
             .unwrap_err();
     assert!(matches!(err, HekitError::InvalidParams(_)), "{err:?}");
-    assert_eq!(f.ev.counter(), before, "refused before any work");
+    assert_eq!(ev.counter(), before, "refused before any work");
     // With activation bootstraps the same network fits (13 <= 15): the level check passes
     // (and the first step's levels are checked next).
-    let ok = NonInteractiveTrainer::new(&f.ev, &f.bs, NAG, layout, AfterActivation, &deep, state);
+    let ok = NonInteractiveTrainer::new(&ev, &f.bs, NAG, layout, AfterActivation, &deep, state);
     assert!(ok.is_ok(), "{:?}", ok.err());
 }
 
 #[test]
 fn wrong_state_and_errors_before_work() {
     let f = fx();
+    // Our own counter: tests run in parallel on the shared keys (Evaluator::clone shares the
+    // keys and starts a separate counter).
+    let ev = f.ev.clone();
     let layout = single();
     let mut r = rng(12);
     let plain = init(&NET_B, &mut r);
     let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
     let (mut mlp, mut state) = NonInteractiveTrainer::encrypt_network(
-        &f.ev,
+        &ev,
         &f.bs,
         &plain,
         acts,
@@ -826,7 +848,7 @@ fn wrong_state_and_errors_before_work() {
     state.velocity.push(None);
     assert!(matches!(
         NonInteractiveTrainer::new(
-            &f.ev,
+            &ev,
             &f.bs,
             NAG,
             layout,
@@ -839,7 +861,7 @@ fn wrong_state_and_errors_before_work() {
     state.weights.pop();
     state.velocity.pop();
     let mut t = NonInteractiveTrainer::new(
-        &f.ev,
+        &ev,
         &f.bs,
         NAG,
         layout,
@@ -854,7 +876,7 @@ fn wrong_state_and_errors_before_work() {
     let (xc, yc) = spec
         .encrypt(&f.enc, &f.encoder, &layout, &x, &y, &mut r)
         .unwrap();
-    let before = f.ev.counter();
+    let before = ev.counter();
     assert!(matches!(
         t.train_batch_valid(&mut mlp, &xc, &yc, 0),
         Err(HekitError::InvalidParams(_))
@@ -863,11 +885,11 @@ fn wrong_state_and_errors_before_work() {
         t.train_step(&mut mlp, &[]),
         Err(HekitError::InvalidParams(_))
     ));
-    assert_eq!(f.ev.counter(), before);
+    assert_eq!(ev.counter(), before);
     // A batch packed at the wrong level is refused by the level check, not run.
-    let low = f.ev.mod_switch_to_level(&xc, 3).unwrap();
+    let low = ev.mod_switch_to_level(&xc, 3).unwrap();
     assert!(t.train_batch(&mut mlp, &low, &yc).is_err());
-    assert_eq!(f.ev.counter(), before);
+    assert_eq!(ev.counter(), before);
     let _ = pack_activations(&x, &layout);
 }
 
@@ -878,8 +900,8 @@ fn wrong_state_and_errors_before_work() {
 /// 16 -> 16 -> 4, PolyRelu2, batch 32 on n16_boot (2^15 slots, 64 block copies), 3 updates:
 /// weights within 2^-8 of plaintext NAG, `bootstraps = boot_count x updates`.
 #[test]
-#[ignore = "heavy: n16_boot bootstrap keys ~10 GB + training keys; run with --ignored on an idle machine"]
-fn n16_boot_three_updates() {
+#[ignore = "heavy: n16_boot keys (N = 2^16, ~13 GB); run with `-- --ignored n16_boot_keys`, see docs/bootstrap.md §11.6"]
+fn n16_boot_keys_three_updates() {
     let params = Arc::new(CkksParams::n16_boot());
     let mut kg = KeyGenerator::new(Arc::clone(&params), rng(21)).unwrap();
     let encoder = Encoder::new(Arc::clone(&params));

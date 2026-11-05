@@ -621,4 +621,8 @@ RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys --
 RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys_observe --nocapture
 ```
 
-hekit-nn's n16_boot tests (`tests/compact.rs`, `tests/trainer_ni.rs`) were already ignored on the same grounds.
+hekit-nn's n16_boot tests (`tests/compact.rs`, `tests/trainer_ni.rs`) were already ignored on the same grounds. `trainer_ni`'s gate (Task 41, 3 non-interactive updates on n16_boot, ~13 GB of bootstrap keys plus the training keys) is `n16_boot_keys_three_updates`, with the same reason string:
+
+```
+cargo test --release -p hekit-nn --test trainer_ni -- --ignored n16_boot_keys --nocapture
+```

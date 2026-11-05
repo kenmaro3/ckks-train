@@ -562,8 +562,8 @@ fn pass_levels(
 ///
 /// eMLP-1 (784 → 32 z² + z → 10 linear): 7 for [`BootPlacement::AfterUpdate`] and
 /// [`BootPlacement::WhenNeeded`], 5 for [`BootPlacement::AfterActivation`].
-/// [`NonInteractiveTrainer::new`] requires `levels_per_iter <=` the levels after a bootstrap and an unpack, the levels
-/// left after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
+/// [`NonInteractiveTrainer::new`] requires `levels_per_iter` to be at most the levels left
+/// after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
 pub fn levels_per_iter(mlp: &Mlp, placement: BootPlacement) -> usize {
     let meta = metas(mlp);
     const BIG: i64 = 1 << 30;
@@ -1816,7 +1816,9 @@ impl<'a> NonInteractiveTrainer<'a> {
         let (lanes, micro) = (self.layout.batch, self.micro);
         let groups: Vec<_> = batches.chunks(micro).collect();
         let full = |g: &[(Ciphertext, Ciphertext, usize)]| {
-            g.len() == micro && g.iter().all(|b| b.2 == lanes)
+            // Full = every lane valid, whatever the number of ciphertexts: the definition of
+            // the level pass (`train_step_valid`) and of `boot_schedule`'s `full`.
+            g.iter().all(|b| b.2 == lanes)
         };
         for (i, group) in groups.iter().enumerate() {
             self.next_full = groups.get(i + 1).map(|g| full(g));

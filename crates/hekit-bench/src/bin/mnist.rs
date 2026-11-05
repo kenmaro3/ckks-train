@@ -1050,6 +1050,86 @@ fn write_out(out: &std::path::Path, s: &str) -> Result<(), String> {
 // Task 41: non-interactive mode.
 // ---------------------------------------------------------------------------------------------
 
+/// The stdout of `cmd args` (trimmed), or `"unknown"`.
+fn cmd_out(cmd: &str, args: &[&str]) -> String {
+    Command::new(cmd)
+        .args(args)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".into())
+}
+
+/// Seconds since the Unix epoch.
+fn unix_now() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(f64::NAN, |d| d.as_secs_f64())
+}
+
+/// Where a result comes from, written by the binary itself: the git commit and the files that
+/// differ from it, the command line, the build, the machine, the threads and the load.
+fn provenance(load_start: &str, started_unix: f64) -> J {
+    let threads = std::thread::available_parallelism().map_or(0, |n| n.get());
+    let rayon = std::env::var("RAYON_NUM_THREADS").unwrap_or_else(|_| "unset".into());
+    let dirty = cmd_out("git", &["status", "--porcelain", "--untracked-files=no"]);
+    obj(vec![
+        (
+            "written_by",
+            J::S("the mnist binary (raw output, not assembled)".into()),
+        ),
+        ("git_commit", J::S(cmd_out("git", &["rev-parse", "HEAD"]))),
+        (
+            "git_modified_tracked_files",
+            J::S(if dirty == "unknown" {
+                "none".into()
+            } else {
+                dirty
+            }),
+        ),
+        (
+            "command_line",
+            J::S(std::env::args().collect::<Vec<_>>().join(" ")),
+        ),
+        ("build", build_info()),
+        ("parallel_feature", J::B(cfg!(feature = "parallel"))),
+        ("rustc_on_path", J::S(cmd_out("rustc", &["-V"]))),
+        (
+            "machine",
+            obj(vec![
+                (
+                    "cpu",
+                    J::S(cmd_out("sysctl", &["-n", "machdep.cpu.brand_string"])),
+                ),
+                ("logical_cpus", J::I(threads as i64)),
+                (
+                    "memory_bytes",
+                    J::S(cmd_out("sysctl", &["-n", "hw.memsize"])),
+                ),
+                ("os", J::S(cmd_out("uname", &["-srm"]))),
+                ("host", J::S(cmd_out("hostname", &["-s"]))),
+            ]),
+        ),
+        (
+            "threads",
+            J::S(if cfg!(feature = "parallel") {
+                format!(
+                    "rayon (feature parallel), RAYON_NUM_THREADS = {rayon}, {threads} logical CPUs"
+                )
+            } else {
+                "1 (no parallel feature)".into()
+            }),
+        ),
+        ("load_start", J::S(load_start.into())),
+        ("load_end", J::S(loadavg())),
+        ("started_unix", J::N(started_unix)),
+        ("finished_unix", J::N(unix_now())),
+    ])
+}
+
 /// ReBoot's bootstrap key switches in the M0 cost model: OpenFHE `EvalBootstrap` with
 /// Meta-BTS, 2 iterations (`spikes/costmodel/costmodel.py` `bootstrap_key_switches(2^15)`:
 /// 436 linear-transform rotations + 2 conjugations + 64 EvalMod relins; `spikes/RESULTS.md`
@@ -1268,64 +1348,132 @@ fn ni_counter_json(c: &OpCounter) -> J {
 /// The RQ1 ratio three ways (parent's reporting rule): hekit's key switches per sample with
 /// its bootstraps priced at `p_he`, over ReBoot's at `p_rb`, against ReBoot at its own B = 48
 /// and at hekit's B.
+/// One ReBoot-side baseline of the RQ1 ratio: its key switches per sample without bootstraps
+/// and where the number comes from.
+struct RebootSide {
+    name: &'static str,
+    ks_per_sample: f64,
+    source: String,
+}
+
+/// The ReBoot-side baselines: Task 33's measured in-library ReBoot layout (Lazy, the headline,
+/// and PerSample), read from `results/mnist_reboot_layout.json` when present, and the M0 cost
+/// model's ReBoot as shipped. Bootstraps are not in any of them (Task 33 ran with hekit's
+/// interactive client): the ratio adds ReBoot's 4 bootstraps per update (W and V of 2 layers,
+/// M0 model) at the way's bootstrap cost.
+fn reboot_sides() -> Vec<RebootSide> {
+    let mut out = Vec::new();
+    if let Ok(json) = std::fs::read_to_string(REBOOT_MEASURED) {
+        for (name, mode) in [
+            ("lazy_measured", "\"lazy\""),
+            ("persample_measured", "\"persample\""),
+        ] {
+            let v = json.find(mode).and_then(|at| {
+                let key = "\"key_switches_per_sample\":";
+                let k = json[at..].find(key)? + at + key.len();
+                let end = json[k..].find([',', '\n', '}'])? + k;
+                json[k..end].trim().parse::<f64>().ok()
+            });
+            if let Some(ks) = v {
+                out.push(RebootSide {
+                    name,
+                    ks_per_sample: ks,
+                    source: format!(
+                        "measured (Task 33, {REBOOT_MEASURED}, mode {mode}): ReBoot's per-sample \
+                         layout in hekit (in-library layout, hekit's interactive client, no \
+                         bootstraps); ReBoot official (OpenFHE) not measured"
+                    ),
+                });
+            }
+        }
+    }
+    out.push(RebootSide {
+        name: "m0_model",
+        ks_per_sample: REBOOT_KS_PER_SAMPLE,
+        source: "M0 cost model, ReBoot as shipped at N = 2^16 (spikes/RESULTS.md Task 6)".into(),
+    });
+    out
+}
+
+/// The RQ1 ratio three ways (parent's reporting rule) for every ReBoot-side baseline: hekit's
+/// key switches per sample with its bootstraps priced at `p_he`, over ReBoot's with its 4
+/// bootstraps per update priced at `p_rb`, against ReBoot at its own B = 48 and at hekit's B.
 fn rq1_json(
     nonboot_per_sample: f64,
     boots_per_sample: f64,
     batch: usize,
     he_boot: u64,
-    source: &str,
+    sides: &[RebootSide],
 ) -> J {
     let he = |p: f64| nonboot_per_sample + boots_per_sample * p;
-    let rb = |p: f64, b: usize| REBOOT_KS_PER_SAMPLE + REBOOT_BOOTS_PER_UPDATE * p / b as f64;
-    let way = |name: &str, p_he: u64, p_rb: u64| {
+    let way = |side: &RebootSide, name: &str, p_he: u64, p_rb: u64| {
         let (ph, pr) = (p_he as f64, p_rb as f64);
+        let rb = |b: usize| side.ks_per_sample + REBOOT_BOOTS_PER_UPDATE * pr / b as f64;
         obj(vec![
             ("way", J::S(name.into())),
             ("hekit_boot_ks", J::I(p_he as i64)),
             ("reboot_boot_ks", J::I(p_rb as i64)),
             ("hekit_ks_per_sample", J::N(he(ph))),
-            ("reboot_ks_per_sample_b48", J::N(rb(pr, REBOOT_BATCH))),
-            ("ratio_vs_reboot_b48", J::N(he(ph) / rb(pr, REBOOT_BATCH))),
-            ("reboot_ks_per_sample_same_b", J::N(rb(pr, batch))),
-            ("ratio_vs_reboot_same_b", J::N(he(ph) / rb(pr, batch))),
+            ("reboot_ks_per_sample_b48", J::N(rb(REBOOT_BATCH))),
+            ("ratio_vs_reboot_b48", J::N(he(ph) / rb(REBOOT_BATCH))),
+            ("reboot_ks_per_sample_same_b", J::N(rb(batch))),
+            ("ratio_vs_reboot_same_b", J::N(he(ph) / rb(batch))),
         ])
     };
+    let per_side = sides
+        .iter()
+        .map(|side| {
+            (
+                side.name.to_string(),
+                obj(vec![
+                    ("source", J::S(side.source.clone())),
+                    ("ks_per_sample_without_bootstraps", J::N(side.ks_per_sample)),
+                    (
+                        "a_own_bootstrap_costs",
+                        way(
+                            side,
+                            &format!(
+                                "(a) own bootstrap costs: hekit {he_boot} (measured), ReBoot 502"
+                            ),
+                            he_boot,
+                            REBOOT_BOOT_KS,
+                        ),
+                    ),
+                    (
+                        "b_both_502",
+                        way(
+                            side,
+                            "(b) both 502: layout/packing gain only (conservative)",
+                            REBOOT_BOOT_KS,
+                            REBOOT_BOOT_KS,
+                        ),
+                    ),
+                    (
+                        "c_both_hekit",
+                        way(
+                            side,
+                            &format!("(c) both {he_boot}: ReBoot's layout on hekit's bootstrapper"),
+                            he_boot,
+                            he_boot,
+                        ),
+                    ),
+                ]),
+            )
+        })
+        .collect();
     obj(vec![
         (
             "metric",
             J::S("key switches per sample (rotations + relins + SSE switches), bootstraps included".into()),
         ),
+        ("headline_reboot_side", J::S(sides[0].name.into())),
+        ("by_reboot_side", J::O(per_side)),
         (
-            "a_own_bootstrap_costs",
-            way(
-                &format!("(a) own bootstrap costs: hekit {he_boot} (measured), ReBoot 502"),
-                he_boot,
-                REBOOT_BOOT_KS,
-            ),
-        ),
-        (
-            "b_both_502",
-            way(
-                "(b) both 502: layout/packing gain only (conservative)",
-                REBOOT_BOOT_KS,
-                REBOOT_BOOT_KS,
-            ),
-        ),
-        (
-            "c_both_hekit",
-            way(
-                &format!("(c) both {he_boot}: ReBoot's layout on hekit's bootstrapper"),
-                he_boot,
-                he_boot,
-            ),
-        ),
-        (
-            "reboot_side",
+            "reboot_bootstraps",
             obj(vec![
-                ("source", J::S(source.into())),
-                ("ks_per_sample_without_bootstraps", J::N(REBOOT_KS_PER_SAMPLE)),
                 ("bootstraps_per_update", J::N(REBOOT_BOOTS_PER_UPDATE)),
-                ("batch", J::I(REBOOT_BATCH as i64)),
+                ("source", J::S("M0 cost model: ReBoot bootstraps W and V of both layers once per update".into())),
+                ("own_batch", J::I(REBOOT_BATCH as i64)),
                 (
                     "boot_ks_502_provenance",
                     J::S("OpenFHE EvalBootstrap, Meta-BTS with 2 iterations, as configured by ReBoot \
@@ -1346,6 +1494,7 @@ const REBOOT_MEASURED: &str = "results/mnist_reboot_layout.json";
 
 #[allow(clippy::too_many_lines)]
 fn run_ni(args: &Args) -> Result<(), String> {
+    let started_unix = unix_now();
     let load_start = loadavg();
     let t_all = Instant::now();
     let placement = placement_named(&args.placement)?;
@@ -1409,14 +1558,15 @@ fn run_ni(args: &Args) -> Result<(), String> {
     );
 
     let act_objs: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
-    // Per-update fullness of the run (all epochs): a group is full when it has `micro`
-    // ciphertexts of `lanes` samples.
+    // Per-update fullness of the run (all epochs): a group is full when every lane of its
+    // ciphertexts is valid (its sample count is a multiple of `lanes`), whatever the number of
+    // ciphertexts: the trainer's definition (review N1).
     let fullness = |n: usize| -> Vec<bool> {
         (0..args.epochs)
             .flat_map(|_| {
                 (0..n)
                     .step_by(args.batch)
-                    .map(move |s| (s + args.batch).min(n) - s == args.batch)
+                    .map(move |s| ((s + args.batch).min(n) - s) % lanes == 0)
             })
             .collect()
     };
@@ -1709,17 +1859,9 @@ fn run_ni(args: &Args) -> Result<(), String> {
          {pred_per_sample:.3}, model {model_per_sample:.3}); matches {matches}; max |W_he - W_twin| \
          = {max_diff:e}"
     );
-    let reboot_source = if std::path::Path::new(REBOOT_MEASURED).exists() {
-        format!(
-            "M0 cost model (ReBoot as shipped, N = 2^16); Task 33's measurement exists at \
-             {REBOOT_MEASURED} and is compared in the report"
-        )
-    } else {
-        format!(
-            "M0 cost model (ReBoot as shipped, N = 2^16); {REBOOT_MEASURED} (Task 33) not present"
-        )
-    };
+    let sides = reboot_sides();
     let result = obj(vec![
+        ("provenance", provenance(&load_start, started_unix)),
         (
             "task",
             J::S("Task 41: MNIST eMLP-1 non-interactive training with bootstrapping (RQ1)".into()),
@@ -1849,7 +1991,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 boots as f64 / sf,
                 args.batch,
                 boot_ks,
-                &reboot_source,
+                &sides,
             ),
         ),
         (

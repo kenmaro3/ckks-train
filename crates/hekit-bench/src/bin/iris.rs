@@ -1077,7 +1077,10 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             let t_b = Instant::now();
             trainer.train_batch_valid(&mut mlp, xc, yc, *n)?;
             secs += t_b.elapsed().as_secs_f64();
-            if let Some(outs) = trainer.last_activation_bootstraps().first() {
+            // Against the SGD twin only when training with SGD: under NAG the twin's
+            // activations differ by the optimizer, not the bootstrap (review N4).
+            let first = trainer.last_activation_bootstraps().first();
+            if let Some(outs) = first.filter(|_| o.optimizer == "sgd") {
                 let a = unpack_activations(
                     &c.encoder.decode(&c.dec.decrypt(&outs[0])),
                     &layout,
@@ -1120,7 +1123,11 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
             jnum(err_w),
             jnum(err_b),
             jnum(act_max),
-            jnum(act_err)
+            if o.optimizer == "sgd" && pl == BootPlacement::AfterActivation {
+                jnum(act_err)
+            } else {
+                "null".into()
+            }
         ));
     }
     let out = o
@@ -1135,7 +1142,8 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
              \"twin_optimizer\": \"sgd (the twin is SGD for every --optimizer, as in interactive \
              mode)\", \"activation_bootstrap_note\": \"after_activation only: bootstrapped hidden \
              activations decrypted by the client after each update against the twin's; inputs \
-             above 1 violate the bootstrap's |m| <= 1 precondition and are not clipped\", \
+             above 1 violate the bootstrap's |m| <= 1 precondition and are not clipped; the error is null \
+             under --optimizer nag (the SGD twin's activations differ by the optimizer)\", \
              \"levels_per_iter\": {}, \"galois_keys\": {}, \"boot_ks\": {}, \"load_start\": {}, \
              \"load_end\": {}, \"wall_seconds\": {}, \"epochs\": [\n  {}\n]}}\n",
             jstr(pl.name()),
