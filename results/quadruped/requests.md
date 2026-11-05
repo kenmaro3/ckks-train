@@ -189,3 +189,21 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most 145 MiB per test, about 600 MiB peak. **RAM need:** < 4 GB
 - **output path:** `results/quadruped/hekit_cuda_task45_fix1_tests.txt`, `results/quadruped/logs/R-45-2.log`
 - **order:** short; run it at the next free slot, ahead of R-REB-3 if possible
+- **status:** queued (21:01 JST) in chain6: starts as soon as R-41-F2 ends, so it runs alongside the untimed R-REB-2 / R-REB-3 plaintext jobs (its 12-job build overlaps no timed run) and ahead of most of R-REB-3. Clean clone `~/hekit-r45` re-synced to 44cb42b (contains 8b81f3d, 0 dirty files). Skipped with a note if free GPU memory < 600 MiB at start.
+
+## R-46-1: hekit-cuda GPU tests at f68c05f (32 tests, adding GPU key switching, rotation and relinearization)
+
+- **purpose:** check that the GPU hybrid key switch, relinearize, rotate, conjugate and hoisted_rotate all match the CPU bit for bit (Review Focus 5), on seal_2020 and n16_train. This run also covers all Task 44/45 tests, so if R-45-2 has not run yet, run this block in its place and mark R-45-2 "superseded by R-46-1".
+- **commit to sync:** f68c05f or later. Use a clean clone.
+- **working dir:** a clean clone, for example `~/hekit-r45`, re-synced to f68c05f
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1
+  ```
+- **pass criterion:** all 32 GPU tests pass. The only expected SKIP is `hoisted_rotate_16_matches_cpu_n16_train`, which needs 5816 MiB. Any other SKIP counts as not passed, so record it as-is.
+- **expected duration:** 6–10 min (build 1–2 min, tests 5–8 min)
+- **GPU memory need:** declared per test, peak about 1.4 GB plus the CUDA context; the largest test is rotate n16_train at 1336 MiB. If less than 1.6 GB is free at start, note it: the n16_train tests will then skip on their own.
+- **RAM need:** about 7 GB
+- **output path:** `results/quadruped/hekit_cuda_task46_tests.txt` and `results/quadruped/logs/R-46-1.log`
+- **order:** next free slot. It is GPU-light on compute and can run alongside the untimed plaintext jobs.
