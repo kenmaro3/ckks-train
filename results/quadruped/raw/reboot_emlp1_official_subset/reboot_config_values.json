@@ -1,0 +1,78 @@
+{
+  "source": "plain values for the ReBoot subset run; parser values from ReBoot's argument parser run on the server with the run's argv; shapes, lr and steps from stats.json; no ReBoot source text",
+  "lr": 0.0005,
+  "lr_per_step_seen": [
+    0.0005
+  ],
+  "lr_schedule": "cosine annealing with warm restarts that starts only after 5 epochs, so the lr is constant in a 1-epoch run",
+  "momentum": 0.9,
+  "optimizer": "Nesterov momentum SGD (encrypted variant)",
+  "weight_decay": 0.0,
+  "batch_size": 48,
+  "epochs": 1,
+  "steps": 21,
+  "subsample_K": 1024,
+  "trained_samples": 1008,
+  "dropped_samples": 16,
+  "seeds": {
+    "model_and_epoch_shuffle_seed": 0,
+    "subsample_shuffle_seed": 42,
+    "note": "the subsample is the first K training images; they are shuffled with seed 42 during preprocessing, and the per-epoch shuffle uses the global numpy RNG after seeding it with `seed` and building the models"
+  },
+  "layers": [
+    {
+      "in": 784,
+      "out": 32
+    },
+    {
+      "in": 32,
+      "out": 16
+    }
+  ],
+  "output_width": 16,
+  "output_width_note": "10 classes padded to 16 (one-hot labels padded with zeros)",
+  "hidden_activation": "x^2 + x (degree 2 polynomial ReLU approximation)",
+  "bias": false,
+  "init": {
+    "distribution": "Xavier (Glorot) uniform U(-a, a) with a = sqrt(1 / (fan_in + fan_out))",
+    "bounds_per_layer": [
+      0.03500700210070024,
+      0.14433756729740643
+    ]
+  },
+  "loss": {
+    "per_sample": "sum over the 16 output columns of (y_true - y_pred)^2 (no 1/2 factor, no mean over columns)",
+    "reported_batch_loss": "sum of the per-sample losses over the batch",
+    "gradient": "output delta y_pred - y_true per sample; the weight gradient sums input x delta over the batch (no division by the batch size)"
+  },
+  "subsample_indices_file": "results/quadruped/raw/reboot_emlp1_official_subset/reboot_subsample_indices.txt",
+  "subsample_indices_check": {
+    "preprocessed_vs_raw_mnist_max_abs": 2.9685450542160652e-08,
+    "plaintext_replay_batch_loss_rel_diff_max": 1.456282099318023e-06,
+    "plaintext_replay_batch_acc_equal_steps": 21,
+    "details": "results/quadruped/raw/reboot_emlp1_official_subset/reboot_indices.json"
+  },
+  "fhe": {
+    "ring_dim": 65536,
+    "slots": 32768,
+    "mult_depth": 24,
+    "scaling_mod_bits": 49,
+    "first_mod_bits": 54,
+    "rescale": "FLEXIBLEAUTOEXT",
+    "security": "HEStd_128_classic",
+    "secret_key_dist": "SPARSE_TERNARY",
+    "bootstrap_level_budget": [
+      2,
+      2
+    ],
+    "bootstrap_iterations": 2,
+    "bootstrap_precision_bits": 11,
+    "bootstrap_depth": 14,
+    "source": "parsed from program.log (the run's own printout) and stats.json crypto (wrapper)"
+  },
+  "threads": 12,
+  "constants_not_printed_by_the_run": {
+    "momentum": "0.9, set in training_encrypted.py's training configuration (read from the script; the run does not print it)",
+    "subsample_shuffle_seed": "42, fixed in ReBoot's data preprocessing (read from the source; confirmed by the plaintext replay check)"
+  }
+}

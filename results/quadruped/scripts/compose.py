@@ -140,8 +140,9 @@ def reboot(job, out):
                     "omp_num_threads": 12,
                     "train_samples": st["evaluation"]["train_samples"],
                     "batch": 48, "batches_per_epoch": st["evaluation"]["batches_per_epoch"],
-                    "subset_rule": "ReBoot --subsample K keeps the first K images of the torchvision MNIST training set (same IDX order as hekit's --subset), then shuffles (seed 42); per-epoch shuffle from np.random seeded 0. With K=1024 and batch 48 the last 1024 - 48*floor(1024/48) samples are dropped each epoch.",
-                    "lr": steps[0]["lr"] if steps else None, "lr_note": "script default (--lr not passed, as in upstream experiments.sh); CosineLR schedule starts after 5 epochs",
+                    "subset_indices": f"results/quadruped/raw/{job}/reboot_subsample_indices.txt",
+                    "subset_rule": "ReBoot --subsample K keeps the first K images of the torchvision MNIST training set (same IDX order as hekit's --subset), then shuffles (seed 42); per-epoch shuffle from np.random seeded 0. With K=1024 and batch 48 there are 21 steps; the 16 samples at the end of the epoch's shuffled order are not trained (listed in subset_indices).",
+                    "lr": steps[0]["lr"] if steps else None, "lr_note": "script default (--lr not passed, as in upstream experiments.sh); the cosine schedule starts after 5 epochs, so lr is constant here",
                     "weight_decay": 0.0, "momentum": 0.9, "optimizer": "ENCRYPTED_NESTEROV_SGD",
                     "crypto": st.get("crypto")},
         "timing_s": {
@@ -172,21 +173,11 @@ def reboot(job, out):
                    "peak_rss_kb_tree_sampled_10s": m["peak_rss_kb_tree_sampled_10s"]},
         "provenance": provenance(job),
     }
-    # ReBoot's own configuration, verbatim from its parser / config file / log (raw/<job>/reboot_config_dump.txt).
-    dump_path = raw(job, "reboot_config_dump.txt")
-    if os.path.exists(dump_path):
-        dump = open(dump_path).read().splitlines()
-        obj["reboot_hyperparameters"] = {
-            "parsed_args": json.loads(dump[0]),
-            "parsed_args_source": "lib.parser.get_parser_args() run on the server with the run's argv (raw/<job>/reboot_config_dump.txt)",
-            "momentum": 0.9, "momentum_source": "training_encrypted.py training_config (hard-coded momentum=0.9)",
-            "optimizer": "ENCRYPTED_NESTEROV_SGD (training_encrypted.py)",
-            "lr_schedule": "CosineLR(base_lr=lr, steps_before_restart=50, from_step=5*n_train_batches): constant lr for the first 5 epochs, so constant in this 1-epoch run",
-            "lr_seen_per_step": sorted(set(s["lr"] for s in steps)),
-            "init": [l for l in dump if "bound =" in l],
-            "init_note": "lib/layers/linear.py: Xavier uniform U(-sqrt(1/(in+out)), +sqrt(1/(in+out))), no bias (bias=False in network_config); np.random.seed(seed=0)",
-            "fhe_config_yaml": "\n".join(dump[dump.index("params:"):]) if "params:" in dump else None,
-        }
+    # ReBoot's configuration as plain values (raw/<job>/reboot_config_values.json; contains no ReBoot source text).
+    vals_path = raw(job, "reboot_config_values.json")
+    if os.path.exists(vals_path):
+        obj["reboot_hyperparameters"] = json.load(open(vals_path))
+        obj["reboot_hyperparameters"]["file"] = f"results/quadruped/raw/{job}/reboot_config_values.json"
     blk = re.search(r"CKKS parameters:\n(.*?)\n\n", log, re.S)
     bblk = re.search(r"Bootstrapping parameters:\n(.*?)\n\n", log, re.S)
     nblk = re.search(r"Network parameters:\n(.*?)\n\n", log, re.S)
