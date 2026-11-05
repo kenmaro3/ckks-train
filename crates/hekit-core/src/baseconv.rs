@@ -129,6 +129,18 @@ impl BaseConverter {
         }
     }
 
+    /// The precomputed `(Q / q_j)^{-1} mod q_j`, one per source modulus (in order). Exposed
+    /// for backends that evaluate the conversion elsewhere (the CUDA kernels).
+    pub fn q_hat_inv(&self) -> &[u64] {
+        &self.q_hat_inv
+    }
+
+    /// The precomputed `(Q / q_j) mod p_t`: one row per target modulus `p_t`, one entry per
+    /// source modulus `q_j`.
+    pub fn q_hat_mod_to(&self) -> &[Vec<u64>] {
+        &self.q_hat_mod_p
+    }
+
     /// Converts residues over `from` (one slice per source modulus, in order, all of the
     /// same length, entries reduced) to residues over `to` (one vector per target modulus).
     /// Input and output are coefficient-wise, so this works on coefficient-form limbs.
@@ -631,6 +643,29 @@ mod tests {
             "convert e distribution over {} values: {seen_e:?}",
             xs.len()
         );
+    }
+
+    /// The exposed constants are `(Q/q_j)^{-1} mod q_j` and `(Q/q_j) mod p_t`.
+    #[test]
+    fn exposed_constants() {
+        let from = ntt_primes(30, 16, 3).unwrap();
+        let to = ntt_primes(45, 16, 2).unwrap();
+        let bc = BaseConverter::new(&from, &to);
+        let q_hat = |j: usize, m: u64| {
+            from.iter()
+                .enumerate()
+                .filter(|&(i, _)| i != j)
+                .fold(1u128, |acc, (_, &q)| acc * q as u128 % m as u128) as u64
+        };
+        assert_eq!(bc.q_hat_inv().len(), 3);
+        for (j, (&qj, &inv)) in from.iter().zip(bc.q_hat_inv()).enumerate() {
+            assert_eq!(q_hat(j, qj) as u128 * inv as u128 % qj as u128, 1);
+        }
+        assert_eq!(bc.q_hat_mod_to().len(), 2);
+        for (row, &p) in bc.q_hat_mod_to().iter().zip(&to) {
+            let want: Vec<u64> = (0..3).map(|j| q_hat(j, p)).collect();
+            assert_eq!(row, &want);
+        }
     }
 
     /// `convert_exact` returns `[x]_Q` itself (no overflow multiple) for random `x in [0, Q)`

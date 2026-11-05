@@ -3,15 +3,26 @@
 use std::sync::Arc;
 
 use cudarc::driver::CudaSlice;
-use hekit_ckks::Plaintext;
-use hekit_core::{Result, RnsBasis, RnsPoly};
+use hekit_ckks::{Plaintext, QpPoly};
+use hekit_core::{Result, RnsPoly};
 
 use crate::device::{CudaDevice, dev_err, guarded};
 
 /// An RNS polynomial in device memory: `num_limbs` limbs of `N` residues, limb `l` contiguous
-/// at offset `l * N` of one allocation (`num_limbs * N * 8` bytes).
+/// at offset `l * N` of one allocation (`num_limbs * N * 8` bytes). Limb `l` holds the
+/// residues modulo the device prime with index [`DevicePoly::primes`]`[l]` (`Q` primes
+/// `0..=L`, then `P` primes; see [`CudaDevice`]), so a `Q_l * P` element is one polynomial.
 ///
-/// It borrows the [`CudaDevice`] it was uploaded to, so it cannot outlive it:
+/// Invariant: every residue is fully reduced (`< q`): uploads check it and every kernel
+/// preserves it, which is what the inverse NTT's `< 2q` precondition needs.
+///
+/// Not `Clone`: a copy allocates device memory and can fail (cudarc's `CudaSlice::clone`
+/// panics on out-of-memory). Cheap shared handles (`Arc`) are a later task's; the prime list
+/// is already an `Arc<[u32]>`.
+///
+/// It borrows the [`CudaDevice`] it was uploaded to, so it cannot outlive it (stable rustdoc
+/// does not check the error code of a `compile_fail` example; the `no_run` twin below differs
+/// only in where the device is dropped):
 ///
 /// ```compile_fail,E0505
 /// use hekit_ckks::CkksParams;
@@ -42,12 +53,9 @@ use crate::device::{CudaDevice, dev_err, guarded};
 pub struct DevicePoly<'d> {
     limbs: CudaSlice<u64>,
     n: usize,
-    num_limbs: usize,
     dev: &'d CudaDevice,
-    /// The host basis, to rebuild an [`RnsPoly`] on download.
-    basis: Arc<RnsBasis>,
-    /// Index of limb 0's prime in the device tables (0 for Q, `L + 1` for P).
-    prime_offset: usize,
+    /// Prime index (in the device tables) of every limb; distinct.
+    primes: Arc<[u32]>,
     ntt_form: bool,
 }
 
@@ -55,19 +63,16 @@ impl<'d> DevicePoly<'d> {
     pub(crate) fn from_parts(
         limbs: CudaSlice<u64>,
         n: usize,
-        num_limbs: usize,
         dev: &'d CudaDevice,
-        basis: Arc<RnsBasis>,
-        prime_offset: usize,
+        primes: Arc<[u32]>,
         ntt_form: bool,
     ) -> DevicePoly<'d> {
+        debug_assert_eq!(limbs.len(), n * primes.len());
         DevicePoly {
             limbs,
             n,
-            num_limbs,
             dev,
-            basis,
-            prime_offset,
+            primes,
             ntt_form,
         }
     }
@@ -77,14 +82,19 @@ impl<'d> DevicePoly<'d> {
         self.n
     }
 
-    /// Number of limbs (`level + 1`).
+    /// Number of limbs (`level + 1` for a polynomial over a prefix of Q or P).
     pub fn num_limbs(&self) -> usize {
-        self.num_limbs
+        self.primes.len()
     }
 
-    /// The level (`num_limbs - 1`).
+    /// `num_limbs - 1` (the level of a polynomial over a prefix of Q or P).
     pub fn level(&self) -> usize {
-        self.num_limbs - 1
+        self.primes.len() - 1
+    }
+
+    /// The prime index of every limb (`0..=L` the Q primes, then the P primes).
+    pub fn primes(&self) -> &[u32] {
+        &self.primes
     }
 
     /// `true` when the limbs are in NTT form.
@@ -97,18 +107,17 @@ impl<'d> DevicePoly<'d> {
         self.dev
     }
 
-    /// The host basis this polynomial was uploaded from.
-    pub fn basis(&self) -> &Arc<RnsBasis> {
-        &self.basis
-    }
-
     /// Device bytes held by the limbs.
     pub fn device_bytes(&self) -> usize {
-        8 * self.n * self.num_limbs
+        8 * self.n * self.num_limbs()
     }
 
-    pub(crate) fn prime_offset(&self) -> usize {
-        self.prime_offset
+    pub(crate) fn primes_arc(&self) -> &Arc<[u32]> {
+        &self.primes
+    }
+
+    pub(crate) fn limbs(&self) -> &CudaSlice<u64> {
+        &self.limbs
     }
 
     pub(crate) fn set_ntt_form(&mut self, ntt_form: bool) {
@@ -119,16 +128,32 @@ impl<'d> DevicePoly<'d> {
         &mut self.limbs
     }
 
-    /// Copies the polynomial back to the host (waits for pending work on it).
-    pub fn download(&self) -> Result<RnsPoly> {
-        let flat = guarded("download", || {
+    fn download_flat(&self) -> Result<Vec<u64>> {
+        guarded("download", || {
             self.dev
                 .stream()
                 .clone_dtoh(&self.limbs)
                 .map_err(|e| dev_err("device-to-host copy", e))
-        })?;
-        let limbs: Vec<Vec<u64>> = flat.chunks_exact(self.n).map(<[u64]>::to_vec).collect();
-        RnsPoly::from_limbs(&self.basis, limbs, self.ntt_form)
+        })
+    }
+
+    /// Copies the polynomial back to the host (waits for pending work on it). Its limbs must
+    /// be a prefix of the Q primes (returned over `params.basis_q()` of the device's
+    /// parameters) or of the P primes (over `params.basis_p()`); `InvalidParams` otherwise,
+    /// e.g. for a `Q_l * P` polynomial ([`DevicePoly::download_qp`]). Checked before copying.
+    pub fn download(&self) -> Result<RnsPoly> {
+        let t = self.dev.prime_table();
+        t.host_basis(&self.primes)?; // no copy for a bad layout
+        t.host_poly(&self.primes, &self.download_flat()?, self.ntt_form)
+    }
+
+    /// Copies a `Q_l * P` polynomial (limbs `[0..=l, L+1..L+1+k]`, all P primes; e.g. the
+    /// output of [`CudaDevice::mod_up`]) back to the host as a [`QpPoly`]. `InvalidParams` for
+    /// any other prime list.
+    pub fn download_qp(&self) -> Result<QpPoly> {
+        let t = self.dev.prime_table();
+        t.qp_q_limbs(&self.primes)?;
+        t.host_qp(&self.primes, &self.download_flat()?, self.ntt_form)
     }
 }
 

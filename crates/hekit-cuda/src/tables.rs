@@ -11,8 +11,10 @@ use hekit_ckks::CkksParams;
 use hekit_core::{HekitError, NttTable, Result};
 
 /// Per-prime constants per entry of [`HostNttTables::consts`]:
-/// `{ q, n_inv, n_inv_shoup, w_n_inv, w_n_inv_shoup }` (`NCONST` in the kernels).
-pub const NCONST: usize = 5;
+/// `{ q, n_inv, n_inv_shoup, w_n_inv, w_n_inv_shoup, barrett_lo, barrett_hi }` (`NCONST` in
+/// the kernels; `barrett = floor(2^128 / q)`, the constant of `Modulus::mul`, used by the
+/// pointwise product in `kernels/pointwise.cu`).
+pub const NCONST: usize = 7;
 
 /// Twiddle tables of several primes, concatenated: prime `p` occupies `[p * N, (p + 1) * N)` of
 /// each table and `[p * NCONST, (p + 1) * NCONST)` of `consts`.
@@ -93,12 +95,15 @@ impl HostNttTables {
             }
             let n_inv_s = m.shoup(n_inv);
             let w_n_inv_s = m.shoup(m.mul(out.inv_roots[base + 1], n_inv));
+            let barrett = barrett_ratio(m.value());
             out.consts.extend([
                 m.value(),
                 n_inv_s.value(),
                 n_inv_s.companion(),
                 w_n_inv_s.value(),
                 w_n_inv_s.companion(),
+                barrett as u64,
+                (barrett >> 64) as u64,
             ]);
             out.primes.push(m.value());
         }
@@ -122,18 +127,30 @@ impl HostNttTables {
         self.primes.len()
     }
 
-    /// Bytes these tables occupy on the device (four `N`-entry tables per prime, the constants
-    /// and the identity limb-to-prime map).
+    /// Bytes these tables occupy on the device (four `N`-entry tables per prime and the
+    /// constants).
     pub fn device_bytes(&self) -> usize {
         device_bytes_for(self.n, self.num_primes())
     }
 }
 
+/// `floor(2^128 / q)` for `2 <= q < 2^60`, as in `hekit_core::Modulus::new` (whose constant is
+/// private).
+pub fn barrett_ratio(q: u64) -> u128 {
+    let qq = q as u128;
+    let mut ratio = u128::MAX / qq;
+    if u128::MAX % qq + 1 == qq {
+        ratio += 1;
+    }
+    ratio
+}
+
 /// Device bytes of the tables of `num_primes` primes of degree `n`: four `N`-entry u64 tables
-/// and [`NCONST`] u64 constants per prime, plus the u32 limb-to-prime map. For `n16_train`
-/// (36 primes, `N = 2^16`) about 72 MiB.
+/// and [`NCONST`] u64 constants per prime. For `n16_train` (36 primes, `N = 2^16`) about
+/// 72 MiB. (The per-polynomial limb maps and conversion tables a device caches on use are
+/// not included; they total about 1 MiB for `n16_train`.)
 pub fn device_bytes_for(n: usize, num_primes: usize) -> usize {
-    8 * (4 * num_primes * n + NCONST * num_primes) + 4 * num_primes
+    8 * (4 * num_primes * n + NCONST * num_primes)
 }
 
 #[cfg(test)]
@@ -171,6 +188,11 @@ mod tests {
             assert_eq!(c[2], m.shoup(c[1]).companion());
             assert_eq!(c[3], m.mul(h.inv_roots[p * n + 1], c[1]));
             assert_eq!(c[4], m.shoup(c[3]).companion());
+            // floor(2^128 / q): ratio * q <= 2^128 < (ratio + 1) * q.
+            let ratio = (c[5] as u128) | ((c[6] as u128) << 64);
+            assert_eq!(ratio, barrett_ratio(q));
+            let lo = ratio.wrapping_mul(q as u128);
+            assert!(lo.wrapping_neg() < q as u128 && lo != 0);
         }
     }
 
@@ -183,7 +205,7 @@ mod tests {
         assert_eq!(h.n, params.n());
         assert_eq!(
             h.device_bytes(),
-            8 * (4 * expect.len() * params.n() + NCONST * expect.len()) + 4 * expect.len()
+            8 * (4 * expect.len() * params.n() + NCONST * expect.len())
         );
     }
 

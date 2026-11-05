@@ -1,25 +1,23 @@
-//! Device context: CUDA context and streams, NVRTC-compiled NTT kernels, device twiddle tables,
-//! and the batched NTT / inverse NTT over the limbs of a [`DevicePoly`].
+//! Device context: CUDA context and streams, NVRTC-compiled kernels, device twiddle tables,
+//! the per-polynomial limb-to-prime maps and conversion tables (cached), and the batched NTT /
+//! inverse NTT over the limbs of a [`DevicePoly`].
 
+use std::collections::HashMap;
 use std::panic::{AssertUnwindSafe, catch_unwind};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use cudarc::driver::{
     CudaContext, CudaFunction, CudaSlice, CudaStream, LaunchConfig, PushKernelArg, result, sys,
 };
 use cudarc::nvrtc::{CompileOptions, compile_ptx_with_opts};
-use hekit_ckks::{CkksParams, Plaintext};
+use hekit_ckks::{CkksParams, Plaintext, QpPoly};
 use hekit_core::{HekitError, Result, RnsPoly};
 
-use crate::NTT_KERNEL_SRC;
+use crate::basis::PrimeTable;
 use crate::plan::NttPlan;
 use crate::poly::{DevicePlaintext, DevicePoly};
 use crate::tables::HostNttTables;
-
-const FWD_GLOBAL: &str = "ntt_fwd_global_stage";
-const FWD_SHARED: &str = "ntt_fwd_shared";
-const INV_GLOBAL: &str = "ntt_inv_global_stage";
-const INV_SHARED: &str = "ntt_inv_shared";
+use crate::{BASIS_KERNEL_SRC, NTT_KERNEL_SRC, POINTWISE_KERNEL_SRC};
 
 /// `HekitError::Device` from any displayable error, with context.
 pub(crate) fn dev_err(what: &str, e: impl std::fmt::Display) -> HekitError {
@@ -74,7 +72,7 @@ pub fn probe() -> Result<usize> {
 }
 
 /// The NTT tables of all primes (Q then P) on the device, in the flat layout of
-/// [`HostNttTables`].
+/// [`HostNttTables`] (`consts` also holds the Barrett constants of the pointwise product).
 #[derive(Debug)]
 pub(crate) struct DeviceNttTables {
     pub(crate) roots: CudaSlice<u64>,
@@ -82,32 +80,66 @@ pub(crate) struct DeviceNttTables {
     pub(crate) inv_roots: CudaSlice<u64>,
     pub(crate) inv_roots_shoup: CudaSlice<u64>,
     pub(crate) consts: CudaSlice<u64>,
-    /// Identity limb-to-prime map `[0, 1, ..., num_primes - 1]`: a polynomial whose limbs use
-    /// the consecutive primes `off..off + limbs` passes the view `[off, off + limbs)`.
-    pub(crate) identity: CudaSlice<u32>,
 }
 
+/// The compiled kernels (three NVRTC modules: `ntt.cu`, `pointwise.cu`, `basis.cu`).
 #[derive(Debug)]
-struct Kernels {
+pub(crate) struct Kernels {
     fwd_global: CudaFunction,
     fwd_shared: CudaFunction,
     inv_global: CudaFunction,
     inv_shared: CudaFunction,
+    pub(crate) pw_add: CudaFunction,
+    pub(crate) pw_sub: CudaFunction,
+    pub(crate) pw_mul: CudaFunction,
+    pub(crate) pw_neg: CudaFunction,
+    pub(crate) pw_mul_shoup: CudaFunction,
+    pub(crate) automorphism_ntt: CudaFunction,
+    pub(crate) automorphism_coeff: CudaFunction,
+    pub(crate) basis_convert: CudaFunction,
+    pub(crate) basis_div_finish: CudaFunction,
+}
+
+/// A [`crate::basis::ConvTable`] on the device.
+#[derive(Debug)]
+pub(crate) struct DeviceConvTable {
+    pub(crate) k: u32,
+    pub(crate) n_targets: u32,
+    pub(crate) use_f64: bool,
+    pub(crate) data: CudaSlice<u64>,
+}
+
+/// Small device buffers built on first use and kept for the device's lifetime: limb-to-prime
+/// maps (one per distinct prime list, at most a few hundred u32 lists for a parameter set)
+/// and conversion tables (one per (sources, targets) pair: per level for rescale and
+/// mod_down, per level and digit for mod_up; about 1 MiB in all for n16_train).
+#[derive(Debug, Default)]
+struct Caches {
+    limb_maps: HashMap<Vec<u32>, Arc<CudaSlice<u32>>>,
+    conv: HashMap<(Vec<u32>, Vec<u32>), Arc<DeviceConvTable>>,
 }
 
 /// A CUDA device prepared for one CKKS parameter set: context, streams, compiled kernels and
 /// the NTT tables of every Q and P prime.
 ///
-/// All work of this task's operations is issued on `streams[0]`, in order; the extra streams
-/// are for later multi-stream batching. Device memory held by the context itself is
-/// [`CudaDevice::table_bytes`] plus what the CUDA context reserves.
+/// Prime indices: the device tables hold the `Q` primes (indices `0..=L`) then the `P`
+/// primes (`L+1..`); every [`DevicePoly`] carries one prime index per limb, so any list of
+/// distinct primes (e.g. `Q_l * P`, `[0..=l, L+1..]`) is one polynomial and one launch
+/// sequence.
+///
+/// All work is issued on `streams[0]`, in order (every operation goes through one internal
+/// stream accessor); the extra streams are for the multi-stream batching of a later task.
+/// Device memory held by the device itself is [`CudaDevice::table_bytes`], plus the small
+/// cached limb maps and conversion tables, plus what the CUDA context reserves.
 #[derive(Debug)]
 pub struct CudaDevice {
     ctx: Arc<CudaContext>,
     streams: Vec<Arc<CudaStream>>,
-    ntt_tables: DeviceNttTables,
-    kernels: Kernels,
+    pub(crate) ntt_tables: DeviceNttTables,
+    pub(crate) kernels: Kernels,
     params: CkksParams,
+    primes: PrimeTable,
+    caches: Mutex<Caches>,
     n: usize,
     num_primes: usize,
     table_bytes: usize,
@@ -146,21 +178,35 @@ impl CudaDevice {
                 options: vec![format!("--gpu-architecture=compute_{major}{minor}")],
                 ..Default::default()
             };
-            let ptx = compile_ptx_with_opts(NTT_KERNEL_SRC, opts)
-                .map_err(|e| dev_err("NVRTC compilation of kernels/ntt.cu", e))?;
-            let module = ctx
-                .load_module(ptx)
-                .map_err(|e| dev_err("loading the NTT module", e))?;
-            let load = |f: &str| {
-                module
-                    .load_function(f)
+            let module = |src: &str, file: &str| {
+                let ptx = compile_ptx_with_opts(src, opts.clone())
+                    .map_err(|e| dev_err(&format!("NVRTC compilation of kernels/{file}"), e))?;
+                ctx.load_module(ptx)
+                    .map_err(|e| dev_err(&format!("loading the module of kernels/{file}"), e))
+            };
+            let (ntt, pw, basis) = (
+                module(NTT_KERNEL_SRC, "ntt.cu")?,
+                module(POINTWISE_KERNEL_SRC, "pointwise.cu")?,
+                module(BASIS_KERNEL_SRC, "basis.cu")?,
+            );
+            let load = |m: &Arc<cudarc::driver::CudaModule>, f: &str| {
+                m.load_function(f)
                     .map_err(|e| dev_err(&format!("kernel {f}"), e))
             };
             let kernels = Kernels {
-                fwd_global: load(FWD_GLOBAL)?,
-                fwd_shared: load(FWD_SHARED)?,
-                inv_global: load(INV_GLOBAL)?,
-                inv_shared: load(INV_SHARED)?,
+                fwd_global: load(&ntt, "ntt_fwd_global_stage")?,
+                fwd_shared: load(&ntt, "ntt_fwd_shared")?,
+                inv_global: load(&ntt, "ntt_inv_global_stage")?,
+                inv_shared: load(&ntt, "ntt_inv_shared")?,
+                pw_add: load(&pw, "pw_add")?,
+                pw_sub: load(&pw, "pw_sub")?,
+                pw_mul: load(&pw, "pw_mul")?,
+                pw_neg: load(&pw, "pw_neg")?,
+                pw_mul_shoup: load(&pw, "pw_mul_shoup")?,
+                automorphism_ntt: load(&pw, "automorphism_ntt")?,
+                automorphism_coeff: load(&pw, "automorphism_coeff")?,
+                basis_convert: load(&basis, "basis_convert")?,
+                basis_div_finish: load(&basis, "basis_div_finish")?,
             };
             let streams = (0..n_streams)
                 .map(|_| ctx.new_stream().map_err(|e| dev_err("stream creation", e)))
@@ -170,16 +216,12 @@ impl CudaDevice {
                 s.clone_htod(v)
                     .map_err(|e| dev_err(&format!("uploading {what}"), e))
             };
-            let identity: Vec<u32> = (0..host.num_primes() as u32).collect();
             let ntt_tables = DeviceNttTables {
                 roots: up(&host.roots, "NTT roots")?,
                 roots_shoup: up(&host.roots_shoup, "NTT roots (Shoup)")?,
                 inv_roots: up(&host.inv_roots, "inverse NTT roots")?,
                 inv_roots_shoup: up(&host.inv_roots_shoup, "inverse NTT roots (Shoup)")?,
-                consts: up(&host.consts, "NTT constants")?,
-                identity: s
-                    .clone_htod(&identity)
-                    .map_err(|e| dev_err("uploading the limb map", e))?,
+                consts: up(&host.consts, "prime constants")?,
             };
             s.synchronize().map_err(|e| dev_err("synchronize", e))?;
             Ok(CudaDevice {
@@ -188,6 +230,8 @@ impl CudaDevice {
                 ntt_tables,
                 kernels,
                 params: params.clone(),
+                primes: PrimeTable::from_params(params),
+                caches: Mutex::new(Caches::default()),
                 n: host.n,
                 num_primes: host.num_primes(),
                 table_bytes: host.device_bytes(),
@@ -197,7 +241,7 @@ impl CudaDevice {
         })
     }
 
-    /// Device memory taken by this device's NTT tables
+    /// Device memory taken by this device's NTT and prime tables
     /// ([`crate::tables::device_bytes_for`]; about 72 MiB for `n16_train`).
     pub fn table_bytes(&self) -> usize {
         self.table_bytes
@@ -245,51 +289,56 @@ impl CudaDevice {
         })
     }
 
+    /// The stream every operation is issued on (stream 0). A multi-stream variant replaces this
+    /// one accessor.
     pub(crate) fn stream(&self) -> &Arc<CudaStream> {
         &self.streams[0]
     }
 
-    /// Prime-table offset of a polynomial over `poly.basis()`: 0 if its limbs use the first Q
-    /// primes, `L + 1` if they use the first P primes; `InvalidParams` otherwise.
-    fn prime_offset(&self, poly: &RnsPoly) -> Result<usize> {
-        let limbs = poly.level() + 1;
-        let primes: Vec<u64> = poly.basis().moduli()[..limbs]
-            .iter()
-            .map(|m| m.value())
-            .collect();
-        let nq = self.params.q().len();
-        if poly.basis().n() == self.n {
-            if self.params.q().get(..limbs) == Some(&primes[..]) {
-                return Ok(0);
-            }
-            if self.params.p().get(..limbs) == Some(&primes[..]) {
-                return Ok(nq);
-            }
-        }
-        Err(HekitError::InvalidParams(
-            "polynomial's primes are not a prefix of this device's Q or P basis".into(),
-        ))
+    /// The device's prime indices (Q then P).
+    pub fn prime_table(&self) -> &PrimeTable {
+        &self.primes
+    }
+
+    /// Ring degree `N`.
+    pub fn n(&self) -> usize {
+        self.n
     }
 
     /// Copies `poly` (any form; its first `level + 1` primes must be a prefix of the device's
-    /// Q or P primes) to the device. Synchronous.
+    /// Q or P primes, compared by value) to the device. The returned polynomial's limbs have
+    /// prime indices `0..=level` (Q) or `L+1..L+1+level+1` (P). Synchronous with respect to
+    /// `poly`.
     pub fn upload<'d>(&'d self, poly: &RnsPoly) -> Result<DevicePoly<'d>> {
-        let prime_offset = self.prime_offset(poly)?;
-        let num_limbs = poly.level() + 1;
-        let flat: Vec<u64> = poly.limbs().concat();
+        let primes = self.primes.primes_of(poly)?;
+        self.upload_flat(&poly.limbs().concat(), primes, poly.is_ntt_form())
+    }
+
+    /// Copies a `Q_l * P` pair (`Q` part over the Q primes `0..=l`, `P` part over **all** P
+    /// primes, same form; e.g. a key-switching digit) to the device as **one** polynomial with
+    /// limbs `[0..=l, L+1..L+1+k]` (see [`CudaDevice::mod_down`], [`DevicePoly::download_qp`]).
+    pub fn upload_qp<'d>(&'d self, x: &QpPoly) -> Result<DevicePoly<'d>> {
+        let (primes, flat) = self.primes.qp_of(x)?;
+        self.upload_flat(&flat, primes, x.q().is_ntt_form())
+    }
+
+    fn upload_flat<'d>(
+        &'d self,
+        flat: &[u64],
+        primes: Vec<u32>,
+        ntt_form: bool,
+    ) -> Result<DevicePoly<'d>> {
         let limbs = guarded("upload", || {
             self.stream()
-                .clone_htod(&flat)
+                .clone_htod(flat)
                 .map_err(|e| dev_err("upload (allocation or host-to-device copy)", e))
         })?;
         Ok(DevicePoly::from_parts(
             limbs,
             self.n,
-            num_limbs,
             self,
-            Arc::clone(poly.basis()),
-            prime_offset,
-            poly.is_ntt_form(),
+            primes.into(),
+            ntt_form,
         ))
     }
 
@@ -299,7 +348,7 @@ impl CudaDevice {
         Ok(DevicePlaintext::from_parts(poly, pt.scale(), pt.level()))
     }
 
-    fn check_owner(&self, poly: &DevicePoly<'_>) -> Result<()> {
+    pub(crate) fn check_owner(&self, poly: &DevicePoly<'_>) -> Result<()> {
         if std::ptr::eq(poly.device(), self) {
             Ok(())
         } else {
@@ -309,36 +358,103 @@ impl CudaDevice {
         }
     }
 
+    /// The device copy of the limb-to-prime map `primes` (cached).
+    pub(crate) fn limb_map(&self, primes: &[u32]) -> Result<Arc<CudaSlice<u32>>> {
+        if primes.is_empty() || primes.iter().any(|&p| p as usize >= self.num_primes) {
+            return Err(HekitError::InvalidParams(format!(
+                "limb map {primes:?}: prime indices must be < {}",
+                self.num_primes
+            )));
+        }
+        let mut c = self.caches.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(m) = c.limb_maps.get(primes) {
+            return Ok(Arc::clone(m));
+        }
+        let m = Arc::new(guarded("limb map upload", || {
+            self.stream()
+                .clone_htod(primes)
+                .map_err(|e| dev_err("uploading a limb map", e))
+        })?);
+        c.limb_maps.insert(primes.to_vec(), Arc::clone(&m));
+        Ok(m)
+    }
+
+    /// The device copy of the conversion table `src -> targets` (cached).
+    pub(crate) fn conv_table(&self, src: &[u32], targets: &[u32]) -> Result<Arc<DeviceConvTable>> {
+        let key = (src.to_vec(), targets.to_vec());
+        let mut c = self.caches.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(t) = c.conv.get(&key) {
+            return Ok(Arc::clone(t));
+        }
+        let host = self.primes.conv_table(src, targets)?;
+        let data = guarded("conversion table upload", || {
+            self.stream()
+                .clone_htod(&host.data)
+                .map_err(|e| dev_err("uploading a conversion table", e))
+        })?;
+        let t = Arc::new(DeviceConvTable {
+            k: host.k() as u32,
+            n_targets: host.targets.len() as u32,
+            use_f64: host.use_f64,
+            data,
+        });
+        c.conv.insert(key, Arc::clone(&t));
+        Ok(t)
+    }
+
     /// In-place forward NTT of every limb (no-op when already in NTT form): one launch per
-    /// global stage plus one shared-memory launch, each covering all limbs. Asynchronous on
-    /// stream 0 (later downloads / [`CudaDevice::sync`] wait for it).
+    /// global stage plus one shared-memory launch, each covering all limbs (any prime list,
+    /// e.g. `Q_l * P`). Asynchronous on stream 0 (later downloads / [`CudaDevice::sync`] wait
+    /// for it).
+    ///
+    /// Accepts residues in `[0, 4q)` (every polynomial produced by this crate is fully
+    /// reduced). After an `Err` the polynomial's contents are unspecified (some stages may
+    /// have run; the form flag is unchanged).
     pub fn ntt(&self, poly: &mut DevicePoly<'_>) -> Result<()> {
         self.check_owner(poly)?;
         if poly.is_ntt_form() {
             return Ok(());
         }
-        self.launch_ntt(poly, false)?;
+        let primes = Arc::clone(poly.primes_arc());
+        self.launch_ntt(poly.limbs_mut(), &primes, false)?;
         poly.set_ntt_form(true);
         Ok(())
     }
 
     /// In-place inverse NTT of every limb (no-op when already in coefficient form), batched
     /// as in [`CudaDevice::ntt`].
+    ///
+    /// **Precondition: every residue is `< 2q`** (the Gentleman-Sande butterflies compute
+    /// `x + 2q - y`, which wraps for `y >= x + 2q`). Uploads and every kernel of this crate
+    /// produce fully reduced residues (`< q`), so this holds for every [`DevicePoly`]. After an
+    /// `Err` the contents are unspecified, as for [`CudaDevice::ntt`].
     pub fn intt(&self, poly: &mut DevicePoly<'_>) -> Result<()> {
         self.check_owner(poly)?;
         if !poly.is_ntt_form() {
             return Ok(());
         }
-        self.launch_ntt(poly, true)?;
+        let primes = Arc::clone(poly.primes_arc());
+        self.launch_ntt(poly.limbs_mut(), &primes, true)?;
         poly.set_ntt_form(false);
         Ok(())
     }
 
-    fn launch_ntt(&self, poly: &mut DevicePoly<'_>, inverse: bool) -> Result<()> {
-        let num_limbs = poly.num_limbs();
-        let off = poly.prime_offset();
-        debug_assert!(off + num_limbs <= self.num_primes);
+    /// Batched NTT of `a` (`primes.len()` limbs, limb `i` with prime `primes[i]`). The inverse
+    /// needs residues `< 2q` (see [`CudaDevice::intt`]).
+    pub(crate) fn launch_ntt(
+        &self,
+        a: &mut CudaSlice<u64>,
+        primes: &[u32],
+        inverse: bool,
+    ) -> Result<()> {
+        let num_limbs = primes.len();
+        if a.len() != num_limbs * self.n {
+            return Err(HekitError::InvalidParams(
+                "NTT buffer does not match its limb map".into(),
+            ));
+        }
         let plan = NttPlan::new(self.n, num_limbs)?;
+        let map = self.limb_map(primes)?;
         let t = &self.ntt_tables;
         let (roots, shoup) = if inverse {
             (&t.inv_roots, &t.inv_roots_shoup)
@@ -354,7 +470,7 @@ impl CudaDevice {
         let log_n = plan.log_n;
         let stream = self.stream();
         guarded("NTT launch", || {
-            let limb_prime = t.identity.slice(off..off + num_limbs);
+            let limb_prime: &CudaSlice<u32> = &map;
             let shared_cfg = LaunchConfig {
                 grid_dim: plan.shared.grid,
                 block_dim: plan.shared.block,
@@ -367,13 +483,14 @@ impl CudaDevice {
                     .arg(roots)
                     .arg(shoup)
                     .arg(&t.consts)
-                    .arg(&limb_prime)
+                    .arg(limb_prime)
                     .arg(&log_n)
                     .arg(&log_chunk);
                 // SAFETY: the arguments match the kernel signature in kernels/ntt.cu
                 // (u64*, const u64*, const u64*, const u64*, const u32*, u32, u32); `a` holds
-                // num_limbs * N entries, `limb_prime` num_limbs prime indices < num_primes, the
-                // tables num_primes * N entries; shared_mem_bytes = chunk * 8 as required.
+                // num_limbs * N entries, `limb_prime` num_limbs prime indices < num_primes
+                // (checked by `limb_map`), the tables num_primes * N entries;
+                // shared_mem_bytes = chunk * 8 as required.
                 unsafe { b.launch(shared_cfg) }.map_err(|e| dev_err("NTT shared kernel", e))?;
                 Ok(())
             };
@@ -388,7 +505,7 @@ impl CudaDevice {
                     .arg(roots)
                     .arg(shoup)
                     .arg(&t.consts)
-                    .arg(&limb_prime)
+                    .arg(limb_prime)
                     .arg(&log_n)
                     .arg(&g.log_t);
                 // SAFETY: as for the shared kernel; one thread per butterfly, indices stay in
@@ -396,7 +513,6 @@ impl CudaDevice {
                 unsafe { b.launch(cfg) }.map_err(|e| dev_err("NTT global-stage kernel", e))?;
                 Ok::<(), HekitError>(())
             };
-            let a = poly.limbs_mut();
             if inverse {
                 launch_shared(a)?;
                 for g in plan.global_stages.iter().rev() {

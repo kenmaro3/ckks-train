@@ -68,8 +68,8 @@ fn check_ntt(dev: &CudaDevice, basis: &Arc<RnsBasis>, level: usize, seed: u64) {
 /// n16_train, all 32 Q limbs (the correctness gate): GPU forward NTT bit-identical to the CPU.
 /// Also level 5 (6 limbs) and the 4 P limbs.
 ///
-/// GPU memory need: NTT tables 36 primes x 4 x 2^16 x 8 B = 72 MiB, plus one 32-limb
-/// polynomial (16 MiB) at a time: declared 72 MiB + 2 x 16 MiB = 104 MiB.
+/// GPU memory need: NTT tables 36 primes x 4 x 2^16 x 8 B = 72 MiB, plus the two 32-limb
+/// polynomials (16 MiB each) `check_ntt` holds at once: declared 72 MiB + 2 x 16 MiB = 104 MiB.
 #[test]
 #[ignore = "needs an NVIDIA GPU (run on quadruped-gpu)"]
 fn ntt_matches_cpu_n16_train_32_limbs() {
@@ -88,7 +88,8 @@ fn ntt_matches_cpu_n16_train_32_limbs() {
 /// n16_train, 32 limbs: `intt(ntt(p)) == p` on the device (no download in between), and the
 /// no-op cases (ntt of an NTT-form polynomial, intt of a coefficient-form one).
 ///
-/// GPU memory need: 72 MiB tables + one 32-limb polynomial (16 MiB): declared 104 MiB.
+/// GPU memory need: 72 MiB tables + one 32-limb polynomial (16 MiB); declared with room for
+/// two (104 MiB).
 #[test]
 #[ignore = "needs an NVIDIA GPU (run on quadruped-gpu)"]
 fn intt_ntt_roundtrip_n16_train() {
@@ -157,20 +158,26 @@ fn upload_pt_roundtrip_n16_train() {
     assert_eq!(back.poly().limbs(), pt.poly().limbs());
 }
 
-/// A non-existent ordinal is a `Device` error, not a panic or abort.
+/// A non-existent ordinal is a `Device` error naming the ordinal, not a panic or abort.
+/// Skipped without a driver (the missing-driver `Device` error would pass for the wrong
+/// reason; `missing_driver_is_device_error` covers that case).
 ///
 /// GPU memory need: none (no device is opened).
 #[test]
 #[ignore = "needs an NVIDIA GPU (run on quadruped-gpu)"]
 fn bad_ordinal_is_device_error() {
+    if let Err(e) = probe() {
+        eprintln!("SKIP bad_ordinal_is_device_error: no usable CUDA device: {e}");
+        return;
+    }
     let params = CkksParams::test_tiny();
     let r = CudaDevice::new(1000, &params, 1);
-    assert!(
-        matches!(r, Err(HekitError::Device(_))),
-        "expected Device error, got {r:?}"
-    );
-    if let Err(e) = r {
-        eprintln!("bad_ordinal_is_device_error: {e}");
+    match r {
+        Err(HekitError::Device(msg)) => {
+            assert!(msg.contains("ordinal 1000"), "wrong Device error: {msg}");
+            eprintln!("bad_ordinal_is_device_error: {msg}");
+        }
+        other => panic!("expected Device error, got {other:?}"),
     }
 }
 

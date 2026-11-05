@@ -1,6 +1,7 @@
-//! Launch configuration of the batched NTT kernels (`kernels/ntt.cu`). Host-only, no CUDA
-//! needed: the device code ([`crate::CudaDevice`]) launches exactly these configurations, and
-//! the CPU replay of the kernels used by the tests follows them too.
+//! Launch configuration of the batched NTT kernels (`kernels/ntt.cu`) and of the element-wise
+//! kernels (`kernels/pointwise.cu`, `kernels/basis.cu`). Host-only, no CUDA needed: the device
+//! code launches exactly these configurations, and the CPU replay of the kernels used by the
+//! tests follows them too.
 
 use hekit_core::{HekitError, Result};
 
@@ -98,6 +99,40 @@ impl NttPlan {
     }
 }
 
+/// Threads per block of the element-wise kernels (`kernels/pointwise.cu`, `kernels/basis.cu`).
+pub const ELEM_BLOCK: u32 = 256;
+
+/// Launch shape of an element-wise kernel: one thread per coefficient, `rows` limbs in
+/// `gridDim.y` (1 for `basis_convert`, which loops over its targets in each thread).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ElemLaunch {
+    /// `gridDim` = (`ceil(N / ELEM_BLOCK)`, rows, 1).
+    pub grid: (u32, u32, u32),
+    /// `blockDim` = (`ELEM_BLOCK`, 1, 1).
+    pub block: (u32, u32, u32),
+}
+
+impl ElemLaunch {
+    /// Shape for `rows` limbs of degree `n`. `InvalidParams` unless `n` is a power of two in
+    /// `[2, 2^31]` and `1 <= rows <= MAX_LIMBS`.
+    pub fn new(n: usize, rows: usize) -> Result<ElemLaunch> {
+        if !(n >= 2 && n.is_power_of_two() && n <= 1 << 31) {
+            return Err(HekitError::InvalidParams(format!(
+                "degree {n} must be a power of two in [2, 2^31]"
+            )));
+        }
+        if !(1..=MAX_LIMBS).contains(&rows) {
+            return Err(HekitError::InvalidParams(format!(
+                "{rows} limbs: one launch carries 1..={MAX_LIMBS}"
+            )));
+        }
+        Ok(ElemLaunch {
+            grid: ((n as u32).div_ceil(ELEM_BLOCK), rows as u32, 1),
+            block: (ELEM_BLOCK, 1, 1),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,6 +168,17 @@ mod tests {
             assert_eq!(p.shared.grid, (1, 3, 1));
             assert_eq!(p.shared.block, (1 << (log_n - 1), 1, 1));
         }
+    }
+
+    #[test]
+    fn elementwise_shapes() {
+        let l = ElemLaunch::new(1 << 16, 36).unwrap();
+        assert_eq!(l.grid, (256, 36, 1));
+        assert_eq!(l.block, (ELEM_BLOCK, 1, 1));
+        // N below the block size: one partial block (threads c >= N return).
+        assert_eq!(ElemLaunch::new(32, 1).unwrap().grid, (1, 1, 1));
+        assert!(ElemLaunch::new(1 << 10, 0).is_err());
+        assert!(ElemLaunch::new(3, 1).is_err());
     }
 
     #[test]

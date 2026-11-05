@@ -12,12 +12,16 @@
 //   stage with distance t (h = N / (2t) groups) group i uses inv_roots[h + i]; values stay in
 //   [0, 2q) between stages; the last stage (h = 1, t = N/2) is fused with the N^-1 scaling:
 //   x' = (x + y) * n_inv, y' = (x - y) * (inv_roots[1] * n_inv), each reduced to [0, q).
+//   Input precondition of the inverse: every residue < 2q (gs_butterfly / gs_last compute
+//   x + 2q - y, which wraps for y >= x + 2q). Uploads and every kernel in this directory
+//   produce fully reduced residues (< q). The forward transform accepts [0, 4q).
 // Every butterfly performs the same u64 operations as the CPU code, so outputs are bit-identical
 // whatever the schedule (the schedule only has to respect the stage order).
 //
 // Layout: limb l (0 <= l < num_limbs, selected by blockIdx.y) is contiguous at a + l * N. Its
 // prime index is p = limb_prime[l]; the twiddle tables of prime p are at tables + p * N, and its
-// constants at consts + p * NCONST: { q, n_inv, n_inv_shoup, w_n_inv, w_n_inv_shoup }.
+// constants at consts + p * NCONST: { q, n_inv, n_inv_shoup, w_n_inv, w_n_inv_shoup,
+// barrett_lo, barrett_hi } (the Barrett words are used by kernels/pointwise.cu only).
 //
 // Schedule (N = 2^16 u64 coefficients are 512 KiB, more than an SM's shared memory):
 //   * strides t >= CHUNK (= 2048) run in global memory, one launch per stage, one thread per
@@ -36,7 +40,7 @@
 typedef unsigned long long u64;
 typedef unsigned int u32;
 
-#define NCONST 5
+#define NCONST 7
 
 // [A1] Lazy Shoup product: value congruent to y * w (mod q) in [0, 2q), for y < 2^64, w < q,
 // w_shoup = floor(w * 2^64 / q). Products are wrapping (mod 2^64).
