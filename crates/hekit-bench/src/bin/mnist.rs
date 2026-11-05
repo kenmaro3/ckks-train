@@ -645,7 +645,10 @@ fn run(args: &Args) -> Result<(), String> {
     let loaded = load(args);
     let features = match (&loaded, args.plan) {
         (Ok((train, _)), _) => train.features(),
-        (Err(_), true) => 28 * 28,
+        (Err(e), true) => {
+            eprintln!("mnist: --plan: data not loaded ({e}); planning for 28 x 28 images");
+            28 * 28
+        }
         (Err(e), false) => return Err(e.clone()),
     };
     let params = Arc::new(params_named(&args.params)?);
@@ -1349,7 +1352,10 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let loaded = load(args);
     let features = match (&loaded, args.plan) {
         (Ok((train, _)), _) => train.features(),
-        (Err(_), true) => 28 * 28,
+        (Err(e), true) => {
+            eprintln!("mnist: --plan: data not loaded ({e}); planning for 28 x 28 images");
+            28 * 28
+        }
         (Err(e), false) => return Err(e.clone()),
     };
     let params = Arc::new(params_named(&args.params)?);
