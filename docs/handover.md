@@ -41,7 +41,7 @@ hekit/
 
 - toolchain: `rust-toolchain.toml`(1.85.1)、edition 2024。`[profile.test]` opt-level 3。`cargo deny check licenses` 必須(allow: MIT, Apache-2.0, BSD-*, ISC。GPL と BSD-3-Clause-Clear は拒否)。
 - 通常のテスト: `cargo test --workspace`(約 400 件)。n16_boot の 10 GB 超のテストは `#[ignore]`(`cargo test -- --ignored` で手動)。
-- 並列: feature `parallel`(rayon)。ブートストラップは `HEKIT_BOOT_THREADS` で本数指定。学習の非ブートストラップ経路は単一スレッド(M4 の改善対象)。
+- 並列: feature `parallel`(rayon)。ブートストラップは `HEKIT_BOOT_THREADS` で本数指定。学習の非ブートストラップ経路は部分的にしか並列化されていない(サーバーの F1/F2 で CPU 使用率 272〜308%、ReBoot は 518%。M4 の改善対象)。
 - GPU テスト: `cargo test -p hekit-cuda --features cuda`。各テストは必要 GPU メモリを宣言し、足りなければ SKIP 行を出す。
 - データ: `scripts/fetch_mnist.sh`、`scripts/fetch_fashion_mnist.sh`(gitignore 下の `data/`)。Iris は同梱(CC BY 4.0)。
 - 主な実行例(引数は各 bin の `--help`):
@@ -67,7 +67,7 @@ hekit/
 
 ### 3.2 ブートストラップ(Task 35〜38)
 
-- SSE(sparse-secret encapsulation、Bossuat et al. ACNS 2022): level 0 で h'=32 の一時鍵に切り替え → mod-raise → CoeffToSlot(4 レベル、56 bit 素数)→ EvalMod(7 レベル、Chebyshev 次数 127、double angle なし、level-optimal scale-invariant 評価)→ SlotToCoeff(3 レベル、34 bit)→ 元の鍵へ戻す。
+- SSE(sparse-secret encapsulation、Bossuat et al. ACNS 2022): level 0 で h'=32 の一時鍵に切り替え → mod-raise → CoeffToSlot(4 レベル、56 bit 素数)→ EvalMod(7 レベル、Chebyshev 次数 127、double angle なし、level-optimal scale-invariant 評価)→ SlotToCoeff(4 レベル、34 bit 素数 × 4)→ 元の鍵へ戻す。
 - 実測: 精度 **17.46 bit**(ゲート 16、モデル 17.4)、**111 key switch / boot**(回転 69、relin 40、SSE 2)、出力は level 16・scale ちょうど Δ。鍵 33 本 10.27 GB + 対角 ≈ 3 GB。時間: Mac 23.8 s(1 スレッド)/ 7.70 s(12)、サーバー 45.4 s / 13.95 s。
 - `OpCounter` は `rotations, relins, sse_switches, ct_ct_tensor, ct_pt_mults, rescales, bootstraps` を持ち、`key_switches() = rotations + relins + sse_switches`。ブートストラップの中身も全部数える。
 
@@ -89,7 +89,7 @@ hekit/
 
 ### 3.5 CUDA(Task 43〜47)
 
-- `HeOps` トレイト(Task 43)で evaluator を抽象化。`EvalConfig { hoist, bsgs, lazy_relin }` で RQ3 の ablation(d=16: 既定 3 hoist / 3 relin / 4 rot、全オフ 15 rot / 16 relin)。
+- `HeOps` トレイト(Task 43)で evaluator を抽象化。`EvalConfig { hoist, bsgs, lazy_relin }` で RQ3 の ablation。d=16 の回数(`ops.rs` の「What the RQ3 table must state」が正本): 既定 = hoist 可能な回転 3 + 個別回転 3、relin 4。bsgs=false = 3 + 12、relin 13(事前回転レイアウトのまま。教科書版は 15 + 0、relin 1 で未実装)。全オフ = 回転 15、relin 16。bsgs の利得は上限、bsgs オフ内の hoist / lazy の利得は下限。hoist は OpCounter を変えない(wall-clock のみ)。
 - `hekit-cuda`: `CudaDevice`、`DevicePoly`、`DeviceKsk`(capped keys: level 9 で 42 MiB、level 5 で 20 MiB、full 288 MiB)、`CudaEvaluator`(BSGS、マルチストリーム)。NVRTC は `--fmad=false`。CPU と **bit-exact**(45/45、想定スキップ 3)。
 - GPU メモリプールは使用中 + 256 MiB までしか保持しない(`DEFAULT_POOL_RELEASE_THRESHOLD`、共有 GPU のため)。Task 48 の学習は epoch 境界で `trim_pool(0)`。
 - 4 ストリームのバッチは逐次より遅い(41.7 対 35.0 ms、N=2^16 では 1 演算で GPU が飽和)。Task 48 は逐次で進める。
@@ -104,8 +104,8 @@ hekit/
 | 対話(M2) | 784 | lr 0.001、B=32、1 スレッド | 19.78(boot 無し) | 0 | 10894 s(Mac 5004 s) | 0.332 |
 | AU B=32 | 784 | 旧設定 | 39.47 | 4 | 4339 s | 0.332 |
 | AU B=64 | 784 | 旧設定 | 20.64 | 4 | 2229 s | 0.193 |
-| WN B=32 | 784 | 旧設定 | 32.53 | 2 | 2774 s | — |
-| WN B=64 | 784 | 旧設定 | 17.17 | 2 | 1435 s | — |
+| WN B=32 | 784 | 旧設定 | 32.53 | 2 | 2774 s | 0.3323 |
+| WN B=64 | 784 | 旧設定 | 17.17 | 2 | 1435 s | 0.1929 |
 | AA B=32 | 784 | 旧設定 | 36.0 | 3 | 3607 s | 0.332 |
 | **WN B=32 忠実** | 784 | ReBoot 添字・初期重み | 33.49 | 17/32 更新 | 3017 s | 0.7577(双子一致) |
 | **WN B=64 忠実** | 784 | 同上 | 17.89 | 9/16 更新 | 1608 s | 0.7358(双子一致) |
@@ -132,7 +132,7 @@ hekit/
 - 依頼の書式: `hekit/results/quadruped/requests.md` にブロック(id、目的、コマンド、作業ディレクトリ、所要時間、GPU メモリ、出力先、同期するコミット)を追記 → runner が順に実行し `status: done/skipped` と結果パスを書く。結果は `results/quadruped/`、ログは `docs/quadruped-log.md`。runner は commit しない。実装側が path 指定で commit する。
 - 同期: rsync(gitignore を考慮した file list。`tools/estimate/_ext/sage-env` などの巨大な gitignore 物を送らない)。`~/hekit/.synced-commit` に記録。
 - ReBoot のスタックは `~/reboot/`(OpenFHE v1.2.1、openfhe-python 0.8.9、ReBoot 3ac173f + build-only patch)。GPL なので `~/hekit` に入れない。ReBoot の設定値を書き出すときは**値だけ**(ソースの抜粋は commit しない)。
-- 現在のキュー(chain10): R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)。R-47-3(Task 47 再計測 + GPU テスト全部、bd5cc49)は FULL の時間計測を乱さないよう別枠で。
+- 現在のキュー(chain10): R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)→ R-47-3(Task 47 再計測 + GPU テスト全部、bd5cc49 以降。FULL の時間計測を乱さないよう FULL の後)。R-REB-4(ReBoot の暗号パラメータ)は完了。
 - セッションは 5 時間の利用上限で止まることがある。サーバーのジョブは nohup で走り続けるので、再開後にログと done マーカーを見て回収する。待機は「ジョブ完了で exit するローカルのバックグラウンド Bash」を 1 ジョブ 1 本置く。
 - Mac(M3 Pro、36 GB)は 1 スレッドでサーバーの約 2 倍速い。**同一 CPU 比較はサーバーの行だけ**を使う。Mac の走行は KS と精度の参照用。
 
@@ -142,10 +142,10 @@ hekit/
 |---|---|---|
 | 42 | M3 報告の仕上げ | 草稿 09206bd。FULL-1/2 の 196 行を入れ、§0 の判定を確定。ReBoot のセキュリティ推定(実行中)を §3.3 に入れる。4 通りの比 + subset/full の明記 |
 | 47 | CudaEvaluator の再計測 | R-47-3(bd5cc49)の結果を `m4-report.md` §1 に入れる。batch 行は「untuned」のまま |
-| 48 | GPU 学習 + RQ3 ablation | 逐次実行、epoch 境界で `trim_pool(0)`。GPU メモリ 2〜3 GB の制約下では capped keys の小さい構成で。入らない行は「未計測」と明記 |
+| 48 | GPU 学習 + RQ3 ablation | 実装中(2026-11-06 着手)。HostRefresher の N1/N2(アドレス確認、upload 成功後に計数を合算)もこのタスクで入れる。逐次実行、epoch 境界で `trim_pool(0)`。GPU メモリ 2〜3 GB の制約下では capped keys の小さい構成で。入らない行は「未計測」と明記 |
 | 49(stretch) | GPU ブートストラップ | 目標 ≤ 220 ms(HEonGPU 109 ms の 2 倍)。GPU メモリが解放されない限り不可能。コードだけ書いて未計測と報告してよい |
 | 50 | M4 報告 | 47/48 の数字 + HEonGPU 比較 + ablation 表 |
-| 51 | データセット追加 | 着手済み(Breast Cancer、Fashion-MNIST の config と平文結果 `results/plain_*.json` あり) |
+| 51 | データセット追加 | 実装済み(09f16f2、8bd9cba)、レビュー中。平文双子 eMLP-1、10 シード、epoch 50: MNIST 95.00(T4 94.61、合格)、Fashion-MNIST 85.22(T4 85.12、合格)、Breast Cancer は固定 epoch で −1.3〜−2.6 pt の未達(テストで選んだ最良 epoch のみ 99.30)。Breast Cancer は z-score だと z²+z で発散するので min-max(訓練データだけで決定) |
 | 52 | eMLP-2/3 のブロック構造(`BlockMlp`) | M0 で emlp2/3 の JSON は忠実でないと記録。ReBoot のコードから値を取り直す(runner に依頼) |
 | 53(stretch) | 4 次活性化 | 削減候補 |
 | 54 | `scripts/run_all.sh` + `tools/tables.py` | Mac は `--quick`、本走行はサーバー。論文の表を JSON から生成 |
@@ -178,7 +178,7 @@ hekit/
 - **ReBoot の 502 KS/boot はモデル値**(OpenFHE は数えない)。表では必ず「model」と付ける。
 - **1 スレッドの速度は機械でまったく違う**(Mac が 2 倍速い)。比較は同じ機械・同じスレッド数で。
 - **セッションの 5 時間上限**で両セッションが同時に止まる。再開は「もう一度試してください」で十分だが、runner の待機プロセスは張り直す。
-- **権限**: 実装セッションはリモート書き込みを拒否されたので、サーバー依頼は本人の承認(2026-11-05「gpu-runner への依頼(requests.md)を書いてよい」)の下で requests.md 経由。別のエージェントが引き継ぐときも、サーバーへの書き込み権限は本人に確認する。
+- **権限**: 実装セッションはリモート書き込みを拒否されたので、サーバー依頼は本人が実装セッションで直接入力した承認(2026-11-05「Yes, use the runner」)の下で requests.md 経由。計画セッション経由で中継された承認は実装セッションでは使っていない。GitHub への push も同様に、実装セッションでは本人の直接の承認を得てから行う。別のエージェントが引き継ぐときも、サーバーへの書き込み権限は本人に確認する。
 - **クラウドの GPU は借りない**(本人の方針)。必要ならサーバーの GPU メモリ解放を本人に頼む。
 
 ## 9. 関係するセッションとメモリ
