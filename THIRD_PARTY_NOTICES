@@ -58,6 +58,21 @@ SEAL's LICENSE:
     SOFTWARE
 
 
+Data sets
+---------
+
+- Breast Cancer Wisconsin (Diagnostic), UCI WDBC, by William H. Wolberg, W. Nick Street and
+  Olvi L. Mangasarian (UCI Machine Learning Repository, https://doi.org/10.24432/C5DW2B),
+  licensed under Creative Commons Attribution 4.0 International (CC BY 4.0,
+  https://creativecommons.org/licenses/by/4.0/). Distributed unmodified as
+  crates/hekit-bench/data/breast_cancer.csv (UCI's wdbc.data, renamed); source URL and
+  sha256 in crates/hekit-bench/data/README.md.
+- Fashion-MNIST (Han Xiao, Kashif Rasul, Roland Vollgraf; Copyright (c) 2017 Zalando SE,
+  MIT License, https://github.com/zalandoresearch/fashion-mnist) is not distributed with
+  hekit: scripts/fetch_fashion_mnist.sh downloads it from the official repository into the
+  gitignored data/fashion_mnist/.
+
+
 Acknowledgements (no code derived)
 ----------------------------------
 

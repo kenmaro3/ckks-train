@@ -1,4 +1,7 @@
-//! Data sets for the training benchmarks: the MNIST IDX loader (Task 32).
+//! Data sets for the training benchmarks: the MNIST IDX loader (Task 32), also used for
+//! Fashion-MNIST (same format; `scripts/fetch_fashion_mnist.sh`), ReBoot's 14 x 14 resize and
+//! min-max scaling, and the Breast Cancer (UCI WDBC) table with its split and standardization
+//! (Task 51).
 //!
 //! MNIST is **not** in the repository (licence and size): `scripts/fetch_mnist.sh` downloads
 //! the four IDX files into the gitignored `data/mnist/` and unpacks them. The IDX format
@@ -10,6 +13,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
+use hekit_core::sampler::Rng;
 use ndarray::Array2;
 
 /// An IDX array of unsigned bytes: its dimensions and row-major data.
@@ -526,6 +530,297 @@ pub fn load_npy_dataset(dir: &Path) -> io::Result<(Mnist, Mnist)> {
     Ok((train, test))
 }
 
+// ---------------------------------------------------------------------------------------------
+// Task 51: ReBoot's 14 x 14 preprocessing of the MNIST family (MNIST, Fashion-MNIST).
+// ---------------------------------------------------------------------------------------------
+
+/// The bicubic convolution kernel with `a = -0.5` (Keys; the value PIL and torch's
+/// antialiased resize use).
+fn cubic_kernel(x: f64) -> f64 {
+    const A: f64 = -0.5;
+    let x = x.abs();
+    if x < 1.0 {
+        ((A + 2.0) * x - (A + 3.0)) * x * x + 1.0
+    } else if x < 2.0 {
+        (((x - 5.0) * x + 8.0) * x - 4.0) * A
+    } else {
+        0.0
+    }
+}
+
+/// The `n_out x n_in` matrix of the antialiased bicubic resize along one axis: output `i` has
+/// its center at `c = s (i + 1/2)` with `s = n_in / n_out`; for a downscale (`s >= 1`) the
+/// kernel is stretched by `s` (support `2 s`), input `j` (center `j + 1/2`) gets
+/// `cubic((j + 1/2 - c) / s)`, and each row is normalized to sum 1 over the inputs in
+/// `[int(c - 2s + 1/2), int(c + 2s + 1/2))` clipped to the image. This is the separable filter
+/// of PIL's `Image.resize(BICUBIC)` and of `torch.nn.functional.interpolate(mode="bicubic",
+/// antialias=True)`, written from that description (no third-party code). For an upscale
+/// (`s < 1`) the kernel is not stretched.
+pub fn bicubic_aa_weights(n_in: usize, n_out: usize) -> Array2<f64> {
+    assert!(n_in > 0 && n_out > 0, "nonempty axes");
+    let s = n_in as f64 / n_out as f64;
+    let (support, inv) = if s >= 1.0 {
+        (2.0 * s, 1.0 / s)
+    } else {
+        (2.0, 1.0)
+    };
+    let mut m = Array2::zeros((n_out, n_in));
+    for i in 0..n_out {
+        let c = s * (i as f64 + 0.5);
+        // `as usize` truncates like C's int(); the lower end is clamped at 0 first.
+        let lo = (c - support + 0.5).max(0.0) as usize;
+        let hi = ((c + support + 0.5) as usize).min(n_in);
+        let w: Vec<f64> = (lo..hi)
+            .map(|j| cubic_kernel((j as f64 - c + 0.5) * inv))
+            .collect();
+        let total: f64 = w.iter().sum();
+        for (k, wk) in w.iter().enumerate() {
+            m[[i, lo + k]] = wk / total;
+        }
+    }
+    m
+}
+
+/// Resizes every row of `images` (an image of `rows x cols`, row-major) to
+/// `out_rows x out_cols` with the separable [`bicubic_aa_weights`] filter, in f64 and without
+/// clamping (so values overshoot the input range, as in a float-tensor resize).
+pub fn resize_bicubic_aa(
+    images: &Array2<f64>,
+    rows: usize,
+    cols: usize,
+    out_rows: usize,
+    out_cols: usize,
+) -> Array2<f64> {
+    assert_eq!(images.ncols(), rows * cols, "image width");
+    let wr = bicubic_aa_weights(rows, out_rows);
+    let wc = bicubic_aa_weights(cols, out_cols);
+    let mut out = Array2::zeros((images.nrows(), out_rows * out_cols));
+    for (src, mut dst) in images.rows().into_iter().zip(out.rows_mut()) {
+        let img = src
+            .to_shape((rows, cols))
+            .expect("row-major image")
+            .to_owned();
+        let r = wr.dot(&img).dot(&wc.t());
+        dst.iter_mut().zip(r.iter()).for_each(|(d, v)| *d = *v);
+    }
+    out
+}
+
+/// Min-max scaling with the training set's range: `x -> (x - min) / (max - min)` over all
+/// values of `train`, applied to both sets (test values may leave `[0, 1]`). Returns
+/// `(min, max)`.
+///
+/// # Panics
+/// If `train` is empty or constant.
+pub fn min_max_scale(train: &mut Array2<f64>, test: &mut Array2<f64>) -> (f64, f64) {
+    let lo = train.iter().copied().fold(f64::INFINITY, f64::min);
+    let hi = train.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    assert!(hi > lo, "training values must span a range");
+    let span = hi - lo;
+    train.mapv_inplace(|v| (v - lo) / span);
+    test.mapv_inplace(|v| (v - lo) / span);
+    (lo, hi)
+}
+
+/// ReBoot's input pipeline for the MNIST family as recorded by gpu-runner (R-REB-3: "resize to
+/// 14, then min-max scaling over the training set"): each image resized to `side x side` with
+/// [`resize_bicubic_aa`], then [`min_max_scale`] with the training range. Our pixels are
+/// `byte / 255`; the resize is linear and the scaling affine-invariant, so the result equals
+/// that of resizing the raw bytes. It matches ReBoot's float32 14 x 14 MNIST arrays to < 1e-6
+/// (test `resize_matches_reboot_14x14_mnist`, run on the gitignored R-REB-3 arrays).
+pub fn reboot_preprocess(train: &Mnist, test: &Mnist, side: usize) -> (Mnist, Mnist) {
+    let resize = |m: &Mnist| resize_bicubic_aa(&m.images, m.rows, m.cols, side, side);
+    let (mut tr, mut te) = (resize(train), resize(test));
+    min_max_scale(&mut tr, &mut te);
+    let set = |images, m: &Mnist| Mnist {
+        images,
+        labels: m.labels.clone(),
+        rows: side,
+        cols: side,
+    };
+    (set(tr, train), set(te, test))
+}
+
+// ---------------------------------------------------------------------------------------------
+// Task 51: Breast Cancer Wisconsin (Diagnostic), UCI WDBC.
+// ---------------------------------------------------------------------------------------------
+
+/// The SHA-256 of `wdbc.data` as distributed by the UCI Machine Learning Repository
+/// (committed verbatim as `crates/hekit-bench/data/breast_cancer.csv`; see the README there).
+pub const WDBC_SHA256: &str = "d606af411f3e5be8a317a5a8b652b425aaf0ff38ca683d5327ffff94c3695f4a";
+
+/// A tabular data set.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Tabular {
+    /// `n x features`.
+    pub features: Array2<f64>,
+    /// `n` class labels.
+    pub labels: Vec<u8>,
+    /// `n` record ids (WDBC's patient ids).
+    pub ids: Vec<u64>,
+}
+
+/// Parses UCI's `wdbc.data`: one comma-separated record per line, `id, diagnosis (M | B),
+/// 30 real features`; blank lines and `\r` are ignored. Labels follow scikit-learn's
+/// `load_breast_cancer`: malignant `M` = 0, benign `B` = 1.
+///
+/// Errors (`InvalidData`): no records, a record without 32 fields, a non-integer id, another
+/// diagnosis, or a feature that is not a finite number.
+pub fn parse_wdbc(text: &str) -> io::Result<Tabular> {
+    const FEATURES: usize = 30;
+    let (mut x, mut labels, mut ids) = (Vec::new(), Vec::new(), Vec::new());
+    for (n, line) in text.lines().enumerate() {
+        let line = line.trim_end_matches('\r');
+        if line.trim().is_empty() {
+            continue;
+        }
+        let fields: Vec<&str> = line.split(',').map(str::trim).collect();
+        if fields.len() != FEATURES + 2 {
+            return Err(invalid(format!(
+                "WDBC line {}: {} fields, want {}",
+                n + 1,
+                fields.len(),
+                FEATURES + 2
+            )));
+        }
+        ids.push(
+            fields[0]
+                .parse::<u64>()
+                .map_err(|e| invalid(format!("WDBC line {}: id {}: {e}", n + 1, fields[0])))?,
+        );
+        labels.push(match fields[1] {
+            "M" => 0,
+            "B" => 1,
+            d => {
+                return Err(invalid(format!(
+                    "WDBC line {}: diagnosis {d} (M | B)",
+                    n + 1
+                )));
+            }
+        });
+        for f in &fields[2..] {
+            let v = f
+                .parse::<f64>()
+                .ok()
+                .filter(|v| v.is_finite())
+                .ok_or_else(|| invalid(format!("WDBC line {}: feature {f}", n + 1)))?;
+            x.push(v);
+        }
+    }
+    if labels.is_empty() {
+        return Err(invalid("WDBC: no records".into()));
+    }
+    Ok(Tabular {
+        features: Array2::from_shape_vec((labels.len(), FEATURES), x).expect("30 per record"),
+        labels,
+        ids,
+    })
+}
+
+/// Reads `path`, checks it against [`WDBC_SHA256`] and parses it ([`parse_wdbc`]).
+///
+/// Errors: the file's I/O errors, `InvalidData` for a digest mismatch, and those of
+/// [`parse_wdbc`].
+pub fn load_wdbc(path: &Path) -> io::Result<Tabular> {
+    let bytes =
+        fs::read(path).map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
+    let got = sha256_hex(&bytes);
+    if got != WDBC_SHA256 {
+        return Err(invalid(format!(
+            "{}: sha256 {got}, want UCI's wdbc.data {WDBC_SHA256}",
+            path.display()
+        )));
+    }
+    let text = std::str::from_utf8(&bytes)
+        .map_err(|_| invalid(format!("{}: not UTF-8", path.display())))?;
+    parse_wdbc(text).map_err(|e| invalid(format!("{}: {e}", path.display())))
+}
+
+/// A stratified train/test split: class `c` with `n_c` of the `n` samples puts
+/// `floor(n_c n_test / n)` samples in the test set, the remaining test places going to the
+/// largest fractional parts (ties to the lower class); the test samples of each class are the
+/// first ones of a Fisher-Yates shuffle of that class's indices (classes in ascending order,
+/// one `rng` stream). Returns `(train, test)`, each in ascending index order.
+///
+/// # Panics
+/// If `n_test > labels.len()`.
+pub fn stratified_split(labels: &[u8], n_test: usize, rng: &mut Rng) -> (Vec<usize>, Vec<usize>) {
+    let n = labels.len();
+    assert!(n_test <= n, "{n_test} test samples of {n}");
+    let mut classes: Vec<u8> = labels.to_vec();
+    classes.sort_unstable();
+    classes.dedup();
+    let members: Vec<Vec<usize>> = classes
+        .iter()
+        .map(|&c| (0..n).filter(|&i| labels[i] == c).collect())
+        .collect();
+    // Quotas by the largest-remainder method, in exact integer arithmetic.
+    let mut quota: Vec<usize> = members.iter().map(|m| m.len() * n_test / n).collect();
+    let mut left = n_test - quota.iter().sum::<usize>();
+    let mut order: Vec<usize> = (0..members.len()).collect();
+    order.sort_by_key(|&k| std::cmp::Reverse(members[k].len() * n_test % n));
+    for &k in &order {
+        if left == 0 {
+            break;
+        }
+        quota[k] += 1;
+        left -= 1;
+    }
+    let (mut train, mut test) = (Vec::with_capacity(n - n_test), Vec::with_capacity(n_test));
+    for (m, &q) in members.iter().zip(&quota) {
+        let mut idx = m.clone();
+        for i in (1..idx.len()).rev() {
+            let j = rng.below(i as u64 + 1) as usize;
+            idx.swap(i, j);
+        }
+        test.extend_from_slice(&idx[..q]);
+        train.extend_from_slice(&idx[q..]);
+    }
+    train.sort_unstable();
+    test.sort_unstable();
+    (train, test)
+}
+
+/// Standardization with the training statistics: each column of both sets becomes
+/// `(x - mean) / std` with the training mean and population standard deviation (`ddof = 0`,
+/// scikit-learn's `StandardScaler`); a constant training column is only centered.
+pub fn standardize(train: &mut Array2<f64>, test: &mut Array2<f64>) {
+    let n = train.nrows() as f64;
+    for j in 0..train.ncols() {
+        let mean = train.column(j).sum() / n;
+        let var = train
+            .column(j)
+            .iter()
+            .map(|v| (v - mean).powi(2))
+            .sum::<f64>()
+            / n;
+        let sd = if var > 0.0 { var.sqrt() } else { 1.0 };
+        train.column_mut(j).mapv_inplace(|v| (v - mean) / sd);
+        test.column_mut(j).mapv_inplace(|v| (v - mean) / sd);
+    }
+}
+
+/// Per-column min-max scaling with the training ranges: each column of both sets becomes
+/// `(x - min) / (max - min)` with the training column's minimum and maximum (scikit-learn's
+/// `MinMaxScaler`; test values may leave `[0, 1]`); a constant training column is only shifted.
+pub fn min_max_columns(train: &mut Array2<f64>, test: &mut Array2<f64>) {
+    for j in 0..train.ncols() {
+        let lo = train
+            .column(j)
+            .iter()
+            .copied()
+            .fold(f64::INFINITY, f64::min);
+        let hi = train
+            .column(j)
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        let span = if hi > lo { hi - lo } else { 1.0 };
+        train.column_mut(j).mapv_inplace(|v| (v - lo) / span);
+        test.column_mut(j).mapv_inplace(|v| (v - lo) / span);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -753,5 +1048,259 @@ mod tests {
         fs::write(dir.join(NPY_DATASET_FILES[2]), &bad).unwrap();
         assert!(load_npy_dataset(&dir).is_err());
         fs::remove_dir_all(&dir).unwrap();
+    }
+
+    // ---- Task 51: resize, scaling, WDBC, split ----
+
+    fn close(a: f64, b: f64) -> bool {
+        (a - b).abs() < 1e-14
+    }
+
+    /// Reference weights printed by an independent NumPy transcription of the antialiased
+    /// bicubic filter (a = -0.5, support scaled by the downscale factor, weights normalized).
+    #[test]
+    fn bicubic_aa_weights_match_reference() {
+        let m = bicubic_aa_weights(28, 14);
+        assert_eq!(m.dim(), (14, 28));
+        let row0 = [
+            0.46443514644351463,
+            0.46443514644351463,
+            0.12133891213389121,
+            -0.03765690376569038,
+            -0.01255230125523013,
+            0.0,
+        ];
+        for (j, &w) in row0.iter().enumerate() {
+            assert!(close(m[[0, j]], w), "row 0 col {j}: {}", m[[0, j]]);
+        }
+        let row7 = [
+            0.0,
+            -0.01171875,
+            -0.03515625,
+            0.11328125,
+            0.43359375,
+            0.43359375,
+            0.11328125,
+            -0.03515625,
+            -0.01171875,
+            0.0,
+        ];
+        for (k, &w) in row7.iter().enumerate() {
+            assert!(
+                close(m[[7, 10 + k]], w),
+                "row 7 col {}: {}",
+                10 + k,
+                m[[7, 10 + k]]
+            );
+        }
+        for row in m.rows() {
+            assert!(close(row.sum(), 1.0));
+        }
+        // Last row mirrors the first.
+        for j in 0..28 {
+            assert!(close(m[[13, 27 - j]], m[[0, j]]));
+        }
+    }
+
+    #[test]
+    fn resize_bicubic_aa_reference_image() {
+        // A 6 x 6 image (i^2 for i = 0..36, row-major) resized to 3 x 3 (NumPy reference).
+        let img = Array2::from_shape_fn((1, 36), |(_, i)| (i * i) as f64);
+        let out = resize_bicubic_aa(&img, 6, 6, 3, 3);
+        let want = [
+            18.72190612909438,
+            37.61003225909483,
+            63.81784282488051,
+            251.82727011402474,
+            316.6297709923664,
+            388.75195630649335,
+            748.4412737872235,
+            859.1581494139065,
+            977.1947094763747,
+        ];
+        assert_eq!(out.dim(), (1, 9));
+        for (j, &w) in want.iter().enumerate() {
+            assert!(
+                (out[[0, j]] - w).abs() < 1e-10,
+                "{j}: {} vs {w}",
+                out[[0, j]]
+            );
+        }
+        // A constant image stays constant; rows are resized independently.
+        let two = Array2::from_shape_fn((2, 16), |(r, _)| r as f64 + 0.5);
+        let out = resize_bicubic_aa(&two, 4, 4, 2, 2);
+        assert!(out.row(0).iter().all(|&v| close(v, 0.5)));
+        assert!(out.row(1).iter().all(|&v| close(v, 1.5)));
+    }
+
+    #[test]
+    fn min_max_scaling_uses_the_training_range() {
+        let mut train = ndarray::arr2(&[[-1.0, 1.0], [3.0, 0.0]]);
+        let mut test = ndarray::arr2(&[[5.0, -3.0]]);
+        let (lo, hi) = min_max_scale(&mut train, &mut test);
+        assert_eq!((lo, hi), (-1.0, 3.0));
+        assert_eq!(train, ndarray::arr2(&[[0.0, 0.5], [1.0, 0.25]]));
+        assert_eq!(test, ndarray::arr2(&[[1.5, -0.5]]));
+    }
+
+    /// Two WDBC rows in the UCI file's layout (id, diagnosis, 30 features).
+    fn wdbc_rows() -> String {
+        let f = |k: usize| {
+            (0..30)
+                .map(|j| format!("{}", (k * 100 + j) as f64 / 8.0))
+                .collect::<Vec<_>>()
+                .join(",")
+        };
+        format!("842302,M,{}\n8510426,B,{}\n", f(1), f(2))
+    }
+
+    #[test]
+    fn wdbc_parses_the_uci_layout() {
+        let t = parse_wdbc(&wdbc_rows()).unwrap();
+        assert_eq!(t.features.dim(), (2, 30));
+        assert_eq!(t.ids, [842302, 8510426]);
+        // sklearn's convention: malignant = 0, benign = 1.
+        assert_eq!(t.labels, [0, 1]);
+        assert_eq!(t.features[[0, 0]], 100.0 / 8.0);
+        assert_eq!(t.features[[1, 29]], 229.0 / 8.0);
+        // No trailing newline, CRLF and blank lines are accepted.
+        let crlf = wdbc_rows().replace('\n', "\r\n") + "\r\n";
+        assert_eq!(parse_wdbc(&crlf).unwrap().features, t.features);
+        assert_eq!(parse_wdbc(wdbc_rows().trim_end()).unwrap().labels, [0, 1]);
+    }
+
+    #[test]
+    fn wdbc_rejects_malformed_rows() {
+        let good = wdbc_rows();
+        assert!(
+            parse_wdbc(&good.replacen(",M,", ",X,", 1)).is_err(),
+            "diagnosis"
+        );
+        assert!(
+            parse_wdbc(&good.replacen(",12.5,", ",abc,", 1)).is_err(),
+            "number"
+        );
+        let short = good
+            .lines()
+            .next()
+            .unwrap()
+            .rsplit_once(',')
+            .unwrap()
+            .0
+            .to_string();
+        assert!(parse_wdbc(&short).is_err(), "29 features");
+        assert!(parse_wdbc("").is_err(), "empty");
+        assert!(parse_wdbc(&good.replacen("842302", "x1", 1)).is_err(), "id");
+    }
+
+    #[test]
+    fn stratified_split_keeps_class_proportions() {
+        // 212 malignant (0), 357 benign (1), as WDBC; 114 test samples.
+        let labels: Vec<u8> = (0..569).map(|i| u8::from(i % 569 >= 212)).collect();
+        let (train, test) = stratified_split(&labels, 114, &mut Rng::from_seed([7; 32]));
+        assert_eq!((train.len(), test.len()), (455, 114));
+        let test_m = test.iter().filter(|&&i| labels[i] == 0).count();
+        assert_eq!(test_m, 42, "round(212 * 114 / 569) = 42");
+        let mut all: Vec<usize> = train.iter().chain(&test).copied().collect();
+        all.sort_unstable();
+        assert_eq!(all, (0..569).collect::<Vec<_>>(), "a partition");
+        assert!(train.windows(2).all(|w| w[0] < w[1]) && test.windows(2).all(|w| w[0] < w[1]));
+        let again = stratified_split(&labels, 114, &mut Rng::from_seed([7; 32]));
+        assert_eq!(again, (train.clone(), test.clone()), "deterministic");
+        let other = stratified_split(&labels, 114, &mut Rng::from_seed([8; 32]));
+        assert_ne!(other.1, test, "seed-dependent");
+    }
+
+    #[test]
+    fn stratified_split_largest_remainder() {
+        // 3 classes of 5 samples, 7 test: quotas 2.33 each -> 2, 2, 2 plus one by remainder.
+        let labels: Vec<u8> = (0..15).map(|i| (i / 5) as u8).collect();
+        let (train, test) = stratified_split(&labels, 7, &mut Rng::from_seed([1; 32]));
+        assert_eq!((train.len(), test.len()), (8, 7));
+        for c in 0..3u8 {
+            let k = test.iter().filter(|&&i| labels[i] == c).count();
+            assert!((2..=3).contains(&k), "class {c}: {k}");
+        }
+    }
+
+    #[test]
+    fn standardize_uses_training_statistics() {
+        let mut train = ndarray::arr2(&[[1.0, 5.0], [3.0, 5.0]]);
+        let mut test = ndarray::arr2(&[[5.0, 6.0]]);
+        standardize(&mut train, &mut test);
+        // Column 0: mean 2, population std 1; column 1: constant (std 0 -> only centered).
+        assert_eq!(train, ndarray::arr2(&[[-1.0, 0.0], [1.0, 0.0]]));
+        assert_eq!(test, ndarray::arr2(&[[3.0, 1.0]]));
+    }
+
+    #[test]
+    fn min_max_columns_uses_training_ranges() {
+        let mut train = ndarray::arr2(&[[1.0, 5.0], [3.0, 5.0], [2.0, 5.0]]);
+        let mut test = ndarray::arr2(&[[4.0, 6.0]]);
+        min_max_columns(&mut train, &mut test);
+        // Column 0: range [1, 3]; column 1: constant (only shifted).
+        assert_eq!(train, ndarray::arr2(&[[0.0, 0.0], [1.0, 0.0], [0.5, 0.0]]));
+        assert_eq!(test, ndarray::arr2(&[[1.5, 1.0]]));
+    }
+
+    /// The committed WDBC file is the UCI original (SHA-256) and has 569 rows, 212 / 357.
+    #[test]
+    fn committed_wdbc_file() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("data/breast_cancer.csv");
+        let t = load_wdbc(&path).unwrap();
+        assert_eq!(t.features.dim(), (569, 30));
+        assert_eq!(t.labels.iter().filter(|&&l| l == 0).count(), 212);
+        assert_eq!(t.features[[0, 0]], 17.99);
+        let bad = std::env::temp_dir().join(format!("hekit-wdbc-{}", std::process::id()));
+        fs::write(&bad, wdbc_rows()).unwrap();
+        assert!(load_wdbc(&bad).is_err(), "sha256 mismatch");
+        fs::remove_file(&bad).unwrap();
+    }
+
+    /// Fashion-MNIST is read by the MNIST IDX loader: 60 000 / 10 000 images of 28 x 28 and
+    /// 10 balanced classes (needs `scripts/fetch_fashion_mnist.sh`).
+    #[test]
+    #[ignore = "needs data/fashion_mnist (scripts/fetch_fashion_mnist.sh)"]
+    fn fashion_mnist_idx_files() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/fashion_mnist");
+        for (split, n) in [(Split::Train, 60_000), (Split::Test, 10_000)] {
+            let m = load_mnist(&dir, split, None).expect("scripts/fetch_fashion_mnist.sh");
+            assert_eq!((m.len(), m.rows, m.cols), (n, 28, 28));
+            for c in 0..10u8 {
+                assert_eq!(m.labels.iter().filter(|&&l| l == c).count(), n / 10);
+            }
+        }
+    }
+
+    /// The resize plus min-max scaling reproduces ReBoot's 14 x 14 MNIST arrays (R-REB-3,
+    /// gitignored): needs `data/mnist` and `results/quadruped/data/reboot_emlp1_paper`.
+    #[test]
+    #[ignore = "needs data/mnist and the gitignored R-REB-3 arrays"]
+    fn resize_matches_reboot_14x14_mnist() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mnist = root.join("data/mnist");
+        let (tr, te) = reboot_preprocess(
+            &load_mnist(&mnist, Split::Train, None).expect("scripts/fetch_mnist.sh"),
+            &load_mnist(&mnist, Split::Test, None).expect("scripts/fetch_mnist.sh"),
+            14,
+        );
+        let d = root.join("results/quadruped/data/reboot_emlp1_paper");
+        let rd = |f: &str| read_npy_f64(&d.join(f)).expect("R-REB-3 arrays");
+        let rtr = rd("train_images_14x14.npy");
+        let rte = rd("test_images_14x14.npy");
+        let ltr: Vec<u8> = rd("train_labels.npy").iter().map(|&v| v as u8).collect();
+        let lte: Vec<u8> = rd("test_labels.npy").iter().map(|&v| v as u8).collect();
+        for (ours, theirs, labels) in [(&tr, &rtr, &ltr), (&te, &rte, &lte)] {
+            assert_eq!((ours.rows, ours.cols), (14, 14));
+            assert_eq!(&ours.labels, labels);
+            let e = ours
+                .images
+                .iter()
+                .zip(theirs)
+                .fold(0.0f64, |m, (a, b)| m.max((a - b).abs()));
+            eprintln!("max |ours - ReBoot| = {e:.3e} over {} images", ours.len());
+            // ReBoot's arrays are float32.
+            assert!(e < 1e-6, "max |ours - ReBoot| = {e}");
+        }
     }
 }

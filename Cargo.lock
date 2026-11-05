@@ -262,6 +262,7 @@ dependencies = [
  "libc",
  "ndarray",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]

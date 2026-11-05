@@ -1,0 +1,41 @@
+{
+  "name": "mnist_emlp1_paper",
+  "task": "Task 51: MNIST, ReBoot eMLP-1 at the paper setting, plaintext twin with hekit's own 14 x 14 resize (checks the resize against R-REB-3 and Table 4)",
+  "dataset": {
+    "kind": "mnist_idx",
+    "name": "MNIST (LeCun, Cortes, Burges)",
+    "path": "data/mnist",
+    "fetch": "scripts/fetch_mnist.sh",
+    "resize": 14,
+    "preprocessing_note": "data::reboot_preprocess: antialiased bicubic 28 -> 14 (a = -0.5), min-max over the 60k training set; equals ReBoot's arrays of R-REB-3 to < 1e-6."
+  },
+  "classes": 10,
+  "model": {
+    "name": "eMLP-1 = RE-Block(32) (paper Table 3)",
+    "hidden": 32,
+    "activation": "z^2 + z",
+    "output_width": 16,
+    "bias": false,
+    "init": "xavier_uniform"
+  },
+  "train": {
+    "hyperparameters_source": "paper Table 8, MNIST, ReBoot row, eMLP-1: lr 0.001, weight decay 0.001, batch 48 (the R-REB-3 setting)",
+    "lr_sum": 0.001,
+    "weight_decay": 0.001,
+    "momentum": 0.9,
+    "nesterov": true,
+    "batch": 48,
+    "drop_last": true,
+    "lr_schedule": "constant (R-REB-3 schedule (i))",
+    "epochs": 50,
+    "epochs_note": "As R-REB-3: 50 epochs, reported at 10, 20, 50 and the best epoch. R-REB-3 (ReBoot's released plaintext path, constant lr, seeds 0-9): best 95.35 ± 0.10, epoch 10 94.94 ± 0.20, epoch 20 95.13 ± 0.12, epoch 50 95.15 ± 0.19.",
+    "report_epochs": [10, 20, 50]
+  },
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "target": {
+    "source": "ReBoot paper (arXiv:2506.19693) Table 4, MNIST eMLP-1, ReBoot column (plaintext, 10 runs): 94.61 ± 0.27",
+    "test_acc_mean": 0.9461,
+    "test_acc_std": 0.0027
+  },
+  "out": "results/plain_mnist_emlp1_paper.json"
+}

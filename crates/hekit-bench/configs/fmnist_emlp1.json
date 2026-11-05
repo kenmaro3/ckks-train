@@ -1,0 +1,42 @@
+{
+  "name": "fmnist_emlp1",
+  "task": "Task 51: Fashion-MNIST, ReBoot eMLP-1, plaintext twin against Table 4 (ReBoot column)",
+  "dataset": {
+    "kind": "mnist_idx",
+    "name": "Fashion-MNIST (Xiao, Rasul, Vollgraf 2017; Zalando SE, MIT License)",
+    "path": "data/fashion_mnist",
+    "fetch": "scripts/fetch_fashion_mnist.sh",
+    "resize": 14,
+    "preprocessing_note": "Table 2: 14 x 14 inputs. ReBoot's MNIST pipeline as recorded by gpu-runner (R-REB-3): resize to 14, then min-max scaling over the 60k training set. hekit's data::reboot_preprocess (antialiased bicubic, a = -0.5) reproduces ReBoot's 14 x 14 MNIST arrays to < 1e-6 (test resize_matches_reboot_14x14_mnist); the same pipeline is applied to Fashion-MNIST (an assumption: the paper does not state per-dataset preprocessing)."
+  },
+  "classes": 10,
+  "model": {
+    "name": "eMLP-1 = RE-Block(32) (paper Table 3)",
+    "hidden": 32,
+    "activation": "z^2 + z",
+    "output_width": 16,
+    "output_width_note": "10 classes padded to 16 outputs with zero targets, as ReBoot does on MNIST (configs/reboot_emlp1_faithful.json); accuracy is the argmax over the 10 real classes.",
+    "bias": false,
+    "init": "xavier_uniform"
+  },
+  "train": {
+    "hyperparameters_source": "paper Table 8, Fashion-MNIST, ReBoot row, eMLP-1: lr 0.0005, weight decay 0.0, batch 48",
+    "lr_sum": 0.0005,
+    "weight_decay": 0.0,
+    "momentum": 0.9,
+    "nesterov": true,
+    "batch": 48,
+    "drop_last": true,
+    "lr_schedule": "constant",
+    "epochs": 50,
+    "epochs_note": "Not stated in the paper. Chosen before any run: 50 epochs, the same as the MNIST paper-setting reproduction R-REB-3; accuracy is reported at epochs 10, 20, 50 and at each seed's best epoch (test-set selected, optimistic), as R-REB-3 did.",
+    "report_epochs": [10, 20, 50]
+  },
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "target": {
+    "source": "ReBoot paper (arXiv:2506.19693) Table 4, Fashion-MNIST eMLP-1, ReBoot column (plaintext, 10 runs): 85.12 ± 0.20",
+    "test_acc_mean": 0.8512,
+    "test_acc_std": 0.0020
+  },
+  "out": "results/plain_fmnist_emlp1.json"
+}
