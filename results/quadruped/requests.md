@@ -64,7 +64,7 @@ M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that c
 block will state its GPU memory need, and the tests skip with a message when the need is not met.
 
 ---
-- **status:** queued (20:50 JST) in chain4: R-45-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5. Runs last, from the 43f219f tree in ~/hekit.
+- **status:** queued in chain4 after R-REB-2, and held (hold file) until R-REB-3 (chain5) finishes; runs last, from the 43f219f tree in ~/hekit.
 
 ## R-REB-1: ReBoot official eMLP-1, initial weights as plain data
 
@@ -172,3 +172,20 @@ block will state its GPU memory need, and the tests skip with a message when the
   - `results/quadruped/raw/reboot_emlp1_paper_setting/{config_values.json, acc_curves_seed{S}_{const,sched}.tsv, summary.json}`
   - For hekit's twin later: per-seed init weights and per-step indices for the 60k setting under `results/quadruped/data/reboot_emlp1_paper/`, with the `.npy` files gitignored and a manifest JSON. Include the 14×14 60k train and 10k test arrays as float32 there.
 - **order:** after R-REB-2.
+- **status:** queued (20:58 JST) in chain5: starts when R-REB-2 is done; a 1-seed 1-epoch smoke test runs first (scratch), then the full run (10 seeds × 2 schedules × 50 epochs, 10 single-thread worker processes). R-41-5 is held until R-REB-3 ends. Per-epoch orders are stored as uint16 arrays (50, 60000) per seed in data/reboot_emlp1_paper/ (text index files would be ~180 MB).
+
+## R-45-2: hekit-cuda GPU tests at 8b81f3d (22 tests, including near-tie base conversion)
+
+- **purpose:** after the Task 45 fix round. The new near-tie inputs for mod_down and mod_up catch FMA contraction, which random inputs cannot. NVRTC now compiles with `--fmad=false`. All 22 GPU tests must be bit-exact.
+- **commit to sync:** 8b81f3d or later (use a clean clone)
+- **working dir:** a clean clone such as `~/hekit-r45` re-synced to 8b81f3d
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1
+  ```
+- **pass criterion:** all 22 GPU tests pass, with no `SKIP` line
+- **expected duration:** 1–2 min to build, then 2–4 min of tests
+- **GPU memory need:** at most 145 MiB per test, about 600 MiB peak. **RAM need:** < 4 GB
+- **output path:** `results/quadruped/hekit_cuda_task45_fix1_tests.txt`, `results/quadruped/logs/R-45-2.log`
+- **order:** short; run it at the next free slot, ahead of R-REB-3 if possible
