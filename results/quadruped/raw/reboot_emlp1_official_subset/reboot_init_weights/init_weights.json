@@ -1,0 +1,75 @@
+{
+  "request": "R-REB-1 (results/quadruped/requests.md)",
+  "run_argv_of_subset_run": [
+    "MNIST",
+    "--subsample",
+    "1024",
+    "--num-layers",
+    "2",
+    "--num-hidden",
+    "32",
+    "--batch-size",
+    "48",
+    "--num-epochs",
+    "1",
+    "--seed",
+    "0"
+  ],
+  "seed": 0,
+  "construction": "np.random.seed(seed) then ReBoot's LocalLossMLP constructor with the subset run's configuration (as the script does before encrypting); weights read before any step",
+  "files": [
+    {
+      "file": "W1.npy",
+      "layer_name": "linear_00",
+      "shape": [
+        784,
+        32
+      ],
+      "orientation": "in x out (rows = input features, columns = output units); forward is x @ W",
+      "in_features": 784,
+      "out_features": 32,
+      "dtype_in_reboot": "float32",
+      "dtype_saved": "float64 (exact upcast)",
+      "sha256": "21a91dc400578c534d517af5bab17bed9f29aef8e957cbe61cbcea4d25fb87f1",
+      "min": -0.035001929849386215,
+      "max": 0.03500545769929886
+    },
+    {
+      "file": "W2.npy",
+      "layer_name": "linear_01",
+      "shape": [
+        32,
+        16
+      ],
+      "orientation": "in x out (rows = input features, columns = output units); forward is x @ W",
+      "in_features": 32,
+      "out_features": 16,
+      "dtype_in_reboot": "float32",
+      "dtype_saved": "float64 (exact upcast)",
+      "sha256": "0e8680a4a6306efd9be4c6af9b0fce517c6732e85283098012a632b19d0c05cb",
+      "min": -0.14375708997249603,
+      "max": 0.14412355422973633
+    }
+  ],
+  "check_step1": {
+    "batch_indices_source": "reboot_subsample_indices.txt step 1",
+    "replay_from_npy": {
+      "batch_loss": 49.33608627319336,
+      "batch_acc": 0.14583333333333334
+    },
+    "reboot_indices_json_replay": {
+      "batch_loss": 49.33608627319336,
+      "batch_acc": 0.14583333333333334
+    },
+    "encrypted_run_step1": {
+      "batch_loss": 49.33608627319336,
+      "batch_acc": 0.14583333333333334
+    },
+    "abs_diff_vs_replay": 0.0,
+    "rel_diff_vs_encrypted": 0.0,
+    "acc_equal_replay": true,
+    "acc_equal_encrypted": true,
+    "lr": 0.0005,
+    "optimizer": "PLAIN_NESTEROV_SGD (ReBoot plaintext counterpart of the encrypted Nesterov step)"
+  }
+}

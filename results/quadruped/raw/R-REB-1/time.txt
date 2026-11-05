@@ -1,0 +1,23 @@
+	Command being timed: "env REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONPATH=/home/kmihara/reboot/src/ReBoot /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_init_weights.py /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/stats.json /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_subsample_indices.txt /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_indices.json /home/kmihara/hekit-runs/out/R-REB-1/reboot_init_weights"
+	User time (seconds): 3.15
+	System time (seconds): 0.35
+	Percent of CPU this job got: 108%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:03.24
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 778248
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 150393
+	Voluntary context switches: 48
+	Involuntary context switches: 59
+	Swaps: 0
+	File system inputs: 48
+	File system outputs: 432
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

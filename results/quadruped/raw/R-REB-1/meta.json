@@ -1,0 +1,76 @@
+{
+  "job": "R-REB-1",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      48%"
+  ],
+  "workdir": "/home/kmihara/reboot",
+  "command": "env REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONPATH=/home/kmihara/reboot/src/ReBoot /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_init_weights.py /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/stats.json /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_subsample_indices.txt /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_indices.json /home/kmihara/hekit-runs/out/R-REB-1/reboot_init_weights",
+  "threads_cap": 2,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "2",
+    "RAYON_NUM_THREADS": "2",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "nice": 10,
+  "gpu_job": false,
+  "hekit_synced_commit": [
+    "commit 43f219f",
+    "full 43f219f487e8ffc9dfa02c05e38ce52bb77e34eb",
+    "dirty_files 6",
+    "working_tree_diff_sha256_16 f0f8ec53e649c5de",
+    "synced_at 2026-11-05T10:55:22+09:00"
+  ],
+  "start": "2026-11-05T20:08:47+09:00",
+  "end": "2026-11-05T20:08:57+09:00",
+  "wall_s_runner": 10.043596029281616,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 20:08:47 up 53 days, 10:39,  4 users,  load average: 7.32, 4.83, 2.73",
+  "uptime_after": " 20:08:57 up 53 days, 10:39,  4 users,  load average: 6.97, 4.83, 2.75",
+  "load_before": [
+    7.32,
+    4.83,
+    2.73
+  ],
+  "load_after": [
+    6.97,
+    4.83,
+    2.75
+  ],
+  "peak_rss_kb_time_v": 778248,
+  "peak_rss_kb_tree_sampled_10s": 26304,
+  "time_v": {
+    "Command being timed": "\"env REBOOT_SRC=/home/kmihara/reboot/src/ReBoot REBOOT_DATA=/home/kmihara/reboot/data LD_LIBRARY_PATH=/home/kmihara/reboot/install/lib PYTHONPATH=/home/kmihara/reboot/src/ReBoot /home/kmihara/reboot/venv/bin/python /home/kmihara/reboot/reboot_init_weights.py /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/stats.json /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_subsample_indices.txt /home/kmihara/hekit-runs/out/reboot_emlp1_official_subset/reboot_indices.json /home/kmihara/hekit-runs/out/R-REB-1/reboot_init_weights\"",
+    "User time (seconds)": "3.15",
+    "System time (seconds)": "0.35",
+    "Percent of CPU this job got": "108%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "0:03.24",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "778248",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "1",
+    "Minor (reclaiming a frame) page faults": "150393",
+    "Voluntary context switches": "48",
+    "Involuntary context switches": "59",
+    "Swaps": "0",
+    "File system inputs": "48",
+    "File system outputs": "432",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-05T20:08:47+09:00\nuptime:  20:08:47 up 53 days, 10:39,  4 users,  load average: 7.32, 4.83, 2.73\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 10839203840 73300451328    73551872 49527169024 121640681472\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1617384, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617382, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617383, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617385, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n",
+  "snapshot_after": "date: 2026-11-05T20:08:57+09:00\nuptime:  20:08:57 up 53 days, 10:39,  4 users,  load average: 6.97, 4.83, 2.75\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312 10993979392 73131302912    73551872 49541595136 121485905920\nSwap:     8589930496   652812288  7937118208\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 22265 MiB, 1819 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n1617384, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617382, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617383, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n1617385, /home/kmihara/persistent-slam-rldev/build-mit/persistent_stereo_prefix, 384 MiB\n"
+}
