@@ -266,6 +266,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **order:** after R-47-2. It is a long timed run, so nothing of ours should overlap it. Untimed jobs may run only if you record them.
 - **status:** running/queued in chain10 (started 07:17 JST 2026-11-06): untimed build, then R-41-FULL-1, then R-41-FULL-2, nothing else of ours alongside. Clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d, 0 dirty files); the R-REB-2 14×14 arrays were copied in from the server's original R-REB-2 output and their sha256 matched data_manifest.json. Same flags as the block (argument order differs: `--batch` comes after the shared flags). Disk 26 GB free, RAM 115 GB available, machine idle (load 0.1, no SLAM processes) at 07:14. Partial rule: projection after 10 updates to `raw/R-41-FULL-1/projection.txt`; stop at once if over 30 h (108000 s).
 - **note:** R-REB-4 (1 thread, nice 19, including a g++ compile) ran 07:30–07:31 during this run's timed updates (around updates 6–7); it may add a little to those updates' times.
+- **progress (07:40 JST 2026-11-06):** partial check passed: projection after 10 updates 70596 s (19.6 h) for 750 updates, under the 30 h limit, so the run continues (`raw/R-41-FULL-1/projection.txt` once collected). Updates alternate 68 s with 0 bootstraps (925 KS) and 120 s with 4 bootstraps (1369 KS), all matching the prediction (18.272 KS/sample). Expected end about 02:55 JST 2026-11-07. One SLAM process was running again at 07:40 (1-min load 6.98).
 
 ## R-41-FULL-2: faithful full-length encrypted run, 196 inputs, B=48 in 64 lanes, seed 0 (±0.5 pt accuracy check)
 
@@ -316,3 +317,20 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most about 2.8 GiB (the sequence test), about 1 GiB for the example. **RAM need:** about 10 GB
 - **timing:** this block is timed (example) and CPU-heavy (key generation in the tests). Run it after R-41-FULL-1 and R-41-FULL-2, or in a gap between them if the gap is longer than 15 min. Never run it during a FULL run.
 - **output path:** `results/quadruped/batch_streams_r47_3.log`, `results/quadruped/hekit_cuda_task47_fix1_tests.txt`, `results/quadruped/raw/R-47-3/`
+
+## R-REB-5: ReBoot eMLP-2 / eMLP-3 block structure and training values, as data (for Task 52)
+
+- **purpose:** Task 52 implements ReBoot's block MLP (RE/CE blocks, each with a local classifier and local loss, and no gradient between blocks). The paper (Table 3) gives eMLP-2 = RE(64)→CE(32) and eMLP-3 = RE(128)→CE(64)→RE(32). The block internals and the training setting must come from ReBoot's released code, recorded as values only.
+- **commit to sync:** none (ReBoot side only). Use the same venv and approach: import by name, never copy code.
+- **what to record** for eMLP-2 and eMLP-3 on MNIST, at the full released setting used by experiments.sh / precision_analysis.py, as plain values:
+  - each block's kind (RE/CE); its forward map (which layers, widths, activation, and whether a CE block widens or narrows); the local classifier's shape and its output padding; and the input each block receives (previous block's activation, or the raw input);
+  - the loss per block, its reduction (sum or mean over batch and outputs), and how the blocks' losses combine (independent updates, or summed);
+  - whether anything flows between blocks: detached activations, a shared optimizer step;
+  - which block's head is used at test time (last block, or an ensemble);
+  - lr, momentum, weight decay per block, the lr schedule, batch size, step count, and seeds;
+  - initial weights for every layer and head, as .npy (seed 0 is enough; 0–2 if cheap), with orientation and sha256;
+  - per-step indices if they differ from the eMLP-1 full run (the same subsample seed probably gives the same indices; say so if they're identical);
+  - ReBoot's plaintext twin, recomputed with ReBoot's plaintext path: per-step batch loss and accuracy, plus test accuracy, for seed 0.
+- **expected duration:** < 15 min (plaintext only). **GPU memory need:** 0
+- **output path:** `results/quadruped/raw/reboot_emlp23_full/{config_values.json, init_weights_emlp{2,3}_seed{S}/, twin_steps_emlp{2,3}_seed0.tsv}`
+- **order:** next free slot, at nice 19. It must not disturb the timed FULL runs; if it would take more than a few CPU-minutes, run it after FULL-2.
