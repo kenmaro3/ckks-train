@@ -31,7 +31,7 @@ use hekit_nn::layout::{Layout, pack_activations, unpack_activations};
 use hekit_nn::trainer::{Mlp, mlp_key_pool};
 use hekit_nn::trainer_ni::{
     ActCost, BootPlacement, CompactLayout, NiOptimizer, NonInteractiveTrainer, boot_schedule,
-    levels_per_iter, ni_rotation_steps, predict_update,
+    levels_per_iter, ni_rotation_steps, predict_update, ref_shift_rotations,
 };
 use ndarray::{Array2, Axis};
 
@@ -883,6 +883,7 @@ fn per_step_lr_schedule_matches_the_twin() {
     let spec = t.batch_spec(&mlp).unwrap();
     let mut twin = plain.clone();
     let mut vel: Vec<Array2<f64>> = plain.iter().map(|(w, _)| Array2::zeros(w.dim())).collect();
+    t.set_lr_reference(0.08).unwrap();
     for (i, ((x, y), &lr)) in data.iter().zip(&schedule).enumerate() {
         let (xc, yc) = spec
             .encrypt(&f.enc, &f.encoder, &layout, x, y, &mut r)
@@ -892,7 +893,7 @@ fn per_step_lr_schedule_matches_the_twin() {
         let before = ev.counter();
         t.train_batch(&mut mlp, &xc, &yc).unwrap();
         let got = &ev.counter() - &before;
-        let pred = predict_update(
+        let mut pred = predict_update(
             &ev,
             &mlp,
             &layout,
@@ -903,6 +904,10 @@ fn per_step_lr_schedule_matches_the_twin() {
             t.last_update_booted(),
         )
         .unwrap();
+        assert_eq!(t.last_update_rescaled(), lr != 0.08);
+        if t.last_update_rescaled() {
+            pred.ref_shift_rot = ref_shift_rotations(&NET_B, &layout).unwrap();
+        }
         assert_eq!(
             got.key_switches(),
             pred.key_switches(f.bs.key_switches_per_boot())
@@ -951,6 +956,67 @@ fn per_step_lr_schedule_matches_the_twin() {
             .collect::<Vec<_>>()
     };
     assert_eq!(run(false), run(true));
+}
+
+/// Review I1 (R-M3-14): a 1000x lr drop and recovery. The velocity is stored at the reference
+/// lr (never scaled up), so its bootstrap error is not amplified: under AfterUpdate (the velocity
+/// is bootstrapped every update) the weights stay within the constant-lr tolerance of the twin.
+/// An lr above the reference is refused before any work.
+#[test]
+fn per_step_lr_large_ratio_stays_precise() {
+    let f = fx();
+    let ev = f.ev.clone();
+    let layout = single();
+    let acts = [Act::Relu2, Act::Id];
+    let schedule = [0.05, 0.05 / 1000.0, 0.05 / 1000.0, 0.05, 0.05];
+    let mut r = rng(19);
+    let plain = init(&NET_B, &mut r);
+    let (mut mlp, state) = NonInteractiveTrainer::encrypt_network(
+        &ev,
+        &f.bs,
+        &plain,
+        acts.iter().map(|a| a.boxed()).collect(),
+        &layout,
+        BootPlacement::AfterUpdate,
+        &f.enc,
+        &f.encoder,
+        &mut r,
+    )
+    .unwrap();
+    let mut t = NonInteractiveTrainer::new(
+        &ev,
+        &f.bs,
+        NAG,
+        layout,
+        BootPlacement::AfterUpdate,
+        &mlp,
+        state,
+    )
+    .unwrap();
+    assert_eq!(t.lr_reference(), LR);
+    let before = ev.counter();
+    assert!(matches!(
+        t.set_lr(2.0 * LR),
+        Err(HekitError::InvalidParams(_))
+    ));
+    assert_eq!(ev.counter(), before);
+    let spec = t.batch_spec(&mlp).unwrap();
+    let mut twin = plain.clone();
+    let mut vel: Vec<Array2<f64>> = plain.iter().map(|(w, _)| Array2::zeros(w.dim())).collect();
+    for &lr in &schedule {
+        let x = Array2::from_shape_fn((32, 16), |_| uni(&mut r));
+        let y = Array2::from_shape_fn((32, 4), |_| 0.5 * uni(&mut r));
+        let (xc, yc) = spec
+            .encrypt(&f.enc, &f.encoder, &layout, &x, &y, &mut r)
+            .unwrap();
+        t.set_lr(lr).unwrap();
+        t.train_batch(&mut mlp, &xc, &yc).unwrap();
+        twin_step_lr(&mut twin, &mut vel, &acts, &x, &y, true, lr);
+    }
+    let dec = Decryptor::new(Arc::clone(&f.params), f.sk.clone());
+    let err = max_err(&decrypt_net(&mlp, &dec, &f.encoder, &layout), &twin);
+    eprintln!("1000x lr drop and recovery: twin error 2^{:.1}", err.log2());
+    assert!(err <= TOL_MINI, "2^{}", err.log2());
 }
 
 // ---------------------------------------------------------------------------------------------

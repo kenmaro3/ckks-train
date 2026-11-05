@@ -306,7 +306,11 @@ pub fn parse_npy_f64(bytes: &[u8]) -> io::Result<Array2<f64>> {
         }
     };
     let data = &bytes[hstart + hlen..];
-    if data.len() != rows * cols * width {
+    let expected = rows
+        .checked_mul(cols)
+        .and_then(|n| n.checked_mul(width))
+        .ok_or_else(|| invalid(format!(".npy shape {shape:?} overflows")))?;
+    if data.len() != expected {
         return Err(invalid(format!(
             ".npy data of {} bytes for shape {shape:?} and {descr}",
             data.len()

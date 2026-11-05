@@ -1187,6 +1187,28 @@ impl<C: HeCiphertext + Clone> Dense<C> {
         layout: &Layout,
         c: f64,
     ) -> Result<Vec<C>> {
+        let mut out = self.weight_grad_reduced_consts(ev, deltas, a_prevs, layout, &[c])?;
+        Ok(out.pop().expect("one constant"))
+    }
+
+    /// [`Dense::weight_grad_reduced`] for several folded constants at once: the products, the
+    /// relinearizations and the reduce are shared, and each constant gets its own lane-0 mask
+    /// (`m` ct-pt and `m` rescales per constant, the same level). Output `k` carries `cs[k]`.
+    /// The non-interactive trainer uses two constants when a per-step learning rate differs
+    /// from the velocity's reference lr (`docs/layout.md` §7.1).
+    ///
+    /// Errors as [`Dense::weight_grad_reduced`], and `InvalidParams` for no constant.
+    pub fn weight_grad_reduced_consts<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        deltas: &[&C],
+        a_prevs: &[&C],
+        layout: &Layout,
+        cs: &[f64],
+    ) -> Result<Vec<Vec<C>>> {
+        if cs.is_empty() {
+            return Err(HekitError::InvalidParams("no gradient constant".into()));
+        }
         let sh = self.w.shape(layout)?;
         check_slots(layout, ev.params().slots())?;
         self.w.check_batch(layout)?;
@@ -1215,7 +1237,10 @@ impl<C: HeCiphertext + Clone> Dense<C> {
         let prod_scale = deltas[0].scale() * a_prevs[0].scale() / ev.params().q()[level] as f64;
         let target = self.w.scale();
         let mask_scale = ev.exact_product_scale(level - 1, target)? / prod_scale;
-        let mask = first_period_plaintext(ev, layout, sh.l, c, mask_scale, level - 1)?;
+        let masks = cs
+            .iter()
+            .map(|&c| first_period_plaintext(ev, layout, sh.l, c, mask_scale, level - 1))
+            .collect::<Result<Vec<_>>>()?;
 
         let b = layout.batch;
         let a_steps: Vec<i32> = (0..sh.baby).map(|k2| (k2 * b) as i32).collect();
@@ -1232,26 +1257,28 @@ impl<C: HeCiphertext + Clone> Dense<C> {
             ));
         }
         let (reduce, _) = lane_steps(layout);
-        (0..sh.m)
-            .map(|e| {
-                let mut acc: Option<C> = None;
-                for (d_rot, a_rot) in &rots {
-                    // Lazy (default): degree-2 terms, one relin below; naive: relin each.
-                    let p = ev.mul_lazy(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?;
-                    acc = Some(match acc {
-                        None => p,
-                        Some(s) => ev.add(&s, &p)?,
-                    });
-                }
-                let p = acc.expect("at least one micro-batch");
-                let mut v = ev.rescale(&ev.relin_lazy(p)?)?;
-                for &s in &reduce {
-                    let r = ev.rotate(&v, s)?;
-                    v = ev.add(&v, &r)?;
-                }
-                ev.rescale(&ev.mul_plain_to_scale(&v, &mask, target)?)
-            })
-            .collect()
+        let mut out: Vec<Vec<C>> = cs.iter().map(|_| Vec::with_capacity(sh.m)).collect();
+        for e in 0..sh.m {
+            let mut acc: Option<C> = None;
+            for (d_rot, a_rot) in &rots {
+                // Lazy (default): degree-2 terms, one relin below; naive: relin each.
+                let p = ev.mul_lazy(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?;
+                acc = Some(match acc {
+                    None => p,
+                    Some(s) => ev.add(&s, &p)?,
+                });
+            }
+            let p = acc.expect("at least one micro-batch");
+            let mut v = ev.rescale(&ev.relin_lazy(p)?)?;
+            for &s in &reduce {
+                let r = ev.rotate(&v, s)?;
+                v = ev.add(&v, &r)?;
+            }
+            for (o, mask) in out.iter_mut().zip(&masks) {
+                o.push(ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?);
+            }
+        }
+        Ok(out)
     }
 
     /// The bias gradient `c * sum_mb sum_b dz_mb,b` for the compact update: the micro-batch

@@ -705,6 +705,9 @@ pub struct UpdateCost {
     pub bias_grad_rot: u64,
     /// Unpack of the weights ([`compact_unpack`]).
     pub unpack_rot: u64,
+    /// The second lane shift of an update whose lr differs from the velocity's reference lr
+    /// ([`NonInteractiveTrainer::set_lr`]; 0 otherwise): [`ref_shift_rotations`].
+    pub ref_shift_rot: u64,
     /// Bias extraction ([`compact_extract`]).
     pub bias_extract_rot: u64,
     /// Weight (and velocity) bootstraps.
@@ -721,6 +724,7 @@ impl UpdateCost {
             + self.backward_rot
             + self.gradient_rot
             + self.shift_rot
+            + self.ref_shift_rot
             + self.bias_grad_rot
             + self.unpack_rot
             + self.bias_extract_rot
@@ -930,6 +934,17 @@ pub fn predict_update_with(
     Ok(c)
 }
 
+/// The extra rotations of an update whose lr differs from the velocity's reference lr
+/// ([`NonInteractiveTrainer::set_lr`], `docs/layout.md` §7.1): the reference-lr gradient's own
+/// lane shift, `m - n_ct` per layer ([`crate::compact::CompactPlan::pack_rotations`]). Set it as
+/// [`UpdateCost::ref_shift_rot`] when [`NonInteractiveTrainer::last_update_rescaled`].
+///
+/// Errors: those of [`CompactLayout::new`].
+pub fn ref_shift_rotations(dims: &[usize], layout: &Layout) -> Result<u64> {
+    let cl = CompactLayout::new(dims, layout)?;
+    Ok(cl.plans.iter().map(|p| p.pack_rotations() as u64).sum())
+}
+
 /// The bootstrap decision after an update that leaves the levels `next` (the one rule of both
 /// [`NonInteractiveTrainer`] and [`boot_schedule`]): always for [`BootPlacement::AfterUpdate`];
 /// for a lazy placement, unless the next step fits from `next` (every container unpackable and
@@ -1054,10 +1069,12 @@ pub struct NonInteractiveTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = 
     next_full: Option<bool>,
     act_outputs: Vec<Vec<E::Ct>>,
     frozen_biases: bool,
-    /// The lr with which the stored velocity `U = lr (1 + mu) V` was formed (`None` before the
-    /// first step): a step at another lr rescales `U` by `lr / u_lr` inside the two existing
-    /// scalar products (`docs/layout.md` §7.1, per-step learning rate).
-    u_lr: Option<f64>,
+    /// The reference lr of the stored velocity: `U = lr_ref (1 + mu) V` at every step
+    /// (`docs/layout.md` §7.1); the step's lr must not exceed it, so no stored quantity is ever
+    /// scaled up.
+    lr_ref: f64,
+    /// Whether the last update used a second gradient mask (its lr differed from `lr_ref`).
+    last_rescaled: bool,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
@@ -1298,7 +1315,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             next_full: None,
             act_outputs: Vec::new(),
             frozen_biases: false,
-            u_lr: None,
+            lr_ref: optim.lr(),
+            last_rescaled: false,
             log: Vec::new(),
         };
         let st = t.level_state(mlp);
@@ -1318,28 +1336,71 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     }
 
     /// Sets the learning rate of the following updates (a per-step schedule, e.g. ReBoot's
-    /// scheduler). The weight and bias gradients take it through their folded constants; with
-    /// NAG the stored velocity, formed at the previous lr, is rescaled by `lr / lr_prev` inside
-    /// the two scalar products of the update (`docs/layout.md` §7.1): no extra op, level or key
-    /// switch. Setting the current lr again changes nothing (bit-identical).
+    /// scheduler). It must not exceed the reference lr ([`NonInteractiveTrainer::set_lr_reference`],
+    /// by default the optimizer's initial lr). The weight and bias gradients take it through
+    /// their folded constants; with NAG the velocity stays stored at the reference lr and the
+    /// update scales its contribution by `s = lr / lr_ref <= 1` inside the existing scalar
+    /// product (`docs/layout.md` §7.1). When `s != 1` the velocity needs the gradient at the
+    /// reference lr too: a second lane-0 mask on the same reduced products (`m` ct-pt, same
+    /// level) and a second lane shift (`m - n_ct` rotations per layer,
+    /// [`UpdateCost::ref_shift_rot`]). Setting `lr = lr_ref` is bit-identical to never setting
+    /// it.
     ///
-    /// Errors (`InvalidParams`): `lr` not finite and positive (a zero lr would lose the
-    /// velocity's scale).
+    /// Errors (`InvalidParams`): `lr` not finite and positive, or above the reference lr.
     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
         if !(lr.is_finite() && lr > 0.0) {
             return Err(HekitError::InvalidParams(format!(
                 "learning rate {lr} must be finite and positive"
             )));
         }
+        if lr > self.lr_ref {
+            return Err(HekitError::InvalidParams(format!(
+                "learning rate {lr} above the velocity's reference lr {} (set_lr_reference)",
+                self.lr_ref
+            )));
+        }
         self.optim = self.optim.with_lr(lr);
         Ok(())
     }
 
-    /// `lr / lr_prev` for the stored velocity (1 before the first step or at an unchanged lr).
-    fn velocity_ratio(&self) -> f64 {
-        match self.u_lr {
-            Some(prev) if prev != self.optim.lr() => self.optim.lr() / prev,
-            _ => 1.0,
+    /// Sets the reference lr of the stored velocity (e.g. the schedule's maximum), before the
+    /// first update (afterwards the stored velocity is formed at the old reference).
+    ///
+    /// Errors (`InvalidParams`): `lr_ref` not finite and positive, below the current lr, or a
+    /// velocity already exists.
+    pub fn set_lr_reference(&mut self, lr_ref: f64) -> Result<()> {
+        if !(lr_ref.is_finite() && lr_ref > 0.0) || lr_ref < self.optim.lr() {
+            return Err(HekitError::InvalidParams(format!(
+                "reference lr {lr_ref} must be finite, positive and at least the lr {}",
+                self.optim.lr()
+            )));
+        }
+        if self.state.velocity.iter().any(Option::is_some) {
+            return Err(HekitError::InvalidParams(
+                "the reference lr can only be set before the first update".into(),
+            ));
+        }
+        self.lr_ref = lr_ref;
+        Ok(())
+    }
+
+    /// The velocity's reference lr.
+    pub fn lr_reference(&self) -> f64 {
+        self.lr_ref
+    }
+
+    /// Whether the last update used the reference-lr gradient besides the step's (its lr
+    /// differed from the reference lr): add [`ref_shift_rotations`] to its closed form.
+    pub fn last_update_rescaled(&self) -> bool {
+        self.last_rescaled
+    }
+
+    /// `s = lr / lr_ref` (exactly 1 at the reference lr).
+    fn lr_factor(&self) -> f64 {
+        if self.optim.lr() == self.lr_ref {
+            1.0
+        } else {
+            self.optim.lr() / self.lr_ref
         }
     }
 
@@ -1666,6 +1727,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             .map(|b| valid_lane_mask(&layout, b.2))
             .collect();
         let mut h_w: Vec<Vec<E::Ct>> = vec![Vec::new(); n_layers];
+        let rescale = self.optim.has_velocity() && self.lr_factor() != 1.0;
+        let mut h_w_ref: Vec<Option<Vec<E::Ct>>> = vec![None; n_layers];
         let mut h_b: Vec<Option<E::Ct>> = vec![None; n_layers];
         for i in (0..n_layers).rev() {
             let ln = i + 1;
@@ -1720,8 +1783,25 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             }
             let dz_refs: Vec<&E::Ct> = dzs.iter().collect();
             let a_refs: Vec<&E::Ct> = acts.iter().map(|a| &a[i]).collect();
-            let g = dense.weight_grad_reduced(ev, &dz_refs, &a_refs, &layout, c_w)?;
-            let hw = compact_shift(ev, &g, &self.cl.plans[i])?;
+            // The velocity's gradient at the reference lr (a second mask) when the step's lr
+            // differs from it (NAG only; docs/layout.md §7.1).
+            let hw = if rescale {
+                let c_ref = self.optim.with_lr(self.lr_ref).grad_scale() / n;
+                let mut gs = dense.weight_grad_reduced_consts(
+                    ev,
+                    &dz_refs,
+                    &a_refs,
+                    &layout,
+                    &[c_w, c_ref],
+                )?;
+                let g_ref = gs.pop().expect("two");
+                let g = gs.pop().expect("two");
+                h_w_ref[i] = Some(compact_shift(ev, &g_ref, &self.cl.plans[i])?);
+                compact_shift(ev, &g, &self.cl.plans[i])?
+            } else {
+                let g = dense.weight_grad_reduced(ev, &dz_refs, &a_refs, &layout, c_w)?;
+                compact_shift(ev, &g, &self.cl.plans[i])?
+            };
             trace.push((format!("h{ln}"), hw[0].level()));
             let slot = self.cl.biases[i];
             let bplan = *self.cl.bias_plan(i);
@@ -1740,7 +1820,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         }
 
         // 4. The optimizer on the compact state (on copies).
-        let (mut weights, mut velocity) = self.update_state(&h_w, &h_b)?;
+        let (mut weights, mut velocity) = self.update_state(&h_w, &h_w_ref, &h_b)?;
         for (i, w) in weights.iter().enumerate() {
             trace.push((format!("c{i}'"), w.level()));
         }
@@ -1831,13 +1911,11 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             layer.b = b;
         }
         self.state = CompactState { weights, velocity };
-        if self.optim.has_velocity() {
-            self.u_lr = Some(self.optim.lr());
-        }
         self.weight_boots += weight_boots;
         self.act_boots += act_boots;
         self.boot_seconds += t_boot;
         self.last_booted = boot;
+        self.last_rescaled = rescale;
         self.act_outputs = if boot_acts {
             acts.into_iter().map(|a| a[1..n_layers].to_vec()).collect()
         } else {
@@ -1854,6 +1932,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     fn update_state(
         &self,
         h_w: &[Vec<E::Ct>],
+        h_w_ref: &[Option<Vec<E::Ct>>],
         h_b: &[Option<E::Ct>],
     ) -> Result<(Vec<E::Ct>, Vec<Option<E::Ct>>)> {
         let ev = self.ev;
@@ -1899,19 +1978,25 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             for h in &hbs {
                 w_new = ev.sub(&w_new, &down(h)?)?;
             }
+            // The velocity's gradient term at the reference lr: the second mask's output when
+            // the step's lr differs from it, else the step's own gradient.
+            let h_vel = spec
+                .layer
+                .and_then(|l| h_w_ref[l].as_ref().map(|v| &v[spec.index]));
+            let s_lr = self.lr_factor();
             let u_new = match (nag, hw) {
                 (Some(mu), Some(h)) => {
-                    let h = down(h)?;
+                    let h = down(h_vel.unwrap_or(h))?;
                     Some(match u {
                         None => h,
                         Some(u) => {
-                            // A changed lr rescales U = lr_old (1 + mu) V by r = lr / lr_old,
-                            // folded into both scalars (no extra op or level; r = 1 exactly
-                            // when the lr is unchanged, so the products are bit-identical).
-                            let r = self.velocity_ratio();
-                            let kappa = mu * mu / (1.0 + mu) * r;
+                            // U is stored at the reference lr; this step's W takes
+                            // s = lr / lr_ref <= 1 of it, folded into kappa (no extra op or level;
+                            // s = 1 exactly at the reference lr, so the products are
+                            // bit-identical to the constant-lr trainer).
+                            let kappa = mu * mu / (1.0 + mu) * s_lr;
                             let ue = ev.mod_switch_to_level(u, lv + 1)?;
-                            let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu * r, delta)?)?;
+                            let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, delta)?)?;
                             let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, delta)?)?;
                             w_new = ev.sub(&w_new, &k_u)?;
                             ev.add(&mu_u, &h)?

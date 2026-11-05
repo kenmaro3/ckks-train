@@ -92,7 +92,10 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-use hekit_bench::data::{Mnist, Split, load_mnist, load_npy_dataset, one_hot, read_npy_f64};
+use hekit_bench::data::{
+    Mnist, Split, load_mnist, load_npy_dataset, manifest_sha256, one_hot, parse_npy_f64,
+    read_npy_f64, sha256_hex,
+};
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
 use hekit_core::sampler::Rng;
@@ -104,7 +107,7 @@ use hekit_nn::refresh::ClientRefresher;
 use hekit_nn::trainer::{LayerOptimizer, Mlp, Trainer, mlp_key_pool, mlp_rotation_steps};
 use hekit_nn::trainer_ni::{
     ActCost, BootPlacement, CompactLayout, NiOptimizer, NonInteractiveTrainer, UpdateCost,
-    boot_schedule, levels_per_iter, ni_rotation_steps, predict_update_for,
+    boot_schedule, levels_per_iter, ni_rotation_steps, predict_update_for, ref_shift_rotations,
 };
 use ndarray::{Array2, Axis, s};
 
@@ -162,6 +165,12 @@ struct Args {
     /// Per-epoch training orders: a 2-D `.npy` (epochs x samples; row `e` is epoch `e + 1`'s
     /// order into the training set, step `b` takes columns `b B .. b B + B - 1`).
     epoch_orders: Option<PathBuf>,
+    /// The JSON key of the lr array in an `--lr-schedule` object with several arrays.
+    lr_key: Option<String>,
+    /// Accept an lr schedule longer than the run (default: exactly one value per step).
+    lr_schedule_allow_longer: bool,
+    /// `--lr` was given explicitly (it conflicts with `--lr-sum` / `--faithful`).
+    lr_given: bool,
     /// `--subset` / `--test-subset` were given (an .npy data set is otherwise used whole).
     subset_given: bool,
     test_subset_given: bool,
@@ -180,6 +189,11 @@ const FAITHFUL_MOMENTUM: f64 = 0.9;
 const FAITHFUL_OUT_WIDTH: usize = 16;
 
 fn parse_args() -> Result<Args, String> {
+    parse_args_from(&std::env::args().skip(1).collect::<Vec<_>>())
+}
+
+/// [`parse_args`] of an explicit argument list (without the program name).
+fn parse_args_from(argv: &[String]) -> Result<Args, String> {
     let mut a = Args {
         epochs: 1,
         subset: 1024,
@@ -206,6 +220,9 @@ fn parse_args() -> Result<Args, String> {
         dataset_npy: None,
         lr_schedule: None,
         input_dim: 28 * 28,
+        lr_key: None,
+        lr_schedule_allow_longer: false,
+        lr_given: false,
         weight_decay: 0.0,
         wd_form: "coupled".into(),
         epoch_orders: None,
@@ -214,7 +231,7 @@ fn parse_args() -> Result<Args, String> {
     };
     // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
     // them wherever they appear.
-    if std::env::args().any(|f| f == "--faithful") {
+    if argv.iter().any(|f| f == "--faithful") {
         a.faithful = true;
         a.init = "xavier".into();
         a.no_bias = true;
@@ -222,7 +239,7 @@ fn parse_args() -> Result<Args, String> {
         a.momentum = FAITHFUL_MOMENTUM;
         a.out_width = FAITHFUL_OUT_WIDTH;
     }
-    let mut it = std::env::args().skip(1);
+    let mut it = argv.iter().cloned();
     while let Some(flag) = it.next() {
         match flag.as_str() {
             "--plan" => {
@@ -235,6 +252,10 @@ fn parse_args() -> Result<Args, String> {
             }
             "--faithful" => {
                 a.faithful = true;
+                continue;
+            }
+            "--lr-schedule-allow-longer" => {
+                a.lr_schedule_allow_longer = true;
                 continue;
             }
             _ => {}
@@ -263,7 +284,11 @@ fn parse_args() -> Result<Args, String> {
             "--params" => a.params = v,
             "--transpose" => a.transpose = v,
             "--seed" => a.seed = v.parse().map_err(|e| format!("--seed {v}: {e}"))?,
-            "--lr" => a.lr = real(&v)?,
+            "--lr" => {
+                a.lr = real(&v)?;
+                a.lr_given = true;
+            }
+            "--lr-key" => a.lr_key = Some(v),
             "--momentum" => a.momentum = real(&v)?,
             "--data" => a.data = PathBuf::from(v),
             "--out" => a.out = Some(PathBuf::from(v)),
@@ -288,6 +313,11 @@ fn parse_args() -> Result<Args, String> {
     }
     if !matches!(a.init.as_str(), "pytorch" | "xavier") {
         return Err(format!("unknown --init {} (pytorch | xavier)", a.init));
+    }
+    if a.lr_given && a.lr_sum.is_some() {
+        return Err(
+            "--lr conflicts with --lr-sum / --faithful (the lr is lr_sum x batch); give one".into(),
+        );
     }
     if let Some(ls) = a.lr_sum {
         a.lr = ls * a.batch as f64;
@@ -831,6 +861,22 @@ fn init_net(dims: &[usize], r: &mut Rng, init: &str, no_bias: bool) -> Vec<Layer
         .collect()
 }
 
+/// Where the initial biases come from (review m3): `b{k}.npy` of `--init-weights`, zero
+/// (`--no-bias`) or drawn (`--seed`).
+fn init_bias_source(args: &Args) -> String {
+    let from_files = args
+        .init_weights
+        .as_ref()
+        .is_some_and(|d| d.join("b1.npy").exists());
+    if from_files {
+        "b{k}.npy of --init-weights".into()
+    } else if args.no_bias {
+        "zero (--no-bias)".into()
+    } else {
+        "drawn (--seed)".into()
+    }
+}
+
 /// The initial network of `args`: [`init_net`], then, with `--init-weights DIR`, every layer's
 /// weights replaced by `DIR/W{k}.npy` (`k` from 1) and, if present, its bias by `DIR/b{k}.npy`.
 /// A matrix of shape `d_in x d_out` (e.g. ReBoot's `(in, out)` layout) is transposed into our
@@ -845,7 +891,23 @@ fn initial_net(dims: &[usize], r: &mut Rng, args: &Args) -> Result<Vec<Layer>, S
     for (k, layer) in net.iter_mut().enumerate() {
         let name = format!("W{}", k + 1);
         let path = dir.join(format!("{name}.npy"));
-        let m = read_npy_f64(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        // The file's SHA-256 against init_weights.json when it lists one (review m6).
+        let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        if let Some(want) = manifest_sha256(&meta, &format!("{name}.npy")) {
+            let got = sha256_hex(&bytes);
+            if got != want {
+                return Err(format!(
+                    "{}: sha256 {got}, init_weights.json {want}",
+                    path.display()
+                ));
+            }
+        } else {
+            eprintln!(
+                "mnist: {}: no sha256 in init_weights.json, not checked",
+                path.display()
+            );
+        }
+        let m = parse_npy_f64(&bytes).map_err(|e| format!("{}: {e}", path.display()))?;
         let (d_out, d_in) = layer.w.dim();
         let square_hint = || {
             let at = meta.find(&format!("\"{name}\""))?;
@@ -879,6 +941,14 @@ fn initial_net(dims: &[usize], r: &mut Rng, args: &Args) -> Result<Vec<Layer>, S
             ));
         };
         let bpath = dir.join(format!("b{}.npy", k + 1));
+        if !bpath.exists() {
+            eprintln!(
+                "mnist: --init-weights: no {}; layer {} keeps its {} biases",
+                bpath.display(),
+                k + 1,
+                if args.no_bias { "zero" } else { "drawn" }
+            );
+        }
         if bpath.exists() {
             let b = read_npy_f64(&bpath).map_err(|e| format!("{}: {e}", bpath.display()))?;
             if b.len() != d_out {
@@ -991,6 +1061,13 @@ fn load(args: &Args) -> Result<(Mnist, Mnist), String> {
 /// row `e` is epoch `e + 1`'s order), each index checked against `n_train`.
 fn read_epoch_orders(path: &std::path::Path, n_train: usize) -> Result<Vec<Vec<usize>>, String> {
     let m = read_npy_f64(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    if m.ncols() != n_train {
+        return Err(format!(
+            "{}: epoch orders of {} samples per epoch for {n_train} training samples",
+            path.display(),
+            m.ncols()
+        ));
+    }
     m.rows()
         .into_iter()
         .map(|row| {
@@ -1037,11 +1114,22 @@ fn step_lr(schedule: &Option<Vec<f64>>, step: usize, args: &Args) -> Result<f64,
     }
 }
 
-/// Per-step learning rates from `--lr-schedule FILE`: a JSON object (the array under the first
-/// key whose name contains `lr`), a JSON array, or one value per line / separated by commas;
-/// `#` starts a comment line. Easy to adapt to gpu-runner's final format.
-fn read_lr_schedule(path: &std::path::Path) -> Result<Vec<f64>, String> {
+/// Per-step learning rates from `--lr-schedule FILE`: [`parse_lr_schedule`] of the file.
+///
+/// Errors: the file's I/O error and those of [`parse_lr_schedule`].
+fn read_lr_schedule(path: &std::path::Path, key: Option<&str>) -> Result<Vec<f64>, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    parse_lr_schedule(&text, key).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+/// Per-step learning rates: a JSON object (the numeric array under `key`, or under its only
+/// array-valued key), a JSON array, or one value per line / separated by commas; `#` starts a
+/// comment line. Every value must be finite and positive (a zero lr would lose the velocity's
+/// scale, `docs/layout.md` §7.1).
+///
+/// Errors: an object with several array-valued keys and no `key` (ambiguous), a missing key,
+/// a malformed number, an empty list, or a value that is not finite and positive.
+fn parse_lr_schedule(text: &str, key: Option<&str>) -> Result<Vec<f64>, String> {
     let body: String = text
         .lines()
         .filter(|l| !l.trim_start().starts_with('#'))
@@ -1049,19 +1137,41 @@ fn read_lr_schedule(path: &std::path::Path) -> Result<Vec<f64>, String> {
         .join("\n");
     let t = body.trim();
     let list = if t.starts_with('{') {
-        let key = t
-            .match_indices('"')
-            .collect::<Vec<_>>()
-            .chunks(2)
-            .filter(|q| q.len() == 2)
-            .map(|q| (q[0].0, q[1].0))
-            .map(|(a, b)| (b, &t[a + 1..b]))
-            .find(|(b, name)| name.contains("lr") && t[b + 1..].trim_start().starts_with(':'))
-            .map(|(b, _)| b)
-            .ok_or("no key containing \"lr\" in the lr schedule")?;
-        let open = t[key..].find('[').ok_or("no array after the lr key")? + key;
-        let close = t[open..].find(']').ok_or("unterminated lr array")? + open;
-        &t[open + 1..close]
+        // Every `"name": [ ... ]` of the object (name, contents).
+        let mut arrays: Vec<(&str, &str)> = Vec::new();
+        let quotes: Vec<usize> = t.match_indices('"').map(|(i, _)| i).collect();
+        for q in quotes.chunks(2).filter(|q| q.len() == 2) {
+            let (a, b) = (q[0], q[1]);
+            let rest = t[b + 1..].trim_start();
+            let Some(after_colon) = rest.strip_prefix(':') else {
+                continue;
+            };
+            let value = after_colon.trim_start();
+            if value.starts_with('[') {
+                let open = t.len() - value.len();
+                let close = t[open..].find(']').ok_or("unterminated array")? + open;
+                arrays.push((&t[a + 1..b], &t[open + 1..close]));
+            }
+        }
+        match key {
+            Some(k) => {
+                arrays
+                    .iter()
+                    .find(|(name, _)| *name == k)
+                    .ok_or_else(|| format!("no array under key {k:?}"))?
+                    .1
+            }
+            None => match arrays.as_slice() {
+                [(_, v)] => *v,
+                [] => return Err("no array in the lr schedule object".into()),
+                many => {
+                    return Err(format!(
+                        "ambiguous lr schedule: arrays under {:?}; give --lr-key NAME",
+                        many.iter().map(|(n, _)| *n).collect::<Vec<_>>()
+                    ));
+                }
+            },
+        }
     } else if t.starts_with('[') {
         let close = t.find(']').ok_or("unterminated lr array")?;
         &t[1..close]
@@ -1073,10 +1183,73 @@ fn read_lr_schedule(path: &std::path::Path) -> Result<Vec<f64>, String> {
         .filter(|s| !s.is_empty())
         .map(|s| s.parse::<f64>().map_err(|e| format!("lr {s}: {e}")))
         .collect::<Result<Vec<_>, _>>()?;
-    if v.is_empty() || v.iter().any(|x| !x.is_finite() || *x < 0.0) {
-        return Err("the lr schedule must be nonempty, finite and non-negative".into());
+    if v.is_empty() {
+        return Err("the lr schedule is empty".into());
+    }
+    if let Some((i, x)) = v
+        .iter()
+        .enumerate()
+        .find(|(_, x)| !(x.is_finite() && **x > 0.0))
+    {
+        return Err(format!(
+            "lr schedule step {i}: {x} is not finite and positive"
+        ));
     }
     Ok(v)
+}
+
+/// The number of updates of a run: per epoch `ceil(len_e / batch)` with `len_e` the epoch's
+/// order length (or `n`).
+fn total_steps(orders: &Option<Vec<Vec<usize>>>, n: usize, args: &Args) -> usize {
+    (0..args.epochs)
+        .map(|e| {
+            orders
+                .as_ref()
+                .and_then(|o| o.get(e))
+                .map_or(n, Vec::len)
+                .div_ceil(args.batch)
+        })
+        .sum()
+}
+
+/// The pre-flight checks of the per-step inputs (review I2), before any training or key
+/// generation: the lr schedule has exactly one value per step (or at least that many with
+/// `--lr-schedule-allow-longer`), and the epoch orders cover every epoch.
+fn check_schedule_inputs(
+    schedule: &Option<Vec<f64>>,
+    orders: &Option<Vec<Vec<usize>>>,
+    n: usize,
+    args: &Args,
+) -> Result<(), String> {
+    if let Some(o) = orders {
+        if o.len() < args.epochs {
+            return Err(format!(
+                "the epoch orders have {} epochs, the run has {}",
+                o.len(),
+                args.epochs
+            ));
+        }
+    }
+    let steps = total_steps(orders, n, args);
+    if let Some(v) = schedule {
+        let ok = if args.lr_schedule_allow_longer {
+            v.len() >= steps
+        } else {
+            v.len() == steps
+        };
+        if !ok {
+            return Err(format!(
+                "the lr schedule has {} values for {steps} steps (exactly one per step{})",
+                v.len(),
+                if args.lr_schedule_allow_longer {
+                    ", or more with --lr-schedule-allow-longer"
+                } else {
+                    "; --lr-schedule-allow-longer accepts a longer one"
+                }
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn run(args: &Args) -> Result<(), String> {
@@ -1524,15 +1697,18 @@ fn run_plain(args: &Args) -> Result<(), String> {
     let schedule = args
         .lr_schedule
         .as_deref()
-        .map(read_lr_schedule)
+        .map(|p| read_lr_schedule(p, args.lr_key.as_deref()))
         .transpose()?;
     let orders = args
         .epoch_orders
         .as_deref()
         .map(|p| read_epoch_orders(p, n))
         .transpose()?;
+    check_schedule_inputs(&schedule, &orders, n, args)?;
+    // The decay follows the lr's units: ReBoot's (batch-summed) whenever the lr is given in
+    // --lr-sum units or by a schedule (review m2).
     let wd = WeightDecay {
-        mean: if args.lr_sum.is_some() {
+        mean: if args.lr_sum.is_some() || schedule.is_some() {
             args.weight_decay / args.batch as f64
         } else {
             args.weight_decay
@@ -1593,6 +1769,7 @@ fn run_plain(args: &Args) -> Result<(), String> {
                 ("init", J::S(args.init.clone())),
                 ("biases", J::B(!args.no_bias)),
                 ("output_width", J::I(args.out_width as i64)),
+                ("init_biases", J::S(init_bias_source(args))),
                 (
                     "dataset",
                     J::S(args.dataset_npy.as_ref().map_or_else(
@@ -2258,6 +2435,28 @@ fn run_ni(args: &Args) -> Result<(), String> {
         return Ok(());
     }
     let (train, test) = loaded?;
+    // Pre-flight (review I2): the per-step inputs are read and checked before any key exists.
+    let lr_sched = args
+        .lr_schedule
+        .as_deref()
+        .map(|p| read_lr_schedule(p, args.lr_key.as_deref()))
+        .transpose()?;
+    let orders = args
+        .epoch_orders
+        .as_deref()
+        .map(|p| read_epoch_orders(p, train.len()))
+        .transpose()?;
+    check_schedule_inputs(&lr_sched, &orders, train.len(), args)?;
+    // The velocity's reference lr: the schedule's maximum (docs/layout.md §7.1); the trainer
+    // starts at it, so every scheduled lr is <= it.
+    let lr_ref = lr_sched.as_ref().map_or(args.lr, |v| {
+        v.iter().copied().fold(0.0, f64::max) * args.batch as f64
+    });
+    let lr_ratio_max = lr_sched.as_ref().map_or(1.0, |v| {
+        let max = v.iter().copied().fold(0.0, f64::max);
+        let min = v.iter().copied().fold(f64::INFINITY, f64::min);
+        max / min
+    });
 
     // Keys: the client generates everything, keeps the secret key, and hands the server the
     // evaluation keys only.
@@ -2298,7 +2497,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     let encrypt_net_s = t_enc.elapsed().as_secs_f64();
     let optim = NiOptimizer::Nag {
-        lr: args.lr,
+        lr: lr_ref,
         momentum: args.momentum,
     };
     let lpi = levels_per_iter(&mlp, placement);
@@ -2356,16 +2555,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let mut update_index = 0usize;
     let mut pred_run_ks = 0u64;
     let mut boot_s = Vec::new();
-    let lr_sched = args
-        .lr_schedule
-        .as_deref()
-        .map(read_lr_schedule)
-        .transpose()?;
-    let orders = args
-        .epoch_orders
-        .as_deref()
-        .map(|p| read_epoch_orders(p, n))
-        .transpose()?;
+    let ref_shift = ref_shift_rotations(&dims, &layout).map_err(|e| e.to_string())?;
     let t_train = Instant::now();
     for epoch in 0..args.epochs {
         let order = epoch_order(&orders, epoch, n)?;
@@ -2436,7 +2626,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
             // the micro-batch count does) with the a-priori schedule, checked against the
             // counter and the observed bootstrap decision.
             let planned = schedule[update_index - 1];
-            let p = predict_update_for(
+            let mut p = predict_update_for(
                 &dims,
                 &lib_acts(&acts_flags),
                 &layout,
@@ -2447,9 +2637,15 @@ fn run_ni(args: &Args) -> Result<(), String> {
                 planned,
             )
             .map_err(|e| e.to_string())?;
+            // A step below the reference lr takes the reference gradient's second lane shift.
+            let rescaled = lr != lr_ref;
+            if rescaled {
+                p.ref_shift_rot = ref_shift;
+            }
             let nb = p.bootstraps();
             pred_run_ks += p.key_switches(boot_ks);
             matches &= did_boot == planned
+                && trainer.last_update_rescaled() == rescaled
                 && c.bootstraps == nb
                 && c.rotations == p.rotations() + nb * per_boot.rotations
                 && c.relins == p.relins() + nb * per_boot.relins
@@ -2583,6 +2779,12 @@ fn run_ni(args: &Args) -> Result<(), String> {
                         || "constant".into(),
                         |p| p.display().to_string(),
                     )),
+                ),
+                ("init_biases", J::S(init_bias_source(args))),
+                ("lr_reference_on_mean_gradient", J::N(lr_ref)),
+                (
+                    "lr_ratio_max",
+                    J::N(lr_ratio_max),
                 ),
                 (
                     "epoch_orders",
@@ -2955,5 +3157,218 @@ mod tests {
         assert_eq!(num("output_width") as usize, FAITHFUL_OUT_WIDTH);
         assert!(json.contains("\"init\": \"xavier_uniform\""));
         assert!(!json.contains("\"bias\": true"));
+    }
+
+    fn args(list: &[&str]) -> Args {
+        parse_args_from(&list.iter().map(|s| s.to_string()).collect::<Vec<_>>()).unwrap()
+    }
+
+    fn tmpdir(tag: &str) -> PathBuf {
+        let d = std::env::temp_dir().join(format!("hekit-mnist-{tag}-{}", std::process::id()));
+        std::fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    /// A version-1 `.npy` of `<f8` values (C order).
+    fn npy_f8(shape: &str, vals: &[f64]) -> Vec<u8> {
+        let mut h = format!("{{'descr': '<f8', 'fortran_order': False, 'shape': {shape}, }}");
+        while (10 + h.len() + 1) % 64 != 0 {
+            h.push(' ');
+        }
+        h.push('\n');
+        let mut out = b"\x93NUMPY\x01\x00".to_vec();
+        out.extend((h.len() as u16).to_le_bytes());
+        out.extend(h.as_bytes());
+        out.extend(vals.iter().flat_map(|v| v.to_le_bytes()));
+        out
+    }
+
+    /// Review I2 / m1: the lr schedule parser (formats, ambiguity, strictly positive values).
+    #[test]
+    fn lr_schedule_parser() {
+        assert_eq!(
+            parse_lr_schedule("# c\n0.1\n0.2\n", None).unwrap(),
+            vec![0.1, 0.2]
+        );
+        assert_eq!(
+            parse_lr_schedule("[0.1, 0.2]", None).unwrap(),
+            vec![0.1, 0.2]
+        );
+        assert_eq!(
+            parse_lr_schedule("{\"steps\": 2, \"lr\": [0.1, 0.2]}", None).unwrap(),
+            vec![0.1, 0.2]
+        );
+        let two = "{\"lr\": [0.1, 0.2], \"lr_eff\": [1.0, 2.0]}";
+        assert!(
+            parse_lr_schedule(two, None)
+                .unwrap_err()
+                .contains("--lr-key")
+        );
+        assert_eq!(
+            parse_lr_schedule(two, Some("lr_eff")).unwrap(),
+            vec![1.0, 2.0]
+        );
+        assert!(parse_lr_schedule(two, Some("nope")).is_err());
+        assert!(parse_lr_schedule("0.1\n0\n", None).is_err(), "zero lr");
+        assert!(
+            parse_lr_schedule("0.1\n-0.1\n", None).is_err(),
+            "negative lr"
+        );
+        assert!(parse_lr_schedule("", None).is_err());
+    }
+
+    /// Review I2: the schedule length and the epoch orders are checked before training.
+    #[test]
+    fn schedule_preflight() {
+        let a = args(&["--batch", "48", "--epochs", "2"]);
+        // 96 samples, 2 epochs of 2 steps = 4 steps.
+        assert!(check_schedule_inputs(&Some(vec![0.1; 4]), &None, 96, &a).is_ok());
+        assert!(check_schedule_inputs(&Some(vec![0.1; 5]), &None, 96, &a).is_err());
+        assert!(check_schedule_inputs(&Some(vec![0.1; 3]), &None, 96, &a).is_err());
+        let longer = args(&[
+            "--batch",
+            "48",
+            "--epochs",
+            "2",
+            "--lr-schedule-allow-longer",
+        ]);
+        assert!(check_schedule_inputs(&Some(vec![0.1; 5]), &None, 96, &longer).is_ok());
+        assert!(check_schedule_inputs(&Some(vec![0.1; 3]), &None, 96, &longer).is_err());
+        // Epoch orders: too few epochs; and the reader's row-length and index checks.
+        let one_epoch = Some(vec![(0..96).collect::<Vec<_>>()]);
+        assert!(check_schedule_inputs(&None, &one_epoch, 96, &a).is_err());
+        let d = tmpdir("orders");
+        let ok = (0..2)
+            .flat_map(|_| (0..4).map(f64::from))
+            .collect::<Vec<_>>();
+        std::fs::write(d.join("o.npy"), npy_f8("(2, 4)", &ok)).unwrap();
+        assert_eq!(read_epoch_orders(&d.join("o.npy"), 4).unwrap().len(), 2);
+        assert!(
+            read_epoch_orders(&d.join("o.npy"), 5).is_err(),
+            "row length != n"
+        );
+        let bad = [0.0, 1.0, 2.0, 4.0];
+        std::fs::write(d.join("b.npy"), npy_f8("(1, 4)", &bad)).unwrap();
+        assert!(
+            read_epoch_orders(&d.join("b.npy"), 4).is_err(),
+            "index >= n"
+        );
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// Review m3: --lr with --faithful / --lr-sum is refused instead of silently overridden.
+    #[test]
+    fn lr_flag_conflicts() {
+        let r = parse_args_from(&["--faithful".to_string(), "--lr".into(), "0.1".into()]);
+        assert!(r.is_err());
+        assert_eq!(
+            args(&["--faithful", "--batch", "32", "--mode", "plain"]).lr,
+            FAITHFUL_LR_SUM * 32.0
+        );
+    }
+
+    /// The `--indices` reader: comments, `step<TAB>indices` lines, commas.
+    #[test]
+    fn indices_reader() {
+        let d = tmpdir("idx");
+        std::fs::write(
+            d.join("i.txt"),
+            "# header\n1\t3 1 2\n2\t0,5\n# dropped: 9 9\n",
+        )
+        .unwrap();
+        assert_eq!(read_indices(&d.join("i.txt")).unwrap(), vec![3, 1, 2, 0, 5]);
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// `--init-weights`: (in, out) matrices are transposed into (out, in), the SHA-256 listed in
+    /// init_weights.json is checked (review m6), and a square matrix needs its orientation.
+    #[test]
+    fn init_weights_orientation_and_hash() {
+        let d = tmpdir("initw");
+        // Layer 1 is 3 x 2 (d_out x d_in): ReBoot's file is 2 x 3 (in x out).
+        let w1_in_out = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let w2 = [
+            0.5, -0.5, 0.25, -0.25, 0.125, -0.125, 1.5, -1.5, 2.5, -2.5, 3.5, -3.5,
+        ];
+        let f1 = npy_f8("(2, 3)", &w1_in_out);
+        let f2 = npy_f8("(4, 3)", &w2); // d_out 4 x d_in 3: already (out, in)
+        std::fs::write(d.join("W1.npy"), &f1).unwrap();
+        std::fs::write(d.join("W2.npy"), &f2).unwrap();
+        let meta = format!(
+            "{{\"files\": [{{\"file\": \"W1.npy\", \"sha256\": \"{}\"}}, {{\"file\": \"W2.npy\", \"sha256\": \"{}\"}}]}}",
+            sha256_hex(&f1),
+            sha256_hex(&f2)
+        );
+        std::fs::write(d.join("init_weights.json"), &meta).unwrap();
+        let a = args(&[
+            "--init-weights",
+            d.to_str().unwrap(),
+            "--no-bias",
+            "--mode",
+            "plain",
+        ]);
+        let net = initial_net(&[2, 3, 4], &mut rng(1, 2), &a).unwrap();
+        assert_eq!(
+            net[0].w,
+            ndarray::arr2(&[[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
+        );
+        assert_eq!(net[1].w.dim(), (4, 3));
+        assert_eq!(net[1].w[[1, 0]], -0.25);
+        assert!(net.iter().all(|l| l.b.iter().all(|&b| b == 0.0)));
+        // A tampered file is refused.
+        let mut bad = f2.clone();
+        *bad.last_mut().unwrap() ^= 1;
+        std::fs::write(d.join("W2.npy"), &bad).unwrap();
+        assert!(initial_net(&[2, 3, 4], &mut rng(1, 2), &a).is_err());
+        // A square layer without an orientation is refused.
+        std::fs::write(d.join("init_weights.json"), "{}").unwrap();
+        std::fs::write(d.join("W1.npy"), npy_f8("(2, 2)", &[1.0, 2.0, 3.0, 4.0])).unwrap();
+        assert!(initial_net(&[2, 2, 4], &mut rng(1, 2), &a).is_err());
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// The twin's coupled weight decay is torch's SGD convention: `g += wd W` before the
+    /// momentum buffer and the Nesterov combination (checked against the explicit formula).
+    #[test]
+    fn twin_weight_decay_is_coupled_l2_before_nesterov() {
+        let mut r = rng(3, 4);
+        let net0 = init_net(&[4, 3, 2], &mut r, "xavier", true);
+        let x = Array2::from_shape_fn((5, 4), |_| uni(&mut r));
+        let y = Array2::from_shape_fn((5, 2), |_| uni(&mut r));
+        let (lr, mu, wd) = (0.1, 0.9, 0.05);
+        let mut net = net0.clone();
+        let mut vel: Vec<Array2<f64>> = net.iter().map(|l| Array2::zeros(l.w.dim())).collect();
+        let decay = WeightDecay {
+            mean: wd,
+            decoupled: false,
+        };
+        // Two steps (the second uses a nonzero velocity).
+        for _ in 0..2 {
+            twin_step(&mut net, &mut vel, &x, &y, lr, mu, 0.0, decay);
+        }
+        // The explicit formula.
+        let mut want = net0.clone();
+        let mut v: Vec<Array2<f64>> = want.iter().map(|l| Array2::zeros(l.w.dim())).collect();
+        for _ in 0..2 {
+            let z1 = affine(&x, &want[0]);
+            let a1 = z1.mapv(|t| t * t + t);
+            let o = affine(&a1, &want[1]);
+            let d2 = &o - &y;
+            let d1 = d2.dot(&want[1].w) * z1.mapv(|t| 2.0 * t + 1.0);
+            let n = x.nrows() as f64;
+            let g = [d1.t().dot(&x) / n, d2.t().dot(&a1) / n];
+            for i in 0..2 {
+                let gi = &g[i] + &(wd * &want[i].w);
+                v[i] = mu * &v[i] + &gi;
+                want[i].w = &want[i].w - &(lr * &(&gi + &(mu * &v[i])));
+            }
+        }
+        for (a, b) in net.iter().zip(&want) {
+            let e =
+                a.w.iter()
+                    .zip(&b.w)
+                    .fold(0.0f64, |m, (p, q)| m.max((p - q).abs()));
+            assert!(e < 1e-15, "{e}");
+        }
     }
 }

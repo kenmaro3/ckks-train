@@ -557,25 +557,55 @@ The NAG update on a compact container `i` of layer `l` is, at level
 the first step: `U' = h`, `W' = W - h - sum h_b`). The velocity's bias positions stay zero, so
 the biases take plain SGD steps (the M2 deviation).
 
-**Per-step learning rate (ruling R-M3-14, `NonInteractiveTrainer::set_lr`).** The plaintext
-rule is NAG with the lr outside (ReBoot's and the twin's form): `v_t = mu v_{t-1} + g_t`,
-`W_t = W_{t-1} - lr_t (g_t + mu v_t) = W_{t-1} - lr_t (1 + mu) g_t - lr_t mu^2 v_{t-1}`. The
-trainer stores `U_t = lr_t (1 + mu) v_t`, the velocity scaled by the lr it was formed with, and
-the gradient arrives as `h_t = lr_t (1 + mu) g_t` (the lr is folded into the batch-sum mask).
-With `r_t = lr_t / lr_{t-1}`:
+**Per-step learning rate (ruling R-M3-14, `NonInteractiveTrainer::set_lr`; review I1).** The
+plaintext rule is NAG with the lr outside (ReBoot's and the twin's form):
 
 ```
-U_t = lr_t (1 + mu) (mu v_{t-1} + g_t)          = (mu r_t) U_{t-1} + h_t
-W_t = W_{t-1} - h_t - lr_t mu^2 v_{t-1}         = W_{t-1} - h_t - (mu^2 / (1 + mu)) r_t U_{t-1}
+v_t = mu v_{t-1} + g_t
+W_t = W_{t-1} - lr_t (g_t + mu v_t) = W_{t-1} - lr_t (1 + mu) g_t - lr_t mu^2 v_{t-1}
 ```
 
-So the ratio folds into the two scalar products the update already has (`mu` → `mu r_t`,
-`kappa` → `kappa r_t`): **no extra product, level or key switch**, and `predict_update_with`
-is unchanged. For an unchanged lr `r_t = 1` exactly, and the products are bit-identical to the
-constant-lr trainer (tested). The biases take `lr_t` through their own folded constant. A zero
-lr is refused (it would lose the velocity's scale). Tested on mini: a 3-step schedule
-(0.05, 0.02, 0.08) under WhenNeeded follows the twin with the same schedule to 2^-26, while a
-constant-lr twin is 2^-8.7 away.
+*Why not store the velocity at the step's lr.* Storing `U_t = lr_t (1 + mu) v_t` would need
+`U_t = (mu r_t) U_{t-1} + h_t` with `r_t = lr_t / lr_{t-1}`. The bootstrap error of `U` is absolute
+(about 2^-17.5 in message units on n16_boot, whatever the size of `U`), so a velocity stored at
+a small lr has lost `v`'s precision, and a restart (`r_t` up to `lr_max / eta_min`, about 10^3)
+multiplies that error by `r_t`.
+
+*The velocity at a fixed reference lr.* The trainer stores `U_t = lr_ref (1 + mu) v_t` with
+`lr_ref` = the schedule's maximum (`set_lr_reference`; by default the initial lr) and refuses
+`lr_t > lr_ref`. With `s_t = lr_t / lr_ref <= 1`, `h_t = lr_t (1 + mu) g_t` and
+`h'_t = lr_ref (1 + mu) g_t`:
+
+```
+U_t = mu U_{t-1} + h'_t
+W_t = W_{t-1} - h_t - (mu^2 / (1 + mu)) s_t U_{t-1}
+```
+
+No stored quantity is ever scaled up: `U`'s update has no lr factor at all, and `W` takes
+`s_t <= 1` of `U` inside the existing `kappa` product (`kappa -> kappa s_t`: no extra op, level
+or key switch). The weight update needs the gradient at the step's lr and the velocity needs
+it at the reference lr: two constants on the same gradient. The products, the relinearizations,
+the reduce and the levels are shared. Each constant gets its own lane-0 mask (`m` more ct-pt at
+the same level, no key switch; `Dense::weight_grad_reduced_consts`), and the reference
+gradient gets its own lane shift into compact form: **`m - n_ct` more rotations per layer per
+update** (`UpdateCost::ref_shift_rot`, `ref_shift_rotations`; 46 for eMLP-1, about 0.7 KS per
+sample at B = 64), **only on updates whose lr differs from `lr_ref`**. No other placement is
+free:
+- scaling `h'` by `s` on the weight path, or `h` by `1/s` on the velocity path, costs a level;
+- multiplying the gradient by `s` inside the existing reduce-and-mask plaintext gives one gradient, not two.
+
+The one extra cost is the second shift, which needs no level, so the lazy schedules
+(`WhenNeeded`) are unchanged.
+
+*Constant lr is bit-identical.* With `lr_t = lr_ref`, `s_t = 1` exactly. Then there is no second
+mask and no second shift, and `kappa * 1.0 = kappa`, so the computation is identical to the
+constant-lr trainer (tested bitwise).
+
+*Tests on mini.*
+- A 3-step schedule (0.05, 0.02, 0.08 with `lr_ref` 0.08) under WhenNeeded follows the twin to 2^-26; a constant-lr twin is 2^-8.7 away.
+- A 1000x drop and recovery (0.05, 5e-5, 5e-5, 0.05, 0.05) under AfterUpdate stays at 2^-25.6, within the constant-lr tolerance of 2^-20.
+- Four scratch mutations each fail both tests: no `s` on `kappa`, an inverted `s`, the velocity fed from the step-lr gradient, and `mu` scaled by `s`.
+- Every update's key switches equal the closed form plus `ref_shift_rot` when rescaled.
 
 ### 7.2 Placements (`BootPlacement`)
 
