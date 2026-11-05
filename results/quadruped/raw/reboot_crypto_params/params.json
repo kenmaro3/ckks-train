@@ -1,0 +1,184 @@
+{
+  "request": "R-REB-4 (results/quadruped/requests.md)",
+  "ring_dim": 65536,
+  "q_moduli": [
+    {
+      "value": "18014398506729473",
+      "bits": 54.0
+    },
+    {
+      "value": "562950000476161",
+      "bits": 49.0
+    },
+    {
+      "value": "562950007554049",
+      "bits": 49.0
+    },
+    {
+      "value": "562949985402881",
+      "bits": 49.0
+    },
+    {
+      "value": "562949999296513",
+      "bits": 49.0
+    },
+    {
+      "value": "562949995364353",
+      "bits": 49.0
+    },
+    {
+      "value": "562949997330433",
+      "bits": 49.0
+    },
+    {
+      "value": "562949987106817",
+      "bits": 49.0
+    },
+    {
+      "value": "562949993267201",
+      "bits": 49.0
+    },
+    {
+      "value": "562949989466113",
+      "bits": 49.0
+    },
+    {
+      "value": "562949995233281",
+      "bits": 49.0
+    },
+    {
+      "value": "562949962203137",
+      "bits": 49.0
+    },
+    {
+      "value": "562949983961089",
+      "bits": 49.0
+    },
+    {
+      "value": "562949973999617",
+      "bits": 49.0
+    },
+    {
+      "value": "562949983436801",
+      "bits": 49.0
+    },
+    {
+      "value": "562949974130689",
+      "bits": 49.0
+    },
+    {
+      "value": "562949982781441",
+      "bits": 49.0
+    },
+    {
+      "value": "562949966921729",
+      "bits": 49.0
+    },
+    {
+      "value": "562949976096769",
+      "bits": 49.0
+    },
+    {
+      "value": "562949948833793",
+      "bits": 49.0
+    },
+    {
+      "value": "562949964955649",
+      "bits": 49.0
+    },
+    {
+      "value": "562949950537729",
+      "bits": 49.0
+    },
+    {
+      "value": "562949959581697",
+      "bits": 49.0
+    },
+    {
+      "value": "562949951979521",
+      "bits": 49.0
+    },
+    {
+      "value": "562949955125249",
+      "bits": 49.0
+    },
+    {
+      "value": "786433",
+      "bits": 19.584964
+    }
+  ],
+  "num_q": 26,
+  "log2_Q": 1249.5849658801378,
+  "p_moduli": [
+    {
+      "value": "1152921504606584833",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504598720513",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504597016577",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504595968001",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504592822273",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504592429057",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504589938689",
+      "bits": 60.0
+    },
+    {
+      "value": "1152921504586530817",
+      "bits": 60.0
+    }
+  ],
+  "num_p": 8,
+  "log2_P": 479.9999999998814,
+  "log2_PQ": 1729.5849658800194,
+  "dnum": 3,
+  "towers_per_digit_alpha": 9,
+  "dnum_note": "ReBoot leaves numLargeDigits at 0 (OpenFHE chooses); the generated context uses this value",
+  "key_switch_technique": "HYBRID",
+  "scaling_technique": "FLEXIBLEAUTOEXT",
+  "secret_key_dist": "SPARSE_TERNARY",
+  "secret_key_hamming_weight": {
+    "measured_on_one_keygen": 192,
+    "plus_one": 97,
+    "minus_one": 95,
+    "other": 0,
+    "note": "counted on the first RNS tower in coefficient form; consistent with OpenFHE 1.2.1 SPARSE_TERNARY using a fixed Hamming weight of 192 (spikes/reboot/RUN.md)"
+  },
+  "error_std_dev_sigma": 3.190000057220459,
+  "sigma_in_context": 3.190000057,
+  "security_level_requested": "HEStd_128_classic",
+  "multiplicative_depth": 24,
+  "scaling_mod_bits": 49,
+  "first_mod_bits": 54,
+  "num_q_note": "26 towers for depth 24: q0 (54 bits), 24 scaling moduli (49 bits), and q25 = 786433 (19.58 bits, the last tower), the extra modulus FLEXIBLEAUTOEXT adds; all are included in log2_Q",
+  "ccparams_as_passed_by_reboot": "scheme: CKKSRNS; ptModulus: 0; digitSize: 0; standardDeviation: 3.19; secretKeyDist: SPARSE_TERNARY; maxRelinSkDeg: 2; ksTech: HYBRID; scalTech: FLEXIBLEAUTOEXT; batchSize: 0; firstModSize: 54; numLargeDigits: 0; multiplicativeDepth:24; scalingModSize: 49; securityLevel: HEStd_128_classic; ringDim: 65536; evalAddCount: 0; keySwitchCount: 0; encryptionTechnique: STANDARD; multiplicationTechnique: HPS; PRENumHops: 0; PREMode: INDCPA; multipartyMode: FIXED_NOISE_MULTIPARTY; executionMode: EXEC_EVALUATION; decryptionNoiseMode: FIXED_NOISE_DECRYPT; noiseEstimate: 0; desiredPrecision: 25; statisticalSecurity: 30; numAdversarialQueries: 1; thresholdNumOfParties: 1; interactiveBootCompressionLevel: SLACK",
+  "checks": {
+    "enums_used_by_cpp_helper_match_captured": {
+      "GetSecretKeyDist": true,
+      "GetKeySwitchTechnique": true,
+      "GetScalingTechnique": true,
+      "GetSecurityLevel": true
+    },
+    "ring_dim_python_vs_cpp": [
+      65536,
+      65536
+    ],
+    "log2_Q_python_GetModulus_vs_cpp": "not comparable: openfhe-python's GetModulus() returns a double, which overflows to inf for this ~1250-bit Q; ring dimension agrees (65536 both)"
+  },
+  "method": "ReBoot's CryptoContext built as in the subset run with openfhe.GenCryptoContext intercepted (CCParams captured, context generated, constructor stopped before keygen and bootstrapping setup, which do not change the modulus chain); a C++ helper linked to the same OpenFHE 1.2.1 install rebuilt the context from those CCParams values and read Q, P, dnum, sigma and one secret key. Scripts: results/quadruped/scripts/reboot_crypto_params.{py,cpp,sh}; provenance results/quadruped/raw/R-REB-4/."
+}

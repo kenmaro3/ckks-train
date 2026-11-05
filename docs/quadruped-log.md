@@ -292,8 +292,8 @@ Test accuracy over seeds 0–9 (mean ± sample std):
 |---|---|---|---|---|
 | const 0.001 | 0.9535 ± 0.0010 | 0.9494 ± 0.0020 | 0.9513 ± 0.0012 | 0.9515 ± 0.0019 |
 | ReBoot scheduler | 0.9546 ± 0.0009 | 0.9495 ± 0.0023 | 0.9516 ± 0.0008 | 0.9525 ± 0.0008 |
-Paper Table 4: 94.61 ± 0.27. Under this reading of the paper's setting, the released plaintext path is about 0.8–0.9 pt
-above the paper's figure at epochs 10–50, not below it.
+Paper Table 4: 94.61 ± 0.27. Gap of the released plaintext path to that figure (mean over seeds, pt): +0.33 to +0.64 at fixed epochs 10/20/50 (both schedules), and +0.74 (const) / +0.85 (sched) at the best epoch. The best-epoch values are optimistic, because the best epoch is picked per seed on the test set.
+(Corrected 2026-11-06; the earlier text said "about 0.8–0.9 pt", which overstated the fixed-epoch gap.)
 
 ### 2026-11-05 23:10–23:14 R-47-1: hekit-cuda tests at ce4730a → `results/quadruped/hekit_cuda_task47_tests.txt`
 45 of 45 test functions ok, 0 failed. 42 ran bit-exact on the GPU; 3 printed expected SKIPs:
@@ -324,3 +324,16 @@ FULL-2, 10 / 10 / 198000 s (55 h); the projection goes to `projection.txt`. The 
 chain10 runs an untimed build, then FULL-1 (750 updates), then FULL-2 (1000 updates), with nothing of ours alongside.
 Headroom: 26 GB disk (these jobs write only logs and JSON), 115 GB RAM available against the ~28 GB per run seen in
 the 784-input NI runs.
+
+
+### 2026-11-06 R-REB-4: ReBoot's CKKS parameters → `results/quadruped/raw/reboot_crypto_params/params.json`
+`scripts/reboot_crypto_params.{py,cpp,sh}` through `run_job.sh`, 1 thread, nice 19, peak RSS 0.56 GB, a few seconds
+(during R-41-FULL-1's build and setup). ReBoot's `CryptoContext` was built as in the subset run with
+`openfhe.GenCryptoContext` intercepted: the CCParams were captured, the context generated, and the constructor stopped
+before key generation and bootstrapping setup, which do not change the modulus chain. A C++ helper linked to the same
+OpenFHE 1.2.1 rebuilt the context from those CCParams and read the chain. The enum settings match the captured ones.
+Result: ring 2^16; Q has 26 towers (54-bit q0, 24 × 49-bit, and the extra FLEXIBLEAUTOEXT modulus 786433 ≈ 19.58 bits),
+log2 Q = 1249.585; P has 8 × 60-bit, log2 P = 480; log2 PQ = 1729.585; HYBRID with dnum 3 (OpenFHE's
+default for numLargeDigits = 0), 9 towers per digit; SPARSE_TERNARY with Hamming weight 192 counted on a generated key;
+σ = 3.19. openfhe-python's `GetModulus()` overflows a double for this Q, so log Q could not be cross-checked from Python;
+the ring dimension agrees.

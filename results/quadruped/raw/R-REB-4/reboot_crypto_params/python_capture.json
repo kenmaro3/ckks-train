@@ -1,0 +1,28 @@
+{
+  "ccparams_str": "scheme: CKKSRNS; ptModulus: 0; digitSize: 0; standardDeviation: 3.19; secretKeyDist: SPARSE_TERNARY; maxRelinSkDeg: 2; ksTech: HYBRID; scalTech: FLEXIBLEAUTOEXT; batchSize: 0; firstModSize: 54; numLargeDigits: 0; multiplicativeDepth:24; scalingModSize: 49; securityLevel: HEStd_128_classic; ringDim: 65536; evalAddCount: 0; keySwitchCount: 0; encryptionTechnique: STANDARD; multiplicationTechnique: HPS; PRENumHops: 0; PREMode: INDCPA; multipartyMode: FIXED_NOISE_MULTIPARTY; executionMode: EXEC_EVALUATION; decryptionNoiseMode: FIXED_NOISE_DECRYPT; noiseEstimate: 0; desiredPrecision: 25; statisticalSecurity: 30; numAdversarialQueries: 1; thresholdNumOfParties: 1; interactiveBootCompressionLevel: SLACK",
+  "ccparams_numeric": {
+    "GetRingDim": 65536,
+    "GetMultiplicativeDepth": 24,
+    "GetScalingModSize": 49,
+    "GetFirstModSize": 54,
+    "GetNumLargeDigits": 0,
+    "GetBatchSize": 0,
+    "GetStandardDeviation": 3.190000057220459,
+    "GetDigitSize": 0,
+    "GetMaxRelinSkDeg": 2
+  },
+  "ccparams_enums": {
+    "GetSecretKeyDist": "SecretKeyDist.SPARSE_TERNARY",
+    "GetKeySwitchTechnique": "KeySwitchTechnique.HYBRID",
+    "GetScalingTechnique": "ScalingTechnique.FLEXIBLEAUTOEXT",
+    "GetSecurityLevel": "SecurityLevel.HEStd_128_classic",
+    "GetMultiplicationTechnique": "MultiplicationTechnique.HPS",
+    "GetEncryptionTechnique": "EncryptionTechnique.STANDARD"
+  },
+  "python_cc": {
+    "GetRingDimension": 65536,
+    "GetCyclotomicOrder": 131072,
+    "GetModulus_log2": Infinity
+  },
+  "construction": "ReBoot's CryptoContext('../config/fhe_config_mlp1.yaml', model=<784-32-16 plain eMLP-1>) as in the subset run; openfhe.GenCryptoContext intercepted, real context generated, constructor stopped before keygen/bootstrap setup"
+}

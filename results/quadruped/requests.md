@@ -295,6 +295,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** < 5 min. **GPU memory need:** 0
 - **output path:** `results/quadruped/raw/reboot_crypto_params/params.json`
 - **order:** at the next free slot. It is light and must not disturb the timed FULL runs; run it at nice 19 in a few seconds of CPU.
+- **status:** done (2026-11-06T07:30–07:31 JST, exit 0, 1 thread, nice 19, peak RSS 0.56 GB; ran during R-41-FULL-1's build/setup). Output: `results/quadruped/raw/reboot_crypto_params/params.json` (raw captures in `raw/R-REB-4/`). Ring 2^16; Q: 26 towers (54-bit q0, 24 × 49-bit, last tower 786433 ≈ 19.58 bits = FLEXIBLEAUTOEXT's extra modulus), log2 Q = 1249.585; P: 8 × 60-bit, log2 P = 480; log2 PQ = 1729.585; HYBRID, dnum = 3 (OpenFHE's choice for numLargeDigits = 0), 9 towers per digit; SPARSE_TERNARY with Hamming weight 192 measured on a generated key (97 × +1, 95 × −1); σ = 3.19. Method: ReBoot's own CryptoContext constructor with openfhe.GenCryptoContext intercepted (stopped before keygen, so no 44 GB context), then a C++ helper on the same OpenFHE 1.2.1 install reading the chain from those CCParams.
 
 ## R-47-3: Task 47 batch vs sequential re-measurement (after the fix round), plus all GPU tests at 37e80a9
 

@@ -1,0 +1,11 @@
+{
+ "ring_dim": 65536,
+ "q_moduli": [{"value": "18014398506729473", "bits": 54}, {"value": "562950000476161", "bits": 49}, {"value": "562950007554049", "bits": 49}, {"value": "562949985402881", "bits": 49}, {"value": "562949999296513", "bits": 49}, {"value": "562949995364353", "bits": 49}, {"value": "562949997330433", "bits": 49}, {"value": "562949987106817", "bits": 49}, {"value": "562949993267201", "bits": 49}, {"value": "562949989466113", "bits": 49}, {"value": "562949995233281", "bits": 49}, {"value": "562949962203137", "bits": 49}, {"value": "562949983961089", "bits": 49}, {"value": "562949973999617", "bits": 49}, {"value": "562949983436801", "bits": 49}, {"value": "562949974130689", "bits": 49}, {"value": "562949982781441", "bits": 49}, {"value": "562949966921729", "bits": 49}, {"value": "562949976096769", "bits": 49}, {"value": "562949948833793", "bits": 49}, {"value": "562949964955649", "bits": 49}, {"value": "562949950537729", "bits": 49}, {"value": "562949959581697", "bits": 49}, {"value": "562949951979521", "bits": 49}, {"value": "562949955125249", "bits": 49}, {"value": "786433", "bits": 19.585}],
+ "p_moduli": [{"value": "1152921504606584833", "bits": 60}, {"value": "1152921504598720513", "bits": 60}, {"value": "1152921504597016577", "bits": 60}, {"value": "1152921504595968001", "bits": 60}, {"value": "1152921504592822273", "bits": 60}, {"value": "1152921504592429057", "bits": 60}, {"value": "1152921504589938689", "bits": 60}, {"value": "1152921504586530817", "bits": 60}],
+ "num_q": 26, "num_p": 8,
+ "log2_Q": 1249.584966, "log2_P": 480, "log2_PQ": 1729.584966,
+ "dnum_num_part_q": 3, "alpha_towers_per_digit": 9,
+ "key_switch_technique": "HYBRID", "scaling_technique": "FLEXIBLEAUTOEXT",
+ "secret_key_dist": "SPARSE_TERNARY", "standard_deviation": 3.190000057, "security_level": "HEStd_128_classic",
+ "secret_key_hamming_weight_measured": 192, "sk_plus_one": 97, "sk_minus_one": 95, "sk_other": 0
+}

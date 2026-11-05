@@ -1,0 +1,1 @@
+bash /home/kmihara/reboot/reboot_crypto_params.sh /home/kmihara/hekit-runs/out/R-REB-4/reboot_crypto_params 
