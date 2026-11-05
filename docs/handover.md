@@ -1,0 +1,189 @@
+# hekit 引き継ぎ書(2026-11-06 時点)
+
+次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
+
+## 0. 30 秒で分かる現在地
+
+- **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **hekit**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
+- **主ベースライン**: ReBoot(AAAI-26、OpenFHE、GPL-3.0。実行のみ、コードは一切取り込まない)。
+- **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
+- **進捗**: 全 58 タスク中、Task 1〜41、43〜47 が完了(レビュー済み)。Task 42(M3 報告)は草稿、Task 47 は再計測(R-47-3)待ち。M5 は Task 51 に着手済み。
+- **暫定判定**(784 入力 subset、サーバー実測): WhenNeeded B=64 は key switch 3 通りすべてと wall-clock(0.447 倍)で合格。精度 ±0.5 pt の確定は本番走行 R-41-FULL-2 待ち(2026-11-07 深夜〜11-08 に完了見込み)。
+- **GitHub**: `kenmaro3/mit-hekit`(private、2026-11-06 に初回 push。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`)。
+
+## 1. 必ず読むファイル(順番どおり)
+
+| 順 | ファイル | 何が分かるか |
+|---|---|---|
+| 1 | `plans/2026-11-04-he-training-research-plan.md` | 研究計画(spec)。RQ1〜3、評価基準、制約 |
+| 2 | `plans/2026-11-04-he-training-implementation-plan.md` | Task 1〜34(M0〜M2)。Global Constraints は M3 以降も有効 |
+| 3 | `plans/2026-11-04-he-training-implementation-plan-m3-m5.md` | Task 35〜58。M3 ルーリングの注記入り |
+| 4 | `hekit/docs/m3-report.md` | **最重要**。RQ1 表、4 通りの比、裁定 R-M3-1〜15 の全文(§8)、未決事項(§9) |
+| 5 | `hekit/docs/m2-report.md`, `m1-report.md`, `m0-report.md` | 各フェーズの数字、逸脱、ルーリング |
+| 6 | `hekit/docs/layout.md` | スロット配置、転置、fold、コストモデル閉形式(§7.5)、鍵の本数 |
+| 7 | `hekit/docs/bootstrap.md` | n16_boot の鎖、SSE、EvalMod、精度の論証、実測 |
+| 8 | `hekit/docs/security.md` | lattice-estimator の全結果(hekit + ReBoot) |
+| 9 | `hekit/docs/m4-report.md` | M4 草稿。GPU 対 CPU 対 HEonGPU の表 |
+| 10 | `hekit/docs/quadruped-log.md`, `hekit/results/quadruped/requests.md` | サーバーで何を走らせたか、キューの状態、依頼の書式 |
+| 11 | `hekit/.superpowers/sdd/*/progress.md` | 実装セッションの ledger(タスクごとの dispatch / review / ruling) |
+
+## 2. リポジトリとビルド
+
+```
+hekit/
+  crates/hekit-core   RNS 算術、NTT、サンプラ(ChaCha20 のみ)
+  crates/hekit-ckks   RNS-CKKS、hybrid key switching、hoisting、BSGS、bootstrapping(bootstrap/)、OpCounter
+  crates/hekit-nn     学習層: layout、Dense、転置、勾配、NAG、Trainer(対話)、trainer_ni(非対話)、compact、layout_reboot(ベースライン c)
+  crates/hekit-cuda   CUDA バックエンド(cudarc 0.19.0、dynamic-loading、NVRTC)。feature `cuda` で有効、無くても check は通る
+  crates/hekit-bench  bins: iris, mnist, mnist_reboot_layout, plain。configs/*.json。コストモデルの移植
+  docs/  results/  results/quadruped/  spikes/(M0、workspace 外)  tools/(seal-kat, estimate, bootstrap)  kat/
+```
+
+- toolchain: `rust-toolchain.toml`(1.85.1)、edition 2024。`[profile.test]` opt-level 3。`cargo deny check licenses` 必須(allow: MIT, Apache-2.0, BSD-*, ISC。GPL と BSD-3-Clause-Clear は拒否)。
+- 通常のテスト: `cargo test --workspace`(約 400 件)。n16_boot の 10 GB 超のテストは `#[ignore]`(`cargo test -- --ignored` で手動)。
+- 並列: feature `parallel`(rayon)。ブートストラップは `HEKIT_BOOT_THREADS` で本数指定。学習の非ブートストラップ経路は単一スレッド(M4 の改善対象)。
+- GPU テスト: `cargo test -p hekit-cuda --features cuda`。各テストは必要 GPU メモリを宣言し、足りなければ SKIP 行を出す。
+- データ: `scripts/fetch_mnist.sh`、`scripts/fetch_fashion_mnist.sh`(gitignore 下の `data/`)。Iris は同梱(CC BY 4.0)。
+- 主な実行例(引数は各 bin の `--help`):
+  - `cargo run --release -p hekit-bench --bin iris -- --epochs 400 --batch 20 --seed 2020 --out results/iris_20.json`
+  - `cargo run --release -p hekit-bench --bin mnist -- --config crates/hekit-bench/configs/reboot_emlp1_faithful.json --mode noninteractive --placement when_needed --batch 64 ...`(`--dataset-npy`, `--init-weights`, `--lr-schedule`, `--lr-schedule-batch 48`, `--epoch-orders`, `--plan` あり)
+- 結果 JSON の規則: バイナリが自分で `provenance`(git commit、dirty files、コマンド行、スレッド数、load、RSS、時刻)を書く。**数字を手で書き換えない**。
+
+## 3. 確定した仕様(計画と違う点を含む)
+
+### 3.1 パラメータプリセット(`hekit-ckks/src/params.rs`)
+
+| preset | N | q(レベル 0 →) | P | dnum | log PQ | 用途 |
+|---|---|---|---|---|---|---|
+| `seal_2020` | 2^15 | 60, 40×9 | 60 | 10 | 480 | 2020 年再現(Iris)。SEAL 4.1.2 と bit-exact |
+| `n16_train` | 2^16 | 58, 42×31 | 58×4 | 8 | 1592 | 対話モードの MNIST。BDGL16 143.9 / MATZOV 141.2 bit |
+| `n16_boot` | 2^16 | 54, 42×16(計算), 34×4(StC), 58×7(EvalMod), 56×4(CtS) | 60×4 | 8 | 1732 | 非対話(bootstrapping)。ブートストラップ後 16 レベル。密鍵 131.5 / 129.3 bit、SSE 一時鍵(h'=32)133.8 / 134.2 bit |
+| `n16_boot_sparse` | 同上、主鍵 h=192 | | | | | **使わない**(122.2 / 121.7 bit < 128)。代替として記録のみ |
+| `test_tiny` | 2^5 | | | | | テスト専用、安全でない |
+
+- 素数の割り当て順は SEAL の `CoeffModulus::Create` と同じ(`pop_back`)。Galois 生成元は 3(SEAL と同じ。計画の 5^k ではない)。
+- `add` のスケール許容 2^-10(黙って付け替える)。学習コードは厳密スケール経路(`mul_scalar` の目標スケール引数、平文定数は `ct.scale()` で符号化)を使い、この誤差を入れない。
+- `Arc<CkksParams>` は 1 つだけ作って共有(別 Arc は `InvalidParams`)。
+
+### 3.2 ブートストラップ(Task 35〜38)
+
+- SSE(sparse-secret encapsulation、Bossuat et al. ACNS 2022): level 0 で h'=32 の一時鍵に切り替え → mod-raise → CoeffToSlot(4 レベル、56 bit 素数)→ EvalMod(7 レベル、Chebyshev 次数 127、double angle なし、level-optimal scale-invariant 評価)→ SlotToCoeff(3 レベル、34 bit)→ 元の鍵へ戻す。
+- 実測: 精度 **17.46 bit**(ゲート 16、モデル 17.4)、**111 key switch / boot**(回転 69、relin 40、SSE 2)、出力は level 16・scale ちょうど Δ。鍵 33 本 10.27 GB + 対角 ≈ 3 GB。時間: Mac 23.8 s(1 スレッド)/ 7.70 s(12)、サーバー 45.4 s / 13.95 s。
+- `OpCounter` は `rotations, relins, sse_switches, ct_ct_tensor, ct_pt_mults, rescales, bootstraps` を持ち、`key_switches() = rotations + relins + sse_switches`。ブートストラップの中身も全部数える。
+
+### 3.3 学習レイアウト(Task 25〜41)
+
+- 特徴メジャー `slot(j, b) = j·stride + b`。BSGS は stride 付き、giant step ごとに relin 1 回(`matvec_enc` の relins == giant)。転置は回転と加算だけ(鍵は Reuse、+12 KS/更新)。
+- 複製ブロックは refresh 時にブロック平均を取らないと指数的に乖離する(M2 で発見)。非対話版は単一ブロック + compact 配置で回避。
+- compact repacking(Task 40): 1 層の対角 32 本を 1 暗号文に詰めて 1 回でブートストラップ。pack 31 回転、unpack 191 回転、relin 0。**融合経路(R-M3-11)**: 勾配の有効レーンマスクと pack のマスクを 1 回の平文乗算に統合(別々だと +1 レベル、+54% KS)。
+- ブートストラップ配置(`BootPlacement`): `AfterUpdate`(AU、毎更新 4 回)、`WhenNeeded`(WN、平均 2 回。計画に無い hekit の選択肢、**見出し**)、`AfterActivation`(AA、3 回)。
+- B は 2 の冪のみ(32 = 1 暗号文、64 = 32 レーン × 2 マイクロバッチを足してから 1 更新)。B=48 は 64 レーンに 48 を載せて走らせる(FULL-2)。
+- NAG の速度は基準 lr(スケジュール最大)で保持し、各ステップは倍率 ≤ 1 だけ掛ける(lr が 843 倍まで下がる ReBoot のスケジュールで、ブートストラップ誤差が増幅されないため。+0.72 KS/サンプル)。
+
+### 3.4 ReBoot に忠実な設定(R-M3-12〜15)
+
+- `configs/reboot_emlp1_faithful.json`: 入力 **196**(14×14。784 ではない)→ 32(z²+z)→ 10(16 にパディング)。勾配はバッチで**和**(lr_mean = 5e-4·B)、momentum 0.9、バイアスなし(暗号化した 0 を凍結)、Xavier 初期値。初期重み・サンプル順・学習率スケジュール(5 epoch 一定 → cosine with restarts)は ReBoot の公開コードから**データとして**取り出したもの(`results/quadruped/raw/reboot_emlp1_full/`、`data/reboot_emlp1_full/`)。
+- hekit の平文双子は ReBoot の公開コードのフル設定(4800 サンプル × 10 epoch、10 シード)を**完全再現**(1000 バッチの accuracy 一致、test 平均 0.90648 ± 0.00271)。
+- 精度 ±0.5 pt の参照値は、この公開コードの値(seed 0: 0.9041)。論文の Table 4 の 94.61 ± 0.27 は公開コードの既定設定では出ず、論文に書かれた設定(60,000 枚、lr 0.001、wd 0.001)で回すと epoch 固定で +0.33〜+0.64 pt(最良 epoch で +0.74〜+0.85)。報告には注記付きで併記する。
+- ReBoot の実パラメータ(R-REB-4): N=2^16、Q 26 本(log Q 1249.6)、P 60×8、dnum 3、SPARSE_TERNARY h=192、σ 3.19、log PQ 1729.6。同じ推定器での推定は実行中(hekit セッション)。
+
+### 3.5 CUDA(Task 43〜47)
+
+- `HeOps` トレイト(Task 43)で evaluator を抽象化。`EvalConfig { hoist, bsgs, lazy_relin }` で RQ3 の ablation(d=16: 既定 3 hoist / 3 relin / 4 rot、全オフ 15 rot / 16 relin)。
+- `hekit-cuda`: `CudaDevice`、`DevicePoly`、`DeviceKsk`(capped keys: level 9 で 42 MiB、level 5 で 20 MiB、full 288 MiB)、`CudaEvaluator`(BSGS、マルチストリーム)。NVRTC は `--fmad=false`。CPU と **bit-exact**(45/45、想定スキップ 3)。
+- GPU メモリプールは使用中 + 256 MiB までしか保持しない(`DEFAULT_POOL_RELEASE_THRESHOLD`、共有 GPU のため)。Task 48 の学習は epoch 境界で `trim_pool(0)`。
+- 4 ストリームのバッチは逐次より遅い(41.7 対 35.0 ms、N=2^16 では 1 演算で GPU が飽和)。Task 48 は逐次で進める。
+- HEonGPU 比較: 4090 の公表値は ePrint 2025/124 Table 3 の relin 2581.8 µs のみ。hekit は 4.67 ms(1.81 倍、同 ℓ で約 2.0 倍、目標の「2 倍以内」ぎりぎり)。ePrint 2024/1543 は PDF が 403 で未確認。4090 の CKKS bootstrapping は HEonGPU docs で Regular 109.28 ms / Slim 38.55 ms(Task 49 の目標値)。
+
+## 4. 計測結果の要約
+
+### 4.1 key switch / サンプル(eMLP-1、N=2^16、サーバー i9-13900KF 12 スレッド)
+
+| 行 | 入力 | 設定 | KS/サンプル(boot 込み) | boot/更新 | epoch 時間 | test acc |
+|---|---|---|---|---|---|---|
+| 対話(M2) | 784 | lr 0.001、B=32、1 スレッド | 19.78(boot 無し) | 0 | 10894 s(Mac 5004 s) | 0.332 |
+| AU B=32 | 784 | 旧設定 | 39.47 | 4 | 4339 s | 0.332 |
+| AU B=64 | 784 | 旧設定 | 20.64 | 4 | 2229 s | 0.193 |
+| WN B=32 | 784 | 旧設定 | 32.53 | 2 | 2774 s | — |
+| WN B=64 | 784 | 旧設定 | 17.17 | 2 | 1435 s | — |
+| AA B=32 | 784 | 旧設定 | 36.0 | 3 | 3607 s | 0.332 |
+| **WN B=32 忠実** | 784 | ReBoot 添字・初期重み | 33.49 | 17/32 更新 | 3017 s | 0.7577(双子一致) |
+| **WN B=64 忠実** | 784 | 同上 | 17.89 | 9/16 更新 | 1608 s | 0.7358(双子一致) |
+| ReBoot 公式 subset | 784 | OpenFHE、B=48、12 スレッド | 37(モデル)+ 4×502/48 | 4(502 KS/boot はモデル値) | 約 149 s/step × 21 + 112.6 s | 0.7506 |
+| **FULL-1** WN B=64 | 196 | 4800×10 epoch、seed 0 | 予測 18.27 | | 約 19.6 h(走行中) | pending |
+| **FULL-2** B=48 in 64 | 196 | 同上 | 予測 28.99 | 毎更新 | 約 38.6 h | pending(±0.5 pt 判定) |
+
+- 全走行で実測 KS は閉形式(コストモデル + Task 32/41 の補正)と**完全一致**。M0 のコストモデルそのものは 1.81 倍の過小予測だった(補正項は `layout.md` §7.5)。
+- 比の 4 通り(M3 報告 §2): (a) 各自の boot コスト(hekit 111 実測、ReBoot 502 モデル)、(b) 両側 502、(c) 両側 111、(d) 両側 boot 無し(対話 0.564)。WN B=64: 0.233 / 0.414 / 0.404。WN B=32: 0.435 / 0.779 / 0.756。
+- wall-clock(同一 CPU、サンプルあたり): WN B=64 0.447 倍、AU B=64 0.609、WN B=32 0.838、AU B=32 1.187。**優位はすべてブートストラップ由来**(14.6 s 対 31.0 s、回数も少ない)。非ブートストラップ部分は hekit が遅い(B=32 で 2.03 倍、B=64 で 1.09 倍。単一スレッド対 OpenMP)。
+- 精度差(B=64 で −1.48 pt)は平文の双子でも同じ(−1.47)なのでバッチサイズの効果。暗号化誤差ではない。
+
+### 4.2 そのほか
+
+- Iris(2020 年再現、seal_2020): batch 1 の 1 反復 0.856 s(SEAL 版の 0.63 倍、論文の 10.8 分の 1)。batch 20 × 400 epoch: test 0.967(ゲート 0.95)、56 分(Mac)。サーバーでも 0.9667。
+- SEAL 比(M1): mul+relin+rescale 1.20 倍、rotate 1.17 倍(未達、ゲートではない)。NTT 1.03 倍。KAT は SEAL 4.1.2 と bit-exact。
+- GPU: NTT 2.608 µs/poly(基準 3.04)。演算は CPU 1 スレッドの 125〜202 倍、12 スレッドの 33〜132 倍(`m4-report.md` §1)。
+
+## 5. サーバー(quadruped-gpu)の運用
+
+- `ssh quadruped-gpu`(鍵認証。**パスワードは絶対に使わない・探さない**。本人がチャットに貼ったことがあり、ローテーションを勧めた)。Ubuntu 26.04、i9-13900KF(P8+E16)、123 GB、RTX 4090 24 GB、CUDA 13.1(`/usr/local/cuda-13.1/bin` を PATH に)、sudo 不可、ディスク残り約 26 GB。
+- 他人のジョブ: SLAM(`persistent_ster*`、約 4 コア)と vLLM(pid 2791212、GPU 20.6 GB 占有、利用率 0%)。**触らない**。GPU の空きは約 2〜3 GB なので、フルサイズの GPU 鍵(288 MiB × 30 本超)やブートストラップは載らない。capped keys(level 9/5)で測る。
+- 自分のジョブ: `nice -n 10`、24 スレッド以内、RAM 90 GB 以内、2 分超はバックグラウンド(`~/hekit-runs/run_job.sh`、ログ `~/hekit-runs/logs/`、出力 `~/hekit-runs/out/<job>/`)。前後に `df -h ~`、`nvidia-smi`、`uptime` を記録。
+- 依頼の書式: `hekit/results/quadruped/requests.md` にブロック(id、目的、コマンド、作業ディレクトリ、所要時間、GPU メモリ、出力先、同期するコミット)を追記 → runner が順に実行し `status: done/skipped` と結果パスを書く。結果は `results/quadruped/`、ログは `docs/quadruped-log.md`。runner は commit しない。実装側が path 指定で commit する。
+- 同期: rsync(gitignore を考慮した file list。`tools/estimate/_ext/sage-env` などの巨大な gitignore 物を送らない)。`~/hekit/.synced-commit` に記録。
+- ReBoot のスタックは `~/reboot/`(OpenFHE v1.2.1、openfhe-python 0.8.9、ReBoot 3ac173f + build-only patch)。GPL なので `~/hekit` に入れない。ReBoot の設定値を書き出すときは**値だけ**(ソースの抜粋は commit しない)。
+- 現在のキュー(chain10): R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)。R-47-3(Task 47 再計測 + GPU テスト全部、bd5cc49)は FULL の時間計測を乱さないよう別枠で。
+- セッションは 5 時間の利用上限で止まることがある。サーバーのジョブは nohup で走り続けるので、再開後にログと done マーカーを見て回収する。待機は「ジョブ完了で exit するローカルのバックグラウンド Bash」を 1 ジョブ 1 本置く。
+- Mac(M3 Pro、36 GB)は 1 スレッドでサーバーの約 2 倍速い。**同一 CPU 比較はサーバーの行だけ**を使う。Mac の走行は KS と精度の参照用。
+
+## 6. 残タスクと着手条件
+
+| Task | 内容 | 状態 / 条件 |
+|---|---|---|
+| 42 | M3 報告の仕上げ | 草稿 09206bd。FULL-1/2 の 196 行を入れ、§0 の判定を確定。ReBoot のセキュリティ推定(実行中)を §3.3 に入れる。4 通りの比 + subset/full の明記 |
+| 47 | CudaEvaluator の再計測 | R-47-3(bd5cc49)の結果を `m4-report.md` §1 に入れる。batch 行は「untuned」のまま |
+| 48 | GPU 学習 + RQ3 ablation | 逐次実行、epoch 境界で `trim_pool(0)`。GPU メモリ 2〜3 GB の制約下では capped keys の小さい構成で。入らない行は「未計測」と明記 |
+| 49(stretch) | GPU ブートストラップ | 目標 ≤ 220 ms(HEonGPU 109 ms の 2 倍)。GPU メモリが解放されない限り不可能。コードだけ書いて未計測と報告してよい |
+| 50 | M4 報告 | 47/48 の数字 + HEonGPU 比較 + ablation 表 |
+| 51 | データセット追加 | 着手済み(Breast Cancer、Fashion-MNIST の config と平文結果 `results/plain_*.json` あり) |
+| 52 | eMLP-2/3 のブロック構造(`BlockMlp`) | M0 で emlp2/3 の JSON は忠実でないと記録。ReBoot のコードから値を取り直す(runner に依頼) |
+| 53(stretch) | 4 次活性化 | 削減候補 |
+| 54 | `scripts/run_all.sh` + `tools/tables.py` | Mac は `--quick`、本走行はサーバー。論文の表を JSON から生成 |
+| 55 | v1.0 公開準備 | 名前は **mit-hekit**(GitHub `kenmaro3/mit-hekit`、private)。README の Status が M1 のままなので更新。`scripts/rename.sh` は dry-run のみ。THIRD_PARTY_NOTICES に SEAL(MIT)、Lattigo(アルゴリズムの謝辞、コードは未参照)、libloading(ISC)、Iris/WDBC/MNIST のデータ出典 |
+| 56 | 論文ドラフト(acmart、WAHC 2027) | 著者欄は仮置き(本人未決)。R-M3-15 の精度の書き方、4 通りの比、「速さはブートストラップ由来」の正直な分解、ReBoot の論文値の再現性(R-REB-3)を入れる |
+| 57 | M5 報告 + arXiv チェックリスト | |
+| 58(最後) | PyO3 バインディング | Python toolchain が無ければ省略して明記 |
+
+削減の順序(計画どおり): Metal → Task 49 → 53 → 51 の追加データセット → 58。
+
+## 7. 本人の未決事項(作業は止めない。M3 報告 §9 と同じ番号)
+
+11. **B ≥ 64 を論文の主設定にするか**。KS と wall-clock を 3 通りすべてで満たすのは B=64 だけだが、平文でも B=48 より 1.47 pt 低い。計画担当の推奨: B=64 を主、B=32 と B=48-in-64(精度行)を併記。FULL の結果で確定。
+12. **秘密鍵分布の揃え方**(hekit 密三値 + SSE、ReBoot SPARSE_TERNARY h=192)。ReBoot 側の同モデル推定が 128 bit 以上なら「両側 128 bit 以上」で閉じる。
+13. **wall-clock の比べ方**(12 スレッド、ピン留めなし、共有負荷あり)。ReBoot 公式のフル走行(約 47.6 h)を回すか。
+14. **「同一 N」の解釈**(実測はすべて 2^16。推奨は 2^16 固定)。
+15. **重み誤差の蓄積の許容基準**(非対話版は 1 epoch で 2^-13〜2^-15)。FULL で 10 epoch の値を見る。
+17. **ライブラリの名前**: 本人は「MIT HKit みたいな感じ」→ リポジトリ名 `mit-hekit` で作成。crate 名を変えるかは Task 55 で。
+18. **投稿先と著者情報**(WAHC 2027 固定、著者欄は仮置き)。
+
+計画担当の裁定で確定済み(本人が覆してよい): セキュリティの主張は BDGL16 と MATZOV で 128 bit 以上(Core-SVP は併記のみ)、見出しは (a) + 196 入力 + WhenNeeded、ReBoot 側の基準は Lazy 35.06 実測(784)/ モデル 37(196)、精度は公開コードのフル設定で判定、ISC ライセンス許可、Plan B は発動しない(本人決定 2026-11-04)。
+
+## 8. 落とし穴(過去に実際に起きたこと)
+
+- **ReBoot の素材は値だけ**。`reboot_config_dump.txt` のようなソース抜粋は commit しない(GPL)。
+- **subset を Mac で再走行しない**。サーバーの行がすでにある。Mac で 2 つ以上の重い走行を並べると load が 100 を超えて死ぬ(WhenNeeded B=32 が 12:01 に死んだ)。
+- **2 つのセッションが同じファイルを書かない**。runner は `results/quadruped/` と `docs/quadruped-log.md` だけ、実装側がそれを path 指定で commit。
+- **提供された JSON 設定を信じない**。`reboot_emlp1.json` は入力 784・lr 0.001・バイアスありで、ReBoot と違った(M0 の「非忠実リスト」参照)。emlp2/3 も同様の疑いがある。
+- **M0 コストモデルの数字をそのまま使わない**。補正後の閉形式(`layout.md` §7.5)が実測と一致する。
+- **ReBoot の 502 KS/boot はモデル値**(OpenFHE は数えない)。表では必ず「model」と付ける。
+- **1 スレッドの速度は機械でまったく違う**(Mac が 2 倍速い)。比較は同じ機械・同じスレッド数で。
+- **セッションの 5 時間上限**で両セッションが同時に止まる。再開は「もう一度試してください」で十分だが、runner の待機プロセスは張り直す。
+- **権限**: 実装セッションはリモート書き込みを拒否されたので、サーバー依頼は本人の承認(2026-11-05「gpu-runner への依頼(requests.md)を書いてよい」)の下で requests.md 経由。別のエージェントが引き継ぐときも、サーバーへの書き込み権限は本人に確認する。
+- **クラウドの GPU は借りない**(本人の方針)。必要ならサーバーの GPU メモリ解放を本人に頼む。
+
+## 9. 関係するセッションとメモリ
+
+- 実装セッション(Opus): "hekit M0: scaffold and spikes (Tasks 1–7)"(`local_a1cab7a8-4c7c-459d-b8fc-8b3693d5ef63`)。ledger は `hekit/.superpowers/sdd/`。
+- runner セッション(Opus): "quadruped-gpu 計測"(`local_409b624a-0f0a-4fb3-b1c2-9e0c34dae93d`)。
+- 計画セッション(Fable): この文書の作成元。計画ファイルのルーリング注記はここが入れた。
+- Claude のメモリ(`~/.claude/projects/-Users-marconi-Documents-research/memory/`): `project-he-training-research-plan.md`、`reference-quadruped-gpu-server.md`、`user-fhe-researcher-background.md`。
