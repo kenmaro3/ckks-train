@@ -391,8 +391,11 @@ pub fn check_galois_elt(n: usize, galois_elt: u64) -> Result<()> {
 }
 
 /// Number of limbs kept by rescaling a polynomial with limbs `primes` (all but the last).
-/// `InvalidParams` with fewer than two limbs.
-pub fn rescale_keep(primes: &[u32]) -> Result<usize> {
+/// `InvalidParams` with fewer than two limbs, or unless `primes` is a `Q` or `P` prefix (as
+/// for an `RnsPoly`, so the result is exactly `RnsPoly::rescale_by_last`; dropping the last
+/// `P` prime of a `Q_l * P` polynomial has no CPU counterpart).
+pub fn rescale_keep(table: &PrimeTable, primes: &[u32]) -> Result<usize> {
+    table.host_basis(primes)?;
     if primes.len() < 2 {
         return Err(invalid(
             "cannot rescale a polynomial with one limb (level 0)",
@@ -402,11 +405,10 @@ pub fn rescale_keep(primes: &[u32]) -> Result<usize> {
 }
 
 /// Number of `Q` limbs kept by `mod_down` of a polynomial with limbs `primes`, which must be
-/// a `Q` prefix followed by a `P` prefix ([`PrimeTable::qp_split`]).
+/// a `Q` prefix followed by **every** `P` prime ([`PrimeTable::qp_q_limbs`], the layout of
+/// `upload_qp` / `download_qp` and of key switching).
 pub fn mod_down_keep(table: &PrimeTable, primes: &[u32]) -> Result<usize> {
-    table.qp_split(primes).map(|(a, _)| a).ok_or_else(|| {
-        invalid("mod_down needs a Q_l * P polynomial (limbs 0..=l, then P primes from the first)")
-    })
+    table.qp_q_limbs(primes)
 }
 
 /// Kernel-level operations the multi-step algorithms below are written against: implemented
@@ -529,8 +531,14 @@ mod tests {
         assert_eq!(t.qp_split(&[10]), None);
         assert_eq!(mod_down_keep(&t, &[0, 1, 10]).unwrap(), 2);
         assert!(mod_down_keep(&t, &[0, 1]).is_err());
-        assert_eq!(rescale_keep(&[0, 1, 2]).unwrap(), 2);
-        assert!(rescale_keep(&[0]).is_err());
+        assert_eq!(rescale_keep(&t, &[0, 1, 2]).unwrap(), 2);
+        assert!(rescale_keep(&t, &[0]).is_err());
+        assert!(rescale_keep(&t, &[0, 1, 10]).is_err()); // Q_l * P: no CPU counterpart
+        assert!(rescale_keep(&t, &[1, 2]).is_err());
+        let t16 = PrimeTable::from_params(&CkksParams::n16_train());
+        assert_eq!(rescale_keep(&t16, &[32, 33]).unwrap(), 1); // a P prefix
+        assert_eq!(mod_down_keep(&t16, &[0, 1, 32, 33, 34, 35]).unwrap(), 2);
+        assert!(mod_down_keep(&t16, &[0, 1, 32, 33]).is_err()); // P prefix only
 
         let q = RnsPoly::zero(params.basis_q(), 3);
         assert_eq!(t.primes_of(&q).unwrap(), vec![0, 1, 2, 3]);

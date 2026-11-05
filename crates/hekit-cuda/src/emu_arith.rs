@@ -204,6 +204,7 @@ fn basis_convert(
     n_targets: u32,
     log_n: u32,
     use_f64: bool,
+    fma: bool,
 ) {
     assert!(k as usize <= crate::basis::MAX_SRC);
     each_thread(l, log_n, |_, c| {
@@ -218,7 +219,12 @@ fn basis_convert(
             if use_f64 {
                 // [B6]: __ull2double_rn, __dmul_rn, __dadd_rn (Rust's `as f64`, `*`, `+`)
                 let w = f64::from_bits(tab[3 * k + j]);
-                f += y[j] as f64 * w;
+                if fma {
+                    // Test-only mutant: the FMA a contracting compiler would emit.
+                    f = (y[j] as f64).mul_add(w, f);
+                } else {
+                    f += y[j] as f64 * w;
+                }
             }
         }
         // [B7]: __double2ull_rz (truncation); the CPU's `f.floor() as u64` is the same for f >= 0.
@@ -260,6 +266,10 @@ pub struct EmuBackend {
     primes: PrimeTable,
     tables: HostNttTables,
     log_n: u32,
+    /// Replace the f64 product-and-sum of `basis_convert` by an FMA (a deliberately wrong
+    /// mutant, to show that the near-tie inputs detect contraction). Always `false` except
+    /// in `fma_contraction_is_caught_by_near_ties`.
+    fma: bool,
 }
 
 impl EmuBackend {
@@ -269,6 +279,7 @@ impl EmuBackend {
             primes: PrimeTable::from_params(params),
             tables: HostNttTables::from_params(params).unwrap(),
             log_n: params.n().trailing_zeros(),
+            fma: false,
         }
     }
 
@@ -328,7 +339,9 @@ impl Backend for EmuBackend {
         let (k, nt) = (t.k() as u32, t.targets.len() as u32);
         assert_eq!(src.len(), t.k() * self.n());
         assert_eq!(out.len(), t.targets.len() * self.n());
-        basis_convert(&l, out, src, &t.data, k, nt, self.log_n, t.use_f64);
+        basis_convert(
+            &l, out, src, &t.data, k, nt, self.log_n, t.use_f64, self.fma,
+        );
         Ok(())
     }
 
@@ -359,6 +372,13 @@ impl EmuExec {
             params: params.clone(),
             b: EmuBackend::new(params),
         }
+    }
+
+    /// The FMA-contracted mutant (see `EmuBackend::fma`).
+    fn with_fma(params: &CkksParams) -> EmuExec {
+        let mut e = EmuExec::new(params);
+        e.b.fma = true;
+        e
     }
 
     fn up(&self, p: &RnsPoly) -> (Vec<u32>, Vec<u64>) {
@@ -441,7 +461,7 @@ impl Exec for EmuExec {
 
     fn rescale(&self, a: &RnsPoly) -> RnsPoly {
         let (p, f) = self.up(a);
-        let keep = rescale_keep(&p).unwrap();
+        let keep = rescale_keep(&self.b.primes, &p).unwrap();
         let out = divide_round_tail(&self.b, &f, &p, keep, a.is_ntt_form()).unwrap();
         self.down(&p[..keep], &out, a.is_ntt_form())
     }
@@ -558,6 +578,43 @@ mod tests {
         assert!(carries > 1000, "only {carries} carries exercised");
     }
 
+    /// Review M4: the replays (`src/emu.rs`, this file) are hand transcriptions of the `.cu`
+    /// files, so a kernel edit alone would leave them green while the GPU diverges. The
+    /// sources are pinned by hash: after editing a kernel, update its replay, have both
+    /// re-reviewed, then update the hash here.
+    #[test]
+    fn kernel_sources_match_the_replayed_versions() {
+        fn fnv1a(s: &str) -> u64 {
+            s.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
+                (h ^ b as u64).wrapping_mul(0x0100_0000_01b3)
+            })
+        }
+        for (file, src, pinned) in [
+            (
+                "ntt.cu (replay: src/emu.rs)",
+                crate::NTT_KERNEL_SRC,
+                0xcc94cf8a6cfb5408,
+            ),
+            (
+                "pointwise.cu (replay: src/emu_arith.rs)",
+                crate::POINTWISE_KERNEL_SRC,
+                0xe2dae47bea8894a2,
+            ),
+            (
+                "basis.cu (replay: src/emu_arith.rs)",
+                crate::BASIS_KERNEL_SRC,
+                0x4d52e9211d6eb679,
+            ),
+        ] {
+            let h = fnv1a(src);
+            assert_eq!(
+                h, pinned,
+                "kernels/{file} changed (FNV-1a {h:#018x}): update and re-review its replay, \
+                 then pin the new hash"
+            );
+        }
+    }
+
     #[test]
     fn replay_pointwise_seal_2020() {
         cases::check_pointwise(
@@ -624,6 +681,51 @@ mod tests {
     fn replay_mod_up_seal_2020() {
         let p = CkksParams::seal_2020();
         cases::check_mod_up(&EmuExec::new(&p), &p);
+    }
+
+    #[test]
+    fn replay_mod_down_near_ties_seal_2020() {
+        let p = CkksParams::seal_2020();
+        cases::check_mod_down_near_ties(&EmuExec::new(&p), &p);
+    }
+
+    #[test]
+    fn replay_mod_down_near_ties_n16_train() {
+        let p = CkksParams::n16_train();
+        cases::check_mod_down_near_ties(&EmuExec::new(&p), &p);
+    }
+
+    #[test]
+    fn replay_mod_up_near_ties_seal_2020() {
+        let p = CkksParams::seal_2020();
+        cases::check_mod_up_near_ties(&EmuExec::new(&p), &p);
+    }
+
+    #[test]
+    fn replay_mod_up_near_ties_n16_train() {
+        let p = CkksParams::n16_train();
+        cases::check_mod_up_near_ties(&EmuExec::new(&p), &p);
+    }
+
+    /// Review I1: an FMA-contracted f64 estimate (what NVRTC's default `--fmad=true` could emit
+    /// for a plain `f += y * w`) passes the random-input checks but fails the near-tie
+    /// checks, for `mod_down` (k = 4) and `mod_up` (alpha = 4) on n16_train. So the GPU
+    /// near-tie tests observe contraction rather than rely on the `_rn` intrinsics' docs.
+    #[test]
+    fn fma_contraction_is_caught_by_near_ties() {
+        use std::panic::{AssertUnwindSafe, catch_unwind};
+        let p = CkksParams::n16_train();
+        let fma = EmuExec::with_fma(&p);
+        cases::check_mod_down(&fma, &p); // random inputs: blind to contraction
+        let fails = |f: &dyn Fn()| catch_unwind(AssertUnwindSafe(f)).is_err();
+        assert!(
+            fails(&|| cases::check_mod_down_near_ties(&fma, &p)),
+            "mod_down near ties did not detect FMA contraction"
+        );
+        assert!(
+            fails(&|| cases::check_mod_up_near_ties(&fma, &p)),
+            "mod_up near ties did not detect FMA contraction"
+        );
     }
 
     #[test]

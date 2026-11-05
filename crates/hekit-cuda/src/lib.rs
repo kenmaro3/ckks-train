@@ -27,8 +27,9 @@
 //! the crate builds on machines without CUDA. At run time it needs an NVIDIA driver supporting
 //! CUDA >= 13.1 and NVRTC 13.1 on the library path (e.g. `/usr/local/cuda-13.1/lib64` in
 //! `LD_LIBRARY_PATH`). The kernels (`kernels/ntt.cu`, `pointwise.cu`, `basis.cu`) are compiled
-//! by NVRTC when a [`CudaDevice`] is created. Every failure (no driver, no device, bad ordinal, out of device
-//! memory, compilation or launch failure) is returned as [`hekit_core::HekitError::Device`].
+//! by NVRTC (with `--fmad=false`) when a [`CudaDevice`] is created. Every failure (no driver,
+//! no device, bad ordinal, out of device memory, compilation or launch failure) is returned as
+//! [`hekit_core::HekitError::Device`].
 //!
 //! # Lifetimes
 //!

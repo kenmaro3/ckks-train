@@ -135,6 +135,10 @@ gpu_tests! {
     mod_down_matches_cpu_n16_train: n16_train => check_mod_down;
     mod_up_matches_cpu_seal_2020: seal_2020 => check_mod_up;
     mod_up_matches_cpu_n16_train: n16_train => check_mod_up;
+    mod_down_near_ties_match_cpu_seal_2020: seal_2020 => check_mod_down_near_ties;
+    mod_down_near_ties_match_cpu_n16_train: n16_train => check_mod_down_near_ties;
+    mod_up_near_ties_match_cpu_seal_2020: seal_2020 => check_mod_up_near_ties;
+    mod_up_near_ties_match_cpu_n16_train: n16_train => check_mod_up_near_ties;
 }
 
 fn is_invalid<T: std::fmt::Debug>(r: hekit_core::Result<T>, what: &str) {
@@ -187,6 +191,7 @@ fn shape_errors_are_invalid_params() {
         "Galois element >= 2N",
     );
     is_invalid(dev.rescale_poly(&q0), "rescale at level 0");
+    is_invalid(dev.rescale_poly(&qp), "rescale of a Q_l * P polynomial");
     is_invalid(dev.mod_down(&q), "mod_down without P limbs");
     is_invalid(dev.mod_up(&qc, 0), "mod_up in coefficient form");
     is_invalid(dev.mod_up(&qp, 0), "mod_up of a Q_l * P polynomial");

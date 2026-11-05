@@ -10,7 +10,7 @@
 use std::sync::Arc;
 
 use hekit_ckks::keys::{conjugation_elt, galois_elt};
-use hekit_ckks::keyswitch::decompose;
+use hekit_ckks::keyswitch::{decompose, digit_ranges};
 use hekit_ckks::{CkksParams, QpPoly};
 use hekit_core::{RnsBasis, RnsPoly};
 use rand_chacha::ChaCha20Rng;
@@ -261,6 +261,95 @@ pub fn check_mod_up<E: Exec>(e: &E, params: &CkksParams) {
         let x = random_poly(params.basis_q(), level, true, 5000 + i as u64);
         for (j, want) in decompose(params, &x).iter().enumerate() {
             let what = format!("mod_up {} input {i} level {level} digit {j}", tag(params));
+            assert_same_qp(&e.mod_up(&x, j), want, &what);
+        }
+    }
+}
+
+/// Residue modulo `r` of a coefficient whose centered-conversion input `[X + h]_D` (`D` a
+/// product of primes including `r`, `h = (D - 1) / 2`, so `h = (r - 1) / 2 mod r`) is `m`
+/// (even `c`) or `D - m` (odd `c`), `m = c / 2 + 1`: i.e. `X = s - h mod D`.
+///
+/// Near-tie inputs: `[X + h]_D / D` is within `N / D` of 0 or 1, where the f64 overflow
+/// estimate `floor(sum_j y_j / q_j)` of `BaseConverter::convert_exact` depends on the exact
+/// rounding sequence (an FMA-contracted sum differs from the CPU's in 1-18 % of such
+/// coefficients; review I1). Uniform random inputs land there with probability ~2^-50.
+fn near_tie_residue(r: u64, c: usize) -> u64 {
+    let (r, m) = (r as u128, (c / 2 + 1) as u128);
+    let s = if c % 2 == 0 { m % r } else { (r - m % r) % r };
+    ((s + r - (r >> 1)) % r) as u64
+}
+
+/// Limbs of `basis` (first `level + 1`) filled with [`near_tie_residue`] (coefficient form).
+fn near_tie_limbs(basis: &Arc<RnsBasis>, level: usize) -> Vec<Vec<u64>> {
+    basis.moduli()[..=level]
+        .iter()
+        .map(|m| {
+            (0..basis.n())
+                .map(|c| near_tie_residue(m.value(), c))
+                .collect()
+        })
+        .collect()
+}
+
+/// A `Q_l * P` pair whose `P` part puts `[X + h]_P` next to 0 or `P` in every coefficient
+/// (random `Q` part), in the requested form.
+pub fn near_tie_qp(params: &CkksParams, level: usize, ntt_form: bool, seed: u64) -> QpPoly {
+    let mut q = random_poly(params.basis_q(), level, false, seed);
+    let p_level = params.p().len() - 1;
+    let mut p = RnsPoly::from_limbs(
+        params.basis_p(),
+        near_tie_limbs(params.basis_p(), p_level),
+        false,
+    )
+    .unwrap();
+    if ntt_form {
+        q.to_ntt();
+        p.to_ntt();
+    }
+    QpPoly::new(q, p)
+}
+
+/// A level-`level` NTT-form polynomial whose every digit `D` (of [`digit_ranges`]) puts
+/// `[x + h]_D` next to 0 or `Q_D` in every coefficient.
+pub fn near_tie_digits(params: &CkksParams, level: usize) -> RnsPoly {
+    let basis = params.basis_q();
+    let mut limbs = vec![vec![]; level + 1];
+    for d in digit_ranges(params, level) {
+        for i in d {
+            let r = basis.moduli()[i].value();
+            limbs[i] = (0..basis.n()).map(|c| near_tie_residue(r, c)).collect();
+        }
+    }
+    let mut x = RnsPoly::from_limbs(basis, limbs, false).unwrap();
+    x.to_ntt();
+    x
+}
+
+/// `mod_down` on near-tie inputs ([`near_tie_qp`]): levels `L`, `L / 2` and 0 in NTT form and
+/// level `L` in coefficient form.
+pub fn check_mod_down_near_ties<E: Exec>(e: &E, params: &CkksParams) {
+    let l = params.max_level();
+    for (i, (level, ntt)) in [(l, true), (l / 2, true), (0, true), (l, false)]
+        .into_iter()
+        .enumerate()
+    {
+        let x = near_tie_qp(params, level, ntt, 5100 + i as u64);
+        let mut want = x.q().clone();
+        want.mod_down(x.p());
+        let what = format!("mod_down near-tie {} input {i} level {level}", tag(params));
+        assert_same(&e.mod_down(&x), &want, &what);
+    }
+}
+
+/// `mod_up` on near-tie inputs ([`near_tie_digits`]): levels `L`, `L - 1` and `L / 2` (full
+/// and level-clipped digits), every digit.
+pub fn check_mod_up_near_ties<E: Exec>(e: &E, params: &CkksParams) {
+    let l = params.max_level();
+    for level in [l, l - 1, l / 2] {
+        let x = near_tie_digits(params, level);
+        for (j, want) in decompose(params, &x).iter().enumerate() {
+            let what = format!("mod_up near-tie {} level {level} digit {j}", tag(params));
             assert_same_qp(&e.mod_up(&x, j), want, &what);
         }
     }

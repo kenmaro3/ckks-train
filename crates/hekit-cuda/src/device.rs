@@ -174,8 +174,15 @@ impl CudaDevice {
             let (major, minor) = ctx
                 .compute_capability()
                 .map_err(|e| dev_err("compute capability", e))?;
+            // `--fmad=false`: defence in depth for the one floating-point step, the f64
+            // overflow estimate in kernels/basis.cu. It must round exactly like the CPU's
+            // separate multiply and add; the `__dmul_rn` / `__dadd_rn` intrinsics already
+            // forbid contraction, and this keeps a future plain `f += y * w` from being fused
+            // into an FMA (which differs from the CPU near rounding ties; the near-tie tests
+            // catch it). The other kernels have no floating point, so it costs nothing.
             let opts = CompileOptions {
                 options: vec![format!("--gpu-architecture=compute_{major}{minor}")],
+                fmad: Some(false),
                 ..Default::default()
             };
             let module = |src: &str, file: &str| {
@@ -366,26 +373,30 @@ impl CudaDevice {
                 self.num_primes
             )));
         }
-        let mut c = self.caches.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(m) = c.limb_maps.get(primes) {
+        if let Some(m) = self.caches().limb_maps.get(primes) {
             return Ok(Arc::clone(m));
         }
+        // Upload outside the lock; a racing thread's identical entry wins and ours is dropped.
         let m = Arc::new(guarded("limb map upload", || {
             self.stream()
                 .clone_htod(primes)
                 .map_err(|e| dev_err("uploading a limb map", e))
         })?);
-        c.limb_maps.insert(primes.to_vec(), Arc::clone(&m));
-        Ok(m)
+        let mut c = self.caches();
+        Ok(Arc::clone(c.limb_maps.entry(primes.to_vec()).or_insert(m)))
+    }
+
+    fn caches(&self) -> std::sync::MutexGuard<'_, Caches> {
+        self.caches.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// The device copy of the conversion table `src -> targets` (cached).
     pub(crate) fn conv_table(&self, src: &[u32], targets: &[u32]) -> Result<Arc<DeviceConvTable>> {
         let key = (src.to_vec(), targets.to_vec());
-        let mut c = self.caches.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(t) = c.conv.get(&key) {
+        if let Some(t) = self.caches().conv.get(&key) {
             return Ok(Arc::clone(t));
         }
+        // Built and uploaded outside the lock, as in `limb_map`.
         let host = self.primes.conv_table(src, targets)?;
         let data = guarded("conversion table upload", || {
             self.stream()
@@ -398,8 +409,8 @@ impl CudaDevice {
             use_f64: host.use_f64,
             data,
         });
-        c.conv.insert(key, Arc::clone(&t));
-        Ok(t)
+        let mut c = self.caches();
+        Ok(Arc::clone(c.conv.entry(key).or_insert(t)))
     }
 
     /// In-place forward NTT of every limb (no-op when already in NTT form): one launch per

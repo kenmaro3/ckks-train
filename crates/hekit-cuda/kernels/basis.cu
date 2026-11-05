@@ -15,9 +15,12 @@
 // give the unique residue whatever the evaluation order; the f64 estimate e is the one
 // non-modular step and is evaluated with the CPU's exact operation sequence: round-to-
 // nearest u64 -> f64 conversion (`as f64`), round-to-nearest product and sum in source order,
-// starting from 0 (`Iterator::sum`), then floor (= truncation, f >= 0). The explicit _rn intrinsics are never
-// contracted into FMAs (NVRTC fuses a plain `acc + y * w` into an FMA by default, which would
-// round differently from the CPU).
+// starting from 0 (`Iterator::sum` starts from +0 or -0 depending on the rustc version; both
+// give the same bits here since every term is >= +0), then floor (= truncation, f >= 0). The
+// explicit _rn intrinsics are never contracted into FMAs; NVRTC would fuse a plain
+// `acc + y * w` into an FMA under its default --fmad=true, which rounds differently from the
+// CPU near ties (CudaDevice::new also passes --fmad=false). The near-tie test inputs
+// (tests/cases/mod.rs) detect such a contraction; random inputs do not.
 //
 // `basis_div_finish` completes rescale / mod_down: t <- (a - t) * (Q mod r)^-1 mod r.
 //

@@ -228,16 +228,17 @@ impl CudaDevice {
     }
 
     /// Divides by the last limb's prime with rounding and drops that limb (either form; at
-    /// least two limbs): `RnsPoly::rescale_by_last` (SEAL's `divide_and_round_q_last`).
+    /// least two limbs over a prefix of the Q or the P primes): `RnsPoly::rescale_by_last`
+    /// (SEAL's `divide_and_round_q_last`).
     pub fn rescale_poly<'d>(&'d self, a: &DevicePoly<'d>) -> Result<DevicePoly<'d>> {
         self.check_owner(a)?;
-        let keep = rescale_keep(a.primes())?;
+        let keep = rescale_keep(self.prime_table(), a.primes())?;
         let out = divide_round_tail(&Dev(self), a.limbs(), a.primes(), keep, a.is_ntt_form())?;
         Ok(self.new_poly(out, a.primes()[..keep].into(), a.is_ntt_form()))
     }
 
-    /// Divides a `Q_l * P` polynomial (limbs `[0..=l]` then the first `j >= 1` P primes,
-    /// e.g. [`CudaDevice::upload_qp`]; either form) by the product of its P primes with
+    /// Divides a `Q_l * P` polynomial (limbs `[0..=l]` then every P prime, e.g.
+    /// [`CudaDevice::upload_qp`]; either form) by the product of the P primes with
     /// rounding: the level-`l` result over the Q primes, `RnsPoly::mod_down` of the pair
     /// (exact SEAL rounding for one P prime, the f64 overflow estimate of
     /// `BaseConverter::convert_exact` for several, evaluated with the CPU's exact
