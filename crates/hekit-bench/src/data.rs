@@ -217,6 +217,120 @@ pub fn one_hot(labels: &[u8], classes: usize) -> Array2<f64> {
     y
 }
 
+// ---------------------------------------------------------------------------------------------
+// Minimal .npy reader (Task 41, R-M3-12: ReBoot's initial weights as plain data).
+// ---------------------------------------------------------------------------------------------
+
+/// The value of `'key': value` in a .npy header dict (up to the next `,` at depth 0 or `}`).
+fn npy_header_field<'a>(header: &'a str, key: &str) -> Option<&'a str> {
+    let pat = format!("'{key}':");
+    let start = header.find(&pat)? + pat.len();
+    let rest = &header[start..];
+    let mut depth = 0i32;
+    for (i, c) in rest.char_indices() {
+        match c {
+            '(' | '[' => depth += 1,
+            ')' | ']' => depth -= 1,
+            ',' | '}' if depth == 0 => return Some(rest[..i].trim()),
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Parses a 2-D `.npy` array (format versions 1.0, 2.0 and 3.0) of little-endian `f8` or `f4`
+/// into an `f64` matrix of its shape. C order is read as is; Fortran order is transposed back
+/// into row-major. A 1-D array is a `1 x n` matrix.
+///
+/// Errors (`InvalidData`): a bad magic or version, a header without `descr` / `fortran_order` /
+/// `shape`, a dtype other than `<f8` / `<f4`, more than 2 dimensions, or a data length that
+/// does not match the shape.
+pub fn parse_npy_f64(bytes: &[u8]) -> io::Result<Array2<f64>> {
+    if bytes.len() < 10 || &bytes[..6] != b"\x93NUMPY" {
+        return Err(invalid("not a .npy file (magic)".into()));
+    }
+    let (hlen, hstart) = match bytes[6] {
+        1 => (u16::from_le_bytes([bytes[8], bytes[9]]) as usize, 10),
+        2 | 3 if bytes.len() >= 12 => (
+            u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]) as usize,
+            12,
+        ),
+        v => return Err(invalid(format!(".npy version {v} not supported"))),
+    };
+    let header = bytes
+        .get(hstart..hstart + hlen)
+        .ok_or_else(|| invalid("short .npy header".into()))
+        .and_then(|h| {
+            std::str::from_utf8(h).map_err(|_| invalid(".npy header is not UTF-8".into()))
+        })?;
+    let descr = npy_header_field(header, "descr")
+        .ok_or_else(|| invalid(".npy header without descr".into()))?
+        .trim_matches(|c| c == '\'' || c == '"');
+    let width = match descr {
+        "<f8" => 8,
+        "<f4" => 4,
+        d => return Err(invalid(format!(".npy dtype {d} not supported (<f8, <f4)"))),
+    };
+    let fortran = match npy_header_field(header, "fortran_order") {
+        Some("False") => false,
+        Some("True") => true,
+        _ => return Err(invalid(".npy header without fortran_order".into())),
+    };
+    let shape_txt = npy_header_field(header, "shape")
+        .ok_or_else(|| invalid(".npy header without shape".into()))?;
+    let shape = shape_txt
+        .trim_matches(|c| c == '(' || c == ')')
+        .split(',')
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+        .map(|t| {
+            t.parse::<usize>()
+                .map_err(|_| invalid(format!("bad shape {shape_txt}")))
+        })
+        .collect::<io::Result<Vec<_>>>()?;
+    let (rows, cols) = match shape[..] {
+        [n] => (1, n),
+        [r, c] => (r, c),
+        _ => {
+            return Err(invalid(format!(
+                "{}-D .npy array (1-D or 2-D only)",
+                shape.len()
+            )));
+        }
+    };
+    let data = &bytes[hstart + hlen..];
+    if data.len() != rows * cols * width {
+        return Err(invalid(format!(
+            ".npy data of {} bytes for shape {shape:?} and {descr}",
+            data.len()
+        )));
+    }
+    let values: Vec<f64> = data
+        .chunks_exact(width)
+        .map(|c| match width {
+            8 => f64::from_le_bytes(c.try_into().expect("8 bytes")),
+            _ => f32::from_le_bytes(c.try_into().expect("4 bytes")) as f64,
+        })
+        .collect();
+    let m = if fortran {
+        Array2::from_shape_vec((cols, rows), values)
+            .expect("checked length")
+            .reversed_axes()
+            .as_standard_layout()
+            .to_owned()
+    } else {
+        Array2::from_shape_vec((rows, cols), values).expect("checked length")
+    };
+    Ok(m)
+}
+
+/// [`parse_npy_f64`] of a file.
+///
+/// Errors: the file's I/O errors and those of [`parse_npy_f64`].
+pub fn read_npy_f64(path: &Path) -> io::Result<Array2<f64>> {
+    parse_npy_f64(&fs::read(path)?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -322,5 +436,47 @@ mod tests {
         let y = one_hot(&[2, 0], 3);
         assert_eq!(y.row(0).to_vec(), [0.0, 0.0, 1.0]);
         assert_eq!(y.row(1).to_vec(), [1.0, 0.0, 0.0]);
+    }
+
+    /// A handmade .npy (version 1.0): `header` padded to a multiple of 64 with `\n`.
+    fn npy(descr: &str, fortran: bool, shape: &str, data: &[u8]) -> Vec<u8> {
+        let mut h = format!(
+            "{{'descr': '{descr}', 'fortran_order': {}, 'shape': {shape}, }}",
+            if fortran { "True" } else { "False" }
+        );
+        while (10 + h.len() + 1) % 64 != 0 {
+            h.push(' ');
+        }
+        h.push('\n');
+        let mut out = b"\x93NUMPY\x01\x00".to_vec();
+        out.extend((h.len() as u16).to_le_bytes());
+        out.extend(h.as_bytes());
+        out.extend(data);
+        out
+    }
+
+    #[test]
+    fn npy_reader_handles_f8_f4_c_and_fortran_order() {
+        let vals = [1.0f64, -2.5, 3.25, 0.125, 1e-3, -7.0];
+        let f8: Vec<u8> = vals.iter().flat_map(|v| v.to_le_bytes()).collect();
+        let m = parse_npy_f64(&npy("<f8", false, "(2, 3)", &f8)).unwrap();
+        assert_eq!(m, ndarray::arr2(&[[1.0, -2.5, 3.25], [0.125, 1e-3, -7.0]]));
+        // Fortran order: the same bytes are column-major.
+        let m = parse_npy_f64(&npy("<f8", true, "(2, 3)", &f8)).unwrap();
+        assert_eq!(m, ndarray::arr2(&[[1.0, 3.25, 1e-3], [-2.5, 0.125, -7.0]]));
+        let f4: Vec<u8> = vals
+            .iter()
+            .flat_map(|&v| (v as f32).to_le_bytes())
+            .collect();
+        let m = parse_npy_f64(&npy("<f4", false, "(3, 2)", &f4)).unwrap();
+        assert_eq!(m[[2, 1]], -7.0);
+        assert_eq!(m[[1, 1]], 0.125);
+        let m = parse_npy_f64(&npy("<f8", false, "(6,)", &f8)).unwrap();
+        assert_eq!(m.dim(), (1, 6));
+        // Errors.
+        assert!(parse_npy_f64(b"NUMPY").is_err());
+        assert!(parse_npy_f64(&npy("<i8", false, "(2, 3)", &f8)).is_err());
+        assert!(parse_npy_f64(&npy("<f8", false, "(2, 4)", &f8)).is_err());
+        assert!(parse_npy_f64(&npy("<f8", false, "(1, 2, 3)", &f8)).is_err());
     }
 }

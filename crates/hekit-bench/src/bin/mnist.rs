@@ -59,6 +59,9 @@
 //! - `--indices FILE` trains on the listed training images (whitespace- or comma-separated, in
 //!   order; `#` comment lines; a `label<TAB>indices` line keeps the part after the tab, e.g.
 //!   gpu-runner's per-step list of ReBoot's 21 x 48 indices) instead of the first `--subset`.
+//! - `--init-weights DIR` takes the initial weights from `DIR/W{k}.npy` (little-endian f8/f4,
+//!   C or Fortran order; `(in, out)` matrices are transposed; square ones need the orientation in
+//!   `DIR/init_weights.json`) for both the encrypted model and the twin.
 //! - `--mode plain` runs the plaintext twin alone and records ReBoot's per-step metrics (batch
 //!   loss summed over the batch and all outputs, batch accuracy).
 //!
@@ -74,7 +77,7 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-use hekit_bench::data::{Mnist, Split, load_mnist, one_hot};
+use hekit_bench::data::{Mnist, Split, load_mnist, one_hot, read_npy_f64};
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
 use hekit_core::sampler::Rng;
@@ -125,6 +128,9 @@ struct Args {
     indices: Option<PathBuf>,
     /// `--faithful` was given (ruling R-M3-12, `configs/reboot_emlp1_faithful.json`).
     faithful: bool,
+    /// A directory with initial weights `W1.npy`, `W2.npy`, ... (and optionally `b1.npy`, ...)
+    /// that replace the drawn ones for both the encrypted model and the twin.
+    init_weights: Option<PathBuf>,
     /// Output rows (>= 10): ReBoot pads the 10 classes to 16 rows with zero targets. The
     /// padded rows are trained toward 0 and their deltas reach the hidden layer, so they change
     /// the training (accuracy is the argmax over the 10 real classes).
@@ -162,6 +168,7 @@ fn parse_args() -> Result<Args, String> {
         indices: None,
         faithful: false,
         out_width: CLASSES,
+        init_weights: None,
     };
     // `--faithful` sets defaults (configs/reboot_emlp1_faithful.json); explicit flags override
     // them wherever they appear.
@@ -212,6 +219,7 @@ fn parse_args() -> Result<Args, String> {
             "--lr-sum" => a.lr_sum = Some(real(&v)?),
             "--indices" => a.indices = Some(PathBuf::from(v)),
             "--out-width" => a.out_width = num(&v)?,
+            "--init-weights" => a.init_weights = Some(PathBuf::from(v)),
             _ => return Err(format!("unknown flag {flag}")),
         }
     }
@@ -719,6 +727,69 @@ fn init_net(dims: &[usize], r: &mut Rng, init: &str, no_bias: bool) -> Vec<Layer
         .collect()
 }
 
+/// The initial network of `args`: [`init_net`], then, with `--init-weights DIR`, every layer's
+/// weights replaced by `DIR/W{k}.npy` (`k` from 1) and, if present, its bias by `DIR/b{k}.npy`.
+/// A matrix of shape `d_in x d_out` (e.g. ReBoot's `(in, out)` layout) is transposed into our
+/// `d_out x d_in`; a square matrix needs the orientation from `DIR/init_weights.json`
+/// (`"in_out"` or `"out_in"` next to its name), else it is refused.
+fn initial_net(dims: &[usize], r: &mut Rng, args: &Args) -> Result<Vec<Layer>, String> {
+    let mut net = init_net(dims, r, &args.init, args.no_bias);
+    let Some(dir) = &args.init_weights else {
+        return Ok(net);
+    };
+    let meta = std::fs::read_to_string(dir.join("init_weights.json")).unwrap_or_default();
+    for (k, layer) in net.iter_mut().enumerate() {
+        let name = format!("W{}", k + 1);
+        let path = dir.join(format!("{name}.npy"));
+        let m = read_npy_f64(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let (d_out, d_in) = layer.w.dim();
+        let square_hint = || {
+            let at = meta.find(&format!("\"{name}\""))?;
+            let tail = &meta[at..meta.len().min(at + 400)];
+            match (tail.find("in_out"), tail.find("out_in")) {
+                (Some(i), Some(o)) => Some(i < o),
+                (Some(_), None) => Some(true),
+                (None, Some(_)) => Some(false),
+                (None, None) => None,
+            }
+        };
+        layer.w = if d_out == d_in {
+            match square_hint() {
+                Some(true) => m.t().to_owned(),
+                Some(false) => m,
+                None => {
+                    return Err(format!(
+                        "{name} is square: give its orientation (in_out / out_in) in \
+                         init_weights.json"
+                    ));
+                }
+            }
+        } else if m.dim() == (d_out, d_in) {
+            m
+        } else if m.dim() == (d_in, d_out) {
+            m.t().to_owned()
+        } else {
+            return Err(format!(
+                "{name} has shape {:?}, layer is {d_out} x {d_in} (check --out-width)",
+                m.dim()
+            ));
+        };
+        let bpath = dir.join(format!("b{}.npy", k + 1));
+        if bpath.exists() {
+            let b = read_npy_f64(&bpath).map_err(|e| format!("{}: {e}", bpath.display()))?;
+            if b.len() != d_out {
+                return Err(format!(
+                    "b{} has {} values for {d_out} outputs",
+                    k + 1,
+                    b.len()
+                ));
+            }
+            layer.b = b.iter().copied().collect();
+        }
+    }
+    Ok(net)
+}
+
 fn main() {
     let args = match parse_args() {
         Ok(a) => a,
@@ -912,7 +983,7 @@ fn run(args: &Args) -> Result<(), String> {
 
     // Network and twin.
     let mut r = rng(args.seed, 2);
-    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
+    let init = initial_net(&dims, &mut r, args)?;
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
     let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
@@ -1204,7 +1275,7 @@ fn run_plain(args: &Args) -> Result<(), String> {
     let (train, test) = load(args)?;
     let dims = [train.features(), args.hidden, args.out_width];
     let mut r = rng(args.seed, 2);
-    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
+    let init = initial_net(&dims, &mut r, args)?;
     let mut twin = init.clone();
     let mut vel: Vec<Array2<f64>> = twin.iter().map(|l| Array2::zeros(l.w.dim())).collect();
     let y_train = one_hot(&train.labels, args.out_width);
@@ -1261,6 +1332,14 @@ fn run_plain(args: &Args) -> Result<(), String> {
                 ("init", J::S(args.init.clone())),
                 ("biases", J::B(!args.no_bias)),
                 ("output_width", J::I(args.out_width as i64)),
+                (
+                    "init_weights",
+                    J::S(
+                        args.init_weights
+                            .as_ref()
+                            .map_or_else(|| "drawn (--seed)".into(), |p| p.display().to_string()),
+                    ),
+                ),
                 ("faithful", J::B(args.faithful)),
                 ("seed", J::I(args.seed as i64)),
                 ("train_samples", J::I(n as i64)),
@@ -1925,7 +2004,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
 
     // Network, compact state and twin (client side).
     let mut r = rng(args.seed, 2);
-    let init = init_net(&dims, &mut r, &args.init, args.no_bias);
+    let init = initial_net(&dims, &mut r, args)?;
     let plain: Vec<(Array2<f64>, Vec<f64>)> =
         init.iter().map(|l| (l.w.clone(), l.b.clone())).collect();
     let acts: Vec<Box<dyn Activation>> = vec![Box::new(PolyRelu2), Box::new(Identity)];
