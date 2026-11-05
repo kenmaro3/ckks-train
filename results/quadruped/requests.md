@@ -149,3 +149,26 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most 145 MiB per test, about 600 MiB peak. **RAM need:** < 4 GB
 - **output path:** `results/quadruped/hekit_cuda_task45_tests.txt` and `results/quadruped/logs/R-45-1.log`
 - **status:** done (2026-11-05T20:48–20:48 JST, exit 0): **18 tests passed, 0 failed, 0 SKIP lines** (from cargo's `test result:` lines; 18 tests ran) (5 Task 44 + 13 Task 45 tests; each GPU test printed `NVIDIA GeForce RTX 4090 (sm_89) (need ≤145 MiB, free 1816.6 MiB)`). Clean clone `~/hekit-r45` at 7519f77 (contains a6ab1e2), 12 build jobs, `--test-threads=1`. GPU free before: 2208 MiB. Output: `results/quadruped/hekit_cuda_task45_tests.txt` (full stdout+stderr), `results/quadruped/logs/R-45-1.log`; provenance `results/quadruped/raw/R-45-1/` (build: `raw/R-45-1-build/`).
+
+## R-REB-3: ReBoot paper setting for Table 4 (94.61 ± 0.27), plaintext only
+
+- **purpose:** find out whether the paper's eMLP-1 MNIST figure (Table 4: 94.61 ± 0.27, plaintext, 10 runs) can be reproduced from the released code at the paper's own stated setting. The released full setting gives 0.9065 ± 0.0027 (R-REB-2).
+- **paper setting** (arXiv:2506.19693, read by the controller):
+  - Table 8 (MNIST, eMLP-1, ReBoot row): lr γ = 0.001, weight decay η = 0.001, batch 48.
+  - Table 2: MNIST train size 60,000, test size 10,000, input 14×14.
+  - Epochs, lr schedule, preprocessing and seeds are not stated.
+- **commit to sync:** none (ReBoot side only). Use the same venv and approach as before: import by name, no ReBoot code copied.
+- **runs** (all plaintext, using ReBoot's released plaintext training path, the same one its twin uses):
+  - Data: all 60,000 training images, 14×14 with ReBoot's own resize. Min-max scaling over the 60k training set, the same pipeline as R-REB-2 but on the full set. Full 10k test set.
+  - Hyperparameters: lr 0.001, weight decay 0.001, batch 48, Nesterov momentum 0.9 (as the code does). Seeds 0–9.
+  - Two lr schedules:
+    - (i) constant 0.001;
+    - (ii) the released code's own scheduler, scaled to the step count, as it would be if the config just set lr = 0.001.
+  - Run up to 50 epochs and record test accuracy (argmax over the 10 classes) after every epoch. Do not apply early stopping; just record the curve.
+  - Also record, per schedule, the best-epoch mean ± std over the 10 seeds, and the mean ± std at epochs 10, 20 and 50.
+- **expected duration:** plaintext 196-32-16 on 60k samples is minutes per seed per schedule. Cap at 12 threads.
+- **GPU memory need:** 0. **RAM need:** < 8 GB
+- **output path:**
+  - `results/quadruped/raw/reboot_emlp1_paper_setting/{config_values.json, acc_curves_seed{S}_{const,sched}.tsv, summary.json}`
+  - For hekit's twin later: per-seed init weights and per-step indices for the 60k setting under `results/quadruped/data/reboot_emlp1_paper/`, with the `.npy` files gitignored and a manifest JSON. Include the 14×14 60k train and 10k test arrays as float32 there.
+- **order:** after R-REB-2.
