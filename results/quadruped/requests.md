@@ -295,3 +295,22 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** < 5 min. **GPU memory need:** 0
 - **output path:** `results/quadruped/raw/reboot_crypto_params/params.json`
 - **order:** at the next free slot. It is light and must not disturb the timed FULL runs; run it at nice 19 in a few seconds of CPU.
+
+## R-47-3: Task 47 batch vs sequential re-measurement (after the fix round), plus all GPU tests at 37e80a9
+
+- **purpose:** first, re-time the 4-product batch at n16_train L5 on 1, 2 and 4 streams after the fix (pool release threshold set, no per-call reserve, no threads); bit-identity is checked inside the example. Second, re-run all hekit-cuda GPU tests at the fix commit.
+- **commit to sync:** 37e80a9 or later (clean clone)
+- **working dir:** clean clone, e.g. `~/hekit-r45` re-synced
+- **command:**
+  ```
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
+  cargo build -p hekit-cuda --features cuda --release --example batch_streams
+  HEKIT_BATCH_REPS=30 target/release/examples/batch_streams 2>&1 | tee results/quadruped/batch_streams_r47_3.log
+  test -x /usr/local/cuda-13.1/bin/nsys && HEKIT_BATCH_REPS=5 /usr/local/cuda-13.1/bin/nsys profile --trace=cuda --force-overwrite=true -o results/quadruped/raw/R-47-3/r47_3_batch target/release/examples/batch_streams
+  cargo test -p hekit-cuda --features cuda --release -- --ignored --nocapture --test-threads=1 2>&1 | tee results/quadruped/hekit_cuda_task47_fix1_tests.txt
+  ```
+- **pass criterion:** the example prints medians and does not panic (batch results bit-identical to sequential). In the tests, all pass, and the only expected SKIPs are hoisted_rotate_16 full and matvec full. The full-key sequence test now declares 2868 MiB and should run if that much memory is free.
+- **expected duration:** about 5 min for the example (+1 min with nsys), then 3–5 min for the tests
+- **GPU memory need:** at most about 2.8 GiB (the sequence test), about 1 GiB for the example. **RAM need:** about 10 GB
+- **timing:** this block is timed (example) and CPU-heavy (key generation in the tests). Run it after R-41-FULL-1 and R-41-FULL-2, or in a gap between them if the gap is longer than 15 min. Never run it during a FULL run.
+- **output path:** `results/quadruped/batch_streams_r47_3.log`, `results/quadruped/hekit_cuda_task47_fix1_tests.txt`, `results/quadruped/raw/R-47-3/`
