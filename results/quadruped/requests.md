@@ -280,3 +280,18 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **output path:** `results/quadruped/mnist196_ni_b48_full_seed0.json`, `results/quadruped/logs/R-41-FULL-2.log`
 - **order:** after R-41-FULL-1
 - **status:** running/queued in chain10 (started 07:17 JST 2026-11-06): untimed build, then R-41-FULL-1, then R-41-FULL-2, nothing else of ours alongside. Clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d, 0 dirty files); the R-REB-2 14×14 arrays were copied in from the server's original R-REB-2 output and their sha256 matched data_manifest.json. Same flags as the block (argument order differs: `--batch` comes after the shared flags). Disk 26 GB free, RAM 115 GB available, machine idle (load 0.1, no SLAM processes) at 07:14. Partial rule: projection after 10 updates; stop at once if over 55 h (198000 s).
+
+## R-REB-4: ReBoot's actual CKKS modulus chain and secret distribution, as data (for the security comparison)
+
+- **purpose:** estimate ReBoot's security with the same lattice-estimator models used for hekit (BDGL16/MATZOV), on ReBoot's actual parameters. The subset run's printout gives ring 2^16, mult depth 24, scaling 49 bits, first modulus 54 bits, FLEXIBLEAUTOEXT, HEStd_128_classic, SPARSE_TERNARY, and bootstrapping level budget [2,2] with 2 iterations. It does not give the full modulus chain or the key-switching modulus.
+- **commit to sync:** none (ReBoot/OpenFHE side only). Use the same venv. Build ReBoot's crypto context for eMLP-1 exactly as the subset run does, including EvalBootstrapSetup, then query it through the OpenFHE Python API. Data only; no ReBoot code in the outputs.
+- **what to record:**
+  - the ring dimension;
+  - every Q modulus (value and bit size) of the final context after bootstrapping setup, and its total log Q;
+  - every P (key-switching) modulus and total log P, plus dnum (num large digits) and the key-switching technique;
+  - log PQ;
+  - the secret key distribution and its Hamming weight as OpenFHE implements SPARSE_TERNARY in v1.2.1. Read it from OpenFHE's documentation, or check it empirically by generating a key and counting nonzeros. OpenFHE is BSD-2, so reading its docs or source is fine.
+  - the error standard deviation (σ).
+- **expected duration:** < 5 min. **GPU memory need:** 0
+- **output path:** `results/quadruped/raw/reboot_crypto_params/params.json`
+- **order:** at the next free slot. It is light and must not disturb the timed FULL runs; run it at nice 19 in a few seconds of CPU.
