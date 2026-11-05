@@ -10,3 +10,4 @@ tools/**/build/
 /kat/
 /results/logs/
 /data/mnist/
+results/quadruped/raw/**/reboot_config_dump*.txt
