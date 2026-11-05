@@ -1336,7 +1336,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     }
 
     /// Sets the learning rate of the following updates (a per-step schedule, e.g. ReBoot's
-    /// scheduler). It must not exceed the reference lr ([`NonInteractiveTrainer::set_lr_reference`],
+    /// scheduler). With NAG it must not exceed the reference lr ([`NonInteractiveTrainer::set_lr_reference`],
     /// by default the optimizer's initial lr). The weight and bias gradients take it through
     /// their folded constants; with NAG the velocity stays stored at the reference lr and the
     /// update scales its contribution by `s = lr / lr_ref <= 1` inside the existing scalar
@@ -1346,14 +1346,15 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     /// [`UpdateCost::ref_shift_rot`]). Setting `lr = lr_ref` is bit-identical to never setting
     /// it.
     ///
-    /// Errors (`InvalidParams`): `lr` not finite and positive, or above the reference lr.
+    /// Errors (`InvalidParams`): `lr` not finite and positive, or (NAG) above the reference lr.
     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
         if !(lr.is_finite() && lr > 0.0) {
             return Err(HekitError::InvalidParams(format!(
                 "learning rate {lr} must be finite and positive"
             )));
         }
-        if lr > self.lr_ref {
+        // SGD has no velocity: no reference to stay below (review n2).
+        if self.optim.has_velocity() && lr > self.lr_ref {
             return Err(HekitError::InvalidParams(format!(
                 "learning rate {lr} above the velocity's reference lr {} (set_lr_reference)",
                 self.lr_ref

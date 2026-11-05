@@ -72,6 +72,9 @@
 //!   JSON array, the array under the first `lr` key of a JSON object, or one value per line),
 //!   in plain and non-interactive modes (the trainer rescales its NAG velocity exactly at no
 //!   cost, `docs/layout.md` §7.1).
+//! - `--lr-schedule-batch B0`: the schedule is defined per step of `B0` samples (ReBoot's 48);
+//!   a run at another batch takes, per update, the value of the step containing its first
+//!   sample (sample-aligned resampling).
 //! - `--epoch-orders FILE`: a 2-D `.npy` of per-epoch training orders (row `e` = epoch `e + 1`,
 //!   step `b` = columns `b B .. b B + B - 1`), instead of `--indices`.
 //! - `--weight-decay WD --wd-form coupled|decoupled` (plain mode only): ReBoot's
@@ -149,6 +152,9 @@ struct Args {
     /// A directory with initial weights `W1.npy`, `W2.npy`, ... (and optionally `b1.npy`, ...)
     /// that replace the drawn ones for both the encrypted model and the twin.
     init_weights: Option<PathBuf>,
+    /// A JSON listing the SHA-256 of the `--init-weights` files (default
+    /// `DIR/init_weights.json`); an entry `"<dir name>/W1.npy"` is preferred over `"W1.npy"`.
+    init_weights_manifest: Option<PathBuf>,
     /// A data set given as .npy arrays with a SHA-256 manifest (R-M3-13: ReBoot's preprocessed
     /// 14 x 14 MNIST), instead of the IDX files of `--data`.
     dataset_npy: Option<PathBuf>,
@@ -169,6 +175,9 @@ struct Args {
     lr_key: Option<String>,
     /// Accept an lr schedule longer than the run (default: exactly one value per step).
     lr_schedule_allow_longer: bool,
+    /// The batch size the lr schedule is defined for (e.g. ReBoot's 48): each update takes the
+    /// value of the step that contains its first sample (sample-aligned resampling).
+    lr_schedule_batch: Option<usize>,
     /// `--lr` was given explicitly (it conflicts with `--lr-sum` / `--faithful`).
     lr_given: bool,
     /// `--subset` / `--test-subset` were given (an .npy data set is otherwise used whole).
@@ -217,11 +226,13 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
         faithful: false,
         out_width: CLASSES,
         init_weights: None,
+        init_weights_manifest: None,
         dataset_npy: None,
         lr_schedule: None,
         input_dim: 28 * 28,
         lr_key: None,
         lr_schedule_allow_longer: false,
+        lr_schedule_batch: None,
         lr_given: false,
         weight_decay: 0.0,
         wd_form: "coupled".into(),
@@ -289,6 +300,7 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
                 a.lr_given = true;
             }
             "--lr-key" => a.lr_key = Some(v),
+            "--lr-schedule-batch" => a.lr_schedule_batch = Some(num(&v)?),
             "--momentum" => a.momentum = real(&v)?,
             "--data" => a.data = PathBuf::from(v),
             "--out" => a.out = Some(PathBuf::from(v)),
@@ -299,6 +311,7 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
             "--indices" => a.indices = Some(PathBuf::from(v)),
             "--out-width" => a.out_width = num(&v)?,
             "--init-weights" => a.init_weights = Some(PathBuf::from(v)),
+            "--init-weights-manifest" => a.init_weights_manifest = Some(PathBuf::from(v)),
             _ => return Err(format!("unknown flag {flag}")),
         }
     }
@@ -641,16 +654,21 @@ fn twin_step(
     }
 }
 
+/// The accuracy over the 10 real classes (a padded output layer has extra rows trained to 0).
 fn accuracy(out: &Array2<f64>, labels: &[u8]) -> f64 {
+    accuracy_over(out, labels, CLASSES)
+}
+
+/// The accuracy with the argmax over the first `cols` outputs.
+fn accuracy_over(out: &Array2<f64>, labels: &[u8], cols: usize) -> f64 {
     let hits = out
         .rows()
         .into_iter()
         .zip(labels)
         .filter(|(row, l)| {
-            // The real classes only (a padded output layer has extra rows trained to 0).
             let arg = row
                 .iter()
-                .take(CLASSES)
+                .take(cols)
                 .enumerate()
                 .max_by(|a, b| a.1.total_cmp(b.1))
                 .map(|(j, _)| j)
@@ -887,13 +905,23 @@ fn initial_net(dims: &[usize], r: &mut Rng, args: &Args) -> Result<Vec<Layer>, S
     let Some(dir) = &args.init_weights else {
         return Ok(net);
     };
-    let meta = std::fs::read_to_string(dir.join("init_weights.json")).unwrap_or_default();
+    let meta_path = args
+        .init_weights_manifest
+        .clone()
+        .unwrap_or_else(|| dir.join("init_weights.json"));
+    let meta = std::fs::read_to_string(&meta_path).unwrap_or_default();
+    let dir_name = dir
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
     for (k, layer) in net.iter_mut().enumerate() {
         let name = format!("W{}", k + 1);
         let path = dir.join(format!("{name}.npy"));
         // The file's SHA-256 against init_weights.json when it lists one (review m6).
         let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-        if let Some(want) = manifest_sha256(&meta, &format!("{name}.npy")) {
+        let listed = manifest_sha256(&meta, &format!("{dir_name}/{name}.npy"))
+            .or_else(|| manifest_sha256(&meta, &format!("{name}.npy")));
+        if let Some(want) = listed {
             let got = sha256_hex(&bytes);
             if got != want {
                 return Err(format!(
@@ -984,13 +1012,14 @@ fn main() {
 }
 
 /// The training-sample indices of `--indices FILE`: lines starting with `#` are comments; a
-/// line `label<TAB>indices` keeps the part after its tab (gpu-runner's per-step format);
+/// line `label<TAB>...<TAB>indices` keeps the part after its last tab (gpu-runner's per-step
+/// formats, `step<TAB>indices` or `step<TAB>epoch<TAB>batch<TAB>indices`);
 /// indices are whitespace- or comma-separated, in training order.
 fn read_indices(path: &std::path::Path) -> Result<Vec<usize>, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
     text.lines()
         .filter(|l| !l.trim_start().starts_with('#'))
-        .map(|l| l.split_once('\t').map_or(l, |(_, rest)| rest))
+        .map(|l| l.rsplit_once('\t').map_or(l, |(_, rest)| rest))
         .flat_map(|l| l.split(|c: char| c.is_whitespace() || c == ','))
         .filter(|t| !t.is_empty())
         .map(|t| t.parse::<usize>().map_err(|e| format!("index {t}: {e}")))
@@ -1098,6 +1127,53 @@ fn epoch_order(orders: &Option<Vec<Vec<usize>>>, e: usize, n: usize) -> Result<V
             )
         }),
     }
+}
+
+/// The per-update lr schedule of a run with batch `args.batch` from a schedule defined per step
+/// of `--lr-schedule-batch B0` samples (sample-aligned: update `u` takes the value of the step
+/// containing its first sample, `floor(u B / B0)`); the schedule must have exactly one value per
+/// `B0`-step of the run (`sum_e ceil(n_e / B0)`), or at least that many with
+/// `--lr-schedule-allow-longer`. Without `--lr-schedule-batch` the schedule is returned as is.
+///
+/// Errors: a schedule of the wrong length for its batch, or `B0 = 0`.
+fn per_update_schedule(
+    v: Vec<f64>,
+    orders: &Option<Vec<Vec<usize>>>,
+    n: usize,
+    args: &Args,
+) -> Result<Vec<f64>, String> {
+    let Some(b0) = args.lr_schedule_batch else {
+        return Ok(v);
+    };
+    if b0 == 0 {
+        return Err("--lr-schedule-batch must be positive".into());
+    }
+    let lens: Vec<usize> = (0..args.epochs)
+        .map(|e| orders.as_ref().and_then(|o| o.get(e)).map_or(n, Vec::len))
+        .collect();
+    let need: usize = lens.iter().map(|l| l.div_ceil(b0)).sum();
+    let ok = if args.lr_schedule_allow_longer {
+        v.len() >= need
+    } else {
+        v.len() == need
+    };
+    if !ok {
+        return Err(format!(
+            "the lr schedule has {} values for {need} steps of {b0} samples",
+            v.len()
+        ));
+    }
+    // Walk the run's updates epoch by epoch; the B0-step index restarts its count per epoch
+    // as ReBoot's does (ceil per epoch).
+    let mut out = Vec::new();
+    let mut base = 0usize;
+    for len in lens {
+        for start in (0..len).step_by(args.batch) {
+            out.push(v[base + start / b0]);
+        }
+        base += len.div_ceil(b0);
+    }
+    Ok(out)
 }
 
 /// The lr of update `step` on our batch-mean gradient: the schedule's value (in `--lr-sum`
@@ -1693,7 +1769,7 @@ fn run_plain(args: &Args) -> Result<(), String> {
     let n = train.len();
     let mut epochs = Vec::new();
     let mut updates = 0;
-    let (mut step_loss, mut step_acc) = (Vec::new(), Vec::new());
+    let (mut step_loss, mut step_acc, mut step_acc_all) = (Vec::new(), Vec::new(), Vec::new());
     let schedule = args
         .lr_schedule
         .as_deref()
@@ -1703,6 +1779,9 @@ fn run_plain(args: &Args) -> Result<(), String> {
         .epoch_orders
         .as_deref()
         .map(|p| read_epoch_orders(p, n))
+        .transpose()?;
+    let schedule = schedule
+        .map(|v| per_update_schedule(v, &orders, n, args))
         .transpose()?;
     check_schedule_inputs(&schedule, &orders, n, args)?;
     // The decay follows the lr's units: ReBoot's (batch-summed) whenever the lr is given in
@@ -1730,6 +1809,7 @@ fn run_plain(args: &Args) -> Result<(), String> {
             let labels: Vec<u8> = idx.iter().map(|&i| train.labels[i]).collect();
             step_loss.push(J::N((&o - &y).mapv(|v| v * v).sum()));
             step_acc.push(J::N(accuracy(&o, &labels)));
+            step_acc_all.push(J::N(accuracy_over(&o, &labels, o.ncols())));
             // A scheduled step's lr is in --lr-sum units (ReBoot's lr on the summed gradient).
             let lr = step_lr(&schedule, updates, args)?;
             let blr = if args.no_bias { 0.0 } else { lr };
@@ -1810,6 +1890,8 @@ fn run_plain(args: &Args) -> Result<(), String> {
         ("epochs", J::A(epochs)),
         ("step_batch_loss_sum", J::A(step_loss)),
         ("step_batch_acc", J::A(step_acc)),
+        // ReBoot's printed batch accuracy takes the argmax over all (padded) output rows.
+        ("step_batch_acc_all_outputs", J::A(step_acc_all)),
         ("step_lr_on_batch_mean_gradient", J::A(lrs)),
         ("test_acc_init", J::N(accuracy(&out_init, &test.labels))),
         ("test_samples", J::I(test.len() as i64)),
@@ -2038,6 +2120,20 @@ struct NiTerms {
     /// Bootstraps beyond the model's `2 nW` per update (activation bootstraps, bias-only
     /// containers, the lazy schedule), times the bootstrap's key switches.
     boots: i64,
+}
+
+/// The per-update average of the velocity-reference lane shift (review n1): the fraction of
+/// updates whose scheduled lr differs from the reference lr (the schedule's maximum) times
+/// [`ref_shift_rotations`]; 0 without a schedule (`docs/layout.md` §7.1).
+fn ref_shift_avg(schedule: &Option<Vec<f64>>, ref_shift: u64) -> f64 {
+    match schedule {
+        None => 0.0,
+        Some(v) => {
+            let max = v.iter().copied().fold(0.0, f64::max);
+            let below = v.iter().filter(|&&x| x != max).count();
+            below as f64 / v.len().max(1) as f64 * ref_shift as f64
+        }
+    }
 }
 
 impl NiTerms {
@@ -2394,9 +2490,21 @@ fn run_ni(args: &Args) -> Result<(), String> {
         sched.iter().filter(|&&x| x).count() as f64 * cl.bootstraps(true) as f64
             / sched.len().max(1) as f64
     };
+    let ref_shift = ref_shift_rotations(&dims, &layout).map_err(|e| e.to_string())?;
     if args.plan {
         let out_level = hekit_ckks::bootstrap::levels_after_boot(&params, &bp);
         let sched = schedule_of(&fullness(args.subset), out_level - 1, out_level)?;
+        // A schedule is read and checked here too (review n3; --subset gives the sample count).
+        let lr_plan = args
+            .lr_schedule
+            .as_deref()
+            .map(|p| read_lr_schedule(p, args.lr_key.as_deref()))
+            .transpose()?;
+        let lr_plan = lr_plan
+            .map(|v| per_update_schedule(v, &None, args.subset, args))
+            .transpose()?;
+        check_schedule_inputs(&lr_plan, &None, args.subset, args)?;
+        let shift_avg = ref_shift_avg(&lr_plan, ref_shift);
         let (cost, terms, boots) = ni_terms(
             &dims,
             &acts_flags,
@@ -2408,7 +2516,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
             boot_ks_he,
         )?;
         let pred_ks = cost.rotations() + cost.relins();
-        let pred_total = pred_ks as f64 + boots * boot_ks_he as f64;
+        let pred_total = pred_ks as f64 + shift_avg + boots * boot_ks_he as f64;
         let mut s = String::new();
         obj(vec![
             (
@@ -2423,6 +2531,15 @@ fn run_ni(args: &Args) -> Result<(), String> {
             ("closed_form", ni_cost_json(&cost)),
             ("terms", J::S(format!("{terms:?}"))),
             ("bootstraps_per_update_avg", J::N(boots)),
+            (
+                "lr",
+                J::S(if lr_plan.is_some() {
+                    "scheduled (velocity-reference shift included)".into()
+                } else {
+                    "constant".into()
+                }),
+            ),
+            ("velocity_reference_shift_per_update_avg", J::N(shift_avg)),
             ("predicted_ks_per_sample", J::N(pred_total / b)),
             (
                 "boot_schedule",
@@ -2445,6 +2562,9 @@ fn run_ni(args: &Args) -> Result<(), String> {
         .epoch_orders
         .as_deref()
         .map(|p| read_epoch_orders(p, train.len()))
+        .transpose()?;
+    let lr_sched = lr_sched
+        .map(|v| per_update_schedule(v, &orders, train.len(), args))
         .transpose()?;
     check_schedule_inputs(&lr_sched, &orders, train.len(), args)?;
     // The velocity's reference lr: the schedule's maximum (docs/layout.md §7.1); the trainer
@@ -2523,7 +2643,8 @@ fn run_ni(args: &Args) -> Result<(), String> {
         boot_ks,
     )?;
     let pred_nonboot = cost.rotations() + cost.relins();
-    let pred_per_sample = (pred_nonboot as f64 + boots_avg * boot_ks as f64) / b;
+    let shift_avg = ref_shift_avg(&lr_sched, ref_shift);
+    let pred_per_sample = (pred_nonboot as f64 + shift_avg + boots_avg * boot_ks as f64) / b;
     let model_per_sample = (model.ks.total() + model.boots * boot_ks) as f64 / b;
     eprintln!(
         "mnist: levels per step {lpi} (of {} after a bootstrap and an unpack); predicted per \
@@ -2555,7 +2676,6 @@ fn run_ni(args: &Args) -> Result<(), String> {
     let mut update_index = 0usize;
     let mut pred_run_ks = 0u64;
     let mut boot_s = Vec::new();
-    let ref_shift = ref_shift_rotations(&dims, &layout).map_err(|e| e.to_string())?;
     let t_train = Instant::now();
     for epoch in 0..args.epochs {
         let order = epoch_order(&orders, epoch, n)?;
@@ -2818,7 +2938,8 @@ fn run_ni(args: &Args) -> Result<(), String> {
                         ("transpose_beyond_model", J::I(terms.transpose)),
                         ("bias_gradients_and_extraction", J::I(terms.bias)),
                         ("bootstraps_beyond_model_x_boot_ks", J::I(terms.boots)),
-                        ("total", J::I(terms.total())),
+                        ("velocity_reference_shift_avg", J::N(shift_avg)),
+                        ("total", J::N(terms.total() as f64 + shift_avg)),
                     ]),
                 ),
                 ("predicted_ks_per_sample", J::N(pred_per_sample)),
@@ -2857,7 +2978,7 @@ fn run_ni(args: &Args) -> Result<(), String> {
                     "measured_over_model_plus_corrections",
                     J::N(
                         measured_per_sample
-                            / (model_per_sample + terms.total() as f64 / b),
+                            / (model_per_sample + (terms.total() as f64 + shift_avg) / b),
                     ),
                 ),
                 (
@@ -3277,6 +3398,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(read_indices(&d.join("i.txt")).unwrap(), vec![3, 1, 2, 0, 5]);
+        // R-REB-2's format: step<TAB>epoch<TAB>batch<TAB>indices.
+        std::fs::write(d.join("j.txt"), "# h\n1\t1\t1\t7 8\n2\t1\t2\t9 10\n").unwrap();
+        assert_eq!(read_indices(&d.join("j.txt")).unwrap(), vec![7, 8, 9, 10]);
         std::fs::remove_dir_all(&d).unwrap();
     }
 
@@ -3370,5 +3494,34 @@ mod tests {
                     .fold(0.0f64, |m, (p, q)| m.max((p - q).abs()));
             assert!(e < 1e-15, "{e}");
         }
+    }
+
+    /// `--lr-schedule-batch`: a schedule per 48-sample step, resampled to 64-sample updates by
+    /// the step containing each update's first sample; the length is checked per 48-step.
+    #[test]
+    fn schedule_resampling() {
+        let a = args(&[
+            "--batch",
+            "64",
+            "--lr-schedule-batch",
+            "48",
+            "--mode",
+            "plain",
+        ]);
+        // 192 samples: 4 steps of 48, 3 updates of 64 (first samples 0, 64, 128).
+        let v = vec![0.4, 0.3, 0.2, 0.1];
+        assert_eq!(
+            per_update_schedule(v.clone(), &None, 192, &a).unwrap(),
+            vec![0.4, 0.3, 0.2]
+        );
+        assert!(per_update_schedule(vec![0.4; 3], &None, 192, &a).is_err());
+        let same = args(&["--batch", "48", "--mode", "plain"]);
+        assert_eq!(
+            per_update_schedule(v.clone(), &None, 192, &same).unwrap(),
+            v
+        );
+        // The velocity-reference shift averages over the updates below the maximum.
+        assert_eq!(ref_shift_avg(&Some(vec![0.4, 0.3, 0.4, 0.2]), 46), 23.0);
+        assert_eq!(ref_shift_avg(&None, 46), 0.0);
     }
 }
