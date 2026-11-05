@@ -401,6 +401,19 @@ fn run(args: &Args) -> Result<(), String> {
         let dw2 = lay.outer_sum(&ev, &p2, args.mode).map_err(e)?;
         let server_s = ts.elapsed().as_secs_f64();
         let c = ev.counter();
+        // Closed form per batch of `nb` samples: 2 log2 r + 2 log2 c rotations per sample;
+        // 7 relins per sample (PerSample) or 5 per sample plus one per outer_sum (Lazy).
+        let want_rot = (nb * (2 * args.r.ilog2() + 2 * args.c.ilog2()) as usize) as u64;
+        let want_relin = match args.mode {
+            GradRelin::PerSample => 7 * nb,
+            GradRelin::Lazy => 5 * nb + 2,
+        } as u64;
+        if (c.rotations, c.relins) != (want_rot, want_relin) {
+            return Err(format!(
+                "batch at {start}: counted {} rot + {} relin, closed form {want_rot} + {want_relin}",
+                c.rotations, c.relins
+            ));
+        }
 
         // Client: decrypt the gradients and update the weights (NAG, plaintext).
         let tc = Instant::now();

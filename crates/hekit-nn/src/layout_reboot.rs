@@ -82,6 +82,12 @@
 //!   (one relin per product, the M0 cost model's `_reboot` default) is the baseline "as
 //!   specified" by the cost model. Report both.
 //!
+//!   Closed forms for the eMLP-1 step (RE layer, activation, CE layer, backward, two
+//!   gradients) per sample: `2 log2 r + 2 log2 c` rotations and 7 relins ([`GradRelin::PerSample`],
+//!   `2 log2 r + 2 log2 c + 7` key switches). With [`GradRelin::Lazy`]: 5 relins per sample plus
+//!   one per `outer_sum`, i.e. per batch of `B` the key switches are
+//!   `B (2 log2 r + 2 log2 c + 5) + 2` (`35.0625` per sample at `(1024, 32)`, `B = 32`).
+//!
 //! # Not modelled
 //!
 //! * Alg. 1 line 10's delayed gradient (the paper applies a gradient computed one step

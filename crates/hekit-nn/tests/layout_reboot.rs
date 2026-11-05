@@ -151,6 +151,9 @@ fn new_validates_shape() {
     }
     let l = RebootLayout::new(16, 128, 2048).unwrap();
     assert_eq!((l.r(), l.c(), l.slots()), (16, 128, 2048));
+    // N = 2^17 (65536 slots): r c must equal the slot count there too.
+    assert!(RebootLayout::new(1024, 64, 65536).is_ok());
+    assert!(RebootLayout::new(1024, 32, 65536).is_err());
 }
 
 #[test]
