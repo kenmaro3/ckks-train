@@ -143,7 +143,7 @@ hekit/
 | 42 | M3 報告の仕上げ | 草稿 09206bd。FULL-1/2 の 196 行を入れ、§0 の判定を確定。ReBoot のセキュリティ推定(実行中)を §3.3 に入れる。4 通りの比 + subset/full の明記 |
 | 47 | CudaEvaluator の再計測 | R-47-3(bd5cc49)の結果を `m4-report.md` §1 に入れる。batch 行は「untuned」のまま |
 | 48 | GPU 学習 + RQ3 ablation | 実装中(2026-11-06 着手)。HostRefresher の N1/N2(アドレス確認、upload 成功後に計数を合算)もこのタスクで入れる。逐次実行、epoch 境界で `trim_pool(0)`。GPU メモリ 2〜3 GB の制約下では capped keys の小さい構成で。入らない行は「未計測」と明記 |
-| 49(stretch) | GPU ブートストラップ | 目標 ≤ 220 ms(HEonGPU 109 ms の 2 倍)。GPU メモリが解放されない限り不可能。コードだけ書いて未計測と報告してよい |
+| 49(stretch) | GPU ブートストラップ | コード準備完了・レビュー承認(`f64a617`)。CPU 回帰・再現テストと CUDA コンパイルを確認。GPU 精度・速度・メモリは未計測。目標 ≤ 220 ms。詳細は §10 と `gpu-bootstrap-design.md` |
 | 50 | M4 報告 | 47/48 の数字 + HEonGPU 比較 + ablation 表 |
 | 51 | データセット追加 | 実装済み(09f16f2、8bd9cba)、レビュー中。平文双子 eMLP-1、10 シード、epoch 50: MNIST 95.00(T4 94.61、合格)、Fashion-MNIST 85.22(T4 85.12、合格)、Breast Cancer は固定 epoch で −1.3〜−2.6 pt の未達(テストで選んだ最良 epoch のみ 99.30)。Breast Cancer は z-score だと z²+z で発散するので min-max(訓練データだけで決定) |
 | 52 | eMLP-2/3 のブロック構造(`BlockMlp`) | M0 で emlp2/3 の JSON は忠実でないと記録。ReBoot のコードから値を取り直す(runner に依頼) |
@@ -187,3 +187,30 @@ hekit/
 - runner セッション(Opus): "quadruped-gpu 計測"(`local_409b624a-0f0a-4fb3-b1c2-9e0c34dae93d`)。
 - 計画セッション(Fable): この文書の作成元。計画ファイルのルーリング注記はここが入れた。
 - Claude のメモリ(`~/.claude/projects/-Users-marconi-Documents-research/memory/`): `project-he-training-research-plan.md`、`reference-quadruped-gpu-server.md`、`user-fhe-researcher-background.md`。
+
+
+## 10. 2026-11-06 引き継ぎ後の進捗
+
+### Task 42 の確定準備
+
+- `tools/rq1_summary.py` と `docs/rq1-finalization.md` を追加した。元の FULL JSON の出所・完了条件・計数を検証し、4 通りの比を生成する。FULL-2 の精度判定は公開コード seed 0 の 0.9041 と比較する。欠測は未計測、存在する不正な JSON はエラーとし、元の結果を変更しない。
+- `docs/m3-report.md` §3.3a に ReBoot の実パラメータによる初期セキュリティ推定を反映した(`9ee79c4`)。BDGL16 122.3 bit、MATZOV 121.9 bit で、128 bit 条件は満たしていない。追加探索中のため最終最小値ではない。元ログは `results/security/reboot-initial-20261106/`。同じ N でも同じセキュリティとは主張しない。
+- FULL-1 / FULL-2 の完了 JSON と R-47-3 はまだ回収していない。Task 42 は未確定。SSH の観測タイムアウトはジョブ終了・失敗の証拠にしない。
+
+### Task 49 のコード準備
+
+`f64a617` (`feat(cuda): GPU bootstrapping`) は独立レビュー承認後にコミットした。`CudaBootstrapper` は SSE、mod-raise、CtS、EvalMod、StC を GPU の暗号文で実行し、既存の `BootstrapOps` / `BootstrapRefresher` に接続する。CPU との多項式評価の共用について、理由と代替案は実装前に `docs/gpu-bootstrap-design.md` に記録した。新しい外部依存は追加していない。
+
+確認済みの範囲:
+
+- CKKS の CPU 回帰テスト 158 件、CUDA クレートのローカルテスト 61 件が合格。GPU が必要な 47 件は未実行。
+- CPU の小さいパラメータで全経路のビット・計数一致を確認。本番サイズ N=2^16 / 32768 スロットの CPU 精度テストは 17.46 bit、残り16レベル、111 KS = 回転69 + relin40 + SSE2。これは GPU の精度測定ではない。
+- CUDA テストのコンパイル、CUDA クレートの全ターゲットの clippy、対象ファイルの整形検査が合格。最終の workspace 全体の整形検査は、別担当が編集中のファイルで差分が出たため、この節目で全体合格とは記録しない。
+
+**未計測:** GPU 上の精度・CPU とのビット一致、実機でのメモリ不足時の挙動、GPU メモリのピーク、レイテンシと 220 ms 目標。現状の空き GPU メモリでは実行しない。公開整数定数をホストで展開して転送する費用も将来の GPU 時間に含める。
+
+レビューの軽微事項は ledger に残した。特に `gpu_bootstrap` のテストはメモリ不足時に `SKIP UNMEASURED` を出して正常終了するため、**Cargo の終了コードだけを GPU ゲートの合格証拠にしない**。実機の採用判定前に、実行完了を示す明示的なマーカーを確認する仕組み、または資源不足時に要求した実機テストを失敗させる仕組みを追加する。共通 EvalMod の比較テストはラッパーの整合性確認であり、独立した数値検証は既存の精度テストと上記 CPU 全スロットのゲートが担う。
+
+### 並行作業の担当境界
+
+本人の回答により、Task 48 は既存担当の完了後に引き継ぐ。provenance が欠けていた ablation JSON は既存担当が `0e07561` で修正し、再レビュー中。Task 52 も既存担当が実装中。これらの編集中ファイルを別担当が上書きしない。GPU 計測の順は FULL-1 → FULL-2 → R-47-3 → R-48-1〜4 を維持する。
