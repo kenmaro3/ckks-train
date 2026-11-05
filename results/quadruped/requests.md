@@ -63,3 +63,21 @@ Common rules for every block:
 
 M4 GPU blocks (Tasks 44–49) and Task 54 blocks will be appended here as that code lands. Each GPU
 block will state its GPU memory need, and the tests skip with a message when the need is not met.
+
+---
+
+## R-REB-1: ReBoot official eMLP-1, initial weights as plain data
+
+- **purpose:** hekit's faithful twin, run on ReBoot's exact 1008 samples, lands at 0.71 test accuracy against ReBoot's 0.7506. The likely cause is the initial weights (torch seed 0 vs hekit's ChaCha20). With ReBoot's initial weights published as data, the twin and the encrypted runs can match step by step.
+- **commit to sync:** none needed (ReBoot side only)
+- **working dir:** `~/reboot`, using the same venv and the same instrumentation approach as the subset run (import by name, no ReBoot code copied)
+- **command:** construct ReBoot's eMLP-1 model exactly as the subset run did (seed 0, same config) and save each layer's initial weight matrix before any training step. Save them as `.npy` (float64, shapes as ReBoot stores them), plus a JSON that records:
+  - the shape and orientation of each matrix (in × out or out × in)
+  - the seed
+  - the sha256 of each file
+
+  Check that replaying step 1 of ReBoot's plaintext Nesterov step from these weights reproduces the step-1 batch loss in reboot_indices.json.
+- **expected duration:** < 5 min
+- **GPU memory need:** 0 MiB. **RAM need:** < 2 GB
+- **output path:** `results/quadruped/raw/reboot_emlp1_official_subset/reboot_init_weights/{W1.npy, W2.npy, init_weights.json}`
+- **note:** data only. No ReBoot source in any output file.
