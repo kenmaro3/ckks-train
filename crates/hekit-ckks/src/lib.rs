@@ -10,6 +10,7 @@ pub mod evaluator;
 pub mod keys;
 pub mod keyswitch;
 pub mod linalg;
+pub mod ops;
 mod par;
 pub mod params;
 pub mod plaintext;
@@ -28,5 +29,6 @@ pub use linalg::{
     DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_rotation_steps_with_offset, bsgs_split,
     diagonals_from_matrix,
 };
+pub use ops::{BootstrapOps, EvalConfig, HeCiphertext, HeOps};
 pub use params::CkksParams;
 pub use plaintext::Plaintext;

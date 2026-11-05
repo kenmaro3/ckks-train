@@ -42,7 +42,9 @@
 use std::sync::Arc;
 
 use hekit_ckks::bootstrap::Bootstrapper;
-use hekit_ckks::{Ciphertext, Decryptor, Encoder, Encryptor, Evaluator};
+use hekit_ckks::{
+    BootstrapOps, Ciphertext, Decryptor, DiagonalEntry, Encoder, Encryptor, Evaluator, HeOps,
+};
 use hekit_core::error::{HekitError, Result};
 use hekit_core::sampler::Rng;
 
@@ -61,13 +63,21 @@ use crate::layout::Layout;
 /// blocks"). [`crate::trainer::Trainer::new`] binds its refresher to its layout.
 /// [`ClientRefresher`] averages the blocks on the client. [`BootstrapRefresher`] has no
 /// client to re-lay and returns `InvalidParams` for a replicated layout (ruling R-M3-3).
-pub trait Refresher {
+///
+/// # Backends (Task 43)
+///
+/// `E` is the evaluator whose ciphertexts are refreshed ([`Evaluator`] by default, so
+/// `dyn Refresher` is the CPU refresher). [`ClientRefresher`] is host-side
+/// (`E = Evaluator`); [`BootstrapRefresher`] works for any `E` with a [`BootstrapOps<E>`]
+/// bootstrapper; [`HostRefresher`] runs a CPU refresher for the ciphertexts of another backend
+/// (download, refresh on the host, upload).
+pub trait Refresher<E: HeOps = Evaluator> {
     /// A fresh ciphertext on the refresher's output level with exactly `ct.scale()` and
     /// `ct`'s message.
     ///
     /// Errors: implementation specific (e.g. `InvalidParams` for a ciphertext of other
     /// parameters).
-    fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext>;
+    fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct>;
 
     /// Binds the refresher to the slot layout of the values it will refresh: from now on
     /// every refresh returns the canonical (block-periodic) form of `layout`, its replicated
@@ -246,21 +256,30 @@ impl Refresher for ClientRefresher {
 /// single-block layout (`d * batch == slots`, e.g. MNIST) is accepted. Replicated layouts
 /// take the compact path of Tasks 40/41 instead: pack one lane per diagonal, bootstrap the
 /// compact ciphertext, and unpack (which re-replicates the blocks by construction).
-#[derive(Debug)]
-pub struct BootstrapRefresher<'a> {
-    bs: &'a Bootstrapper,
-    ev: &'a Evaluator,
+pub struct BootstrapRefresher<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = Bootstrapper> {
+    bs: &'a B,
+    ev: &'a E,
 }
 
-impl<'a> BootstrapRefresher<'a> {
+impl<E: HeOps, B: BootstrapOps<E>> std::fmt::Debug for BootstrapRefresher<'_, E, B> {
+    /// A summary (the output level), not the keys.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BootstrapRefresher")
+            .field("output_level", &self.bs.output_level())
+            .finish()
+    }
+}
+
+impl<'a, E: HeOps, B: BootstrapOps<E>> BootstrapRefresher<'a, E, B> {
     /// A refresher bootstrapping with `bs` on `ev` (which must hold the relinearization key
-    /// of `bs`'s parameters; checked at each refresh).
-    pub fn new(bs: &'a Bootstrapper, ev: &'a Evaluator) -> BootstrapRefresher<'a> {
+    /// of `bs`'s parameters; checked at each refresh). `bs` is the CPU [`Bootstrapper`] for
+    /// `E = Evaluator`, or any [`BootstrapOps<E>`].
+    pub fn new(bs: &'a B, ev: &'a E) -> BootstrapRefresher<'a, E, B> {
         BootstrapRefresher { bs, ev }
     }
 }
 
-impl Refresher for BootstrapRefresher<'_> {
+impl<E: HeOps, B: BootstrapOps<E>> Refresher<E> for BootstrapRefresher<'_, E, B> {
     /// Drops `ct` to level 0, bootstraps it (relabelled to `Delta` and back if its scale
     /// differs, see the type docs) and returns it at [`Bootstrapper::output_level`] with
     /// exactly `ct.scale()`.
@@ -269,16 +288,16 @@ impl Refresher for BootstrapRefresher<'_> {
     /// [`Evaluator::mod_switch_to_level`] and [`Bootstrapper::bootstrap`] (`InvalidParams`
     /// for a ciphertext or evaluator of other parameters, a 3-component ciphertext, or no
     /// relinearization key).
-    fn refresh(&mut self, ct: &Ciphertext) -> Result<Ciphertext> {
+    fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct> {
         let delta = self.ev.params().scale();
         let s = ct.scale();
         if !(s >= delta / 2.0 && s <= 2.0 * delta) {
             return Err(HekitError::ScaleMismatch);
         }
         let low = self.ev.mod_switch_to_level(ct, 0)?;
-        let low = Ciphertext::new(low.into_polys(), delta)?;
+        let low = self.ev.relabel(low, delta)?;
         let out = self.bs.bootstrap(self.ev, &low)?;
-        Ciphertext::new(out.into_polys(), s)
+        self.ev.relabel(out, s)
     }
 
     /// Accepts a single-block layout of the parameters' slot count.
@@ -308,6 +327,66 @@ impl Refresher for BootstrapRefresher<'_> {
     /// [`Bootstrapper::output_level`] (`levels_after_boot`, 16 on n16_boot).
     fn output_level(&self) -> usize {
         self.bs.output_level()
+    }
+}
+
+/// A CPU refresher (`R: Refresher<Evaluator>`, e.g. [`ClientRefresher`] or a
+/// [`BootstrapRefresher`] on the CPU) serving the ciphertexts of another backend `E`: every
+/// refresh downloads the ciphertext ([`HeOps::download_ct`]), refreshes it on the host and
+/// uploads the result ([`HeOps::upload_ct_owned`]). This is the interactive mode on a device
+/// backend, and "level operations on the device, bootstrapping on the CPU" for the
+/// bootstrapping refresher (research plan §5, M4 split). The host refresher's own evaluator
+/// counts its operations (a CPU bootstrap shows on the CPU evaluator's counter, not on `E`'s).
+pub struct HostRefresher<'e, E: HeOps, R: Refresher<Evaluator>> {
+    ev: &'e E,
+    inner: R,
+}
+
+impl<E: HeOps, R: Refresher<Evaluator> + std::fmt::Debug> std::fmt::Debug
+    for HostRefresher<'_, E, R>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HostRefresher")
+            .field("inner", &self.inner)
+            .finish()
+    }
+}
+
+impl<'e, E: HeOps, R: Refresher<Evaluator>> HostRefresher<'e, E, R> {
+    /// Wraps the host refresher `inner` for the ciphertexts of `ev`.
+    pub fn new(ev: &'e E, inner: R) -> HostRefresher<'e, E, R> {
+        HostRefresher { ev, inner }
+    }
+
+    /// The host refresher.
+    pub fn inner(&self) -> &R {
+        &self.inner
+    }
+
+    /// Unwraps the host refresher.
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+}
+
+impl<E: HeOps, R: Refresher<Evaluator>> Refresher<E> for HostRefresher<'_, E, R> {
+    /// `upload(inner.refresh(download(ct)))`.
+    ///
+    /// Errors: those of the transfers and of the host refresher.
+    fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct> {
+        let host = self.ev.download_ct(ct)?;
+        let fresh = self.inner.refresh(&host)?;
+        self.ev.upload_ct_owned(fresh)
+    }
+
+    /// The host refresher's [`Refresher::bind_layout`].
+    fn bind_layout(&mut self, layout: &Layout) -> Result<()> {
+        self.inner.bind_layout(layout)
+    }
+
+    /// The host refresher's [`Refresher::output_level`].
+    fn output_level(&self) -> usize {
+        self.inner.output_level()
     }
 }
 

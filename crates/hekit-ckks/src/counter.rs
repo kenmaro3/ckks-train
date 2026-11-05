@@ -27,7 +27,9 @@
 //!
 //! Failed operations (any `Err`) count nothing. Composite operations count their parts:
 //! `mul` is one `ct_ct_tensor` plus one `relin`; `matvec_plain` adds `d` `ct_pt_mults`;
-//! `matvec_enc` adds `d` `ct_ct_tensor` and `giant` `relins`. A rescale that is part of the
+//! `matvec_enc` adds `d` `ct_ct_tensor` and `giant` `relins` (with the default
+//! [`EvalConfig`](crate::ops::EvalConfig); the ablation flags change the rotations and
+//! relinearizations of the products, see [`crate::ops`]). A rescale that is part of the
 //! caller's pipeline (the matvec results are returned unrescaled) is counted only when the
 //! caller calls [`Evaluator::rescale`](crate::Evaluator::rescale).
 //!

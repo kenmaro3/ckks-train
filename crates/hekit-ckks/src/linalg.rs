@@ -72,18 +72,15 @@ use crate::ciphertext::Ciphertext;
 use crate::encoder::Encoder;
 use crate::encrypt::Encryptor;
 use crate::evaluator::Evaluator;
+use crate::ops::HeOps;
 use crate::plaintext::Plaintext;
 
-mod sealed {
-    pub trait Sealed {}
-    impl Sealed for crate::plaintext::Plaintext {}
-    impl Sealed for crate::ciphertext::Ciphertext {}
-}
-
-/// An entry type of [`Diagonals`] usable by the products: [`Plaintext`] or [`Ciphertext`]
-/// (sealed). Gives the level, scale and slot count that [`Diagonals::from_prerotated`] and
-/// the products validate.
-pub trait DiagonalEntry: sealed::Sealed {
+/// The metadata of an entry type of [`Diagonals`]: its level, scale and slot count, which
+/// [`Diagonals::from_prerotated`] and the products validate. Implemented by [`Plaintext`] and
+/// [`Ciphertext`], and by the device types of other backends
+/// ([`crate::ops::HeOps::Ct`] / [`crate::ops::HeOps::Pt`]); not sealed since Task 43, so a
+/// backend crate can implement it.
+pub trait DiagonalEntry {
     /// The level of the entry.
     fn level(&self) -> usize;
     /// The scale of the entry.
@@ -380,17 +377,20 @@ impl Diagonals<Ciphertext> {
         let pts = Diagonals::<Plaintext>::encode(encoder, diagonals, stride, scale, level)?;
         pts.try_map(|p| Ok(encryptor.encrypt(p, rng)))
     }
+}
 
-    /// Every entry switched down to `level` ([`Evaluator::mod_switch_to_level`]: primes
-    /// dropped, scale unchanged), e.g. to multiply an `x` that has been rescaled.
+impl<C> Diagonals<C> {
+    /// Every entry switched down to `level` ([`HeOps::mod_switch_to_level`]: primes dropped,
+    /// scale unchanged), e.g. to multiply an `x` that has been rescaled. Generic over the
+    /// backend since Task 43 (`C` = [`Ciphertext`] for the CPU [`Evaluator`]).
     ///
     /// Errors as [`Evaluator::mod_switch_to_level`] (`InvalidParams` for `level` above the
     /// entries' level or entries not over `eval`'s basis).
-    pub fn mod_switch_to_level(
+    pub fn mod_switch_to_level<E: HeOps<Ct = C>>(
         &self,
-        eval: &Evaluator,
+        eval: &E,
         level: usize,
-    ) -> Result<Diagonals<Ciphertext>> {
+    ) -> Result<Diagonals<C>> {
         self.try_map(|ct| eval.mod_switch_to_level(ct, level))
     }
 }
@@ -563,7 +563,8 @@ impl Evaluator {
     ///
     /// Costs `d` [`Evaluator::mul_plain`], `baby + giant - 2` rotations (`baby - 1` of them
     /// hoisted; one more giant rotation for an offset that is not a multiple of `baby`) and no
-    /// relinearization. Returns the unrescaled product: level `x.level()`, scale
+    /// relinearization. With [`crate::ops::EvalConfig::bsgs`] off: `d - 1` rotations (offset
+    /// 0); with `hoist` off the baby rotations are individual (same count). Returns the unrescaled product: level `x.level()`, scale
     /// `x.scale() * entry scale`.
     ///
     /// Errors, all reported before any work: `InvalidParams` if `x` is not a 2-component
@@ -577,7 +578,13 @@ impl Evaluator {
             self.check_basis(std::slice::from_ref(p.poly()))?;
         }
         self.check_bsgs(diag, x)?;
-        self.bsgs(&[(diag, x)], |_| false, |w, xr| self.mul_plain(xr, w), Ok)
+        self.bsgs(
+            &[(diag, x)],
+            self.config().bsgs,
+            |_| false,
+            |w, xr| self.mul_plain(xr, w),
+            Ok,
+        )
     }
 
     /// `W x` for encrypted diagonals of `W` (BSGS, see the [module docs](crate::linalg)).
@@ -586,7 +593,11 @@ impl Evaluator {
     /// degree 2 and relinearized once before the giant rotation: `d` tensor products, `giant`
     /// relinearizations (one per giant step, including step 0) and `baby + giant - 2`
     /// rotations (`baby - 1` of them hoisted). Returns the unrescaled product: 2 components,
-    /// level `x.level()`, scale `x.scale() * entry scale`.
+    /// level `x.level()`, scale `x.scale() * entry scale`. Those are the default flags; the
+    /// counts under [`crate::ops::EvalConfig`] are
+    /// [`EvalConfig::matvec_rotations`](crate::ops::EvalConfig::matvec_rotations) and
+    /// [`EvalConfig::matvec_enc_relins`](crate::ops::EvalConfig::matvec_enc_relins) (`lazy_relin`
+    /// off: one [`Evaluator::mul`] per product).
     ///
     /// Errors, all reported before any work: those of [`Evaluator::matvec_plain`] (with
     /// entries that must also be 2-component ciphertexts), `NoLevelsLeft` at level 0, and
@@ -601,12 +612,23 @@ impl Evaluator {
             return Err(HekitError::NoLevelsLeft);
         }
         self.relin_key_checked()?;
-        self.bsgs(
-            &[(diag, x)],
-            |_| false,
-            |w, xr| self.mul_no_relin(w, xr),
-            |ct| self.relinearize(&ct),
-        )
+        if self.config().lazy_relin {
+            self.bsgs(
+                &[(diag, x)],
+                self.config().bsgs,
+                |_| false,
+                |w, xr| self.mul_no_relin(w, xr),
+                |ct| self.relinearize(&ct),
+            )
+        } else {
+            self.bsgs(
+                &[(diag, x)],
+                self.config().bsgs,
+                |_| false,
+                |w, xr| self.mul(w, xr),
+                Ok,
+            )
+        }
     }
 
     /// The checks shared by both products: entry levels (`== x.level()`) and scales, the
@@ -664,7 +686,13 @@ impl Evaluator {
                 return Err(HekitError::ScaleMismatch);
             }
         }
-        self.bsgs(terms, is_zero_plaintext, |w, xr| self.mul_plain(xr, w), Ok)
+        self.bsgs(
+            terms,
+            self.config().bsgs,
+            is_zero_plaintext,
+            |w, xr| self.mul_plain(xr, w),
+            Ok,
+        )
     }
 
     /// [`Evaluator::matvec_plain_sum`] for diagonals whose zero entries are not stored
@@ -719,6 +747,7 @@ impl Evaluator {
         }
         self.bsgs(
             terms,
+            self.config().bsgs,
             Option::is_none,
             |w, xr| self.mul_plain(xr, w.as_ref().expect("skipped if None")),
             Ok,
@@ -729,9 +758,17 @@ impl Evaluator {
     /// (offset + g k1) s)`, skipping the entries for which `skip` holds (and the baby
     /// rotations and giant blocks only they would use). All terms share one shape. The
     /// callers have validated everything, so no step fails part-way.
+    ///
+    /// With `share_giant == false` ([`crate::ops::EvalConfig::bsgs`] off, the RQ3 ablation) the giant
+    /// rotation is not shared: every kept product with a nonzero giant shift is finished and
+    /// rotated on its own, `rot(finish(mul(entry, rot(x_t, k2 s))), (offset + g k1) s)`, and
+    /// only the products of a zero shift are summed before one `finish`. Same keys, same
+    /// value; for `offset = 0` and no skipped entry that is `d - 1` rotations (`baby - 1`
+    /// baby, `d - baby` product rotations) instead of `baby + giant - 2`.
     fn bsgs<T: Sync>(
         &self,
         terms: &[(&Diagonals<T>, &Ciphertext)],
+        share_giant: bool,
         skip: impl Fn(&T) -> bool + Sync + Send,
         mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext> + Sync + Send,
         finish: impl Fn(Ciphertext) -> Result<Ciphertext> + Sync + Send,
@@ -756,6 +793,26 @@ impl Evaluator {
         // The giant-step blocks are independent (in parallel with the `parallel` feature,
         // crate::par); they are summed in their sequential order, so the result is the same.
         let block = |k1: usize| -> Result<Option<Ciphertext>> {
+            let shift = (offset + (baby * k1) as i64) * stride as i64;
+            if !share_giant && shift != 0 {
+                // Naive: one finish and one giant rotation per product.
+                let mut sum: Option<Ciphertext> = None;
+                for (&(diag, _), xr) in terms.iter().zip(&xs) {
+                    let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
+                    for (w, xk) in row.iter().zip(xr) {
+                        if skip(w) {
+                            continue;
+                        }
+                        let t = finish(mul(w, xk.as_ref().expect("rotated for a kept entry"))?)?;
+                        let t = self.rotate(&t, shift as i32)?;
+                        sum = Some(match sum {
+                            None => t,
+                            Some(s) => self.add(&s, &t)?,
+                        });
+                    }
+                }
+                return Ok(sum);
+            }
             let mut inner: Option<Ciphertext> = None;
             for (&(diag, _), xr) in terms.iter().zip(&xs) {
                 let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
@@ -774,7 +831,6 @@ impl Evaluator {
                 return Ok(None);
             };
             let mut block = finish(inner)?;
-            let shift = (offset + (baby * k1) as i64) * stride as i64;
             if shift != 0 {
                 block = self.rotate(&block, shift as i32)?;
             }
@@ -1236,6 +1292,127 @@ mod tests {
     #[test]
     fn matvec_d16() {
         check_matvec(16, 1, 19);
+    }
+
+    /// The limbs of every component (bit-exact comparison).
+    fn bits(c: &Ciphertext) -> Vec<Vec<Vec<u64>>> {
+        c.polys().iter().map(|p| p.limbs().to_vec()).collect()
+    }
+
+    /// Task 43: the RQ3 ablation flags on `matvec_enc` / `matvec_plain` (d = 16, baby =
+    /// giant = 4). Every one of the 8 configurations decodes within 2^-20 of the default; all
+    /// off costs `d - 1` rotations and `d` relins; the counts of every combination follow
+    /// the documented rule; hoisting changes nothing but the cost (bit-identical results).
+    #[test]
+    fn ablation_flags_matvec_d16() {
+        use crate::ops::EvalConfig;
+        let d = 16;
+        let c = ctx(small(), d, 1, 23);
+        let (slots, top, delta_s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let (baby, giant) = bsgs_split(d);
+        let mut r = rng(124);
+        let w = rand_matrix(&mut r, d);
+        let x = rand_vals(&mut r, d);
+        let diags = diagonals_from_matrix(&w, slots, 1);
+        let ct_x = c.encryptor.encrypt(
+            &c.enc.encode(&pack(&[x], slots), delta_s, top).unwrap(),
+            &mut r,
+        );
+        let cdiag =
+            Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, delta_s, top, &mut r)
+                .unwrap();
+        let pdiag = Diagonals::<Plaintext>::encode(&c.enc, &diags, 1, delta_s, top).unwrap();
+        let run = |cfg: EvalConfig| {
+            let e = Evaluator::with_config(
+                Arc::clone(&c.params),
+                c.eval.relin_key().cloned(),
+                c.eval.galois_keys().cloned(),
+                cfg,
+            );
+            let ye = e.matvec_enc(&cdiag, &ct_x).unwrap();
+            let enc_ops = e.counter();
+            e.reset_counter();
+            let yp = e.matvec_plain(&pdiag, &ct_x).unwrap();
+            let plain_ops = e.counter();
+            assert_eq!(
+                (ye.len(), ye.level(), ye.scale()),
+                (2, top, delta_s * delta_s)
+            );
+            assert_eq!(yp.scale(), delta_s * delta_s);
+            let dec = |y: &Ciphertext| c.enc.decode(&c.dec.decrypt(&e.rescale(y).unwrap()));
+            (dec(&ye), dec(&yp), enc_ops, plain_ops)
+        };
+        let (ref_e, ref_p, _, _) = run(EvalConfig::default());
+        for cfg in EvalConfig::all() {
+            let (ge, gp, oe, op) = run(cfg);
+            let err_e = ge
+                .iter()
+                .zip(&ref_e)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            let err_p = gp
+                .iter()
+                .zip(&ref_p)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            eprintln!(
+                "{cfg:?}: enc {oe:?} (vs default 2^{:.1}), plain rotations {} (2^{:.1})",
+                err_e.log2(),
+                op.rotations,
+                err_p.log2()
+            );
+            assert!(err_e < 2f64.powi(-20), "{cfg:?} enc {err_e:e}");
+            assert!(err_p < 2f64.powi(-20), "{cfg:?} plain {err_p:e}");
+            let rot = if cfg.bsgs { baby + giant - 2 } else { d - 1 } as u64;
+            let relins = match (cfg.bsgs, cfg.lazy_relin) {
+                (_, false) => d,
+                (true, true) => giant,
+                (false, true) => 1 + d - baby,
+            } as u64;
+            assert_eq!(
+                (oe.rotations, oe.relins, oe.ct_ct_tensor),
+                (rot, relins, d as u64)
+            );
+            assert_eq!(
+                (op.rotations, op.relins, op.ct_pt_mults),
+                (rot, 0, d as u64)
+            );
+            assert_eq!(
+                (cfg.matvec_rotations(d), cfg.matvec_enc_relins(d)),
+                (rot, relins)
+            );
+        }
+        // The brief's case: all off.
+        let (_, _, oe, _) = run(EvalConfig::NAIVE);
+        assert_eq!((oe.rotations, oe.relins), (d as u64 - 1, d as u64));
+
+        // hoist only: bit-identical to the default (the hoisted rotation is exact).
+        let no_hoist = EvalConfig {
+            hoist: false,
+            ..EvalConfig::default()
+        };
+        let e0 = &c.eval;
+        let e1 = Evaluator::with_config(
+            Arc::clone(&c.params),
+            c.eval.relin_key().cloned(),
+            c.eval.galois_keys().cloned(),
+            no_hoist,
+        );
+        let a = e0.matvec_enc(&cdiag, &ct_x).unwrap();
+        let b = e1.matvec_enc(&cdiag, &ct_x).unwrap();
+        assert_eq!(bits(&a), bits(&b));
+        let steps = bsgs_rotation_steps(d, 1);
+        let h0 = e0.hoisted_rotate(&ct_x, &steps).unwrap();
+        let before = e1.counter();
+        let h1 = e1.hoisted_rotate(&ct_x, &steps).unwrap();
+        assert_eq!(delta(&before, &e1.counter()).rotations, steps.len() as u64);
+        for (p, q) in h0.iter().zip(&h1) {
+            assert_eq!(bits(p), bits(q));
+        }
+        // A missing key fails before any work in the naive path too.
+        let before = e1.counter();
+        assert!(e1.hoisted_rotate(&ct_x, &[1, 5]).is_err());
+        assert_eq!(e1.counter(), before);
     }
 
     /// d = 32: baby 8, giant 4 (not a square split).

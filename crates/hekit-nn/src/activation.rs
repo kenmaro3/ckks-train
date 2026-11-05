@@ -38,16 +38,22 @@
 //!
 //! The `Encoder` is a parameter of every method: building one costs `O(N)` tables.
 
-use hekit_ckks::{Ciphertext, Encoder, Evaluator};
+use hekit_ckks::{DiagonalEntry, Encoder, Evaluator, HeOps};
 use hekit_core::error::{HekitError, Result};
 
 /// A polynomial activation applied to a ciphertext of pre-activations `z`.
-pub trait Activation {
+///
+/// Generic over the evaluator `E` ([`Evaluator`] by default, so `dyn Activation` is the CPU
+/// one); the library's activations implement it for every `E: HeOps`, and also have the
+/// `E`-independent methods ([`Activation::eval_plain`], [`Activation::depth`], ...) as inherent
+/// methods, so `Square.depth()` needs no evaluator type. Constants are encoded on the host
+/// with `enc` and uploaded ([`HeOps::upload_pt_owned`]).
+pub trait Activation<E: HeOps = Evaluator> {
     /// `f(z)`. Consumes [`Activation::depth`] levels; the result's scale is the natural scale
     /// of the computation's history (e.g. `S^2 / q_l` for `Square`).
     ///
     /// Errors: `NoLevelsLeft` if `z.level() < depth()`; evaluator errors (missing relin key).
-    fn forward(&self, ev: &Evaluator, enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext>;
+    fn forward(&self, ev: &E, enc: &Encoder, z: &E::Ct) -> Result<E::Ct>;
 
     /// `scale_const * mask * f'(z)` with the constant and slot mask folded into the plaintext
     /// multiplies (no extra level), at the scale `target_scale` (default: `z.scale()`).
@@ -55,35 +61,29 @@ pub trait Activation {
     /// count. The result is at level `z.level() - derivative_depth()`.
     fn derivative_factor_at(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        z: &Ciphertext,
+        z: &E::Ct,
         scale_const: f64,
         mask: Option<&[f64]>,
         target_scale: Option<f64>,
-    ) -> Result<Ciphertext>;
+    ) -> Result<E::Ct>;
 
     /// [`Activation::derivative_factor_at`] at `z`'s own scale.
     fn derivative_factor(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        z: &Ciphertext,
+        z: &E::Ct,
         scale_const: f64,
         mask: Option<&[f64]>,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         self.derivative_factor_at(ev, enc, z, scale_const, mask, None)
     }
 
     /// `f'(z) * upstream`, rescaled: levels are aligned by switching the higher operand down,
     /// the result is at `min(z.level() - derivative_depth(), upstream.level()) - 1`.
-    fn backward(
-        &self,
-        ev: &Evaluator,
-        enc: &Encoder,
-        z: &Ciphertext,
-        upstream: &Ciphertext,
-    ) -> Result<Ciphertext> {
+    fn backward(&self, ev: &E, enc: &Encoder, z: &E::Ct, upstream: &E::Ct) -> Result<E::Ct> {
         let s = self.derivative_factor(ev, enc, z, 1.0, None)?;
         let level = s.level().min(upstream.level());
         let s = ev.mod_switch_to_level(&s, level)?;
@@ -172,36 +172,33 @@ fn constant(slots: usize, c: f64) -> Coef {
     (c != 0.0).then(|| vec![c; slots])
 }
 
-fn q_at(ev: &Evaluator, level: usize) -> f64 {
+fn q_at<E: HeOps>(ev: &E, level: usize) -> f64 {
     ev.params().q()[level] as f64
 }
 
 /// `rescale(ct * v)` with `v` encoded so that the result has scale `target` (see the module
 /// docs). One level.
-fn mul_to(
-    ev: &Evaluator,
-    enc: &Encoder,
-    ct: &Ciphertext,
-    v: &[f64],
-    target: f64,
-) -> Result<Ciphertext> {
+fn mul_to<E: HeOps>(ev: &E, enc: &Encoder, ct: &E::Ct, v: &[f64], target: f64) -> Result<E::Ct> {
     let l = ct.level();
     if l == 0 {
         return Err(HekitError::NoLevelsLeft);
     }
-    let pt = enc.encode(v, target * q_at(ev, l) / ct.scale(), l)?;
+    let pt = ev.upload_pt_owned(enc.encode(v, target * q_at(ev, l) / ct.scale(), l)?)?;
     ev.rescale(&ev.mul_plain(ct, &pt)?)
 }
 
 /// `ct + v` with `v` encoded at `ct`'s exact scale and level.
-fn add_vec(ev: &Evaluator, enc: &Encoder, ct: &Ciphertext, v: &Coef) -> Result<Ciphertext> {
+fn add_vec<E: HeOps>(ev: &E, enc: &Encoder, ct: &E::Ct, v: &Coef) -> Result<E::Ct> {
     match v {
         None => Ok(ct.clone()),
-        Some(v) => ev.add_plain(ct, &enc.encode(v, ct.scale(), ct.level())?),
+        Some(v) => ev.add_plain(
+            ct,
+            &ev.upload_pt_owned(enc.encode(v, ct.scale(), ct.level())?)?,
+        ),
     }
 }
 
-fn add_aligned(ev: &Evaluator, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+fn add_aligned<E: HeOps>(ev: &E, a: &E::Ct, b: &E::Ct) -> Result<E::Ct> {
     let l = a.level().min(b.level());
     ev.add(
         &ev.mod_switch_to_level(a, l)?,
@@ -209,11 +206,11 @@ fn add_aligned(ev: &Evaluator, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphert
     )
 }
 
-fn square(ev: &Evaluator, z: &Ciphertext) -> Result<Ciphertext> {
+fn square<E: HeOps>(ev: &E, z: &E::Ct) -> Result<E::Ct> {
     ev.rescale(&ev.mul(z, z)?)
 }
 
-fn check_levels(z: &Ciphertext, need: usize) -> Result<()> {
+fn check_levels<C: DiagonalEntry>(z: &C, need: usize) -> Result<()> {
     if z.level() < need {
         return Err(HekitError::NoLevelsLeft);
     }
@@ -223,23 +220,23 @@ fn check_levels(z: &Ciphertext, need: usize) -> Result<()> {
 /// Evaluates `sum_i coeffs[i] z^i` for slot-vector coefficients (`coeffs.len() - 1 = d` in
 /// `1..=4`, `coeffs[d]` nonzero), in `ceil(log2(d + 1))` levels, landing on `target` (default:
 /// the natural scale). See the module docs for the scheme.
-fn eval_poly(
-    ev: &Evaluator,
+fn eval_poly<E: HeOps>(
+    ev: &E,
     enc: &Encoder,
-    z: &Ciphertext,
+    z: &E::Ct,
     coeffs: &[Coef],
     target: Option<f64>,
-) -> Result<Ciphertext> {
+) -> Result<E::Ct> {
     let d = coeffs.len() - 1;
     assert!((1..=4).contains(&d) && coeffs[d].is_some());
     check_levels(z, ceil_log2(d + 1))?;
-    let lin = |t: f64| -> Result<Option<Ciphertext>> {
+    let lin = |t: f64| -> Result<Option<E::Ct>> {
         coeffs[1]
             .as_ref()
             .map(|c| mul_to(ev, enc, z, c, t))
             .transpose()
     };
-    let finish = |acc: Ciphertext, t: f64| -> Result<Ciphertext> {
+    let finish = |acc: E::Ct, t: f64| -> Result<E::Ct> {
         // `acc` has scale `t`; add `c1 z` (exact scale `t`) and `c0`.
         let acc = match lin(t)? {
             Some(l1) => add_aligned(ev, &acc, &l1)?,
@@ -265,7 +262,7 @@ fn eval_poly(
         Some(t) => t * q_at(ev, ql) / z2.scale(),
         None => z2.scale(),
     };
-    let mut q: Option<Ciphertext> = None;
+    let mut q: Option<E::Ct> = None;
     if let Some(c3) = &coeffs[3] {
         q = Some(mul_to(ev, enc, z, c3, t_in)?);
     }
@@ -286,7 +283,7 @@ fn eval_poly(
 }
 
 /// `scale_const * mask` as a slot vector (`None` mask: all ones).
-fn folded(ev: &Evaluator, scale_const: f64, mask: Option<&[f64]>) -> Result<Vec<f64>> {
+fn folded<E: HeOps>(ev: &E, scale_const: f64, mask: Option<&[f64]>) -> Result<Vec<f64>> {
     let slots = ev.params().slots();
     if !scale_const.is_finite() {
         return Err(HekitError::InvalidParams("non-finite scale_const".into()));
@@ -305,9 +302,50 @@ fn scaled(v: &[f64], f: f64) -> Coef {
     (f != 0.0 && v.iter().any(|&x| x != 0.0)).then(|| v.iter().map(|&x| f * x).collect())
 }
 
-impl Activation for Identity {
+/// The E-independent methods of [`Activation`], delegated to the inherent ones of the same
+/// name (so that `Square.depth()` needs no evaluator type).
+macro_rules! shape_methods {
+    () => {
+        fn eval_plain(&self, z: f64) -> f64 {
+            Self::eval_plain(self, z)
+        }
+        fn depth(&self) -> usize {
+            Self::depth(self)
+        }
+        fn derivative_depth(&self) -> usize {
+            Self::derivative_depth(self)
+        }
+        fn constant_derivative(&self) -> Option<f64> {
+            Self::constant_derivative(self)
+        }
+    };
+}
+
+impl Identity {
+    /// `f(z)` on a plaintext value ([`Activation::eval_plain`]).
+    pub fn eval_plain(&self, z: f64) -> f64 {
+        z
+    }
+
+    /// Levels consumed by the forward ([`Activation::depth`]).
+    pub fn depth(&self) -> usize {
+        0
+    }
+
+    /// Levels consumed by the derivative factor ([`Activation::derivative_depth`]).
+    pub fn derivative_depth(&self) -> usize {
+        0
+    }
+
+    /// The constant derivative, if any ([`Activation::constant_derivative`]).
+    pub fn constant_derivative(&self) -> Option<f64> {
+        Some(1.0)
+    }
+}
+
+impl<E: HeOps> Activation<E> for Identity {
     /// `z` itself (no op, no level).
-    fn forward(&self, _ev: &Evaluator, _enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext> {
+    fn forward(&self, _ev: &E, _enc: &Encoder, z: &E::Ct) -> Result<E::Ct> {
         Ok(z.clone())
     }
 
@@ -315,13 +353,13 @@ impl Activation for Identity {
     /// (use [`Activation::constant_derivative`]).
     fn derivative_factor_at(
         &self,
-        _ev: &Evaluator,
+        _ev: &E,
         _enc: &Encoder,
-        _z: &Ciphertext,
+        _z: &E::Ct,
         _scale_const: f64,
         _mask: Option<&[f64]>,
         _target_scale: Option<f64>,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         Err(HekitError::InvalidParams(
             "the identity has a constant derivative (no ciphertext); use constant_derivative"
                 .into(),
@@ -329,48 +367,50 @@ impl Activation for Identity {
     }
 
     /// `upstream` itself (`f' = 1`: no op, no level).
-    fn backward(
-        &self,
-        _ev: &Evaluator,
-        _enc: &Encoder,
-        _z: &Ciphertext,
-        upstream: &Ciphertext,
-    ) -> Result<Ciphertext> {
+    fn backward(&self, _ev: &E, _enc: &Encoder, _z: &E::Ct, upstream: &E::Ct) -> Result<E::Ct> {
         Ok(upstream.clone())
     }
 
-    fn eval_plain(&self, z: f64) -> f64 {
-        z
+    shape_methods!();
+}
+
+impl Square {
+    /// `f(z)` on a plaintext value ([`Activation::eval_plain`]).
+    pub fn eval_plain(&self, z: f64) -> f64 {
+        z * z
     }
 
-    fn depth(&self) -> usize {
-        0
+    /// Levels consumed by the forward ([`Activation::depth`]).
+    pub fn depth(&self) -> usize {
+        1
     }
 
-    fn derivative_depth(&self) -> usize {
-        0
+    /// Levels consumed by the derivative factor ([`Activation::derivative_depth`]).
+    pub fn derivative_depth(&self) -> usize {
+        1
     }
 
-    fn constant_derivative(&self) -> Option<f64> {
-        Some(1.0)
+    /// The constant derivative, if any ([`Activation::constant_derivative`]).
+    pub fn constant_derivative(&self) -> Option<f64> {
+        None
     }
 }
 
-impl Activation for Square {
-    fn forward(&self, ev: &Evaluator, _enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext> {
+impl<E: HeOps> Activation<E> for Square {
+    fn forward(&self, ev: &E, _enc: &Encoder, z: &E::Ct) -> Result<E::Ct> {
         check_levels(z, 1)?;
         square(ev, z)
     }
 
     fn derivative_factor_at(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        z: &Ciphertext,
+        z: &E::Ct,
         scale_const: f64,
         mask: Option<&[f64]>,
         target_scale: Option<f64>,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         let km = folded(ev, scale_const, mask)?;
         let c1 = scaled(&km, 2.0).ok_or_else(|| {
             HekitError::InvalidParams("derivative factor is identically zero".into())
@@ -378,23 +418,35 @@ impl Activation for Square {
         eval_poly(ev, enc, z, &[None, Some(c1)], target_scale)
     }
 
-    fn eval_plain(&self, z: f64) -> f64 {
-        z * z
+    shape_methods!();
+}
+
+impl PolyRelu2 {
+    /// `f(z)` on a plaintext value ([`Activation::eval_plain`]).
+    pub fn eval_plain(&self, z: f64) -> f64 {
+        z * z + z
     }
 
-    fn depth(&self) -> usize {
+    /// Levels consumed by the forward ([`Activation::depth`]).
+    pub fn depth(&self) -> usize {
         1
     }
 
-    fn derivative_depth(&self) -> usize {
+    /// Levels consumed by the derivative factor ([`Activation::derivative_depth`]).
+    pub fn derivative_depth(&self) -> usize {
         1
+    }
+
+    /// The constant derivative, if any ([`Activation::constant_derivative`]).
+    pub fn constant_derivative(&self) -> Option<f64> {
+        None
     }
 }
 
-impl Activation for PolyRelu2 {
+impl<E: HeOps> Activation<E> for PolyRelu2 {
     /// `z^2 + z`: `z` is brought to `z^2`'s level and scale by `rescale(z * 1)` with `1`
     /// encoded at scale `S` (exact), so the sum adds identical histories.
-    fn forward(&self, ev: &Evaluator, enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext> {
+    fn forward(&self, ev: &E, enc: &Encoder, z: &E::Ct) -> Result<E::Ct> {
         check_levels(z, 1)?;
         let z2 = square(ev, z)?;
         let ones = vec![1.0; ev.params().slots()];
@@ -404,13 +456,13 @@ impl Activation for PolyRelu2 {
 
     fn derivative_factor_at(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        z: &Ciphertext,
+        z: &E::Ct,
         scale_const: f64,
         mask: Option<&[f64]>,
         target_scale: Option<f64>,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         let km = folded(ev, scale_const, mask)?;
         let c1 = scaled(&km, 2.0).ok_or_else(|| {
             HekitError::InvalidParams("derivative factor is identically zero".into())
@@ -418,21 +470,33 @@ impl Activation for PolyRelu2 {
         eval_poly(ev, enc, z, &[scaled(&km, 1.0), Some(c1)], target_scale)
     }
 
-    fn eval_plain(&self, z: f64) -> f64 {
-        z * z + z
+    shape_methods!();
+}
+
+impl Poly {
+    /// `f(z)` on a plaintext value ([`Activation::eval_plain`]).
+    pub fn eval_plain(&self, z: f64) -> f64 {
+        self.coeffs.iter().rev().fold(0.0, |acc, &c| acc * z + c)
     }
 
-    fn depth(&self) -> usize {
-        1
+    /// Levels consumed by the forward ([`Activation::depth`]).
+    pub fn depth(&self) -> usize {
+        ceil_log2(self.degree() + 1)
     }
 
-    fn derivative_depth(&self) -> usize {
-        1
+    /// Levels consumed by the derivative factor ([`Activation::derivative_depth`]).
+    pub fn derivative_depth(&self) -> usize {
+        ceil_log2(self.degree())
+    }
+
+    /// The constant derivative, if any ([`Activation::constant_derivative`]).
+    pub fn constant_derivative(&self) -> Option<f64> {
+        None
     }
 }
 
-impl Activation for Poly {
-    fn forward(&self, ev: &Evaluator, enc: &Encoder, z: &Ciphertext) -> Result<Ciphertext> {
+impl<E: HeOps> Activation<E> for Poly {
+    fn forward(&self, ev: &E, enc: &Encoder, z: &E::Ct) -> Result<E::Ct> {
         let slots = ev.params().slots();
         let coeffs: Vec<Coef> = self.coeffs.iter().map(|&c| constant(slots, c)).collect();
         eval_poly(ev, enc, z, &coeffs, None)
@@ -440,13 +504,13 @@ impl Activation for Poly {
 
     fn derivative_factor_at(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        z: &Ciphertext,
+        z: &E::Ct,
         scale_const: f64,
         mask: Option<&[f64]>,
         target_scale: Option<f64>,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         let km = folded(ev, scale_const, mask)?;
         let coeffs: Vec<Coef> = (1..self.coeffs.len())
             .map(|i| scaled(&km, i as f64 * self.coeffs[i]))
@@ -459,15 +523,5 @@ impl Activation for Poly {
         eval_poly(ev, enc, z, &coeffs, target_scale.or(Some(z.scale())))
     }
 
-    fn eval_plain(&self, z: f64) -> f64 {
-        self.coeffs.iter().rev().fold(0.0, |acc, &c| acc * z + c)
-    }
-
-    fn depth(&self) -> usize {
-        ceil_log2(self.degree() + 1)
-    }
-
-    fn derivative_depth(&self) -> usize {
-        ceil_log2(self.degree())
-    }
+    shape_methods!();
 }

@@ -102,8 +102,8 @@
 //!
 //! # Exact-scale path (M2 rulings)
 //!
-//! The eq. 5 mask is encoded at [`Evaluator::target_plain_scale`] of the rotated sum and
-//! multiplied with [`Evaluator::mul_plain_to_scale`], so the expanded result has **exactly**
+//! The eq. 5 mask is encoded at [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) of the rotated sum and
+//! multiplied with [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale), so the expanded result has **exactly**
 //! the target scale (`Delta = params.scale()` for [`RebootLayout::expand`] and
 //! [`RebootLayout::vecmat_col`]; always reachable, it is a power of two). Additions inside
 //! eq. 4 / eq. 5 add a ciphertext to its own rotation (identical scale); [`RebootLayout::outer_sum`]
@@ -119,7 +119,7 @@
 //! for `row_sum` / `vecmat`, [`RebootLayout::expand_steps`] for `expand` / `vecmat_col`
 //! ([`RebootLayout::galois_steps`] = both).
 
-use hekit_ckks::{Ciphertext, Encoder, Evaluator};
+use hekit_ckks::{DiagonalEntry, Encoder, HeOps};
 use hekit_core::error::{HekitError, Result};
 use ndarray::Array2;
 
@@ -130,7 +130,9 @@ pub enum GradRelin {
     /// default, the baseline "as specified".
     PerSample,
     /// Sum the degree-2 products and relinearize once (1 relin): the cost model's
-    /// hypothetical `lazy_relin=True`: the generous baseline, the RQ1 headline.
+    /// hypothetical `lazy_relin=True`: the generous baseline, the RQ1 headline. Honoured only
+    /// when the evaluator's [`hekit_ckks::EvalConfig::lazy_relin`] flag is on (default); with
+    /// it off (the RQ3 ablation) this acts as [`GradRelin::PerSample`].
     Lazy,
 }
 
@@ -291,7 +293,7 @@ impl RebootLayout {
     ///
     /// Errors: `InvalidParams` for a slot-count mismatch or a missing Galois key (checked
     /// first); evaluator errors.
-    pub fn row_sum(&self, ev: &Evaluator, m: &Ciphertext) -> Result<Ciphertext> {
+    pub fn row_sum<E: HeOps>(&self, ev: &E, m: &E::Ct) -> Result<E::Ct> {
         self.check(ev, &self.row_sum_steps(), m.level(), 0)?;
         self.row_sum_unchecked(ev, m.clone())
     }
@@ -302,22 +304,22 @@ impl RebootLayout {
     ///
     /// The `Encoder` encodes the mask (at `m`'s level and the exact-scale plaintext scale).
     /// Errors as [`RebootLayout::row_sum`], plus `NoLevelsLeft` at level 0.
-    pub fn expand(&self, ev: &Evaluator, enc: &Encoder, m: &Ciphertext) -> Result<Ciphertext> {
+    pub fn expand<E: HeOps>(&self, ev: &E, enc: &Encoder, m: &E::Ct) -> Result<E::Ct> {
         self.expand_to_scale(ev, enc, m, 1.0, ev.params().scale())
     }
 
     /// [`RebootLayout::expand`] with the constant `mask_value` folded into the mask (the
     /// result is `mask_value` times the row sums, at no extra cost) and an explicit target
-    /// scale (exactly the result's scale; see [`Evaluator::exact_product_scale`] for which
+    /// scale (exactly the result's scale; see [`Evaluator::exact_product_scale`](hekit_ckks::Evaluator::exact_product_scale) for which
     /// targets are reachable, e.g. any power of two).
-    pub fn expand_to_scale(
+    pub fn expand_to_scale<E: HeOps>(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        m: &Ciphertext,
+        m: &E::Ct,
         mask_value: f64,
         target_scale: f64,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         self.check(ev, &self.expand_steps(), m.level(), 1)?;
         if !mask_value.is_finite() {
             return invalid(format!("mask value {mask_value} must be finite"));
@@ -333,12 +335,7 @@ impl RebootLayout {
     ///
     /// Errors: as [`RebootLayout::row_sum`], plus `NoLevelsLeft` at level 0; evaluator errors
     /// (missing relin key).
-    pub fn vecmat(
-        &self,
-        ev: &Evaluator,
-        x_expanded: &Ciphertext,
-        w: &Ciphertext,
-    ) -> Result<Ciphertext> {
+    pub fn vecmat<E: HeOps>(&self, ev: &E, x_expanded: &E::Ct, w: &E::Ct) -> Result<E::Ct> {
         let level = x_expanded.level().min(w.level());
         self.check(ev, &self.row_sum_steps(), level, 1)?;
         let p = self.product(ev, x_expanded, w)?;
@@ -351,13 +348,13 @@ impl RebootLayout {
     /// The result is at `min(level) - 2` with scale exactly `Delta`.
     ///
     /// Errors as [`RebootLayout::vecmat`] (`NoLevelsLeft` below level 2).
-    pub fn vecmat_col(
+    pub fn vecmat_col<E: HeOps>(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        x_repeated: &Ciphertext,
-        w: &Ciphertext,
-    ) -> Result<Ciphertext> {
+        x_repeated: &E::Ct,
+        w: &E::Ct,
+    ) -> Result<E::Ct> {
         let level = x_repeated.level().min(w.level());
         self.check(ev, &self.expand_steps(), level, 2)?;
         let target = ev.params().scale();
@@ -373,12 +370,7 @@ impl RebootLayout {
     ///
     /// Errors: `InvalidParams` for a slot-count mismatch, `NoLevelsLeft` at level 0 (checked
     /// first); evaluator errors.
-    pub fn outer(
-        &self,
-        ev: &Evaluator,
-        x_expanded: &Ciphertext,
-        y_repeated: &Ciphertext,
-    ) -> Result<Ciphertext> {
+    pub fn outer<E: HeOps>(&self, ev: &E, x_expanded: &E::Ct, y_repeated: &E::Ct) -> Result<E::Ct> {
         let level = x_expanded.level().min(y_repeated.level());
         self.check(ev, &[], level, 1)?;
         self.product(ev, x_expanded, y_repeated)
@@ -392,12 +384,12 @@ impl RebootLayout {
     /// Errors (checked first): `InvalidParams` for an empty batch or a slot-count mismatch,
     /// `LevelMismatch` / `ScaleMismatch` across samples, `NoLevelsLeft` at level 0; evaluator
     /// errors.
-    pub fn outer_sum(
+    pub fn outer_sum<E: HeOps>(
         &self,
-        ev: &Evaluator,
-        pairs: &[(&Ciphertext, &Ciphertext)],
+        ev: &E,
+        pairs: &[(&E::Ct, &E::Ct)],
         relin: GradRelin,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         let Some(&(x0, y0)) = pairs.first() else {
             return invalid("outer_sum of an empty batch".into());
         };
@@ -412,15 +404,18 @@ impl RebootLayout {
             }
         }
         self.check(ev, &[], level, 1)?;
-        let mut acc: Option<Ciphertext> = None;
+        // `Lazy` is honoured only with the evaluator's `lazy_relin` flag (RQ3 ablation).
+        let lazy = relin == GradRelin::Lazy && ev.config().lazy_relin;
+        let mut acc: Option<E::Ct> = None;
         for &(x, y) in pairs {
             let (x, y) = (
                 ev.mod_switch_to_level(x, level)?,
                 ev.mod_switch_to_level(y, level)?,
             );
-            let p = match relin {
-                GradRelin::PerSample => ev.mul(&x, &y)?,
-                GradRelin::Lazy => ev.mul_no_relin(&x, &y)?,
+            let p = if lazy {
+                ev.mul_no_relin(&x, &y)?
+            } else {
+                ev.mul(&x, &y)?
             };
             acc = Some(match acc {
                 None => p,
@@ -428,14 +423,14 @@ impl RebootLayout {
             });
         }
         let mut s = acc.expect("non-empty batch");
-        if relin == GradRelin::Lazy {
+        if lazy {
             s = ev.relinearize(&s)?;
         }
         ev.rescale(&s)
     }
 
     /// Checks the slot count, the Galois keys for `steps` and that `level >= need`.
-    fn check(&self, ev: &Evaluator, steps: &[i32], level: usize, need: usize) -> Result<()> {
+    fn check<E: HeOps>(&self, ev: &E, steps: &[i32], level: usize, need: usize) -> Result<()> {
         let slots = ev.params().slots();
         if slots != self.slots() {
             return invalid(format!(
@@ -445,11 +440,8 @@ impl RebootLayout {
                 self.slots()
             ));
         }
-        if !steps.is_empty() {
-            let gks = ev.galois_keys();
-            if steps.iter().any(|&s| gks.and_then(|g| g.get(s)).is_none()) {
-                return invalid("missing galois key".into());
-            }
+        if steps.iter().any(|&s| !ev.has_galois_key(s)) {
+            return invalid("missing galois key".into());
         }
         if level < need {
             return Err(HekitError::NoLevelsLeft);
@@ -458,7 +450,7 @@ impl RebootLayout {
     }
 
     /// `rescale(a * b)` after switching the higher operand down.
-    fn product(&self, ev: &Evaluator, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
+    fn product<E: HeOps>(&self, ev: &E, a: &E::Ct, b: &E::Ct) -> Result<E::Ct> {
         let level = a.level().min(b.level());
         let a = ev.mod_switch_to_level(a, level)?;
         let b = ev.mod_switch_to_level(b, level)?;
@@ -466,7 +458,7 @@ impl RebootLayout {
     }
 
     /// Eq. 4 without the checks.
-    fn row_sum_unchecked(&self, ev: &Evaluator, mut s: Ciphertext) -> Result<Ciphertext> {
+    fn row_sum_unchecked<E: HeOps>(&self, ev: &E, mut s: E::Ct) -> Result<E::Ct> {
         for step in self.row_sum_steps() {
             s = ev.add(&s, &ev.rotate(&s, step)?)?;
         }
@@ -474,15 +466,15 @@ impl RebootLayout {
     }
 
     /// Eq. 5 without the checks; `plain_scale` is `target_plain_scale(u, target_scale)`.
-    fn expand_unchecked(
+    fn expand_unchecked<E: HeOps>(
         &self,
-        ev: &Evaluator,
+        ev: &E,
         enc: &Encoder,
-        mut u: Ciphertext,
+        mut u: E::Ct,
         mask_value: f64,
         target_scale: f64,
         plain_scale: f64,
-    ) -> Result<Ciphertext> {
+    ) -> Result<E::Ct> {
         let k = log2(self.c);
         for e in (0..k).rev() {
             u = ev.add(&u, &ev.rotate(&u, 1 << e)?)?;
@@ -492,7 +484,7 @@ impl RebootLayout {
             .into_iter()
             .map(|m| m * mask_value)
             .collect();
-        let pt = enc.encode(&mask, plain_scale, u.level())?;
+        let pt = ev.upload_pt_owned(enc.encode(&mask, plain_scale, u.level())?)?;
         let mut s = ev.rescale(&ev.mul_plain_to_scale(&u, &pt, target_scale)?)?;
         for e in 0..k {
             s = ev.add(&s, &ev.rotate(&s, -(1 << e))?)?;

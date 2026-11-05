@@ -43,8 +43,8 @@
 //!
 //! # Scales and levels
 //!
-//! Both masks are encoded at [`Evaluator::target_plain_scale`] and applied with
-//! [`Evaluator::mul_plain_to_scale`], so every output has **exactly** its input's scale:
+//! Both masks are encoded at [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) and applied with
+//! [`Evaluator::mul_plain_to_scale`](hekit_ckks::Evaluator::mul_plain_to_scale), so every output has **exactly** its input's scale:
 //! [`compact_pack`] returns `level(W) - 1`, and [`compact_unpack`] returns
 //! `level(packed) - 1`. On n16_boot, weights that are packed, bootstrapped (to level 16) and
 //! unpacked are on level 15 at `Delta`.
@@ -59,12 +59,12 @@
 //!   padded `d_out` still has `pow2(d_out)` nonzero diagonals (`docs/layout.md` §2).
 //! - The pack and unpack shifts are binary trees (same rotation count as one lane shift per
 //!   diagonal, far fewer Galois keys). The unpack tree rotates distinct ciphertexts, so
-//!   [`Evaluator::hoisted_rotate`] has nothing to share and is not used.
+//!   [`Evaluator::hoisted_rotate`](hekit_ckks::Evaluator::hoisted_rotate) has nothing to share and is not used.
 
 use std::sync::Arc;
 
 use hekit_ckks::linalg::Diagonals;
-use hekit_ckks::{Ciphertext, Encoder, Evaluator, Plaintext};
+use hekit_ckks::{DiagonalEntry, Encoder, HeCiphertext, HeOps};
 use hekit_core::error::{HekitError, Result};
 
 use crate::dense::EncWeights;
@@ -201,8 +201,8 @@ pub fn compact_rotation_steps(plan: &CompactPlan) -> Vec<i32> {
 }
 
 /// `InvalidParams` unless every step has a Galois key in `ev`.
-fn check_keys(ev: &Evaluator, steps: &[i32]) -> Result<()> {
-    let have = |k: i32| ev.galois_keys().is_some_and(|g| g.get(k).is_some());
+fn check_keys<E: HeOps>(ev: &E, steps: &[i32]) -> Result<()> {
+    let have = |k: i32| ev.has_galois_key(k);
     match steps.iter().find(|&&k| !have(k)) {
         Some(k) => Err(HekitError::InvalidParams(format!(
             "compact: missing galois key for step {k}"
@@ -228,23 +228,23 @@ fn mask0_values(plan: &CompactPlan) -> Vec<f64> {
 /// `mask0` (lane 0 of the first period: slots `j B`, `j < L`) encoded so that
 /// `rescale(mul_plain_to_scale(ct, mask, ct.scale()))` is exactly `ct.scale()` on
 /// `ct.level() - 1`.
-fn mask0(ev: &Evaluator, plan: &CompactPlan, ct: &Ciphertext) -> Result<Plaintext> {
+fn mask0<E: HeOps>(ev: &E, plan: &CompactPlan, ct: &E::Ct) -> Result<E::Pt> {
     let scale = ev.target_plain_scale(ct, ct.scale())?;
-    Encoder::new(Arc::clone(ev.params())).encode(&mask0_values(plan), scale, ct.level())
+    ev.upload_pt_owned(Encoder::new(Arc::clone(ev.params())).encode(
+        &mask0_values(plan),
+        scale,
+        ct.level(),
+    )?)
 }
 
 /// `rescale(ct * mask)` at exactly `ct.scale()`.
-fn apply_mask(ev: &Evaluator, ct: &Ciphertext, mask: &Plaintext) -> Result<Ciphertext> {
+fn apply_mask<E: HeOps>(ev: &E, ct: &E::Ct, mask: &E::Pt) -> Result<E::Ct> {
     ev.rescale(&ev.mul_plain_to_scale(ct, mask, ct.scale())?)
 }
 
 /// `InvalidParams` unless `ct` is a 2-component ciphertext over the evaluator's basis.
-fn check_input(ev: &Evaluator, ct: &Ciphertext) -> Result<()> {
-    let ours = ct
-        .polys()
-        .iter()
-        .all(|p| Arc::ptr_eq(p.basis(), ev.params().basis_q()));
-    if !ours || ct.len() != 2 {
+fn check_input<E: HeOps>(ev: &E, ct: &E::Ct) -> Result<()> {
+    if !ev.owns(ct) || ct.size() != 2 {
         return Err(HekitError::InvalidParams(
             "compact: inputs must be 2-component ciphertexts over the evaluator's basis".into(),
         ));
@@ -269,9 +269,13 @@ fn check_input(ev: &Evaluator, ct: &Ciphertext) -> Result<()> {
 /// Errors, before any homomorphic work: `InvalidParams` if `w` is not the plan's layer
 /// (`d_out`, `d_in`, lanes), the plan's slot count is not the parameters', an entry is not a
 /// 2-component ciphertext over the evaluator's basis, or a key of [`compact_rotation_steps`]
-/// is missing. Then those of [`Evaluator::target_plain_scale`] (`NoLevelsLeft` at level 0,
+/// is missing. Then those of [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) (`NoLevelsLeft` at level 0,
 /// `ScaleMismatch` for a scale no rescale can keep).
-pub fn compact_pack(ev: &Evaluator, w: &EncWeights, plan: &CompactPlan) -> Result<Vec<Ciphertext>> {
+pub fn compact_pack<E: HeOps>(
+    ev: &E,
+    w: &EncWeights<E::Ct>,
+    plan: &CompactPlan,
+) -> Result<Vec<E::Ct>> {
     let diags = w.diagonals();
     if w.d_out() != plan.d_out
         || w.d_in() != plan.d_in
@@ -324,11 +328,11 @@ pub fn compact_pack(ev: &Evaluator, w: &EncWeights, plan: &CompactPlan) -> Resul
 /// is not a 2-component ciphertext over the evaluator's basis, or a key `-step_k` of the tree
 /// is missing; `LevelMismatch` / `ScaleMismatch` unless all entries share one level and
 /// exactly one scale.
-pub fn compact_shift(
-    ev: &Evaluator,
-    entries: &[Ciphertext],
+pub fn compact_shift<E: HeOps>(
+    ev: &E,
+    entries: &[E::Ct],
     plan: &CompactPlan,
-) -> Result<Vec<Ciphertext>> {
+) -> Result<Vec<E::Ct>> {
     if entries.len() != plan.diagonals() {
         return Err(HekitError::InvalidParams(format!(
             "compact_shift: {} entries for a plan of {} diagonals",
@@ -350,7 +354,7 @@ pub fn shift_steps(plan: &CompactPlan) -> Vec<i32> {
 }
 
 /// `LevelMismatch` / `ScaleMismatch` unless all of `cts` share one level and one scale.
-fn check_uniform_slice(cts: &[Ciphertext]) -> Result<()> {
+fn check_uniform_slice<C: DiagonalEntry>(cts: &[C]) -> Result<()> {
     for c in cts {
         if c.level() != cts[0].level() {
             return Err(HekitError::LevelMismatch);
@@ -365,13 +369,13 @@ fn check_uniform_slice(cts: &[Ciphertext]) -> Result<()> {
 /// The shift tree of [`compact_shift`] on checked inputs. Rotations by `-step_k` and
 /// additions of equal level and scale cannot fail on checked inputs, so this panics instead
 /// of returning an error there.
-fn shift_tree(ev: &Evaluator, entries: &[Ciphertext], plan: &CompactPlan) -> Vec<Ciphertext> {
+fn shift_tree<E: HeOps>(ev: &E, entries: &[E::Ct], plan: &CompactPlan) -> Vec<E::Ct> {
     let steps = plan.steps();
     let cap = plan.diags_per_ct;
     (0..plan.ciphertexts())
         .map(|i| {
             let n = plan.diagonals_in(i);
-            let mut groups: Vec<Ciphertext> = entries[i * cap..i * cap + n].to_vec();
+            let mut groups: Vec<E::Ct> = entries[i * cap..i * cap + n].to_vec();
             // Bit k: groups[2u] (bit 0) absorbs groups[2u + 1] (bit 1) shifted right by step_k.
             for &step in steps.iter().take(CompactPlan::tree_bits(n)) {
                 let mut next = Vec::with_capacity(groups.len().div_ceil(2));
@@ -461,16 +465,16 @@ pub fn extract_steps(plan: &CompactPlan, t: usize) -> Vec<i32> {
 /// Errors, before any homomorphic work: `InvalidParams` if `t >= diags_per_ct`, the plan's
 /// slot count is not the parameters', `ct` is not a 2-component ciphertext over the
 /// evaluator's basis, or a key of [`extract_steps`] is missing. Then those of
-/// [`Evaluator::target_plain_scale`] (`NoLevelsLeft` at level 0, `ScaleMismatch` when
+/// [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale) (`NoLevelsLeft` at level 0, `ScaleMismatch` when
 /// `target_scale` is not reachable from this level, `InvalidParams` for a plaintext scale
 /// below `2^20`).
-pub fn compact_extract(
-    ev: &Evaluator,
-    ct: &Ciphertext,
+pub fn compact_extract<E: HeOps>(
+    ev: &E,
+    ct: &E::Ct,
     plan: &CompactPlan,
     t: usize,
     target_scale: f64,
-) -> Result<Ciphertext> {
+) -> Result<E::Ct> {
     if t >= plan.diags_per_ct {
         return Err(HekitError::InvalidParams(format!(
             "compact_extract: position {t} of {}",
@@ -482,7 +486,8 @@ pub fn compact_extract(
     check_keys(ev, &extract_steps(plan, t))?;
     let mask = mask0_values(plan);
     let sp = ev.target_plain_scale(ct, target_scale)?;
-    let pt = Encoder::new(Arc::clone(ev.params())).encode(&mask, sp, ct.level())?;
+    let pt =
+        ev.upload_pt_owned(Encoder::new(Arc::clone(ev.params())).encode(&mask, sp, ct.level())?)?;
     let leaf = ev.rotate(ct, plan.offset(t) as i32)?;
     let mut y = ev.rescale(&ev.mul_plain_to_scale(&leaf, &pt, target_scale)?)?;
     for &step in &plan.steps() {
@@ -507,12 +512,12 @@ pub fn compact_extract(
 /// [`CompactPlan::ciphertexts`] entries, an entry is not a 2-component ciphertext over the
 /// evaluator's basis, the plan's slot count is not the parameters', or a key of
 /// [`compact_rotation_steps`] is missing; `LevelMismatch` / `ScaleMismatch` unless all entries
-/// share one level and exactly one scale. Then those of [`Evaluator::target_plain_scale`].
-pub fn compact_unpack(
-    ev: &Evaluator,
-    packed: &[Ciphertext],
+/// share one level and exactly one scale. Then those of [`Evaluator::target_plain_scale`](hekit_ckks::Evaluator::target_plain_scale).
+pub fn compact_unpack<E: HeOps>(
+    ev: &E,
+    packed: &[E::Ct],
     plan: &CompactPlan,
-) -> Result<EncWeights> {
+) -> Result<EncWeights<E::Ct>> {
     if packed.len() != plan.ciphertexts() {
         return Err(HekitError::InvalidParams(format!(
             "compact_unpack: {} ciphertexts for a plan of {}",

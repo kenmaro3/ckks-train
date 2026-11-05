@@ -49,14 +49,28 @@
 //! updated compact state; [`NonInteractiveTrainer::new`] refuses a network whose step does not
 //! fit the levels left after a bootstrap and an unpack (`InvalidParams`). See
 //! [`BootPlacement`] for what each placement bootstraps when.
+//!
+//! # Backends and the bootstrapper (Task 43)
+//!
+//! [`NonInteractiveTrainer`] is generic over the evaluator `E: HeOps` and the bootstrapper
+//! `B: `[`BootstrapOps<E>`] (defaults [`Evaluator`] and [`Bootstrapper`]). The CPU
+//! [`Bootstrapper`] is not generic: it implements `BootstrapOps<Evaluator>` only. A device
+//! backend supplies its own `BootstrapOps` (a device bootstrapper, Task 49, or a host adapter
+//! that downloads, bootstraps on the CPU and uploads). The trainer reads only
+//! [`BootstrapOps::output_level`] for its level schedule and calls
+//! [`BootstrapOps::bootstrap`] on its state. The evaluator's ablation flags apply as in the
+//! interactive trainer, plus `lazy_relin` on the micro-batch gradient sum
+//! ([`Dense::weight_grad_reduced`]); [`predict_update`] follows the evaluator's flags
+//! ([`predict_update_with`]).
 
 use std::sync::Arc;
 use std::time::Instant;
 
 use hekit_ckks::bootstrap::Bootstrapper;
-use hekit_ckks::{Ciphertext, Encoder, Encryptor, Evaluator};
+use hekit_ckks::{
+    BootstrapOps, Ciphertext, DiagonalEntry, Encoder, Encryptor, EvalConfig, Evaluator, HeOps,
+};
 use hekit_core::error::{HekitError, Result};
-use hekit_core::poly::RnsPoly;
 use hekit_core::sampler::Rng;
 use ndarray::Array2;
 
@@ -73,7 +87,7 @@ use crate::layout::{LayerShape, Layout, pack_bias, pack_weight_diagonals};
 use crate::loss::Mse;
 use crate::sim::valid_lane_mask;
 use crate::trainer::{
-    BatchSpec, EpochLog, Mlp, ScaleProbe, check_dims, constant_dz, dense_out, sorted,
+    BatchSpec, EpochLog, Mlp, ScaleProbe, check_dims, constant_dz, dense_out, sorted, zero_ct,
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -367,13 +381,34 @@ pub fn ni_rotation_steps(
 
 /// The trainable state between steps: one ciphertext per container of the [`CompactLayout`]
 /// (weights and biases) and, with NAG, the velocity of every weight container (`None` before
-/// the first step and for bias-only containers). All at `Delta` exactly.
+/// the first step and for bias-only containers). All at `Delta` exactly. `C` is the
+/// backend's ciphertext type ([`Ciphertext`] by default).
 #[derive(Debug, Clone)]
-pub struct CompactState {
+pub struct CompactState<C = Ciphertext> {
     /// One ciphertext per container.
-    pub weights: Vec<Ciphertext>,
+    pub weights: Vec<C>,
     /// One velocity per container (`None`: zero).
-    pub velocity: Vec<Option<Ciphertext>>,
+    pub velocity: Vec<Option<C>>,
+}
+
+impl CompactState {
+    /// The state on the backend of `ev` (a move for the CPU [`Evaluator`]).
+    ///
+    /// Errors: those of the upload.
+    pub fn upload_owned<E: HeOps>(self, ev: &E) -> Result<CompactState<E::Ct>> {
+        Ok(CompactState {
+            weights: self
+                .weights
+                .into_iter()
+                .map(|c| ev.upload_ct_owned(c))
+                .collect::<Result<_>>()?,
+            velocity: self
+                .velocity
+                .into_iter()
+                .map(|u| u.map(|c| ev.upload_ct_owned(c)).transpose())
+                .collect::<Result<_>>()?,
+        })
+    }
 }
 
 impl CompactState {
@@ -449,12 +484,12 @@ struct ActMeta {
     constant: Option<f64>,
 }
 
-fn metas(mlp: &Mlp) -> Vec<ActMeta> {
-    let acts: Vec<&dyn Activation> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
+fn metas<E: HeOps>(mlp: &Mlp<E>) -> Vec<ActMeta> {
+    let acts: Vec<&dyn Activation<E>> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
     metas_of(&acts)
 }
 
-fn metas_of(acts: &[&dyn Activation]) -> Vec<ActMeta> {
+fn metas_of<E: HeOps>(acts: &[&dyn Activation<E>]) -> Vec<ActMeta> {
     acts.iter()
         .map(|a| ActMeta {
             depth: a.depth() as i64,
@@ -564,7 +599,7 @@ fn pass_levels(
 /// [`BootPlacement::WhenNeeded`], 5 for [`BootPlacement::AfterActivation`].
 /// [`NonInteractiveTrainer::new`] requires `levels_per_iter` to be at most the levels left
 /// after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
-pub fn levels_per_iter(mlp: &Mlp, placement: BootPlacement) -> usize {
+pub fn levels_per_iter<E: HeOps>(mlp: &Mlp<E>, placement: BootPlacement) -> usize {
     let meta = metas(mlp);
     const BIG: i64 = 1 << 30;
     let n = meta.len();
@@ -721,20 +756,17 @@ impl ActCost {
     };
 
     /// Reads the counts of `act` by running it on a zero ciphertext at the top level with a
-    /// clone of `ev` (shared keys, own counter: `ev`'s counter does not move).
+    /// fork of `ev` ([`HeOps::fork`]: shared keys, own counter: `ev`'s counter does not move).
     ///
     /// Errors: the activation's errors (e.g. no relinearization key).
-    pub fn probe(ev: &Evaluator, act: &dyn Activation) -> Result<ActCost> {
+    pub fn probe<E: HeOps>(ev: &E, act: &dyn Activation<E>) -> Result<ActCost> {
         let constant = act.constant_derivative().is_some();
         if constant && act.depth() == 0 {
             return Ok(ActCost::IDENTITY);
         }
-        let probe = ev.clone();
-        probe.reset_counter();
+        let probe = ev.fork();
         let enc = Encoder::new(Arc::clone(ev.params()));
-        let mut p = RnsPoly::zero(ev.params().basis_q(), ev.params().max_level());
-        p.to_ntt();
-        let z = Ciphertext::new(vec![p.clone(), p], ev.params().scale())?;
+        let z = zero_ct(ev, ev.params().max_level(), ev.params().scale())?;
         act.forward(&probe, &enc, &z)?;
         let forward_relins = probe.counter().relins;
         probe.reset_counter();
@@ -749,14 +781,15 @@ impl ActCost {
     }
 }
 
-/// The closed-form counts of one update of `mlp` with `micro` micro-batch ciphertexts:
-/// [`predict_update_for`] with the activations' [`ActCost::probe`].
+/// The closed-form counts of one update of `mlp` with `micro` micro-batch ciphertexts on
+/// `ev`: [`predict_update_with`] with the activations' [`ActCost::probe`] and `ev`'s ablation
+/// flags ([`HeOps::config`]; the default flags give [`predict_update_for`]).
 ///
 /// Errors: those of [`predict_update_for`] and of the probe.
 #[allow(clippy::too_many_arguments)]
-pub fn predict_update(
-    ev: &Evaluator,
-    mlp: &Mlp,
+pub fn predict_update<E: HeOps>(
+    ev: &E,
+    mlp: &Mlp<E>,
     layout: &Layout,
     keys: &TransposeKeys,
     placement: BootPlacement,
@@ -769,7 +802,7 @@ pub fn predict_update(
         .iter()
         .map(|(_, a)| ActCost::probe(ev, a.as_ref()))
         .collect::<Result<Vec<_>>>()?;
-    predict_update_for(
+    predict_update_with(
         &mlp.dims(),
         &acts,
         layout,
@@ -778,6 +811,7 @@ pub fn predict_update(
         micro,
         nag,
         weights_booted,
+        *ev.config(),
     )
 }
 
@@ -801,6 +835,38 @@ pub fn predict_update_for(
     nag: bool,
     weights_booted: bool,
 ) -> Result<UpdateCost> {
+    predict_update_with(
+        dims,
+        acts,
+        layout,
+        keys,
+        placement,
+        micro,
+        nag,
+        weights_booted,
+        EvalConfig::default(),
+    )
+}
+
+/// [`predict_update_for`] for an evaluator with the ablation flags `cfg` (Task 43, RQ3): the
+/// forward and backward matvecs cost [`EvalConfig::matvec_rotations`] and
+/// [`EvalConfig::matvec_enc_relins`], and the micro-batch gradient `m` relins with
+/// `lazy_relin` (`micro * m` without). `hoist` changes no count. The activations' counts come
+/// from `acts` (probe them on an evaluator with the same flags, as [`predict_update`] does).
+///
+/// Errors as [`predict_update_for`].
+#[allow(clippy::too_many_arguments)]
+pub fn predict_update_with(
+    dims: &[usize],
+    acts: &[ActCost],
+    layout: &Layout,
+    keys: &TransposeKeys,
+    placement: BootPlacement,
+    micro: usize,
+    nag: bool,
+    weights_booted: bool,
+    cfg: EvalConfig,
+) -> Result<UpdateCost> {
     let cl = CompactLayout::new(dims, layout)?;
     let n = cl.plans.len();
     if acts.len() != n {
@@ -817,8 +883,8 @@ pub fn predict_update_for(
         let sh = LayerShape::new(d_out, d_in, layout);
         let act = acts[i];
         let m = sh.m as u64;
-        c.forward_rot += k * (sh.baby + sh.giant - 2 + sh.fold_steps()) as u64;
-        c.forward_relin += k * (sh.giant as u64 + act.forward_relins);
+        c.forward_rot += k * (cfg.matvec_rotations(sh.m) + sh.fold_steps() as u64);
+        c.forward_relin += k * (cfg.matvec_enc_relins(sh.m) + act.forward_relins);
         if !act.constant_derivative {
             c.backward_relin += k * (act.derivative_relins + 1);
         }
@@ -826,11 +892,11 @@ pub fn predict_update_for(
             let plan = transpose_rotation_plan(d_out, d_in, layout, keys)?;
             c.transpose_rot += plan.iter().map(|(_, s)| s.len() as u64).sum::<u64>();
             let st = sh.transposed();
-            c.backward_rot += k * (st.baby + st.giant - 2 + st.fold_steps()) as u64;
-            c.backward_relin += k * st.giant as u64;
+            c.backward_rot += k * (cfg.matvec_rotations(st.m) + st.fold_steps() as u64);
+            c.backward_relin += k * cfg.matvec_enc_relins(st.m);
         }
         c.gradient_rot += k * ((sh.baby - 1) + (sh.giant - 1)) as u64 + m * lb;
-        c.gradient_relin += m;
+        c.gradient_relin += if cfg.lazy_relin { m } else { k * m };
         let plan = &cl.plans[i];
         c.shift_rot += plan.pack_rotations() as u64;
         c.unpack_rot += plan.unpack_rotations() as u64;
@@ -891,9 +957,9 @@ fn must_boot(
 /// Errors: `InvalidParams` if `acts` does not have one entry per layer; as
 /// [`CompactLayout::new`].
 #[allow(clippy::too_many_arguments)]
-pub fn boot_schedule(
+pub fn boot_schedule<E: HeOps>(
     dims: &[usize],
-    acts: &[&dyn Activation],
+    acts: &[&dyn Activation<E>],
     layout: &Layout,
     placement: BootPlacement,
     nag: bool,
@@ -948,16 +1014,20 @@ pub fn boot_schedule(
 
 /// Non-interactive mini-batch training of an encrypted [`Mlp`] (see the [module docs](self)).
 /// Holds no secret key.
-pub struct NonInteractiveTrainer<'a> {
-    ev: &'a Evaluator,
-    bs: &'a Bootstrapper,
+///
+/// Generic over the evaluator `E` ([`Evaluator`] by default) and the bootstrapper `B`
+/// ([`Bootstrapper`] by default; any [`BootstrapOps<E>`], e.g. a device bootstrapper or a
+/// host adapter, Task 49). The level schedule only reads `B`'s output level.
+pub struct NonInteractiveTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = Bootstrapper> {
+    ev: &'a E,
+    bs: &'a B,
     optim: NiOptimizer,
     layout: Layout,
     placement: BootPlacement,
     transpose_keys: TransposeKeys,
     encoder: Encoder,
     cl: CompactLayout,
-    state: CompactState,
+    state: CompactState<E::Ct>,
     meta: Vec<ActMeta>,
     levels_per_iter: usize,
     micro: usize,
@@ -967,14 +1037,14 @@ pub struct NonInteractiveTrainer<'a> {
     boot_seconds: f64,
     last_booted: bool,
     next_full: Option<bool>,
-    act_outputs: Vec<Vec<Ciphertext>>,
+    act_outputs: Vec<Vec<E::Ct>>,
     frozen_biases: bool,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
 }
 
-impl std::fmt::Debug for NonInteractiveTrainer<'_> {
+impl<E: HeOps, B: BootstrapOps<E>> std::fmt::Debug for NonInteractiveTrainer<'_, E, B> {
     /// A summary without ciphertexts.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NonInteractiveTrainer")
@@ -990,10 +1060,10 @@ impl std::fmt::Debug for NonInteractiveTrainer<'_> {
 /// The input scale of every layer's next forward (`Delta` for the batch; the product chain of
 /// the activations, or `Delta` after an activation bootstrap): the bias of layer `l` is
 /// encrypted / extracted at `inputs_scale[l] * Delta`.
-fn input_scales(
-    ev: &Evaluator,
+fn input_scales<E: HeOps>(
+    ev: &E,
     encoder: &Encoder,
-    mlp_acts: &[&dyn Activation],
+    mlp_acts: &[&dyn Activation<E>],
     w_scales: &[f64],
     inputs: &[i64],
     boot_acts: bool,
@@ -1025,14 +1095,21 @@ fn check_fits(p: &Pass) -> Result<()> {
     Ok(())
 }
 
-impl<'a> NonInteractiveTrainer<'a> {
+/// The start level after a bootstrap and an unpack: `output_level - 1`.
+fn start_after(output_level: usize) -> usize {
+    output_level.saturating_sub(1)
+}
+
+impl NonInteractiveTrainer<'_> {
     /// The level of the unpacked weights after a bootstrap: `bs.output_level() - 1` (15 on
     /// n16_boot). Encrypt the initial network and the input batches here
     /// ([`NonInteractiveTrainer::encrypt_network`], [`NonInteractiveTrainer::batch_spec`]).
     pub fn start_level_for(bs: &Bootstrapper) -> usize {
-        bs.output_level().saturating_sub(1)
+        start_after(bs.output_level())
     }
+}
 
+impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     /// Encrypts (client side) the initial network for non-interactive training with
     /// `placement`: the expanded [`Mlp`] at [`NonInteractiveTrainer::start_level_for`] (the
     /// first step sees the levels and scales of every later one, Task 40 carry-in) with each
@@ -1044,17 +1121,17 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// `NoLevelsLeft` if the forward does not fit.
     #[allow(clippy::too_many_arguments)]
     pub fn encrypt_network(
-        ev: &Evaluator,
-        bs: &Bootstrapper,
+        ev: &E,
+        bs: &B,
         layers: &[(Array2<f64>, Vec<f64>)],
-        acts: Vec<Box<dyn Activation>>,
+        acts: Vec<Box<dyn Activation<E>>>,
         layout: &Layout,
         placement: BootPlacement,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
-    ) -> Result<(Mlp, CompactState)> {
-        let start = NonInteractiveTrainer::start_level_for(bs);
+    ) -> Result<(Mlp<E>, CompactState<E::Ct>)> {
+        let start = start_after(bs.output_level());
         if layers.is_empty() || acts.len() != layers.len() {
             return Err(HekitError::InvalidParams(format!(
                 "{} layers and {} activations",
@@ -1075,7 +1152,7 @@ impl<'a> NonInteractiveTrainer<'a> {
         // The input scale of every layer's first forward on the placement's chain (the
         // bootstrapped activations restart at Delta); each bias is encrypted once, at its exact
         // product scale (the weights are at Delta).
-        let refs: Vec<&dyn Activation> = acts.iter().map(|a| a.as_ref()).collect();
+        let refs: Vec<&dyn Activation<E>> = acts.iter().map(|a| a.as_ref()).collect();
         let meta = metas_of(&refs);
         let n = meta.len();
         let s = start as i64;
@@ -1106,7 +1183,8 @@ impl<'a> NonInteractiveTrainer<'a> {
                 .zip(&scales)
                 .map(|(((w, b), act), &sx)| {
                     Ok((
-                        Dense::encrypt_at(w, b, layout, sx, start, enc, encoder, rng)?,
+                        Dense::encrypt_at(w, b, layout, sx, start, enc, encoder, rng)?
+                            .upload_owned(ev)?,
                         act,
                     ))
                 })
@@ -1114,7 +1192,8 @@ impl<'a> NonInteractiveTrainer<'a> {
         };
         let cl = CompactLayout::new(&mlp.dims(), layout)?;
         let state =
-            CompactState::encrypt(&cl, layers, layout, bs.output_level(), enc, encoder, rng)?;
+            CompactState::encrypt(&cl, layers, layout, bs.output_level(), enc, encoder, rng)?
+                .upload_owned(ev)?;
         Ok((mlp, state))
     }
 
@@ -1131,14 +1210,14 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// bootstrap and an unpack** (`bs.output_level() - 1`); or the levels of `mlp` and `state`
     /// do not allow the first step.
     pub fn new(
-        ev: &'a Evaluator,
-        bs: &'a Bootstrapper,
+        ev: &'a E,
+        bs: &'a B,
         optim: NiOptimizer,
         layout: Layout,
         placement: BootPlacement,
-        mlp: &Mlp,
-        state: CompactState,
-    ) -> Result<NonInteractiveTrainer<'a>> {
+        mlp: &Mlp<E>,
+        state: CompactState<E::Ct>,
+    ) -> Result<NonInteractiveTrainer<'a, E, B>> {
         if layout.slots != ev.params().slots() {
             return Err(HekitError::InvalidParams(format!(
                 "layout of {} slots for parameters with {} slots",
@@ -1171,7 +1250,7 @@ impl<'a> NonInteractiveTrainer<'a> {
             )));
         }
         let lpi = levels_per_iter(mlp, placement);
-        let after_boot = NonInteractiveTrainer::start_level_for(bs);
+        let after_boot = start_after(bs.output_level());
         if lpi > after_boot {
             return Err(HekitError::InvalidParams(format!(
                 "one step needs {lpi} levels, {after_boot} are left after a bootstrap and an \
@@ -1208,7 +1287,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     }
 
     /// Uses `keys` for the transposes (e.g. [`TransposeKeys::Reuse`] when key memory binds).
-    pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> NonInteractiveTrainer<'a> {
+    pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> NonInteractiveTrainer<'a, E, B> {
         self.transpose_keys = keys;
         self
     }
@@ -1216,14 +1295,14 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// Never updates the biases: the bias gradient's folded constant is 0, so every op and every
     /// count is unchanged and the biases keep their encrypted values (encrypt them as zeros for
     /// a bias-free network, ReBoot's `bias=False`; ruling R-M3-12).
-    pub fn with_frozen_biases(mut self) -> NonInteractiveTrainer<'a> {
+    pub fn with_frozen_biases(mut self) -> NonInteractiveTrainer<'a, E, B> {
         self.frozen_biases = true;
         self
     }
 
     /// Groups `k` consecutive batches of [`NonInteractiveTrainer::train_epoch`] into one update
     /// (`k` micro-batch ciphertexts, e.g. `B = 64` as 2 x 32 lanes, ruling R-M3-4).
-    pub fn with_micro_batches(mut self, k: usize) -> NonInteractiveTrainer<'a> {
+    pub fn with_micro_batches(mut self, k: usize) -> NonInteractiveTrainer<'a, E, B> {
         self.micro = k.max(1);
         self
     }
@@ -1239,7 +1318,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     }
 
     /// The compact state (weights, biases, velocity).
-    pub fn state(&self) -> &CompactState {
+    pub fn state(&self) -> &CompactState<E::Ct> {
         &self.state
     }
 
@@ -1255,7 +1334,7 @@ impl<'a> NonInteractiveTrainer<'a> {
 
     /// The start level: [`NonInteractiveTrainer::start_level_for`] of the bootstrapper.
     pub fn start_level(&self) -> usize {
-        NonInteractiveTrainer::start_level_for(self.bs)
+        start_after(self.bs.output_level())
     }
 
     /// Weight and velocity bootstraps so far.
@@ -1282,7 +1361,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// only; empty otherwise): `[micro-batch][l]` is the bootstrap output of `a_{l+1}` at
     /// `Delta`, canonical with period `pow2(d_{l+1})`. For a client-side diagnostic of the
     /// activation bootstraps' precision (the trainer itself never decrypts).
-    pub fn last_activation_bootstraps(&self) -> &[Vec<Ciphertext>] {
+    pub fn last_activation_bootstraps(&self) -> &[Vec<E::Ct>] {
         &self.act_outputs
     }
 
@@ -1307,7 +1386,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// The structural prediction of the levels of the next step's trace (as
     /// [`NonInteractiveTrainer::trace`], from the current levels of `mlp` and the state, `x` at
     /// the start level), for tests.
-    pub fn predicted_trace(&self, mlp: &Mlp) -> Vec<(String, i64)> {
+    pub fn predicted_trace(&self, mlp: &Mlp<E>) -> Vec<(String, i64)> {
         let st = self.level_state(mlp);
         let p = self.pass(&st, self.start_level() as i64, true);
         let c = update_levels(&self.cl, &st, &p, self.optim.has_velocity());
@@ -1322,7 +1401,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// scale with one ct-pt product on `y`.)
     ///
     /// Errors: `NoLevelsLeft` if the forward does not fit; the probe's errors.
-    pub fn batch_spec(&self, mlp: &Mlp) -> Result<BatchSpec> {
+    pub fn batch_spec(&self, mlp: &Mlp<E>) -> Result<BatchSpec> {
         let s = self.start_level() as i64;
         let n = self.meta.len();
         let p = pass_levels(
@@ -1334,7 +1413,7 @@ impl<'a> NonInteractiveTrainer<'a> {
             self.bs.output_level() as i64,
             true,
         );
-        let acts: Vec<&dyn Activation> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
+        let acts: Vec<&dyn Activation<E>> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
         let w: Vec<f64> = mlp.layers.iter().map(|(d, _)| d.w.scale()).collect();
         let scales = input_scales(
             self.ev,
@@ -1357,7 +1436,7 @@ impl<'a> NonInteractiveTrainer<'a> {
         })
     }
 
-    fn level_state(&self, mlp: &Mlp) -> LevelState {
+    fn level_state(&self, mlp: &Mlp<E>) -> LevelState {
         LevelState {
             w: mlp.layers.iter().map(|(d, _)| d.w.level() as i64).collect(),
             b: mlp.layers.iter().map(|(d, _)| d.b.level() as i64).collect(),
@@ -1391,7 +1470,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// One update on one full micro-batch: [`NonInteractiveTrainer::train_step_valid`].
     ///
     /// Errors as [`NonInteractiveTrainer::train_step_valid`].
-    pub fn train_batch(&mut self, mlp: &mut Mlp, x: &Ciphertext, y: &Ciphertext) -> Result<()> {
+    pub fn train_batch(&mut self, mlp: &mut Mlp<E>, x: &E::Ct, y: &E::Ct) -> Result<()> {
         let b = self.layout.batch;
         self.train_step_valid(mlp, &[(x, y, b)])
     }
@@ -1401,9 +1480,9 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// Errors as [`NonInteractiveTrainer::train_step_valid`].
     pub fn train_batch_valid(
         &mut self,
-        mlp: &mut Mlp,
-        x: &Ciphertext,
-        y: &Ciphertext,
+        mlp: &mut Mlp<E>,
+        x: &E::Ct,
+        y: &E::Ct,
         n_valid: usize,
     ) -> Result<()> {
         self.train_step_valid(mlp, &[(x, y, n_valid)])
@@ -1413,11 +1492,7 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// at most one bootstrap of the state).
     ///
     /// Errors as [`NonInteractiveTrainer::train_step_valid`].
-    pub fn train_step(
-        &mut self,
-        mlp: &mut Mlp,
-        batches: &[(Ciphertext, Ciphertext)],
-    ) -> Result<()> {
+    pub fn train_step(&mut self, mlp: &mut Mlp<E>, batches: &[(E::Ct, E::Ct)]) -> Result<()> {
         let b = self.layout.batch;
         let v: Vec<_> = batches.iter().map(|(x, y)| (x, y, b)).collect();
         self.train_step_valid(mlp, &v)
@@ -1436,8 +1511,8 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// exact scale; and the errors of the layer operations and of the bootstrapper.
     pub fn train_step_valid(
         &mut self,
-        mlp: &mut Mlp,
-        batches: &[(&Ciphertext, &Ciphertext, usize)],
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
     ) -> Result<()> {
         let n_layers = mlp.layers.len();
         if batches.is_empty() {
@@ -1477,8 +1552,8 @@ impl<'a> NonInteractiveTrainer<'a> {
         let mut act_boots = 0u64;
 
         // 1. Forward per micro-batch. acts[mb][l] is the input of layer l.
-        let mut acts: Vec<Vec<Ciphertext>> = Vec::with_capacity(batches.len());
-        let mut zs: Vec<Vec<Ciphertext>> = Vec::with_capacity(batches.len());
+        let mut acts: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
+        let mut zs: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
         for (mb, (x, _, _)) in batches.iter().enumerate() {
             let mut a_in = Vec::with_capacity(n_layers + 1);
             let mut z_mb = Vec::with_capacity(n_layers);
@@ -1539,8 +1614,8 @@ impl<'a> NonInteractiveTrainer<'a> {
             .iter()
             .map(|b| valid_lane_mask(&layout, b.2))
             .collect();
-        let mut h_w: Vec<Vec<Ciphertext>> = vec![Vec::new(); n_layers];
-        let mut h_b: Vec<Option<Ciphertext>> = vec![None; n_layers];
+        let mut h_w: Vec<Vec<E::Ct>> = vec![Vec::new(); n_layers];
+        let mut h_b: Vec<Option<E::Ct>> = vec![None; n_layers];
         for i in (0..n_layers).rev() {
             let ln = i + 1;
             let (dense, act) = &mlp.layers[i];
@@ -1592,8 +1667,8 @@ impl<'a> NonInteractiveTrainer<'a> {
                 trace.push((format!("delta{i}"), next[0].level()));
                 deltas = next;
             }
-            let dz_refs: Vec<&Ciphertext> = dzs.iter().collect();
-            let a_refs: Vec<&Ciphertext> = acts.iter().map(|a| &a[i]).collect();
+            let dz_refs: Vec<&E::Ct> = dzs.iter().collect();
+            let a_refs: Vec<&E::Ct> = acts.iter().map(|a| &a[i]).collect();
             let g = dense.weight_grad_reduced(ev, &dz_refs, &a_refs, &layout, c_w)?;
             let hw = compact_shift(ev, &g, &self.cl.plans[i])?;
             trace.push((format!("h{ln}"), hw[0].level()));
@@ -1674,7 +1749,8 @@ impl<'a> NonInteractiveTrainer<'a> {
             new_w.push(compact_unpack(ev, &cts, &self.cl.plans[l])?);
         }
         let next_pass = self.pass(&next, start, true);
-        let acts_dyn: Vec<&dyn Activation> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
+        let acts_dyn: Vec<&dyn Activation<E>> =
+            mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
         let w_scales: Vec<f64> = new_w.iter().map(|w| w.scale()).collect();
         let scales = input_scales(ev, enc, &acts_dyn, &w_scales, &next_pass.inputs, boot_acts)?;
         let mut new_b = Vec::with_capacity(n_layers);
@@ -1723,9 +1799,9 @@ impl<'a> NonInteractiveTrainer<'a> {
     #[allow(clippy::type_complexity)]
     fn update_state(
         &self,
-        h_w: &[Vec<Ciphertext>],
-        h_b: &[Option<Ciphertext>],
-    ) -> Result<(Vec<Ciphertext>, Vec<Option<Ciphertext>>)> {
+        h_w: &[Vec<E::Ct>],
+        h_b: &[Option<E::Ct>],
+    ) -> Result<(Vec<E::Ct>, Vec<Option<E::Ct>>)> {
         let ev = self.ev;
         let delta = ev.params().scale();
         let mut weights = Vec::with_capacity(self.cl.containers.len());
@@ -1733,7 +1809,7 @@ impl<'a> NonInteractiveTrainer<'a> {
         for (c, spec) in self.cl.containers.iter().enumerate() {
             let w = &self.state.weights[c];
             let hw = spec.layer.map(|l| &h_w[l][spec.index]);
-            let hbs: Vec<&Ciphertext> = self
+            let hbs: Vec<&E::Ct> = self
                 .cl
                 .biases
                 .iter()
@@ -1761,7 +1837,7 @@ impl<'a> NonInteractiveTrainer<'a> {
                 }
                 lv = lv.min(u.level() - 1);
             }
-            let down = |ct: &Ciphertext| ev.mod_switch_to_level(ct, lv);
+            let down = |ct: &E::Ct| ev.mod_switch_to_level(ct, lv);
             let mut w_new = down(w)?;
             if let Some(h) = hw {
                 w_new = ev.sub(&w_new, &down(h)?)?;
@@ -1801,8 +1877,8 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// Errors as [`NonInteractiveTrainer::train_epoch_valid`].
     pub fn train_epoch(
         &mut self,
-        mlp: &mut Mlp,
-        batches: &[(Ciphertext, Ciphertext)],
+        mlp: &mut Mlp<E>,
+        batches: &[(E::Ct, E::Ct)],
     ) -> Result<EpochLog> {
         let b = self.layout.batch;
         let v: Vec<_> = batches
@@ -1821,15 +1897,15 @@ impl<'a> NonInteractiveTrainer<'a> {
     /// stay trained).
     pub fn train_epoch_valid(
         &mut self,
-        mlp: &mut Mlp,
-        batches: &[(Ciphertext, Ciphertext, usize)],
+        mlp: &mut Mlp<E>,
+        batches: &[(E::Ct, E::Ct, usize)],
     ) -> Result<EpochLog> {
         let before = self.ev.counter();
         let (b0, bs0) = (self.weight_boots + self.act_boots, self.boot_seconds);
         let t0 = Instant::now();
         let (lanes, micro) = (self.layout.batch, self.micro);
         let groups: Vec<_> = batches.chunks(micro).collect();
-        let full = |g: &[(Ciphertext, Ciphertext, usize)]| {
+        let full = |g: &[(E::Ct, E::Ct, usize)]| {
             // Full = every lane valid, whatever the number of ciphertexts: the definition of
             // the level pass (`train_step_valid`) and of `boot_schedule`'s `full`.
             g.iter().all(|b| b.2 == lanes)
@@ -1856,7 +1932,7 @@ impl<'a> NonInteractiveTrainer<'a> {
 /// `y` at `out`'s exact scale and at most its level: switched down if the scales already agree,
 /// else multiplied by 1 at `out.level() + 1` and rescaled onto exactly `out.scale()` (one ct-pt,
 /// the level is `y`'s, off the critical path).
-fn align_target(ev: &Evaluator, y: &Ciphertext, out: &Ciphertext) -> Result<Ciphertext> {
+fn align_target<E: HeOps>(ev: &E, y: &E::Ct, out: &E::Ct) -> Result<E::Ct> {
     if y.scale() == out.scale() {
         return Ok(y.clone());
     }
@@ -1870,14 +1946,14 @@ fn align_target(ev: &Evaluator, y: &Ciphertext, out: &Ciphertext) -> Result<Ciph
 /// [`compact_extract`] of a bias at exactly `target`, from the container's level down to
 /// `need` (the level its next forward runs at): a target the rescale of one level cannot reach
 /// (`ScaleMismatch`) is retried one level lower.
-fn extract_bias(
-    ev: &Evaluator,
-    ct: &Ciphertext,
+fn extract_bias<E: HeOps>(
+    ev: &E,
+    ct: &E::Ct,
     plan: &CompactPlan,
     t: usize,
     target: f64,
     need: usize,
-) -> Result<Ciphertext> {
+) -> Result<E::Ct> {
     let mut level = ct.level();
     loop {
         let src = ev.mod_switch_to_level(ct, level)?;

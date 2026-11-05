@@ -47,6 +47,20 @@
 //! - [`Mlp::predict_plain`] takes the [`Layout`] (the weights' unpacking needs it), and
 //!   [`EpochLog`] also records the batch count, the refreshed ciphertexts and the refresh time.
 //!
+//! # Backends and ablation flags (Task 43)
+//!
+//! [`Mlp`], [`Trainer`], [`LayerOptimizer`], [`crate::optim::Optimizer`],
+//! [`crate::refresh::Refresher`] and [`Activation`] are generic over the evaluator
+//! `E: `[`HeOps`] (default [`Evaluator`], so existing CPU code reads unchanged); ciphertexts
+//! are `E::Ct`. Encryption, decryption and encoding stay on the host ([`Ciphertext`],
+//! [`hekit_ckks::Plaintext`]) and are uploaded ([`HeOps::upload_ct_owned`],
+//! [`HeOps::upload_pt_owned`]: moves for the CPU). The evaluator's
+//! [`hekit_ckks::EvalConfig`] flags apply to the step: `hoist` to the hoisted rotations of the
+//! matvecs and the gradient, `bsgs` to the forward and backward matvecs, `lazy_relin` to the
+//! matvec relinearizations (the interactive gradient multiplies one product per diagonal and
+//! has nothing to relinearize lazily); see [`hekit_ckks::ops`]. The simulator's counts
+//! ([`crate::sim`]) are those of the default flags.
+//!
 //! # Galois keys
 //!
 //! [`mlp_rotation_steps`] is the exact key set of a training step: the forward steps of every
@@ -57,7 +71,10 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use hekit_ckks::{Ciphertext, Decryptor, Diagonals, Encoder, Encryptor, Evaluator, OpCounter};
+use hekit_ckks::{
+    Ciphertext, Decryptor, DiagonalEntry, Diagonals, Encoder, Encryptor, Evaluator, HeOps,
+    OpCounter,
+};
 use hekit_core::error::{HekitError, Result};
 use hekit_core::poly::RnsPoly;
 use hekit_core::sampler::Rng;
@@ -79,7 +96,7 @@ use crate::sim::valid_lane_mask;
 // ---------------------------------------------------------------------------------------------
 
 /// An [`Optimizer`] as the trainer uses it: one instance per layer.
-pub trait LayerOptimizer: Optimizer {
+pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
     /// The factor the bias gradient carries (folded into its lane-0 mask, divided by the
     /// valid sample count): the bias update is `b' = b - bias_grad_scale() * mean(dz)`.
     /// [`Sgd`] and [`Nag`]: `lr` (biases take plain SGD steps, Task 28).
@@ -88,27 +105,27 @@ pub trait LayerOptimizer: Optimizer {
     /// Refreshes the optimizer's encrypted state (e.g. the NAG velocity, which lands on the
     /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
     /// of ciphertexts refreshed. On an error the state is unchanged.
-    fn refresh_state(&mut self, refresher: &mut dyn Refresher) -> Result<usize>;
+    fn refresh_state(&mut self, refresher: &mut dyn Refresher<E>) -> Result<usize>;
 }
 
-impl LayerOptimizer for Sgd {
+impl<E: HeOps> LayerOptimizer<E> for Sgd {
     fn bias_grad_scale(&self) -> f64 {
-        self.lr
+        Sgd::bias_grad_scale(self)
     }
 
     /// SGD has no state: nothing to refresh.
-    fn refresh_state(&mut self, _refresher: &mut dyn Refresher) -> Result<usize> {
+    fn refresh_state(&mut self, _refresher: &mut dyn Refresher<E>) -> Result<usize> {
         Ok(0)
     }
 }
 
-impl LayerOptimizer for Nag {
+impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
     fn bias_grad_scale(&self) -> f64 {
-        self.lr
+        Nag::bias_grad_scale(self)
     }
 
     /// Refreshes every entry of the scaled velocity `U` (scale `Delta` kept exactly).
-    fn refresh_state(&mut self, refresher: &mut dyn Refresher) -> Result<usize> {
+    fn refresh_state(&mut self, refresher: &mut dyn Refresher<E>) -> Result<usize> {
         let Some(u) = self.velocity() else {
             return Ok(0);
         };
@@ -200,8 +217,8 @@ pub fn mlp_rotation_steps(
 /// `(level, scale)` of [`Dense::forward`]'s output for an input at `(level, x_scale)` and
 /// weights of scale `w_scale`: one rescale of the exact product scale (the bias has exactly
 /// that scale, so the addition keeps it).
-pub(crate) fn dense_out(
-    ev: &Evaluator,
+pub(crate) fn dense_out<E: HeOps>(
+    ev: &E,
     level: usize,
     x_scale: f64,
     w_scale: f64,
@@ -217,27 +234,33 @@ pub(crate) fn dense_out(
 
 /// Runs activations on zero ciphertexts to read their output `(level, scale)`: the scale is a
 /// deterministic function of the input scale and the primes, and this reads it from the
-/// activation's own code. A clone of the training evaluator: it shares the keys (`Arc`, no
-/// key copy) and has its own counter, so the training evaluator's counter does not move.
-pub(crate) struct ScaleProbe {
-    ev: Evaluator,
+/// activation's own code. A fork of the training evaluator ([`HeOps::fork`]): it shares the
+/// keys (no key copy) and has its own counter, so the training evaluator's counter does not
+/// move.
+pub(crate) struct ScaleProbe<E: HeOps> {
+    ev: E,
 }
 
-impl ScaleProbe {
-    pub(crate) fn new(ev: &Evaluator) -> ScaleProbe {
-        ScaleProbe { ev: ev.clone() }
+/// A zero ciphertext at `level` and `scale` on `ev`'s backend (built on the host, uploaded).
+pub(crate) fn zero_ct<E: HeOps>(ev: &E, level: usize, scale: f64) -> Result<E::Ct> {
+    let mut p = RnsPoly::zero(ev.params().basis_q(), level);
+    p.to_ntt();
+    ev.upload_ct_owned(Ciphertext::new(vec![p.clone(), p], scale)?)
+}
+
+impl<E: HeOps> ScaleProbe<E> {
+    pub(crate) fn new(ev: &E) -> ScaleProbe<E> {
+        ScaleProbe { ev: ev.fork() }
     }
 
     pub(crate) fn activation(
         &self,
-        act: &dyn Activation,
+        act: &dyn Activation<E>,
         encoder: &Encoder,
         level: usize,
         scale: f64,
     ) -> Result<(usize, f64)> {
-        let mut p = RnsPoly::zero(self.ev.params().basis_q(), level);
-        p.to_ntt();
-        let ct = Ciphertext::new(vec![p.clone(), p], scale)?;
+        let ct = zero_ct(&self.ev, level, scale)?;
         let a = act.forward(&self.ev, encoder, &ct)?;
         Ok((a.level(), a.scale()))
     }
@@ -298,12 +321,16 @@ impl BatchSpec {
 // ---------------------------------------------------------------------------------------------
 
 /// An encrypted MLP: dense layers, each followed by its activation (the last one included).
-pub struct Mlp {
+///
+/// `E` is the evaluator the network is trained on ([`Evaluator`] by default); the layers hold
+/// its ciphertexts ([`HeOps::Ct`]).
+pub struct Mlp<E: HeOps = Evaluator> {
     /// The layers in forward order.
-    pub layers: Vec<(Dense, Box<dyn Activation>)>,
+    #[allow(clippy::type_complexity)]
+    pub layers: Vec<(Dense<E::Ct>, Box<dyn Activation<E>>)>,
 }
 
-impl Mlp {
+impl<E: HeOps> Mlp<E> {
     /// Encrypts the plaintext layers `(W_l, b_l)` (`W_l` is `d_l x d_{l-1}`) at the top level
     /// for inputs encrypted at the top level with scale `Delta` (as [`BatchSpec`] does):
     /// [`Mlp::encrypt_at`] at `max_level`, the level [`crate::refresh::ClientRefresher`]
@@ -312,14 +339,14 @@ impl Mlp {
     ///
     /// Errors as [`Mlp::encrypt_at`].
     pub fn encrypt(
-        ev: &Evaluator,
+        ev: &E,
         layers: &[(Array2<f64>, Vec<f64>)],
-        acts: Vec<Box<dyn Activation>>,
+        acts: Vec<Box<dyn Activation<E>>>,
         layout: &Layout,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
-    ) -> Result<Mlp> {
+    ) -> Result<Mlp<E>> {
         let top = encoder.params().max_level();
         Mlp::encrypt_at(ev, layers, acts, layout, top, enc, encoder, rng)
     }
@@ -337,15 +364,15 @@ impl Mlp {
     /// runs out of levels; and the errors of [`Dense::encrypt_at`] and of the activations.
     #[allow(clippy::too_many_arguments)]
     pub fn encrypt_at(
-        ev: &Evaluator,
+        ev: &E,
         layers: &[(Array2<f64>, Vec<f64>)],
-        acts: Vec<Box<dyn Activation>>,
+        acts: Vec<Box<dyn Activation<E>>>,
         layout: &Layout,
         level: usize,
         enc: &Encryptor,
         encoder: &Encoder,
         rng: &mut Rng,
-    ) -> Result<Mlp> {
+    ) -> Result<Mlp<E>> {
         if layers.is_empty() || acts.len() != layers.len() {
             return Err(HekitError::InvalidParams(format!(
                 "{} layers and {} activations",
@@ -376,7 +403,8 @@ impl Mlp {
         let mut level = start;
         let mut out = Vec::with_capacity(layers.len());
         for ((w, b), act) in layers.iter().zip(acts) {
-            let dense = Dense::encrypt_at(w, b, layout, scale, start, enc, encoder, rng)?;
+            let dense = Dense::encrypt_at(w, b, layout, scale, start, enc, encoder, rng)?
+                .upload_owned(ev)?;
             let (l, s) = dense_out(ev, level, scale, dense.w.scale())?;
             (level, scale) = probe.activation(act.as_ref(), encoder, l, s)?;
             out.push((dense, act));
@@ -401,7 +429,7 @@ impl Mlp {
     /// `max_level` (the interactive client refresh's level).
     ///
     /// Errors as [`Mlp::batch_spec_at`].
-    pub fn batch_spec(&self, ev: &Evaluator, encoder: &Encoder) -> Result<BatchSpec> {
+    pub fn batch_spec(&self, ev: &E, encoder: &Encoder) -> Result<BatchSpec> {
         self.batch_spec_at(ev, encoder, ev.params().max_level())
     }
 
@@ -412,12 +440,7 @@ impl Mlp {
     ///
     /// Errors: `InvalidParams` for an empty network or `x_level > max_level`; `NoLevelsLeft`
     /// if the forward does not fit the levels; the activations' errors.
-    pub fn batch_spec_at(
-        &self,
-        ev: &Evaluator,
-        encoder: &Encoder,
-        x_level: usize,
-    ) -> Result<BatchSpec> {
+    pub fn batch_spec_at(&self, ev: &E, encoder: &Encoder, x_level: usize) -> Result<BatchSpec> {
         if self.layers.is_empty() {
             return Err(HekitError::InvalidParams("empty network".into()));
         }
@@ -443,10 +466,43 @@ impl Mlp {
         })
     }
 
+    /// [`Mlp::predict_plain`] for a network on any backend: every layer is downloaded
+    /// ([`Dense::download`]) and evaluated on the host.
+    ///
+    /// Errors: those of the download.
+    ///
+    /// # Panics
+    /// As [`Mlp::predict_plain`].
+    pub fn predict_plain_on(
+        &self,
+        ev: &E,
+        dec: &Decryptor,
+        encoder: &Encoder,
+        layout: &Layout,
+        x: &Array2<f64>,
+    ) -> Result<Array2<f64>> {
+        let host = self
+            .layers
+            .iter()
+            .map(|(d, _)| d.download(ev))
+            .collect::<Result<Vec<_>>>()?;
+        Ok(predict_layers(
+            host.iter()
+                .zip(&self.layers)
+                .map(|(d, (_, a))| (d, a.as_ref())),
+            dec,
+            encoder,
+            layout,
+            x,
+        ))
+    }
+}
+
+impl Mlp {
     /// Plaintext inference with the decrypted weights (for evaluation): decrypts every layer
     /// (weights from their diagonals, the bias from lane 0) and runs
     /// `a = act(a W^T + b)` row by row with [`Activation::eval_plain`]. `x` is `n x d_0`; the
-    /// result is `n x d_L`.
+    /// result is `n x d_L`. For a network on another backend, [`Mlp::predict_plain_on`].
     ///
     /// # Panics
     /// If `x` does not have `d_0` columns, `layout` is not the network's, or the keys are not
@@ -458,21 +514,38 @@ impl Mlp {
         layout: &Layout,
         x: &Array2<f64>,
     ) -> Array2<f64> {
-        let mut a = x.clone();
-        for (dense, act) in &self.layers {
-            let w = dense.w.decrypt(dec, encoder, layout);
-            assert_eq!(a.ncols(), w.ncols(), "input width");
-            let b = unpack_activations(&encoder.decode(&dec.decrypt(&dense.b)), layout, w.nrows());
-            let mut z = a.dot(&w.t());
-            for mut row in z.rows_mut() {
-                row.iter_mut()
-                    .zip(b.row(0))
-                    .for_each(|(v, bj)| *v = act.eval_plain(*v + bj));
-            }
-            a = z;
-        }
-        a
+        predict_layers(
+            self.layers.iter().map(|(d, a)| (d, a.as_ref())),
+            dec,
+            encoder,
+            layout,
+            x,
+        )
     }
+}
+
+/// `a = act(a W^T + b)` over host layers (see [`Mlp::predict_plain`]).
+fn predict_layers<'l, E: HeOps + 'l>(
+    layers: impl Iterator<Item = (&'l Dense, &'l dyn Activation<E>)>,
+    dec: &Decryptor,
+    encoder: &Encoder,
+    layout: &Layout,
+    x: &Array2<f64>,
+) -> Array2<f64> {
+    let mut a = x.clone();
+    for (dense, act) in layers {
+        let w = dense.w.decrypt(dec, encoder, layout);
+        assert_eq!(a.ncols(), w.ncols(), "input width");
+        let b = unpack_activations(&encoder.decode(&dec.decrypt(&dense.b)), layout, w.nrows());
+        let mut z = a.dot(&w.t());
+        for mut row in z.rows_mut() {
+            row.iter_mut()
+                .zip(b.row(0))
+                .for_each(|(v, bj)| *v = act.eval_plain(*v + bj));
+        }
+        a = z;
+    }
+    a
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -502,10 +575,13 @@ pub struct EpochLog {
 
 /// Mini-batch training of an encrypted [`Mlp`] with one [`LayerOptimizer`] per layer and a
 /// [`Refresher`] that restores the levels after every update (see the [module docs](self)).
-pub struct Trainer<'a> {
-    ev: &'a Evaluator,
-    refresher: Box<dyn Refresher>,
-    optims: Vec<Box<dyn LayerOptimizer>>,
+///
+/// `E` is the evaluator ([`Evaluator`] by default): the network, the refresher and the
+/// optimizers work on its ciphertexts.
+pub struct Trainer<'a, E: HeOps = Evaluator> {
+    ev: &'a E,
+    refresher: Box<dyn Refresher<E> + 'a>,
+    optims: Vec<Box<dyn LayerOptimizer<E> + 'a>>,
     layout: Layout,
     transpose_keys: TransposeKeys,
     encoder: Encoder,
@@ -523,13 +599,13 @@ fn counter_delta(before: &OpCounter, after: &OpCounter) -> OpCounter {
 
 /// [`Dense::bias_grad_scaled`]; if the bias's scale is not reachable by a rescale from
 /// `dz`'s level (rare, see there), retried once from one level lower.
-fn bias_grad(
-    ev: &Evaluator,
-    dense: &Dense,
-    dz: &Ciphertext,
+fn bias_grad<E: HeOps>(
+    ev: &E,
+    dense: &Dense<E::Ct>,
+    dz: &E::Ct,
     layout: &Layout,
     c: f64,
-) -> Result<Ciphertext> {
+) -> Result<E::Ct> {
     match dense.bias_grad_scaled(ev, dz, layout, c) {
         Err(HekitError::ScaleMismatch) if dz.level() >= 2 => {
             let lower = ev.mod_switch_to_level(dz, dz.level() - 1)?;
@@ -543,24 +619,28 @@ fn bias_grad(
 /// ([`Activation::constant_derivative`], e.g. the identity): `delta` itself when `k = 1` and
 /// every lane is valid (no op, no level); otherwise one plaintext multiply at `delta`'s exact
 /// scale and a rescale (one level, no relinearization).
-pub(crate) fn constant_dz(
-    ev: &Evaluator,
+pub(crate) fn constant_dz<E: HeOps>(
+    ev: &E,
     enc: &Encoder,
-    delta: &Ciphertext,
+    delta: &E::Ct,
     k: f64,
     mask: &[f64],
     full: bool,
-) -> Result<Ciphertext> {
+) -> Result<E::Ct> {
     if full && k == 1.0 {
         return Ok(delta.clone());
     }
     let target = delta.scale();
     let v: Vec<f64> = mask.iter().map(|m| k * m).collect();
-    let pt = enc.encode(&v, ev.target_plain_scale(delta, target)?, delta.level())?;
+    let pt = ev.upload_pt_owned(enc.encode(
+        &v,
+        ev.target_plain_scale(delta, target)?,
+        delta.level(),
+    )?)?;
     ev.rescale(&ev.mul_plain_to_scale(delta, &pt, target)?)
 }
 
-impl<'a> Trainer<'a> {
+impl<'a, E: HeOps> Trainer<'a, E> {
     /// A trainer on `ev` (which must hold the relinearization key and the Galois keys of
     /// [`mlp_rotation_steps`]) with one optimizer per layer, in `layout`, with the
     /// [`TransposeKeys::Dedicated`] transpose ([`Trainer::with_transpose_keys`] to change it).
@@ -571,11 +651,11 @@ impl<'a> Trainer<'a> {
     /// Errors: `InvalidParams` if `layout` does not have the parameters' slot count; and the
     /// refresher's [`Refresher::bind_layout`] errors.
     pub fn new(
-        ev: &'a Evaluator,
-        mut refresher: Box<dyn Refresher>,
-        optims: Vec<Box<dyn LayerOptimizer>>,
+        ev: &'a E,
+        mut refresher: Box<dyn Refresher<E> + 'a>,
+        optims: Vec<Box<dyn LayerOptimizer<E> + 'a>>,
         layout: Layout,
-    ) -> Result<Trainer<'a>> {
+    ) -> Result<Trainer<'a, E>> {
         if layout.slots != ev.params().slots() {
             return Err(HekitError::InvalidParams(format!(
                 "layout of {} slots for parameters with {} slots",
@@ -600,7 +680,7 @@ impl<'a> Trainer<'a> {
 
     /// Uses `keys` for the transposes (e.g. [`TransposeKeys::Reuse`]`(`[`mlp_key_pool`]`)`
     /// when key memory binds).
-    pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> Trainer<'a> {
+    pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> Trainer<'a, E> {
         self.transpose_keys = keys;
         self
     }
@@ -633,7 +713,7 @@ impl<'a> Trainer<'a> {
     /// `n_valid = layout.batch`.
     ///
     /// Errors as [`Trainer::train_batch_valid`].
-    pub fn train_batch(&mut self, mlp: &mut Mlp, x: &Ciphertext, y: &Ciphertext) -> Result<()> {
+    pub fn train_batch(&mut self, mlp: &mut Mlp<E>, x: &E::Ct, y: &E::Ct) -> Result<()> {
         self.train_batch_valid(mlp, x, y, self.layout.batch)
     }
 
@@ -651,9 +731,9 @@ impl<'a> Trainer<'a> {
     /// the refresher's errors.
     pub fn train_batch_valid(
         &mut self,
-        mlp: &mut Mlp,
-        x: &Ciphertext,
-        y: &Ciphertext,
+        mlp: &mut Mlp<E>,
+        x: &E::Ct,
+        y: &E::Ct,
         n_valid: usize,
     ) -> Result<()> {
         let n_layers = mlp.layers.len();
@@ -764,7 +844,7 @@ impl<'a> Trainer<'a> {
     }
 
     /// Refreshes every weight diagonal, bias and optimizer state.
-    fn refresh_all(&mut self, mlp: &mut Mlp) -> Result<()> {
+    fn refresh_all(&mut self, mlp: &mut Mlp<E>) -> Result<()> {
         let t0 = Instant::now();
         let r = self.refresher.as_mut();
         let mut count = 0;
@@ -799,8 +879,8 @@ impl<'a> Trainer<'a> {
     /// stay trained).
     pub fn train_epoch(
         &mut self,
-        mlp: &mut Mlp,
-        batches: &[(Ciphertext, Ciphertext)],
+        mlp: &mut Mlp<E>,
+        batches: &[(E::Ct, E::Ct)],
     ) -> Result<EpochLog> {
         let b = self.layout.batch;
         self.run_epoch(mlp, batches.iter().map(|(x, y)| (x, y, b)))
@@ -812,17 +892,20 @@ impl<'a> Trainer<'a> {
     /// Errors as [`Trainer::train_epoch`].
     pub fn train_epoch_valid(
         &mut self,
-        mlp: &mut Mlp,
-        batches: &[(Ciphertext, Ciphertext, usize)],
+        mlp: &mut Mlp<E>,
+        batches: &[(E::Ct, E::Ct, usize)],
     ) -> Result<EpochLog> {
         self.run_epoch(mlp, batches.iter().map(|(x, y, n)| (x, y, *n)))
     }
 
     fn run_epoch<'b>(
         &mut self,
-        mlp: &mut Mlp,
-        batches: impl Iterator<Item = (&'b Ciphertext, &'b Ciphertext, usize)>,
-    ) -> Result<EpochLog> {
+        mlp: &mut Mlp<E>,
+        batches: impl Iterator<Item = (&'b E::Ct, &'b E::Ct, usize)>,
+    ) -> Result<EpochLog>
+    where
+        E::Ct: 'b,
+    {
         let before = self.ev.counter();
         let (r0, rs0) = (self.refreshes, self.refresh_seconds);
         let t0 = Instant::now();

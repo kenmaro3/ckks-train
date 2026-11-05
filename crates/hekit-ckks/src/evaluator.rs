@@ -86,6 +86,7 @@ use crate::keys::{
     GaloisKey, GaloisKeys, KskKey, QpPoly, RelinKey, conjugation_elt, galois_elt, truncated,
 };
 use crate::keyswitch::{apply_key, decompose, key_switch};
+use crate::ops::EvalConfig;
 use crate::params::CkksParams;
 use crate::plaintext::Plaintext;
 
@@ -107,7 +108,7 @@ const MAX_SCALAR_INT: f64 = 4_611_686_018_427_387_904.0;
 pub const MIN_PLAIN_SCALE: f64 = 1_048_576.0;
 
 /// `InvalidParams` if the plaintext scale `sp` is below [`MIN_PLAIN_SCALE`].
-fn check_plain_scale(sp: f64) -> Result<()> {
+pub(crate) fn check_plain_scale(sp: f64) -> Result<()> {
     if sp < MIN_PLAIN_SCALE {
         return Err(HekitError::InvalidParams(format!(
             "plaintext scale {sp:e} is below 2^20: the target scale is too small for this \
@@ -120,6 +121,11 @@ fn check_plain_scale(sp: f64) -> Result<()> {
 /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
 /// counts the expensive operations it performs ([`Evaluator::counter`]).
 ///
+/// The [`EvalConfig`] ablation flags ([`Evaluator::with_config`]; default all on) choose
+/// between the optimised and the naive form of [`Evaluator::hoisted_rotate`],
+/// [`Evaluator::matvec_plain`] and [`Evaluator::matvec_enc`] (see [`crate::ops`]); every
+/// other operation ignores them. The generic interface is [`crate::ops::HeOps`].
+///
 /// The keys are held behind `Arc`s: `Clone` shares them (no key copy; one n16_train key is
 /// about 302 MB) and copies the current counts into an independent counter. `Debug`
 /// prints a summary (ring degree, top level, which keys are present, the counts), not the
@@ -128,6 +134,7 @@ pub struct Evaluator {
     params: Arc<CkksParams>,
     relin: Option<Arc<RelinKey>>,
     galois: Option<Arc<GaloisKeys>>,
+    config: EvalConfig,
     counter: Mutex<OpCounter>,
 }
 
@@ -142,6 +149,7 @@ impl std::fmt::Debug for Evaluator {
                 &self.galois.as_deref().map_or(0, GaloisKeys::len),
             )
             .field("counter", &self.counter())
+            .field("config", &self.config)
             .finish()
     }
 }
@@ -152,6 +160,7 @@ impl Clone for Evaluator {
             params: Arc::clone(&self.params),
             relin: self.relin.as_ref().map(Arc::clone),
             galois: self.galois.as_ref().map(Arc::clone),
+            config: self.config,
             counter: Mutex::new(self.counter()),
         }
     }
@@ -166,22 +175,39 @@ const _: fn() = || {
 impl Evaluator {
     /// An evaluator for `params`. `relin` is needed by [`Evaluator::relinearize`] and
     /// [`Evaluator::mul`]; `galois` by the rotations and conjugation. The keys must have been
-    /// generated for `params` (the same `Arc`): checked when a key is used.
+    /// generated for `params` (the same `Arc`): checked when a key is used. The ablation
+    /// flags are the default ([`EvalConfig::default`], all optimisations on).
     pub fn new(
         params: Arc<CkksParams>,
         relin: Option<RelinKey>,
         galois: Option<GaloisKeys>,
     ) -> Evaluator {
+        Evaluator::with_config(params, relin, galois, EvalConfig::default())
+    }
+
+    /// [`Evaluator::new`] with the ablation flags `config` (RQ3; see [`crate::ops`] for the
+    /// code paths each flag changes). The flags change costs, never the message: every
+    /// configuration computes the same values up to the CKKS noise (bit-identical for
+    /// `hoist`, see [`Evaluator::hoisted_rotate`]).
+    pub fn with_config(
+        params: Arc<CkksParams>,
+        relin: Option<RelinKey>,
+        galois: Option<GaloisKeys>,
+        config: EvalConfig,
+    ) -> Evaluator {
         Evaluator {
             params,
             relin: relin.map(Arc::new),
             galois: galois.map(Arc::new),
+            config,
             counter: Mutex::new(OpCounter::default()),
         }
     }
 
     /// An evaluator that shares the `Arc`ed keys (no key copy) with a fresh counter: the
-    /// bootstrapper runs on the caller's relinearization key and its own Galois keys.
+    /// bootstrapper runs on the caller's relinearization key and its own Galois keys. Its
+    /// flags are always the default (bootstrapping is not part of the RQ3 ablation; its
+    /// planned cost [`crate::bootstrap::Bootstrapper::cost_per_boot`] assumes them).
     pub(crate) fn with_shared_keys(
         params: Arc<CkksParams>,
         relin: Option<Arc<RelinKey>>,
@@ -191,8 +217,14 @@ impl Evaluator {
             params,
             relin,
             galois,
+            config: EvalConfig::default(),
             counter: Mutex::new(OpCounter::default()),
         }
+    }
+
+    /// The ablation flags of this evaluator.
+    pub fn config(&self) -> &EvalConfig {
+        &self.config
     }
 
     /// The shared relinearization key, if any (see [`Evaluator::with_shared_keys`]).
@@ -296,35 +328,7 @@ impl Evaluator {
     /// finite (or `target_scale * q_level` overflows); `NoLevelsLeft` at level 0 (nothing to
     /// rescale by); `ScaleMismatch` if no such `L` exists.
     pub fn exact_product_scale(&self, level: usize, target_scale: f64) -> Result<f64> {
-        if level > self.params.max_level() {
-            return Err(HekitError::InvalidParams(format!(
-                "level {level} exceeds max_level {}",
-                self.params.max_level()
-            )));
-        }
-        if !(target_scale.is_finite() && target_scale > 0.0) {
-            return Err(HekitError::InvalidParams(format!(
-                "target scale {target_scale} must be positive and finite"
-            )));
-        }
-        if level == 0 {
-            return Err(HekitError::NoLevelsLeft);
-        }
-        let q = self.params.q()[level] as f64;
-        let l0 = target_scale * q;
-        if !l0.is_finite() {
-            return Err(HekitError::InvalidParams(format!(
-                "target scale {target_scale:e} times q_{level} overflows"
-            )));
-        }
-        // Any solution lies within about 2 ulps of l0 (the f64 grid near l0 is at most twice
-        // as coarse as q times the grid near the target); search nearest first.
-        let bits = l0.to_bits();
-        (0..=LABEL_SEARCH_ULPS)
-            .flat_map(|k| [bits + k, bits - k])
-            .map(f64::from_bits)
-            .find(|&l| l / q == target_scale)
-            .ok_or(HekitError::ScaleMismatch)
+        exact_product_scale(&self.params, level, target_scale)
     }
 
     /// The plaintext scale for [`Evaluator::mul_plain_to_scale`] of `ct` to `target_scale`:
@@ -573,8 +577,18 @@ impl Evaluator {
     /// Results are in the order of `steps`; steps that are multiples of `slots` give copies
     /// of `ct`, and repeated steps are allowed. Every key is looked up before any work, so a
     /// missing key fails fast. Errors as [`Evaluator::rotate`].
+    ///
+    /// With [`EvalConfig::hoist`] off (the RQ3 ablation) every step is an individual
+    /// [`Evaluator::rotate`] (its own decomposition): the same results, bit for bit (see
+    /// above), and the same counts; only the cost differs.
     pub fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Result<Vec<Ciphertext>> {
         self.check_galois_input(ct)?;
+        if !self.config.hoist {
+            self.check_rotation_keys(steps)?;
+            return crate::par::map_slice(steps, |&s| self.rotate(ct, s))
+                .into_iter()
+                .collect();
+        }
         let keys = steps
             .iter()
             .map(|&s| {
@@ -730,6 +744,43 @@ impl Evaluator {
             ))
         }
     }
+}
+
+/// [`Evaluator::exact_product_scale`] for `params` (shared with [`crate::ops::HeOps`]).
+pub(crate) fn exact_product_scale(
+    params: &CkksParams,
+    level: usize,
+    target_scale: f64,
+) -> Result<f64> {
+    if level > params.max_level() {
+        return Err(HekitError::InvalidParams(format!(
+            "level {level} exceeds max_level {}",
+            params.max_level()
+        )));
+    }
+    if !(target_scale.is_finite() && target_scale > 0.0) {
+        return Err(HekitError::InvalidParams(format!(
+            "target scale {target_scale} must be positive and finite"
+        )));
+    }
+    if level == 0 {
+        return Err(HekitError::NoLevelsLeft);
+    }
+    let q = params.q()[level] as f64;
+    let l0 = target_scale * q;
+    if !l0.is_finite() {
+        return Err(HekitError::InvalidParams(format!(
+            "target scale {target_scale:e} times q_{level} overflows"
+        )));
+    }
+    // Any solution lies within about 2 ulps of l0 (the f64 grid near l0 is at most twice
+    // as coarse as q times the grid near the target); search nearest first.
+    let bits = l0.to_bits();
+    (0..=LABEL_SEARCH_ULPS)
+        .flat_map(|k| [bits + k, bits - k])
+        .map(f64::from_bits)
+        .find(|&l| l / q == target_scale)
+        .ok_or(HekitError::ScaleMismatch)
 }
 
 /// `(sigma_elt(c0) + kb, ka)` with the scale of `ct`.

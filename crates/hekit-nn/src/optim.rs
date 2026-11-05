@@ -29,13 +29,13 @@
 //! momentum are not part of this API (biases are updated by `b - db` with
 //! [`crate::dense::Dense::bias_grad_scaled`]).
 
-use hekit_ckks::{Ciphertext, Diagonals, Evaluator};
+use hekit_ckks::{Ciphertext, DiagonalEntry, Diagonals, Evaluator, HeCiphertext, HeOps};
 use hekit_core::error::{HekitError, Result};
 
 use crate::dense::{EncWeights, check_uniform};
 
 /// An update rule for one layer's encrypted weights.
-pub trait Optimizer {
+pub trait Optimizer<E: HeOps = Evaluator> {
     /// The factor the gradient passed to [`Optimizer::step`] must already carry (folded into a
     /// plaintext of the gradient computation, see the [module docs](self)): pass
     /// `grad_scale() / n` as `c` to [`crate::dense::Dense::weight_grad_scaled`].
@@ -50,17 +50,12 @@ pub trait Optimizer {
     /// the entries of `dw` do not share one level or `w` is below `dw`'s level;
     /// `ScaleMismatch` unless every scale equals `w.scale()` exactly; and the optimizer's own
     /// checks.
-    fn step(
-        &mut self,
-        ev: &Evaluator,
-        w: &mut EncWeights,
-        dw: &Diagonals<Ciphertext>,
-    ) -> Result<()>;
+    fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()>;
 }
 
 /// The checks shared by the optimizers: shape, uniform level and scale of `dw`, `w` at or
 /// above `dw`'s level with exactly `dw`'s scale. Returns `dw`'s level.
-fn check_update(w: &EncWeights, dw: &Diagonals<Ciphertext>) -> Result<usize> {
+fn check_update<C: HeCiphertext + Clone>(w: &EncWeights<C>, dw: &Diagonals<C>) -> Result<usize> {
     w.check_same_shape(dw)?;
     check_uniform(dw)?;
     let level = dw.entries()[0].level();
@@ -74,7 +69,7 @@ fn check_update(w: &EncWeights, dw: &Diagonals<Ciphertext>) -> Result<usize> {
 }
 
 /// `w` switched down to `level` (free), entry by entry.
-fn weights_at(ev: &Evaluator, w: &EncWeights, level: usize) -> Result<Vec<Ciphertext>> {
+fn weights_at<E: HeOps>(ev: &E, w: &EncWeights<E::Ct>, level: usize) -> Result<Vec<E::Ct>> {
     w.diagonals()
         .entries()
         .iter()
@@ -83,10 +78,7 @@ fn weights_at(ev: &Evaluator, w: &EncWeights, level: usize) -> Result<Vec<Cipher
 }
 
 /// Rebuilds diagonals of `like`'s shape from `entries`.
-fn diags_like(
-    like: &Diagonals<Ciphertext>,
-    entries: Vec<Ciphertext>,
-) -> Result<Diagonals<Ciphertext>> {
+fn diags_like<C: DiagonalEntry>(like: &Diagonals<C>, entries: Vec<C>) -> Result<Diagonals<C>> {
     Diagonals::from_prerotated(like.d(), like.stride(), entries)
 }
 
@@ -99,17 +91,25 @@ pub struct Sgd {
     pub lr: f64,
 }
 
-impl Optimizer for Sgd {
-    fn grad_scale(&self) -> f64 {
+impl Sgd {
+    /// The gradient constant `lr` ([`Optimizer::grad_scale`]; inherent so that it needs no
+    /// evaluator type).
+    pub fn grad_scale(&self) -> f64 {
         self.lr
     }
 
-    fn step(
-        &mut self,
-        ev: &Evaluator,
-        w: &mut EncWeights,
-        dw: &Diagonals<Ciphertext>,
-    ) -> Result<()> {
+    /// The bias gradient constant `lr` (`LayerOptimizer::bias_grad_scale`).
+    pub fn bias_grad_scale(&self) -> f64 {
+        self.lr
+    }
+}
+
+impl<E: HeOps> Optimizer<E> for Sgd {
+    fn grad_scale(&self) -> f64 {
+        Sgd::grad_scale(self)
+    }
+
+    fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()> {
         let level = check_update(w, dw)?;
         let entries = weights_at(ev, w, level)?
             .iter()
@@ -130,18 +130,29 @@ impl Optimizer for Sgd {
 /// must be at least one level above `h` (`LevelMismatch` otherwise): `U'` lands at `h`'s
 /// level, like `W'`, so the client must refresh the velocity together with the weights
 /// ([`Nag::set_velocity`]).
+///
+/// `C` is the ciphertext type of the velocity ([`Ciphertext`] by default; [`Nag::new`] is
+/// the CPU constructor, [`Nag::new_for`] the one for any backend).
 #[derive(Debug, Clone)]
-pub struct Nag {
+pub struct Nag<C = Ciphertext> {
     /// The learning rate.
     pub lr: f64,
     /// The momentum `mu`.
     pub momentum: f64,
-    velocity: Option<Diagonals<Ciphertext>>,
+    velocity: Option<Diagonals<C>>,
 }
 
 impl Nag {
-    /// A NAG optimizer with zero velocity.
+    /// A NAG optimizer with zero velocity (CPU ciphertexts).
     pub fn new(lr: f64, momentum: f64) -> Nag {
+        Nag::new_for(lr, momentum)
+    }
+}
+
+impl<C> Nag<C> {
+    /// A NAG optimizer with zero velocity for the ciphertexts `C` of any backend
+    /// (`Nag::<E::Ct>::new_for(lr, mu)`).
+    pub fn new_for(lr: f64, momentum: f64) -> Nag<C> {
         Nag {
             lr,
             momentum,
@@ -151,33 +162,41 @@ impl Nag {
 
     /// The scaled velocity `U = lr (1 + mu) V` (pre-rotated diagonals in the weights' layout
     /// and scale), `None` before the first step.
-    pub fn velocity(&self) -> Option<&Diagonals<Ciphertext>> {
+    pub fn velocity(&self) -> Option<&Diagonals<C>> {
         self.velocity.as_ref()
     }
 
     /// Replaces the velocity, e.g. by a client-refreshed copy at the top level. It must have
     /// the weights' shape and scale; checked at the next [`Optimizer::step`].
-    pub fn set_velocity(&mut self, velocity: Option<Diagonals<Ciphertext>>) {
+    pub fn set_velocity(&mut self, velocity: Option<Diagonals<C>>) {
         self.velocity = velocity;
     }
 
     /// Takes the velocity out (e.g. to refresh it), leaving `None`.
-    pub fn take_velocity(&mut self) -> Option<Diagonals<Ciphertext>> {
+    pub fn take_velocity(&mut self) -> Option<Diagonals<C>> {
         self.velocity.take()
     }
 }
 
-impl Optimizer for Nag {
-    fn grad_scale(&self) -> f64 {
+impl<C> Nag<C> {
+    /// The gradient constant `lr (1 + mu)` ([`Optimizer::grad_scale`]; inherent so that it
+    /// needs no evaluator type).
+    pub fn grad_scale(&self) -> f64 {
         self.lr * (1.0 + self.momentum)
     }
 
-    fn step(
-        &mut self,
-        ev: &Evaluator,
-        w: &mut EncWeights,
-        dw: &Diagonals<Ciphertext>,
-    ) -> Result<()> {
+    /// The bias gradient constant `lr` (`LayerOptimizer::bias_grad_scale`).
+    pub fn bias_grad_scale(&self) -> f64 {
+        self.lr
+    }
+}
+
+impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
+    fn grad_scale(&self) -> f64 {
+        Nag::grad_scale(self)
+    }
+
+    fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()> {
         let level = check_update(w, dw)?;
         let mu = self.momentum;
         let kappa = mu * mu / (1.0 + mu);

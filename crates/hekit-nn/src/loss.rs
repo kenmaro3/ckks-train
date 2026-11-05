@@ -15,7 +15,7 @@
 //! The result has the lower level and `pred`'s scale. Cost: one subtraction, no relinearization,
 //! no rescale, no level.
 
-use hekit_ckks::{Ciphertext, Evaluator};
+use hekit_ckks::{DiagonalEntry, HeOps};
 use hekit_core::error::{HekitError, Result};
 
 /// Relative scale difference accepted as "the same scale" (floating-point rounding only).
@@ -30,12 +30,7 @@ impl Mse {
     ///
     /// Errors: `ScaleMismatch` unless the scales agree to `1e-12` (relative); the operand
     /// errors of `Evaluator::sub` (foreign basis, ...).
-    pub fn grad(
-        &self,
-        ev: &Evaluator,
-        pred: &Ciphertext,
-        target: &Ciphertext,
-    ) -> Result<Ciphertext> {
+    pub fn grad<E: HeOps>(&self, ev: &E, pred: &E::Ct, target: &E::Ct) -> Result<E::Ct> {
         let (a, b) = (pred.scale(), target.scale());
         if (a - b).abs() > SAME_SCALE * a.min(b) {
             return Err(HekitError::ScaleMismatch);
