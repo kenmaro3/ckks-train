@@ -265,6 +265,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **output path:** `results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json`, `results/quadruped/logs/R-41-FULL-1.log`
 - **order:** after R-47-2. It is a long timed run, so nothing of ours should overlap it. Untimed jobs may run only if you record them.
 - **status:** running/queued in chain10 (started 07:17 JST 2026-11-06): untimed build, then R-41-FULL-1, then R-41-FULL-2, nothing else of ours alongside. Clean clone `~/hekit-r41full` at ff2c2eb (contains ff3042d, 0 dirty files); the R-REB-2 14×14 arrays were copied in from the server's original R-REB-2 output and their sha256 matched data_manifest.json. Same flags as the block (argument order differs: `--batch` comes after the shared flags). Disk 26 GB free, RAM 115 GB available, machine idle (load 0.1, no SLAM processes) at 07:14. Partial rule: projection after 10 updates to `raw/R-41-FULL-1/projection.txt`; stop at once if over 30 h (108000 s).
+- **note:** R-REB-4 (1 thread, nice 19, including a g++ compile) ran 07:30–07:31 during this run's timed updates (around updates 6–7); it may add a little to those updates' times.
 
 ## R-41-FULL-2: faithful full-length encrypted run, 196 inputs, B=48 in 64 lanes, seed 0 (±0.5 pt accuracy check)
 
@@ -295,12 +296,12 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected duration:** < 5 min. **GPU memory need:** 0
 - **output path:** `results/quadruped/raw/reboot_crypto_params/params.json`
 - **order:** at the next free slot. It is light and must not disturb the timed FULL runs; run it at nice 19 in a few seconds of CPU.
-- **status:** done (2026-11-06T07:30–07:31 JST, exit 0, 1 thread, nice 19, peak RSS 0.56 GB; ran during R-41-FULL-1's build/setup). Output: `results/quadruped/raw/reboot_crypto_params/params.json` (raw captures in `raw/R-REB-4/`). Ring 2^16; Q: 26 towers (54-bit q0, 24 × 49-bit, last tower 786433 ≈ 19.58 bits = FLEXIBLEAUTOEXT's extra modulus), log2 Q = 1249.585; P: 8 × 60-bit, log2 P = 480; log2 PQ = 1729.585; HYBRID, dnum = 3 (OpenFHE's choice for numLargeDigits = 0), 9 towers per digit; SPARSE_TERNARY with Hamming weight 192 measured on a generated key (97 × +1, 95 × −1); σ = 3.19. Method: ReBoot's own CryptoContext constructor with openfhe.GenCryptoContext intercepted (stopped before keygen, so no 44 GB context), then a C++ helper on the same OpenFHE 1.2.1 install reading the chain from those CCParams.
+- **status:** done (2026-11-06T07:30–07:31 JST, exit 0, 1 thread, nice 19, peak RSS 0.56 GB; overlapped about 1 min (07:30–07:31) of R-41-FULL-1's timed updates, around updates 6–7; it used 1 thread at nice 19, plus a g++ compile). Output: `results/quadruped/raw/reboot_crypto_params/params.json` (raw captures in `raw/R-REB-4/`). Ring 2^16; Q: 26 towers (54-bit q0, 24 × 49-bit, last tower 786433 ≈ 19.58 bits = FLEXIBLEAUTOEXT's extra modulus), log2 Q = 1249.585; P: 8 × 60-bit, log2 P = 480; log2 PQ = 1729.585; HYBRID, dnum = 3 (OpenFHE's choice for numLargeDigits = 0), 9 towers per digit; SPARSE_TERNARY with Hamming weight 192 measured on a generated key (97 × +1, 95 × −1); σ = 3.19. Method: ReBoot's own CryptoContext constructor with openfhe.GenCryptoContext intercepted (stopped before keygen, so no 44 GB context), then a C++ helper on the same OpenFHE 1.2.1 install reading the chain from those CCParams.
 
 ## R-47-3: Task 47 batch vs sequential re-measurement (after the fix round), plus all GPU tests at 37e80a9
 
 - **purpose:** first, re-time the 4-product batch at n16_train L5 on 1, 2 and 4 streams after the fix (pool release threshold set, no per-call reserve, no threads); bit-identity is checked inside the example. Second, re-run all hekit-cuda GPU tests at the fix commit.
-- **commit to sync:** 37e80a9 or later (clean clone)
+- **commit to sync:** bd5cc49 or later (clean clone; the example now times both pool thresholds, `[default]` 256 MiB and `[max]`)
 - **working dir:** clean clone, e.g. `~/hekit-r45` re-synced
 - **command:**
   ```
