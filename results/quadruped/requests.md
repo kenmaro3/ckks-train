@@ -112,7 +112,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **expected:** 33.49 KS/sample; 17 of 32 updates bootstrap; about 45–50 min
 - **GPU memory need:** 0. **RAM need:** about 25 GB
 - **output path:** `results/quadruped/mnist_emlp1_ni_when_needed_b32_faithful.json`, `results/quadruped/logs/R-41-F1.log`
-- **status:** queued (20:50 JST) in chain4: R-45-1 → R-41-F1 → R-41-F2 → R-REB-2 → R-41-5. Clean clone `~/hekit-r44` at 3e0e99c; in-tree indices and init weights at the paths in the command.
+- **status:** done (2026-11-05T20:48–21:40 JST, exit 0, full epoch, partial rule not triggered: projection 3038 s). Result: `results/quadruped/mnist_emlp1_ni_when_needed_b32_faithful.json`; log `results/quadruped/logs/R-41-F1.log`; provenance `results/quadruped/raw/R-41-F1/`. KS/sample incl. bootstraps 33.4881 (without 26), 17 of 32 updates bootstrapped (68 bootstraps), every update equals prediction; epoch 3016.7 s, per update mean 94.0 s; test acc 0.7577 (twin 0.7577); peak RSS 28.5 GB. Clean clone ~/hekit-r44 at 3e0e99c. Caveat for timing: the other agent's SLAM processes were running again (3 at start, 1 at end; mean 1-min load 4.53, max 7.95), unlike R-41-1..4.
 
 ## R-41-F2: same as R-41-F1, B = 64
 
@@ -189,12 +189,12 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most 145 MiB per test, about 600 MiB peak. **RAM need:** < 4 GB
 - **output path:** `results/quadruped/hekit_cuda_task45_fix1_tests.txt`, `results/quadruped/logs/R-45-2.log`
 - **order:** short; run it at the next free slot, ahead of R-REB-3 if possible
-- **status:** queued (21:01 JST) in chain6: starts as soon as R-41-F2 ends, so it runs alongside the untimed R-REB-2 / R-REB-3 plaintext jobs (its 12-job build overlaps no timed run) and ahead of most of R-REB-3. Clean clone `~/hekit-r45` re-synced to 44cb42b (contains 8b81f3d, 0 dirty files). Skipped with a note if free GPU memory < 600 MiB at start.
+- **status:** superseded by R-46-1 (not run; R-46-1 covers all Task 44/45 tests at a later commit)
 
 ## R-46-1: hekit-cuda GPU tests at f68c05f (32 tests, adding GPU key switching, rotation and relinearization)
 
 - **purpose:** check that the GPU hybrid key switch, relinearize, rotate, conjugate and hoisted_rotate all match the CPU bit for bit (Review Focus 5), on seal_2020 and n16_train. This run also covers all Task 44/45 tests, so if R-45-2 has not run yet, run this block in its place and mark R-45-2 "superseded by R-46-1".
-- **commit to sync:** f68c05f or later. Use a clean clone.
+- **commit to sync:** b4b9dc3 or later (Task 46 fix round: n16_train capped keys at level 9 cover digits 4+4+2). Use a clean clone.
 - **working dir:** a clean clone, for example `~/hekit-r45`, re-synced to f68c05f
 - **command:**
   ```
@@ -207,3 +207,4 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **RAM need:** about 7 GB
 - **output path:** `results/quadruped/hekit_cuda_task46_tests.txt` and `results/quadruped/logs/R-46-1.log`
 - **order:** next free slot. It is GPU-light on compute and can run alongside the untimed plaintext jobs.
+- **status:** queued (21:08 JST) in chain7: starts as soon as R-41-F2 ends, alongside the untimed R-REB-2 / R-REB-3 jobs, so its build overlaps no timed run. Clean clone `~/hekit-r45` at 8f01b09 (contains f68c05f, 0 dirty files). Always runs; free GPU memory at start is recorded (2987 MiB at 21:08).
