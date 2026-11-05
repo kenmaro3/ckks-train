@@ -615,7 +615,14 @@ fn pass_levels(
 /// [`NonInteractiveTrainer::new`] requires `levels_per_iter` to be at most the levels left
 /// after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
 pub fn levels_per_iter<E: HeOps>(mlp: &Mlp<E>, placement: BootPlacement) -> usize {
-    let meta = metas(mlp);
+    let acts: Vec<&dyn Activation<E>> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
+    levels_per_iter_of(&acts, placement)
+}
+
+/// [`levels_per_iter`] of a network with the activations `acts` (one per layer; the level count
+/// does not depend on the dimensions), without an encrypted network (e.g. for a plan).
+pub fn levels_per_iter_of<E: HeOps>(acts: &[&dyn Activation<E>], placement: BootPlacement) -> usize {
+    let meta = metas_of(acts);
     const BIG: i64 = 1 << 30;
     let n = meta.len();
     let p = pass_levels(
@@ -1627,6 +1634,30 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         mlp: &mut Mlp<E>,
         batches: &[(&E::Ct, &E::Ct, usize)],
     ) -> Result<()> {
+        self.step(mlp, batches, false).map(|_| ())
+    }
+
+    /// [`NonInteractiveTrainer::train_step_valid`], returning the update's hidden activations:
+    /// per micro-batch the outputs of the activations of layers `1 .. L - 1` (1-based), from
+    /// the forward pass with the weights **before** the update, at their own levels and scales
+    /// (not the bootstrapped copies of [`BootPlacement::AfterActivation`]). A block of
+    /// [`crate::block::BlockMlp`] hands the first one to the next stage (Task 52).
+    ///
+    /// Errors as [`NonInteractiveTrainer::train_step_valid`].
+    pub fn train_step_valid_with_hidden(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
+    ) -> Result<Vec<Vec<E::Ct>>> {
+        self.step(mlp, batches, true)
+    }
+
+    fn step(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
+        keep_hidden: bool,
+    ) -> Result<Vec<Vec<E::Ct>>> {
         let n_layers = mlp.layers.len();
         if batches.is_empty() {
             return Err(HekitError::InvalidParams("no micro-batches".into()));
@@ -1667,7 +1698,9 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         // 1. Forward per micro-batch. acts[mb][l] is the input of layer l.
         let mut acts: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
         let mut zs: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
+        let mut hidden: Vec<Vec<E::Ct>> = Vec::new();
         for (mb, (x, _, _)) in batches.iter().enumerate() {
+            let mut h_mb = Vec::new();
             let mut a_in = Vec::with_capacity(n_layers + 1);
             let mut z_mb = Vec::with_capacity(n_layers);
             let mut prev = (*x).clone();
@@ -1684,6 +1717,9 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                     trace.push((format!("a{}", l + 1), a.level()));
                 }
                 z_mb.push(z);
+                if keep_hidden && l + 1 < n_layers {
+                    h_mb.push(a.clone());
+                }
                 if boot_acts && l + 1 < n_layers {
                     let a1 = ev.rescale(&ev.mul_scalar(&a, 1.0, delta_scale)?)?;
                     let t0 = Instant::now();
@@ -1703,6 +1739,9 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             }
             acts.push(a_in);
             zs.push(z_mb);
+            if keep_hidden {
+                hidden.push(h_mb);
+            }
         }
 
         // 2. Loss gradients (y brought to the output's exact scale if a lazy step starts low).
@@ -1923,7 +1962,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             Vec::new()
         };
         self.trace = trace;
-        Ok(())
+        Ok(hidden)
     }
 
     /// The optimizer on every container (see the [module docs](self)): per container the level

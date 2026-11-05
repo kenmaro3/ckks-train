@@ -525,7 +525,7 @@ impl Mlp {
 }
 
 /// `a = act(a W^T + b)` over host layers (see [`Mlp::predict_plain`]).
-fn predict_layers<'l, E: HeOps + 'l>(
+pub(crate) fn predict_layers<'l, E: HeOps + 'l>(
     layers: impl Iterator<Item = (&'l Dense, &'l dyn Activation<E>)>,
     dec: &Decryptor,
     encoder: &Encoder,
@@ -736,6 +736,24 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         y: &E::Ct,
         n_valid: usize,
     ) -> Result<()> {
+        self.train_batch_valid_with_hidden(mlp, x, y, n_valid)
+            .map(|_| ())
+    }
+
+    /// [`Trainer::train_batch_valid`], returning the step's hidden activations: the outputs
+    /// of the activations of layers `1 .. L - 1` (1-based; the inputs of layers `2 .. L`),
+    /// computed by the forward pass from the weights **before** the update, at their own
+    /// levels and scales. A block of [`crate::block::BlockMlp`] hands the first one to the
+    /// next stage (Task 52).
+    ///
+    /// Errors as [`Trainer::train_batch_valid`].
+    pub fn train_batch_valid_with_hidden(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        x: &E::Ct,
+        y: &E::Ct,
+        n_valid: usize,
+    ) -> Result<Vec<E::Ct>> {
         let n_layers = mlp.layers.len();
         if n_layers == 0 || self.optims.len() != n_layers {
             return Err(HekitError::InvalidParams(format!(
@@ -840,7 +858,9 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         self.trace = trace;
 
         // 5. Refresh everything the next step consumes.
-        self.refresh_all(mlp)
+        self.refresh_all(mlp)?;
+        acts.truncate(n_layers);
+        Ok(acts.split_off(1))
     }
 
     /// Refreshes every weight diagonal, bias and optimizer state.
