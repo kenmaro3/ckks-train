@@ -422,3 +422,25 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 - **GPU memory need:** 0
 - **timing:** timed CPU runs. Run them alone, after R-41-FULL-2 and before R-47-3 / R-48, or after those; nothing of ours may overlap. Partial rule: after 5 updates, log the projected total; if it is more than 2× the estimate, stop and mark `partial`.
 - **output path:** as given in `--out`, plus `results/quadruped/logs/R-52-{1,2}.log`
+
+## R-54-1: Task 54 one-shot runner, `scripts/run_all.sh --quick` (pipeline check, <= 2 h target)
+
+- **purpose:** run every group of the paper's experiment matrix once on subsets (1-4 updates, 1 seed): NI eMLP-1 at 196 and 784 inputs (WN / AU / AA, B = 32 / 48 / 64), interactive CPU, GPU and CPU at level 7, the RQ3 ablation (GPU L7, CPU L7 default config, CPU insecure `small` smoke), eMLP-2/3 NI, plaintext twins, Task 51 datasets, Iris (baseline a), ReBoot layout in hekit (baseline c). It checks that every row runs end to end with provenance and measures the real quick duration. Quick numbers are not paper numbers. Official ReBoot (baseline b) is not part of it.
+- **commit to sync:** 962b7d2 or later (clean clone, e.g. `~/hekit-r54`; `git status --porcelain --untracked-files=no` must print nothing, the script refuses a dirty tree)
+- **data:** copy in `results/quadruped/data/reboot_emlp1_full/*.npy` (as for R-41-FULL; sha256 checked against data_manifest.json by the binary), and `data/mnist`, `data/fashion_mnist` (`scripts/fetch_mnist.sh`, `scripts/fetch_fashion_mnist.sh`, or copy from `~/hekit-r41full/data`). A run whose inputs are missing is reported `missing-input`, not run.
+- **command (bash):**
+  ```
+  cd ~/hekit-r54
+  export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}; export PATH=/usr/local/cuda-13.1/bin:$PATH
+  mkdir -p results/quadruped/logs
+  scripts/run_all.sh --quick --dry-run > results/quadruped/logs/R-54-1.plan.txt
+  /usr/bin/time -v scripts/run_all.sh --quick 2>&1 | tee results/quadruped/logs/R-54-1.log
+  echo "R-54-1 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-54-1.log
+  ```
+  The script builds first (`cargo build --release -p hekit-bench --features parallel --bins`, then the CUDA build into `target/run_all-cuda`), then runs 24 jobs one after another, each under `nice -n 10` with `RAYON_NUM_THREADS=12`.
+- **expected duration:** 1.71 h by the dry-run estimate (builds 0.2 h). Do not stop it for time below 4 h; above 4 h stop it, mark `partial`, and keep the outputs (the meta files say which runs finished).
+- **GPU memory need:** at most about 2.4 GiB (GPU ablation at level 7 with NAG, 2456 MiB; mnist interactive at level 7). A GPU run that does not fit exits 3 with a `SKIP` line and is recorded `skipped-gpu-memory`; that is not a failure.
+- **RAM need:** about 31 GB peak (one NI run at a time, 28-31 GB). **Disk:** about 3 GB (second target dir for the CUDA build, small outputs); check `df -h ~` first.
+- **timing:** timed CPU and GPU jobs. Run it alone, after R-41-FULL-2 and the R-48 blocks; never during a FULL run.
+- **pass:** exit 0 (every run `done` or `skipped-gpu-memory`). Exit 1 means a run failed or had missing inputs: list those ids with the last lines of `results/run_all/quick/logs/<id>.log`.
+- **output path:** `results/run_all/quick/` (copy back `*.json`, `logs/`, `meta/`), `results/quadruped/logs/R-54-1.log`, `results/quadruped/logs/R-54-1.plan.txt`. Record total wall-clock (from `time -v`), `df -h ~`, `nvidia-smi` and `uptime` before and after; the controller puts the duration and `df -h` into `results/README.md`.
