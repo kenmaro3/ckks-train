@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [Linux起動の失敗記録と学習role実装のレビュー](#latest-evidence-20261107-startup1)。
+最新の追記: [学習用build統合と起動修正のレビュー](#latest-evidence-20261107-role-build)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-startup1)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-role-build)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -497,3 +497,14 @@ MacのIは05:27:05–05:27:09 JST、2 graphs・8更新・2推論・116 client re
 学習role/buildの変更はRust35件・限定integration1件・Python32 methodsとstrict Clippy/formatを通したが、独立レビューでPythonの非選択emitted pathに`..`が入った場合のcontainment不足が見つかり、修正中・未統合である。Rust側は拒否するため両言語の規則を揃える。試験数は科学的case数ではなく、native build、Train current context/runtime、全行runner、HE実測の完了は主張しない。全登録行・未解決補足・campaign holdは維持する。
 
 Macの不要生成物は累計19,298,938,880 bytes（約17.97GiB）を整理済み。直近の追加対象は非稼働Rust中間objectだけで、primary binaryのhashは不変。現在の空きは別途変動し、約1.1GiBのため既存target・単一Cargo・限定検証を維持する。科学結果・データ・証跡は保持し、Sage再実行時は保存した394 pinsから再導入する。新commitのhosted CIは未確認、以前の請求理由による未起動を成功扱いせず、課金・公開設定は変更していない。
+
+<a id="latest-evidence-20261107-role-build"></a>
+## 2026-11-07追記: 学習用build統合と起動修正のsourceレビュー
+
+`f1bdc3e`でReference／学習用の固定build recipe、approval-v2、Rust/Pythonの整合検査を統合・pushした。Pythonの未選択emitted pathに含まれる`.`／`..`はPath構築前に拒否するよう修正し、元の逸脱例を含む限定7テストと独立再レビューが合格した。前節の「修正中・未統合」はこの追記で更新する。元のRust35件・integration1件・Python32 methods・Clippy/formatの検証と修正後の限定検証を区別する。build-script検証ハーネスのmtimeによる実行ファイル選択は軽微な残課題で、レビュー済みsourceと当該実行ファイルの同一性を証明したとは扱わない。
+
+Linux launcherのFIX3は固定された自分自身のファイルキーに対する`finder is None`だけを許す限定修正で、8件のテストと同じ独立レビュアーによる再レビューが合格した。実startup1の失敗とLinux finder値の未観測は変わらない。新しいstartup2用の固定配置・sidecarを準備中で、現時点では新しい配置・起動・context／captureは未実行である。
+
+`f1bdc3e`の[CI run42306740510](https://github.com/kenmaro3/ckks-train/actions/runs/42306740510)は全6ジョブのstepsが空で、各注記に支払い／利用上限による起動拒否がある。CI検証は未実施であり、コード試験の失敗とも成功とも扱わない。課金設定は変更していない。
+
+次の実装は、学習側の参照結果読み取りとReference専用の公開・復旧操作を分ける制御、既存target storeの読み取り専用open、入力の再検証の共通化である。実runtime、全行runner、native reference／admission／HE、Task42／M4の最終測定は引き続き未完。FULL-2の最新実観測は前節の07:25:40 JST（102/1000更新）で、新しい進捗を推定していない。全登録範囲とcampaign holdを維持する。

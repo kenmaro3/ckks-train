@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の追記: [FULL-1回収と入力取得コード](#latest-evidence-20261107-full1)。
+最新の追記: [学習用build統合と起動修正のレビュー](#latest-evidence-20261107-role-build)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -263,5 +263,16 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 [R14/R15](../results/quadruped/raw/R-REB-14-15-STARTUP-PREREQUISITES/README.md)の静的観測をレビュー・保存し、[R16〜19](../results/quadruped/raw/R-REB-16-19-STARTUP1/README.md)で固定コピーの配置と独立readbackは合格した。一方、実startup1は静的preflight後にimporter-cacheの固定launcherキーを拒否してexit1となり未達。親子の原記録・終了・完全なstream回収を保持し、helper preparation、外部package追加、科学用import/context/captureには進んでいない。失敗したLinux記録からfinderの値を補完しない。修正と別の実行releaseが必要で、環境作成やsourceレビューの合格を起動成功に置き換えない。
 
 07:25:40 JSTのFULL-2は102/1000更新、既存chain/queueは同じstart ticksでlive、最終結果なし。学習role/buildの限定Rust35・integration1・Python32 methodsとClippy/formatは通ったが、独立レビューのPython emitted-path containment指摘を修正中で未統合。native/context/runtime・全行runner・科学的matrix・Task42/M4/M5全体は未完である。既存holdと全登録範囲を保持し、公開・課金設定は変更していない。
+
+<a id="latest-evidence-20261107-role-build"></a>
+## 2026-11-07追記: 学習用build統合と起動修正のsourceレビュー
+
+`f1bdc3e`でReference／学習用の固定build recipe、approval-v2、Rust/Pythonの整合検査を統合・pushした。Pythonの未選択emitted pathに含まれる`.`／`..`はPath構築前に拒否するよう修正し、元の逸脱例を含む限定7テストと独立再レビューが合格した。前節の「修正中・未統合」はこの追記で更新する。元のRust35件・integration1件・Python32 methods・Clippy/formatの検証と修正後の限定検証を区別する。build-script検証ハーネスのmtimeによる実行ファイル選択は軽微な残課題で、レビュー済みsourceと当該実行ファイルの同一性を証明したとは扱わない。
+
+Linux launcherのFIX3は固定された自分自身のファイルキーに対する`finder is None`だけを許す限定修正で、8件のテストと同じ独立レビュアーによる再レビューが合格した。実startup1の失敗とLinux finder値の未観測は変わらない。新しいstartup2用の固定配置・sidecarを準備中で、現時点では新しい配置・起動・context／captureは未実行である。
+
+`f1bdc3e`の[CI run42306740510](https://github.com/kenmaro3/ckks-train/actions/runs/42306740510)は全6ジョブのstepsが空で、各注記に支払い／利用上限による起動拒否がある。CI検証は未実施であり、コード試験の失敗とも成功とも扱わない。課金設定は変更していない。
+
+次の実装は、学習側の参照結果読み取りとReference専用の公開・復旧操作を分ける制御、既存target storeの読み取り専用open、入力の再検証の共通化である。実runtime、全行runner、native reference／admission／HE、Task42／M4の最終測定は引き続き未完。FULL-2の最新実観測は前節の07:25:40 JST（102/1000更新）で、新しい進捗を推定していない。全登録範囲とcampaign holdを維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
