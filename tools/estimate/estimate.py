@@ -10,7 +10,8 @@ Modelling choices:
   * n = N, q = 2^ceil(log PQ): the attacker's modulus for RLWE key-switching keys is Q*P (a
     power-of-two stand-in; the estimate depends on q essentially only through log q).
   * secret "ternary_default" = hekit's sampler (-1/0/1 with prob 1/4, 1/2, 1/4), modelled as
-    SparseTernary(n/4, n/4, n); an integer secret = exact Hamming weight h (h/2 of each sign).
+    SparseTernary(n/4, n/4, n); an integer secret = exact Hamming weight h (h/2 of each sign);
+    a pair [p, m] = exactly p coefficients +1 and m coefficients -1 (reboot_params.json).
   * error = discrete Gaussian, sigma from params.json (hekit_ckks::keys::ERROR_STD_DEV = 3.2);
     m = n samples (or unbounded with --m oo).
   * cost models: bdgl16 = asymptotic sieve 8d*2^(0.292*beta+16.4) (HE Standard "BKZ.sieve"),
@@ -55,6 +56,8 @@ SKIPPED = ("arora-gb", "bkw")
 def secret_dist(spec, n):
     if spec == "ternary_default":
         return ND.SparseTernary(n // 4, n // 4, n)
+    if isinstance(spec, list):  # [#(+1), #(-1)], an exact sign split (reboot_params.json)
+        return ND.SparseTernary(int(spec[0]), int(spec[1]), n)
     h = int(spec)
     return ND.SparseTernary(h // 2, h - h // 2, n)
 

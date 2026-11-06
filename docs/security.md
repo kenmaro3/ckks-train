@@ -218,6 +218,74 @@ the sieve model.
   the gate with 21.12 bits (model 21.0; `n16_boot_keys_bootstrap_sparse`), 3.7 bits more than
   the dense key, because a smaller main key lowers the rescale and key-switch rounding noise.
 
+### ReBoot's parameters under the same models (Task 39 follow-up)
+
+ReBoot's CKKS parameters, as captured from its own OpenFHE 1.2.1 CryptoContext
+(`results/quadruped/raw/reboot_crypto_params/params.json`, request R-REB-4):
+- N = 2^16;
+- Q: 26 towers (54 + 24 × 49 + one 19.58-bit tower that FLEXIBLEAUTOEXT adds), log Q = 1249.585;
+- P: 8 × 60, log P = 480, log PQ = 1729.585;
+- HYBRID key switching, dnum 3;
+- secret SPARSE_TERNARY with h = 192 (97 × +1, 95 × −1 in the captured key), σ = 3.19;
+- requested security level `HEStd_128_classic`.
+
+They were estimated with exactly the tooling and models of (a)–(c):
+- **The instance.** It is the RLWE instance at modulus P·Q, where the key-switching keys live.
+- **The parameters.** q = 2^ceil(log PQ) = 2^1730, the secret is `ND.SparseTernary(97, 95, n)`
+  (`tools/estimate/reboot_params.json`), σ = 3.19 and m = n.
+- **The attacks.** All eight, as for (b) and (c), plus:
+  - the primal hybrids at fixed ζ from 0 to 12000;
+  - the dual MITM hybrid on a ζ grid with both MITM solvers, with ζ = 2000..16000 (step 1000,
+    refined in steps of 250) for the analytical solver and ζ = 6000..12000 (step 500, refined in
+    steps of 100) for the numerical one;
+  - the EJK20 exhaustive dual on a ζ grid, ζ = 1000..16000.
+- **Grid checks.** Every grid minimum is interior: the edges are at least 2.3 bits higher. The
+  best h1 (at most 18 for MITM, at most 10 for exhaustive) is far below the h1 caps of the scans
+  (40–96 and 48).
+
+| attack on ReBoot's key | BDGL16 | MATZOV |
+|---|---|---|
+| usvp / bdd / dual / dual_hybrid (MATZOV dual) | 131.3 / 131.3 / 131.3 / 131.3 | 129.1 / 129.0 / 129.9 / 130.1 |
+| bdd_hybrid, estimator / fixed-ζ minimum | 128.0 / 128.3 (ζ 3000) | 126.2 / 126.5 (ζ 3000) |
+| bdd_mitm_hybrid, estimator / fixed-ζ minimum | 123.5 / 123.4 (ζ 6500) | 122.2 / 122.1 (ζ 6000) |
+| dual_hybrid_ejk20 (exhaustive), estimator / grid | 127.9 / 127.8 (ζ 5750, h1 9) | 153.3 / 127.2 (ζ 5500, h1 9) |
+| dual_mitm_hybrid, estimator (analytical) | 122.3 | 121.9 |
+| dual_mitm_hybrid, analytical grid | 122.1 (ζ 9000, h1 17, β 264) | 121.8 (ζ 9000, h1 17, β 264) |
+| dual_mitm_hybrid, numerical grid | **121.8** (ζ 8400, h1 18, β 268) | **121.5** (ζ 8400, h1 18, β 268) |
+| **minimum** | **121.8** | **121.5** |
+
+The estimator's own optimiser gives 153.3 for the EJK20 dual under MATZOV, against 127.2 on the
+grid: another instance of the unreliable dual-hybrid optimisers.
+
+**Sanity check against hekit's (c).** hekit's (c) is the same kind of key, h = 192 at log PQ
+1732, σ 3.2. The estimator's optimisers gave it 122.2 / 121.7. On ReBoot's key they give
+122.3 / 121.9, which agrees to 0.2 bit: ReBoot's modulus is 2 bits smaller and its σ is
+marginally smaller. (c) was not grid-scanned. On ReBoot the grids lower the figure by a further
+0.4–0.5 bit, and (c) would move the same way, but (c) is already rejected.
+
+**hekit against ReBoot** (log2 rop, the minimum over all attacks; Core-SVP for information only):
+
+| key | N | log PQ | secret distribution | BDGL16 | MATZOV | Core-SVP |
+|---|---|---|---|---|---|---|
+| hekit (a): `n16_boot` main key | 2^16 | 1732 (1731.998) | dense ternary (P(±1) = 1/4 each, h ≈ N/2) | **131.5** | **129.3** | 95.2 |
+| hekit (b): SSE key s → s' | 2^16 | 294 (q_0·P) | sparse ternary, h' = 32 | **133.8** | **134.2** | 122.0 |
+| ReBoot main key | 2^16 | 1730 (1729.585) | sparse ternary, h = 192 (97 / 95) | **121.8** | **121.5** | 90.3 |
+
+**Conclusion.** Under the same lattice-estimator models used for hekit, **ReBoot's parameters
+are below 128 bits: 121.8 under BDGL16 and 121.5 under MATZOV, about 6.5 bits short.**
+- **Where it falls short.** The non-hybrid attacks alone give 131.3 / 129.0 or more. The deficit
+  comes entirely from the sparse h = 192 secret, through the MITM hybrids (dual 121.5–122.3,
+  primal 122.1–123.5).
+- **ReBoot's own label.** ReBoot requests `HEStd_128_classic`, but its key does not reach 128
+  bits under these models.
+- **hekit's comparison point.** The same h = 192 at hekit's own log PQ 1732 is (c), which is
+  rejected for the paper for the same reason. hekit's paper settings, (a) and (b), are both at
+  least 128 under both models.
+- **Uncertainty.** This is an estimate under the stated models; the lattice-estimator caveats
+  above apply to both sides equally.
+
+The raw output is under "Task 39 follow-up (ReBoot), raw output".
+
 ## Raw output
 
 ### BDGL16, full estimate
@@ -1096,5 +1164,123 @@ rop: ≈2^133.8, m: ≈2^12.8, k: ≈2^14.9, mem: ≈2^86.4, ↻: ≈2^54.0, β:
 --- refine around 58500 in [58250, 58750] step 50
 MIN zeta 58550: log2 rop 134.16 (1972 s)
 rop: ≈2^134.2, m: ≈2^12.8, k: ≈2^14.9, mem: ≈2^86.4, ↻: ≈2^54.5, β: 169, d: 14188, ζ: ≈2^15.8, h1: 10
+```
+
+
+### Task 39 follow-up (ReBoot), raw output
+
+Header, the one-line results `LWE.estimate` prints, and the `min rop` line, which holds every attack (including the EJK20 duals and the fixed-ζ primal hybrids). For the scans: the refine, MIN and final cost lines. Params from `tools/estimate/reboot_params.json`. Wall-clock time in brackets.
+
+#### ReBoot, full estimate, BDGL16 [513 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=bdgl16
+usvp                 :: rop: ≈2^131.3, red: ≈2^131.3, δ: 1.004590, β: 325, d: 127747, tag: usvp
+bdd                  :: rop: ≈2^131.3, red: ≈2^131.3, svp: ≈2^120.6, β: 325, η: 356, d: 127143, tag: bdd
+bdd_hybrid           :: rop: ≈2^128.0, red: ≈2^128.0, svp: ≈2^122.7, β: 303, η: 1, ζ: ≈2^11.6, |S|: ≈2^85.7, d: 124642, prob: 0.401, ↻: 9, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^123.5, red: ≈2^123.2, svp: ≈2^121.1, β: 281, η: 2, ζ: ≈2^12.7, |S|: ≈2^165.1, d: 118156, prob: 0.147, ↻: 29, tag: hybrid
+dual                 :: rop: ≈2^131.3, mem: ≈2^75.8, m: ≈2^16.0, β: 325, d: 130782, ↻: 1, tag: dual
+min rop (bits): {'usvp': 131.3, 'bdd': 131.3, 'bdd_hybrid': 128.0, 'bdd_mitm_hybrid': 123.5, 'dual': 131.3, 'dual_hybrid': 131.3, 'dual_hybrid_ejk20': 127.9, 'dual_mitm_hybrid': 122.3} -> 122.3
+```
+
+#### ReBoot, full estimate, MATZOV [628 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=matzov
+usvp                 :: rop: ≈2^129.1, red: ≈2^129.1, δ: 1.004590, β: 325, d: 127747, tag: usvp
+bdd                  :: rop: ≈2^129.0, red: ≈2^129.0, svp: ≈2^119.9, β: 325, η: 352, d: 127213, tag: bdd
+bdd_hybrid           :: rop: ≈2^126.2, red: ≈2^126.1, svp: ≈2^122.7, β: 303, η: 1, ζ: ≈2^11.6, |S|: ≈2^85.7, d: 124642, prob: 0.401, ↻: 9, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^122.2, red: ≈2^122.2, svp: ≈2^117.7, β: 279, η: 2, ζ: ≈2^12.8, |S|: ≈2^156.2, d: 117586, prob: 0.072, ↻: 62, tag: hybrid
+dual                 :: rop: ≈2^129.9, mem: 329, m: ≈2^16.0, β: 328, d: 131072, ↻: 1, tag: dual
+min rop (bits): {'usvp': 129.1, 'bdd': 129.0, 'bdd_hybrid': 126.2, 'bdd_mitm_hybrid': 122.2, 'dual': 129.9, 'dual_hybrid': 130.1, 'dual_hybrid_ejk20': 153.3, 'dual_mitm_hybrid': 121.9} -> 121.9
+```
+
+#### ReBoot, full estimate, Core-SVP ADPS16 [491 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=adps16
+usvp                 :: rop: ≈2^94.9, red: ≈2^94.9, δ: 1.004590, β: 325, d: 127747, tag: usvp
+bdd                  :: rop: ≈2^94.9, red: ≈2^94.9, svp: ≈2^73.9, β: 325, η: 252, d: 130527, tag: bdd
+bdd_hybrid           :: rop: ≈2^93.9, red: ≈2^93.7, svp: ≈2^91.1, β: 309, η: 93, ζ: ≈2^11.1, |S|: ≈2^53.8, d: 126360, prob: 0.346, ↻: 11, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^91.9, red: ≈2^91.8, svp: ≈2^88.2, β: 298, η: 2, ζ: ≈2^12.1, |S|: ≈2^99.2, d: 122801, prob: 0.157, ↻: 27, tag: hybrid
+dual                 :: rop: ≈2^94.9, mem: ≈2^75.8, m: ≈2^16.0, β: 325, d: 130782, ↻: 1, tag: dual
+min rop (bits): {'usvp': 94.9, 'bdd': 94.9, 'bdd_hybrid': 93.9, 'bdd_mitm_hybrid': 91.9, 'dual': 94.9, 'dual_hybrid': 94.9, 'dual_hybrid_ejk20': 93.9, 'dual_mitm_hybrid': 90.3} -> 90.3
+```
+
+#### ReBoot, primal hybrids at fixed ζ, BDGL16 [687 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=bdgl16
+min rop (bits): {'bdd_hybrid@0': 131.3, 'bdd_mitm_hybrid@0': 192.4, 'bdd_hybrid@1000': 130.2, 'bdd_mitm_hybrid@1000': 131.3, 'bdd_hybrid@2000': 128.5, 'bdd_mitm_hybrid@2000': 130.2, 'bdd_hybrid@3000': 128.3, 'bdd_mitm_hybrid@3000': 128.1, 'bdd_hybrid@4000': 128.4, 'bdd_mitm_hybrid@4000': 126.0, 'bdd_hybrid@5000': 128.9, 'bdd_mitm_hybrid@5000': 124.2, 'bdd_hybrid@5500': 129.2, 'bdd_mitm_hybrid@5500': 124.0, 'bdd_hybrid@6000': 129.8, 'bdd_mitm_hybrid@6000': 123.6, 'bdd_hybrid@6500': 130.6, 'bdd_mitm_hybrid@6500': 123.4, 'bdd_hybrid@7000': 132.1, 'bdd_mitm_hybrid@7000': 123.6, 'bdd_hybrid@7500': 132.9, 'bdd_mitm_hybrid@7500': 123.6, 'bdd_hybrid@8000': 133.6, 'bdd_mitm_hybrid@8000': 123.8, 'bdd_hybrid@9000': 135.4, 'bdd_mitm_hybrid@9000': 124.9, 'bdd_hybrid@10000': 137.8, 'bdd_mitm_hybrid@10000': 126.0, 'bdd_hybrid@12000': 144.1, 'bdd_mitm_hybrid@12000': 129.8} -> 123.4
+```
+
+#### ReBoot, primal hybrids at fixed ζ, MATZOV [697 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] m=n cost=matzov
+min rop (bits): {'bdd_hybrid@0': 129.0, 'bdd_mitm_hybrid@0': 190.2, 'bdd_hybrid@1000': 128.1, 'bdd_mitm_hybrid@1000': 129.0, 'bdd_hybrid@2000': 126.6, 'bdd_mitm_hybrid@2000': 128.1, 'bdd_hybrid@3000': 126.5, 'bdd_mitm_hybrid@3000': 126.1, 'bdd_hybrid@4000': 126.8, 'bdd_mitm_hybrid@4000': 124.2, 'bdd_hybrid@5000': 127.3, 'bdd_mitm_hybrid@5000': 122.7, 'bdd_hybrid@5500': 127.7, 'bdd_mitm_hybrid@5500': 122.4, 'bdd_hybrid@6000': 128.6, 'bdd_mitm_hybrid@6000': 122.1, 'bdd_hybrid@6500': 129.9, 'bdd_mitm_hybrid@6500': 122.3, 'bdd_hybrid@7000': 130.9, 'bdd_mitm_hybrid@7000': 122.2, 'bdd_hybrid@7500': 131.5, 'bdd_mitm_hybrid@7500': 122.3, 'bdd_hybrid@8000': 132.3, 'bdd_mitm_hybrid@8000': 122.8, 'bdd_hybrid@9000': 134.3, 'bdd_mitm_hybrid@9000': 123.7, 'bdd_hybrid@10000': 137.2, 'bdd_mitm_hybrid@10000': 125.3, 'bdd_hybrid@12000': 143.2, 'bdd_mitm_hybrid@12000': 129.3} -> 122.1
+```
+
+#### ReBoot, dual_mitm_scan.py analytical, BDGL16 [243 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=bdgl16 solver=mitm/analytical zeta grid 2000..16000 step 1000
+--- refine around 9000 in [8000, 10000] step 250
+MIN zeta 9000: log2 rop 122.06 (238 s)
+rop: ≈2^122.1, mem: ≈2^104.3, m: ≈2^15.8, k: ≈2^12.2, ↻: ≈2^14.7, β: 264, d: 113404, ζ: ≈2^13.1, h1: 17
+```
+
+#### ReBoot, dual_mitm_scan.py analytical, MATZOV [309 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=matzov solver=mitm/analytical zeta grid 2000..16000 step 1000
+--- refine around 9000 in [8000, 10000] step 250
+MIN zeta 9000: log2 rop 121.79 (305 s)
+rop: ≈2^121.8, mem: ≈2^104.2, m: ≈2^15.8, k: ≈2^12.2, ↻: ≈2^14.7, β: 264, d: 113404, ζ: ≈2^13.1, h1: 17
+```
+
+#### ReBoot, dual_mitm_scan.py analytical, ADPS16 [252 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=adps16 solver=mitm/analytical zeta grid 2000..16000 step 1000
+--- refine around 6000 in [5000, 7000] step 250
+MIN zeta 6250: log2 rop 90.27 (247 s)
+rop: ≈2^90.3, mem: ≈2^74.4, m: ≈2^15.9, k: ≈2^11.6, ↻: ≈2^12.7, β: 284, d: 118934, ζ: ≈2^12.6, h1: 12
+```
+
+#### ReBoot, dual_mitm_scan.py numerical, BDGL16 [818 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=bdgl16 solver=mitm/numerical zeta grid 6000..12000 step 500
+--- refine around 8500 in [8000, 9000] step 100
+MIN zeta 8400: log2 rop 121.84 (813 s)
+rop: ≈2^121.8, m: ≈2^15.8, k: ≈2^12.1, mem: ≈2^109.9, ↻: ≈2^13.3, β: 268, d: 114562, ζ: ≈2^13.0, h1: 18
+```
+
+#### ReBoot, dual_mitm_scan.py numerical, MATZOV [845 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=matzov solver=mitm/numerical zeta grid 6000..12000 step 500
+--- refine around 8500 in [8000, 9000] step 100
+MIN zeta 8400: log2 rop 121.45 (834 s)
+rop: ≈2^121.5, m: ≈2^15.8, k: ≈2^12.1, mem: ≈2^109.9, ↻: ≈2^13.3, β: 268, d: 114562, ζ: ≈2^13.0, h1: 18
+```
+
+#### ReBoot, dual_mitm_scan.py --solver exhaustive, BDGL16 [77 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=bdgl16 solver=exhaustive zeta grid 1000..16000 step 1000
+--- refine around 6000 in [5000, 7000] step 250
+MIN zeta 5750: log2 rop 127.78 (72 s)
+rop: ≈2^127.8, mem: ≈2^113.8, m: ≈2^15.9, β: 284, d: 119435, ↻: 368, ζ: ≈2^12.5, h1: 9
+```
+
+#### ReBoot, dual_mitm_scan.py --solver exhaustive, MATZOV [111 s]
+
+```
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=matzov solver=exhaustive zeta grid 1000..16000 step 1000
+--- refine around 5000 in [4000, 6000] step 250
+MIN zeta 5500: log2 rop 127.18 (106 s)
+rop: ≈2^127.2, mem: ≈2^111.6, m: ≈2^15.9, β: 286, d: 119961, ↻: 255, ζ: ≈2^12.4, h1: 9
 ```
 

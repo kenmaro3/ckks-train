@@ -39,6 +39,10 @@ Options:
   guessing dimensions. The full primal-hybrid optimiser does not finish at log PQ 1732.
 - `--dual-opt-step k`: `opt_step` of the EJK20 optimisers. Higher is more robust and slower.
 
+`reboot_params.json` holds ReBoot's captured CKKS parameters (R-REB-4) for the same models. Its
+secret is a pair `[p, m]`, exactly p coefficients +1 and m coefficients −1. Run it with
+`estimate.py reboot_params.json ...` and `dual_mitm_scan.py reboot_main reboot_params.json ...`.
+
 `params.json` also holds `n16_boot_sse_to_sparse`: the SSE switching key s -> s' of n16_boot, an
 RLWE sample under the h' = 32 ephemeral key at modulus q_0 * P (docs/security.md, Task 39).
 

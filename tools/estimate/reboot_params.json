@@ -1,0 +1,14 @@
+{
+  "source": "results/quadruped/raw/reboot_crypto_params/params.json (R-REB-4): ReBoot's own OpenFHE 1.2.1 CryptoContext; Q = 26 towers (54 + 24 x 49 + 19.58), P = 8 x 60, HYBRID dnum 3, SPARSE_TERNARY h = 192 (97 x +1, 95 x -1), sigma 3.19",
+  "presets": [
+    {
+      "name": "reboot_main",
+      "n": 65536,
+      "log_q": 1249.5850,
+      "log_p": 480.0000,
+      "log_pq": 1729.5850,
+      "secret": [97, 95],
+      "sigma": 3.19
+    }
+  ]
+}
