@@ -101,6 +101,7 @@ dependencies = [
  "libc",
  "ndarray",
  "rayon",
+ "serde",
  "serde_json",
 ]
 

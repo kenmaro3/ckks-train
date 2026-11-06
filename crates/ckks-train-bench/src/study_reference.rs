@@ -3,6 +3,13 @@
 //! These identities contain no training observations, reference completion, target,
 //! build attestation or serialization/publication capability. Only canonical immutable
 //! materializations can construct the private-field public values.
+mod document;
+pub use document::{
+    ClaimedAccuracy, ClaimedIdentity, ClaimedIdentityBytes, DocumentError, DocumentErrorCode,
+    ParsedDiagnosticDocument, ParsedFailureDocument, ParsedReferenceDocument,
+    parse_diagnostic_document, parse_failure_document, parse_reference_document,
+};
+
 use crate::{
     data::sha256_hex,
     profile_data::OrderCoverage,

@@ -323,3 +323,57 @@ This proposal is intentionally one artifact/schema package. No provenance redesi
 ## Publication record
 
 This design publishes reviewed proposal v3 SHA256 `7ec4766f1fc6eed6bf2b480011522875e995de73229d8492045507d11e7dc09a` after independent review and F1/F2 closure. Scoped rereview SHA256: `66dc4236c709bc7a5d4d567132c7a835a0ccbc19787402d8d1cf130190fc71e2`. Source implementation and execution were not performed by this design package. The pinned D6c1a scientific policy baseline remains the explicit earlier revision/digest recorded in §1; this later document is not substituted for that historical hash.
+
+## D6c1b implementation clarification (root, before the corresponding check)
+
+The root clarified the §5 absolute-path syntax on 2026-11-06: `source.root`,
+`executable.path`, and `invocation.cwd` require a nonempty raw byte string whose
+first byte is `/`. These are lexical absolute-path claims only; preserve non-UTF8
+bytes unchanged. There is no filesystem lookup, canonicalization, normalization,
+traversal or symlink check here. `argv` retains generic bounded RawOsString,
+including empty values. The independent `/\xff` fixture remains valid. Preserving
+relative claims for those three fields would contradict §5; stronger filesystem
+and capture verification remains D6c2. This clarification changes no schema,
+scientific identity byte layout or scientific policy.
+
+### Implemented transport and bounded validation evidence
+
+The implementation adds only three private-field untrusted parse result types,
+immutable claim accessors, strict borrowed-RawValue field visitors, lexical/depth
+preflight, complete opaque identity transport and canonical outer integrity.
+The global C/R/J/A and independent canonical-envelope ceilings above are enforced;
+claimed profile names never select allocation authority. The parser has no binary
+identity decoder, filesystem reader, training/session, provenance capture, writer,
+completed/verified reference, target, admission or CLI capability.
+
+Ten independent Python `struct`/`hashlib` wire goldens were frozen before source
+implementation and absent-API RED; 25 additional independently hashed variants
+were added as later coverage, not represented as earlier TDD. Focused validation
+passed 16 parser integration tests, five private tests, two compile-fail privacy
+doctests, and three existing input/order/rate regressions. Private tests include
+all 21 profiles × 10 seeds' literal R/U/E/P/C/R/J table and metadata inventory,
+BC700 dropped rows, B12838/37 intervals, and actual Iris seed0/7 complete identity
+transport across four graphs without training. Metadata-only inventory observed
+at most19 combined source records and206 bytes among inspected resolver strings;
+28 MissingCaptured seed rows remain represented. These are source/identity/schema
+checks, not full reference, runtime, accuracy or RSS evidence.
+
+Direct serde1.0.229 and serde_json1.0.154 are locally MIT/Apache-2.0; Cargo.lock
+changes only the bench's direct serde edge. The only new serde_json feature is
+`raw_value`; `float_roundtrip` is absent. Existing input readers and numerical
+source files are unchanged. Current-build identity can change with Cargo.lock or
+source changes; historical scientific files are not rewritten. Strict targeted
+Clippy and owned rustfmt checks passed. Full-size artifact allocation and peak RSS
+were not measured. Logical byte caps do not cap allocator spare capacity: Vec
+and the unchanged SHA helper can reserve extra storage, so §6's planned storage
+estimate is neither measured usage nor a hard allocator/RSS guarantee.
+
+The implementation report, complete owned patch/hash manifest, independent
+oracles and RED/GREEN evidence are in the Task54 D6c1b implementation ledger.
+A later approved-context reader still MUST canonically materialize the exact
+reference profile/seed, derive both identities, compare both complete byte arrays,
+and check every outer completion/checkpoint/denominator/digest claim against that
+trusted full plan/data before any VerifiedReference/target. Session prefix/state
+algorithms, source/build/capture policy, actual execution, durable publication and
+seed0 target eligibility remain separate unimplemented gates. Matching parsed
+hashes, including the adversarial completion fixtures, establish none of them.
