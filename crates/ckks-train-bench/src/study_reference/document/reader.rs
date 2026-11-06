@@ -422,7 +422,7 @@ pub(super) fn approved_provenance_claim(
         ));
     };
     let f = context
-        .build_facts(&p.build.receipt_file_sha256.0)
+        .reference_build_facts(&p.build.receipt_file_sha256.0)
         .map_err(|_| {
             err(
                 DocumentErrorCode::CrossLinkMismatch,

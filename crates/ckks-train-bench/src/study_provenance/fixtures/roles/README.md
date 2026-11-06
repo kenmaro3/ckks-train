@@ -1,0 +1,3 @@
+Independent fictional transport literals; not approved contexts or builds.
+
+Exact original hex file text is stored in literals.json. Each text file and decoded stream retain separately verified hashes. Source: .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d6c3-role-goldens. Original expected bytes were neither regenerated nor modified. Compact custody preserves the unchanged 512 source-record cap (377 tracked source-root paths before adoption; 141 individual new hex files would exceed the cap). index.json and obligations.json are verbatim copies. Historical unsupported recipes remain transport-only.

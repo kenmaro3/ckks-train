@@ -25,7 +25,7 @@ rayon = { version = "1.10", optional = true }
 
 [features]
 # rayon data parallelism in ckks-train-ckks (bit-identical results; Task 41 runs label it).
-parallel = ["ckks-train-ckks/parallel"]
+parallel = ["ckks-train-ckks/parallel", "dep:rayon"]
 # The GPU-vs-CPU benchmark `cuda_ops` (Task 47): the CUDA backend, and rayon for the CPU
 # baseline on 1 and N threads.
 cuda = ["dep:ckks-train-cuda", "ckks-train-cuda/cuda", "dep:rayon", "parallel"]

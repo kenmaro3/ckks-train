@@ -1,4 +1,5 @@
 //! Pinned local trust input, immutable captured facts and exact rechecks.
+use super::role::{ExecutableRole, Recipe};
 use super::{EMBEDDED_CAPSULE, ProvenanceError, Result, codec::*, ensure, publication::read_path};
 use crate::{
     data::sha256_hex, study_inputs::MaterializedProfile, study_reference::derive_identities,
@@ -72,7 +73,9 @@ impl ContextRequest {
         }
     }
 }
+struct CheckedBuildRole(Recipe);
 struct FrozenReceipt {
+    role: CheckedBuildRole,
     path: PathBuf,
     bytes: Vec<u8>,
     receipt: Receipt,
@@ -83,7 +86,7 @@ struct FrozenReceipt {
 pub struct VerifiedStudyContext {
     request: ContextRequest,
     approval_bytes: Vec<u8>,
-    approval: Approval,
+    approval: LocalApproval,
     receipts: Vec<FrozenReceipt>,
     current: usize,
     python: PathBuf,
@@ -99,7 +102,14 @@ fn canonical(p: &Path) -> Result<()> {
     )
 }
 fn path(b: &[u8]) -> Result<PathBuf> {
-    ensure(!b.contains(&0) && b.len() <= 4096, "Unix path bounds")?;
+    ensure(
+        !b.contains(&0)
+            && b.len() <= 4096
+            && !b
+                .split(|c| *c == b'/')
+                .any(|part| part == b"." || part == b".."),
+        "Unix path bounds",
+    )?;
     Ok(PathBuf::from(OsString::from_vec(b.to_vec())))
 }
 fn flag<'a>(argv: &'a [Vec<u8>], key: &[u8]) -> Result<&'a [u8]> {
@@ -133,11 +143,17 @@ fn env_policy(env: &Environment) -> Result<()> {
     let jobs = env.get("CARGO_BUILD_JOBS")?;
     ensure(matches!(jobs, b"1" | b"2" | b"3" | b"4"), "recipe jobs")
 }
-fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<()> {
+fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<CheckedBuildRole> {
+    let recipe = Recipe::capsule_policy(c)?;
+    r.check_post(c)?;
     env_policy(env)?;
+    validate_recipe_vectors(r, c, env, recipe)?;
     let root = path(&c.cwd)?;
     let target = path(env.get("CARGO_TARGET_DIR")?)?;
-    ensure(root.is_absolute() && target.is_absolute(), "recipe roots")?;
+    ensure(
+        root.is_absolute() && target.is_absolute() && !target.starts_with(&root),
+        "recipe roots",
+    )?;
     let cargo = flag(&r.argv, b"--cargo")?;
     let git = flag(&r.argv, b"--git")?;
     let linker = flag(&r.argv, b"--linker")?;
@@ -169,42 +185,6 @@ fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<()> {
             "tool absent from inventory",
         )?;
     }
-    let meta = vec![
-        cargo.to_vec(),
-        b"metadata".to_vec(),
-        b"--format-version".to_vec(),
-        b"1".to_vec(),
-        b"--locked".to_vec(),
-        b"--offline".to_vec(),
-        b"--no-default-features".to_vec(),
-        b"--filter-platform".to_vec(),
-        TARGET.as_bytes().to_vec(),
-        b"--manifest-path".to_vec(),
-        root.join("Cargo.toml").as_os_str().as_bytes().to_vec(),
-    ];
-    ensure(c.metadata_argv == meta, "metadata argv")?;
-    let mut build = vec![cargo.to_vec()];
-    for x in [
-        "build",
-        "--locked",
-        "--offline",
-        "--release",
-        "-p",
-        "ckks-train-bench",
-        "--no-default-features",
-        "--bin",
-        "study_reference",
-        "--target",
-        TARGET,
-        "--target-dir",
-    ] {
-        build.push(x.as_bytes().to_vec());
-    }
-    build.push(env.get("CARGO_TARGET_DIR")?.to_vec());
-    build.push(b"-j".to_vec());
-    build.push(env.get("CARGO_BUILD_JOBS")?.to_vec());
-    build.push(b"--message-format=json-render-diagnostics".to_vec());
-    ensure(c.build_argv == build, "build argv")?;
     for (option, key) in [
         (b"--cargo-home".as_slice(), "CARGO_HOME"),
         (b"--home".as_slice(), "HOME"),
@@ -273,29 +253,6 @@ fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<()> {
             }
         }
     }
-    let selected = r
-        .emitted
-        .iter()
-        .filter(|a| {
-            a.name == "study_reference"
-                && a.kinds == ["bin"]
-                && a.executable.as_ref() == Some(&r.executable)
-        })
-        .collect::<Vec<_>>();
-    ensure(
-        selected.len() == 1
-            && selected[0].manifest
-                == root
-                    .join("crates/ckks-train-bench/Cargo.toml")
-                    .as_os_str()
-                    .as_bytes()
-            && selected[0].src
-                == root
-                    .join("crates/ckks-train-bench/src/bin/study_reference.rs")
-                    .as_os_str()
-                    .as_bytes(),
-        "unique writer binary linkage",
-    )?;
     for a in &r.emitted {
         let p = c
             .packages
@@ -315,34 +272,266 @@ fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<()> {
             ensure(path(e)?.starts_with(&target), "emitted executable escape")?;
         }
     }
+    for rel in [
+        "scripts/study_reference_build.py",
+        "scripts/study_reference_build_support.py",
+        recipe.helper(),
+        "crates/ckks-train-bench/build.rs",
+    ] {
+        ensure(
+            source
+                .records
+                .iter()
+                .any(|(p, v)| p == rel.as_bytes() && matches!(v, FileValue::Regular(_))),
+            "build helper source uncovered",
+        )?;
+    }
+    let binary_source = format!("crates/ckks-train-bench/src/bin/{}.rs", recipe.bin());
     ensure(
-        path(&r.executable)? == target.join(TARGET).join("release/study_reference"),
+        source
+            .records
+            .iter()
+            .any(|(p, v)| p == binary_source.as_bytes() && matches!(v, FileValue::Regular(_))),
+        "binary source uncovered",
+    )?;
+    for (name, option) in [
+        ("rust-toolchain", b"--rust-toolchain-sha256".as_slice()),
+        (
+            "rust-toolchain.toml",
+            b"--rust-toolchain-toml-sha256".as_slice(),
+        ),
+    ] {
+        let expected = source.records.iter().find(|(p, _)| p == name.as_bytes());
+        let pin = r.argv[2..]
+            .chunks_exact(2)
+            .find(|pair| pair[0] == option)
+            .map(|pair| pair[1].as_slice());
+        ensure(
+            match (expected, pin) {
+                (None, None) => true,
+                (Some((_, FileValue::Regular(h))), Some(pin)) => h.as_bytes() == pin,
+                _ => false,
+            },
+            "toolchain source pin linkage",
+        )?;
+    }
+    for option in [b"--request".as_slice(), b"--receipt".as_slice()] {
+        ensure(
+            !path(flag(&r.argv, option)?)?.starts_with(&root),
+            "helper output inside source",
+        )?;
+    }
+    ensure(
+        source
+            .records
+            .contains(&(b"Cargo.lock".to_vec(), FileValue::Regular(c.lock.clone()))),
+        "Cargo.lock source linkage",
+    )?;
+    Ok(CheckedBuildRole(recipe))
+}
+fn validate_recipe_vectors(
+    r: &Receipt,
+    c: &Capsule,
+    env: &Environment,
+    recipe: Recipe,
+) -> Result<()> {
+    let root = path(&c.cwd)?;
+    let cargo = flag(&r.argv, b"--cargo")?;
+    let target = path(env.get("CARGO_TARGET_DIR")?)?;
+    validate_helper_argv(r, c, recipe)?;
+    let mut meta = vec![
+        cargo.to_vec(),
+        b"metadata".to_vec(),
+        b"--format-version".to_vec(),
+        b"1".to_vec(),
+        b"--locked".to_vec(),
+        b"--offline".to_vec(),
+        b"--no-default-features".to_vec(),
+        b"--filter-platform".to_vec(),
+        TARGET.as_bytes().to_vec(),
+        b"--manifest-path".to_vec(),
+        root.join("Cargo.toml").as_os_str().as_bytes().to_vec(),
+    ];
+    if let Some(feature) = recipe.feature() {
+        meta.splice(
+            7..7,
+            [
+                b"--features".to_vec(),
+                format!("ckks-train-bench/{feature}").into_bytes(),
+            ],
+        );
+    }
+    ensure(c.metadata_argv == meta, "metadata argv")?;
+    let mut build = vec![cargo.to_vec()];
+    for x in [
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "-p",
+        "ckks-train-bench",
+        "--no-default-features",
+        "--bin",
+        recipe.bin(),
+        "--target",
+        TARGET,
+        "--target-dir",
+    ] {
+        build.push(x.as_bytes().to_vec());
+    }
+    if let Some(feature) = recipe.feature() {
+        build.splice(8..8, [b"--features".to_vec(), feature.as_bytes().to_vec()]);
+    }
+    build.push(env.get("CARGO_TARGET_DIR")?.to_vec());
+    build.push(b"-j".to_vec());
+    build.push(env.get("CARGO_BUILD_JOBS")?.to_vec());
+    build.push(b"--message-format=json-render-diagnostics".to_vec());
+    ensure(c.build_argv == build, "build argv")?;
+    let selected = r
+        .emitted
+        .iter()
+        .filter(|a| {
+            a.name == recipe.bin()
+                && a.kinds == ["bin"]
+                && a.executable.as_ref() == Some(&r.executable)
+        })
+        .collect::<Vec<_>>();
+    ensure(
+        selected.len() == 1
+            && selected[0].manifest
+                == root
+                    .join("crates/ckks-train-bench/Cargo.toml")
+                    .as_os_str()
+                    .as_bytes()
+            && selected[0].src
+                == root
+                    .join(format!(
+                        "crates/ckks-train-bench/src/bin/{}.rs",
+                        recipe.bin()
+                    ))
+                    .as_os_str()
+                    .as_bytes(),
+        "unique writer binary linkage",
+    )?;
+    ensure(
+        path(&r.executable)? == target.join(TARGET).join("release").join(recipe.bin()),
         "receipt executable path",
     )
 }
-fn decode_pinned_approval(bytes: &[u8], expected: &str) -> Result<Approval> {
+fn validate_helper_argv(r: &Receipt, c: &Capsule, recipe: Recipe) -> Result<()> {
+    let root = path(&c.cwd)?;
+    ensure(
+        r.argv.len() >= 2
+            && r.argv[0] == root.join(recipe.helper()).as_os_str().as_bytes()
+            && r.argv[1] == recipe.subcommand().as_bytes(),
+        "fixed helper dispatch",
+    )?;
+    let mut options = std::collections::BTreeMap::new();
+    ensure((r.argv.len() - 2) % 2 == 0, "helper option pairs")?;
+    for pair in r.argv[2..].chunks_exact(2) {
+        ensure(
+            options
+                .insert(pair[0].as_slice(), pair[1].as_slice())
+                .is_none(),
+            "duplicate helper option",
+        )?;
+    }
+    for key in [
+        "root",
+        "cargo",
+        "rustc",
+        "python",
+        "git",
+        "linker",
+        "cargo-home",
+        "target",
+        "home",
+        "tmp",
+        "request",
+        "receipt",
+        "jobs",
+    ] {
+        ensure(
+            options.remove(format!("--{key}").as_bytes()).is_some(),
+            "required helper option",
+        )?;
+    }
+    for key in ["--rust-toolchain-sha256", "--rust-toolchain-toml-sha256"] {
+        if let Some(value) = options.remove(key.as_bytes()) {
+            ensure(
+                std::str::from_utf8(value).is_ok_and(hash_valid),
+                "toolchain pin",
+            )?;
+        }
+    }
+    ensure(options.is_empty(), "unsupported helper option")?;
+    for key in [
+        "--root",
+        "--cargo",
+        "--rustc",
+        "--python",
+        "--git",
+        "--linker",
+        "--cargo-home",
+        "--target",
+        "--home",
+        "--tmp",
+        "--request",
+        "--receipt",
+    ] {
+        ensure(
+            path(flag(&r.argv, key.as_bytes())?)?.is_absolute(),
+            "absolute helper path",
+        )?;
+    }
+    Ok(())
+}
+fn check_design_digest(expected: &str, actual: &str) -> Result<()> {
+    ensure(expected == actual, "design bytes changed")
+}
+fn decode_pinned_approval(bytes: &[u8], expected: &str) -> Result<LocalApproval> {
     ensure(
         hash_valid(expected) && sha256_hex(bytes) == expected,
         "approval pin mismatch",
     )?;
-    Approval::decode(bytes)
+    LocalApproval::decode(bytes)
 }
-fn check_approved_receipt(a: &Approval, bytes: &[u8], r: &Receipt, c: &Capsule) -> Result<()> {
+fn check_approved_receipt(a: &LocalApproval, bytes: &[u8], r: &Receipt, c: &Capsule) -> Result<()> {
     ensure(
-        c.recipe == a.recipe
-            && c.algorithm == a.algorithm
-            && c.commit == a.commit
-            && c.manifests[0] == a.source,
+        c.commit == a.commit && c.manifests[0] == a.source,
         "approved source/version mismatch",
     )?;
-    ensure(
-        a.builds.contains(&(
-            sha256_hex(bytes),
-            sha256_hex(&r.capsule),
-            r.executable_hash.clone(),
-        )),
-        "receipt/capsule/executable not approved",
-    )
+    let triple = (
+        sha256_hex(bytes),
+        sha256_hex(&r.capsule),
+        r.executable_hash.clone(),
+    );
+    let found = match &a.version {
+        ApprovalVersion::V1(a) => {
+            c.recipe == a.recipe && c.algorithm == a.algorithm && a.builds.contains(&triple)
+        }
+        ApprovalVersion::V2(a) => {
+            let recipe = Recipe::classify(&c.recipe, &c.algorithm)?;
+            a.builds.iter().any(|b| {
+                b.role == u8::from(recipe.role() == ExecutableRole::StudyTrain)
+                    && b.recipe == c.recipe
+                    && b.algorithm == c.algorithm
+                    && (&b.receipt, &b.capsule, &b.executable) == (&triple.0, &triple.1, &triple.2)
+            })
+        }
+    };
+    ensure(found, "receipt/capsule/executable not approved")
+}
+fn reference_recipe(recipe: Recipe) -> bool {
+    recipe.role() == ExecutableRole::Reference
+}
+fn reference_current_candidate(
+    recipe: Recipe,
+    receipt: &Receipt,
+    embedded: &[u8],
+    executable: &[u8],
+) -> bool {
+    reference_recipe(recipe) && receipt.capsule == embedded && receipt.executable == executable
 }
 fn check_current_binary(r: &Receipt, embedded: &[u8], path: &[u8], hash: &str) -> Result<()> {
     ensure(
@@ -370,19 +559,9 @@ impl VerifiedStudyContext {
         canonical(&request.approval)?;
         let approval_bytes = read_path(&request.approval, LIMIT)?;
         let approval = decode_pinned_approval(&approval_bytes, &request.approval_sha256)?;
-        ensure(
-            approval.recipe == RECIPE && approval.algorithm == ALGORITHM && !approval.id.is_empty(),
-            "approval policy",
-        )?;
-        ensure(
-            approval.designs.iter().map(|d| d.0.as_str()).eq(DESIGNS),
-            "approved design set",
-        )?;
+        approval.policy(&DESIGNS)?;
         for (name, h) in &approval.designs {
-            ensure(
-                sha256_hex(&read_path(&request.root.join(name), LIMIT)?) == *h,
-                "design bytes changed",
-            )?;
+            check_design_digest(h, &sha256_hex(&read_path(&request.root.join(name), LIMIT)?))?;
         }
         let mut receipts = Vec::new();
         for p in &request.receipts {
@@ -394,7 +573,7 @@ impl VerifiedStudyContext {
                 "duplicate receipt",
             )?;
             let receipt = Receipt::decode(&bytes)?;
-            let capsule = receipt.policy()?;
+            let capsule = receipt.closed_policy()?;
             ensure(
                 capsule.commit == approval.commit
                     && capsule.manifests[0] == approval.source
@@ -418,12 +597,13 @@ impl VerifiedStudyContext {
                     .any(|(p, _)| request.root.join(OsStr::from_bytes(p)) == request.approval),
                 "recursive approval inventory",
             )?;
-            validate_linkage(
+            let role = validate_linkage(
                 &receipt,
                 &capsule,
                 &Environment::decode(&receipt.environment)?,
             )?;
             receipts.push(FrozenReceipt {
+                role,
                 path: p.clone(),
                 bytes,
                 receipt,
@@ -437,8 +617,12 @@ impl VerifiedStudyContext {
             .iter()
             .enumerate()
             .filter(|(_, r)| {
-                r.receipt.capsule == embedded
-                    && r.receipt.executable == executable.as_os_str().as_bytes()
+                reference_current_candidate(
+                    r.role.0,
+                    &r.receipt,
+                    embedded,
+                    executable.as_os_str().as_bytes(),
+                )
             })
             .map(|(i, _)| i)
             .collect::<Vec<_>>();
@@ -488,7 +672,7 @@ impl VerifiedStudyContext {
     pub(crate) fn receipt_for_writer(&self, hash: &str) -> Result<&[u8]> {
         self.receipts
             .iter()
-            .find(|r| r.hash == hash)
+            .find(|r| r.hash == hash && reference_recipe(r.role.0))
             .map(|r| r.bytes.as_slice())
             .ok_or(ProvenanceError("writer receipt unavailable in context"))
     }
@@ -577,6 +761,7 @@ impl VerifiedStudyContext {
         Ok(())
     }
     pub(crate) fn capture(&self, p: &MaterializedProfile) -> Result<RuntimeCapture> {
+        self.require_current_reference()?;
         self.recheck()?;
         ensure(
             p.identity().canonical_prepared(),
@@ -596,7 +781,7 @@ impl VerifiedStudyContext {
             cwd: cwd.as_os_str().as_bytes().to_vec(),
             thread_environment: thread_environment(|k| std::env::var_os(k))?,
             host: Host::observe(),
-            executable_start: self.receipts[self.current].receipt.executable_hash.clone(),
+            executable_start: self.current_build_facts().executable_sha256().into(),
             receipt_file: self.current_receipt_sha256().into(),
             source: self.approval.source.clone(),
         })
@@ -621,6 +806,7 @@ impl VerifiedStudyContext {
         p: &MaterializedProfile,
         start: &RuntimeCapture,
     ) -> Result<RuntimeRecheck> {
+        self.require_current_reference()?;
         self.recheck()?;
         self.check_inputs(p)?;
         ensure(
@@ -814,11 +1000,24 @@ pub(crate) struct BuildFacts<'a> {
     receipt: &'a FrozenReceipt,
 }
 impl VerifiedStudyContext {
-    pub(crate) fn build_facts(&self, receipt_sha256: &str) -> Result<BuildFacts<'_>> {
+    fn require_current_reference(&self) -> Result<()> {
+        ensure(
+            reference_recipe(self.receipts[self.current].role.0),
+            "current Reference required",
+        )
+    }
+    fn current_build_facts(&self) -> BuildFacts<'_> {
+        let receipt = &self.receipts[self.current];
+        BuildFacts {
+            capsule: &receipt.capsule,
+            receipt,
+        }
+    }
+    pub(crate) fn reference_build_facts(&self, receipt_sha256: &str) -> Result<BuildFacts<'_>> {
         let receipt = self
             .receipts
             .iter()
-            .find(|r| r.hash == receipt_sha256)
+            .find(|r| r.hash == receipt_sha256 && reference_recipe(r.role.0))
             .ok_or(ProvenanceError("writer receipt not available"))?;
         Ok(BuildFacts {
             capsule: &receipt.capsule,

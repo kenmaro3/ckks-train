@@ -33,6 +33,13 @@ fn ordered<T: Ord>(items: impl Iterator<Item = T>) -> Result<()> {
     }
     Ok(())
 }
+fn checked_end(offset: usize, length: usize, cap: usize) -> Result<usize> {
+    let end = offset
+        .checked_add(length)
+        .ok_or(ProvenanceError("size arithmetic overflow"))?;
+    ensure(end <= cap, "byte cap/truncated domain")?;
+    Ok(end)
+}
 struct R<'a> {
     b: &'a [u8],
     p: usize,
@@ -48,9 +55,9 @@ impl<'a> R<'a> {
         Ok(r)
     }
     fn take(&mut self, n: usize) -> Result<&'a [u8]> {
-        ensure(n <= self.b.len() - self.p, "truncated domain")?;
-        let x = &self.b[self.p..self.p + n];
-        self.p += n;
+        let end = checked_end(self.p, n, self.b.len())?;
+        let x = &self.b[self.p..end];
+        self.p = end;
         Ok(x)
     }
     fn n(&mut self) -> Result<usize> {
@@ -104,7 +111,7 @@ impl W {
         Ok(w)
     }
     fn add(&mut self, b: &[u8]) -> Result<()> {
-        ensure(b.len() <= self.cap - self.b.len(), "encoded byte cap")?;
+        checked_end(self.b.len(), b.len(), self.cap)?;
         self.b.extend_from_slice(b);
         Ok(())
     }
@@ -505,6 +512,7 @@ impl Receipt {
         Ok(x)
     }
     pub fn encode(&self) -> Result<Vec<u8>> {
+        self.preflight()?;
         let c = Capsule::decode(&self.capsule)?;
         ensure(
             self.files.len() == 4 && self.post.len() == 5,
@@ -556,11 +564,95 @@ impl Receipt {
         w.argv(&self.argv)?;
         Ok(w.b)
     }
+    fn preflight(&self) -> Result<usize> {
+        ensure(
+            self.files.len() == 4
+                && self.post.len() == 5
+                && self.emitted.len() <= COUNT
+                && self.argv.len() <= 256,
+            "receipt counts",
+        )?;
+        let mut size = 0;
+        let mut blob = |length: usize, cap: usize| -> Result<()> {
+            ensure(length <= cap, "field byte cap")?;
+            size = checked_end(size, 8, LIMIT)?;
+            size = checked_end(size, length, LIMIT)?;
+            Ok(())
+        };
+        blob(ENCODING.len(), TEXT)?;
+        blob(Self::DOMAIN.len(), TEXT)?;
+        blob(self.capsule.len(), CAPSULE_LIMIT)?;
+        for b in &self.files {
+            blob(b.len(), LIMIT)?;
+        }
+        blob(self.environment.len(), LIMIT)?;
+        blob(self.executable.len(), TEXT)?;
+        for h in std::iter::once(&self.executable_hash)
+            .chain(self.post.iter())
+            .chain(std::iter::once(&self.metadata))
+        {
+            ensure(hash_valid(h), "SHA256")?;
+            blob(h.len(), TEXT)?;
+        }
+        size = checked_end(size, 8, LIMIT)?;
+        for a in &self.emitted {
+            ensure(a.kinds.len() <= COUNT, "kind cap")?;
+            for n in [a.id.len(), a.manifest.len(), a.name.len(), a.src.len()] {
+                ensure(n <= TEXT, "artifact field cap")?;
+                size = checked_end(checked_end(size, 8, LIMIT)?, n, LIMIT)?;
+            }
+            size = checked_end(size, 8, LIMIT)?;
+            for k in &a.kinds {
+                ensure(k.len() <= TEXT, "kind field cap")?;
+                size = checked_end(checked_end(size, 8, LIMIT)?, k.len(), LIMIT)?;
+            }
+            size = checked_end(size, 1, LIMIT)?;
+            if let Some(e) = &a.executable {
+                ensure(e.len() <= TEXT, "executable field cap")?;
+                size = checked_end(checked_end(size, 8, LIMIT)?, e.len(), LIMIT)?;
+            }
+        }
+        size = checked_end(size, 8, LIMIT)?;
+        for arg in &self.argv {
+            ensure(arg.len() <= TEXT, "argv field cap")?;
+            size = checked_end(checked_end(size, 8, LIMIT)?, arg.len(), LIMIT)?;
+        }
+        Ok(size)
+    }
     pub fn policy(&self) -> Result<Capsule> {
         let c = Capsule::decode(&self.capsule)?;
         c.policy()?;
+        self.check_post(&c)?;
+        Ok(c)
+    }
+    pub fn closed_policy(&self) -> Result<Capsule> {
+        let c = Capsule::decode(&self.capsule)?;
+        super::role::Recipe::capsule_policy(&c)?;
+        self.check_post(&c)?;
+        Ok(c)
+    }
+    pub fn check_manifest_links(&self, c: &Capsule) -> Result<()> {
         ensure(
-            self.post[..4] == c.manifests
+            self.files.len() == 4 && c.manifests.len() == 4,
+            "four manifests",
+        )?;
+        for (i, b) in self.files.iter().enumerate() {
+            let manifest = Manifest::decode(b)?;
+            ensure(
+                usize::from(manifest.role) == i && sha256_hex(b) == c.manifests[i],
+                "embedded manifest linkage",
+            )?;
+        }
+        ensure(
+            sha256_hex(&self.environment) == c.environment,
+            "embedded environment linkage",
+        )
+    }
+    pub fn check_post(&self, c: &Capsule) -> Result<()> {
+        self.check_manifest_links(c)?;
+        ensure(
+            self.post.len() == 5
+                && self.post[..4] == c.manifests
                 && self.post[4] == c.environment
                 && self.metadata == c.metadata,
             "pre/post mismatch",
@@ -568,7 +660,7 @@ impl Receipt {
         for b in &self.files {
             Manifest::decode(b)?.policy()?;
         }
-        Ok(c)
+        Ok(())
     }
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -639,6 +731,162 @@ impl Approval {
     }
 }
 
+/// V2 keeps role claims untrusted until the complete receipt join.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(super) struct ApprovalBuild {
+    pub role: u8,
+    pub recipe: String,
+    pub algorithm: String,
+    pub receipt: String,
+    pub capsule: String,
+    pub executable: String,
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(super) struct ApprovalV2 {
+    pub id: String,
+    pub designs: Vec<(String, String)>,
+    pub commit: String,
+    pub source: String,
+    pub builds: Vec<ApprovalBuild>,
+}
+impl ApprovalV2 {
+    const DOMAIN: &'static str = "hekit-study-local-approval-v2";
+    pub fn decode(b: &[u8]) -> Result<Self> {
+        let mut r = R::new(b, Self::DOMAIN, LIMIT)?;
+        let id = r.t(TEXT)?;
+        let n = r.count(32)?;
+        let designs = (0..n)
+            .map(|_| Ok((r.t(TEXT)?, r.h()?)))
+            .collect::<Result<_>>()?;
+        let commit = r.t(TEXT)?;
+        let source = r.h()?;
+        let n = r.count(64)?;
+        let builds = (0..n)
+            .map(|_| {
+                Ok(ApprovalBuild {
+                    role: r.q(1)?,
+                    recipe: r.t(TEXT)?,
+                    algorithm: r.t(TEXT)?,
+                    receipt: r.h()?,
+                    capsule: r.h()?,
+                    executable: r.h()?,
+                })
+            })
+            .collect::<Result<_>>()?;
+        r.finish()?;
+        let a = Self {
+            id,
+            designs,
+            commit,
+            source,
+            builds,
+        };
+        ensure(a.encode()? == b, "approval canonical equality")?;
+        Ok(a)
+    }
+    pub fn encode(&self) -> Result<Vec<u8>> {
+        let mut w = W::new(Self::DOMAIN, LIMIT)?;
+        w.t(&self.id, TEXT)?;
+        ensure(
+            self.designs.len() <= 32 && self.builds.len() <= 64,
+            "approval caps",
+        )?;
+        ordered(self.designs.iter().map(|x| &x.0))?;
+        w.n(self.designs.len())?;
+        for (p, h) in &self.designs {
+            w.t(p, TEXT)?;
+            w.h(h)?;
+        }
+        w.t(&self.commit, TEXT)?;
+        w.h(&self.source)?;
+        ordered(self.builds.iter().map(|b| &b.receipt))?;
+        w.n(self.builds.len())?;
+        for b in &self.builds {
+            ensure(b.role <= 1, "approval role")?;
+            w.q(b.role)?;
+            w.t(&b.recipe, TEXT)?;
+            w.t(&b.algorithm, TEXT)?;
+            w.h(&b.receipt)?;
+            w.h(&b.capsule)?;
+            w.h(&b.executable)?;
+        }
+        Ok(w.b)
+    }
+}
+#[derive(Clone, Debug)]
+pub(super) enum ApprovalVersion {
+    V1(Approval),
+    V2(ApprovalV2),
+}
+#[derive(Clone, Debug)]
+pub(super) struct LocalApproval {
+    pub id: String,
+    pub designs: Vec<(String, String)>,
+    pub commit: String,
+    pub source: String,
+    pub version: ApprovalVersion,
+}
+impl LocalApproval {
+    pub fn decode(b: &[u8]) -> Result<Self> {
+        ensure(b.len() <= LIMIT, "domain byte cap")?;
+        let mut r = R { b, p: 0 };
+        ensure(r.t(TEXT)? == ENCODING, "domain header")?;
+        match r.t(TEXT)?.as_str() {
+            Approval::DOMAIN => {
+                let a = Approval::decode(b)?;
+                Ok(Self {
+                    id: a.id.clone(),
+                    designs: a.designs.clone(),
+                    commit: a.commit.clone(),
+                    source: a.source.clone(),
+                    version: ApprovalVersion::V1(a),
+                })
+            }
+            ApprovalV2::DOMAIN => {
+                let a = ApprovalV2::decode(b)?;
+                Ok(Self {
+                    id: a.id.clone(),
+                    designs: a.designs.clone(),
+                    commit: a.commit.clone(),
+                    source: a.source.clone(),
+                    version: ApprovalVersion::V2(a),
+                })
+            }
+            _ => Err(ProvenanceError("approval domain")),
+        }
+    }
+    pub fn policy(&self, designs: &[&str]) -> Result<()> {
+        use super::role::{ExecutableRole, Recipe, valid_commit};
+        ensure(
+            !self.id.is_empty() && valid_commit(&self.commit),
+            "approval policy",
+        )?;
+        ensure(
+            self.designs
+                .iter()
+                .map(|d| d.0.as_str())
+                .eq(designs.iter().copied()),
+            "approved design set",
+        )?;
+        match &self.version {
+            ApprovalVersion::V1(a) => ensure(
+                a.recipe == RECIPE && a.algorithm == ALGORITHM,
+                "approval v1 Reference only",
+            ),
+            ApprovalVersion::V2(a) => {
+                for b in &a.builds {
+                    let r = Recipe::classify(&b.recipe, &b.algorithm)?;
+                    ensure(
+                        b.role == u8::from(r.role() == ExecutableRole::StudyTrain),
+                        "approval role/recipe mismatch",
+                    )?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -696,5 +944,136 @@ mod tests {
         let mut huge = e.clone();
         huge[..8].fill(255);
         assert!(Environment::decode(&huge).is_err());
+    }
+}
+
+#[cfg(test)]
+mod bound_tests {
+    use super::*;
+    #[test]
+    fn checked_arithmetic_is_not_a_field_cap_test() {
+        assert_eq!(
+            checked_end(usize::MAX - 1, 1, usize::MAX).unwrap(),
+            usize::MAX
+        );
+        assert_eq!(
+            checked_end(usize::MAX, 1, usize::MAX).unwrap_err().0,
+            "size arithmetic overflow"
+        );
+        assert!(checked_end(0, 2, 1).is_err());
+        // Host-width conversion is distinct from field caps; 64-bit native
+        // conversion succeeds, narrower-host branch explicitly checks rejection.
+        let raw = u64::MAX.to_le_bytes();
+        let mut reader = R { b: &raw, p: 0 };
+        if usize::BITS == 64 {
+            assert_eq!(reader.n().unwrap(), usize::MAX);
+        } else {
+            assert_eq!(reader.n().unwrap_err().0, "usize overflow");
+        }
+    }
+    #[test]
+    fn exact_list_bounds_and_receipt_preflight() {
+        for cap in [256, 64, COUNT, 512, 32] {
+            let mut bytes = (cap as u64).to_le_bytes().to_vec();
+            bytes.resize(8 + cap, 0);
+            assert_eq!(R { b: &bytes, p: 0 }.count(cap).unwrap(), cap);
+            bytes[..8].copy_from_slice(&((cap + 1) as u64).to_le_bytes());
+            assert!(R { b: &bytes, p: 0 }.count(cap).is_err());
+        }
+        let bytes = super::super::role_tests::literal("reference_receipt");
+        let mut r = Receipt::decode(&bytes).unwrap();
+        assert_eq!(r.preflight().unwrap(), bytes.len());
+        // Invalid large embedded bytes reject at total-size preflight before
+        // their parser or content hashes can run.
+        r.files[0] = vec![0; LIMIT];
+        assert_eq!(r.encode().unwrap_err().0, "byte cap/truncated domain");
+        let c = Capsule::decode(&super::super::role_tests::literal("reference_capsule")).unwrap();
+        let mut feature_bound = c.clone();
+        feature_bound.features = (0..64).map(|i| format!("f{i:02}")).collect();
+        Capsule::decode(&feature_bound.encode().unwrap()).unwrap();
+        assert!(super::super::role::Recipe::capsule_policy(&feature_bound).is_err());
+        feature_bound.features.push("z".into());
+        assert!(feature_bound.encode().is_err());
+        let mut args = c;
+        args.metadata_argv = vec![Vec::new(); 256];
+        args.encode().unwrap();
+        args.metadata_argv.push(Vec::new());
+        assert!(args.encode().is_err());
+    }
+    #[test]
+    fn canonical_capsule_and_receipt_exact_total_caps() {
+        let literal = super::super::role_tests::literal;
+        let mut c = Capsule::decode(&literal("reference_capsule")).unwrap();
+        c.packages.clear();
+        c.cwd.clear();
+        let base = c.encode().unwrap().len();
+        let mut remaining = CAPSULE_LIMIT - base;
+        let mut i = 0;
+        while remaining > TEXT {
+            let id = format!("p{i:06}");
+            let overhead = 8 + id.len() + 8 + 1 + 8;
+            let n = TEXT.min(remaining - overhead);
+            c.packages.push(Package {
+                id,
+                manifest: vec![b'x'; n],
+                tag: 0,
+                source: String::new(),
+            });
+            remaining -= overhead + n;
+            i += 1;
+        }
+        c.cwd = vec![b'x'; remaining];
+        let bytes = c.encode().unwrap();
+        assert_eq!(bytes.len(), CAPSULE_LIMIT);
+        assert_eq!(Capsule::decode(&bytes).unwrap(), c);
+        c.cwd.push(b'x');
+        assert!(c.encode().is_err());
+        assert!(Capsule::decode(&[bytes.as_slice(), &[0]].concat()).is_err());
+
+        let mut r = Receipt::decode(&literal("reference_receipt")).unwrap();
+        r.emitted.clear();
+        r.argv.clear();
+        r.executable.clear();
+        let base = r.preflight().unwrap();
+        let mut remaining = LIMIT - base;
+        let mut i = 0;
+        while remaining > TEXT {
+            let id = format!("p{i:06}");
+            // id/path/name/src lengths, kinds count, executable option tag.
+            let overhead = 8 + id.len() + 8 + 8 + 8 + 8 + 1;
+            let n = TEXT.min(remaining - overhead);
+            r.emitted.push(Artifact {
+                id,
+                manifest: vec![b'x'; n],
+                name: String::new(),
+                src: Vec::new(),
+                kinds: Vec::new(),
+                executable: None,
+            });
+            remaining -= overhead + n;
+            i += 1;
+        }
+        r.executable = vec![b'x'; remaining];
+        let bytes = r.encode().unwrap();
+        assert_eq!(bytes.len(), LIMIT);
+        assert_eq!(Receipt::decode(&bytes).unwrap(), r);
+        r.executable.push(b'x');
+        assert!(r.encode().is_err());
+        assert!(Receipt::decode(&[bytes.as_slice(), &[0]].concat()).is_err());
+        // These are canonical transport containers, deliberately not closed
+        // semantic recipes or valid source/executable inventory evidence.
+    }
+    #[test]
+    fn exact_enclosing_and_field_caps() {
+        for cap in [LIMIT, CAPSULE_LIMIT] {
+            let mut w = W { b: Vec::new(), cap };
+            w.add(&vec![0; cap]).unwrap();
+            assert!(w.add(&[0]).is_err());
+        }
+        for cap in [TEXT, 16384] {
+            let mut w = W::new("synthetic-bound-only", LIMIT).unwrap();
+            w.b(&vec![0; cap], cap).unwrap();
+            assert!(w.b(&vec![0; cap + 1], cap).is_err());
+        }
     }
 }

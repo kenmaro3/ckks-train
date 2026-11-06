@@ -1,0 +1,90 @@
+{
+  "scope": "Construction specifications only; no large allocation or production decoder executed.",
+  "bounds": [
+    {
+      "field": "approval/receipt total bytes",
+      "limit": 8388608,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Construct canonical container with bounded fields whose total is exactly LIMIT; repeat for LIMIT+1."
+    },
+    {
+      "field": "capsule total bytes",
+      "limit": 2097152,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Construct canonical bounded package/argv corpus totaling exactly CAPSULE_LIMIT; then plus1."
+    },
+    {
+      "field": "Text/raw path",
+      "limit": 4096,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use valid UTF8/raw values of length4096 and4097 in every relevant field."
+    },
+    {
+      "field": "compiler_vv",
+      "limit": 16384,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 16384 and16385 bytes."
+    },
+    {
+      "field": "argv count",
+      "limit": 256,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 256 and257 bounded byte elements."
+    },
+    {
+      "field": "feature count",
+      "limit": 64,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 64 and65 sorted distinct bounded strings; closed recipe still rejects other sets."
+    },
+    {
+      "field": "package/emitted/manifest count",
+      "limit": 65536,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 65536 and65537 unique sorted records, within enclosing byte cap where possible; cap precedence remains mandatory if impossible."
+    },
+    {
+      "field": "source records",
+      "limit": 512,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 512 and513 distinct regular source records."
+    },
+    {
+      "field": "approval designs",
+      "limit": 32,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 32 and33 sorted records; exact-five policy rejects either semantically."
+    },
+    {
+      "field": "approval builds",
+      "limit": 64,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Use 64 and65 unique receipt-sorted entries."
+    },
+    {
+      "field": "u64 arithmetic",
+      "limit": 18446744073709551615,
+      "at_limit": "must pass size/count preflight when all other grammar/semantic conditions hold; not unconditional policy acceptance",
+      "over_limit": "must reject before content hashing/unbounded allocation",
+      "construction": "Checked addition/conversion/length bounds; no wrap or allocation from supplied length."
+    }
+  ],
+  "later_runtime_obligations": [
+    "Current Train with Reference artifact role check passes only in private synthetic harness; no approved context is constructed here.",
+    "Train cannot capture/publish/lock/recover Reference; Reference cannot current-select Train or train capture.",
+    "Owned serial thread reports1; retained pools count and exact identity, including same-size wrong pool, require future runtime tests.",
+    "CUDA needs actual observed runtime/device/NVRTC/source/options; Rust receipt does not supply any such fact.",
+    "Full source/config/dependency/toolchain/metadata manifests, compiler executable, helper argument grammar, actual document bytes and filesystem paths require real linkage validation.",
+    "No D7 descriptor, admission, allocator permit, HE execution or full block campaign is supplied."
+  ]
+}

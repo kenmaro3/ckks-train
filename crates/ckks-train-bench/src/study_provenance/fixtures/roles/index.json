@@ -1,0 +1,2895 @@
+{
+  "historical_capsule": {
+    "kind": "historical_transport",
+    "length": 1311,
+    "sha256": "c965044e0751da422af2fa01838f6b118ca2c2445701b66b26d65d096432da2a",
+    "expected": "historical_transport_only",
+    "reason": "original deliberately unsupported recipe/design inventory remains unchanged",
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "historical_receipt": {
+    "kind": "historical_transport",
+    "length": 3667,
+    "sha256": "d4929260e9f86739ec33986710d8ba29c89522a0535e52d21eff05b4d450cff9",
+    "expected": "historical_transport_only",
+    "reason": "original deliberately unsupported recipe/design inventory remains unchanged",
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "historical_receipt_second_build": {
+    "kind": "historical_transport",
+    "length": 3667,
+    "sha256": "4adc9f4cb17b6a7a2b82a745a0685dd16706f0921736a09b374097c8f855c844",
+    "expected": "historical_transport_only",
+    "reason": "original deliberately unsupported recipe/design inventory remains unchanged",
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "historical_approval": {
+    "kind": "historical_transport",
+    "length": 998,
+    "sha256": "db68a19e4e08e6ffe09a4a19b4240e949ed45800a2e1b33c59dc964e358e3003",
+    "expected": "historical_transport_only",
+    "reason": "original deliberately unsupported recipe/design inventory remains unchanged",
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "files_source": {
+    "kind": "files",
+    "length": 974,
+    "sha256": "48c24547ddf792ad1b9b6d16fa93a1f48dfcf46b781af7753c60d1bb25e49e65",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "files_config": {
+    "kind": "files",
+    "length": 268,
+    "sha256": "65be9402b1ce3560fd4835b4d3c7fc42aa2f00c41c89ed7378b07708aa96c20e",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "files_dependency": {
+    "kind": "files",
+    "length": 196,
+    "sha256": "6617131cd5d563072289ebe6025495553d8027a342d00b8fc2574ec98f782221",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "files_toolchain": {
+    "kind": "files",
+    "length": 596,
+    "sha256": "09cc55f154b9716a1cc717cf86c065c6ca02f03a75f42b1931278b0c0c30892c",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "reference_environment": {
+    "kind": "environment",
+    "length": 845,
+    "sha256": "132fe292c823a96c2fa424701ea4eac9d20a0219966d0ab3e258145303a280a5",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "reference_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "23492d956d8f0f15d4d0ede520bffb278ff915412706bb4e4f50c6281f8510c5",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "reference_receipt": {
+    "kind": "receipt",
+    "length": 6361,
+    "sha256": "cc71f82bd6ee05c32111e54eb4cb5e8a87bd424238d3a5626d72271f18ed1b29",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "capsule": "reference_capsule",
+      "environment": "reference_environment",
+      "files": [
+        "files_source",
+        "files_config",
+        "files_dependency",
+        "files_toolchain"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_serial_environment": {
+    "kind": "environment",
+    "length": 847,
+    "sha256": "791ff2f44117be768e2fe1800b7a62dd8bf9b4db958d62760d4a6f882f56d69a",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_serial_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_serial_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "0dc762038c1870f6c24cbb6ee817b95a46b8f7217bb95b083990e7252c9e5b09",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "capsule": "cpu_serial_capsule",
+      "environment": "cpu_serial_environment",
+      "files": [
+        "files_source",
+        "files_config",
+        "files_dependency",
+        "files_toolchain"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_rayon_environment": {
+    "kind": "environment",
+    "length": 845,
+    "sha256": "be8141984b5af36b652b4c0ea0448666296be16eac1e4868b9fe1f4fd905e998",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_rayon_capsule": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "098229a39dcd984885234fa96404725832218288a96fcc51048a71aa61a6412b",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cpu_rayon_receipt": {
+    "kind": "receipt",
+    "length": 6444,
+    "sha256": "87cbcd8ba0ab13c2a5e3ace3d44f4b79629fd195bf999d6ba378d833963a73bf",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "capsule": "cpu_rayon_capsule",
+      "environment": "cpu_rayon_environment",
+      "files": [
+        "files_source",
+        "files_config",
+        "files_dependency",
+        "files_toolchain"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cuda_host_environment": {
+    "kind": "environment",
+    "length": 845,
+    "sha256": "2a90e39b7ad2a9b24ad654e903e1126106090dcd47c2e875b291df2bbaff1a7c",
+    "expected": "nested_transport_only",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cuda_host_capsule": {
+    "kind": "capsule",
+    "length": 1856,
+    "sha256": "e4d0762f8dc3e861c8081fd79dd8d481351a7bb07b2c0d006ecca8a53b810901",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "cuda_host_receipt": {
+    "kind": "receipt",
+    "length": 6448,
+    "sha256": "ccf0122c9716702315a58d1b7d684fb67a2147bd04f5b3757baf9f52693cb351",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "capsule": "cuda_host_capsule",
+      "environment": "cuda_host_environment",
+      "files": [
+        "files_source",
+        "files_config",
+        "files_dependency",
+        "files_toolchain"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "reference_second_receipt": {
+    "kind": "receipt",
+    "length": 6361,
+    "sha256": "982919d44aaba02f85f63a48006ecf17283473bbc6ca4d5cf8fdf613f9bd3d8c",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "capsule": "reference_capsule",
+      "environment": "reference_environment"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v2_reference_only": {
+    "kind": "approval_v2",
+    "length": 1112,
+    "sha256": "ccfec7b58adda0e89a8c77246c1e798f9256f68b983f065e14b2429105af0330",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "reference"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v2_reference_cpu_serial": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "032f57552ae40c45e30875a412e859ae1f3e1318ec6dfe681119d8626244d25e",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "reference",
+        "cpu_serial"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v2_reference_cpu_rayon": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "1f43be45f3623f7c398593db43f6130f66ec01952cfb456ee99d303f2f3946f5",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "reference",
+        "cpu_rayon"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v2_reference_cuda_host": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "fba2cdf79ed5b6605bacbfc900977370736c1974a7f06e6b80f323e1af96e119",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "reference",
+        "cuda_host"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v2_multiple_builds": {
+    "kind": "approval_v2",
+    "length": 2275,
+    "sha256": "833fb93b0164785787135f15c9fc99d471f43876ff17d740e489402d6e503ca8",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "reference",
+        "cpu_serial",
+        "cpu_rayon",
+        "cuda_host",
+        "reference_second"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "approval_v1_reference": {
+    "kind": "approval_v1",
+    "length": 1327,
+    "sha256": "52cbca5465e0b46966b7a4f33c219418bdd25a70becacc9c8f2a3a87074525b7",
+    "expected": "structural_and_closed_recipe_positive",
+    "reason": null,
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_recipe_capsule": {
+    "kind": "capsule",
+    "length": 1750,
+    "sha256": "6f1c99aa904603e33ec3bf99c1b054058f6034919575f780a7e036995cb5da6d",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: recipe must be in exact four-entry table",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "recipe.length",
+          "old_offset": 79,
+          "new_offset": 79,
+          "old_value": 37,
+          "new_value": 34
+        },
+        {
+          "field": "recipe",
+          "old_offset": 87,
+          "new_offset": 87,
+          "old_value": "study-train-cpu-serial-linux-clean-v1",
+          "new_value": "study-train-unknown-linux-clean-v1"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_recipe_receipt": {
+    "kind": "receipt",
+    "length": 6350,
+    "sha256": "07a2a4fb9d9b6db81be32dbcfcc04b8e44dc94ad876afbd6c7dc6e6c79f145d5",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: recipe must be in exact four-entry table",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1753,
+          "new_value": 1750
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "6f1c99aa904603e33ec3bf99c1b054058f6034919575f780a7e036995cb5da6d"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_unknown_recipe_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_recipe_approval": {
+    "kind": "approval_v2",
+    "length": 1401,
+    "sha256": "686de954c4e9dfcf7110062f434660cec35f1d1837175cd7d9bc72d01afc7d2b",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: recipe must be in exact four-entry table",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_unknown_recipe_receipt",
+      "rehashed_capsule": "negative_unknown_recipe_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_algorithm_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "6fee2d60d5da49af894e75be3031dfa9e26d296cdbe6ed346005598e019960ee",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: algorithm must match recipe",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "algorithm",
+          "old_offset": 132,
+          "new_offset": 132,
+          "old_value": "study-train-session-v1",
+          "new_value": "study-train-session-v9"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_algorithm_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "61e117da9618b0f54f2d9cb2bf3c1783804aa26a41895bb1a5faa524a9b5e087",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: algorithm must match recipe",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "6fee2d60d5da49af894e75be3031dfa9e26d296cdbe6ed346005598e019960ee"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_unknown_algorithm_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_algorithm_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "f4030cd5488d3dc7283c7fd70e6c8e11a1db9bf29c236c7f096dffde846246e1",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: algorithm must match recipe",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_unknown_algorithm_receipt",
+      "rehashed_capsule": "negative_unknown_algorithm_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_serial_parallel_capsule": {
+    "kind": "capsule",
+    "length": 1769,
+    "sha256": "1e0734a803c80f63b48dfc7676d7e89ed42ad143eba77e26930912298c8def14",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: serial features must be empty",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "features.count",
+          "old_offset": 828,
+          "new_offset": 828,
+          "old_value": 0,
+          "new_value": 1
+        },
+        {
+          "field": "features[0].length",
+          "old_offset": null,
+          "new_offset": 836,
+          "old_value": null,
+          "new_value": 8
+        },
+        {
+          "field": "features[0]",
+          "old_offset": null,
+          "new_offset": 844,
+          "old_value": null,
+          "new_value": "parallel"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_serial_parallel_receipt": {
+    "kind": "receipt",
+    "length": 6369,
+    "sha256": "28e2433b9465a6b3324182a12781752ad29e26e18b7bf8dd55508d33104b6f79",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: serial features must be empty",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1753,
+          "new_value": 1769
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "1e0734a803c80f63b48dfc7676d7e89ed42ad143eba77e26930912298c8def14"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_serial_parallel_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_serial_parallel_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "93fa02b6ab11726beb39dbb0d3e10e07c9a9418fa52afad21158cc4133a851de",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: serial features must be empty",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_serial_parallel_receipt",
+      "rehashed_capsule": "negative_serial_parallel_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_rayon_missing_feature_capsule": {
+    "kind": "capsule",
+    "length": 1836,
+    "sha256": "67632b593f39d3dd4290590b0e6bba4d84d6f258d29a3af1fe277755eb259177",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: Rayon feature set is exactly parallel",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "changed_fields": [
+        {
+          "field": "features.count",
+          "old_offset": 827,
+          "new_offset": 827,
+          "old_value": 1,
+          "new_value": 0
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_rayon_missing_feature_receipt": {
+    "kind": "receipt",
+    "length": 6428,
+    "sha256": "bd4a0b2ebb0cef1858dd613cb5d74ff995cedc9056fd0113521212e75b7daf37",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: Rayon feature set is exactly parallel",
+    "mutation": {
+      "base": "cpu_rayon_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1852,
+          "new_value": 1836
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "098229a39dcd984885234fa96404725832218288a96fcc51048a71aa61a6412b"
+          },
+          "new_value": {
+            "sha256": "67632b593f39d3dd4290590b0e6bba4d84d6f258d29a3af1fe277755eb259177"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_rayon_missing_feature_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_rayon_missing_feature_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "2a7ea16158cce7170bbc8f315ebbf1694e1954705809874e28203c103e56ecb2",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: Rayon feature set is exactly parallel",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_rayon_missing_feature_receipt",
+      "rehashed_capsule": "negative_rayon_missing_feature_capsule",
+      "mutation_base": "cpu_rayon"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cuda_missing_parallel_capsule": {
+    "kind": "capsule",
+    "length": 1840,
+    "sha256": "ff232e1aa93bac13b4595c69afa0107f144ea874193dc15d0a2a64a63a7c2074",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: CUDA bench feature set is exactly cuda,parallel",
+    "mutation": {
+      "base": "cuda_host_capsule",
+      "changed_fields": [
+        {
+          "field": "features.count",
+          "old_offset": 827,
+          "new_offset": 827,
+          "old_value": 2,
+          "new_value": 1
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cuda_missing_parallel_receipt": {
+    "kind": "receipt",
+    "length": 6432,
+    "sha256": "716c89c8d5d3921746f795291bf8513735f6a198f25ec9c29214472c422106e4",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: CUDA bench feature set is exactly cuda,parallel",
+    "mutation": {
+      "base": "cuda_host_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1856,
+          "new_value": 1840
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "e4d0762f8dc3e861c8081fd79dd8d481351a7bb07b2c0d006ecca8a53b810901"
+          },
+          "new_value": {
+            "sha256": "ff232e1aa93bac13b4595c69afa0107f144ea874193dc15d0a2a64a63a7c2074"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_cuda_missing_parallel_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cuda_missing_parallel_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "25407e2e87a010a04276061ea25cef9ac9e5e4ca53cb4acfa0f97f91de48090b",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: CUDA bench feature set is exactly cuda,parallel",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_cuda_missing_parallel_receipt",
+      "rehashed_capsule": "negative_cuda_missing_parallel_capsule",
+      "mutation_base": "cuda_host"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_feature_capsule": {
+    "kind": "capsule",
+    "length": 1867,
+    "sha256": "e23ad76060769b67c5ac2eb96665a3a1cb7e556de3f1d80e5be664628d30fad1",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: unknown bench feature rejects",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "changed_fields": [
+        {
+          "field": "features.count",
+          "old_offset": 827,
+          "new_offset": 827,
+          "old_value": 1,
+          "new_value": 2
+        },
+        {
+          "field": "features[1].length",
+          "old_offset": null,
+          "new_offset": 851,
+          "old_value": null,
+          "new_value": 7
+        },
+        {
+          "field": "features[1]",
+          "old_offset": null,
+          "new_offset": 859,
+          "old_value": null,
+          "new_value": "unknown"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_feature_receipt": {
+    "kind": "receipt",
+    "length": 6459,
+    "sha256": "768833a5545e374fa90d4dedf14eb48d4269d21c4e64b72e429fbeba1b5c2358",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: unknown bench feature rejects",
+    "mutation": {
+      "base": "cpu_rayon_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1852,
+          "new_value": 1867
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "098229a39dcd984885234fa96404725832218288a96fcc51048a71aa61a6412b"
+          },
+          "new_value": {
+            "sha256": "e23ad76060769b67c5ac2eb96665a3a1cb7e556de3f1d80e5be664628d30fad1"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_unknown_feature_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_feature_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "42a21d8853c55f7a44ee2e833c6bd164748452fc15817899b107f1b1e6633bf9",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: unknown bench feature rejects",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_unknown_feature_receipt",
+      "rehashed_capsule": "negative_unknown_feature_capsule",
+      "mutation_base": "cpu_rayon"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_feature_order_capsule": {
+    "kind": "capsule",
+    "length": 1856,
+    "sha256": "6313b7508c9cee863ab7c02c3b32fcb6101b8f00e10f4974bbb40c6f3495771b",
+    "expected": "parser_reject",
+    "reason": "canonical parser: feature order must be strictly sorted",
+    "mutation": {
+      "base": "cuda_host_capsule",
+      "changed_fields": [
+        {
+          "field": "features[0].length",
+          "old_offset": 835,
+          "new_offset": 835,
+          "old_value": 4,
+          "new_value": 8
+        },
+        {
+          "field": "features[0]",
+          "old_offset": 843,
+          "new_offset": 843,
+          "old_value": "cuda",
+          "new_value": "parallel"
+        },
+        {
+          "field": "features[1].length",
+          "old_offset": 847,
+          "new_offset": 851,
+          "old_value": 8,
+          "new_value": 4
+        },
+        {
+          "field": "features[1]",
+          "old_offset": 855,
+          "new_offset": 859,
+          "old_value": "parallel",
+          "new_value": "cuda"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_feature_order_receipt": {
+    "kind": "receipt",
+    "length": 6448,
+    "sha256": "a661ffb03be4be7fc5ac64b4c0db3c7ae8a7a4f91ef6caeb533592dafce953ec",
+    "expected": "parser_reject",
+    "reason": "canonical parser: feature order must be strictly sorted",
+    "mutation": {
+      "base": "cuda_host_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "e4d0762f8dc3e861c8081fd79dd8d481351a7bb07b2c0d006ecca8a53b810901"
+          },
+          "new_value": {
+            "sha256": "6313b7508c9cee863ab7c02c3b32fcb6101b8f00e10f4974bbb40c6f3495771b"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_feature_order_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_feature_order_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "30e945e44dbd56bf4946a842629c0109adc9112f55e23d90133d010bf0e95a5d",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: canonical parser: feature order must be strictly sorted",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_feature_order_receipt",
+      "rehashed_capsule": "negative_feature_order_capsule",
+      "mutation_base": "cuda_host"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_target_capsule": {
+    "kind": "capsule",
+    "length": 1754,
+    "sha256": "25ea31dff0449c03f025e3bd5a196f9927908bc7dfc38a3e61eeda97e2c68853",
+    "expected": "semantic_obligation",
+    "reason": "closed policy: target must be native x86_64-unknown-linux-gnu",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "target.length",
+          "old_offset": 739,
+          "new_offset": 739,
+          "old_value": 24,
+          "new_value": 25
+        },
+        {
+          "field": "target",
+          "old_offset": 747,
+          "new_offset": 747,
+          "old_value": "x86_64-unknown-linux-gnu",
+          "new_value": "aarch64-unknown-linux-gnu"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_target_receipt": {
+    "kind": "receipt",
+    "length": 6354,
+    "sha256": "4efd4ce18dddcbcc94eb6c5f044ffb58b86b7509ecbd0bc0f6481f76c099be0b",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed policy: target must be native x86_64-unknown-linux-gnu",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1753,
+          "new_value": 1754
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "25ea31dff0449c03f025e3bd5a196f9927908bc7dfc38a3e61eeda97e2c68853"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_wrong_target_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_target_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "e2cb70459971f8658a03478a2718f1de1cd40e497336f77e6ce703ebf91176e5",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed policy: target must be native x86_64-unknown-linux-gnu",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_wrong_target_receipt",
+      "rehashed_capsule": "negative_wrong_target_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_compiler_host_capsule": {
+    "kind": "capsule",
+    "length": 1741,
+    "sha256": "dcb57a8537362b0a9d3d917be3a674ee50d8bec15aa832274d9213c00603364d",
+    "expected": "semantic_obligation",
+    "reason": "compile-fact linkage: compiler host must match native target; no compiler executed",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "compiler_vv.length",
+          "old_offset": 634,
+          "new_offset": 634,
+          "old_value": 60,
+          "new_value": 48
+        },
+        {
+          "field": "compiler_vv",
+          "old_offset": 642,
+          "new_offset": 642,
+          "old_value": "SYNTHETIC rustc role fixture\nhost: x86_64-unknown-linux-gnu\n",
+          "new_value": "SYNTHETIC rustc\nhost: aarch64-unknown-linux-gnu\n"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_compiler_host_receipt": {
+    "kind": "receipt",
+    "length": 6341,
+    "sha256": "2c432f4e0e9b331618d63bfd78f815155325ffb447e9b6e31b9f17e884adcf7b",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "compile-fact linkage: compiler host must match native target; no compiler executed",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1753,
+          "new_value": 1741
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "dcb57a8537362b0a9d3d917be3a674ee50d8bec15aa832274d9213c00603364d"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_compiler_host_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_compiler_host_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "252e34418d5eb44b4365e547ca07e6cb7837e7788a9d33de156ea11d69274915",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: compile-fact linkage: compiler host must match native target; no compiler executed",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_compiler_host_receipt",
+      "rehashed_capsule": "negative_compiler_host_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_source_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_source_receipt": {
+    "kind": "receipt",
+    "length": 6357,
+    "sha256": "be2fc94f160a7124ef1dce88893081bf86b3f79ab9a654bc35d6b1c992e9497a",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "emitted linkage: fixed train source basename/path required",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "emitted[0].src.length",
+          "old_offset": 5513,
+          "new_offset": 5513,
+          "old_value": 67,
+          "new_value": 71
+        },
+        {
+          "field": "emitted[0].src",
+          "old_offset": 5521,
+          "new_offset": 5521,
+          "old_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f6372617465732f636b6b732d747261696e2d62656e63682f7372632f62696e2f73747564795f747261696e2e7273"
+          },
+          "new_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f6372617465732f636b6b732d747261696e2d62656e63682f7372632f62696e2f73747564795f7265666572656e63652e7273"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_wrong_source_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_source_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "9fdbb9fd033bdecf596822c5bbd5d670a1d1e8603df8f773fc678716a039d0d4",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: emitted linkage: fixed train source basename/path required",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_wrong_source_receipt",
+      "rehashed_capsule": "negative_wrong_source_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_emitted_target_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_emitted_target_receipt": {
+    "kind": "receipt",
+    "length": 6357,
+    "sha256": "bade9f2d24fec173e1b7f2b99119b380d9dbbfb9280dea27dfa1abd6a44df8c0",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "emitted linkage: fixed study_train target name required",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "emitted[0].name.length",
+          "old_offset": 5494,
+          "new_offset": 5494,
+          "old_value": 11,
+          "new_value": 15
+        },
+        {
+          "field": "emitted[0].name",
+          "old_offset": 5502,
+          "new_offset": 5502,
+          "old_value": "study_train",
+          "new_value": "study_reference"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_wrong_emitted_target_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_emitted_target_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "ce146563b25564ec30ac51e9197a36140786158ac470938af1fe37043d5db3da",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: emitted linkage: fixed study_train target name required",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_wrong_emitted_target_receipt",
+      "rehashed_capsule": "negative_wrong_emitted_target_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_output_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_output_receipt": {
+    "kind": "receipt",
+    "length": 6365,
+    "sha256": "2c43a53592214f2e4d0919da11d7823fd7427c464f80d6bfd395b7f2fd8f3f5e",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "executable linkage: fixed target/release/study_train output required",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "executable.length",
+          "old_offset": 4759,
+          "new_offset": 4759,
+          "old_value": 72,
+          "new_value": 78
+        },
+        {
+          "field": "executable",
+          "old_offset": 4767,
+          "new_offset": 4767,
+          "old_value": {
+            "hex": "2f73796e7468657469632f66726573682d6370755f73657269616c2f7838365f36342d756e6b6e6f776e2d6c696e75782d676e752f72656c656173652f73747564795f747261696e"
+          },
+          "new_value": {
+            "hex": "2f73796e7468657469632f66726573682d6370755f73657269616c2f7838365f36342d756e6b6e6f776e2d6c696e75782d676e752f72656c656173652f73747564795f747261696e2e77726f6e67"
+          }
+        },
+        {
+          "field": "emitted[0].executable.length",
+          "old_offset": 5608,
+          "new_offset": 5614,
+          "old_value": 72,
+          "new_value": 78
+        },
+        {
+          "field": "emitted[0].executable",
+          "old_offset": 5616,
+          "new_offset": 5622,
+          "old_value": {
+            "hex": "2f73796e7468657469632f66726573682d6370755f73657269616c2f7838365f36342d756e6b6e6f776e2d6c696e75782d676e752f72656c656173652f73747564795f747261696e"
+          },
+          "new_value": {
+            "hex": "2f73796e7468657469632f66726573682d6370755f73657269616c2f7838365f36342d756e6b6e6f776e2d6c696e75782d676e752f72656c656173652f73747564795f747261696e2e77726f6e67"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_wrong_output_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_output_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "bad627aa44b8ede332f20b16e7e6c0bd665f3a201f24472513e3ec767fb74ac7",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: executable linkage: fixed target/release/study_train output required",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_wrong_output_receipt",
+      "rehashed_capsule": "negative_wrong_output_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_capsule": {
+    "kind": "capsule",
+    "length": 1835,
+    "sha256": "c42e87cc286551b83938a5fcf4ae4368e256fd36b6af748192be26cfb38fcf80",
+    "expected": "semantic_obligation",
+    "reason": "closed argv: metadata selection must be package-qualified",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "changed_fields": [
+        {
+          "field": "metadata_argv[8].length",
+          "old_offset": 1273,
+          "new_offset": 1273,
+          "old_value": 25,
+          "new_value": 8
+        },
+        {
+          "field": "metadata_argv[8]",
+          "old_offset": 1281,
+          "new_offset": 1281,
+          "old_value": {
+            "hex": "636b6b732d747261696e2d62656e63682f706172616c6c656c"
+          },
+          "new_value": {
+            "hex": "706172616c6c656c"
+          }
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_receipt": {
+    "kind": "receipt",
+    "length": 6427,
+    "sha256": "e5a36b0cf601b4187cf489bc9789a93c050c11e863c32fac197a288e021c07dd",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed argv: metadata selection must be package-qualified",
+    "mutation": {
+      "base": "cpu_rayon_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1852,
+          "new_value": 1835
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "098229a39dcd984885234fa96404725832218288a96fcc51048a71aa61a6412b"
+          },
+          "new_value": {
+            "sha256": "c42e87cc286551b83938a5fcf4ae4368e256fd36b6af748192be26cfb38fcf80"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_metadata_feature_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "6f9057cd1573f2e1c3c5df359154da4939913c108c367d5ebe249c3ce85b29b6",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed argv: metadata selection must be package-qualified",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_metadata_feature_receipt",
+      "rehashed_capsule": "negative_metadata_feature_capsule",
+      "mutation_base": "cpu_rayon"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_order_capsule": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "1f1fd2a96b041e15d011788036f88dc0a74a9ad6a8d72079cb0ae1f7e350d0ec",
+    "expected": "semantic_obligation",
+    "reason": "closed argv: features pair must occur immediately after --no-default-features",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "changed_fields": [
+        {
+          "field": "metadata_argv[7].length",
+          "old_offset": 1255,
+          "new_offset": 1255,
+          "old_value": 10,
+          "new_value": 17
+        },
+        {
+          "field": "metadata_argv[7]",
+          "old_offset": 1263,
+          "new_offset": 1263,
+          "old_value": {
+            "hex": "2d2d6665617475726573"
+          },
+          "new_value": {
+            "hex": "2d2d66696c7465722d706c6174666f726d"
+          }
+        },
+        {
+          "field": "metadata_argv[8].length",
+          "old_offset": 1273,
+          "new_offset": 1280,
+          "old_value": 25,
+          "new_value": 24
+        },
+        {
+          "field": "metadata_argv[8]",
+          "old_offset": 1281,
+          "new_offset": 1288,
+          "old_value": {
+            "hex": "636b6b732d747261696e2d62656e63682f706172616c6c656c"
+          },
+          "new_value": {
+            "hex": "7838365f36342d756e6b6e6f776e2d6c696e75782d676e75"
+          }
+        },
+        {
+          "field": "metadata_argv[9].length",
+          "old_offset": 1306,
+          "new_offset": 1312,
+          "old_value": 17,
+          "new_value": 15
+        },
+        {
+          "field": "metadata_argv[9]",
+          "old_offset": 1314,
+          "new_offset": 1320,
+          "old_value": {
+            "hex": "2d2d66696c7465722d706c6174666f726d"
+          },
+          "new_value": {
+            "hex": "2d2d6d616e69666573742d70617468"
+          }
+        },
+        {
+          "field": "metadata_argv[10].length",
+          "old_offset": 1331,
+          "new_offset": 1335,
+          "old_value": 24,
+          "new_value": 31
+        },
+        {
+          "field": "metadata_argv[10]",
+          "old_offset": 1339,
+          "new_offset": 1343,
+          "old_value": {
+            "hex": "7838365f36342d756e6b6e6f776e2d6c696e75782d676e75"
+          },
+          "new_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f436172676f2e746f6d6c"
+          }
+        },
+        {
+          "field": "metadata_argv[11].length",
+          "old_offset": 1363,
+          "new_offset": 1374,
+          "old_value": 15,
+          "new_value": 10
+        },
+        {
+          "field": "metadata_argv[11]",
+          "old_offset": 1371,
+          "new_offset": 1382,
+          "old_value": {
+            "hex": "2d2d6d616e69666573742d70617468"
+          },
+          "new_value": {
+            "hex": "2d2d6665617475726573"
+          }
+        },
+        {
+          "field": "metadata_argv[12].length",
+          "old_offset": 1386,
+          "new_offset": 1392,
+          "old_value": 31,
+          "new_value": 25
+        },
+        {
+          "field": "metadata_argv[12]",
+          "old_offset": 1394,
+          "new_offset": 1400,
+          "old_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f436172676f2e746f6d6c"
+          },
+          "new_value": {
+            "hex": "636b6b732d747261696e2d62656e63682f706172616c6c656c"
+          }
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_order_receipt": {
+    "kind": "receipt",
+    "length": 6444,
+    "sha256": "33217ed1bbf1ec369a9b7ddfb57c375a4834808a912da3b2cbcc93a548172b30",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed argv: features pair must occur immediately after --no-default-features",
+    "mutation": {
+      "base": "cpu_rayon_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "098229a39dcd984885234fa96404725832218288a96fcc51048a71aa61a6412b"
+          },
+          "new_value": {
+            "sha256": "1f1fd2a96b041e15d011788036f88dc0a74a9ad6a8d72079cb0ae1f7e350d0ec"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_metadata_feature_order_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_metadata_feature_order_approval": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "e97372a0abf3b786c4866fd7e9e4d664d1e2c78e28ad3d9ba8d0ee111372e4c9",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed argv: features pair must occur immediately after --no-default-features",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_metadata_feature_order_receipt",
+      "rehashed_capsule": "negative_metadata_feature_order_capsule",
+      "mutation_base": "cpu_rayon"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_extra_features_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_extra_features_receipt": {
+    "kind": "receipt",
+    "length": 6387,
+    "sha256": "5c544a4abb5fd188683b256587b1098876484122838b91bac903c9c62455244b",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "helper policy: no caller-selected --features option",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "helper_argv.count",
+          "old_offset": 5688,
+          "new_offset": 5688,
+          "old_value": 28,
+          "new_value": 30
+        },
+        {
+          "field": "helper_argv[28].length",
+          "old_offset": null,
+          "new_offset": 6353,
+          "old_value": null,
+          "new_value": 10
+        },
+        {
+          "field": "helper_argv[28]",
+          "old_offset": null,
+          "new_offset": 6361,
+          "old_value": null,
+          "new_value": {
+            "hex": "2d2d6665617475726573"
+          }
+        },
+        {
+          "field": "helper_argv[29].length",
+          "old_offset": null,
+          "new_offset": 6371,
+          "old_value": null,
+          "new_value": 8
+        },
+        {
+          "field": "helper_argv[29]",
+          "old_offset": null,
+          "new_offset": 6379,
+          "old_value": null,
+          "new_value": {
+            "hex": "706172616c6c656c"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_helper_extra_features_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_extra_features_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "fd95dbe0df831c8e25654bae0f0fa511f84dae55a900dfce31db8da3858b4308",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: helper policy: no caller-selected --features option",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_helper_extra_features_receipt",
+      "rehashed_capsule": "negative_helper_extra_features_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_script_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_script_receipt": {
+    "kind": "receipt",
+    "length": 6357,
+    "sha256": "b563c9986c58ab278bcd216f2fa45655dccfba3dedef402e957342fc7934c5b4",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "helper linkage: Train helper must be study_train_build.py",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "helper_argv[0].length",
+          "old_offset": 5696,
+          "new_offset": 5696,
+          "old_value": 49,
+          "new_value": 53
+        },
+        {
+          "field": "helper_argv[0]",
+          "old_offset": 5704,
+          "new_offset": 5704,
+          "old_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f736372697074732f73747564795f747261696e5f6275696c642e7079"
+          },
+          "new_value": {
+            "hex": "2f73796e7468657469632f726f6c652d726f6f742f736372697074732f73747564795f7265666572656e63655f6275696c642e7079"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_helper_script_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_helper_script_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "3f237a9f9e6de7ccdd967fc3c9835d0573d7043bd46ce0932935ed1f998727dc",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: helper linkage: Train helper must be study_train_build.py",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_helper_script_receipt",
+      "rehashed_capsule": "negative_helper_script_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_build_bin_capsule": {
+    "kind": "capsule",
+    "length": 1757,
+    "sha256": "3d546fd7556df4c19f129f315159a935aa99ea167289be8f40ddb5231b7f4217",
+    "expected": "semantic_obligation",
+    "reason": "closed argv: fixed bin must be study_train",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "build_argv[9].length",
+          "old_offset": 1536,
+          "new_offset": 1536,
+          "old_value": 11,
+          "new_value": 15
+        },
+        {
+          "field": "build_argv[9]",
+          "old_offset": 1544,
+          "new_offset": 1544,
+          "old_value": {
+            "hex": "73747564795f747261696e"
+          },
+          "new_value": {
+            "hex": "73747564795f7265666572656e6365"
+          }
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_build_bin_receipt": {
+    "kind": "receipt",
+    "length": 6357,
+    "sha256": "a6df4978e8622b8215c129f588155fc7de64585762899b99f289cb61f33db1cc",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "closed argv: fixed bin must be study_train",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule.length",
+          "old_offset": 77,
+          "new_offset": 77,
+          "old_value": 1753,
+          "new_value": 1757
+        },
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "3d546fd7556df4c19f129f315159a935aa99ea167289be8f40ddb5231b7f4217"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_build_bin_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_build_bin_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "80dd03556c1a234481e5c9de95784a0ab1d28844b5057647dba967b87ddf1c62",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: closed argv: fixed bin must be study_train",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_build_bin_receipt",
+      "rehashed_capsule": "negative_build_bin_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_source_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_source_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "14d36115fae484e8197b54d54aab55a839ca109aec0deae21988794867a56301",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post source manifest hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "post_source",
+          "old_offset": 4919,
+          "new_offset": 4919,
+          "old_value": "48c24547ddf792ad1b9b6d16fa93a1f48dfcf46b781af7753c60d1bb25e49e65",
+          "new_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_source_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_source_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "8f9a7d98e5f120a65541286473bccd8c3d47a1157ae49247aca906e1f157c23d",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post source manifest hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_source_receipt",
+      "rehashed_capsule": "negative_post_source_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_config_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_config_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "2ae1409e47e47c79f9b6b3a403844dc52b8b5f52a86feae0892054459f002727",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post config manifest hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "post_config",
+          "old_offset": 4991,
+          "new_offset": 4991,
+          "old_value": "65be9402b1ce3560fd4835b4d3c7fc42aa2f00c41c89ed7378b07708aa96c20e",
+          "new_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_config_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_config_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "25544d9dbd35d68451d39d9f3b2849edcb99466ca87e8df50fa03b07cf753043",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post config manifest hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_config_receipt",
+      "rehashed_capsule": "negative_post_config_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_dependency_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_dependency_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "dbbfdca016d536412bbe2ba0479156c5add1a3173d583cee550b8cc79a53a8c1",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post dependency manifest hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "post_dependency",
+          "old_offset": 5063,
+          "new_offset": 5063,
+          "old_value": "6617131cd5d563072289ebe6025495553d8027a342d00b8fc2574ec98f782221",
+          "new_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_dependency_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_dependency_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "9f7353ebbfc234c7d3482216878470bac8b466574edd310d681926c271ecbe05",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post dependency manifest hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_dependency_receipt",
+      "rehashed_capsule": "negative_post_dependency_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_toolchain_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_toolchain_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "8514cb625d80c58fa45be31c08e2b91f8e16f46525224c5b51103161bc491f5f",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post toolchain manifest hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "post_toolchain",
+          "old_offset": 5135,
+          "new_offset": 5135,
+          "old_value": "09cc55f154b9716a1cc717cf86c065c6ca02f03a75f42b1931278b0c0c30892c",
+          "new_value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_toolchain_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_toolchain_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "fdefa3f711c4a30be3ea1c27ab7e9f4fbc4eb5049995452840886ee3c07eabe6",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post toolchain manifest hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_toolchain_receipt",
+      "rehashed_capsule": "negative_post_toolchain_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_environment_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_environment_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "1a446798dba46d96d8485f2e36d1f47bc55b1da4712192fab79c8ebad65c994f",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post environment hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "post_environment",
+          "old_offset": 5207,
+          "new_offset": 5207,
+          "old_value": "791ff2f44117be768e2fe1800b7a62dd8bf9b4db958d62760d4a6f882f56d69a",
+          "new_value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_environment_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_environment_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "2d4a7194ed0604dc834d655c0cffa872fe42f855e048d6a73c6e2ceb880de4fe",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post environment hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_environment_receipt",
+      "rehashed_capsule": "negative_post_environment_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_metadata_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+    "expected": "companion_transport_positive",
+    "reason": "unchanged companion capsule; rejection obligation belongs to receipt/bundle",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": []
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_metadata_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "c36c9de90952b809bb2fd90af40326bb4dec8e0c4699995305d4b93b18cc2bf4",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: changed pre/post metadata hash",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "metadata",
+          "old_offset": 5279,
+          "new_offset": 5279,
+          "old_value": "9f3e1cbf5762226f1d8ddb43ad389909225d9747b7ed5c2c788f8030c457aae4",
+          "new_value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_post_metadata_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_post_metadata_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "26ac0792ea4dbf8a3c67695feedccb322fba071b5bf126ef820c08697dac6e82",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: changed pre/post metadata hash",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_post_metadata_receipt",
+      "rehashed_capsule": "negative_post_metadata_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_capsule_source_digest_capsule": {
+    "kind": "capsule",
+    "length": 1753,
+    "sha256": "aca1cd29e780304e7d4f8bdc406fd3839bc07c24ea82a9267c5bd70bf949f07a",
+    "expected": "semantic_obligation",
+    "reason": "nested linkage: capsule source hash must equal embedded source bytes",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "changed_fields": [
+        {
+          "field": "source_manifest",
+          "old_offset": 162,
+          "new_offset": 162,
+          "old_value": "48c24547ddf792ad1b9b6d16fa93a1f48dfcf46b781af7753c60d1bb25e49e65",
+          "new_value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_capsule_source_digest_receipt": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "a840e6e49126a01544b020401fde578df2245ac079c33730ff18cd3536dd00f0",
+    "expected": "semantic_or_linkage_obligation",
+    "reason": "nested linkage: capsule source hash must equal embedded source bytes",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "changed_fields": [
+        {
+          "field": "capsule",
+          "old_offset": 85,
+          "new_offset": 85,
+          "old_value": {
+            "sha256": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+          },
+          "new_value": {
+            "sha256": "aca1cd29e780304e7d4f8bdc406fd3839bc07c24ea82a9267c5bd70bf949f07a"
+          }
+        }
+      ]
+    },
+    "relations": {
+      "capsule": "negative_capsule_source_digest_capsule"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_capsule_source_digest_approval": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "fdfbdf931e854ad461810b43098a5718d7a0f21cd717844f295c490fa901ff9b",
+    "expected": "linked_bundle_obligation",
+    "reason": "standalone approval transport may accept; validate supplied mutated receipt/capsule bundle: nested linkage: capsule source hash must equal embedded source bytes",
+    "mutation": null,
+    "relations": {
+      "rehashed_receipt": "negative_capsule_source_digest_receipt",
+      "rehashed_capsule": "negative_capsule_source_digest_capsule",
+      "mutation_base": "cpu_serial"
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_role": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "4450f09032b76285a1533187df311bc7ca04415339d4c8b96cf69f265fcb7a08",
+    "expected": "parser_reject",
+    "reason": "parser: closed role tag only 0 or 1",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].role",
+          "old_offset": 823,
+          "new_offset": 823,
+          "old_value": 1,
+          "new_value": 2
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_role_recipe_mismatch": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "b75999d22d8f685fe76deb1153d23d148d29ea692c357ff52a907f0069675b63",
+    "expected": "semantic_obligation",
+    "reason": "semantic: Reference role with Train recipe is forbidden",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].role",
+          "old_offset": 823,
+          "new_offset": 823,
+          "old_value": 1,
+          "new_value": 0
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_approval_recipe": {
+    "kind": "approval_v2",
+    "length": 1374,
+    "sha256": "e3c9c8c304a48cc2033f26b4d8b69eea91bf472ded43d12819e7375339eae9e3",
+    "expected": "semantic_obligation",
+    "reason": "semantic: per-build recipe must be closed-table value",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].recipe.length",
+          "old_offset": 824,
+          "new_offset": 824,
+          "old_value": 37,
+          "new_value": 7
+        },
+        {
+          "field": "builds[0].recipe",
+          "old_offset": 832,
+          "new_offset": 832,
+          "old_value": "study-train-cpu-serial-linux-clean-v1",
+          "new_value": "unknown"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unknown_approval_algorithm": {
+    "kind": "approval_v2",
+    "length": 1389,
+    "sha256": "6aaddbae6e5c546b3eb0ef2628166905199fe3c05ea25965159b6035f524fee2",
+    "expected": "semantic_obligation",
+    "reason": "semantic: per-build algorithm must be closed-table value",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].algorithm.length",
+          "old_offset": 869,
+          "new_offset": 869,
+          "old_value": 22,
+          "new_value": 7
+        },
+        {
+          "field": "builds[0].algorithm",
+          "old_offset": 877,
+          "new_offset": 877,
+          "old_value": "study-train-session-v1",
+          "new_value": "unknown"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_triple_receipt_file_sha256": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "2b327bc8e061933bf8daf0d9aa9e71318f36ecce267fc61647a2043bfa61f586",
+    "expected": "linkage_obligation",
+    "reason": "receipt-lookup/linkage: exact receipt_file_sha256 differs despite valid lowercase digest",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].receipt_file_sha256",
+          "old_offset": 907,
+          "new_offset": 907,
+          "old_value": "0dc762038c1870f6c24cbb6ee817b95a46b8f7217bb95b083990e7252c9e5b09",
+          "new_value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_triple_capsule_sha256": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "438e91d9c930a2e4e0fa02a4d95520cdfaa6f1831f629f598a8fa13941c90368",
+    "expected": "linkage_obligation",
+    "reason": "receipt-lookup/linkage: exact capsule_sha256 differs despite valid lowercase digest",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].capsule_sha256",
+          "old_offset": 979,
+          "new_offset": 979,
+          "old_value": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+          "new_value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_triple_executable_sha256": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "6a8c2baf015276ead48c839f2542e648dfe8507b25f7490e8c2bc81105330aff",
+    "expected": "linkage_obligation",
+    "reason": "receipt-lookup/linkage: exact executable_sha256 differs despite valid lowercase digest",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].executable_sha256",
+          "old_offset": 1051,
+          "new_offset": 1051,
+          "old_value": "e9b30e6e90c4c5b92286e94bde826435e3be8615af145fe5a497f0c40d3a2f7a",
+          "new_value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_duplicate_receipt_across_roles": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "fd5b4d5655ecd26213cc1574684a764fef7f2db54a02476f7cdc2b7be1c6421c",
+    "expected": "parser_reject",
+    "reason": "canonical/semantic: receipt SHA duplicate even across different role tags",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[1].receipt_file_sha256",
+          "old_offset": 1196,
+          "new_offset": 1196,
+          "old_value": "cc71f82bd6ee05c32111e54eb4cb5e8a87bd424238d3a5626d72271f18ed1b29",
+          "new_value": "0dc762038c1870f6c24cbb6ee817b95a46b8f7217bb95b083990e7252c9e5b09"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_unsorted_builds": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "09856881ee6b9e841441421d99621de154ad64193c7e49352d9a8bcd19c8ef83",
+    "expected": "parser_reject",
+    "reason": "canonical parser: strict receipt SHA order required",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "builds[0].role",
+          "old_offset": 823,
+          "new_offset": 823,
+          "old_value": 1,
+          "new_value": 0
+        },
+        {
+          "field": "builds[0].recipe.length",
+          "old_offset": 824,
+          "new_offset": 824,
+          "old_value": 37,
+          "new_value": 30
+        },
+        {
+          "field": "builds[0].recipe",
+          "old_offset": 832,
+          "new_offset": 832,
+          "old_value": "study-train-cpu-serial-linux-clean-v1",
+          "new_value": "study-reference-linux-clean-v1"
+        },
+        {
+          "field": "builds[0].algorithm.length",
+          "old_offset": 869,
+          "new_offset": 862,
+          "old_value": 22,
+          "new_value": 26
+        },
+        {
+          "field": "builds[0].algorithm",
+          "old_offset": 877,
+          "new_offset": 870,
+          "old_value": "study-train-session-v1",
+          "new_value": "study-reference-session-v1"
+        },
+        {
+          "field": "builds[0].receipt_file_sha256",
+          "old_offset": 907,
+          "new_offset": 904,
+          "old_value": "0dc762038c1870f6c24cbb6ee817b95a46b8f7217bb95b083990e7252c9e5b09",
+          "new_value": "cc71f82bd6ee05c32111e54eb4cb5e8a87bd424238d3a5626d72271f18ed1b29"
+        },
+        {
+          "field": "builds[0].capsule_sha256",
+          "old_offset": 979,
+          "new_offset": 976,
+          "old_value": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d",
+          "new_value": "23492d956d8f0f15d4d0ede520bffb278ff915412706bb4e4f50c6281f8510c5"
+        },
+        {
+          "field": "builds[0].executable_sha256",
+          "old_offset": 1051,
+          "new_offset": 1048,
+          "old_value": "e9b30e6e90c4c5b92286e94bde826435e3be8615af145fe5a497f0c40d3a2f7a",
+          "new_value": "63cf48061aff896c2a30ca79359389f846425c040e70ed8182d39af04068e5e6"
+        },
+        {
+          "field": "builds[1].role",
+          "old_offset": 1115,
+          "new_offset": 1112,
+          "old_value": 0,
+          "new_value": 1
+        },
+        {
+          "field": "builds[1].recipe.length",
+          "old_offset": 1116,
+          "new_offset": 1113,
+          "old_value": 30,
+          "new_value": 37
+        },
+        {
+          "field": "builds[1].recipe",
+          "old_offset": 1124,
+          "new_offset": 1121,
+          "old_value": "study-reference-linux-clean-v1",
+          "new_value": "study-train-cpu-serial-linux-clean-v1"
+        },
+        {
+          "field": "builds[1].algorithm.length",
+          "old_offset": 1154,
+          "new_offset": 1158,
+          "old_value": 26,
+          "new_value": 22
+        },
+        {
+          "field": "builds[1].algorithm",
+          "old_offset": 1162,
+          "new_offset": 1166,
+          "old_value": "study-reference-session-v1",
+          "new_value": "study-train-session-v1"
+        },
+        {
+          "field": "builds[1].receipt_file_sha256",
+          "old_offset": 1196,
+          "new_offset": 1196,
+          "old_value": "cc71f82bd6ee05c32111e54eb4cb5e8a87bd424238d3a5626d72271f18ed1b29",
+          "new_value": "0dc762038c1870f6c24cbb6ee817b95a46b8f7217bb95b083990e7252c9e5b09"
+        },
+        {
+          "field": "builds[1].capsule_sha256",
+          "old_offset": 1268,
+          "new_offset": 1268,
+          "old_value": "23492d956d8f0f15d4d0ede520bffb278ff915412706bb4e4f50c6281f8510c5",
+          "new_value": "9c8aec145c7a5fb0844703ea079404c34df56185784b25029578f52d714c892d"
+        },
+        {
+          "field": "builds[1].executable_sha256",
+          "old_offset": 1340,
+          "new_offset": 1340,
+          "old_value": "63cf48061aff896c2a30ca79359389f846425c040e70ed8182d39af04068e5e6",
+          "new_value": "e9b30e6e90c4c5b92286e94bde826435e3be8615af145fe5a497f0c40d3a2f7a"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_empty_id": {
+    "kind": "approval_v2",
+    "length": 1364,
+    "sha256": "a2d3b2e03aa86251e164dabdc8385b68664345c8f60d045b5f8da07fa8b54b7b",
+    "expected": "semantic_obligation",
+    "reason": "semantic: approval ID must be nonempty",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "id.length",
+          "old_offset": 78,
+          "new_offset": 78,
+          "old_value": 40,
+          "new_value": 0
+        },
+        {
+          "field": "id",
+          "old_offset": 86,
+          "new_offset": 86,
+          "old_value": "SYNTHETIC-ROLE-BYTE-FIXTURE-NOT-APPROVAL",
+          "new_value": ""
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_wrong_design_path": {
+    "kind": "approval_v2",
+    "length": 1392,
+    "sha256": "caa2da9ef0ccdaa065290fd60059e2408bb08ca39c695bbf58a6738787de7110",
+    "expected": "semantic_obligation",
+    "reason": "semantic: exact five paths required, not merely five sorted records",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "designs[4].path.length",
+          "old_offset": 586,
+          "new_offset": 586,
+          "old_value": 29,
+          "new_value": 17
+        },
+        {
+          "field": "designs[4].path",
+          "old_offset": 594,
+          "new_offset": 594,
+          "old_value": "docs/study-training-design.md",
+          "new_value": "docs/z-unknown.md"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_design_digest": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "73ab3637c7208fec4eceb19394e91868d5b429f50f6463358c4f725f02ee927c",
+    "expected": "filesystem_obligation",
+    "reason": "filesystem linkage: current exact document bytes must match",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "designs[0].hash",
+          "old_offset": 175,
+          "new_offset": 175,
+          "old_value": "981c748bcd022a66c201da35d50136f850327baff9713117551e5c7990109795",
+          "new_value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_commit": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "63b427368d9235a7567a11c19ee2c56800187b1188ebb73d41d282c11f2f720d",
+    "expected": "linkage_obligation",
+    "reason": "linkage: all supplied receipts must share approval commit",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "commit",
+          "old_offset": 703,
+          "new_offset": 703,
+          "old_value": "5555555555555555555555555555555555555555",
+          "new_value": "6666666666666666666666666666666666666666"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_approval_source": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "1078aafa917e036f1e1d5831964cabe38d52cb549411f7f129d93e4751fccb08",
+    "expected": "linkage_obligation",
+    "reason": "linkage: all supplied receipts must share approval source",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "changed_fields": [
+        {
+          "field": "source_manifest",
+          "old_offset": 751,
+          "new_offset": 751,
+          "old_value": "48c24547ddf792ad1b9b6d16fa93a1f48dfcf46b781af7753c60d1bb25e49e65",
+          "new_value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ]
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_v1_cpu_serial": {
+    "kind": "approval_v1",
+    "length": 1114,
+    "sha256": "c20999457bbd8d20b8ad3b1b75595765561e4a73b3db61af89ab30e424b8ac4d",
+    "expected": "semantic_obligation",
+    "reason": "approval-v1 remains Reference-only even with exact recomputed Train triple",
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "cpu_serial"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_v1_cpu_rayon": {
+    "kind": "approval_v1",
+    "length": 1113,
+    "sha256": "9b14fde4da4265f39c67f017c1ab6b8f4c46aac2b2689efcd640efa19d42096c",
+    "expected": "semantic_obligation",
+    "reason": "approval-v1 remains Reference-only even with exact recomputed Train triple",
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "cpu_rayon"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_v1_cuda_host": {
+    "kind": "approval_v1",
+    "length": 1113,
+    "sha256": "66e009f149f460fc75bc826000ae706dc73df04a02bf9d44bbdbd3eb4d0ab203",
+    "expected": "semantic_obligation",
+    "reason": "approval-v1 remains Reference-only even with exact recomputed Train triple",
+    "mutation": null,
+    "relations": {
+      "build_names": [
+        "cuda_host"
+      ]
+    },
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_v1_hidden_train": {
+    "kind": "approval_v1",
+    "length": 1327,
+    "sha256": "c488dd6f8a5f86e0c26d634e556b4dc6d62be1d6fb0e36e22d7bc101c8ca36ee",
+    "expected": "linkage_obligation",
+    "reason": "Reference global fields do not allow a Train receipt even with exact recomputed triple",
+    "mutation": null,
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_encoding": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "31861103dbff86c95bbb2c3180d643c11faf195483b0cb23b078b526c789b794",
+    "expected": "parser_reject",
+    "reason": "parser: encoding string mismatch",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "header.encoding",
+      "offset": 8,
+      "removed_length": 33,
+      "inserted_hex": "78656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_domain": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "646ff2fa5c344d53f4a7efdd5ddcece18ddff95a38a999564afad89ae8dc57b1",
+    "expected": "parser_reject",
+    "reason": "parser: domain mismatch",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "header.domain",
+      "offset": 49,
+      "removed_length": 29,
+      "inserted_hex": "68656b69742d73747564792d6c6f63616c2d617070726f76616c2d7639"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_hash_syntax": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "432c619c355ffa1b75f62be7ceee238bd593d0f72cc36142b76b4a5d88a37208",
+    "expected": "parser_reject",
+    "reason": "parser: hash must be lowercase hex",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "builds[0].capsule_sha256",
+      "offset": 979,
+      "removed_length": 64,
+      "inserted_hex": "47474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747474747"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_invalid_utf8": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "7709a3cc8d82d2fa8cdcf647104f150c8217cd7ab4b3eaacad9e22bbb4f0b276",
+    "expected": "parser_reject",
+    "reason": "parser: invalid UTF8",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "id",
+      "offset": 86,
+      "removed_length": 40,
+      "inserted_hex": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_text_cap": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "6586838c00ace37eaa04d5591040421c46a17de69d7f5c811af3256ac32ee708",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "id.length",
+      "offset": 78,
+      "removed_length": 8,
+      "inserted_hex": "0110000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_design_count_cap": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "9e065a71c3c1b09e783f2d6fd44f9f2209ff89b33565d2b209f278a6cf9711d1",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "designs.count",
+      "offset": 126,
+      "removed_length": 8,
+      "inserted_hex": "2100000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_build_count_cap": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "41dd701327d680f3ca357c004d3bab285120cce06e0ed1f7bc9d710608f2d3fb",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "builds.count",
+      "offset": 815,
+      "removed_length": 8,
+      "inserted_hex": "4100000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_u64_length_overflow": {
+    "kind": "approval_v2",
+    "length": 1404,
+    "sha256": "7f39d467e31b6fb1ac8cb62e8e8b4a38ef97b4eaf2eb983ae6265de4c9a0c583",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "field": "id.length",
+      "offset": 78,
+      "removed_length": 8,
+      "inserted_hex": "ffffffffffffffff"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_feature_count_cap": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "86a619662dab381ca1432b675861b61da62038c67cdcfeda7dfd5eb5800faa96",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "field": "features.count",
+      "offset": 827,
+      "removed_length": 8,
+      "inserted_hex": "4100000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_package_count_cap": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "fc60fdfd82084fc9686a5380d1520c66da3acb6bfca2df503d4ae28599b78566",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "field": "packages.count",
+      "offset": 946,
+      "removed_length": 8,
+      "inserted_hex": "0100010000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_argv_count_cap": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "a33a7f321be9b08648ad988fb99b88743fe2f0677f073b37312a6d7560235893",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "field": "metadata_argv.count",
+      "offset": 1106,
+      "removed_length": 8,
+      "inserted_hex": "0101000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_compiler_text_cap": {
+    "kind": "capsule",
+    "length": 1852,
+    "sha256": "f15287bd369da541ab529e8fde89b5878e5c2f7d286ff7432ac6e99dc1a5e26a",
+    "expected": "parser_reject",
+    "reason": "parser: declared field/count exceeds unchanged bound before content allocation",
+    "mutation": {
+      "base": "cpu_rayon_capsule",
+      "field": "compiler_vv.length",
+      "offset": 633,
+      "removed_length": 8,
+      "inserted_hex": "0140000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_capsule_blob_cap": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "df08e7dff3dc623bf3e52d7525abc3874abfff7cd5946dbd0c6de197f4aaba65",
+    "expected": "parser_reject",
+    "reason": "parser: embedded capsule exceeds unchanged 2MiB",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "field": "capsule.length",
+      "offset": 77,
+      "removed_length": 8,
+      "inserted_hex": "0100200000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_emitted_count_cap": {
+    "kind": "receipt",
+    "length": 6353,
+    "sha256": "3a2b11d000853184a699fbe4ef955cb1c2d1f3928b50a1c91ed95652e086d512",
+    "expected": "parser_reject",
+    "reason": "parser: emitted list exceeds unchanged 65536",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "field": "emitted.count",
+      "offset": 5343,
+      "removed_length": 8,
+      "inserted_hex": "0100010000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_manifest_count_cap": {
+    "kind": "files",
+    "length": 196,
+    "sha256": "5f995ac159383394b532172092fc83eec1219dc7d6b8e0e053f9c21b0a48aec0",
+    "expected": "parser_reject",
+    "reason": "parser: manifest list exceeds unchanged 65536",
+    "mutation": {
+      "base": "files_dependency",
+      "field": "records.count",
+      "offset": 76,
+      "removed_length": 8,
+      "inserted_hex": "0100010000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_source_count_cap": {
+    "kind": "files",
+    "length": 974,
+    "sha256": "2b3bd36c4da4c7275243e45fac82b034b390279e3b85d31fa153ec23a7e87ed3",
+    "expected": "parser_reject",
+    "reason": "parser: source inventory count exceeds unchanged 512 bound",
+    "mutation": {
+      "base": "files_source",
+      "field": "records.count",
+      "offset": 76,
+      "removed_length": 8,
+      "inserted_hex": "0102000000000000"
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cpu_serial_capsule_trailing": {
+    "kind": "capsule",
+    "length": 1754,
+    "sha256": "4896198696ee638a6b7c06aca1271efbc8ef2045abaa58edb58ce9978c5e6c42",
+    "expected": "parser_reject",
+    "reason": "parser: exact EOF required",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "offset": 1753,
+      "inserted_hex": "00",
+      "removed_length": 0
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cpu_serial_capsule_truncated": {
+    "kind": "capsule",
+    "length": 1752,
+    "sha256": "b4d590408c5ad29b11ca19c386569d90c6400f06662962cfa69cf01a128ca4c4",
+    "expected": "parser_reject",
+    "reason": "parser: incomplete final field",
+    "mutation": {
+      "base": "cpu_serial_capsule",
+      "offset": 1752,
+      "inserted_hex": "",
+      "removed_length": 1
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cpu_serial_receipt_trailing": {
+    "kind": "receipt",
+    "length": 6354,
+    "sha256": "bc74b0393dec5df061ef9c64deb11d5edcf817a1fcd2691c645714c55b132bd4",
+    "expected": "parser_reject",
+    "reason": "parser: exact EOF required",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "offset": 6353,
+      "inserted_hex": "00",
+      "removed_length": 0
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_cpu_serial_receipt_truncated": {
+    "kind": "receipt",
+    "length": 6352,
+    "sha256": "e4e7a5baa53ad4f3fc6e9d7bb0c30900b943bd99d6754e67a3a5b95e3af77b24",
+    "expected": "parser_reject",
+    "reason": "parser: incomplete final field",
+    "mutation": {
+      "base": "cpu_serial_receipt",
+      "offset": 6352,
+      "inserted_hex": "",
+      "removed_length": 1
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_approval_v2_reference_cpu_serial_trailing": {
+    "kind": "approval_v2",
+    "length": 1405,
+    "sha256": "efc55ecd9c06e48f38621c9e1f6c531bf4def0453ae221f46deaf011d0735adb",
+    "expected": "parser_reject",
+    "reason": "parser: exact EOF required",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "offset": 1404,
+      "inserted_hex": "00",
+      "removed_length": 0
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_approval_v2_reference_cpu_serial_truncated": {
+    "kind": "approval_v2",
+    "length": 1403,
+    "sha256": "4b69677b464ea62758a4bec79c73bc27e6eb7a5a243f7ff9b7980c90de7e3934",
+    "expected": "parser_reject",
+    "reason": "parser: incomplete final field",
+    "mutation": {
+      "base": "approval_v2_reference_cpu_serial",
+      "offset": 1403,
+      "inserted_hex": "",
+      "removed_length": 1
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_approval_v1_reference_trailing": {
+    "kind": "approval_v1",
+    "length": 1328,
+    "sha256": "df72ce5f1ee175abaec143193ac93d9f695b5e65eee43f88120561e6c8dcac2f",
+    "expected": "parser_reject",
+    "reason": "parser: exact EOF required",
+    "mutation": {
+      "base": "approval_v1_reference",
+      "offset": 1327,
+      "inserted_hex": "00",
+      "removed_length": 0
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  },
+  "negative_approval_v1_reference_truncated": {
+    "kind": "approval_v1",
+    "length": 1326,
+    "sha256": "173257d3ca028d7ec015f363ed068c5002b6eebc3f21e8f4e5c891007bdc12a0",
+    "expected": "parser_reject",
+    "reason": "parser: incomplete final field",
+    "mutation": {
+      "base": "approval_v1_reference",
+      "offset": 1326,
+      "inserted_hex": "",
+      "removed_length": 1
+    },
+    "relations": {},
+    "authority": "synthetic only; no full filesystem/source/linkage or runtime approval"
+  }
+}

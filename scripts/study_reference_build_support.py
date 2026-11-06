@@ -184,6 +184,7 @@ def environment(records):
 
 
 def capsule(c):
+    preflight_capsule(c)
     w = Writer("capsule", CAPSULE_LIMIT)
     w.t(c["recipe"])
     w.t(c["algorithm"])
@@ -233,6 +234,14 @@ def emitted_key(r):
 
 
 def receipt(r):
+    preflight_receipt(
+        len(r["capsule"]),
+        [len(b) for b in r["files"]],
+        len(r["environment"]),
+        r["executable"],
+        r["emitted"],
+        r["argv"],
+    )
     c = decode("capsule", r["capsule"])
     require(len(r["files"]) == 4 and len(r["post"]) == 5, "receipt lists")
     for role, b in enumerate(r["files"]):
@@ -355,6 +364,16 @@ def decode(domain, data):
             rows.append((ident, path, name, src, kinds, None if tag == 0 else r.b()))
         out["emitted"] = rows
         out["argv"] = [r.b() for _ in r.count(256)]
+    elif domain == "approval_v2":
+        out = dict(
+            id=r.t(),
+            designs=[(r.t(), r.h()) for _ in r.count(32)],
+            commit=r.t(),
+            source=r.h(),
+            builds=[
+                (r.q((0, 1)), r.t(), r.t(), r.h(), r.h(), r.h()) for _ in r.count(64)
+            ],
+        )
     elif domain == "approval":
         out = dict(
             id=r.t(),
@@ -985,6 +1004,7 @@ def preflight_capsule(c):
     n += (
         argv_size(c["metadata_argv"]) + argv_size(c["build_argv"]) + blob_size(c["cwd"])
     )
+    _checked_size_add(0, n)
     require(n <= CAPSULE_LIMIT, "capsule preflight cap")
     return n
 
@@ -1031,6 +1051,7 @@ def preflight_receipt(capsule_size, manifest_sizes, env_size, exe, emitted, argv
             + 1
             + (0 if executable is None else blob_size(executable))
         )
+    _checked_size_add(0, n)
     require(n <= LIMIT, "receipt preflight cap")
     return n
 
@@ -1132,8 +1153,11 @@ def exclusive_write(path, data):
 def verify_runtime_snapshot(root, receipt_bytes, git):
     r = decode("receipt", receipt_bytes)
     c = decode("capsule", r["capsule"])
-    validate_recipe_capsule(c)
+    _validate_linkage(r, c)
     require(os.fsencode(root) == c["cwd"], "source root mismatch")
+    recipe = _closed_capsule(c)
+    options = _helper_options(r, c, recipe)
+    require(os.fsencode(git) == options[b"--git"], "snapshot selected Git")
     env = dict(
         (k, os.fsdecode(v))
         for k, v in decode("environment", r["environment"])
@@ -1155,7 +1179,16 @@ def verify_runtime_snapshot(root, receipt_bytes, git):
 def reject_caller_environment(env):
     for key in env:
         require(
-            not key.startswith(("CARGO_", "RUST", "GIT_", "LD_", "DYLD_")),
+            not key.startswith(("CARGO_", "RUST", "GIT_", "LD_", "DYLD_"))
+            and key
+            not in (
+                "CUDARC_CUDA_VERSION",
+                "CUDA_HOME",
+                "CUDA_PATH",
+                "CUDA_ROOT",
+                "CUDA_TOOLKIT_ROOT_DIR",
+                "CUDNN_LIB",
+            ),
             "forbidden caller compiler/loader/Git override",
         )
 
@@ -1175,3 +1208,513 @@ def fresh_destination(p):
         and not os.path.lexists(p),
         "fresh destination",
     )
+
+
+# Exact administrative recipes. A classification is not a build/context capability.
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class _Recipe:
+    name: str
+    algorithm: str
+    role: int
+    features: tuple
+    feature: str | None
+    binary: str
+    helper: str
+    subcommand: str
+
+
+_REFERENCE = _Recipe(
+    RECIPE,
+    ALGORITHM,
+    0,
+    (),
+    None,
+    "study_reference",
+    "scripts/study_reference_build.py",
+    "build",
+)
+_TRAIN = tuple(
+    _Recipe(
+        "study-train-" + mode + "-linux-clean-v1",
+        "study-train-session-v1",
+        1,
+        features,
+        feature,
+        "study_train",
+        "scripts/study_train_build.py",
+        mode,
+    )
+    for mode, features, feature in (
+        ("cpu-serial", (), None),
+        ("cpu-rayon", ("parallel",), "parallel"),
+        ("cuda-host", ("cuda", "parallel"), "cuda"),
+    )
+)
+_RECIPES = (_REFERENCE, *_TRAIN)
+DOMAINS["approval_v2"] = "hekit-study-local-approval-v2"
+
+
+def _classify(recipe, algorithm):
+    found = [r for r in _RECIPES if r.name == recipe]
+    require(len(found) == 1, "unsupported recipe")
+    require(found[0].algorithm == algorithm, "unsupported algorithm")
+    return found[0]
+
+
+def _closed_capsule(c):
+    recipe = _classify(c["recipe"], c["algorithm"])
+    require(
+        c["target"] == c["host"] == TARGET
+        and c["profile"] == "release"
+        and c["opt"] == "3"
+        and c["debug"] == 0
+        and tuple(c["features"]) == recipe.features,
+        "compile facts",
+    )
+    require(
+        [line[6:] for line in c["compiler"].splitlines() if line.startswith("host: ")]
+        == [TARGET],
+        "compiler host",
+    )
+    require(
+        len(c["commit"]) == 40 and all(x in "0123456789abcdef" for x in c["commit"]),
+        "commit",
+    )
+    return recipe
+
+
+def _recipe_argv(o, recipe):
+    require(recipe in _RECIPES, "closed recipe")
+    meta, build = recipe_argv(o)
+    build[9] = recipe.binary
+    if recipe.feature:
+        meta[7:7] = ["--features", "ckks-train-bench/" + recipe.feature]
+        build[8:8] = ["--features", recipe.feature]
+    return meta, build
+
+
+def approval_v2(a):
+    require(len(a["designs"]) <= 32 and len(a["builds"]) <= 64, "approval caps")
+    w = Writer("approval_v2")
+    w.t(a["id"])
+    designs = unique_sorted(a["designs"], lambda x: x[0].encode())
+    w.count(designs, 32)
+    for path, h in designs:
+        w.t(path)
+        w.h(h)
+    w.t(a["commit"])
+    w.h(a["source"])
+    builds = unique_sorted(a["builds"], lambda x: x[3])
+    w.count(builds, 64)
+    for role, recipe, algorithm, r, c, e in builds:
+        require(role in (0, 1), "approval role")
+        w.q(role)
+        w.t(recipe)
+        w.t(algorithm)
+        for h in (r, c, e):
+            w.h(h)
+    return w.done()
+
+
+def _approval_policy(a, version):
+    require(
+        a["id"]
+        and len(a["commit"]) == 40
+        and all(x in "0123456789abcdef" for x in a["commit"]),
+        "approval policy",
+    )
+    require([p for p, _ in a["designs"]] == sorted(DESIGNS), "approved design set")
+    if version == 1:
+        require(
+            a["recipe"] == RECIPE and a["algorithm"] == ALGORITHM,
+            "approval v1 Reference only",
+        )
+    else:
+        for role, recipe, algorithm, *_ in a["builds"]:
+            require(
+                role == _classify(recipe, algorithm).role,
+                "approval role/recipe mismatch",
+            )
+
+
+def _approved_receipt(a, version, data, r, c):
+    require(
+        c["commit"] == a["commit"] and c["manifests"][0] == a["source"],
+        "approved source/version mismatch",
+    )
+    triple = (sha(data), sha(r["capsule"]), r["executable_hash"])
+    if version == 1:
+        require(
+            c["recipe"] == a["recipe"]
+            and c["algorithm"] == a["algorithm"]
+            and triple in a["builds"],
+            "receipt/capsule/executable not approved",
+        )
+    else:
+        recipe = _classify(c["recipe"], c["algorithm"])
+        require(
+            (recipe.role, c["recipe"], c["algorithm"], *triple) in a["builds"],
+            "receipt/capsule/executable not approved",
+        )
+
+
+def _receipt_manifest_links(r, c):
+    for role, data in enumerate(r["files"]):
+        m = decode("manifest", data)
+        require(
+            m["role"] == role and sha(data) == c["manifests"][role],
+            "embedded manifest link",
+        )
+    require(sha(r["environment"]) == c["environment"], "environment link")
+
+
+def _receipt_post(r, c):
+    _receipt_manifest_links(r, c)
+    require(
+        r["post"] == c["manifests"] + [c["environment"]]
+        and r["metadata"] == c["metadata"],
+        "pre/post mismatch",
+    )
+
+
+def _claim_path(raw):
+    """Check untrusted raw Unix bytes before Path can normalize components."""
+    require(
+        isinstance(raw, bytes)
+        and len(raw) <= TEXT
+        and raw.startswith(b"/")
+        and b"\0" not in raw
+        and not any(part in (b".", b"..") for part in raw.split(b"/")),
+        "raw lexical path",
+    )
+    return Path(os.fsdecode(raw))
+
+
+def _helper_options(r, c, recipe):
+    argv = r["argv"]
+    root = _claim_path(c["cwd"])
+    require(
+        len(argv) >= 2
+        and argv[:2]
+        == [
+            os.fsencode(root / recipe.helper),
+            recipe.subcommand.encode(),
+        ],
+        "fixed helper dispatch",
+    )
+    require((len(argv) - 2) % 2 == 0, "helper option pairs")
+    options = {}
+    for k, v in zip(argv[2::2], argv[3::2]):
+        require(k not in options, "duplicate helper option")
+        options[k] = v
+    required = {
+        b"--" + k.encode()
+        for k in (
+            "root",
+            "cargo",
+            "rustc",
+            "python",
+            "git",
+            "linker",
+            "cargo-home",
+            "target",
+            "home",
+            "tmp",
+            "request",
+            "receipt",
+            "jobs",
+        )
+    }
+    optional = {b"--rust-toolchain-sha256", b"--rust-toolchain-toml-sha256"}
+    require(
+        required <= options.keys() and options.keys() <= required | optional,
+        "unsupported/missing helper option",
+    )
+    for k, v in options.items():
+        if k in optional:
+            valid_hash(v.decode())
+        elif k != b"--jobs":
+            _claim_path(v)
+        else:
+            require(b"\0" not in v, "helper NUL")
+    return options
+
+
+def _recipe_vectors(r, c, env, recipe):
+    root = _claim_path(c["cwd"])
+    target = _claim_path(env["CARGO_TARGET_DIR"])
+    options = _helper_options(r, c, recipe)
+    o = {
+        "cargo": os.fsdecode(options[b"--cargo"]),
+        "root": os.fsdecode(c["cwd"]),
+        "target": os.fsdecode(env["CARGO_TARGET_DIR"]),
+        "jobs": os.fsdecode(env["CARGO_BUILD_JOBS"]),
+    }
+    meta, build = _recipe_argv(o, recipe)
+    require(c["metadata_argv"] == list(map(os.fsencode, meta)), "metadata argv")
+    require(c["build_argv"] == list(map(os.fsencode, build)), "build argv")
+    selected = [
+        a
+        for a in r["emitted"]
+        if a[2] == recipe.binary and a[4] == ("bin",) and a[5] == r["executable"]
+    ]
+    require(
+        len(selected) == 1
+        and selected[0][1] == os.fsencode(root / "crates/ckks-train-bench/Cargo.toml")
+        and selected[0][3]
+        == os.fsencode(
+            root / ("crates/ckks-train-bench/src/bin/" + recipe.binary + ".rs")
+        ),
+        "unique writer binary linkage",
+    )
+    require(
+        r["executable"] == os.fsencode(target / TARGET / "release" / recipe.binary),
+        "receipt executable path",
+    )
+    return options
+
+
+def _validate_linkage(r, c):
+    recipe = _closed_capsule(c)
+    _receipt_post(r, c)
+    env = dict(decode("environment", r["environment"]))
+    options = _recipe_vectors(r, c, env, recipe)
+    o = {
+        k: os.fsdecode(options[("--" + k.replace("_", "-")).encode()])
+        for k in (
+            "root",
+            "cargo",
+            "rustc",
+            "python",
+            "git",
+            "linker",
+            "cargo_home",
+            "target",
+            "home",
+            "tmp",
+            "request",
+        )
+    }
+    require(options[b"--jobs"] in (b"1", b"2", b"3", b"4"), "recipe jobs")
+    o["jobs"] = int(options[b"--jobs"])
+    require(
+        env == {k: os.fsencode(v) for k, v in build_environment(o).items()}
+        and c["cwd"] == options[b"--root"],
+        "recipe helper/environment linkage",
+    )
+    files = [decode("manifest", data) for data in r["files"]]
+    source = dict((p, (tag, value)) for p, tag, value in files[0]["records"])
+    for m in files:
+        for path, tag, _ in m["records"]:
+            require(path and b"\0" not in path, "manifest path")
+            if m["role"] == 0:
+                source_path(path)
+                require(tag == 1, "source manifest policy")
+            else:
+                require(
+                    path.startswith(b"/")
+                    and not any(x in (b".", b"..") for x in path.split(b"/")),
+                    "absolute lexical path",
+                )
+            if m["role"] == 1:
+                require(tag == 0, "config must be absent")
+    for name in (
+        "scripts/study_reference_build.py",
+        "scripts/study_reference_build_support.py",
+        recipe.helper,
+        "crates/ckks-train-bench/build.rs",
+    ):
+        require(
+            source.get(name.encode(), (None,))[0] == 1, "build helper source uncovered"
+        )
+    require(
+        source.get(
+            ("crates/ckks-train-bench/src/bin/" + recipe.binary + ".rs").encode(),
+            (None,),
+        )[0]
+        == 1,
+        "binary source uncovered",
+    )
+    for name, option in (
+        ("rust-toolchain", b"--rust-toolchain-sha256"),
+        ("rust-toolchain.toml", b"--rust-toolchain-toml-sha256"),
+    ):
+        present = source.get(name.encode())
+        pin = options.get(option)
+        require(
+            (present is None and pin is None)
+            or (
+                present is not None and pin is not None and present == (1, pin.decode())
+            ),
+            "toolchain source pin linkage",
+        )
+    for key in (b"--target", b"--request", b"--receipt"):
+        require(
+            not _claim_path(options[key]).is_relative_to(_claim_path(c["cwd"])),
+            "helper output inside source",
+        )
+    require(source.get(b"Cargo.lock") == (1, c["lock"]), "Cargo.lock source linkage")
+    tools = {p for p, tag, _ in files[3]["records"] if tag == 1}
+    require(
+        all(
+            options[("--" + k).encode()] in tools
+            for k in ("cargo", "rustc", "python", "git", "linker")
+        ),
+        "tool absent from inventory",
+    )
+    dependencies = {p for p, tag, _ in files[2]["records"] if tag == 1}
+    packages_by_id = {p[0]: p for p in c["packages"]}
+    root = _claim_path(c["cwd"])
+    target = _claim_path(env["CARGO_TARGET_DIR"])
+    for _, manifest, tag, package_source in c["packages"]:
+        path = _claim_path(manifest)
+        require(
+            path.is_absolute() and path.name == "Cargo.toml", "package manifest path"
+        )
+        if tag == 0:
+            require(
+                package_source == "" and path.is_relative_to(root), "workspace source"
+            )
+            require(
+                source.get(os.fsencode(path.relative_to(root)), (None,))[0] == 1,
+                "workspace package source uncovered",
+            )
+        else:
+            registry = _claim_path(options[b"--cargo-home"]) / "registry/src"
+            require(
+                package_source.startswith("registry+")
+                and path.is_relative_to(registry)
+                and len(path.relative_to(registry).parts) == 3,
+                "registry package root",
+            )
+            require(
+                manifest in dependencies
+                and os.fsencode(path.with_name(".cargo-checksum.json")) in dependencies,
+                "registry package source uncovered",
+            )
+    for ident, manifest, _, src, _, executable in r["emitted"]:
+        manifest_path = _claim_path(manifest)
+        emitted_source_path = _claim_path(src)
+        executable_path = None if executable is None else _claim_path(executable)
+        require(ident in packages_by_id, "unknown emitted package")
+        require(
+            manifest == packages_by_id[ident][1]
+            and emitted_source_path.is_relative_to(manifest_path.parent),
+            "emitted source linkage",
+        )
+        require(
+            executable_path is None or executable_path.is_relative_to(target),
+            "emitted executable escape",
+        )
+    return recipe
+
+
+def _resolved_features(metadata, recipe):
+    """Actual Linux-filtered Cargo metadata; normal selected edges, not presence."""
+    nodes = {n["id"]: n for n in metadata["resolve"]["nodes"]}
+    require(
+        len(nodes) == len(metadata["resolve"]["nodes"]), "duplicate resolution node"
+    )
+    packages_by_id = {p["id"]: p for p in metadata["packages"]}
+
+    def package(name):
+        found = [
+            p for p in metadata["packages"] if p["name"] == name and p["id"] in nodes
+        ]
+        require(len(found) == 1, "unique resolved package: " + name)
+        return found[0]
+
+    def facts(name, features, version=None):
+        p = package(name)
+        require(
+            nodes[p["id"]]["features"] == list(features), "resolved features: " + name
+        )
+        require(version is None or p["version"] == version, "resolved version: " + name)
+        return p["id"]
+
+    def edges(ident):
+        return {
+            d["name"]: d["pkg"]
+            for d in nodes[ident]["deps"]
+            if any(k["kind"] is None for k in d["dep_kinds"])
+        }
+
+    bench = facts("ckks-train-bench", recipe.features)
+    ckks = facts("ckks-train-ckks", ("parallel",) if recipe.features else ())
+    require(edges(bench).get("ckks_train_ckks") == ckks, "bench CKKS edge")
+    relevant = {bench, ckks}
+    if recipe.features:
+        rayon = facts("rayon", (), "1.12.0")
+        core = facts("rayon-core", (), "1.13.0")
+        require(
+            edges(bench).get("rayon") == edges(ckks).get("rayon") == rayon
+            and edges(rayon).get("rayon_core") == core,
+            "shared Rayon edges",
+        )
+        relevant.update((rayon, core))
+    else:
+        require(
+            "rayon" not in edges(bench) and "rayon" not in edges(ckks),
+            "serial Rayon edge",
+        )
+    if recipe.subcommand == "cuda-host":
+        cuda = facts("ckks-train-cuda", ("cuda",))
+        cudarc = facts(
+            "cudarc",
+            ("cuda-13010", "driver", "dynamic-loading", "nvrtc", "std"),
+            "0.19.0",
+        )
+        require(
+            edges(bench).get("ckks_train_cuda") == cuda
+            and edges(cuda).get("cudarc") == cudarc
+            and edges(cuda).get("ckks_train_ckks") == ckks,
+            "CUDA dependency edges",
+        )
+        relevant.update((cuda, cudarc))
+    else:
+        require("ckks_train_cuda" not in edges(bench), "CPU CUDA edge")
+    require(relevant <= packages_by_id.keys(), "resolved package mapping")
+    # Workspace metadata conservatively includes dev-feature unification (e.g.
+    # serde derive). Only the closed arithmetic/runtime feature owners have an
+    # exact production policy here; do not equate metadata-only dev features
+    # with compiler features for unrelated dependencies.
+    return {ident: nodes[ident]["features"] for ident in relevant}
+
+
+def _actual_features(recipe, features):
+    require(
+        features == sorted(set(features)) and tuple(features) == recipe.features,
+        "actual Cargo features",
+    )
+
+
+def _design_digest(expected, actual):
+    require(expected == actual, "design bytes changed")
+
+
+def _checked_size_add(a, b):
+    require(
+        type(a) is int
+        and type(b) is int
+        and 0 <= a <= 2**64 - 1
+        and 0 <= b <= 2**64 - 1 - a,
+        "size arithmetic",
+    )
+    return a + b
+
+
+def _emitted_feature_facts(message, resolved, bench, recipe):
+    ident = message.get("package_id")
+    if ident in resolved:
+        require(message.get("features") == resolved[ident], "emitted resolved features")
+    if ident == bench and message.get("target", {}).get("name") == recipe.binary:
+        profile = message.get("profile", {})
+        require(
+            profile.get("opt_level") == "3"
+            and profile.get("debuginfo") in (None, 0)
+            and profile.get("test") is False,
+            "emitted compile profile",
+        )

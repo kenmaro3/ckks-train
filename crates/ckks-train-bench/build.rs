@@ -52,12 +52,19 @@ fn main() {
         .expect("write absent capsule");
         return;
     };
-    for (key, _) in env::vars_os() {
-        assert!(
-            !key.to_string_lossy().starts_with("CARGO_FEATURE_"),
-            "production bench features unsupported"
-        );
+    let mut features = Vec::new();
+    for (key, value) in env::vars_os() {
+        if key.to_string_lossy().starts_with("CARGO_FEATURE_") {
+            let name = match key.to_str() {
+                Some("CARGO_FEATURE_PARALLEL") => "parallel",
+                Some("CARGO_FEATURE_CUDA") => "cuda",
+                _ => panic!("unknown production bench feature"),
+            };
+            assert!(value == "1", "invalid Cargo feature fact");
+            features.push(name);
+        }
     }
+    features.sort_unstable();
     for key in [
         "RUSTFLAGS",
         "RUSTC_WRAPPER",
@@ -108,6 +115,10 @@ fn main() {
     );
     println!(
         "cargo:rerun-if-changed={}",
+        helper.with_file_name("study_train_build.py").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
         PathBuf::from(&request).display()
     );
     let mut cmd = Command::new(python);
@@ -130,6 +141,9 @@ fn main() {
     ] {
         cmd.arg(format!("--{option}"))
             .arg(env::var_os(key).expect("Cargo compile fact"));
+    }
+    for feature in features {
+        cmd.arg("--feature").arg(feature);
     }
     assert!(
         cmd.status().expect("capsule capture helper").success(),

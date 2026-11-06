@@ -6,6 +6,7 @@
 mod codec;
 mod context;
 pub(crate) mod publication;
+mod role;
 
 #[allow(unused_imports)]
 pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
@@ -34,3 +35,6 @@ fn ensure(ok: bool, why: &'static str) -> Result<()> {
     }
 }
 include!(concat!(env!("OUT_DIR"), "/study_capsule.rs"));
+
+#[cfg(test)]
+mod role_tests;

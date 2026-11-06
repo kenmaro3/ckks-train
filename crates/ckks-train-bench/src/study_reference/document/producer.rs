@@ -57,7 +57,7 @@ pub(super) fn captured(v: &CaptureFact<'_>) -> Result<Value> {
     let start = &v.start;
     let end = &v.end;
     let f = c
-        .build_facts(start.receipt_file_sha256())
+        .reference_build_facts(start.receipt_file_sha256())
         .map_err(|_| err(DocumentErrorCode::CrossLinkMismatch, "provenance.build"))?;
     let manifest = c
         .source_files()

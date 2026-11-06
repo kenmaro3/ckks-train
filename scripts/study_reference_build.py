@@ -30,7 +30,18 @@ def encode_request(c, env, source_paths):
 def capture(args):
     request = json.loads(s.read_regular(args.request))
     c = s.decode("capsule", bytes.fromhex(request["capsule"]))
-    s.validate_recipe_capsule(c)
+    recipe = s._closed_capsule(c)
+    s._actual_features(recipe, args.feature)
+    observed = []
+    for key, value in os.environ.items():
+        if key.startswith("CARGO_FEATURE_"):
+            s.require(
+                key in ("CARGO_FEATURE_PARALLEL", "CARGO_FEATURE_CUDA")
+                and value == "1",
+                "unknown Cargo feature fact",
+            )
+            observed.append(key[len("CARGO_FEATURE_") :].lower())
+    s.require(sorted(observed) == args.feature, "actual Cargo feature forwarding")
     env = s.decode("environment", bytes.fromhex(request["environment"]))
     s.require(
         s.sha(bytes.fromhex(request["environment"])) == c["environment"],
@@ -51,6 +62,15 @@ def capture(args):
     ]:
         s.require(c[key] == actual, "compile fact mismatch: " + key)
     s.require(args.debug == "false" and c["debug"] == 0, "compile debug")
+    for path in request["source_paths"]:
+        s.require(
+            isinstance(path, str)
+            and len(os.fsencode(path)) <= s.TEXT
+            and "\n" not in path
+            and "\r" not in path,
+            "Cargo rerun path",
+        )
+    s.require(len(request["source_paths"]) <= s.COUNT, "Cargo rerun count")
     out = Path(args.outdir)
     s.exclusive_write(out / "study_capsule.bin", s.capsule(c))
     s.exclusive_write(
@@ -63,7 +83,8 @@ def capture(args):
         print("cargo:rerun-if-changed=" + path)
 
 
-def build(args):
+def build(args, recipe=s._REFERENCE):
+    s.require(recipe in s._RECIPES, "closed recipe")
     s.require(sys.version_info >= (3, 11), "Python3.11 required")
     s.reject_caller_environment(os.environ)
     o = vars(args).copy()
@@ -105,7 +126,7 @@ def build(args):
             not s.contained(p, Path(o["root"])), "build output outside source checkout"
         )
     env = s.build_environment(o)
-    meta_argv, build_argv = s.recipe_argv(o)
+    meta_argv, build_argv = s._recipe_argv(o, recipe)
     # Reject Cargo configuration and dirty/extra source before Cargo discovery.
     config = s.config_inventory(Path(o["root"]), Path(o["cargo_home"]))
     commit, source = s.source_inventory(o["root"], o["git"], env)
@@ -122,6 +143,7 @@ def build(args):
     cargo_v = s.bounded_run([o["cargo"], "-V"], o["root"], env, 4096).decode()
     metadata_bytes = s.bounded_run(meta_argv, o["root"], env)
     metadata = json.loads(metadata_bytes)
+    resolved_features = s._resolved_features(metadata, recipe)
     inventory = s.packages(metadata, Path(o["root"]), Path(o["cargo_home"]))
     dependencies = s.dependency_inventory(inventory)
     toolchain = s.toolchain_inventory(sysroot, hosts[0], s.TARGET, o)
@@ -134,8 +156,8 @@ def build(args):
     ]
     s.require(len(bench) == 1, "unique bench package")
     c = dict(
-        recipe=s.RECIPE,
-        algorithm=s.ALGORITHM,
+        recipe=recipe.name,
+        algorithm=recipe.algorithm,
         manifests=["0" * 64] * 4,
         environment="0" * 64,
         lock="0" * 64,
@@ -147,7 +169,7 @@ def build(args):
         profile="release",
         opt="3",
         debug=0,
-        features=[],
+        features=list(recipe.features),
         version=bench[0]["version"],
         metadata="0" * 64,
         packages=inventory,
@@ -158,7 +180,7 @@ def build(args):
     cap_size = s.preflight_capsule(c)
     env_size = s.env_size(env)
     argv = [os.fsencode(x) for x in sys.argv]
-    expected_exe = os.fsencode(Path(o["target"]) / s.TARGET / "release/study_reference")
+    expected_exe = os.fsencode(Path(o["target"]) / s.TARGET / "release" / recipe.binary)
     s.preflight_receipt(
         cap_size, sizes, env_size, expected_exe, [], argv
     )  # preliminary lower bound only
@@ -196,6 +218,7 @@ def build(args):
     )
     s.exclusive_write(o["request"], request_bytes)
     emitted = []
+    observed_feature_packages = set()
     finished = False
     capsule_outputs = []
     with subprocess.Popen(
@@ -231,6 +254,11 @@ def build(args):
                     capsule_outputs.append(out / "study_capsule.bin")
                     s.require(len(capsule_outputs) <= 1, "multiple bench build scripts")
                 if m.get("reason") == "compiler-artifact":
+                    s._emitted_feature_facts(
+                        m, resolved_features, bench[0]["id"], recipe
+                    )
+                    if m.get("package_id") in resolved_features:
+                        observed_feature_packages.add(m["package_id"])
                     # Normalize immediately; never accumulate full messages/logs.
                     emitted = s.unique_sorted(
                         list(
@@ -249,11 +277,15 @@ def build(args):
             p.kill()
             p.wait()
             raise
+    s.require(
+        set(resolved_features) <= observed_feature_packages,
+        "missing emitted feature facts",
+    )
     selected = [
         x
         for x in emitted
         if x[0] == bench[0]["id"]
-        and x[2] == "study_reference"
+        and x[2] == recipe.binary
         and x[4] == ("bin",)
         and x[5] is not None
     ]
@@ -262,7 +294,8 @@ def build(args):
         and selected[0][5] == expected_exe
         and selected[0][3]
         == os.fsencode(
-            Path(o["root"]) / "crates/ckks-train-bench/src/bin/study_reference.rs"
+            Path(o["root"])
+            / ("crates/ckks-train-bench/src/bin/" + recipe.binary + ".rs")
         ),
         "unique binary linkage",
     )
@@ -314,6 +347,7 @@ def build(args):
         emitted=emitted,
         argv=argv,
     )
+    s._validate_linkage(r, c)
     s.exclusive_write(o["receipt"], s.receipt(r))
 
 
@@ -321,10 +355,7 @@ def stat_mode(st):
     return st.st_mode & 0o7777
 
 
-def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    subs = p.add_subparsers(dest="mode", required=True)
-    b = subs.add_parser("build")
+def build_options(b):
     for k in (
         "root",
         "cargo",
@@ -343,6 +374,13 @@ def main():
     b.add_argument("--jobs", type=int, required=True)
     b.add_argument("--rust-toolchain-sha256")
     b.add_argument("--rust-toolchain-toml-sha256")
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    subs = p.add_subparsers(dest="mode", required=True)
+    b = subs.add_parser("build")
+    build_options(b)
     c = subs.add_parser("capture")
     for k in (
         "request",
@@ -356,6 +394,7 @@ def main():
         "version",
     ):
         c.add_argument("--" + k, required=True)
+    c.add_argument("--feature", action="append", default=[])
     h = subs.add_parser("hash-file")
     h.add_argument("--path", required=True)
     r = subs.add_parser("snapshot")
