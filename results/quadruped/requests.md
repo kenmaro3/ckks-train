@@ -504,3 +504,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** controller ledger `task-54-linux-bootstrap-static-20261107.{stdout,stderr,meta.json}`.
 - **pass criterion:** actual source/hash/startup facts with explicit limitations, not dynamic reachability, target-startup approval or full consumer audit. No timed job/capture/queue mutation.
 - **status:** done (2026-11-07T05:12:43.047940+09:00, exit0; controller8.685s including SSH). Actual _virtualenv.pth unconditionally imports a module under the governed site-packages root; its source installs a meta-path finder. Distutils .pth has an environment-dependent hook. Target interpreter was not started; static facts do not approve startup or full import reachability.
+
+
+## R-REB-10-CREATOR-STATIC: actual base creator prerequisites
+
+- **purpose:** resolve R9's missing actual base-site hook identity and conditional behavior; inspect base CPython executable, site/venv sources and applicable fixed customization candidates before proposing an exact creator command.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** read-only resolved CPython base and metadata for the absent proposed external venv path.
+- **command:** key-only SSH `nice -n 10 python3 -`; original stdlib observer via stdin, SHA256 d4e09c78e2702251b70577a47c49370326a3b39c8abd94c107a032beaa101b25; ledger `task-54-linux-creator-static-20261107.py`. Only symbolic AST facts and short token literals are exported; no baseline source is read.
+- **expected duration:** under 2 minutes; one process/thread, bounded source list and one interpreter file hash.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** controller ledger `task-54-linux-creator-static-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual base identities/conditions and explicit remaining startup/runtime limitations. No target-interpreter startup, environment creation, package-wide/native hashing, scientific imports, capture or job/queue mutation. Lightweight read-only untimed prerequisite observation may overlap FULL-2.
+- **status:** done (2026-11-07T05:45:00.614568+09:00, exit0; controller54.011s including SSH). Actual base executable/hook/site/venv identities recorded; default-local distutils condition and shim insertion observed statically. Fixed customization/zip candidates and proposed destination absent. No target startup or creation; base pyvenv.cfg candidates and fresh precreation checks remain prerequisites.
