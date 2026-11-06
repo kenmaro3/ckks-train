@@ -16,6 +16,10 @@
 //!   training, and every update's counter equals the closed form
 //!   ([`predict_block_update_with`]: the stages' updates plus one hand-off bootstrap per
 //!   micro-batch and stage boundary).
+//! - AA: one/two blocks and a mixed AA/AU/WN graph, two updates with two micro-batches,
+//!   preserve the same plaintext local-loss graph and NAG state. Every AA handoff reuses the
+//!   recorded stage bootstrap ciphertext exactly, with canonical slots, Delta and level;
+//!   additional AA handoff bootstraps/time are zero and counters match the predictor.
 
 use std::sync::{Arc, OnceLock};
 
@@ -639,40 +643,267 @@ fn ni_block_updates_match_twin_and_closed_form() {
     assert!(moved > 16.0 * TOL);
 }
 
-#[test]
-fn ni_block_trainer_refuses_after_activation() {
+/// Catches duplicate AA handoff bootstraps, the wrong micro-batch/layer accessor, stale
+/// activations after an update, lost optimizer state and noncanonical boundary packing.
+fn check_aa_handoffs(stage_dims: &[[usize; 3]], placements: &[BootPlacement], additional: u64) {
     let m = mini_fx();
-    let mut r = rng(4);
-    let init = init_stages(&NI_STAGES, &mut r, 0.2);
-    let placement = BootPlacement::AfterActivation;
-    let (net, states) = BlockNiTrainer::encrypt_network(
-        &m.ev,
-        &m.bs,
-        &init,
-        (0..init.len()).map(|_| acts()).collect(),
-        &m.layout,
-        placement,
-        &m.enc,
-        &m.encoder,
-        &mut r,
-    )
-    .unwrap();
+    let ev = m.ev.fork();
+    let mut r = rng(24);
+    let init = init_stages(stage_dims, &mut r, 0.2);
     let optim = NiOptimizer::Nag {
         lr: LR,
         momentum: MU,
     };
+    let mut mlps = Vec::new();
+    let mut states = Vec::new();
+    for (st, &placement) in init.iter().zip(placements) {
+        let (mlp, state) = NonInteractiveTrainer::encrypt_network(
+            &ev,
+            &m.bs,
+            st,
+            acts(),
+            &m.layout,
+            placement,
+            &m.enc,
+            &m.encoder,
+            &mut r,
+        )
+        .unwrap();
+        mlps.push(mlp);
+        states.push(state);
+    }
+    let output = mlps.pop().unwrap();
+    let mut net = BlockMlp::new(mlps, output).unwrap();
+    let dims = net.stage_dims();
+    let keys = ni_keys(&dims);
     let stages = states
         .into_iter()
         .enumerate()
         .map(|(s, st)| {
-            NonInteractiveTrainer::new(&m.ev, &m.bs, optim, m.layout, placement, net.stage(s), st)
+            NonInteractiveTrainer::new(&ev, &m.bs, optim, m.layout, placements[s], net.stage(s), st)
                 .unwrap()
+                .with_transpose_keys(keys[s].clone())
         })
         .collect();
-    assert!(matches!(
-        BlockNiTrainer::new(&m.ev, &m.bs, stages),
-        Err(HekitError::InvalidParams(_))
-    ));
+    let mut t = BlockNiTrainer::new(&ev, &m.bs, stages)
+        .expect("AA stages must reuse their existing activation bootstrap at a block boundary");
+    let mut want = init.clone();
+    let mut vels = zero_vels(&want);
+    let dec = Decryptor::new(Arc::clone(&m.params), m.sk.clone());
+    let acts: Vec<Vec<ActCost>> = dims
+        .iter()
+        .map(|_| vec![ActCost::QUADRATIC, ActCost::IDENTITY])
+        .collect();
+    let mut expected_handoffs = 0;
+    // Two updates carry the nonzero NAG velocity; two distinct micro-batches catch [0][0]
+    // reuse for every micro. Both one-block and two-block graphs are exercised below.
+    for update in 0..2 {
+        let specs: Vec<_> = (0..dims.len())
+            .map(|s| t.stages()[s].batch_spec(net.stage(s)).unwrap())
+            .collect();
+        let mut xs = Vec::new();
+        let mut ys = Vec::new();
+        let mut xcs = Vec::new();
+        let mut ycs = Vec::new();
+        for _ in 0..2 {
+            let x = Array2::from_shape_fn((32, stage_dims[0][0]), |_| 0.5 * uni(&mut r));
+            let y = one_hot(32, 4, &mut r);
+            let enc_at = |a: &Array2<f64>, scale, level, r: &mut Rng| {
+                m.enc.encrypt(
+                    &m.encoder
+                        .encode(&pack_activations(a, &m.layout), scale, level)
+                        .unwrap(),
+                    r,
+                )
+            };
+            xcs.push(enc_at(&x, specs[0].x_scale, specs[0].x_level, &mut r));
+            ycs.push(
+                specs
+                    .iter()
+                    .map(|sp| enc_at(&y, sp.y_scale, sp.y_level, &mut r))
+                    .collect::<Vec<_>>(),
+            );
+            xs.push(x);
+            ys.push(y);
+        }
+        let refs: Vec<Vec<_>> = ycs.iter().map(|ys| ys.iter().collect()).collect();
+        let batches: Vec<_> = xcs
+            .iter()
+            .zip(&refs)
+            .map(|(x, ys)| (x, &ys[..], 32))
+            .collect();
+        // Independent plaintext old-weight activations, before advancing any stage.
+        let mut hidden = Vec::new();
+        let mut inputs = xs.clone();
+        for st in &want[..want.len() - 1] {
+            inputs = inputs.iter().map(|x| stage_hidden(st, x)).collect();
+            hidden.push(inputs.clone());
+        }
+        let before = ev.counter();
+        let before_act: u64 = t.stages().iter().map(|s| s.activation_bootstraps()).sum();
+        let before_w: u64 = t.stages().iter().map(|s| s.weight_bootstraps()).sum();
+        t.set_next_batch_full(Some(true));
+        net.train_step_ni(&mut t, &batches).unwrap();
+        let c = &ev.counter() - &before;
+        assert_eq!(t.last_handoff_bootstraps().len(), dims.len() - 1);
+        for (boundary, handoffs) in t.last_handoff_bootstraps().iter().enumerate() {
+            assert_eq!(handoffs.len(), 2);
+            for (micro, h) in handoffs.iter().enumerate() {
+                assert_eq!(h.scale(), m.params.scale(), "canonical Delta handoff");
+                assert_eq!(
+                    h.level(),
+                    m.bs.output_level(),
+                    "no needless handoff mod-switch"
+                );
+                assert!(h.level() >= t.stages()[boundary + 1].start_level());
+                if placements[boundary] == BootPlacement::AfterActivation {
+                    let aa = &t.stages()[boundary].last_activation_bootstraps()[micro][0];
+                    assert_eq!(h.len(), aa.len());
+                    assert_eq!((h.scale(), h.level()), (aa.scale(), aa.level()));
+                    for (p, q) in h.polys().iter().zip(aa.polys()) {
+                        assert_eq!(
+                            p.limbs(),
+                            q.limbs(),
+                            "handoff must reuse recorded AA output"
+                        );
+                    }
+                }
+                let got = m.encoder.decode(&dec.decrypt(h));
+                let packed = pack_activations(&hidden[boundary][micro], &m.layout);
+                let e = got
+                    .iter()
+                    .zip(&packed)
+                    .map(|(g, w)| (g - w).abs())
+                    .fold(0.0, f64::max);
+                assert!(
+                    e < TOL,
+                    "boundary {boundary}, micro {micro}, all canonical slots: {e}"
+                );
+            }
+        }
+        // Homogeneous formula is checked as a whole. A mixed schedule is summed per stage,
+        // with the literal boundary count below: AA then AU has exactly two new boots.
+        let mut predictions = Vec::new();
+        for s in 0..dims.len() {
+            predictions.push(
+                predict_block_update_with(
+                    &dims[s..s + 1],
+                    &acts[s..s + 1],
+                    &m.layout,
+                    &keys[s..s + 1],
+                    placements[s],
+                    2,
+                    true,
+                    &[t.stages()[s].last_update_booted()],
+                    EvalConfig::default(),
+                )
+                .unwrap(),
+            );
+        }
+        if additional == 0 {
+            let booted: Vec<_> = t.stages().iter().map(|s| s.last_update_booted()).collect();
+            let p = predict_block_update_with(
+                &dims,
+                &acts,
+                &m.layout,
+                &keys,
+                BootPlacement::AfterActivation,
+                2,
+                true,
+                &booted,
+                EvalConfig::default(),
+            )
+            .unwrap();
+            assert_eq!(p.handoff_bootstraps, 0, "AA reuses stage work");
+            assert_eq!(c.bootstraps, p.bootstraps());
+            assert_eq!(
+                t.bootstrap_seconds(),
+                t.stages()
+                    .iter()
+                    .map(|s| s.bootstrap_seconds())
+                    .sum::<f64>(),
+                "AA reuse adds zero handoff bootstrap time"
+            );
+        }
+        expected_handoffs += additional;
+        assert_eq!(t.handoff_bootstraps(), expected_handoffs);
+        let nb = predictions.iter().map(|p| p.bootstraps()).sum::<u64>() + additional;
+        let per = m.bs.cost_per_boot();
+        assert_eq!(c.bootstraps, nb);
+        assert_eq!(
+            c.rotations,
+            predictions.iter().map(|p| p.rotations()).sum::<u64>() + nb * per.rotations
+        );
+        assert_eq!(
+            c.relins,
+            predictions.iter().map(|p| p.relins()).sum::<u64>() + nb * per.relins
+        );
+        assert_eq!(
+            c.key_switches(),
+            predictions
+                .iter()
+                .map(|p| p.key_switches(m.bs.key_switches_per_boot()))
+                .sum::<u64>()
+                + additional * m.bs.key_switches_per_boot()
+        );
+        let act: u64 = t.stages().iter().map(|s| s.activation_bootstraps()).sum();
+        let w: u64 = t.stages().iter().map(|s| s.weight_bootstraps()).sum();
+        assert_eq!(
+            c.bootstraps,
+            act - before_act + w - before_w + additional,
+            "every existing stage bootstrap counted exactly once"
+        );
+        let x_all = ndarray::concatenate(
+            ndarray::Axis(0),
+            &xs.iter().map(|x| x.view()).collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let y_all = ndarray::concatenate(
+            ndarray::Axis(0),
+            &ys.iter().map(|y| y.view()).collect::<Vec<_>>(),
+        )
+        .unwrap();
+        block_step(&mut want, &mut vels, &x_all, &vec![&y_all; dims.len()]);
+        let got = decrypt_all(&net, &dec, &m.encoder, &m.layout);
+        let e = max_err(&got, &want);
+        eprintln!(
+            "AA blocks={}, update={update}: plaintext weight error 2^{:.2}",
+            dims.len() - 1,
+            e.log2()
+        );
+        assert!(e < TOL, "update {update}: {e}");
+    }
+    assert!(
+        max_err(&want, &init) > 16.0 * TOL,
+        "every test must actually train"
+    );
+}
+
+#[test]
+fn ni_aa_one_block_reuses_bootstraps_across_microbatches_and_updates() {
+    check_aa_handoffs(&NI_STAGES, &[BootPlacement::AfterActivation; 2], 0);
+}
+
+#[test]
+fn ni_aa_two_blocks_preserve_local_training_and_canonical_handoffs() {
+    check_aa_handoffs(
+        &[[16, 16, 4], [16, 8, 4], [8, 8, 4]],
+        &[BootPlacement::AfterActivation; 3],
+        0,
+    );
+}
+
+#[test]
+fn ni_aa_mixed_placements_bootstrap_only_non_aa_boundaries() {
+    check_aa_handoffs(
+        &[[16, 16, 4], [16, 8, 4], [8, 8, 4]],
+        &[
+            BootPlacement::AfterActivation,
+            BootPlacement::AfterUpdate,
+            BootPlacement::WhenNeeded,
+        ],
+        2,
+    );
 }
 
 // ---------------------------------------------------------------------------------------------

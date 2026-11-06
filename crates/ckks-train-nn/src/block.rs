@@ -39,7 +39,11 @@
 //! are encrypted at the product scale of a `Delta` input). So `a_s` is multiplied by 1 onto
 //! exactly `Delta` (one ct-pt, one level, no key switch) and then refreshed: by the client in
 //! interactive mode (any [`Refresher`], e.g. [`crate::refresh::ClientRefresher`]), by one
-//! bootstrap per micro-batch ciphertext in non-interactive mode. The bootstrap's precondition
+//! bootstrap per micro-batch ciphertext in non-interactive mode. With
+//! [`BootPlacement::AfterActivation`], the stage already produced this canonical-Delta
+//! bootstrap output: the hand-off reuses it without another bootstrap or scale conversion.
+//! The next stage's forward pass mod-switches its input to the actual layer level as needed.
+//! The bootstrap's precondition
 //! `|m| <= 1` applies to the activation (as for [`BootPlacement::AfterActivation`]); it is not
 //! clipped.
 //!
@@ -55,11 +59,14 @@
 //! # Levels and bootstraps (non-interactive)
 //!
 //! Each stage is a separate [`NonInteractiveTrainer`] with its own compact state and its own
-//! bootstrap schedule ([`BootPlacement::WhenNeeded`] or [`BootPlacement::AfterUpdate`]): a
-//! stage's step starts from its hand-off at the bootstrap output level, so it needs exactly
-//! the levels of a two-layer network ([`crate::trainer_ni::levels_per_iter`], 7 for
-//! `z^2 + z` then linear) from the start level, whatever its position in the chain. The
-//! hand-off bootstraps are the price: `(stages - 1) * k` per update for `k` micro-batches.
+//! bootstrap schedule. A stage's step starts from its hand-off at the bootstrap output level,
+//! so it needs the levels of a two-layer network ([`crate::trainer_ni::levels_per_iter`], 7 for
+//! `z^2 + z` then linear with WhenNeeded/AfterUpdate, 5 with AA), whatever its position in the
+//! chain. Additional hand-off bootstraps are `(stages - 1) * k` per update for `k` micro-batches
+//! with [`BootPlacement::WhenNeeded`] or [`BootPlacement::AfterUpdate`], and zero with
+//! [`BootPlacement::AfterActivation`], whose stage activation bootstraps are counted once.
+//! Mixed schedules choose this behavior per source stage at each boundary; the closed-form
+//! predictor takes one placement and describes homogeneous schedules only.
 //! Chaining the stages without them does not fit the lazy schedule: the input of stage `s`
 //! sits 2 levels per stage below the batch, so every later stage would need its weights and
 //! its predecessors' bootstrapped every update ([`predict_block_update_with`] gives the
@@ -464,8 +471,9 @@ impl<'a, E: HeOps> BlockTrainer<'a, E> {
 // ---------------------------------------------------------------------------------------------
 
 /// Non-interactive block training: one [`NonInteractiveTrainer`] per stage (its own compact
-/// state, optimizer and bootstrap schedule) and one bootstrap per micro-batch at every stage
-/// boundary (see the [module docs](self)). Holds no secret key.
+/// state, optimizer and bootstrap schedule). A stage boundary reuses an existing AA activation
+/// bootstrap or performs one new bootstrap per micro-batch (see the [module docs](self)).
+/// Holds no secret key.
 pub struct BlockNiTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = Bootstrapper> {
     ev: &'a E,
     bs: &'a B,
@@ -516,9 +524,12 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
 
     /// A block trainer from one stage trainer per stage (blocks, then the output stack).
     ///
-    /// Errors (`InvalidParams`): no stage, stages with different layouts, or a stage with
-    /// [`BootPlacement::AfterActivation`] (its activation bootstrap would be repeated by the
-    /// hand-off; use [`BootPlacement::WhenNeeded`] or [`BootPlacement::AfterUpdate`]).
+    /// Stages may use different placements: each boundary reuses its source stage's first
+    /// activation bootstrap for [`BootPlacement::AfterActivation`], otherwise it performs a
+    /// new bootstrap. The homogeneous [`predict_block_update_with`] formula does not describe
+    /// mixed schedules; sum their per-stage costs and new non-AA boundary bootstraps instead.
+    ///
+    /// Errors (`InvalidParams`): no stage or stages with different layouts.
     pub fn new(
         ev: &'a E,
         bs: &'a B,
@@ -531,16 +542,6 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
         if stages.iter().any(|t| *t.layout() != layout) {
             return Err(HekitError::InvalidParams(
                 "stage trainers differ in layout".into(),
-            ));
-        }
-        if stages
-            .iter()
-            .any(|t| t.placement() == BootPlacement::AfterActivation)
-        {
-            return Err(HekitError::InvalidParams(
-                "after_activation would bootstrap a block's activation twice (inside the stage \
-                 and at the hand-off); use when_needed or after_update"
-                    .into(),
             ));
         }
         Ok(BlockNiTrainer {
@@ -587,7 +588,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
             .for_each(|t| t.set_next_batch_full(full));
     }
 
-    /// Hand-off bootstraps so far.
+    /// Newly performed hand-off bootstraps so far. Reusing a stage's AA output adds zero.
     pub fn handoff_bootstraps(&self) -> u64 {
         self.handoff_boots
     }
@@ -598,7 +599,9 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
     /// diagnostic of the hand-off's precision (its input is not range-checked: the bootstrap's
     /// `|m| <= 1` precondition is the caller's; the trainer itself never decrypts), as
     /// [`NonInteractiveTrainer::last_activation_bootstraps`] for
-    /// [`BootPlacement::AfterActivation`]. Empty before the first update or after a failed one.
+    /// [`BootPlacement::AfterActivation`]. With AA, these are clones of the source stage's
+    /// recorded first activation outputs, not additional bootstraps; they add neither hand-off
+    /// count nor hand-off bootstrap time. Empty before the first update or after a failed one.
     pub fn last_handoff_bootstraps(&self) -> &[Vec<E::Ct>] {
         &self.last_handoffs
     }
@@ -617,8 +620,10 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
     /// stage `s`'s labels at that stage's [`NonInteractiveTrainer::batch_spec`]: every stage,
     /// in forward order, takes its update
     /// ([`NonInteractiveTrainer::train_step_valid_with_hidden`]), then its first layer's
-    /// activation of every micro-batch is switched to `Delta` and bootstrapped as the next
-    /// stage's input.
+    /// activation of every micro-batch is passed as the next stage's input. AA reuses
+    /// [`NonInteractiveTrainer::last_activation_bootstraps`] at `[micro][0]`; other placements
+    /// switch the pre-bootstrap hidden value to `Delta` and perform a new counted bootstrap.
+    /// The next stage handles any required level alignment in its forward pass.
     ///
     /// Errors: `InvalidParams` before any work if `batches` is empty, `net` does not have one
     /// stage per trainer or a micro-batch not one label ciphertext per stage; then the stage
@@ -647,17 +652,32 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
                 .collect();
             let hidden = self.stages[s].train_step_valid_with_hidden(net.stage_mut(s), &mb)?;
             if s + 1 < n {
-                let t0 = Instant::now();
-                let mut next = Vec::with_capacity(hidden.len());
-                for h in &hidden {
-                    let a = h.first().ok_or_else(|| {
-                        HekitError::InvalidParams("a block needs a hidden activation".into())
-                    })?;
-                    let low = self.ev.mod_switch_to_level(&to_delta(self.ev, a)?, 0)?;
-                    next.push(self.bs.bootstrap(self.ev, &low)?);
-                    self.handoff_boots += 1;
-                }
-                self.handoff_seconds += t0.elapsed().as_secs_f64();
+                let next = if self.stages[s].placement() == BootPlacement::AfterActivation {
+                    self.stages[s]
+                        .last_activation_bootstraps()
+                        .iter()
+                        .map(|micro| {
+                            micro.first().cloned().ok_or_else(|| {
+                                HekitError::InvalidParams(
+                                    "a block needs a hidden activation".into(),
+                                )
+                            })
+                        })
+                        .collect::<Result<Vec<_>>>()?
+                } else {
+                    let t0 = Instant::now();
+                    let mut next = Vec::with_capacity(hidden.len());
+                    for h in &hidden {
+                        let a = h.first().ok_or_else(|| {
+                            HekitError::InvalidParams("a block needs a hidden activation".into())
+                        })?;
+                        let low = self.ev.mod_switch_to_level(&to_delta(self.ev, a)?, 0)?;
+                        next.push(self.bs.bootstrap(self.ev, &low)?);
+                        self.handoff_boots += 1;
+                    }
+                    self.handoff_seconds += t0.elapsed().as_secs_f64();
+                    next
+                };
                 handoffs.push(next.clone());
                 inputs = next;
             }
@@ -677,7 +697,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
 pub struct BlockUpdateCost {
     /// One per stage (blocks, then the output stack).
     pub stages: Vec<UpdateCost>,
-    /// `(stages - 1) * micro`: one bootstrap per micro-batch at every stage boundary.
+    /// Newly performed boundary bootstraps: zero for AA (reuse), `(stages - 1) * micro`
+    /// for WhenNeeded/AfterUpdate. Existing AA activation bootstraps belong to `stages`.
     pub handoff_bootstraps: u64,
 }
 
@@ -692,7 +713,7 @@ impl BlockUpdateCost {
         self.stages.iter().map(UpdateCost::relins).sum()
     }
 
-    /// All bootstraps: the stages' (weights and velocities) and the hand-offs.
+    /// All bootstraps: the stages' (weights, velocities and activations) and new hand-offs.
     pub fn bootstraps(&self) -> u64 {
         self.stages.iter().map(UpdateCost::bootstraps).sum::<u64>() + self.handoff_bootstraps
     }
@@ -706,7 +727,10 @@ impl BlockUpdateCost {
 /// The closed-form counts of one [`BlockNiTrainer::train_step_valid`] with `micro` micro-batch
 /// ciphertexts: every stage `s` as [`predict_update_with`] (dimensions `stage_dims[s]`,
 /// activations `stage_acts[s]`, transpose keys `keys[s]`, its weights bootstrapped iff
-/// `booted[s]`) plus `(stages - 1) * micro` hand-off bootstraps.
+/// `booted[s]`) plus newly performed hand-off bootstraps: zero for AA (the stage's first
+/// activation bootstrap is reused), `(stages - 1) * micro` for WhenNeeded/AfterUpdate.
+/// All stages use `placement`; a mixed-placement trainer requires per-stage predictions
+/// plus one new bootstrap per micro-batch at each non-AA source-stage boundary.
 ///
 /// Errors: `InvalidParams` unless every per-stage slice has one entry per stage; those of
 /// [`predict_update_with`].
@@ -741,7 +765,11 @@ pub fn predict_block_update_with(
         })
         .collect::<Result<Vec<_>>>()?;
     Ok(BlockUpdateCost {
-        handoff_bootstraps: (stage_dims.len() as u64 - 1) * micro as u64,
+        handoff_bootstraps: if placement == BootPlacement::AfterActivation {
+            0
+        } else {
+            (stage_dims.len() as u64 - 1) * micro as u64
+        },
         stages,
     })
 }
