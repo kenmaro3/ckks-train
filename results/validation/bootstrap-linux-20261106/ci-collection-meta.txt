@@ -1,0 +1,7 @@
+{
+  "observed_unix": 1793973947.499718,
+  "run_id": 42230241832,
+  "api_exit": 0,
+  "source_commit": "23ac79d5332086e6237f9d6b548d084417a5c376",
+  "scope": "CI evidence only; no scientific result"
+}

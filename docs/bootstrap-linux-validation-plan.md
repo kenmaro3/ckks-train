@@ -205,3 +205,38 @@ the production change, GREEN exit 0 after it; native Apple metadata library 13/1
 integration 9/9, focused clippy/rustfmt exit 0. Workflow YAML/bash syntax and controlled
 failure-propagation checks passed locally. No actual Linux execution or release-profile
 run was performed here, so both Linux profile evidence gates remain open.
+
+
+## Actual GNU/Linux focused evidence assembled (2026-11-06)
+
+**Independent evidence review passed; validated conditional structural metadata on the recorded GNU x86_64 Linux64 environment in test and release profiles.**
+
+Candidate `23ac79d5332086e6237f9d6b548d084417a5c376` executed on actual
+`x86_64-unknown-linux-gnu` in the existing Ubuntu CI surface. The preserved
+[evidence bundle](../results/validation/bootstrap-linux-20261106/README.md) contains
+five byte-exact logs, raw external CI provenance and hashes. Each separately compiled
+test/release profile executed **13 library and all 9 integration positives**, zero
+failed/ignored; actual TARGET and HOST(build) were GNU x86_64, rustc/Cargo 1.85.1,
+LLVM 19.1.7, runtime Ubuntu 24.04.5 x86_64/glibc 2.39. Named configuration overrides
+were unset; test opt-level=3 retains debug/overflow checks, release uses Cargo defaults.
+Both real verifier runs covered 65,535 roots with root squared-norm extrema
+`(0.9999999999999998,1.0000000000000002)` and inverse extrema
+`(0.2499999999999999,0.2500000000000001)`. Requested metadata bytes/work were
+318,806/32,768 in both profiles; requested bytes include platform diagnostic identity
+text and are not RSS. The caught-panic fixture finished `ok` in both profiles.
+
+[CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42230241832) and
+[exact job](https://github.com/kenmaro3/ckks-train/actions/runs/42230241832/job/127933965036):
+the frozen observation records focused diagnostics/test/release/artifact steps as
+successful while the broader workspace test/job/run was still in progress. No whole-CI
+success is inferred. Checkout diagnostics include the newly created untracked evidence
+directory; the five frozen candidate path hashes match, without a global clean-checkout claim.
+
+The reviewed conditional source argument, current-process scalar/folded checks and
+private-token contract remain required. A successful independent evidence review can
+close only the recorded environment/profile structural-metadata gate; it cannot establish
+universal Linux/toolchain, encoding Q/2, internal EvalMod, encrypted range/precision,
+actual keys/secret binding, security, runtime memory/backend or full matrix/server
+admission. The eventual server executable still needs its own current-process verifier
+and actual registered descriptors under separate operational release. Historical
+Apple-only, F1/F2 and validation-pending sections above describe their dated scope.

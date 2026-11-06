@@ -1,0 +1,113 @@
+[1m[32m   Compiling[0m proc-macro2 v1.0.107
+[1m[32m   Compiling[0m quote v1.0.47
+[1m[32m   Compiling[0m unicode-ident v1.0.27
+[1m[32m   Compiling[0m autocfg v1.5.1
+[1m[32m   Compiling[0m zerocopy v0.8.63
+[1m[32m   Compiling[0m libc v0.2.191
+[1m[32m   Compiling[0m syn v2.0.119
+[1m[32m   Compiling[0m cfg-if v1.0.5
+[1m[32m   Compiling[0m serde_core v1.0.229
+[1m[32m   Compiling[0m num-traits v0.2.19
+[1m[32m   Compiling[0m zerocopy-derive v0.8.63
+[1m[32m   Compiling[0m syn v3.0.9
+[1m[32m   Compiling[0m serde v1.0.229
+[1m[32m   Compiling[0m zmij v1.0.23
+[1m[32m   Compiling[0m getrandom v0.3.4
+[1m[32m   Compiling[0m serde_derive v1.0.229
+[1m[32m   Compiling[0m serde_json v1.0.154
+[1m[32m   Compiling[0m half v2.7.1
+[1m[32m   Compiling[0m matrixmultiply v0.3.11
+[1m[32m   Compiling[0m itoa v1.0.18
+[1m[32m   Compiling[0m ciborium-io v0.2.2
+[1m[32m   Compiling[0m clap_lex v1.1.1
+[1m[32m   Compiling[0m memchr v2.8.3
+[1m[32m   Compiling[0m either v1.19.0
+[1m[32m   Compiling[0m regex-syntax v0.8.11
+[1m[32m   Compiling[0m anstyle v1.0.14
+[1m[32m   Compiling[0m clap_builder v4.6.7
+[1m[32m   Compiling[0m regex-automata v0.4.18
+[1m[32m   Compiling[0m itertools v0.10.5
+[1m[32m   Compiling[0m ciborium-ll v0.2.2
+[1m[32m   Compiling[0m rand_core v0.9.5
+[1m[32m   Compiling[0m ppv-lite86 v0.2.21
+[1m[32m   Compiling[0m cast v0.3.0
+[1m[32m   Compiling[0m same-file v1.0.6
+[1m[32m   Compiling[0m rawpointer v0.2.1
+[1m[32m   Compiling[0m rand_chacha v0.9.0
+[1m[32m   Compiling[0m walkdir v2.5.0
+[1m[32m   Compiling[0m criterion-plot v0.5.0
+[1m[32m   Compiling[0m ciborium v0.2.2
+[1m[32m   Compiling[0m tinytemplate v1.2.1
+[1m[32m   Compiling[0m regex v1.13.1
+[1m[32m   Compiling[0m clap v4.6.7
+[1m[32m   Compiling[0m num-complex v0.4.6
+[1m[32m   Compiling[0m num-integer v0.1.47
+[1m[32m   Compiling[0m is-terminal v0.4.17
+[1m[32m   Compiling[0m oorandom v11.1.5
+[1m[32m   Compiling[0m once_cell v1.21.4
+[1m[32m   Compiling[0m anes v0.1.6
+[1m[32m   Compiling[0m ckks-train-ckks v1.0.0 (/home/runner/work/ckks-train/ckks-train/crates/ckks-train-ckks)
+[1m[32m   Compiling[0m criterion v0.5.1
+[1m[32m   Compiling[0m ndarray v0.16.1
+[1m[32m   Compiling[0m ckks-train-core v1.0.0 (/home/runner/work/ckks-train/ckks-train/crates/ckks-train-core)
+[1m[32m    Finished[0m `release` profile [optimized] target(s) in 1m 09s
+[1m[32m     Running[0m unittests src/lib.rs (target/release/deps/ckks_train_ckks-fad974026f3ace76)
+
+running 13 tests
+test bootstrap::evalmod::metadata_target_tests::boundary_search_preserves_nearest_order_and_context ... ok
+test bootstrap::metadata::proof_failure_tests::checked_stage_scales_and_folded_values_reject_before_encoding ... ok
+test bootstrap::metadata::proof_failure_tests::exact_targets_are_eligible_for_current_process_verification ... ok
+test bootstrap::metadata::proof_failure_tests::ineligible_diagnostics_return_exact_missing_requirement_and_reason ... ok
+test bootstrap::metadata::tests::checked_counter_overflow_covers_all_seven_fields ... ok
+test bootstrap::metadata::tests::finite_scalar_proof_on_supported_target ... current-process DFT support proof: TARGET=Some("x86_64-unknown-linux-gnu"), HOST(build)=Some("x86_64-unknown-linux-gnu"), roots=65535, root_squared_norm=(0.9999999999999998, 1.0000000000000002), inverse_squared_norm=(0.2499999999999999, 0.2500000000000001)
+configured compiler -vV:
+rustc 1.85.1 (4eb161250 2025-03-15)
+binary: rustc
+commit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181
+commit-date: 2025-03-15
+host: x86_64-unknown-linux-gnu
+release: 1.85.1
+LLVM version: 19.1.7
+
+ok
+test bootstrap::metadata::tests::folded_extremes_and_complex_support_operations ... ok
+test bootstrap::metadata::tests::parameter_bytes_bind_every_field_even_if_changed_value_is_invalid ... ok
+test bootstrap::metadata::tests::scale_error_guards_precede_legacy_allocating_errors ... ok
+test bootstrap::poly::metadata_cost_tests::checked_split_rejects_actual_nonfinite_intermediates ... ok
+test bootstrap::poly::metadata_cost_tests::zero_sensitive_split_and_declared_length_literals ... ok
+test linalg::bootstrap_metadata_iterator_tests::iterator_preserves_full_shape_order_and_wrap_literals ... ok
+test linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order ... 
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:475:5:
+offset 1 outside -d < offset <= 0 for d = 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:475:5:
+offset 1 outside -d < offset <= 0 for d = 3
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:420:5:
+d = 3 must be a power of two
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:420:5:
+d = 3 must be a power of two
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:440:5:
+stride must be positive
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:440:5:
+stride must be positive
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:441:5:
+d * stride = 4 * 18446744073709551615 overflows a rotation step
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:441:5:
+d * stride = 4 * 18446744073709551615 overflows a rotation step
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:475:5:
+offset -4 outside -d < offset <= 0 for d = 4
+
+thread 'linalg::bootstrap_metadata_iterator_tests::iterators_validate_eagerly_in_legacy_panic_order' panicked at crates/ckks-train-ckks/src/linalg.rs:475:5:
+offset -4 outside -d < offset <= 0 for d = 4
+ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 159 filtered out; finished in 0.36s
+
