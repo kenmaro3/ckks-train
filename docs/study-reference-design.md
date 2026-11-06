@@ -136,6 +136,8 @@ Temporary/partial files are never read as success. A failure record is separate,
 
 ## 8. Target lock schema, threshold and verification
 
+The concrete API, wire and publication contract is [the target and admission design](study-target-design.md). Its source and execution gates remain separate.
+
 `hekit-study-target-lock-v1` contains: unique lock/campaign IDs; approved design revision/document digests; full shared contract and digest; source reference payload digest **and exact file SHA256**, reference kind/schema, selected seed0 full input receipt digest and full plan/final endpoint identity; final integer counts/reporting accuracy; target algorithm version; threshold bits/reporting value; lock-created wall time; lock-writer build/runtime provenance; and canonical lock payload digest. Final lock bytes are no-overwrite and their file SHA256 is bound by admission. A target lock is not an editable configuration file.
 
 Proposed numerical algorithm `seed0-final-minus-half-percentage-point-f64-v1` makes the existing reporting formula precise: require positive count and both integer counts <=2^53; compute `accuracy = (correct as f64)/(test_count as f64)`; compute `target = max(+0.0_f64, accuracy - 0.005_f64)` with ordinary binary64 operations in that order, normalize zero to +0, and store the resulting IEEE bits plus round-tripping JSON number. This is reporting arithmetic only, never model arithmetic. Readers recompute and require exact bits, not a tolerance. No independently supplied threshold is accepted. D8 uses the same count-to-f64 reporting algorithm when testing checkpoint accuracy against target. An exact-rational threshold/comparison would be a different version and requires ratification; do not silently mix the two at a rounding boundary.
