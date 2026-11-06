@@ -194,7 +194,7 @@ hekit/
 ### Task 42 の確定準備
 
 - `tools/rq1_summary.py` と `docs/rq1-finalization.md` を追加した。元の FULL JSON の出所・完了条件・計数を検証し、4 通りの比を生成する。FULL-2 の精度判定は公開コード seed 0 の 0.9041 と比較する。欠測は未計測、存在する不正な JSON はエラーとし、元の結果を変更しない。
-- `docs/m3-report.md` §3.3a に ReBoot の実パラメータによる初期セキュリティ推定を反映した(`9ee79c4`)。BDGL16 122.3 bit、MATZOV 121.9 bit で、128 bit 条件は満たしていない。追加探索中のため最終最小値ではない。元ログは `results/security/reboot-initial-20261106/`。同じ N でも同じセキュリティとは主張しない。
+- `docs/m3-report.md` §3.3a に ReBoot の実パラメータによる初期セキュリティ推定を反映した(`9ee79c4`)。初期値は BDGL16 122.3 / MATZOV 121.9 bit。追加探索と Task 39 追補レビューの後の最終値は MITM ありで 121.8 / 121.5 bit、MITM なしで 127.8 / 126.2 bit で、128 bit 条件は満たしていない(`docs/security.md`)。元ログは `results/security/reboot-initial-20261106/`。同じ N でも同じセキュリティとは主張しない。
 - FULL-1 / FULL-2 の完了 JSON と R-47-3 はまだ回収していない。Task 42 は未確定。SSH の観測タイムアウトはジョブ終了・失敗の証拠にしない。
 
 ### Task 49 のコード準備

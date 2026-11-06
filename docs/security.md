@@ -226,13 +226,24 @@ ReBoot's CKKS parameters, as captured from its own OpenFHE 1.2.1 CryptoContext
 - Q: 26 towers (54 + 24 × 49 + one 19.58-bit tower that FLEXIBLEAUTOEXT adds), log Q = 1249.585;
 - P: 8 × 60, log P = 480, log PQ = 1729.585;
 - HYBRID key switching, dnum 3;
-- secret SPARSE_TERNARY with h = 192 (97 × +1, 95 × −1 in the captured key), σ = 3.19;
+- secret SPARSE_TERNARY with h = 192 (97 × +1, 95 × −1), σ = 3.19. The weight 192 is our
+  empirical count on one generated key (R-REB-4). It was not confirmed from an OpenFHE constant;
+  the sign split does not matter (a (96, 96) split gives the same figure to 0.04 bit);
 - requested security level `HEStd_128_classic`.
 
 They were estimated with exactly the tooling and models of (a)–(c):
-- **The instance.** It is the RLWE instance at modulus P·Q, where the key-switching keys live.
+- **The instance.** It is the RLWE instance at modulus P·Q, where OpenFHE's HYBRID
+  key-switching keys live. P = 480 bits covers a digit of α = 9 towers (at most about 446 bits),
+  so P·Q is the largest modulus exposed. HYBRID dnum 3 changes only the number of samples (3 per
+  key), not the modulus or the secret.
 - **The parameters.** q = 2^ceil(log PQ) = 2^1730, the secret is `ND.SparseTernary(97, 95, n)`
   (`tools/estimate/reboot_params.json`), σ = 3.19 and m = n.
+- **Which way the modelling choices lean.**
+  - Rounding q up to 2^1730 leans *toward* the below-128 claim. The effect is at most 0.07 bit:
+    the review's spot-check at the binding point gives 121.84 with q = 2^1730 and 121.88 with the
+    exact P·Q.
+  - m = n leans *against* the claim. The real attacker has more samples (3 per key and many
+    keys), and more samples can only lower the cost.
 - **The attacks.** All eight, as for (b) and (c), plus:
   - the primal hybrids at fixed ζ from 0 to 12000;
   - the dual MITM hybrid on a ζ grid with both MITM solvers, with ζ = 2000..16000 (step 1000,
@@ -257,8 +268,8 @@ They were estimated with exactly the tooling and models of (a)–(c):
 The estimator's own optimiser gives 153.3 for the EJK20 dual under MATZOV, against 127.2 on the
 grid: another instance of the unreliable dual-hybrid optimisers.
 
-**Sanity check against hekit's (c).** hekit's (c) is the same kind of key, h = 192 at log PQ
-1732, σ 3.2. The estimator's optimisers gave it 122.2 / 121.7. On ReBoot's key they give
+**Pipeline consistency check against hekit's (c)** (a near-identical instance, so this is not
+independent validation). hekit's (c) is the same kind of key, h = 192 at log PQ 1732, σ 3.2. The estimator's optimisers gave it 122.2 / 121.7. On ReBoot's key they give
 122.3 / 121.9, which agrees to 0.2 bit: ReBoot's modulus is 2 bits smaller and its σ is
 marginally smaller. (c) was not grid-scanned. On ReBoot the grids lower the figure by a further
 0.4–0.5 bit, and (c) would move the same way, but (c) is already rejected.
@@ -271,18 +282,49 @@ marginally smaller. (c) was not grid-scanned. On ReBoot the grids lower the figu
 | hekit (b): SSE key s → s' | 2^16 | 294 (q_0·P) | sparse ternary, h' = 32 | **133.8** | **134.2** | 122.0 |
 | ReBoot main key | 2^16 | 1730 (1729.585) | sparse ternary, h = 192 (97 / 95) | **121.8** | **121.5** | 90.3 |
 
+The ReBoot row is the MITM tier: operations only, with about 2^104–2^110 memory. Without MITM,
+ReBoot is at 127.8 / 126.2 (see the conclusion).
+
 **Conclusion.** Under the same lattice-estimator models used for hekit, **ReBoot's parameters
-are below 128 bits: 121.8 under BDGL16 and 121.5 under MATZOV, about 6.5 bits short.**
-- **Where it falls short.** The non-hybrid attacks alone give 131.3 / 129.0 or more. The deficit
-  comes entirely from the sparse h = 192 secret, through the MITM hybrids (dual 121.5–122.3,
-  primal 122.1–123.5).
-- **ReBoot's own label.** ReBoot requests `HEStd_128_classic`, but its key does not reach 128
-  bits under these models.
-- **hekit's comparison point.** The same h = 192 at hekit's own log PQ 1732 is (c), which is
-  rejected for the paper for the same reason. hekit's paper settings, (a) and (b), are both at
-  least 128 under both models.
-- **Uncertainty.** This is an estimate under the stated models; the lattice-estimator caveats
-  above apply to both sides equally.
+are below 128 bits under both BDGL16 and MATZOV.** There are two tiers (BDGL16 / MATZOV):
+- **Non-hybrid attacks** (usvp, bdd, dual, MATZOV dual): at least 131.3 / 129.0.
+- **Hybrids without MITM** (bdd_hybrid, EJK20 exhaustive dual): **127.8 / 126.2**. The BDGL16
+  figure is from the EJK20 grid; the bdd_hybrid figures are 128.0 / 126.2. ReBoot is therefore
+  already below 128 before any MITM attack: clearly under MATZOV, and just under the boundary
+  under BDGL16. The estimator reports memory of 2^113.8 / 2^111.6 for the EJK20 grid minima and
+  no memory figure for bdd_hybrid.
+- **Hybrids with MITM** (dual MITM, primal MITM): **121.8 / 121.5**, about 6.5 bits short. These
+  are operation counts (rop) only. The binding dual MITM needs about 2^104 (analytical solver) to
+  2^110 (numerical solver) memory. A reader who discounts memory-heavy MITM attacks still has the
+  previous tier.
+
+**Where the shortfall comes from: the configuration and OpenFHE's level check.** The cause is
+the configuration, OpenFHE's `SPARSE_TERNARY` secret (h = 192) together with
+`HEStd_128_classic`. It is not a security claim by ReBoot's authors.
+
+The coordinator checked how the level check works in OpenFHE v1.2.1's own source (BSD-2):
+- `HEStd_128_classic` is a lookup table of the maximum log Q per ring dimension
+  (`StdLatticeParm::StandardLatticeParmSets`), with one column per distribution: HEStd_uniform,
+  HEStd_error and HEStd_ternary.
+- At N = 65536 the 128-bit classic bounds are 1747 for HEStd_ternary and 1749 for HEStd_error.
+- `ParamsGenCKKSRNS` maps any non-Gaussian secret, `SPARSE_TERNARY` included, to the HEStd_ternary
+  column, which is the dense-ternary one. The check does not model the Hamming weight.
+- With HYBRID key switching the bound is applied to log(QP).
+
+ReBoot's log PQ 1729.6 therefore passes the dense-ternary bound (≤ 1747), although its secret is
+sparse with h = 192. This is a known limitation of table-based parameter checks when the secret
+is sparse.
+
+Suggested wording for the paper: "ReBoot's configuration (OpenFHE `SPARSE_TERNARY`, h = 192,
+with `HEStd_128_classic`) estimates at about 122 bits under the same models used for hekit; the
+level check does not model the sparse secret."
+
+**Comparison with hekit.** The same h = 192 at hekit's own log PQ 1732 is (c), which is
+rejected for the paper for the same reason. hekit's paper settings, (a) and (b), are both at
+least 128 under both models.
+
+**Uncertainty.** This is an estimate under the stated models. The lattice-estimator caveats
+above, including the rop-only MITM costing, apply to both sides equally.
 
 The raw output is under "Task 39 follow-up (ReBoot), raw output".
 
