@@ -216,3 +216,43 @@ hekit/
 本人の回答により、Task 48 は既存担当の完了後に引き継ぐ。provenance が欠けていた ablation JSON は既存担当が `0e07561` で修正し、再レビュー中。Task 52 も既存担当が実装中。これらの編集中ファイルを別担当が上書きしない。GPU 計測の順は FULL-1 → FULL-2 → R-47-3 → R-48-1〜4 を維持する。
 
 v1.0.0 のリリース準備(Task 55、名前 ckks-train、公開・改名は本人の判断): `docs/release.md`。
+
+## 10. 停止時点の状態(2026-11-06、実装セッション)
+
+本人の指示(計画セッション経由、2026-11-06)で、この実装セッションはここで止めた。以後は Codex がこのチェックアウトで作業する。ledger は `.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/progress.md`(gitignore 下、各タスクの dispatch / review / ruling の記録)。
+
+### 10.1 完了(レビュー済み)
+
+| Task | コミット | 要点 |
+|---|---|---|
+| 35〜38 | 505b597, f40a3a3, 85fecfd, 67f5ec2 ほか | n16_boot、SSE、EvalMod 7 レベル、17.46 bit、111 KS/boot |
+| 39 | 6c72082, ee4aa27, 0330f20, 8420a96 | hekit (a) 131.5/129.3、(b) 133.8/134.2。ReBoot 実パラメータは非 MITM 127.8/126.2、MITM 121.8/121.5(BDGL16/MATZOV、MITM はメモリ 2^104〜110) |
+| 40 | 58b293b | compact 再配置 |
+| 41 | cc007a8 … 9d132c1, ff3042d | 非対話 Trainer、融合経路、忠実設定、196 入力、per-step lr(基準 lr で速度保持) |
+| 43 | 340f487, 37d8d6f | HeOps、EvalConfig、add_counts |
+| 44〜47 | 8b39a57, a6ab1e2, 8b81f3d, f68c05f, b4b9dc3, feff7ed, 37e80a9, bd5cc49, 940c191 | CUDA。RTX 4090 で bit-exact(R-45-1 18/18、R-46-1 31/31、R-47-1 45/45 中 42 実行) |
+| 48 | 626160e, 0e07561, b1d1813 | GPU 学習パス(level 7 capped keys)、RQ3 ablation runner(provenance 付き) |
+| 51 | 09f16f2, 8bd9cba | MNIST/F-MNIST は ±1 pt 内、Breast Cancer は固定 epoch で未達(min-max 採用) |
+| 52 | b8e267c, 91efa6e, 9305d2e | BlockMlp(局所ブロック + 出力スタック)、双子は R-REB-5 と 1000/1000 一致 |
+| 55 | 91219e9, 49126d4 | v1.0 準備(publish dry-run は core のみ通過、他は未公開依存のため。rename.sh dry-run 822 行 / 155 ファイル、未適用)。**レビューは停止時に中断(未完)** |
+
+### 10.2 途中で止めたもの
+
+- **Task 54**(run_all.sh、`tools/paper_tables.py`): 実装 962b7d2 / 1134a9b / a502429 はコミット済み。レビューで Important 3 件: (I1) missing-input だけ残ると exit 0、(I2) (d) 列に対話版 0.564 を入れている → 裁定済みの定義(同じ非対話実行からブートストラップ分を除く。§4.1 参照)に直す、(I3) FULL 経路のテストが無い。**修正ラウンドは途中で止め、未完の編集はコミット版に戻した**。
+- **Task 55** のレビュー: 途中で停止(結果なし)。
+- **Task 42**(M3 報告): 草稿 09206bd + 追補(ba54f9d で (d) 列)。FULL-1/2 の 196 行を入れて確定する必要あり。`docs/rq1-finalization.md` は Codex の提案文書。計画担当の方針: 計画と m3-report が優先、生き残る内容は Task 42 確定時に m3-report へ統合し、その旨を rq1-finalization.md の冒頭に書く。
+- **Task 49**(GPU ブートストラップ)と **Task 53**(4 次活性化): 裁定で延期(GPU メモリ不足 / 削減順)。
+- **Task 50、56、57、58**: 未着手。
+
+### 10.3 サーバーのキュー(`results/quadruped/requests.md`、gpu-runner が実行)
+
+R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)→ R-47-3(bd5cc49 以降)→ R-48-1..4(0e07561、bash、失敗規則付き)→ R-52-1/2(9305d2e、合格規則付き)→ R-54-1(962b7d2 以降、`--quick`)。完了したもの: R-REB-1〜5、R-41-1〜5、F1/F2、R-45-1、R-46-1、R-47-1/2、R-REB-4。
+
+### 10.4 未決事項(本人)
+
+§7 の各項目に加えて: ReBoot が同じ推定器で 128 bit 未満であることの論文での扱い(表として示すか、等セキュリティ比較を併記するか、書き方)、eMLP-2/3 の全長暗号化走行を回すか(eMLP-2: WN B=64 約 51 h、B=48 約 82 h。eMLP-3: 約 98 h / 152 h、±30%)、LICENSE の著作権者名("hekit contributors" のまま)。
+
+### 10.5 作業ツリーの注意(停止時)
+
+- `results/mnist_emlp1_plain_faithful_b{32,48,64}.json` は作業ツリーで上書きされている(09:13、`--plan --mode plain` の実行、この実装セッションではない)。Task 41 が引用するのは**コミット版**(f195124 の provenance 付き)。
+- 未追跡・未コミットの `docs/rq1-finalization.md` の変更、`docs/m5-report.md`、`paper/`、`tools/figs.py`、`tools/test_figs.py`、`results/mnist_blocks_*_plain_b48.json`、`.vscode/` は Codex のもので、この実装セッションは触っていない。
