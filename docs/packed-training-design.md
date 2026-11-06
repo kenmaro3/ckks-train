@@ -1,6 +1,6 @@
 # Genuine encrypted ReBoot-packing training (Task54 D4)
 
-Status: root-ratified design; D4a geometry/primitives are implemented, locally validated with focused CPU tests and independently reviewed. D4b1 matrix optimizer preparation is implemented, locally validated and independently reviewed. Later stages remain gated; full training level/precision admission is unimplemented. This document creates no experiment result or dispatch authorization. The approved [experiment matrix](experiment-matrix.md), original research-plan §4.4 baseline (c), and [interactive profile design](interactive-profile-design.md) govern learning semantics. Full encrypted block runs remain held for the user's separate decision.
+Status: root-ratified design; D4a geometry/primitives are implemented, locally validated with focused CPU tests and independently reviewed. D4b1 matrix optimizer preparation is implemented, locally validated and independently reviewed. D4b2 current-stage learning is implemented, locally validated and independently reviewed. Refresh/NI/backend stages remain gated; full training level/precision admission is unimplemented. This document creates no experiment result or dispatch authorization. The approved [experiment matrix](experiment-matrix.md), original research-plan §4.4 baseline (c), and [interactive profile design](interactive-profile-design.md) govern learning semantics. Full encrypted block runs remain held for the user's separate decision.
 
 ## Decision and scope
 
@@ -289,3 +289,98 @@ atomic stage assignment, full level/range/precision/memory admission, refresh,
 NI, GPU and campaign execution remain later gates. Runtime device failures
 are outside this CPU evidence and may advance counters without yielding a
 candidate; no cross-backend transaction is claimed.
+
+## D4b2 concrete API and predictor (before implementation)
+
+`PackedStageConfig::{square_sgd, poly_relu2_nag}` binds activation, loss and
+bias domain to a checked geometry stage. `PackedStage::new` owns two encrypted
+matrix states and either exactly two encrypted biases or none. `PackedRecord`
+contains an input, encrypted stage target and public validity flag; execution
+flattens ordered valid records, so unequal caller partitions never introduce
+an average of averages. `plan_step` computes the current DAG using actual
+ciphertext levels/scales and q primes, without evaluator arithmetic or a fork.
+`prepare_step` returns an owned `PackedStageCandidate` and receipt with old
+hidden/output vectors; `into_stage` is the only state transition. All old state
+is borrowed throughout preparation. No refresh setter or secret callback is added.
+
+The plan records named per-sample affine, activation, loss, derivative, dz and
+backward boundaries, shared outer-sum branches, bias updates and W/U outputs.
+A product uses `(min(l_a,l_b)-1, s_a*s_b/q[min(l_a,l_b)])`; each canonical
+mask uses one level and exact Delta. Targets and bias adds align to their
+minimum participating levels; their lower levels propagate through the DAG.
+Samples with different histories are aligned to a common starting level before
+forward work, preserving their values and allowing one lazy sum. With equal
+starting levels this remains exactly the ratified 12-level eMLP / 15-level2020
+weight schedule above. The planner reports the remaining projection level but
+does not enforce future NI admission or claim memory/range/precision proof.
+
+For n valid records, let R be the sum of rotation costs of the two forward
+orientations and the reversed second orientation. eMLP contributes per record
+5 tensors/relins, 7 ct-pt products and12 rescales; Square/Square contributes
+7 tensors/relins, 8 ct-pt products and15 rescales. Both add n*R rotations.
+The two shared outer sums add2*n tensors,2 lazy relins (or2*n effective
+per-sample relins), and2 rescales. With total branch count b across both
+matrices, their folded masks add b ct-pt/rescales. Present biases add2
+ct-pt/rescales. Later NAG adds4 ct-pt/rescales for old U, regardless of branch
+count. All other counter fields are zero. The receipt independently retains
+predicted counters and the actual evaluator snapshot difference.
+
+The immutable two-mode config deliberately excludes mismatched activation,
+loss and bias combinations; accepting arbitrary combinations would make the
+registered learning function caller-dependent. Explicit metadata simulation
+is chosen over executing on a fork, because a fork still performs HE work.
+Common-level alignment is chosen over separate group means or natural-scale
+relabeling; it preserves one ordered valid batch and exact sample denominator.
+This slice proves only the current stage DAG. NI reserve/refresh admission,
+local-stage orchestration, memory, secure precision and GPU remain future gates.
+
+The existing optimizer will receive a narrow internal `prepare_traced` helper:
+it returns the actual level/scale of each computed `mu*U` and `kappa*U` alongside
+the candidate. Public `prepare` remains a wrapper and operation order/counts are
+unchanged. Inferring both scalar histories from the final velocity was rejected:
+that would label predicted metadata as observed evidence. The internal trace
+stores metadata only and adds no HE work or retained ciphertext copies.
+
+
+## D4b2 local implementation evidence and limits
+
+The generic `PackedStage` implements both registered two-layer learning functions
+on either consecutive RE/CE or CE/RE stage. Its encrypted records carry per-stage
+targets and public validity; the caller flattens ordered groups. No group means,
+plaintext gradient/state, dummy no-bias ciphertext or secret refresh path exists.
+Reverse affine uses the original classifier weight ciphertext with the opposite
+kernel. All candidate W/U/bias state is prepared while old state is borrowed.
+The returned hidden/output receipt therefore describes old-forward values.
+
+`plan_step` performs metadata arithmetic and host mask encodings only, never a
+forked evaluator run. It checks the complete current DAG before counted work,
+including actual q/Delta histories, mixed levels, keys, contexts, widths,
+canonical target scale, positive representable folded factors, and later U
+scalar representability. Nonuniform input and target levels are aligned to
+separate batch minima. The receipt compares observed primitive-boundary histories
+and the complete actual counter delta to the separate prediction. Affine,
+shared outer-sum and optimizer instrumentation reads actual output metadata.
+It adds no HE operation. The supported equal-level traces retain exactly12
+weight levels for eMLP and15 for2020; `minimum_state_level` is a report for
+future projection admission, not a claim that NI can recover from level0.
+
+Ten N=256, 32-prime (top level31), 40-bit-scale CPU tests pass with the existing
+nine packed-layout and six packed-optimizer tests. These deliberately insecure
+fixtures check explicit output-by-input f64 loops and unscaled velocity at
+absolute tolerance1e-7, full-slot structural zeros, trained padded-class errors,
+both activations/orientations, active biases, old snapshots, first-below-reference
+and later restarted NAG, real sample means, n=1 and a flattened2+1 valid
+partition with an invalid record, mixed levels, effective lazy/per-sample
+counts, literal independent first-step traces, and all OpCounter fields.
+A backend wrapper delegates actual CPU arithmetic and injects failure during
+the second weight candidate after the first W/bias candidates exist; old state
+and generations remain intact while counters remain advanced. Negative metadata,
+missing keys, insufficient whole-stage levels and unrepresentable factors fail
+before counted work. A positive rate of1e-100 initially exposed a missing
+round-to-zero guard; the guard now rejects it before stage execution.
+
+This evidence establishes current encrypted stage learning only. It does not
+establish production security/precision, range bounds, memory fit, bootstrap or
+NI numerics, local-stage orchestration, GPU behavior, profile/CLI completion,
+full baseline-c runs or Task54 completion. No presets, masks, loss semantics,
+registered rates or numerical tolerances were loosened.

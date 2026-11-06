@@ -5,6 +5,8 @@ use ckks_train_ckks::{DiagonalEntry, HeCiphertext, HeOps};
 use ckks_train_core::error::{HekitError, Result};
 use std::sync::Arc;
 
+type TracedUpdate<C> = (PackedUpdateCandidate<C>, Vec<(usize, f64)>);
+
 #[derive(Clone, Copy, Debug)]
 enum Policy {
     Sgd,
@@ -153,6 +155,17 @@ impl<C: HeCiphertext + Clone> PackedLayerState<C> {
         ev: &E,
         gradients: &PackedUpdateGradients<C>,
     ) -> Result<PackedUpdateCandidate<C>> {
+        self.prepare_traced(ev, gradients)
+            .map(|(candidate, _)| candidate)
+    }
+
+    // Metadata from actual scalar outputs; no additional HE work or retained ciphertexts.
+    pub(super) fn prepare_traced<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        gradients: &PackedUpdateGradients<C>,
+    ) -> Result<TracedUpdate<C>> {
+        let mut scalar_history = Vec::new();
         let req = &gradients.request;
         if !Arc::ptr_eq(&self.generation, &req.generation)
             || self.update_index != req.update_index
@@ -211,6 +224,8 @@ impl<C: HeCiphertext + Clone> PackedLayerState<C> {
                         req.kappa.expect("NAG request"),
                         ev.params().scale(),
                     )?)?;
+                    scalar_history.push((mu_u.level(), mu_u.scale()));
+                    scalar_history.push((k_u.level(), k_u.scale()));
                     // Both scalar branches use OLD U; the f64 reference stores unscaled V.
                     (
                         subtract(&subtract(self.weights.ciphertext(), h)?, &k_u)?,
@@ -225,15 +240,18 @@ impl<C: HeCiphertext + Clone> PackedLayerState<C> {
         let velocity = new_u
             .map(|ct| PackedWeights::new(ev, req.layer.clone(), ct))
             .transpose()?;
-        Ok(PackedUpdateCandidate {
-            state: Self {
-                weights,
-                velocity,
-                policy: self.policy,
-                update_index: self.update_index + 1,
-                generation: Arc::new(()),
+        Ok((
+            PackedUpdateCandidate {
+                state: Self {
+                    weights,
+                    velocity,
+                    policy: self.policy,
+                    update_index: self.update_index + 1,
+                    generation: Arc::new(()),
+                },
             },
-        })
+            scalar_history,
+        ))
     }
 }
 

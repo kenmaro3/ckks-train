@@ -1,11 +1,12 @@
 //! Checked whole-graph geometry and encrypted masked primitives for one sample per ciphertext.
 //!
-//! Includes matrix optimizer preparation, but not stages, refresh, memory or full level admission.
+//! Includes immutable encrypted stage preparation; refresh, memory and NI admission remain separate.
 //! Structural metadata is checked; encrypted slot contents cannot be verified without a secret.
 //! Ingestion must supply the declared representation. Primitive outputs project structural padding.
 mod ops;
 mod optimizer;
 mod plan;
+mod stage;
 mod types;
 
 pub use ops::{PackedSamplePair, affine, outer_sum_scaled_masks};
@@ -23,3 +24,8 @@ pub(crate) fn invalid<T>(message: &str) -> ckks_train_core::error::Result<T> {
         message.into(),
     ))
 }
+
+pub use stage::{
+    PackedRecord, PackedStage, PackedStageCandidate, PackedStageConfig, PackedStepPlan,
+    PackedStepReceipt, PackedStepResult, PackedTraceEntry,
+};

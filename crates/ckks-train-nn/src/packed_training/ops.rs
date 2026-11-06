@@ -6,6 +6,10 @@ use ckks_train_ckks::{DiagonalEntry, Encoder, HeOps, Plaintext};
 use ckks_train_core::error::{HekitError, Result};
 use std::sync::Arc;
 
+type ProductHistory = (usize, f64);
+type TracedVector<C> = (PackedVector<C>, ProductHistory);
+type TracedGradients<C> = (Vec<PackedGradient<C>>, ProductHistory);
+
 /// References to one valid sample's input and output-gradient vectors, in that order.
 pub type PackedSamplePair<'a, C> = (&'a PackedVector<C>, &'a PackedVector<C>);
 
@@ -34,7 +38,7 @@ fn product_history<E: HeOps>(ev: &E, a: &E::Ct, b: &E::Ct) -> Result<(usize, f64
 }
 
 /// Encode before counted work, including range/precision checks at the predicted natural scale.
-fn mask_plain<E: HeOps>(
+pub(super) fn mask_plain<E: HeOps>(
     ev: &E,
     enc: &Encoder,
     mask: &[f64],
@@ -62,18 +66,41 @@ pub fn affine<E: HeOps>(
     w: &PackedWeights<E::Ct>,
     x: &PackedVector<E::Ct>,
 ) -> Result<PackedVector<E::Ct>> {
+    directed_affine(ev, enc, w, x, false).map(|(out, _)| out)
+}
+
+// Reverse direction uses the SAME matrix ciphertext, never a transpose or diagonal cast.
+pub(super) fn directed_affine<E: HeOps>(
+    ev: &E,
+    enc: &Encoder,
+    w: &PackedWeights<E::Ct>,
+    x: &PackedVector<E::Ct>,
+    reverse: bool,
+) -> Result<TracedVector<E::Ct>> {
     context(ev, enc)?;
     let layer = w.layer();
+    let (input, output, orientation) = if reverse {
+        (
+            layer.output(),
+            layer.input(),
+            match layer.orientation() {
+                Orientation::Row => Orientation::Column,
+                Orientation::Column => Orientation::Row,
+            },
+        )
+    } else {
+        (layer.input(), layer.output(), layer.orientation())
+    };
     let layout = layer.layout();
     check_ct(ev, w.ciphertext(), layout.slots())?;
     check_ct(ev, x.ciphertext(), layout.slots())?;
-    if x.spec() != layer.input() {
+    if x.spec() != input {
         return invalid("packed affine input shape mismatch");
     }
     if w.ciphertext().scale() != ev.params().scale() {
         return Err(HekitError::ScaleMismatch);
     }
-    let steps = match layer.orientation() {
+    let steps = match orientation {
         Orientation::Row => layout.row_sum_steps(),
         Orientation::Column => layout.expand_steps(),
     };
@@ -81,11 +108,11 @@ pub fn affine<E: HeOps>(
         return invalid("packed affine missing galois key");
     }
     let (level, natural) = product_history(ev, x.ciphertext(), w.ciphertext())?;
-    let mask = match layer.orientation() {
-        Orientation::Row => layer.output().mask(),
+    let mask = match orientation {
+        Orientation::Row => output.mask(),
         Orientation::Column => (0..layout.slots())
             .map(|s| {
-                if s % layout.c() == 0 && s / layout.c() < layer.output().logical_len() {
+                if s % layout.c() == 0 && s / layout.c() < output.logical_len() {
                     1.0
                 } else {
                     0.0
@@ -94,11 +121,15 @@ pub fn affine<E: HeOps>(
             .collect(),
     };
     let pt = mask_plain(ev, enc, &mask, level, natural)?;
-    let out = match layer.orientation() {
+    let (out, history) = match orientation {
         Orientation::Row => {
             let pt = ev.upload_pt_owned(pt)?;
             let product = layout.vecmat(ev, x.ciphertext(), w.ciphertext())?;
-            ev.rescale(&ev.mul_plain_to_scale(&product, &pt, ev.params().scale())?)?
+            let history = (product.level(), product.scale());
+            (
+                ev.rescale(&ev.mul_plain_to_scale(&product, &pt, ev.params().scale())?)?,
+                history,
+            )
         }
         Orientation::Column => {
             // Validate encoding before tensor work. The helper encodes/uploads the same mask
@@ -106,17 +137,19 @@ pub fn affine<E: HeOps>(
             let x = ev.mod_switch_to_level(x.ciphertext(), level + 1)?;
             let w = ev.mod_switch_to_level(w.ciphertext(), level + 1)?;
             let product = ev.rescale(&ev.mul(&x, &w)?)?;
-            layout.expand_valid_to_scale(
+            let history = (product.level(), product.scale());
+            let out = layout.expand_valid_to_scale(
                 ev,
                 enc,
                 &product,
-                layer.output().logical_len(),
+                output.logical_len(),
                 1.0,
                 ev.params().scale(),
-            )?
+            )?;
+            (out, history)
         }
     };
-    PackedVector::new(ev, layer.output(), out)
+    Ok((PackedVector::new(ev, output, out)?, history))
 }
 
 /// Forms the encrypted sum over precisely the supplied valid sample pairs, then emits
@@ -134,6 +167,17 @@ pub fn outer_sum_scaled_masks<E: HeOps>(
     constants: &[f64],
     relin: GradRelin,
 ) -> Result<Vec<PackedGradient<E::Ct>>> {
+    outer_traced(ev, enc, layer, pairs, constants, relin).map(|(out, _)| out)
+}
+
+pub(super) fn outer_traced<E: HeOps>(
+    ev: &E,
+    enc: &Encoder,
+    layer: &LayerGeometry,
+    pairs: &[PackedSamplePair<'_, E::Ct>],
+    constants: &[f64],
+    relin: GradRelin,
+) -> Result<TracedGradients<E::Ct>> {
     context(ev, enc)?;
     if pairs.is_empty() || constants.is_empty() || constants.iter().any(|c| !c.is_finite()) {
         return invalid("packed outer sum needs valid pairs and finite branch constants");
@@ -185,7 +229,9 @@ pub fn outer_sum_scaled_masks<E: HeOps>(
         .map(|pt| ev.upload_pt_owned(pt))
         .collect::<Result<_>>()?;
     let sum = layout.outer_sum(ev, &refs, relin)?;
-    pts.iter()
+    let history = (sum.level(), sum.scale());
+    let gradients = pts
+        .iter()
         .zip(constants)
         .map(|(pt, &factor)| {
             let ct = ev.rescale(&ev.mul_plain_to_scale(&sum, pt, ev.params().scale())?)?;
@@ -196,5 +242,6 @@ pub fn outer_sum_scaled_masks<E: HeOps>(
                 factor,
             })
         })
-        .collect()
+        .collect::<Result<_>>()?;
+    Ok((gradients, history))
 }
