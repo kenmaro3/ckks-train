@@ -10,6 +10,7 @@ pub mod evaluator;
 pub mod keys;
 pub mod keyswitch;
 pub mod linalg;
+pub mod metadata;
 pub mod ops;
 mod par;
 pub mod params;

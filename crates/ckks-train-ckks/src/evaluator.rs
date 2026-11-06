@@ -368,20 +368,8 @@ impl Evaluator {
     /// can reach). Failures count nothing.
     pub fn mul_scalar(&self, ct: &Ciphertext, value: f64, target_scale: f64) -> Result<Ciphertext> {
         self.check_basis(ct.polys())?;
-        if !value.is_finite() {
-            return Err(HekitError::InvalidParams(format!(
-                "scalar {value} must be finite"
-            )));
-        }
-        let label = self.exact_product_scale(ct.level(), target_scale)?;
-        check_plain_scale(label / ct.scale())?;
-        let k = (value * (label / ct.scale())).round();
-        if k.abs() >= MAX_SCALAR_INT {
-            return Err(HekitError::InvalidParams(format!(
-                "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
-                label / ct.scale()
-            )));
-        }
+        let (label, _, k) =
+            scalar_product_parts(&self.params, ct.level(), ct.scale(), value, target_scale)?;
         let mut c = ct.polys().to_vec();
         for p in &mut c {
             p.mul_scalar_assign(k.abs() as u64);
@@ -781,6 +769,31 @@ pub(crate) fn exact_product_scale(
         .map(f64::from_bits)
         .find(|&l| l / q == target_scale)
         .ok_or(HekitError::ScaleMismatch)
+}
+
+/// Legacy scalar label/rounding checks, shared without tightening nonfinite intermediates.
+pub(crate) fn scalar_product_parts(
+    params: &CkksParams,
+    level: usize,
+    source_scale: f64,
+    value: f64,
+    target_scale: f64,
+) -> Result<(f64, f64, f64)> {
+    if !value.is_finite() {
+        return Err(HekitError::InvalidParams(format!(
+            "scalar {value} must be finite"
+        )));
+    }
+    let label = exact_product_scale(params, level, target_scale)?;
+    check_plain_scale(label / source_scale)?;
+    let k = (value * (label / source_scale)).round();
+    if k.abs() >= MAX_SCALAR_INT {
+        return Err(HekitError::InvalidParams(format!(
+            "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
+            label / source_scale
+        )));
+    }
+    Ok((label, label / source_scale, k))
 }
 
 /// `(sigma_elt(c0) + kb, ka)` with the scale of `ct`.
