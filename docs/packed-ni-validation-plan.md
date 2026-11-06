@@ -184,3 +184,58 @@ Root ratified this exact fixture/gates/84-bootstrap calibration cap after indepe
 Current disposition: **literal fixture fixed; finite ideal plaintext ranges and learning visibility checked; all-slot CKKS precision unmeasured; same-context calibration unrun; exact-scale schedule not yet validated; implementation untouched by this task.**
 
 Publication provenance: reviewed revision3 SHA256 `0fbd3238092a174a60aa8f645ce258de46ce83c61499ce8517653ba0fddbcc62`; independent scoped review `task-54-d4c2-fixture-rereview.md` SHA256 `87cf3d30661c49a16152286a23db0bf2737fa729ecc3f141e10e58fbfae5de79`, retained in the implementation ledger named above. Only status and destination-path wording changed for this public copy.
+
+## 8. D4c2 calibration program implementation freeze (2026-11-06)
+
+`crates/ckks-train-nn/tests/packed_ni_calibration.rs` implements only the standalone
+calibration in §6. **Primary calibration UNRUN; no encrypted precision result.**
+It uses the unchanged full n16_boot Q/P chain at N1024, scale42, dnum8,
+log_slots9/default n16 BootParams and output16. The independent literal packer covers
+all21 registered vectors, including corrected Square3 and Poly2 old-initialization
+hidden values; it never invokes production pack/mask helpers. Five individually
+selected non-HE tests check the corpus/maps, rational old-hidden values, geometry key
+lattice, seed schedule, complex metric/range negatives, metadata and all counter fields.
+
+Construction order is params, KeyGenerator (seed151 then152), Encoder, Bootstrapper
+(internal bootstrap Galois/conjugation/SSE keys), **no training Galois keys**, evaluator
+relin key, public key, diagnostic secret clone. Each vector uses one fresh encryption
+RNG byte100+21*j+k and exactly one level0 encryption. The second bootstrap consumes the
+first returned ciphertext lowered directly to0. Seed153 is held out. No training,
+projection, new encryption between boots, scale relabel, repair or retry is present.
+
+The program externally decrypts all512 complex slots and checks §6's exact e0/e1/e2,
+a1, final and input-range gates, and separately prints lowering drift. Each output's
+two components, shared Q-basis context, NTT form, exact scale bits and level16 are
+checked; configured Bootstrapper context/spec/output are checked independently.
+Every call's complete observed OpCounter delta is compared with cost_per_boot() and
+must contain exactly one bootstrap. Inclusive measured key switches are not charged
+again. Direct ciphertext checks are not a P1 verified metadata token or a new Linux
+support claim. The P1b fix1 report's historical accidental n16 EvalMod execution and
+unsupported Linux metadata-proof boundary remain unchanged.
+
+The real test is serial and stops on the first error or panic, printing the current
+key/vector/pass/stage, attempted calls, returned calls, fully validated calls and
+missing coverage. At most84 calls are allowed; success requires all84 returned and
+validated. Program output prints actual parameter values and Q/P identity, configured
+cost, per-event complex diagnostics and available program identity. Source/executable
+SHA256, compiler/platform/build metadata and stdout/stderr are retained separately by
+the runner, not synthesized as program observations. No research-result JSON is made.
+
+Construction validation used CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=8 and
+RAYON_NUM_THREADS=8: target `cargo test --no-run`, five `non_he_*` tests each selected
+with `--exact`, target-only strict Clippy and owned-file rustfmt. All passed. The exact
+primary command below is **UNRUN**, reserved for root's independent-review release:
+
+```sh
+CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8 cargo test -p ckks-train-nn --test packed_ni_calibration packed_ni_calibration_primary_84_calls -- --exact --nocapture --test-threads=1
+```
+
+Do not execute the whole integration target during program construction. This exact
+command supersedes §6's provisional whole-target command for selecting the primary
+attempt. The implementation ledger records the pre-HE API/consumption registration,
+complete patch, hashes, test executable identity and construction logs in
+`task-54-d4c2-calibration-{api,report}.md` and adjacent freeze artifacts under
+`.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/`.
+Independent review and root release precede the single primary local attempt. A pass
+would describe this finite corpus/context only; main integration event precision,
+exact-scale schedule, runtime/memory, GPU and production security remain separate.
