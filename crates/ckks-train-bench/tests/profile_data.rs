@@ -470,3 +470,36 @@ fn pure_tabular_preprocessing_requires_declared_profile_and_dataset_identity() {
         );
     }
 }
+
+#[test]
+fn order_schedule_only_preflight_needs_no_unrelated_initialization() {
+    let t = Temp::new();
+    let order = OrderInput {
+        file: t.locked(
+            "order_only.txt",
+            b"# source step/epoch/batch/index export\n1\t1\t1\t0, 1 2\n2\t2\t1\t2 0 1\n",
+        ),
+        population: 3,
+        passes: 2,
+        coverage: OrderCoverage::FullPermutation,
+    };
+    let schedule = ScheduleInput {
+        file: t.locked(
+            "schedule_only.json",
+            br#"{"per_seed":{"4":{"lr":[0.2,0.1]}}}"#,
+        ),
+        json_pointer: "/per_seed/4/lr".into(),
+        steps: 2,
+    };
+    let v = preflight_order_schedule("local_init_captured_order", 4, &order, &schedule).unwrap();
+    assert_eq!(v.order, Some(vec![0, 1, 2, 2, 0, 1]));
+    assert_eq!(v.schedule, Some(vec![0.2, 0.1]));
+    assert!(v.initialization.is_empty());
+    let bad = OrderInput {
+        coverage: OrderCoverage::UniqueSubset {
+            samples_per_pass: 2,
+        },
+        ..order
+    };
+    assert!(preflight_order_schedule("local_init_captured_order", 4, &bad, &schedule).is_err());
+}

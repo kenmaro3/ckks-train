@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "artifact_type": "input_integrity_lock",
+  "source_commit": "8eabcdd4cd46b3144c5a222ddb0ce533ee627b49",
+  "scope": "reviewed repository snapshot; not upstream attestation or measurement",
+  "generator": {
+    "path": "tools/lock_experiment_inputs.py",
+    "sha256": "6001e550cf8992edd3debbdbba3a1fd2fb30a43d7149269de163727256fa471a",
+    "method": "git show <source_commit>:<path>; compare exact working bytes; SHA256 of blob bytes"
+  },
+  "files": [
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/config_values.json",
+      "sha256": "b89c9129177f5831cf044c775a2228fecace8214479aa54b1ad71b2d10a8ad18"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices.txt",
+      "sha256": "6c73caeebcec203bce24ffafaed6e6ad8a573fba8e28abd168169e391370e853"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed1.txt",
+      "sha256": "6b19bc78b362b70caeaf9761ba47fbbc3a153e0fdc0390ef9a481b49f22ada41"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed2.txt",
+      "sha256": "08f4fbe96c5b0e3b92f82cc8550f23144abee6fa57fdff1fca7ae019adbd34d0"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed3.txt",
+      "sha256": "919e39b27d32f38ac080318505a61bc559a8d1d0b21b31d608ba068056b0667f"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed4.txt",
+      "sha256": "3fb0aeaa1c90e2bd9922cf2d7b5693b4e109ef05f93e0aa2f29bfb0b85c17304"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed5.txt",
+      "sha256": "72666b5b627ec157ab2d26096d848171731f2af9f5a76f5420749bb66d87898f"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed6.txt",
+      "sha256": "d2c0b16f0c8fcc9e13ae824245b86e4ced630ed48c7a79e7e93719a6f46deffa"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed7.txt",
+      "sha256": "4f8a92df7142181a403f79eb0752a26b9f17806dcaad50183fd088e3abbadb84"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed8.txt",
+      "sha256": "fe5dcfbaedefb52a8fff61e4c9cb5b65de76c99b9484c9eaf057f4b9b6613e31"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp1_full/train_indices_seed9.txt",
+      "sha256": "f948cb5cdde0193f910c2860026e72bcf254f000d2188541cb05ef0001a14aeb"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/config_values.json",
+      "sha256": "76c493e28692531d07d54337dfcf89a21d8d78fa2979e02b20dccad47fb303c5"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp2_seed0.txt",
+      "sha256": "749cf91385aba0d91c151de562edc54d600d59e098553136fac28cfe9fba5677"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp2_seed1.txt",
+      "sha256": "e6f78a256d6e630a8f225180cc944aef8b60a1413e1bb787eed6d3d8ba66fc2f"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp2_seed2.txt",
+      "sha256": "1eef8865c49eceead811da3dcedf2b0c8b93dfb5f137d28715f22fdfab5650e9"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp3_seed0.txt",
+      "sha256": "5f94af14d5a4054873d88f6244093a7a90e98f925ec2b613de244a74183c933c"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp3_seed1.txt",
+      "sha256": "b3482a8a197834fb464fdae4901af60c87d12fbd7d1c537b7a0b21dbfde18b66"
+    },
+    {
+      "path": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp3_seed2.txt",
+      "sha256": "e48dcd7560cbff25a2f3e39ab6df514e68fb110561023c3ab9a50c22af86a6d7"
+    }
+  ]
+}

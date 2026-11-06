@@ -532,7 +532,7 @@ pub enum OrderCoverage {
 /// Captured text indices, with explicit pass boundaries and coverage policy.
 #[derive(Debug, Clone)]
 pub struct OrderInput {
-    /// Locked whitespace-separated integer index file.
+    /// Locked indices: whitespace/comma tokens, optional comment lines and TSV metadata.
     pub file: LockedFile,
     /// Source training population size.
     pub population: usize,
@@ -614,9 +614,54 @@ pub fn preflight_seed(contract: &CapturedInputs, seed: u8) -> io::Result<Verifie
         }
         initialization.push(a);
     }
-    let order = inputs
-        .order
-        .as_ref()
+    let checked = verify_order_schedule(inputs.order.as_ref(), inputs.schedule.as_ref())?;
+    files.extend(checked.2);
+    let (order, schedule) = (checked.0, checked.1);
+    Ok(VerifiedSeed {
+        profile_id: contract.profile_id.clone(),
+        seed,
+        initialization,
+        order,
+        schedule,
+        files,
+    })
+}
+
+/// Verifies exactly required captured order and schedule for a locally initialized model.
+///
+/// No initialized-array dependency is introduced; the caller must bind model/seed paths.
+pub fn preflight_order_schedule(
+    profile_id: &str,
+    seed: u8,
+    order: &OrderInput,
+    schedule: &ScheduleInput,
+) -> io::Result<VerifiedSeed> {
+    if profile_id.is_empty() {
+        return Err(invalid("profile identity required"));
+    }
+    let (order, schedule, files) = verify_order_schedule(Some(order), Some(schedule))?;
+    Ok(VerifiedSeed {
+        profile_id: profile_id.into(),
+        seed,
+        initialization: Vec::new(),
+        order,
+        schedule,
+        files,
+    })
+}
+
+type CheckedOrderSchedule = (Option<Vec<usize>>, Option<Vec<f64>>, Vec<(String, String)>);
+fn verify_order_schedule(
+    order: Option<&OrderInput>,
+    schedule: Option<&ScheduleInput>,
+) -> io::Result<CheckedOrderSchedule> {
+    let mut files = Vec::new();
+    let mut read = |f: &LockedFile| -> io::Result<Vec<u8>> {
+        let bytes = f.read()?;
+        files.push((f.path.display().to_string(), data::sha256_hex(&bytes)));
+        Ok(bytes)
+    };
+    let order = order
         .map(|o| -> io::Result<Vec<usize>> {
             let n = match o.coverage {
                 OrderCoverage::FullPermutation => o.population,
@@ -628,7 +673,11 @@ pub fn preflight_seed(contract: &CapturedInputs, seed: u8) -> io::Result<Verifie
             let bytes = read(&o.file)?;
             let text = std::str::from_utf8(&bytes).map_err(|_| invalid("order is not UTF8"))?;
             let indices = text
-                .split_whitespace()
+                .lines()
+                .filter(|line| !line.trim_start().starts_with('#'))
+                .map(|line| line.rsplit_once('\t').map_or(line, |(_, indices)| indices))
+                .flat_map(|line| line.split(|c: char| c.is_whitespace() || c == ','))
+                .filter(|token| !token.is_empty())
                 .map(|s| {
                     s.parse::<usize>()
                         .map_err(|_| invalid("invalid order index"))
@@ -653,9 +702,7 @@ pub fn preflight_seed(contract: &CapturedInputs, seed: u8) -> io::Result<Verifie
             Ok(indices)
         })
         .transpose()?;
-    let schedule = inputs
-        .schedule
-        .as_ref()
+    let schedule = schedule
         .map(|s| -> io::Result<Vec<f64>> {
             let json: Value = serde_json::from_slice(&read(&s.file)?)
                 .map_err(|e| invalid(format!("invalid schedule JSON: {e}")))?;
@@ -676,12 +723,5 @@ pub fn preflight_seed(contract: &CapturedInputs, seed: u8) -> io::Result<Verifie
                 .collect()
         })
         .transpose()?;
-    Ok(VerifiedSeed {
-        profile_id: contract.profile_id.clone(),
-        seed,
-        initialization,
-        order,
-        schedule,
-        files,
-    })
+    Ok((order, schedule, files))
 }
