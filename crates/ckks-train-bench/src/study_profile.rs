@@ -1,6 +1,13 @@
 //! Pure resolution of reviewed study profiles, locked inputs and actual update boundaries.
 //!
 //! No HE objects, datasets, initialized local arrays, training or processes are created.
+mod registered_case;
+pub use registered_case::{
+    CaseBackend, CaseError, CaseEvalConfig, CaseMode, CaseOrigin, CasePacking, CasePlacement,
+    CaseRole, CaseScope, CaseSelector, RegisteredCase, RegisteredCases, SecurityPolicy,
+    SupplementDescriptor, SupplementKind,
+};
+
 use crate::{
     data::sha256_hex,
     profile_data::{

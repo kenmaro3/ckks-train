@@ -1,0 +1,120 @@
+[
+  {
+    "id": "iris_2020_exact_crypto",
+    "profile": "iris__mlp2020",
+    "role": "baseline_a",
+    "backends": [
+      "cpu"
+    ],
+    "modes": [
+      "interactive"
+    ],
+    "packing_variants": [
+      "row_2020",
+      "diagonal_2020"
+    ],
+    "preset": "seal_2020",
+    "seeds": "full_seeds or quick_seeds",
+    "historical_seed2020_anchor": "retain separately; do not count it as seeds0..9",
+    "comparison": "RQ4 continuity; not same-N algorithm-only ratio against main N16"
+  },
+  {
+    "id": "mnist_b64_registered",
+    "control": "FULL-1",
+    "seeds": [
+      0
+    ],
+    "scope": "historical/current FULL-1 preservation only; never dispatch via quick; ten-seed B64 study is the separately named __b64 profiles and *_mnist_b64 families"
+  },
+  {
+    "id": "mnist_784_emlp1_b48_weighted_partial",
+    "role": "main",
+    "dataset": "MNIST784 official subset profile",
+    "model": "emlp1",
+    "backends": [
+      "cpu",
+      "cuda"
+    ],
+    "modes": [
+      "noninteractive"
+    ],
+    "placements": [
+      "when_needed",
+      "after_update",
+      "after_activation"
+    ],
+    "batch": 48,
+    "physical_micro_batches": [
+      32,
+      16
+    ],
+    "extension": "weighted_partial_v1",
+    "seeds": "full_seeds or quick_seeds",
+    "profile_source": "configs/reboot_emlp1_faithful.json and existing R-REB1 subset exports",
+    "input_status": "seed0 captured; seeds1..9 need matched export before full runs",
+    "historical_B48_formula_rows": "unchanged"
+  },
+  {
+    "id": "reduced_level_matched_training",
+    "roles": [
+      "main"
+    ],
+    "model": "emlp1",
+    "dataset": "MNIST784 existing supplemental profile",
+    "backends": [
+      "cpu",
+      "cuda"
+    ],
+    "modes": [
+      "interactive"
+    ],
+    "primary_batch": 32,
+    "top_level": 7,
+    "partial_batch_top_level": 8,
+    "source_ref": "gpu_policy",
+    "seeds": "full_seeds or quick_seeds",
+    "claim": "supplement; unlike levels never pooled"
+  },
+  {
+    "id": "rq3_all8",
+    "role": "main_ablation",
+    "models": [
+      "emlp1"
+    ],
+    "dataset": "MNIST784 existing ablation profile",
+    "backends_levels": [
+      "cpu:L31",
+      "cpu:L7",
+      "cuda:L7"
+    ],
+    "configs": "all eight hoist/bsgs/lazy_relin tuples; four caveats unchanged",
+    "optimizer_policy": "NAG first; only capacity exit3 allows explicit SGD profile and matched CPU SGD row; device OOM is failure",
+    "seeds": "full_seeds or quick_seeds",
+    "repetitions_are_not_seeds": true,
+    "source_ref": "gpu_policy",
+    "caveats": [
+      "bsgs=false retains pre-rotated weights/same Galois keys; only baby rotations hoist and zero-shift block sums lazily; strongest textbook diagonal layout is not implemented",
+      "BSGS gain versus this bsgs=false baseline is an upper bound against strongest textbook naive baseline; marginal hoist/lazy gains inside bsgs=false are lower bounds",
+      "hoist changes no OpCounter value; time-only effect, no KS-count claim",
+      "bsgs does not change gradient outer-product rotations; lazy_relin does not change interactive gradient individual diagonal products; hoist may change execution"
+    ]
+  },
+  {
+    "id": "task51_plain_references",
+    "role": "plaintext_reference",
+    "source_configs": [
+      "mnist_paper",
+      "fmnist",
+      "bc"
+    ],
+    "seeds": "full_seeds or quick_seeds",
+    "status": "existing fixed-epoch evidence retained; not a substitute for encrypted matrix"
+  },
+  {
+    "id": "task53_degree4_emlp1",
+    "role": "activation_experiment",
+    "source": "../plans/2026-11-04-he-training-implementation-plan-m3-m5.md Task53",
+    "status": "deferred stretch (scope-cut #3); separate future profile/design/gate, not required D0 completion and not implemented",
+    "target": "degree4 ReLU least-squares approximation on [-4,4] versus PolyRelu2 in eMLP1 NI CPU or GPU; coefficients/profile/range validation pending separate ruling; actual extra levels/bootstrap counts and accuracy remain unmeasured"
+  }
+]

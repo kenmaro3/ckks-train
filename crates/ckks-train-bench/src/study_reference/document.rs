@@ -1905,3 +1905,53 @@ mod tests;
 mod target_tests;
 
 pub(super) mod target;
+
+// Pure projection of an already registry-derived identity, not a claim parser.
+pub(super) fn registered_case_canonical(
+    case: &crate::study_profile::RegisteredCase,
+) -> Result<Vec<u8>> {
+    use crate::study_profile::CaseScope;
+    let s = case.selector();
+    ensure(
+        s.scope == CaseScope::Full && s.seed <= 9 && case.logical_batch() > 0,
+        DocumentErrorCode::OutOfRange,
+        "registered_case",
+    )?;
+    ensure(
+        s.registration_id.len() <= 128 && s.profile_id.len() <= 128,
+        DocumentErrorCode::OutOfRange,
+        "registered_case.id",
+    )?;
+    ensure(
+        case.registry_sha256().len() == 64 && lower_hex(case.registry_sha256()),
+        DocumentErrorCode::BadHex,
+        "registered_case.registry",
+    )?;
+    let mut e = Encoder::new(DocumentLayout::TargetLock);
+    e.text(ENCODING_VERSION)?;
+    e.text("hekit-study-registered-case-v1")?;
+    e.text(case.registry_sha256())?;
+    e.byte(s.origin as u8)?;
+    e.text(&s.registration_id)?;
+    e.text(&s.profile_id)?;
+    s.seed.encode(&mut e)?;
+    e.byte(s.scope as u8)?;
+    e.byte(case.role() as u8)?;
+    e.byte(s.backend as u8)?;
+    e.byte(s.mode as u8)?;
+    e.byte(s.placement as u8)?;
+    e.byte(s.packing as u8)?;
+    e.byte(case.security_policy() as u8)?;
+    case.logical_batch().encode(&mut e)?;
+    // Use the unchanged Option/Bool grammar without exposing private document DTOs.
+    struct Flags(crate::study_profile::CaseEvalConfig);
+    impl Encode for Flags {
+        fn encode(&self, e: &mut Encoder) -> Result<()> {
+            self.0.hoist.encode(e)?;
+            self.0.bsgs.encode(e)?;
+            self.0.lazy_relin.encode(e)
+        }
+    }
+    case.eval_config().map(Flags).encode(&mut e)?;
+    Ok(e.bytes)
+}

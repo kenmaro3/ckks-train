@@ -1,0 +1,1964 @@
+{
+  "encoding": "hekit-study-reference-encoding-v1",
+  "domain": "hekit-study-registered-case-v1",
+  "description": "Pure prospective identities; no execution/readiness/scientific evidence.",
+  "vectors": [
+    {
+      "name": "main-I-cpu-iris0",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_i",
+        "profile_id": "iris__mlp2020",
+        "seed": 0,
+        "scope": "full",
+        "role": "main",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_train",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630006000000000000006d61696e5f690d00000000000000697269735f5f6d6c7032303230000000000000000000000000000000140000000000000000",
+      "case_sha256": "3b15856578d546668660055b7172313a97132efefddfe170087f9b284ee6ec57",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 14
+        },
+        {
+          "field": "profile_id",
+          "offset": 166,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 187,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 195,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 196,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 197,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 202,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 210,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-I-cuda-iris0",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_i",
+        "profile_id": "iris__mlp2020",
+        "seed": 0,
+        "scope": "full",
+        "role": "main",
+        "backend": "cuda",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_train",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630006000000000000006d61696e5f690d00000000000000697269735f5f6d6c7032303230000000000000000000000100000000140000000000000000",
+      "case_sha256": "5488173a1967e0f2cc075bbfd1a5027766084804a62efc7199f5c2a561083ef5",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 14
+        },
+        {
+          "field": "profile_id",
+          "offset": 166,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 187,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 195,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 196,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 197,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 202,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 210,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-I-cpu-iris9",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_i",
+        "profile_id": "iris__mlp2020",
+        "seed": 9,
+        "scope": "full",
+        "role": "main",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_train",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630006000000000000006d61696e5f690d00000000000000697269735f5f6d6c7032303230090000000000000000000000000000140000000000000000",
+      "case_sha256": "6e8dca6f78c85428547670337ba0100b47bcd9353590e3f8cc596d0521663514",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 14
+        },
+        {
+          "field": "profile_id",
+          "offset": 166,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 187,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 195,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 196,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 197,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 202,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 210,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-NI-cpu-WN-B48",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_ni",
+        "profile_id": "mnist_released__emlp1",
+        "seed": 0,
+        "scope": "full",
+        "role": "main",
+        "backend": "cpu",
+        "mode": "noninteractive",
+        "placement": "when_needed",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_boot",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630007000000000000006d61696e5f6e6915000000000000006d6e6973745f72656c65617365645f5f656d6c7031000000000000000000000001010001300000000000000000",
+      "case_sha256": "c69818a4d424747af4bbdb2164a2aa2b2121f29da65575a3b74bdb2bc3d44d5b",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 15
+        },
+        {
+          "field": "profile_id",
+          "offset": 167,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 196,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 207,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 208,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 209,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 210,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 211,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 219,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-NI-cuda-AU-B48",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_ni",
+        "profile_id": "mnist_released__emlp1",
+        "seed": 0,
+        "scope": "full",
+        "role": "main",
+        "backend": "cuda",
+        "mode": "noninteractive",
+        "placement": "after_update",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_boot",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630007000000000000006d61696e5f6e6915000000000000006d6e6973745f72656c65617365645f5f656d6c7031000000000000000000000101020001300000000000000000",
+      "case_sha256": "3b53f24e33ff8e0cb8d66e966dab3ec7bdbfb41507143b29914e504f0f38018f",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 15
+        },
+        {
+          "field": "profile_id",
+          "offset": 167,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 196,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 207,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 208,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 209,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 210,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 211,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 219,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-NI-cuda-AA-B48",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_ni",
+        "profile_id": "mnist_released__emlp1",
+        "seed": 9,
+        "scope": "full",
+        "role": "main",
+        "backend": "cuda",
+        "mode": "noninteractive",
+        "placement": "after_activation",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_boot",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630007000000000000006d61696e5f6e6915000000000000006d6e6973745f72656c65617365645f5f656d6c7031090000000000000000000101030001300000000000000000",
+      "case_sha256": "101e6285b8a5af1b3050d83515d95767c4d6e56ec4360930ce795423ea846cd1",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 15
+        },
+        {
+          "field": "profile_id",
+          "offset": 167,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 196,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 207,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 208,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 209,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 210,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 211,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 219,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-NI-cpu-WN-B64",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_ni_mnist_b64",
+        "profile_id": "mnist_released__emlp1__b64",
+        "seed": 0,
+        "scope": "full",
+        "role": "main",
+        "backend": "cpu",
+        "mode": "noninteractive",
+        "placement": "when_needed",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_boot",
+        "logical_batch": 64,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d76314000000000000000313634646263363766646462383762656438313462666139626362616431663937353038613461326465323635623761386361383939643866616231623463630011000000000000006d61696e5f6e695f6d6e6973745f6236341a000000000000006d6e6973745f72656c65617365645f5f656d6c70315f5f623634000000000000000000000001010001400000000000000000",
+      "case_sha256": "a30db867466557b147d9247284f38f9bb1400f6f13543652d0ffa08d5f882bc3",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 25
+        },
+        {
+          "field": "profile_id",
+          "offset": 177,
+          "length": 34
+        },
+        {
+          "field": "seed",
+          "offset": 211,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 219,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 220,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 221,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 222,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 223,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 224,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 225,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 226,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 234,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "main-NI-cpu-WN-B128",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "main_ni_mnist_b128_candidate",
+        "profile_id": "mnist_released__emlp1__b128_candidate",
+        "seed": 9,
+        "scope": "full",
+        "role": "main",
+        "backend": "cpu",
+        "mode": "noninteractive",
+        "placement": "when_needed",
+        "packing": "batched_diagonal",
+        "security_policy": "n16_boot",
+        "logical_batch": 128,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363001c000000000000006d61696e5f6e695f6d6e6973745f623132385f63616e64696461746525000000000000006d6e6973745f72656c65617365645f5f656d6c70315f5f623132385f63616e646964617465090000000000000000000001010001800000000000000000",
+      "case_sha256": "55eb42e2c45c5049a0cbd123a800fa016e63e940578feebf87f141ba9b13df8a",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 36
+        },
+        {
+          "field": "profile_id",
+          "offset": 188,
+          "length": 45
+        },
+        {
+          "field": "seed",
+          "offset": 233,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 241,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 242,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 243,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 244,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 245,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 246,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 247,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 248,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 256,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "matched-a-row",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "a_matched",
+        "profile_id": "iris__mlp2020",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_a",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "row_2020",
+        "security_policy": "n16_train",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000900000000000000615f6d6174636865640d00000000000000697269735f5f6d6c7032303230000000000000000000010000000100140000000000000000",
+      "case_sha256": "103b08d8bc45431dd44671cf449ba4032b0c44d4d7cbfea5ae98b08e19a64fa0",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 17
+        },
+        {
+          "field": "profile_id",
+          "offset": 169,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 190,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 205,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 213,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "matched-a-diagonal",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "a_matched",
+        "profile_id": "iris__mlp2020",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_a",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "diagonal_2020",
+        "security_policy": "n16_train",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000900000000000000615f6d6174636865640d00000000000000697269735f5f6d6c7032303230000000000000000000010000000200140000000000000000",
+      "case_sha256": "707c7a42d46cb1f255ae54c6946ac1d6125c0bc1254cbc29fa3efa68b6d73e05",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 17
+        },
+        {
+          "field": "profile_id",
+          "offset": 169,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 190,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 205,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 213,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "packed-c-I",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "c_i",
+        "profile_id": "mnist_released__emlp2",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_c",
+        "backend": "cuda",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "alternating_reboot_row_column",
+        "security_policy": "n16_train",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000300000000000000635f6915000000000000006d6e6973745f72656c65617365645f5f656d6c7032000000000000000000030100000300300000000000000000",
+      "case_sha256": "be3f9373706d30ca39243f7382ffbf35fcc05009266c448e680604ea8c740621",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 11
+        },
+        {
+          "field": "profile_id",
+          "offset": 163,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 192,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 207,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 215,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "packed-c-NI-WN",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "c_ni",
+        "profile_id": "mnist_released__emlp2",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_c",
+        "backend": "cuda",
+        "mode": "noninteractive",
+        "placement": "when_needed",
+        "packing": "alternating_reboot_row_column",
+        "security_policy": "n16_boot",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000400000000000000635f6e6915000000000000006d6e6973745f72656c65617365645f5f656d6c7032000000000000000000030101010301300000000000000000",
+      "case_sha256": "d5686728a4f0500ebdafc73d29aa7ea1de927a384e9110cc08b1d5de79d505ba",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 12
+        },
+        {
+          "field": "profile_id",
+          "offset": 164,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 193,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 207,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 208,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 216,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "packed-c-NI-AU",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "c_ni",
+        "profile_id": "mnist_released__emlp2",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_c",
+        "backend": "cuda",
+        "mode": "noninteractive",
+        "placement": "after_update",
+        "packing": "alternating_reboot_row_column",
+        "security_policy": "n16_boot",
+        "logical_batch": 48,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000400000000000000635f6e6915000000000000006d6e6973745f72656c65617365645f5f656d6c7032000000000000000000030101020301300000000000000000",
+      "case_sha256": "26e0a60b814d8d022368b5bd2cbbf83c150bbffa32769fa7986a8c3643799cab",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 12
+        },
+        {
+          "field": "profile_id",
+          "offset": 164,
+          "length": 29
+        },
+        {
+          "field": "seed",
+          "offset": 193,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 204,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 205,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 206,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 207,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 208,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 216,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "packed-c-NI-AA",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "c_ni_mnist_b128_candidate",
+        "profile_id": "mnist_released__emlp1__b128_candidate",
+        "seed": 9,
+        "scope": "full",
+        "role": "baseline_c",
+        "backend": "cuda",
+        "mode": "noninteractive",
+        "placement": "after_activation",
+        "packing": "alternating_reboot_row_column",
+        "security_policy": "n16_boot",
+        "logical_batch": 128,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363001900000000000000635f6e695f6d6e6973745f623132385f63616e64696461746525000000000000006d6e6973745f72656c65617365645f5f656d6c70315f5f623132385f63616e646964617465090000000000000000030101030301800000000000000000",
+      "case_sha256": "b6a4773b68b38cb63663b43dc8fe06de6b71d2ff77754f0d35cc077459188496",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 33
+        },
+        {
+          "field": "profile_id",
+          "offset": 185,
+          "length": 45
+        },
+        {
+          "field": "seed",
+          "offset": 230,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 238,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 239,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 240,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 241,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 242,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 243,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 244,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 245,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 253,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "external-unresolved-Iris",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "b_external",
+        "profile_id": "iris__emlp1",
+        "seed": 9,
+        "scope": "full",
+        "role": "baseline_b",
+        "backend": "external_cpu",
+        "mode": "noninteractive",
+        "placement": "upstream_verified",
+        "packing": "official_upstream",
+        "security_policy": "upstream_verified",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363000a00000000000000625f65787465726e616c0b00000000000000697269735f5f656d6c7031090000000000000000020201040403140000000000000000",
+      "case_sha256": "67c420e2944d40655c87428fbc2def0435b03e48996e8f1a8967a834e13b1426",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 18
+        },
+        {
+          "field": "profile_id",
+          "offset": 170,
+          "length": 19
+        },
+        {
+          "field": "seed",
+          "offset": 189,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 197,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 198,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 199,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 200,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 201,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 202,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 203,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 204,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 212,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "external-B64-override",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "b_external_mnist_b64",
+        "profile_id": "mnist_released__emlp1__b64",
+        "seed": 9,
+        "scope": "full",
+        "role": "baseline_b",
+        "backend": "external_cpu",
+        "mode": "noninteractive",
+        "placement": "upstream_verified",
+        "packing": "official_upstream",
+        "security_policy": "upstream_verified",
+        "logical_batch": 64,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363001400000000000000625f65787465726e616c5f6d6e6973745f6236341a000000000000006d6e6973745f72656c65617365645f5f656d6c70315f5f623634090000000000000000020201040403400000000000000000",
+      "case_sha256": "3a12ba7c94b87dc9dc2c316945797128990891f434f1f543e83474e8c0950d22",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 28
+        },
+        {
+          "field": "profile_id",
+          "offset": 180,
+          "length": 34
+        },
+        {
+          "field": "seed",
+          "offset": 214,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 222,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 223,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 224,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 225,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 226,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 227,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 228,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 229,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 237,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "external-B128-override",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "family",
+        "registration_id": "b_external_mnist_b128_candidate",
+        "profile_id": "mnist_released__emlp1__b128_candidate",
+        "seed": 9,
+        "scope": "full",
+        "role": "baseline_b",
+        "backend": "external_cpu",
+        "mode": "noninteractive",
+        "placement": "upstream_verified",
+        "packing": "official_upstream",
+        "security_policy": "upstream_verified",
+        "logical_batch": 128,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363001f00000000000000625f65787465726e616c5f6d6e6973745f623132385f63616e64696461746525000000000000006d6e6973745f72656c65617365645f5f656d6c70315f5f623132385f63616e646964617465090000000000000000020201040403800000000000000000",
+      "case_sha256": "faeb7667ff71c104cd2c707b39b122500a0d12a10e36c143f110d3ad23c53022",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 39
+        },
+        {
+          "field": "profile_id",
+          "offset": 191,
+          "length": 45
+        },
+        {
+          "field": "seed",
+          "offset": 236,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 244,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 245,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 246,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 247,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 248,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 249,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 250,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 251,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 259,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "exact-Iris-row",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "supplement",
+        "registration_id": "iris_2020_exact_crypto",
+        "profile_id": "iris__mlp2020",
+        "seed": 0,
+        "scope": "full",
+        "role": "baseline_a",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "row_2020",
+        "security_policy": "seal_2020",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363011600000000000000697269735f323032305f65786163745f63727970746f0d00000000000000697269735f5f6d6c7032303230000000000000000000010000000102140000000000000000",
+      "case_sha256": "994360fa52f4a55847aa59cbe2fec05a44400fbb25486df63c11d414a3b8e3db",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 30
+        },
+        {
+          "field": "profile_id",
+          "offset": 182,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 203,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 211,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 212,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 213,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 214,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 215,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 216,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 217,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 218,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 226,
+          "length": 1
+        }
+      ]
+    },
+    {
+      "name": "exact-Iris-diagonal-seed9",
+      "identity": {
+        "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+        "origin": "supplement",
+        "registration_id": "iris_2020_exact_crypto",
+        "profile_id": "iris__mlp2020",
+        "seed": 9,
+        "scope": "full",
+        "role": "baseline_a",
+        "backend": "cpu",
+        "mode": "interactive",
+        "placement": "client_refresh",
+        "packing": "diagonal_2020",
+        "security_policy": "seal_2020",
+        "logical_batch": 20,
+        "eval_config": null
+      },
+      "canonical_hex": "210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d7631400000000000000031363464626336376664646238376265643831346266613962636261643166393735303861346132646532363562376138636138393964386661623162346363011600000000000000697269735f323032305f65786163745f63727970746f0d00000000000000697269735f5f6d6c7032303230090000000000000000010000000202140000000000000000",
+      "case_sha256": "48c3bb93e1894fa91cc3fdab7dd1527b975ff6ee0ec31436c03969b9ed9714ed",
+      "field_offsets": [
+        {
+          "field": "header.encoding",
+          "offset": 0,
+          "length": 41
+        },
+        {
+          "field": "header.domain",
+          "offset": 41,
+          "length": 38
+        },
+        {
+          "field": "registry_sha256",
+          "offset": 79,
+          "length": 72
+        },
+        {
+          "field": "origin",
+          "offset": 151,
+          "length": 1
+        },
+        {
+          "field": "registration_id",
+          "offset": 152,
+          "length": 30
+        },
+        {
+          "field": "profile_id",
+          "offset": 182,
+          "length": 21
+        },
+        {
+          "field": "seed",
+          "offset": 203,
+          "length": 8
+        },
+        {
+          "field": "scope",
+          "offset": 211,
+          "length": 1
+        },
+        {
+          "field": "role",
+          "offset": 212,
+          "length": 1
+        },
+        {
+          "field": "backend",
+          "offset": 213,
+          "length": 1
+        },
+        {
+          "field": "mode",
+          "offset": 214,
+          "length": 1
+        },
+        {
+          "field": "placement",
+          "offset": 215,
+          "length": 1
+        },
+        {
+          "field": "packing",
+          "offset": 216,
+          "length": 1
+        },
+        {
+          "field": "security_policy",
+          "offset": 217,
+          "length": 1
+        },
+        {
+          "field": "logical_batch",
+          "offset": 218,
+          "length": 8
+        },
+        {
+          "field": "eval_config",
+          "offset": 226,
+          "length": 1
+        }
+      ]
+    }
+  ]
+}

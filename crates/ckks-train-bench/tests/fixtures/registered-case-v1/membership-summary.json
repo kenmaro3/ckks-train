@@ -1,0 +1,269 @@
+{
+  "registry_sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc",
+  "profile_batches": {
+    "iris__mlp2020": 20,
+    "iris__emlp1": 20,
+    "iris__emlp2": 20,
+    "iris__emlp3": 20,
+    "breast_cancer__mlp2020": 16,
+    "breast_cancer__emlp1": 16,
+    "breast_cancer__emlp2": 16,
+    "breast_cancer__emlp3": 16,
+    "mnist_released__mlp2020": 48,
+    "mnist_released__emlp1": 48,
+    "mnist_released__emlp2": 48,
+    "mnist_released__emlp3": 48,
+    "fashion_mnist__mlp2020": 48,
+    "fashion_mnist__emlp1": 48,
+    "fashion_mnist__emlp2": 48,
+    "fashion_mnist__emlp3": 48,
+    "mnist_released__mlp2020__b64": 64,
+    "mnist_released__emlp1__b64": 64,
+    "mnist_released__emlp2__b64": 64,
+    "mnist_released__emlp3__b64": 64,
+    "mnist_released__emlp1__b128_candidate": 128
+  },
+  "family_full_count": 2680,
+  "family_seed0_projection_count": 268,
+  "base_B64_B128": [
+    2040,
+    510,
+    130
+  ],
+  "exact_iris_prospective_count": 20,
+  "whole_study_denominator": null,
+  "all_families": [
+    {
+      "registration_id": "main_i",
+      "profiles": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "full_count": 320,
+      "seed0_projection_count": 32,
+      "tuple_membership_sha256": "e692a07f0dce1302455bd9e7d3ffbe76d3d70241295d81e2df425c7746932ed4"
+    },
+    {
+      "registration_id": "main_ni",
+      "profiles": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "full_count": 960,
+      "seed0_projection_count": 96,
+      "tuple_membership_sha256": "e0691e78f202fd96bf531f9ff9fcd6d5761e7ac08094c88ab3e4f4a519d2bfe1"
+    },
+    {
+      "registration_id": "a_matched",
+      "profiles": [
+        "iris__mlp2020",
+        "breast_cancer__mlp2020",
+        "mnist_released__mlp2020",
+        "fashion_mnist__mlp2020"
+      ],
+      "full_count": 80,
+      "seed0_projection_count": 8,
+      "tuple_membership_sha256": "b62af2f208849b82f0ae472b214539397f22074006715a06152cf8c1c9bb296b"
+    },
+    {
+      "registration_id": "c_i",
+      "profiles": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "full_count": 160,
+      "seed0_projection_count": 16,
+      "tuple_membership_sha256": "ab0397ae6ce505cdd2021431f14c80bb0349461f5882421d257e53e6af967907"
+    },
+    {
+      "registration_id": "c_ni",
+      "profiles": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "full_count": 480,
+      "seed0_projection_count": 48,
+      "tuple_membership_sha256": "c6f25ceef4bada226c84748aae353b550920dd30b9919d8c33594fdc7fb5f96f"
+    },
+    {
+      "registration_id": "b_external",
+      "profiles": [
+        "iris__emlp1",
+        "breast_cancer__emlp1",
+        "mnist_released__emlp1",
+        "fashion_mnist__emlp1"
+      ],
+      "full_count": 40,
+      "seed0_projection_count": 4,
+      "tuple_membership_sha256": "5170f40dc77f881622fe18da47810bc65a9ae6f7ca379670e01158d2f2b54321"
+    },
+    {
+      "registration_id": "main_i_mnist_b64",
+      "profiles": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "full_count": 80,
+      "seed0_projection_count": 8,
+      "tuple_membership_sha256": "c28d988422dbfbfcd24bfe9a6106bd743e0dddcf05495f7fd16e8f5a4004b1fb"
+    },
+    {
+      "registration_id": "main_ni_mnist_b64",
+      "profiles": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "full_count": 240,
+      "seed0_projection_count": 24,
+      "tuple_membership_sha256": "9b8b808df464b0a21bb448a782da527f266b6abae16b4d21b0290632baddf710"
+    },
+    {
+      "registration_id": "a_matched_mnist_b64",
+      "profiles": [
+        "mnist_released__mlp2020__b64"
+      ],
+      "full_count": 20,
+      "seed0_projection_count": 2,
+      "tuple_membership_sha256": "a11ef934407c6d56beffe3329ce08cca8f907202ac6d2a54869392445721ddbe"
+    },
+    {
+      "registration_id": "c_i_mnist_b64",
+      "profiles": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "full_count": 40,
+      "seed0_projection_count": 4,
+      "tuple_membership_sha256": "55804d93ca8474a7910b41734588d2413ac37d3b1bca9994379531afde5b3dea"
+    },
+    {
+      "registration_id": "c_ni_mnist_b64",
+      "profiles": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "full_count": 120,
+      "seed0_projection_count": 12,
+      "tuple_membership_sha256": "c2e5752c6d536c8785db49d67f33e7054b3e1b2eef9b5bf5913b5094da7984d7"
+    },
+    {
+      "registration_id": "b_external_mnist_b64",
+      "profiles": [
+        "mnist_released__emlp1__b64"
+      ],
+      "full_count": 10,
+      "seed0_projection_count": 1,
+      "tuple_membership_sha256": "be07ad80f4afc1d0f6d9db28de4c7ce6123ba22b769842c6529bd4e2b7991a95"
+    },
+    {
+      "registration_id": "main_i_mnist_b128_candidate",
+      "profiles": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "full_count": 20,
+      "seed0_projection_count": 2,
+      "tuple_membership_sha256": "dc76b16188806c530dccb8066ebf7cf49b69b0c4200491a02b57d495bf52d430"
+    },
+    {
+      "registration_id": "main_ni_mnist_b128_candidate",
+      "profiles": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "full_count": 60,
+      "seed0_projection_count": 6,
+      "tuple_membership_sha256": "651843f5a48ffad9ca09790c4a307c9e3bce53a1f4f19d7ed829ac07be0f72e7"
+    },
+    {
+      "registration_id": "c_i_mnist_b128_candidate",
+      "profiles": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "full_count": 10,
+      "seed0_projection_count": 1,
+      "tuple_membership_sha256": "1335e0cf229d7253f9f4aefa6c27b8a791735558563001f958c986795d5bf457"
+    },
+    {
+      "registration_id": "c_ni_mnist_b128_candidate",
+      "profiles": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "full_count": 30,
+      "seed0_projection_count": 3,
+      "tuple_membership_sha256": "acf9f0c3fa63f07b6cce1b7978acaaa804d7d6266d8f1e9fee64edfb4d7fd35b"
+    },
+    {
+      "registration_id": "b_external_mnist_b128_candidate",
+      "profiles": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "full_count": 10,
+      "seed0_projection_count": 1,
+      "tuple_membership_sha256": "c47730553f794391e85f4c24889119e231afe4c656494604f05ea994ff8787ff"
+    }
+  ],
+  "supplement_descriptor_sha256": "c16a51f9ec4df3d253647c6a2ac696a2758b9a8b90cf8d21c00282afebaefb49"
+}

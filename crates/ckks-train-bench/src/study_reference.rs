@@ -926,3 +926,10 @@ mod tests {
         assert_ne!(projections[0], projections[2]);
     }
 }
+
+// The existing private document codec exclusively owns case canonical primitives.
+pub(crate) fn registered_case_canonical(
+    case: &crate::study_profile::RegisteredCase,
+) -> std::result::Result<Vec<u8>, DocumentError> {
+    document::registered_case_canonical(case)
+}

@@ -1,0 +1,65 @@
+{
+  "all_raw_fields_preserved_in": "supplements-preserved.json",
+  "exact_iris_placement_source": "Ratified study-target-design §5 / dependency audit §4: client_refresh",
+  "historical_seed2020": "Retained anchor description only; excluded from prospective 0..9 rows",
+  "rq3_boolean_order": [
+    "hoist",
+    "bsgs",
+    "lazy_relin"
+  ],
+  "rq3_all_eight_declared_flag_tuples": [
+    {
+      "hoist": false,
+      "bsgs": false,
+      "lazy_relin": false
+    },
+    {
+      "hoist": false,
+      "bsgs": false,
+      "lazy_relin": true
+    },
+    {
+      "hoist": false,
+      "bsgs": true,
+      "lazy_relin": false
+    },
+    {
+      "hoist": false,
+      "bsgs": true,
+      "lazy_relin": true
+    },
+    {
+      "hoist": true,
+      "bsgs": false,
+      "lazy_relin": false
+    },
+    {
+      "hoist": true,
+      "bsgs": false,
+      "lazy_relin": true
+    },
+    {
+      "hoist": true,
+      "bsgs": true,
+      "lazy_relin": false
+    },
+    {
+      "hoist": true,
+      "bsgs": true,
+      "lazy_relin": true
+    }
+  ],
+  "rq3_flags_are_inspection_only": true,
+  "unresolved_descriptors_yield_no_case_identity": [
+    "mnist_784_emlp1_b48_weighted_partial",
+    "reduced_level_matched_training",
+    "rq3_all8"
+  ],
+  "archival_only": [
+    "mnist_b64_registered"
+  ],
+  "different_roles": [
+    "task51_plain_references",
+    "task53_degree4_emlp1"
+  ]
+}
