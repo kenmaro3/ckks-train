@@ -1,0 +1,18 @@
+[
+  {
+    "phase": "i",
+    "original_bytes": 16550125,
+    "original_sha256": "7256d4572d8da7e8b87dad7f193106500a998d3d245f116eb7365a2ef8593afd",
+    "compressed_bytes": 6703880,
+    "compressed_sha256": "4f6e2641ae67e1f8d51a8ce8d033fd93997e95f3d261aaac68673febf004097a",
+    "roundtrip_verified": true
+  },
+  {
+    "phase": "ni",
+    "original_bytes": 95120811,
+    "original_sha256": "d8a9f62fb828a2b9f27ce60adb83d626f5835739d4546317d1ddd0012c8a9678",
+    "compressed_bytes": 32158222,
+    "compressed_sha256": "206a421f85170754062e43dfd541188120cfb717076c55ac8756562bec85ec16",
+    "roundtrip_verified": true
+  }
+]

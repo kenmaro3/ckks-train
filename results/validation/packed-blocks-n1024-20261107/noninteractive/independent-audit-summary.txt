@@ -1,0 +1,153 @@
+{
+  "status": "PASS_retained_NI_scope",
+  "manifest_entries_verified": 66,
+  "slots": 4050,
+  "complex_slots": 2073600,
+  "finite_f64_components": 4147200,
+  "line_counts": {
+    "": 3,
+    "running": 1,
+    "test": 2,
+    "BEGIN": 24,
+    "SLOTS": 4050,
+    "ATTEMPT_INTERVAL": 332,
+    "ATTEMPT": 332,
+    "INCREMENTAL": 332,
+    "PARITY": 2654,
+    "TRACE_FLAGS": 60,
+    "PROJECTION": 200,
+    "EVENT": 332,
+    "UPDATE_COUNTS": 24,
+    "GRAPH_COMMIT": 24,
+    "INFERENCE_TRACE_FLAGS": 15,
+    "NI_END": 1,
+    "ok": 1
+  },
+  "global_max_error": {
+    "index": 3213,
+    "case": [
+      3,
+      "Wn"
+    ],
+    "label": "attempt=267 output",
+    "level": 16,
+    "family": "boot_output_inference_hidden",
+    "bound": 0.6,
+    "magnitude": 0.4642049460008271,
+    "has_reported_parity": false,
+    "payload_sha256": "3e4e6d40010b45564ca2818bdecf928c630d110c0aeaca4b065dcfcf5cc38e0d",
+    "max": 3.441401240719656e-08,
+    "worst": 465,
+    "active": 3.441401240719656e-08,
+    "padding": 1.1978874418252318e-08,
+    "imaginary": 3.308081736605577e-08,
+    "replica": 1.3989270914108881e-08
+  },
+  "global_max_incremental": {
+    "ordinal": 194,
+    "graph": 3,
+    "placement": "Au",
+    "phase": "Inference",
+    "update": null,
+    "stage": 0,
+    "record": 0,
+    "role": "Hidden { stage: 0, record: 0 }",
+    "family": "hidden",
+    "bound": 0.6,
+    "input_range": 0.5292030890432238,
+    "input_parity": 1.603014101918368e-08,
+    "output_parity": 2.7880783207019227e-08,
+    "incremental_max": 1.8763991003465872e-08,
+    "before": {
+      "rotations": 8697,
+      "relins": 8284,
+      "ct_ct_tensor": 9538,
+      "ct_pt_mults": 41153,
+      "rescales": 12383,
+      "sse_switches": 388,
+      "bootstraps": 194
+    },
+    "after": {
+      "rotations": 8734,
+      "relins": 8324,
+      "ct_ct_tensor": 9584,
+      "ct_pt_mults": 41360,
+      "rescales": 12439,
+      "sse_switches": 390,
+      "bootstraps": 195
+    },
+    "interval": {
+      "rotations": 37,
+      "relins": 40,
+      "ct_ct_tensor": 46,
+      "ct_pt_mults": 207,
+      "rescales": 56,
+      "sse_switches": 2,
+      "bootstraps": 1
+    }
+  },
+  "summary_max_absolute_differences": {
+    "max": 1.1089202317039978e-16,
+    "active": 1.1089202317039978e-16,
+    "padding": 1.6543612251060553e-24,
+    "replica": 1.6543612251060553e-24,
+    "imaginary": 0.0
+  },
+  "other_summary_max_absolute_differences": {
+    "range": 1.1102230246251565e-16,
+    "incremental": 3.308722450212111e-24,
+    "projection": 1.6543612251060553e-24
+  },
+  "exact_payload_identity_checks": 2502,
+  "cases": {
+    "G2 Au": {
+      "count": 544,
+      "max_error": 3.11295718309328e-08,
+      "max_magnitude": 0.7500000000253577,
+      "max_imaginary": 2.6933692626688635e-08,
+      "max_padding": 1.454330701345794e-08,
+      "max_replica": 1.3741019953337011e-08
+    },
+    "G2 Wn": {
+      "count": 544,
+      "max_error": 3.014114936455641e-08,
+      "max_magnitude": 0.7500000000377786,
+      "max_imaginary": 2.6582513081299242e-08,
+      "max_padding": 1.4034359552634563e-08,
+      "max_replica": 1.5100650340946003e-08
+    },
+    "G2 Aa": {
+      "count": 493,
+      "max_error": 2.9172576570540833e-08,
+      "max_magnitude": 0.7500000000327056,
+      "max_imaginary": 2.0715164138423934e-08,
+      "max_padding": 1.4022289364307182e-08,
+      "max_replica": 1.5443748512212872e-08
+    },
+    "G3 Au": {
+      "count": 861,
+      "max_error": 2.7880783207019227e-08,
+      "max_magnitude": 0.750000000043351,
+      "max_imaginary": 2.1535951546156785e-08,
+      "max_padding": 1.5454310611905637e-08,
+      "max_replica": 1.4763707139034946e-08
+    },
+    "G3 Wn": {
+      "count": 861,
+      "max_error": 3.441401240719656e-08,
+      "max_magnitude": 0.7500000000489652,
+      "max_imaginary": 3.308081736605577e-08,
+      "max_padding": 1.4066467851998168e-08,
+      "max_replica": 1.5412496418069485e-08
+    },
+    "G3 Aa": {
+      "count": 747,
+      "max_error": 2.3075916370395683e-08,
+      "max_magnitude": 0.7500000000235387,
+      "max_imaginary": 1.831925347210412e-08,
+      "max_padding": 1.4106783648214833e-08,
+      "max_replica": 1.4628177613103625e-08
+    }
+  }
+}
+derived_json_sha256 0884fad47339f052be9a8ec05b82c73801b5c49e4ff34060674de893c8189800

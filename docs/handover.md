@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [Linux起動前提とCIの未実行](#latest-evidence-20261107-bootstrap)。
+最新の追記: [packed-blockの実I/NI検証と全ケースprojection](#latest-evidence-20261107-blocks)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-bootstrap)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-blocks)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -457,3 +457,17 @@ Mac容量対策として、稼働していないSage環境を削除した。394�
 [R-REB-9-BOOTSTRAP-STATIC](../results/quadruped/raw/R-REB-9-BOOTSTRAP-STATIC/README.md)は05:12:43 JSTの固定source読み取り。既存venvの起動時_virtualenv importは、現在の「検証前に読み込んだ管理対象sourceを拒否する」ルールと衝突すると予測される。target起動や科学用importは実行していない。新しい空のstdlib venvと明示した既存package pathを用いる案を設計中で、元環境の変更・新環境作成・guard例外は行っていない。実行前にcreator/startup・launcher・context・native/isolationと完全一致ゲートを検証する。
 
 CIは`50a6dee`までの直近記録では成功。一方、`c6ab260` [run42285149048](https://github.com/kenmaro3/ckks-train/actions/runs/42285149048)と`2434c4b` [run42286055904](https://github.com/kenmaro3/ckks-train/actions/runs/42286055904)は6ジョブすべてstepなしのfailureで終了した。各runのtest注釈は、アカウントの支払い失敗または利用上限によりジョブを開始しなかったと報告している。コード検証の失敗とは区別し、この2commitのCIは未実行として扱う。請求設定・上限・支払いは変更していない。一次API記録はledger `task-54-ci-billing-block-observation-20261107.json`。ローカル限定検証・レビューを続け、直前の成功を後続commitへ継承しない。
+
+
+<a id="latest-evidence-20261107-blocks"></a>
+## 2026-11-07追記: packed-blockの実I/NI検証と全ケースprojection
+
+Packed-block compositionは指摘F1/F2/Q1の修正・独立再レビュー後に`ad607da`で統合した。失敗時のraw応答と途中の観測を保持し、旧U/bias・元generationと局所lossの構造検査を追加。修正後の通常21 tests、metadata、strict Clippy・formatが合格した。各主検証を別にreleaseし、Iの独立監査合格後にNIを1回だけ実行した。[元ログ・runner provenance・独立監査](../results/validation/packed-blocks-n1024-20261107/README.md)を保存した。
+
+MacのIは05:27:05–05:27:09 JST、2 graphs・8更新・2推論・116 client refreshでexit0。全710×512 complex slotsを独立再計算し、最大スカラー誤差3.775018180620039e-9は元の2^-12以内。NIは05:36:23–05:38:26 JST、G2/G3×AU/WN/AAの6構成・24更新・6推論・332 bootstrapsでexit0。全4,050×512 slotsの最大スカラー誤差3.441401240719656e-8は2^-12以内、全332回の実入力対出力の最大増分誤差1.8763991003465872e-8は2^-20以内。固定role range、24更新の7項目計数、332回の計数区間も独立照合した。生ログは無変更で保持し、公開用gzipは展開後のSHA256一致を確認した。
+
+**合格範囲はN1024・512 slots・held-out key seed167の小規模な正しさだけ。** source/executableの前後hashは一致するが、独立監査はプログラムが出力した復号bit列の計算であり、暗号文・秘密鍵から再復号した証明ではない。NIの推論／phase全体の7項目総計数は未出力で、最後のbootstrap後カウンタを総計に流用しない。seed・generation等のsource依存限界も監査に残した。本番N65536/security、GPU、memory、性能、全長blockデータセットの合格ではない。既存84/212検証は再実行していない。
+
+登録case projectionは独立SPEC/QUALITYレビュー後に`cf3f822`で統合した。既存のhash検証済みregistryから全21 profilesの2,680 family cases、別枠20 prospective Iris、全7補足記述子を保持し、入力やexecutorが未整備でも行を削らない。独立期待値との全14項目tuple比較・19 canonical vectors・拒否／公開API境界など44件の限定検証とClippy・formatが合格。全長データをmaterializeする既存1件は明示して除外した。2,700を研究全体の分母や実行済み行数とは扱わず、quick・archival・未解決の補足行から実行権限を作らない。
+
+[R-REB-10-CREATOR-STATIC](../results/quadruped/raw/R-REB-10-CREATOR-STATIC/README.md)は05:45:00 JSTの実base interpreter／hook／site／venvの読み取り観測。base側のdistutils条件とhook identityを確認したが、target起動・新venv作成・入力取得はまだ未実行。Linux optional queryへの限定的なsource対応を次に進める。全長FP32参照、学習runtime、admission／実行handoff、baseline adapter、全行runnerと実測は未完。Task42のFULL-2ゲートとM4後続ジョブも未確定で、上記の小規模検証から合格を継承しない。

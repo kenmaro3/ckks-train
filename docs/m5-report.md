@@ -240,4 +240,14 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 
 `c6ab260`と`2434c4b`のCIは6ジョブすべてstepなしで終了し、test注釈はアカウントの支払いまたは利用上限による起動拒否を示した。この2commitのCIは未実行であり、ローカル検証や前commitの成功で代替したとは扱わない。請求・上限を変更せず、実装と独立レビューは継続する。
 
+## 2026-11-07追記: block正しさと登録行の実装
+
+`ad607da`のpacked-block compositionは独立再レビューを経て統合した。[I/NIの実検証証跡](../results/validation/packed-blocks-n1024-20261107/README.md)ではIが2 graphs／8更新／2推論／116 client refresh、NIがG2/G3×AU/WN/AAの6構成／24更新／6推論／332 bootstrapsで各1回・exit0。全710／4,050個の512-complex-slot snapshotを独立再計算し、最大スカラー誤差は3.775018180620039e-9／3.441401240719656e-8（各上限2^-12）。NI全332回の最大増分誤差1.8763991003465872e-8は2^-20以内で、固定range、24更新の7計数、各bootstrap区間も合格した。
+
+これはMac・N1024・key seed167の小規模な正しさの合格。実験精度・速度・GPU・本番security・full block campaignの合格ではない。原stdout/stderrと外部runner記録を保持し、gzip化したstdoutは展開hashで同一性を確認。監査JSONは明示した事後派生物で、科学結果行にしない。復号bit列の独立計算と、sourceに依存するseed／generation／暗号文由来を区別し、未出力の推論／phase総計数を最後のeventカウンタで代用しない。
+
+`cf3f822`のcase projectionは独立SPEC/QUALITYレビューと44件の限定検証・Clippy・formatが合格。全2,680 family cases、別枠20 prospective Iris、7補足記述子、19独立canonical vectorsを照合し、MissingInputや未実装executorによって登録行を削除しない。全長dataset materializationの既存1テストは明示的に除外した。これは完全なmembershipの実装で、実行準備・admission・科学結果の証拠ではない。2,700をwhole-study denominatorにしない。
+
+[R-REB-10](../results/quadruped/raw/R-REB-10-CREATOR-STATIC/README.md)でbase creatorの実行ファイルとhook／site／venvを静的に観測した。新環境作成や科学用importは未実行。学習role/runtime、Linux起動／context、全長参照・target、実行handoff、baseline adapter、全行runnerとTask42/M4の最終測定は残る。これらを本追記の限定合格で置き換えない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

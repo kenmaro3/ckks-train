@@ -1,0 +1,51 @@
+{
+  "kind": "external_runner_provenance_not_scientific_result",
+  "phase": "I_only_single_attempt",
+  "source_commit": "ad607daf3e53c3763c4c5db25701f2ede5115154",
+  "source_manifest_sha256": "4788e0af8128c514b36a11cb651fa018ec39db8b7e140425d08be16c4915796e",
+  "review_sha256": "6bb24e383bfd8a82acb6e6335f41db2456b970f3daba6e8f3fb1e2dcbe682f3b",
+  "runner_sha256": "d8770ace57c2cd6de0ca1a7f17892cdf3de14e1616d425b3aa9dd13f6cc9962c",
+  "executable_before_sha256": "91dfd7ef7bd451cc8e423c1fc7cd4241c379c22e777dcf30c6e15c73b26ee5c8",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-nn",
+    "--test",
+    "packed_blocks",
+    "block_interactive_original_fixture",
+    "--",
+    "--ignored",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8"
+  },
+  "host": {
+    "sysname": "Darwin",
+    "nodename": "marconi.local",
+    "release": "25.3.0",
+    "version": "Darwin Kernel Version 25.3.0: Wed Jan 28 20:54:22 PST 2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6030",
+    "machine": "arm64"
+  },
+  "host_scope": "Mac correctness fixture, not quadruped timing or production security",
+  "git_status_before": "?? .vscode/\n?? results/mnist_blocks_128-64_plain_b48.json\n?? results/mnist_blocks_64_plain_b48.json\n",
+  "started_unix": 1793996825.9508128,
+  "started_local": "2026-11-07T05:27:05.950818+09:00",
+  "child_pid": 99485,
+  "returncode": 0,
+  "finished_unix": 1793996829.5572171,
+  "finished_local": "2026-11-07T05:27:09.557224+09:00",
+  "executable_after_sha256": "91dfd7ef7bd451cc8e423c1fc7cd4241c379c22e777dcf30c6e15c73b26ee5c8",
+  "executable_unchanged": true,
+  "source_unchanged": true,
+  "stdout.txt_sha256": "7256d4572d8da7e8b87dad7f193106500a998d3d245f116eb7365a2ef8593afd",
+  "stdout.txt_bytes": 16550125,
+  "stderr.txt_sha256": "b1e2c1bd1be90ce23c277501f5b1148e06950a21afc2bf7b977ec9f43bfb6201",
+  "stderr.txt_bytes": 158
+}

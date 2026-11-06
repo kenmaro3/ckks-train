@@ -1,0 +1,194 @@
+{
+  "status": "PASS_for_retained_I_snapshot_scope",
+  "manifest_entries_verified": 66,
+  "slots_records": 710,
+  "complex_slots": 363520,
+  "finite_f64_components": 727040,
+  "level_histogram": {
+    "4": 80,
+    "16": 337,
+    "7": 80,
+    "12": 141,
+    "10": 57,
+    "14": 15
+  },
+  "global_max_error": {
+    "index": 637,
+    "graph": 3,
+    "label": "client=111 role=Hidden { stage: 0, record: 1 } input",
+    "level": 12,
+    "family": "client_inference_hidden_input",
+    "bound": 0.6,
+    "magnitude": 0.46420494985966443,
+    "max": 3.775018180620039e-09,
+    "worst": 393,
+    "active": 3.775018180620039e-09,
+    "padding": 1.3107315317632347e-10,
+    "imaginary": 1.6201190183412443e-09,
+    "replica": 1.773189689693938e-09
+  },
+  "summary_max_absolute_differences": {
+    "max": 1.1034966121207134e-16,
+    "active": 1.1034966121207134e-16,
+    "padding": 1.0339757656912846e-25,
+    "replica": 2.0679515313825692e-25,
+    "imaginary": 0.0
+  },
+  "summary_worst_index_disagreements": [],
+  "exact_repeated_payload_checks": 312,
+  "families": {
+    "client_training_W_input": {
+      "count": 40,
+      "max_error": 5.186765468434188e-10,
+      "max_magnitude": 0.38118846766530157,
+      "max_imaginary": 3.4997958603937847e-10,
+      "max_replica": 0.0,
+      "max_padding": 5.186765468434188e-10
+    },
+    "client_training_W_output": {
+      "count": 40,
+      "max_error": 4.882928938044093e-10,
+      "max_magnitude": 0.3811884676697561,
+      "max_imaginary": 2.3020925656958717e-10,
+      "max_replica": 0.0,
+      "max_padding": 2.7915625132540167e-10
+    },
+    "client_training_U_input": {
+      "count": 40,
+      "max_error": 5.04043993059589e-10,
+      "max_magnitude": 0.07651060983845534,
+      "max_imaginary": 3.8586424868053397e-10,
+      "max_replica": 0.0,
+      "max_padding": 4.050029075803175e-10
+    },
+    "client_training_U_output": {
+      "count": 40,
+      "max_error": 5.289777164632626e-10,
+      "max_magnitude": 0.0765106098221704,
+      "max_imaginary": 2.21454259829277e-10,
+      "max_replica": 0.0,
+      "max_padding": 2.3092907818546012e-10
+    },
+    "client_training_hidden_input": {
+      "count": 27,
+      "max_error": 2.8420234165034265e-09,
+      "max_magnitude": 0.42565953479332425,
+      "max_imaginary": 2.7634222896069656e-09,
+      "max_replica": 2.9242414831335105e-09,
+      "max_padding": 2.3304105552892084e-10
+    },
+    "client_training_hidden_output": {
+      "count": 27,
+      "max_error": 1.7355094562223609e-09,
+      "max_magnitude": 0.42565953372635484,
+      "max_imaginary": 1.9407881285088862e-10,
+      "max_replica": 2.5656644169038555e-10,
+      "max_padding": 2.0203585025606392e-10
+    },
+    "W": {
+      "count": 130,
+      "max_error": 5.186765468434188e-10,
+      "max_magnitude": 0.3811884676697561,
+      "max_imaginary": 3.4997958603937847e-10,
+      "max_replica": 0.0,
+      "max_padding": 5.186765468434188e-10
+    },
+    "training_hidden": {
+      "count": 45,
+      "max_error": 2.8420234165034265e-09,
+      "max_magnitude": 0.42565953479332425,
+      "max_imaginary": 2.7634222896069656e-09,
+      "max_replica": 2.9242414831335105e-09,
+      "max_padding": 2.760430096880555e-10
+    },
+    "training_output": {
+      "count": 45,
+      "max_error": 2.1846428843685878e-09,
+      "max_magnitude": 0.16811117994514974,
+      "max_imaginary": 1.8445716691249014e-09,
+      "max_replica": 1.9373510300828078e-09,
+      "max_padding": 5.267728700083869e-10
+    },
+    "U": {
+      "count": 120,
+      "max_error": 5.289777164632626e-10,
+      "max_magnitude": 0.07651060983845534,
+      "max_imaginary": 3.8586424868053397e-10,
+      "max_replica": 0.0,
+      "max_padding": 4.050029075803175e-10
+    },
+    "training_handoff": {
+      "count": 54,
+      "max_error": 2.8420234165034265e-09,
+      "max_magnitude": 0.42565953479332425,
+      "max_imaginary": 2.7634222896069656e-09,
+      "max_replica": 2.9242414831335105e-09,
+      "max_padding": 2.3304105552892084e-10
+    },
+    "client_inference_hidden_input": {
+      "count": 9,
+      "max_error": 3.775018180620039e-09,
+      "max_magnitude": 0.529203094933428,
+      "max_imaginary": 2.4169419648488324e-09,
+      "max_replica": 2.532326255424836e-09,
+      "max_padding": 2.4026537469763453e-10
+    },
+    "client_inference_hidden_output": {
+      "count": 9,
+      "max_error": 2.6294369244068894e-09,
+      "max_magnitude": 0.5292030936573767,
+      "max_imaginary": 1.8886436200175252e-10,
+      "max_replica": 3.0630346136514427e-10,
+      "max_padding": 1.9134279260503003e-10
+    },
+    "inference_input": {
+      "count": 15,
+      "max_error": 2.6294369244068894e-09,
+      "max_magnitude": 0.7500000000589007,
+      "max_imaginary": 2.359829296194059e-10,
+      "max_replica": 3.0630346136514427e-10,
+      "max_padding": 2.382348745262707e-10
+    },
+    "inference_z": {
+      "count": 15,
+      "max_error": 2.3268440832616846e-09,
+      "max_magnitude": 0.38272481254149154,
+      "max_imaginary": 1.5808359946954296e-09,
+      "max_replica": 1.997428182635764e-09,
+      "max_padding": 4.805756534847971e-10
+    },
+    "inference_path_output": {
+      "count": 15,
+      "max_error": 3.775018180620039e-09,
+      "max_magnitude": 0.529203094933428,
+      "max_imaginary": 2.4169419648488324e-09,
+      "max_replica": 2.532326255424836e-09,
+      "max_padding": 4.0717917766215293e-10
+    },
+    "inference_hidden_pre": {
+      "count": 15,
+      "max_error": 3.775018180620039e-09,
+      "max_magnitude": 0.529203094933428,
+      "max_imaginary": 2.4169419648488324e-09,
+      "max_replica": 2.532326255424836e-09,
+      "max_padding": 2.4026537469763453e-10
+    },
+    "inference_handoff": {
+      "count": 18,
+      "max_error": 3.775018180620039e-09,
+      "max_magnitude": 0.529203094933428,
+      "max_imaginary": 2.4169419648488324e-09,
+      "max_replica": 2.532326255424836e-09,
+      "max_padding": 2.4026537469763453e-10
+    },
+    "inference_final": {
+      "count": 6,
+      "max_error": 1.917009660975091e-09,
+      "max_magnitude": 0.12626542471776425,
+      "max_imaginary": 1.7750279404464237e-09,
+      "max_replica": 1.5299120789553645e-09,
+      "max_padding": 4.0717917766215293e-10
+    }
+  }
+}
+derived_json_sha256 991ebc7a7333d12902f8ff7bb33910bf1b3ec46e7b20a67113cdb199f4bed650

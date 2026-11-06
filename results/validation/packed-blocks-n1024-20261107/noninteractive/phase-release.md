@@ -1,0 +1,9 @@
+# Root NI-phase release
+
+2026-11-07T05:36:23.424444+09:00
+
+Root FULLREAD I audit454672effe66e62892f9793da0e8499489833a41f2fe5c82cd3dcf8085e98692 and verified report/script/derived/summary hashes. Integrity,registeredIcoverage,and independentall710×512complexslots PASS; max3.775018180620039e-9 < unchangedE2^-12. Retain source-attestedseed/counter/token limits and unlogged target/intermediate limits; no Ibootstrapepsilonclaim.
+
+Source ad607daf3e53c3763c4c5db25701f2ede5115154 pushed, FIX1review6bb24e...PASS, source manifest4788e0... and executable91dfd7... frozen. Caseprojection author owns bench-onlysource, has releasedCargo; root reservedCargo slot before thisrelease. No NN/source/dependency edits permitted during thisattempt. Unrelated bench workingchanges are recorded inrunnerstatus; they are not test inputs or acceptedsourceattribution.
+
+Release ONLY registered block_ni_original_fixture once onMac via task-54-d4c3-ni-runner.py SHA256 5c5b8307f9e3206dc926d5a81e98dba5d0088de33eb096526322d8d6948a15e8. Sixcases G2AU/WN/AA thenG3AU/WN/AA, fourupdates/case, finaln3inferenceeach;24commits/6inferences; successfulschedule332=299training+33inference, cap372 withprecall373refusal. Heldout167, N1024/fullQ/P/scale42/dnum8/output16/512slots, literalfixture/seedmap/rates/knownnext/Lazy, E2^-12/epsilon2^-20, W.4/U.1/traininghidden.5/inferencehidden.6 unchanged. Allroles/inputranges checkedexternally AFTERsynchronousprepare, no diagnostics insideNI. Stopfirstfailedgate before nextupdate/case; retain partialattempts, no retry/retune/clipping/repair. Exactharnessoneexecuted/pass1/fail0/ignored0 plus completebodycoverage/332attempted-completed-validated mandatory. Savecompletefullslotstdout/stderr/metadata/source/exe; actualmemory/timingnotpaperperformanceclaim. No84/212rerun/fullblockdataset/secureproduction/GPU release. Userfullgoalauthorizesplannedboundedstep; no newuserpermission required.
