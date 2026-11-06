@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-06 時点)
 
-最新の運用・CI状態は **§12.3** を優先する。§5、§11、§12.1〜12.2は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は **§12.4** を優先する。§5、§11、§12.1〜12.2は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -302,3 +302,14 @@ FULL の最後の実進捗観測は **2026-11-06 10:21:08 JST、FULL-1 update 11
 R54は未投入のまま。Task54の縮小版入口・表生成はレビュー済みだが、研究計画の全実験行列の実装は未完で、拡張設計中。eMLP-2/3全長も投入していない。待機コントローラの存在をFULL完了、GPU実測、研究合格と呼ばない。
 
 改名commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` の [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484) は fmt/clippy/cuda-check/test/deny/research-tools **全6ジョブsuccess**（ledger `task-55-rename-ci.json`）。この成功は当該SHAのみ。後続queue commit `4b1c499` の [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) はこの記録時点でpendingであり、成功を継承させない。ローカル公開準備・private push・CI・待機投入は、公開release/crates.io/arXivやGPU研究測定とは別である。
+
+
+### 12.4 FULL進捗と待機継続、queue CI確定（2026-11-06 11:09:14 JST観測）
+
+2026-11-06 **11:09:14 JST**（Unix `1793930954.5309272`）の鍵認証による読み取り観測で、FULL-1 は **update144（0始まり）=145/750更新完了**、elapsed13851s。観測した直近3行（updates142〜144）はすべて `matches prediction true`、post終端はなく、partialマーカーもない。FULL-2には進捗行・post終端がない。FULL-1/2の完了・研究ゲート合格は未確認である。
+
+chain10 PID1700979/start ticks465769819、待機controller PID1739838/start ticks467041669は同じidentityのまま。stateはowner.jsonのみ、clone未作成。R47/R48/R52は引き続き両FULL成功とchain terminal/非稼働identityの検証待ちで、追加のbuild/train/measurementは未開始。R54とeMLP-2/3全長は未投入。実行中cloneや他テナントのプロセスは変更していない。
+
+その後rootが確認した queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` の [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は **completed/success、fmt/test/deny/research-tools/cuda-check/clippyの全6ジョブsuccess**。10:49時点のpending記録を更新する。これは当該SHAのLinux CIであり、後続SHA、GPU実測、FULL完了、研究合格を検証したものではない。
+
+一次記録は ledger `post-full-followup-observation.stdout`（SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`）と `task-post-full-ci.json`（SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`）。CI run/SHAの対応はrootの管理観測による。元の研究JSONは変更していない。

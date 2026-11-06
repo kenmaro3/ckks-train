@@ -17,7 +17,7 @@
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
 | 54: 実験・表生成 | `7752459`、引継ぎ修正と独立再レビュー済み | 合計49件の Python 回帰テスト、表・図の freshness、shell syntax が合格。`--tables-only` で再生成可能 | **縮小版の再現入口のみ実装・レビュー済み。計画の全実験行列は実装未完**。拡張設計中。R-54-1 は未投入で post-full-v1 対象外 |
-| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。後続queue SHAのCIはpending。公開操作は未実施 |
+| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。queue SHA4b1c499のLinux CIも全6ジョブsuccess（後続SHAには継承しない）。公開操作は未実施 |
 | 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 最終表を含む匿名版・著者仮置き版とも9ページ、全ページ表示と修正影響ページを確認 | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
 | 58: PyO3（最後、削減可） | 今回の範囲から削減 | 未検証 | Rust API と再現手順を優先。Python binding は提供しない |
@@ -51,7 +51,7 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 現時点の表生成は `tools/paper_tables.py`、実験入口は `scripts/run_all.sh`。Task 54 の実装は、長い暗号化実験を 1 seed、平文を複数 seed にした縮小行列である。研究計画の全組合せ・10 seeds が完走したとは記載しない。未対応・資源不足・入力欠落・保留を coverage として残し、公式 ReBoot の実行は外部環境と requests の手順に従う。実機の `--quick` が完了するまでは「2 時間以内」は目標・見積もりである。
 
-旧 runner の09:30停止記録（`0c819d4`）では後続は未投入だったが、2026-11-06 10:49:44 JSTの起動後観測でpost-full-v1 PID1739838 / start ticks467041669はwaiting、owner.jsonのみ、clones_created=falseだった。R-47-3 → R-48-1〜4 → R-52-1/2（各21更新subset）は両FULL成功terminalとchain10 terminal/非稼働identityの検証待ちとして投入済み。ビルド・測定は未開始で、R54は未投入。計画の全実験行列は実装未完で拡張設計中。実stateと完全commit・SHA256は [運用記録](post-full-queue.md) を参照する。FULLの最終実進捗は10:21:08のupdate113（0始まり、114/750）、後の観測から更新数を推定しない。別テナントを停止せず、GPU に入らない行は未計測と記す。鍵認証、nice 10、24 スレッド以内、長時間処理のバックグラウンド化を維持する。SSH のタイムアウトはジョブの完了・失敗を意味しない。新たなクラウド GPU は使わない。
+旧 runner の09:30停止記録（`0c819d4`）では後続は未投入だったが、2026-11-06 10:49:44 JSTの起動後観測でpost-full-v1 PID1739838 / start ticks467041669はwaiting、owner.jsonのみ、clones_created=falseだった。R-47-3 → R-48-1〜4 → R-52-1/2（各21更新subset）は両FULL成功terminalとchain10 terminal/非稼働identityの検証待ちとして投入済み。ビルド・測定は未開始で、R54は未投入。計画の全実験行列は実装未完で拡張設計中。実stateと完全commit・SHA256は [運用記録](post-full-queue.md) を参照する。この10:49記録時点で確認済みだったFULL進捗は10:21:08のupdate113（0始まり、114/750）。11:09の新しい実観測は下の追記に分け、観測間の更新数を推定しない。別テナントを停止せず、GPU に入らない行は未計測と記す。鍵認証、nice 10、24 スレッド以内、長時間処理のバックグラウンド化を維持する。SSH のタイムアウトはジョブの完了・失敗を意味しない。新たなクラウド GPU は使わない。
 
 ## 4. v1.0 の残作業
 
@@ -61,7 +61,7 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 改名後は462 Rust testsが合格（12 ignored）、49 Python testsと表・図の freshness も合格。CUDA はコンパイル検証であり、実機計測ではない。4パッケージの隔離環境での連鎖ビルドと CUDA feature のビルドが通った。改名後の core の registry dry run も成功したが、残り3つは未公開内部依存のため失敗する。README の最終修正はローカルの梱包・ビルドで再検証し、registry dry run を再実行したとは扱わない。詳細は release.md に区別して記す。
 
-GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は fmt / clippy / cuda-check / test / deny の全5ジョブが成功した。この結果は `0daf778` の検証であり、後続の provenance 修正・表生成・crate rename を検証したものではない。改名SHA `09202cf5650aa76b9b30dd79a68dd615c75a91ae` の [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484) は全6ジョブsuccess。後続queue SHA `4b1c499` の [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) はこの記録時点でpending。このCIはGPU実機・研究測定ではない。
+GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は fmt / clippy / cuda-check / test / deny の全5ジョブが成功した。この結果は `0daf778` の検証であり、後続の provenance 修正・表生成・crate rename を検証したものではない。改名SHA `09202cf5650aa76b9b30dd79a68dd615c75a91ae` の [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484) は全6ジョブsuccess。後続queue SHA `4b1c499` の [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は10:49記録時点ではpendingだったが、その後のroot確認でcompleted/success・全6ジョブsuccess（`task-post-full-ci.json`）。この成功は4b1c499だけの検証で、後続SHAへ継承しない。このCIはGPU実機・研究測定ではない。
 
 公開前には最終 SHA の CI、配布パッケージの内容・notices、履歴内の機密や外部コード混入、README の状態、CHANGELOG の日付を確認する。依存の一般許可リストは MIT / Apache-2.0 / BSD / ISC。`unicode-ident =1.0.27` の Unicode 文字属性表だけは、本人が 2026-11-06 に承認した Unicode-3.0 例外を設け、通知を付ける。別の crate やバージョンへの一般許可ではない。データセットのライセンスと帰属は `THIRD_PARTY_NOTICES` に別途記す。公開先を変更したり、公開化・tag/release・crates.io publish を実行したりした事実はない。
 
@@ -92,3 +92,14 @@ Task 58 は計画と本人の指示で削減可能な最後の項目であるた
 3. eMLP-2/3 全長暗号化実験の実施範囲。現在は subset を登録済みで、全長時間は見積もりにとどまる。利用中の共有サーバの実測を根拠に判断する。
 4. 著者・所属・順序、arXiv ライセンス、公開時期・公開先。名称 ckks-train は決定済み。
 5. stretch の 4 次活性化・PyO3 を採用するか。必須報告・再現・公開準備を優先し、削減時は明記する。
+
+
+## 7. 後続観測（2026-11-06 11:09:14 JST）
+
+2026-11-06 **11:09:14 JST**（Unix `1793930954.5309272`）の鍵認証による読み取り観測で、FULL-1 は **update144（0始まり）=145/750更新完了**、elapsed13851s。観測した直近3行（updates142〜144）はすべて `matches prediction true`、post終端はなく、partialマーカーもない。FULL-2には進捗行・post終端がない。FULL-1/2の完了・研究ゲート合格は未確認である。
+
+chain10 PID1700979/start ticks465769819、待機controller PID1739838/start ticks467041669は同じidentityのまま。stateはowner.jsonのみ、clone未作成。R47/R48/R52は引き続き両FULL成功とchain terminal/非稼働identityの検証待ちで、追加のbuild/train/measurementは未開始。R54とeMLP-2/3全長は未投入。実行中cloneや他テナントのプロセスは変更していない。
+
+その後rootが確認した queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` の [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は **completed/success、fmt/test/deny/research-tools/cuda-check/clippyの全6ジョブsuccess**。10:49時点のpending記録を更新する。これは当該SHAのLinux CIであり、後続SHA、GPU実測、FULL完了、研究合格を検証したものではない。
+
+一次記録は ledger `post-full-followup-observation.stdout`（SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`）と `task-post-full-ci.json`（SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`）。CI run/SHAの対応はrootの管理観測による。元の研究JSONは変更していない。

@@ -1,5 +1,7 @@
 # quadruped-gpu run log
 
+最新の追記は末尾「2026-11-06 11:09:14 JST」。10:49起動観測と09:30引継ぎは各時点のスナップショットとして残す。
+
 ## 現在の待機キュー（2026-11-06 10:49:44 JST 起動観測）
 
 この節は下の09:30引継ぎスナップショットの「未投入」を更新する。過去の観測値・回収手順はそのまま残す。
@@ -425,3 +427,14 @@ the ring dimension agrees.
 (negligible next to the 12-thread run). Structure read from the models built by ReBoot's constructor with the MLP-2/3
 lines of `experiments.sh`; summary in `config_values.json:structure_summary`. Seed-0 twin test accuracy (recomputed):
 eMLP-2 0.9156, eMLP-3 0.9175. Indices differ from eMLP-1's (different number of RNG draws before the epoch shuffles).
+
+
+### 2026-11-06 11:09:14 JST: FULL-1 update144、post-full待機継続
+
+2026-11-06 **11:09:14 JST**（Unix `1793930954.5309272`）の鍵認証による読み取り観測で、FULL-1 は **update144（0始まり）=145/750更新完了**、elapsed13851s。観測した直近3行（updates142〜144）はすべて `matches prediction true`、post終端はなく、partialマーカーもない。FULL-2には進捗行・post終端がない。FULL-1/2の完了・研究ゲート合格は未確認である。
+
+chain10 PID1700979/start ticks465769819、待機controller PID1739838/start ticks467041669は同じidentityのまま。stateはowner.jsonのみ、clone未作成。R47/R48/R52は引き続き両FULL成功とchain terminal/非稼働identityの検証待ちで、追加のbuild/train/measurementは未開始。R54とeMLP-2/3全長は未投入。実行中cloneや他テナントのプロセスは変更していない。
+
+その後rootが確認した queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` の [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は **completed/success、fmt/test/deny/research-tools/cuda-check/clippyの全6ジョブsuccess**。10:49時点のpending記録を更新する。これは当該SHAのLinux CIであり、後続SHA、GPU実測、FULL完了、研究合格を検証したものではない。
+
+一次記録は ledger `post-full-followup-observation.stdout`（SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`）と `task-post-full-ci.json`（SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`）。CI run/SHAの対応はrootの管理観測による。元の研究JSONは変更していない。

@@ -47,7 +47,7 @@ allowance warning). All **49 Python tests** passed, both shell scripts parsed, a
 `run_all.sh --tables-only` reproduced the existing tables. Table/figure freshness and
 all 755 historical-file hashes still match. The paper sources and generated artifacts
 were unchanged by the migration, so their reviewed 9-page PDF builds remain applicable.
-The renamed commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` has its own successful [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484), all six jobs. This result applies only to that SHA; later queue commit `4b1c499` has run42145577051 pending at the deployment observation below.
+The renamed commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` has its own successful [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484), all six jobs. This result applies only to that SHA; queue commit `4b1c499` now also has run42145577051 completed/success for all six jobs (section 8). The pending state in section 7 remains the dated 10:49 observation.
 
 ## 3. Publishing to GitHub (owner's decision)
 
@@ -171,3 +171,12 @@ The approved root controller uploaded and hash-verified the independently review
 The [operations record](post-full-queue.md) contains exact paths, full commits, config/script/bundle/source-record SHA256 and recovery rules. Canonical raw results remain unchanged. Waiting deployment is distinct from successful measurement and from publication. No public release, tag, crates.io publish or arXiv submission occurred.
 
 The renamed SHA09202cf has Linux CI run42143028484 **success** for all six jobs (fmt, clippy, cuda-check, test, deny, research-tools), captured in task-55-rename-ci.json. Queue SHA4b1c499's [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) is pending at this observation; the prior CI success does not apply to it. Neither CI result proves GPU execution or a research gate.
+
+
+## 8. Follow-up observation and queue CI completion (2026-11-06 11:09:14 JST)
+
+At Unix1793930954.5309272, the read-only key-auth observation recorded FULL-1 update144 (zero-based), **145/750 updates complete**, elapsed13851s. Its last three progress lines (142–144) all matched prediction; no post terminal or partial marker was recorded. FULL-2 had no progress or post terminal. Chain10 and the waiting controller retained start ticks465769819/467041669 respectively; state contained owner.json only and no clones existed. No new queued build/training/measurement had started. This supersedes the progress knowledge at 10:49 without rewriting that snapshot. R54 and full eMLP-2/3 runs remain unqueued.
+
+Root subsequently verified queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` / [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) **completed/success, all six jobs success**: fmt, test, deny, research-tools, cuda-check and clippy. The renamed SHA09202cf's earlier success remains a separate record. This replaces the current pending claim for 4b1c499; it does not validate later commits, GPU measurements or a research gate. No publication occurred.
+
+Evidence retained in the ledger: `post-full-followup-observation.stdout` (SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`) and `task-post-full-ci.json` (SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`). Root supplied the administrative CI run/SHA mapping. Original research JSON is unchanged.
