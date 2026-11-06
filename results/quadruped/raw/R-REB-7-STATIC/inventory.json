@@ -1,0 +1,433 @@
+{
+  "kind": "read_only_static_prerequisites_not_capture_or_scientific_result",
+  "observed_unix": 1793995098.2873466,
+  "observer_python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "owner_uid": 1000,
+  "nice": 10,
+  "paths": [
+    {
+      "path": "/home/kmihara/reboot/venv/bin/python",
+      "exists": true,
+      "symlink": true,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+      "bytes": 21740000,
+      "mtime_ns": 1787713716613905251
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/pyvenv.cfg",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/pyvenv.cfg",
+      "bytes": 172,
+      "mtime_ns": 1793843915054714932,
+      "sha256": "61b9a47f5d07cdf70e5606a8e63301a6933b6d07223d6414bc0390bb6544cbaf"
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/experiments.sh",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/experiments.sh",
+      "bytes": 1184,
+      "mtime_ns": 1793843914857353250,
+      "sha256": "eb8a9631d412c8ff2172688429d546b86ea89f6aa4fd246a518acaba0931f77d"
+    },
+    {
+      "path": "/home/kmihara/reboot/src/openfhe-development",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/openfhe-development",
+      "bytes": 4096,
+      "mtime_ns": 1793876124509558904
+    },
+    {
+      "path": "/home/kmihara/reboot/src/openfhe-python",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/openfhe-python",
+      "bytes": 4096,
+      "mtime_ns": 1793876124510558920
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/out/R-REB-5/reboot_emlp23_full/config_values.json",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/hekit-runs/out/R-REB-5/reboot_emlp23_full/config_values.json",
+      "bytes": 191369,
+      "mtime_ns": 1793919316650240787,
+      "sha256": "9d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444"
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/out/R-REB-2/reboot_emlp1_full/data",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/hekit-runs/out/R-REB-2/reboot_emlp1_full/data",
+      "bytes": 4096,
+      "mtime_ns": 1793884100176327788
+    },
+    {
+      "path": "/home/kmihara/hekit-exporter-f021616",
+      "exists": false,
+      "symlink": false
+    }
+  ],
+  "python_sources": [
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/lib/utils/__init__.py",
+      "exists": false,
+      "symlink": false
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/lib/utils/data.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/lib/utils/data.py",
+      "bytes": 27800,
+      "mtime_ns": 1793843914883042365,
+      "sha256": "ceb95b4a2c324ea9e37ccade93aefae4b94a2f04f0ac5c86fdad5d6ddc6b8780",
+      "imports": [
+        "imblearn.over_sampling",
+        "lib.utils.enums",
+        "matplotlib",
+        "numpy",
+        "numpy.typing",
+        "os",
+        "pandas",
+        "seaborn",
+        "sklearn.datasets",
+        "sklearn.model_selection",
+        "sklearn.preprocessing",
+        "torch",
+        "torch.nn.functional",
+        "torchvision",
+        "torchvision.transforms",
+        "typing",
+        "ucimlrepo"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/precision_analysis.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/precision_analysis.py",
+      "bytes": 8661,
+      "mtime_ns": 1793843914857353250,
+      "sha256": "18f8d5c3e1d46b3fb57d3bb44d5e3dfa835805d4aaa95f7256fa5df32f726d28",
+      "imports": [
+        "lib.cryptocontext",
+        "lib.models.local_loss_models",
+        "lib.optim.schedulers",
+        "lib.parser",
+        "lib.utils.data",
+        "lib.utils.enums",
+        "lib.utils.train",
+        "numpy",
+        "os",
+        "reboot_cpp",
+        "sys",
+        "typing",
+        "wandb"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/training_encrypted.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/experiments/3_training_encrypted/training_encrypted.py",
+      "bytes": 7041,
+      "mtime_ns": 1793843914883042365,
+      "sha256": "a8919d74ea06ba287b9b9ad53fc350b3193be7beff5eacd05d2415e6a4a44ee7",
+      "imports": [
+        "lib.cryptocontext",
+        "lib.models.local_loss_models",
+        "lib.optim.schedulers",
+        "lib.parser",
+        "lib.utils.data",
+        "lib.utils.enums",
+        "lib.utils.train",
+        "numpy",
+        "os",
+        "reboot_cpp",
+        "sys",
+        "typing",
+        "wandb"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/testing/_private/utils.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/testing/_private/utils.py",
+      "bytes": 92868,
+      "mtime_ns": 1793843927620865157,
+      "sha256": "55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40",
+      "imports": [
+        "contextlib",
+        "difflib",
+        "doctest",
+        "functools",
+        "gc",
+        "inspect",
+        "io",
+        "numpy",
+        "numpy._core",
+        "numpy._core.fromnumeric",
+        "numpy._core.numerictypes",
+        "numpy._utils",
+        "numpy.distutils.misc_util",
+        "numpy.linalg._umath_linalg",
+        "operator",
+        "os",
+        "platform",
+        "pprint",
+        "psutil",
+        "pytest",
+        "re",
+        "shutil",
+        "subprocess",
+        "sys",
+        "sysconfig",
+        "tempfile",
+        "time",
+        "traceback",
+        "unittest",
+        "unittest.case",
+        "warnings",
+        "win32pdh"
+      ],
+      "sve_function": {
+        "line": 1379,
+        "if_nodes": 0,
+        "call_names": [
+          "subprocess.run"
+        ],
+        "lscpu_literal_present": true,
+        "exception_types": [
+          "OSError"
+        ]
+      },
+      "direct_top_level_sve_calls": [
+        1393
+      ]
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/testing/__init__.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/testing/__init__.py",
+      "bytes": 595,
+      "mtime_ns": 1793843927591864810,
+      "sha256": "227a552a80c0ccc28efe5fc735c6adce25bfbb593dfc96737bffedda7c9bacbd",
+      "imports": [
+        "",
+        "_private",
+        "_private.utils",
+        "numpy._pytesttester",
+        "unittest"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/__init__.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/__init__.py",
+      "bytes": 744,
+      "mtime_ns": 1793843917134739798,
+      "sha256": "3d276ab16e9d9edd73e73f7747a3f637a586833f6c0d90d12863f9dfd1bbeff4",
+      "imports": [
+        "",
+        "axisgrid",
+        "categorical",
+        "colors",
+        "distributions",
+        "matplotlib",
+        "matrix",
+        "miscplot",
+        "palettes",
+        "rcmod",
+        "regression",
+        "relational",
+        "utils",
+        "widgets"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/utils.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/utils.py",
+      "bytes": 29131,
+      "mtime_ns": 1793843918242753044,
+      "sha256": "730bf483279b90b2f48c81567d563836debd01df7f71b5e33846ae87fd1010fc",
+      "imports": [
+        "colorsys",
+        "contextlib",
+        "inspect",
+        "matplotlib",
+        "matplotlib.cbook",
+        "matplotlib.colors",
+        "matplotlib.pyplot",
+        "numpy",
+        "os",
+        "pandas",
+        "seaborn._compat",
+        "seaborn._core.typing",
+        "seaborn.axisgrid",
+        "seaborn.external.appdirs",
+        "seaborn.external.version",
+        "types",
+        "urllib.request",
+        "warnings"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/_array_api.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/_array_api.py",
+      "bytes": 37765,
+      "mtime_ns": 1793843918014750318,
+      "sha256": "e7b6d08f877456b9d26af808267263f41f2870261951a19d9ff133301d15e1e2",
+      "imports": [
+        "collections.abc",
+        "contextlib",
+        "contextvars",
+        "cupyx",
+        "dataclasses",
+        "functools",
+        "jax",
+        "numpy",
+        "numpy.typing",
+        "operator",
+        "pytest",
+        "scipy._lib",
+        "scipy._lib._array_api_override",
+        "scipy._lib._docscrape",
+        "scipy._lib._util",
+        "scipy._lib.array_api_compat",
+        "scipy._lib.array_api_compat.common._helpers",
+        "scipy._lib.array_api_extra.testing",
+        "textwrap",
+        "types",
+        "typing"
+      ],
+      "direct_top_level_sve_calls": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/array_api_compat/numpy/__init__.py",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/array_api_compat/numpy/__init__.py",
+      "bytes": 1064,
+      "mtime_ns": 1793843918694758448,
+      "sha256": "4b9f95cd1b574baadee5b3b2e31b55dd17d82a4f4043027be2f3218a240ac496",
+      "imports": [
+        "",
+        "_aliases",
+        "_info",
+        "_internal",
+        "linalg",
+        "numpy.typing",
+        "typing"
+      ],
+      "direct_top_level_sve_calls": []
+    }
+  ],
+  "pth": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.pth",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.pth",
+      "bytes": 18,
+      "mtime_ns": 1793843915054714932,
+      "sha256": "69ac3d8f27e679c81b94ab30b3b56e9cd138219b1ba94a1fa3606d5a76a1433d",
+      "executable_import_line_count": 1,
+      "noncomment_path_line_count": 0
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/distutils-precedence.pth",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/distutils-precedence.pth",
+      "bytes": 151,
+      "mtime_ns": 1793843936256483015,
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "executable_import_line_count": 1,
+      "noncomment_path_line_count": 0
+    }
+  ],
+  "startup_customization_candidates": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/sitecustomize.py",
+      "exists": false,
+      "symlink": false
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/usercustomize.py",
+      "exists": false,
+      "symlink": false
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/sitecustomize.py",
+      "exists": false,
+      "symlink": false
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/usercustomize.py",
+      "exists": false,
+      "symlink": false
+    }
+  ],
+  "processes": [
+    {
+      "pid": 1700979,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "465769819",
+      "expected_start_ticks": "465769819",
+      "uid": 1000,
+      "matching_own_live_process": true
+    },
+    {
+      "pid": 1739838,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "467041669",
+      "expected_start_ticks": "467041669",
+      "uid": 1000,
+      "matching_own_live_process": true
+    }
+  ],
+  "full2_log": {
+    "path": "/home/kmihara/hekit-runs/logs/R-41-FULL-2.log",
+    "exists": true,
+    "symlink": false,
+    "resolved": "/home/kmihara/hekit-runs/logs/R-41-FULL-2.log",
+    "bytes": 7607,
+    "mtime_ns": 1793994978466350311
+  },
+  "full2_log_tail": [
+    "mnist: epoch 0 update 34 (48 samples, 1 cts): 144.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5063 s, load 2.83 3.04 3.02 1/1405 1924646",
+    "mnist: epoch 0 update 35 (48 samples, 1 cts): 144.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5208 s, load 2.46 2.94 2.99 1/1404 1925092",
+    "mnist: epoch 0 update 36 (48 samples, 1 cts): 143.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5351 s, load 2.79 2.96 3.00 1/1399 1925494",
+    "mnist: epoch 0 update 37 (48 samples, 1 cts): 143.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5494 s, load 3.72 3.18 3.06 1/1401 1925893",
+    "mnist: epoch 0 update 38 (48 samples, 1 cts): 142.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5637 s, load 2.88 3.09 3.05 1/1400 1926278",
+    "mnist: epoch 0 update 39 (48 samples, 1 cts): 141.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5780 s, load 2.66 2.90 2.98 1/1398 1926678"
+  ],
+  "full2_result": {
+    "path": "/home/kmihara/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json",
+    "exists": false,
+    "symlink": false
+  },
+  "queue_state_names": [
+    "owner.json"
+  ],
+  "scientific_modules_loaded": [],
+  "limits": "Static AST import names are potential edges, not proof of dynamic import reachability. No target interpreter startup, full package/native hash, scientific import, job mutation or capture."
+}

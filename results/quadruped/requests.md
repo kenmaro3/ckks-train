@@ -465,3 +465,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:** 0. **RAM need:** under 100 MiB expected.
 - **output path:** `results/quadruped/raw/R-REB-6-OBS/` (byte-exact inventory, observer, stderr, controller metadata, hashes and limitations); controller ledger retains originals. No accepted scientific result JSON.
 - **status:** done (2026-11-07T04:32:19.620754+09:00, exit0; controller wall 40.113s including SSH). No scientific imports or job/queue mutation. Read-only untimed observation overlapped FULL-2. Raw README explicitly excludes the guessed final-result/config paths from evidence; this is current environment inventory only, not compatibility success or historical attestation.
+
+
+## R-REB-7-STATIC: Linux exporter static prerequisites and FULL-2 observation
+
+- **purpose:** observe actual NumPy SVE source/possible import edges, correct configuration paths and startup metadata before any Linux scientific import. Also read exact own chain/queue process identities and authoritative FULL-2 log/result path.
+- **commit to sync:** none; no sync/build/install. Unchanged exporter reference f0216160d8a74a644a12a227fb2ec915badc46b5.
+- **working dir:** read-only /home/kmihara/reboot and /home/kmihara/hekit-runs.
+- **command:** key-only SSH, `nice -n 10 python3 -`, original stdlib observer through stdin; source SHA256 424a2315a1c2110542a9164f41d141290013118f08213692fe31748a83f20084. Source retained in controller ledger `task-54-linux-static-prerequisites-20261107.py`. No third-party source excerpts exported, scientific/native imports, full package/native hashing, data mutation or timed workload.
+- **expected duration:** bounded observation under 2 minutes, one process/thread; a timeout is observation failure, not job termination.
+- **GPU memory need:** 0. **RAM need:** under 100 MiB expected.
+- **output path:** controller ledger `task-54-linux-static-prerequisites-20261107.{stdout,stderr,meta.json}`; later reviewed publication may retain exact raw copies.
+- **pass criterion:** actual path/hash/static facts with limitations; neither import success nor compatibility. Lightweight untimed read-only observation may overlap FULL-2; full context hashing/capture remain deferred.
+- **status:** done (2026-11-07T04:58:18.287347+09:00, exit0; controller wall 64.614 s including SSH). NumPy optional-query source matches Mac; unconditional module-level SVE query found. Scientific import reachability and target startup remain unverified. Chain and queue exact PID/start/own UID match live state S; FULL-2 log40/1000, authoritative result absent, queue owner.json only. No job mutation or scientific capture.

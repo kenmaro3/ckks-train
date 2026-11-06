@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [FULL-1回収と入力取得コード](#latest-evidence-20261107-full1)。
+最新の追記: [target基盤・取得前提と現在の運用状態](#latest-evidence-20261107-static)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-full1)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-static)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -11,7 +11,7 @@
 - **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **ckks-train**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
 - **主ベースライン**: ReBoot(AAAI-26、OpenFHE、GPL-3.0。実行のみ、コードは一切取り込まない)。
 - **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
-- **進捗**: 全 58 タスク中、Task 1〜41、43〜47 が完了(レビュー済み)。Task 42(M3 報告)は草稿、Task 47 は再計測(R-47-3)待ち。M5 は Task 51 に着手済み。
+- **進捗**: FULL-1の結果をM3へ反映済み。Task42/RQ1はFULL-2と未達・未計測項目の裁定待ち、R47/R48/R52は既存post-fullキュー待ち。Task54は全実験行列の基盤を実装中。crate改名・公開準備とpaper草稿は存在するが、M4/M5全体・v1.0公開の完了は主張しない。
 - **暫定判定**(784 入力 subset、サーバー実測): WhenNeeded B=64 は key switch 3 通りすべてと wall-clock(0.447 倍)で合格。精度 ±0.5 pt の確定は本番走行 R-41-FULL-2 待ち(2026-11-07 深夜〜11-08 に完了見込み)。
 - **GitHub**: `kenmaro3/ckks-train`(private、2026-11-06 に初回 push。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`)。
 
@@ -431,3 +431,19 @@ Macでは未使用Sage package cacheの独立割当分489,848,832 bytesを追加
 FULL-1は03:19:51 JSTにrunner exit0で終了し、元JSON・ログ・終了記録11ファイルを無変更で回収した。[M3報告](m3-report.md)に196入力・B=64の750更新/48000サンプル行を追加。KS比(a/b/c/d)=0.231776/0.386771/0.395063/0.400079はいずれも≤0.70、精度0.9036（自身の双子0.9037、n=1）、学習時間72050.794763s。全長ReBoot時間は未計測、セキュリティ同条件は未達、FULL-2対公開コードseed0=0.9041の±0.5ptゲートは未確定。03:20:57 JSTの観測でFULL-2のsetup開始を確認した。後続R47/R48/R52は両FULLとchain終了の検証待ちで、ジョブの追加・再起動はしていない。
 
 Task54の[具体target/admission契約](study-target-design.md)は33f08aeでレビュー後に確定し、独立した期待値も数値拒否例の修正・再レビュー後に受理した。target lockのコードは実装中で、実際の全長参照・lock・admission・HE開始は未検証。[入力取得用exporter](../tools/export_reboot_block_seed_inputs.py)は2b09ca7で独立再レビュー後に統合し、33件の限定テストが合格。Pythonの既存キャッシュが承認済みsourceと異なるコードを実行する問題を修正した。Macでの実compatibility取得はライブラリ検索パスと依存ライブラリの起動処理で停止しており、seed0–2の完全一致・seed3–9取得・入力version移行はまだ未達。失敗記録を保持し、閾値や既存入力を変更していない。
+
+
+<a id="latest-evidence-20261107-static"></a>
+## 2026-11-07追記: target基盤・取得前提と現在の運用状態
+
+Target lockは`66a4b36`で独立レビュー後に統合済み。[StudyTrainの実行・build契約](study-runtime-design.md)は`50a6dee`で確定した。Referenceと学習のbuild/権限を分け、CPU直列・専用Rayon pool・CUDA＋host poolの固定recipeを定める。実際のLinux承認済みcontext、全長FP32参照、保存・復旧、学習runtime、D7 descriptor/gateは未検証または未実装。Packed-block compositionの9ファイルを独立レビューし、失敗時の応答・途中観測の保持と構造テストに不足を認め、元の実装担当が修正中。通常テスト11件合格・主検証2件ignoredであり、新しい実HE主検証は実行していない。既存84回calibration/212回主検証も再実行していない。
+
+登録ケースの独立期待値は全2,680 family tuples、別枠20 prospective Iris、全7補足記述子、19 canonical vectorsの照合でSPEC/QUALITYレビューに合格した。これは今後のcase projection実装用であり、2,700を研究全体の分母とは扱わない。入力・executor・resource不足やfull block campaignの保留で登録行を削除しない。全21 profiles×10 seeds、CPU/GPU・I/NI・ablationを含むTask54は未完。
+
+入力exporterは`f021616`まで独立レビュー後に統合済み。Mac実compatibilityはeMLP2 seed0の画像payload不一致で停止し、別診断でtrain4,149/940,800、test8,694/1,960,000要素の差、最大4 ULP/2^-22を観測した。ラベルはbyte一致、同seedの重み・順序も一致。他seed/eMLP3、seed3–9取得、新入力versionは未達であり、許容誤差や置換で受理していない。不一致原因は未確定。
+
+[R-REB-7-STATIC](../results/quadruped/raw/R-REB-7-STATIC/README.md)は04:58:18 JST、exit0の読み取り専用観測。Linux NumPyの該当source hashはMacと一致し、module直下から条件分岐のないSVE照会を呼ぶことをASTで確認した。動的import到達性、`.pth`のstartupコード、完全なcontext・native hash・network isolationは未検証で、Linux科学用import/captureは未実行。baselineコードの抜粋は持ち込んでいない。
+
+同観測でFULL-2はupdate39（0始まり）=40/1000更新、elapsed5780s、直近6更新の計数は予測と一致。chain PID1700979/start465769819、queue PID1739838/start467041669は自UIDでstate S、queueはowner.jsonのみ。正しいFULL-2結果pathにはまだファイルがない。後続R47/R48/R52は両FULL成功とchain終了の検証待ちで、追加投入・再起動・キュー変更はない。FULL-2対ReBoot seed0=0.9041の±0.5ptは未確定。
+
+Mac容量対策として、稼働していないSage環境を削除した。394個のinstalled packageのURL・version・hashとconda historyをledger `sage-env-reinstall-20261107/`へ保存し、見積もり結果・実行スクリプト・estimator checkoutは保持。追加削除4,441,407,488 bytes、累計17,264,930,816 bytes（独立割当量）。削除直後の空き容量は9,881,452,544 bytesで、空き容量変動を削除量と同一視しない。Sage再計算には再インストールが必要。現在使うRust/ReBoot/TinyTeXとデータ・結果・原ログは保持した。

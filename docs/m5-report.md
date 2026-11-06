@@ -226,4 +226,12 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 
 [R-REB-6-OBS](../results/quadruped/raw/R-REB-6-OBS/README.md)で元のLinux環境を読み取り専用で観測した。現在の前処理Python source hashはMac側と一致し、Torch／torchvisionはLinux用buildだった。過去のnative実体や不一致原因を証明する観測ではない。04:32:19 JSTのFULL-2ログはupdate28（0始まり）=29/1000更新完了、直近4更新の計数は予測と一致。誤った推測pathの2項目はrawを変更せずREADMEで証拠から除外した。最終精度・現在のprocess liveness・終了はこの観測から主張しない。既存FULL／post-full queueを変更せず、追加したのは記録済みの軽量・未計時の読み取り観測のみ。
 
+## 2026-11-07追記: ケース期待値とLinux静的前提
+
+全2,680 family tuples、別枠20 Iris、全7補足記述子、19 canonical vectorsを独立照合し、case projection用期待値のSPEC/QUALITYレビューが合格した。Rust projectionは未実装、whole-study denominatorは未確定のまま。Packed-block実装の独立レビューで失敗時の応答・途中観測の保持と構造テストに不足が見つかり修正中。新しい実HEのI/NI主検証は未実行。
+
+[R-REB-7-STATIC](../results/quadruped/raw/R-REB-7-STATIC/README.md)でLinuxのNumPy sourceと正しいconfigパス、実行ファイルのsymlink先、`.pth`の存在を観測した。Macと同じSVE照会sourceで、現行Darwin専用の拒否処理はLinuxに適用されない。動的import到達性・startupコード・完全なcontext/native/isolationは未検証。04:58:18 JSTのFULL-2は40/1000更新で直近6計数は予測一致、chain/queueの同一PID/start/自UID/state Sを確認した。これは最終精度や終了の証拠ではなく、後続キューは変更していない。
+
+本人の容量整理依頼により、完了済みセキュリティ見積もり用の非稼働Sage環境を削除し、394 packageの再インストール情報を保持した。追加4,441,407,488 bytes、累計17,264,930,816 bytesの独立割当量を整理。見積もり結果・原ログ・コード・データ・現在使用中の環境は残した。以前の「Sage環境保持」は過去時点の記録であり、再計算には保存したpinsからの再インストールが必要。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
