@@ -1,0 +1,97 @@
+{
+  "scope": "FICTIONAL SYNTHETIC BYTE-CONTRACT FIXTURES ONLY; no production approval, scientific result, captured build or execution",
+  "prefix": {
+    "trusted_full_plan_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "valid_samples": [3, 2, 4, 1, 2],
+    "checkpoint_completed_updates": [2, 4, 5],
+    "cuts": [0, 1, 2, 4, 5, 6]
+  },
+  "state": {
+    "materialized_input_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "selected_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "completed_updates": 2,
+    "processed_samples": 5,
+    "layers": [
+      {"name": "z-main", "tensors": [
+        {"role": 0, "rows": 2, "cols": 2, "values": ["-0.0", "1.5", "-2.25", "0.0"]},
+        {"role": 1, "rows": 1, "cols": 2, "values": ["0.0", "-0.0"]},
+        {"role": 2, "rows": 2, "cols": 2, "values": ["0.0", "0.0", "-0.0", "0.0"]},
+        {"role": 3, "rows": 1, "cols": 2, "values": ["0.0", "0.0"]}
+      ]},
+      {"name": "aa-local-head", "tensors": [
+        {"role": 0, "rows": 1, "cols": 2, "values": ["0.5", "-0.5"]},
+        {"role": 1, "rows": 1, "cols": 1, "values": ["0.0"]},
+        {"role": 2, "rows": 1, "cols": 2, "values": ["0.0", "0.0"]},
+        {"role": 3, "rows": 1, "cols": 1, "values": ["-0.0"]}
+      ]}
+    ]
+  },
+  "files": {
+    "source": {"role": 0, "records": [
+      {"path_utf8": "z.rs", "tag": 1, "content_hex": "53594e544845544943207a0a"},
+      {"path_utf8": "aa.rs", "tag": 1, "content_hex": "53594e5448455449432061610a"}
+    ]},
+    "config": {"role": 1, "records": [
+      {"path_utf8": "/synthetic/root/.cargo/config.toml", "tag": 0},
+      {"path_utf8": "/synthetic/root/.cargo/config", "tag": 0}
+    ]},
+    "dependency": {"role": 2, "records": [
+      {"path_utf8": "/synthetic/cache/pkg/link-b", "tag": 2, "target_hex": "7461726765742e62696e"},
+      {"path_utf8": "/synthetic/cache/pkg/target.bin", "tag": 1, "content_hex": "00ff53594e544845544943"},
+      {"path_utf8": "/synthetic/cache/pkg/link-a", "tag": 2, "target_hex": "7461726765742e62696e"},
+      {"path_hex": "2f73796e7468657469632f63616368652f706b672fff", "tag": 1, "content_hex": "fe"}
+    ]},
+    "toolchain": {"role": 3, "records": [
+      {"path_utf8": "/synthetic/tool/lib/cc-real", "tag": 1, "content_hex": "53594e544845544943204343"},
+      {"path_utf8": "/synthetic/tool/bin/cc", "tag": 2, "target_hex": "2e2e2f6c69622f63632d7265616c"},
+      {"path_utf8": "/synthetic/tool/bin/rustc", "tag": 1, "content_hex": "53594e544845544943205255535443"}
+    ]}
+  },
+  "environment": [
+    {"key": "Z", "value_hex": "ff007f"},
+    {"key": "AA", "value_hex": ""},
+    {"key": "A", "value_hex": null}
+  ],
+  "capsule": {
+    "recipe": "SYNTHETIC-NOT-A-PRODUCTION-RECIPE",
+    "session_algorithm": "SYNTHETIC-NOT-A-SESSION",
+    "cargo_lock_hex": "53594e544845544943204c4f434b0a",
+    "source_git_sha1": "4444444444444444444444444444444444444444",
+    "compiler_vv": "SYNTHETIC rustc\nhost: fictional-target\n",
+    "cargo_v": "SYNTHETIC cargo\n",
+    "target": "fictional-target",
+    "host": "fictional-target",
+    "profile": "release",
+    "opt_level": "3",
+    "debug": 0,
+    "enabled_bench_features": [],
+    "package_version": "0.0.0-synthetic",
+    "metadata_stdout_hex": "7b2253594e544845544943223a747275657d0a",
+    "packages": [
+      {"id": "z-unused-workspace-dev", "manifest_utf8": "/synthetic/root/z/Cargo.toml", "tag": 0, "source": ""},
+      {"id": "é-unused-optional", "manifest_utf8": "/synthetic/cache/pkg/Cargo.toml", "tag": 1, "source": "registry+https://invalid.example/synthetic"},
+      {"id": "aa-bench", "manifest_utf8": "/synthetic/root/aa/Cargo.toml", "tag": 0, "source": ""}
+    ],
+    "metadata_argv_hex": ["2f73796e7468657469632f746f6f6c2f636172676f", "6d65746164617461", "", "ff"],
+    "build_argv_hex": ["2f73796e7468657469632f746f6f6c2f636172676f", "6275696c64", "2d2d53594e544845544943", "fe00"],
+    "cwd_hex": "2f73796e7468657469632f726f6f74"
+  },
+  "receipt": {
+    "executable_path_hex": "2f73796e7468657469632f66726573682f62696e2f53594e544845544943",
+    "executable_bytes_hex": "7f53594e5448455449432d4e4f542d45584543555441424c4500",
+    "emitted": [
+      {"package_id": "aa-bench", "manifest_utf8": "/synthetic/root/aa/Cargo.toml", "name": "z-library", "src_utf8": "/synthetic/root/aa/lib.rs", "kinds": ["rlib", "lib"], "executable_hex": null},
+      {"package_id": "aa-bench", "manifest_utf8": "/synthetic/root/aa/Cargo.toml", "name": "aa-bin", "src_utf8": "/synthetic/root/aa/main.rs", "kinds": ["bin"], "executable_hex": "2f73796e7468657469632f66726573682f62696e2f53594e544845544943"},
+      {"package_id": "aa-bench", "manifest_utf8": "/synthetic/root/aa/Cargo.toml", "name": "z-library", "src_utf8": "/synthetic/root/aa/lib.rs", "kinds": ["rlib", "lib"], "executable_hex": null}
+    ],
+    "helper_argv_hex": ["2f73796e7468657469632f68656c706572", "", "fffe", "2d2d53594e544845544943"]
+  },
+  "approval": {
+    "id": "SYNTHETIC-UNTRUSTED-FIXTURE",
+    "designs": [
+      {"path": "z", "content_hex": "53594e544845544943207a"},
+      {"path": "aa", "content_hex": "53594e544845544943206161"},
+      {"path": "é", "content_hex": "53594e54484554494320c3a9"}
+    ]
+  }
+}
