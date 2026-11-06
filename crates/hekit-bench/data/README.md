@@ -22,3 +22,16 @@
 
 Fashion-MNIST and MNIST are not committed: `scripts/fetch_fashion_mnist.sh` and
 `scripts/fetch_mnist.sh` download them into the gitignored `data/` directory.
+
+## iris.csv: Iris
+
+- Attribution: Fisher, R. (1936). Iris [Dataset]. UCI Machine Learning Repository,
+  https://doi.org/10.24432/C56C76. UCI identifies CC BY 4.0:
+  https://archive.ics.uci.edu/dataset/53/iris.
+- The local CSV is the scikit-learn data copy described by the project README:
+  https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/datasets/data/iris.csv.
+  This source URL is not an immutable version identifier; the bundled bytes are
+  identified by SHA-256 `874d28c2148c94ac8bed1b98ab1d93d27a473f72b2a712b06833f49b3259e54d`. No data values were changed in this notice update.
+- MNIST is obtained separately from the upstream data mirrors by fetch_mnist.sh;
+  credit Yann LeCun, Corinna Cortes and Christopher J. C. Burges,
+  http://yann.lecun.com/exdb/mnist/. It is not redistributed in this repository.

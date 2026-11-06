@@ -123,8 +123,12 @@ MIT; see [LICENSE](LICENSE). Third-party notices are in
 - **Lattigo (Apache-2.0), acknowledgement only.** The baby-step split rule of the Chebyshev
   evaluation follows a cost formula known from Lattigo's implementation; it was reimplemented
   from the formula and no Lattigo code was used.
-- **libloading (ISC)**, a dependency of `cudarc` (feature `cuda` only). Dependencies are
-  otherwise MIT / Apache-2.0 / BSD; `cargo deny check licenses` enforces the list.
+- **libloading (ISC)**, a dependency of `cudarc` (feature `cuda` only).
+- **Unicode character-property tables:** `unicode-ident 1.0.27` declares
+  `(MIT OR Apache-2.0) AND Unicode-3.0`. The Unicode data license is an approved
+  exception for that package and version only; its notice is included in
+  `THIRD_PARTY_NOTICES`. Other dependencies must offer MIT / Apache-2.0 / BSD / ISC.
+  `cargo deny check licenses bans` checks this scoped policy.
 
 **GPL note.** ReBoot (GPL-3.0) was only *run*, as a baseline, in a separate environment. None
 of its code is included in or linked by this repository, and no part of this library is
@@ -153,8 +157,9 @@ Sources and checksums are in `crates/hekit-bench/data/README.md`.
 - **M1** (CKKS core): done. Known-answer tests bit-exact with SEAL 4.1.2; `docs/m1-report.md`.
 - **M2** (interactive encrypted training): done. Iris reproduction (test accuracy 0.967) and
   MNIST eMLP-1; `docs/m2-report.md`.
-- **M3** (bootstrapping, non-interactive training, ReBoot comparison): done; the full-length
-  runs (4800 samples x 10 epochs) are pending. `docs/m3-report.md`.
+- **M3** (bootstrapping, non-interactive training, ReBoot comparison): implemented; final RQ1
+  assessment awaits the full-length runs (4800 samples x 10 epochs) and retains the
+  security-comparability limitation. `docs/m3-report.md`.
 - **M4** (CUDA backend): the GPU kernels and evaluator are verified bit-exact with the CPU on an
   RTX 4090; GPU bootstrapping is implemented but its measurement on hardware is deferred.
   `docs/m4-report.md`.

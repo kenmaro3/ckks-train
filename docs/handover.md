@@ -213,15 +213,15 @@ hekit/
 
 ### 並行作業の担当境界
 
-本人の回答により、Task 48 は既存担当の完了後に引き継ぐ。provenance が欠けていた ablation JSON は既存担当が `0e07561` で修正し、再レビュー中。Task 52 も既存担当が実装中。これらの編集中ファイルを別担当が上書きしない。GPU 計測の順は FULL-1 → FULL-2 → R-47-3 → R-48-1〜4 を維持する。
+本人の回答により、Task 48 は既存担当の完了後に引き継ぐ。provenance が欠けていた ablation JSON は既存担当が `0e07561` で修正し、再レビュー中。Task 52 も既存担当が実装中。この段落は引き継ぎ開始時の記録で、現在は両タスクともレビュー済み（§11〜§12）。GPU 計測の順は FULL-1 → FULL-2 → R-47-3 → R-48-1〜4 を維持する。
 
 v1.0.0 のリリース準備(Task 55、名前 ckks-train、公開・改名は本人の判断): `docs/release.md`。
 
-## 10. 停止時点の状態(2026-11-06、実装セッション)
+## 11. 旧実装セッションの停止記録(2026-11-06)
 
-本人の指示(計画セッション経由、2026-11-06)で、この実装セッションはここで止めた。以後は Codex がこのチェックアウトで作業する。ledger は `.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/progress.md`(gitignore 下、各タスクの dispatch / review / ruling の記録)。
+以下は旧実装セッションが把握していた範囲の記録である。並行して進めた Codex の Task 49・50・56・57 の状態は §10 と末尾の §12 を優先する。本人の指示(計画セッション経由、2026-11-06)で、この実装セッションはここで止めた。以後は Codex がこのチェックアウトで作業する。ledger は `.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/progress.md`(gitignore 下、各タスクの dispatch / review / ruling の記録)。
 
-### 10.1 完了(レビュー済み)
+### 11.1 旧セッションの実装状況（個別レビュー状態は表を参照）
 
 | Task | コミット | 要点 |
 |---|---|---|
@@ -236,23 +236,35 @@ v1.0.0 のリリース準備(Task 55、名前 ckks-train、公開・改名は本
 | 52 | b8e267c, 91efa6e, 9305d2e | BlockMlp(局所ブロック + 出力スタック)、双子は R-REB-5 と 1000/1000 一致 |
 | 55 | 91219e9, 49126d4 | v1.0 準備(publish dry-run は core のみ通過、他は未公開依存のため。rename.sh dry-run 822 行 / 155 ファイル、未適用)。**レビューは停止時に中断(未完)** |
 
-### 10.2 途中で止めたもの
+### 11.2 途中で止めたもの
 
 - **Task 54**(run_all.sh、`tools/paper_tables.py`): 実装 962b7d2 / 1134a9b / a502429 はコミット済み。レビューで Important 3 件: (I1) missing-input だけ残ると exit 0、(I2) (d) 列に対話版 0.564 を入れている → 裁定済みの定義(同じ非対話実行からブートストラップ分を除く。§4.1 参照)に直す、(I3) FULL 経路のテストが無い。**修正ラウンドは途中で止め、未完の編集はコミット版に戻した**。
 - **Task 55** のレビュー: 途中で停止(結果なし)。
 - **Task 42**(M3 報告): 草稿 09206bd + 追補(ba54f9d で (d) 列)。FULL-1/2 の 196 行を入れて確定する必要あり。`docs/rq1-finalization.md` は Codex の提案文書。計画担当の方針: 計画と m3-report が優先、生き残る内容は Task 42 確定時に m3-report へ統合し、その旨を rq1-finalization.md の冒頭に書く。
-- **Task 49**(GPU ブートストラップ)と **Task 53**(4 次活性化): 裁定で延期(GPU メモリ不足 / 削減順)。
-- **Task 50、56、57、58**: 未着手。
+- **Task 49**: 旧セッションでは延期としたが、Codex がコードを実装・レビュー済み(`f64a617`、§10)。GPU 実機測定だけが未実施。**Task 53**(4 次活性化)は保留。
+- **Task 50、56、57**: 旧セッションでは未着手。Codex の進捗は §12。**Task 58** は未着手。
 
-### 10.3 サーバーのキュー(`results/quadruped/requests.md`、gpu-runner が実行)
+### 11.3 サーバーのキュー(`results/quadruped/requests.md`、gpu-runner が実行)
 
 R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)→ R-47-3(bd5cc49 以降)→ R-48-1..4(0e07561、bash、失敗規則付き)→ R-52-1/2(9305d2e、合格規則付き)→ R-54-1(962b7d2 以降、`--quick`)。完了したもの: R-REB-1〜5、R-41-1〜5、F1/F2、R-45-1、R-46-1、R-47-1/2、R-REB-4。
 
-### 10.4 未決事項(本人)
+### 11.4 未決事項(本人)
 
 §7 の各項目に加えて: ReBoot が同じ推定器で 128 bit 未満であることの論文での扱い(表として示すか、等セキュリティ比較を併記するか、書き方)、eMLP-2/3 の全長暗号化走行を回すか(eMLP-2: WN B=64 約 51 h、B=48 約 82 h。eMLP-3: 約 98 h / 152 h、±30%)、LICENSE の著作権者名("hekit contributors" のまま)。
 
-### 10.5 作業ツリーの注意(停止時)
+### 11.5 作業ツリーの注意(停止時)
 
 - `results/mnist_emlp1_plain_faithful_b{32,48,64}.json` は作業ツリーで上書きされている(09:13、`--plan --mode plain` の実行、この実装セッションではない)。Task 41 が引用するのは**コミット版**(f195124 の provenance 付き)。
 - 未追跡・未コミットの `docs/rq1-finalization.md` の変更、`docs/m5-report.md`、`paper/`、`tools/figs.py`、`tools/test_figs.py`、`results/mnist_blocks_*_plain_b48.json`、`.vscode/` は Codex のもので、この実装セッションは触っていない。
+
+## 12. Codex 統合状況（2026-11-06、継続中）
+
+- 旧実装セッションの停止を `b4712f5` で確認。以後の残件は Codex が担当する。Task 48/51/52 の実装・修正レビューは完了しており、実機測定の待ちは残る。
+- Task 42 の ReBoot 推定追補を `0daf778` で統合し、元 grid ログ3本と capture 記録を不変のまま保存、独立レビュー後に push 済み。M3 は依然 FULL-1/2 待ち。比 (d) は `ba54f9d` の裁定を採用し、同じ NI 実行から bootstrap を引く。M2 の対話行は別の参考行。
+- Task 50 の報告準備は `5acc442`、Task 57 の現状報告は `fd49eac`。どちらも独立レビュー済み。報告が存在することと、測定・研究ゲートが完了したことは別である。
+- Task 54 の旧レビュー指摘（欠落入力だけで exit 0、対話比を (d) に混入、FULL のテスト不足）を引き継いで修正中。加えて `run_all.sh --tables-only`、新規出力の provenance、対応範囲の明記を整備する。`tools/paper_tables.py` を本体に維持し、`tools/tables.py` は互換入口とする予定。旧 Codex prototype は ledger 下 `task54-frozen-prototype/` に全バイトを保存して退避した。
+- Task 56 は全7節・付録と自作図を作成中。匿名版の初回 build は9ページで通過したが、表の修正反映・最終レイアウト確認・独立レビュー前。著者欄は仮置き。TeX 配布物は ignored `tools/latex/_ext/` に置き、配布物に含めない。
+- Task 55 の旧レビューは中断されていたため、公開準備を再監査中。実 checkout の crate rename はまだ未適用。名称 ckks-train は本人が決定済みで、改名の再承認は不要。編集中の Rust・表・論文を確定した後に適用し、テストとレビューを行う。
+- 依存監査で `unicode-ident 1.0.27` の `(MIT OR Apache-2.0) AND Unicode-3.0` を確認。本人が 2026-11-06 に Unicode 文字属性表だけの例外を承認した。`deny.toml` は一般許可を MIT / Apache-2.0 / BSD / ISC に戻し、`unicode-ident =1.0.27` だけに例外を限定。旧設定の Unicode-3.0 / Zlib の一般許可は削除した。Unicode の通知を `THIRD_PARTY_NOTICES` に追加し、スコープ付きの licenses / bans 検査が合格した（未使用 BSD-3-Clause 許可の警告のみ）。
+- `results/mnist_emlp1_plain_faithful_b{32,48,64}.json` の誤上書きは、上書き後の全バイトと SHA-256 を ledger 下 `preserved-plan-side-effects-20261106/` に保存してから、引用元の HEAD のバイト列（writer commit `f195124`）へ復旧した。数値や provenance を手修正していない。`--plan --mode plain` を実行前に拒否する修正と新規出力 provenance を `d611c9d` で実装・独立レビュー・commit 済み。未追跡の `results/mnist_blocks_*_plain_b48.json` と `.vscode/` は変更していない。
+- 最新の鍵認証のみの SSH 観測は接続タイムアウト。ジョブの終了・失敗とは判定せず、再起動も追加ジョブ投入もしていない。登録済みの逐次実行を維持する。

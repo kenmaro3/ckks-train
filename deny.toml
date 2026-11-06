@@ -12,10 +12,15 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "ISC", # libloading (via cudarc, hekit-cuda); planner ruling 2026-11-05: ISC accepted (OSI, MIT-equivalent)
-    "Unicode-3.0",
-    "Zlib",
 ]
 confidence-threshold = 0.8
+
+# User-approved 2026-11-06: Unicode character-property tables only.
+# Keep this package/version-specific; future dependency updates require review.
+[[licenses.exceptions]]
+name = "unicode-ident"
+version = "=1.0.27"
+allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
 
 [bans]
 # Zama crates are banned outright (project rule), whatever their license.

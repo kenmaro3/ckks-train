@@ -2,8 +2,9 @@
 
 State on 2026-11-06 (Task 55): the release is prepared, nothing is published. The GitHub
 repository `kenmaro3/ckks-train` is **private**; the owner decides when it becomes public and
-whether the crates go to crates.io. Every step below that publishes, pushes or renames is the
-owner's decision.
+whether the crates go to crates.io. The user has authorized milestone pushes to the private
+main branch and the ckks-train crate rename. Making the repository public, publishing crates,
+and creating a public release remain separate publication decisions.
 
 ## 1. Checks before any release step
 
@@ -17,9 +18,11 @@ cargo doc --workspace --no-deps                          # must print no warning
 cargo doc --workspace --no-deps --features hekit-cuda/cuda
 ```
 
-## 2. Crate names (optional, before the first publication)
+## 2. Crate names (decided; apply before the first publication)
 
-The library is called ckks-train; the crates still carry the working name `hekit-*`.
+The user has chosen ckks-train and requested the crate rename; no further naming approval
+is needed. The crates still carry the working name `hekit-*` while the current source writers
+finish. Applying the rename and validating the final tree remain release preparation tasks.
 `scripts/rename.sh` renames `hekit-{core,ckks,nn,cuda,bench}` to `ckks-train-*` in package
 names, dependency keys and paths, `hekit_*` to `ckks_train_*` in Rust paths, and moves the
 crate directories (`git mv`). It leaves `results/`, `spikes/`, `kat/` and
@@ -36,7 +39,7 @@ On 2026-11-06, at the Task 55 commit, the dry run reported 822 lines (875 occurr
 files plus 5 directory moves; 979 lines keep another spelling of "hekit". Applied in a
 throwaway clone (not in this repository), the renamed workspace passed
 `cargo check --workspace --all-targets --features cuda`. Crate names on crates.io are
-permanent once published, so decide before step 4.
+permanent once published. Apply the already decided rename before step 4.
 
 ## 3. Publishing to GitHub (owner's decision)
 
@@ -110,5 +113,27 @@ push to `main` and every pull request.
 directly on macOS (Rust 1.85.1) for Task 55, all passing: `cargo fmt --all --check`, both
 clippy invocations, `cargo check --workspace --all-targets --features cuda`,
 `cargo test --workspace -j 4` and `cargo deny check licenses bans`. That is not a run of the
-workflow on Linux; the first run on GitHub (after a push, which the owner triggers) is the
-real check.
+workflow on Linux. The private-main push did start the real
+[CI run for 0daf778](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953):
+fmt, both Clippy checks, the CUDA compile check and cargo-deny passed; the workspace
+test job was still running at the latest observation. This run does not validate
+later source changes or the eventual renamed tree. Record the final SHA and completed
+workflow result before release.
+
+## 6. Dependency policy audit (2026-11-06)
+
+The general allow-list is MIT / Apache-2.0 / BSD-2-Clause / BSD-3-Clause / ISC. The
+inherited config also allowed Unicode-3.0 and Zlib globally. A metadata audit found
+`unicode-ident 1.0.27` declares `(MIT OR Apache-2.0) AND Unicode-3.0`; the Unicode
+component is a conjunctive requirement and cannot be dismissed by choosing MIT.
+
+The user approved the Unicode character-property tables only. The global Unicode
+and unused Zlib allowances were removed; a `licenses.exceptions` entry now permits
+the Unicode requirement only for `unicode-ident =1.0.27`. Its full Unicode V3 notice
+is in THIRD_PARTY_NOTICES. A future version or another crate needs a fresh audit.
+The strict four-family check failed as expected before the exception; the active
+scoped policy passes `cargo deny check licenses bans` (cargo-deny 0.20.2), with only
+an unused BSD-3-Clause allowance warning. No GPL-family or BSD-3-Clause-Clear
+exception was introduced. Dataset attribution is separate from code dependencies;
+Iris/WDBC credits and separately downloaded MNIST/Fashion-MNIST sources are recorded
+in the notices and data README.
