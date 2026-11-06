@@ -6,5 +6,6 @@ pub mod data;
 pub mod profile_data;
 pub mod provenance;
 pub mod study_inputs;
+pub mod study_plain;
 pub mod study_profile;
 pub mod twin;
