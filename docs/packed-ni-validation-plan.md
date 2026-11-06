@@ -414,3 +414,34 @@ the original frozen evidence exactly: 12 cases, 48 histories, 212 predicted call
 The original 46-check report and once-only Host log remain historical artifacts;
 this round does not rerun or replace them. Full command/RED/setup/Clippy history and
 new identities are retained in the separate fix1 report and artifacts.
+
+
+## First registered primary outcome (2026-11-07)
+
+Source f53f34f0396e05ecae3d670fee21140454123349 passed independent source review,
+including F1/F2 scoped re-review, before the single primary attempt. The local Mac
+attempt at00:19:19.919358–00:20:38.735245 JST exited0: all12 Lazy cases/four updates
+completed,48 validated/zero missing,212 attempted/completed bootstrap calls under
+the228 cap. All observed seven-field update counts match the frozen schedule.
+Independent outcome audit passed coverage, numerical result and evidence integrity.
+
+[Byte-exact logs and audit](../results/validation/packed-ni-n1024-20261107/README.md)
+retain the source/executable/runner hashes,1916 parity rows,176 projections and36
+hidden events. Maximum full complex error is2.53557821117368795e-8 (E=2^-12);
+maximum incremental bootstrap error is1.26730185407340126e-8 (epsilon=2^-20).
+Every role range passed its registered bound and the universal ≤1 bound. Replica spread is a
+separate diagnostic; its maximum3.06720765902612449e-8 is also below E; acceptance
+uses the full complex maximum. Projection
+drift has no extra epsilon gate. No fixture, tolerance, rate or seed was retuned,
+and the immutable84-call calibration was not rerun.
+
+This is finite N1024 empirical evidence in one deterministic key context, with
+correlated cases and Lazy-only numerical coverage. Saved maxima are not a full
+ciphertext/decoded-array export, so the independent audit cannot redecrypt every
+slot or replay unprinted graph metadata. Source checks all512 complex slots and
+uses the registered after-prepare/before-commit detection boundary. It is not
+universal precision/range proof, secure N2^16 execution, PerSample parity, GPU or
+memory admission, full-profile/c3/D4d/campaign validation, or production Ready.
+The harness's78.24s is a local validation duration, not benchmark evidence. The
+source manifest in the evidence describes the source commit's pre-outcome docs;
+this appendix is a later report and does not alter those frozen historical bytes.

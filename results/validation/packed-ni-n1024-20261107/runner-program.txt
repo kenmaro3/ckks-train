@@ -1,0 +1,77 @@
+# Prepared runner; root must bind the completed scoped review and source commit first.
+from pathlib import Path
+import datetime, hashlib, os, shutil, subprocess, time
+
+APPROVED_REVIEW_SHA256 = '36198aab83efa7b7ba46d661fe4c1426ba8e17b0a7181c9614699156a215fdc2'
+APPROVED_SOURCE_COMMIT = 'f53f34f0396e05ecae3d670fee21140454123349'
+ledger = Path('.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5')
+source_manifest = ledger / 'task-54-d4c2-ni-fix1-source-SHA256SUMS'
+expected_source_manifest = '75f07083391da0b449204e976d7035886ccd860b204bbe9e5f591333aaf96a8d'
+exe = Path('target/debug/deps/packed_training_ni-bc3ce842ef23b812')
+expected_exe = '9ee26bbbd7ea239b67d99e8de7d7c67aeb1ecf6764d65cf98a013f90c6c7eb5b'
+review = ledger / 'task-54-d4c2-ni-fix1-rereview.md'
+
+def digest(path):
+    h = hashlib.sha256()
+    with Path(path).open('rb') as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+def verify_sources():
+    assert digest(source_manifest) == expected_source_manifest
+    for line in source_manifest.read_text().splitlines():
+        expected, name = line.split(None, 1)
+        assert digest(Path(name.strip())) == expected, name
+
+assert APPROVED_REVIEW_SHA256 and APPROVED_SOURCE_COMMIT, 'Root review/source binding not released'
+assert digest(review) == APPROVED_REVIEW_SHA256
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() == APPROVED_SOURCE_COMMIT
+verify_sources()
+assert digest(exe) == expected_exe
+run = ledger / 'task-54-d4c2-ni-primary-attempt-1'
+run.mkdir(exist_ok=False)  # Never overwrite or silently retry an earlier primary.
+shutil.copyfile(exe, run / 'frozen-test-executable')
+shutil.copyfile(source_manifest, run / 'source-SHA256SUMS')
+command = ['cargo', 'test', '-p', 'ckks-train-nn', '--test', 'packed_training_ni',
+           'packed_ni_primary_12_cases_max_228_calls', '--', '--ignored', '--exact',
+           '--nocapture', '--test-threads=1']
+env = os.environ.copy()
+env.update(CARGO_INCREMENTAL='0', CARGO_BUILD_JOBS='8', RAYON_NUM_THREADS='8')
+with (run / 'runner.txt').open('x') as meta, (run / 'stdout.txt').open('x') as out, (run / 'stderr.txt').open('x') as err:
+    def record(key, value):
+        meta.write(f'{key}: {value}\n')
+        meta.flush()
+    record('kind', 'external runner metadata only; scientific diagnostics are unmodified program stdout')
+    record('host_scope', 'local Mac; not quadruped-gpu or performance evidence')
+    record('started_local', datetime.datetime.now().astimezone().isoformat())
+    record('started_unix', time.time())
+    record('cwd', str(Path.cwd()))
+    record('commit', APPROVED_SOURCE_COMMIT)
+    record('review_sha256', APPROVED_REVIEW_SHA256)
+    record('source_manifest_sha256', expected_source_manifest)
+    record('runner_sha256', digest(Path(__file__)))
+    record('git_status_before', repr(subprocess.check_output(['git', 'status', '--porcelain'], text=True)))
+    record('command', repr(command))
+    record('explicit_environment', {k: env[k] for k in ['CARGO_INCREMENTAL', 'CARGO_BUILD_JOBS', 'RAYON_NUM_THREADS']})
+    record('executable_before_sha256', digest(exe))
+    child = subprocess.Popen(command, env=env, stdout=out, stderr=err)
+    record('child_pid', child.pid)
+    code = child.wait()
+    record('returncode', code)
+    record('finished_unix', time.time())
+    record('finished_local', datetime.datetime.now().astimezone().isoformat())
+    record('executable_after_sha256', digest(exe))
+    record('executable_unchanged', digest(exe) == expected_exe)
+    try:
+        verify_sources()
+        record('source_identities_unchanged', True)
+    except Exception as error:
+        record('source_identities_unchanged', False)
+        record('source_check_failure', type(error).__name__)
+        raise
+print('Saved', run, 'returncode', code)
+print('\n'.join((run / 'stdout.txt').read_text().splitlines()[-12:]))
+print((run / 'stderr.txt').read_text())
+
+raise SystemExit(code)

@@ -1,0 +1,262 @@
+"""Read-only standard-library audit of frozen attempt1; never imports/runs HE code.
+Writes only independent derived text/TSV evidence in the ignored ledger.
+"""
+from pathlib import Path
+from collections import Counter
+from decimal import Decimal
+import ast, hashlib, math, re, subprocess
+ROOT = Path.cwd()
+L = ROOT / '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5'
+A = L / 'task-54-d4c2-ni-primary-attempt-1'
+OUT = L / 'task-54-d4c2-ni-main-outcome-evidence.txt'
+TSV = L / 'task-54-d4c2-ni-main-outcome-maxima.tsv'
+COMMIT='f53f34f0396e05ecae3d670fee21140454123349'
+E=Decimal(2)**-12; EPS=Decimal(2)**-20
+FIELDS=['rotations','relins','ct_ct_tensor','ct_pt_mults','rescales','sse_switches','bootstraps']
+COST=[37,40,46,207,56,2,1]
+SCALE=4796333603149578240
+notes=[]
+def digest(p):
+    h=hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for chunk in iter(lambda:f.read(1024*1024),b''):h.update(chunk)
+    return h.hexdigest()
+def manifest(path, base, commit=False):
+    rows=[]
+    for line in path.read_text().splitlines():
+        sha,name=line.split(None,1); name=name.strip(); p=base/name
+        assert digest(p)==sha,(p,'hash mismatch')
+        if commit:
+            original=subprocess.check_output(['git','show',COMMIT+':'+name])
+            assert hashlib.sha256(original).hexdigest()==sha,(name,'commit mismatch')
+        rows.append((name,sha))
+    assert len({n for n,h in rows})==len(rows)
+    return rows
+frozen=manifest(A/'SHA256SUMS',A)
+assert len(frozen)==6
+assert set(n for n,h in frozen)=={'frozen-test-executable','runner.txt','runner_program.py','source-SHA256SUMS','stderr.txt','stdout.txt'}
+assert set(p.name for p in A.iterdir())=={n for n,h in frozen}|{'SHA256SUMS'}
+sources=manifest(A/'source-SHA256SUMS',ROOT,True)
+assert len(sources)==13
+assert digest(A/'source-SHA256SUMS')==digest(L/'task-54-d4c2-ni-fix1-source-SHA256SUMS')
+assert digest(L/'task-54-d4c2-ni-fix1-rereview.md')=='36198aab83efa7b7ba46d661fe4c1426ba8e17b0a7181c9614699156a215fdc2'
+meta=dict(line.split(': ',1) for line in (A/'runner.txt').read_text().splitlines())
+assert meta['commit']==COMMIT and meta['returncode']=='0'
+assert ast.literal_eval(meta['command'])==['cargo','test','-p','ckks-train-nn','--test','packed_training_ni','packed_ni_primary_12_cases_max_228_calls','--','--ignored','--exact','--nocapture','--test-threads=1']
+assert ast.literal_eval(meta['explicit_environment'])=={'CARGO_INCREMENTAL':'0','CARGO_BUILD_JOBS':'8','RAYON_NUM_THREADS':'8'}
+assert meta['executable_before_sha256']==meta['executable_after_sha256']==digest(A/'frozen-test-executable')=='9ee26bbbd7ea239b67d99e8de7d7c67aeb1ecf6764d65cf98a013f90c6c7eb5b'
+assert meta['executable_unchanged']==meta['source_identities_unchanged']=='True'
+assert meta['runner_sha256']==digest(A/'runner_program.py')
+assert meta['source_manifest_sha256']==digest(A/'source-SHA256SUMS')
+stderr=(A/'stderr.txt').read_text()
+assert len(stderr.splitlines())==2 and 'Finished `test` profile' in stderr and 'Running tests/packed_training_ni.rs' in stderr
+lines=(A/'stdout.txt').read_text().splitlines()
+assert len(lines)==2409
+assert lines[:2]==['','running 1 test']
+assert lines[2]=='test packed_ni_primary_12_cases_max_228_calls ... PRIMARY_START main_program held_out_seed=153 numerical_coverage=Lazy_only detection_boundary=after_prepare_before_commit cap=228'
+assert lines[-4:]==['ok','','test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 78.24s','']
+assert sum('PRIMARY_START ' in x for x in lines)==1
+assert sum(x.startswith('PRIMARY_END ') for x in lines)==1
+assert not any(x.startswith(('EXECUTION_FAILURE','EXECUTION_FAILURE_RETAINED')) for x in lines)
+assert not re.search(r'\b(?:NaN|inf|Infinity)\b','\n'.join(lines),re.I)
+param=next(x for x in lines if x.startswith('PRIMARY params '))
+assert 'N=1024 log_n=10 scale_bits=4796333603149578240 dnum=8' in param
+q=ast.literal_eval(re.search(r' q=(\[[^]]*\])',param)[1]); p=ast.literal_eval(re.search(r' p=(\[[^]]*\])',param)[1])
+qb=ast.literal_eval(re.search(r' q_bits=(\[[^]]*\])',param)[1]); pb=ast.literal_eval(re.search(r' p_bits=(\[[^]]*\])',param)[1])
+assert qb==[54]+[42]*16+[34]*4+[58]*7+[56]*4 and pb==[60]*4
+assert [x.bit_length() for x in q]==qb and [x.bit_length() for x in p]==pb
+assert len(set(q+p))==36 and all(x%2048==1 for x in q+p)
+assert 'bp=BootParams { log_slots: 9, ctos_levels: 4, evalmod_levels: 7, stoc_levels: 4, k_intervals: 13, cheb_degree: 127, double_angle: 0, sparse_hw: None, ephemeral_hw: Some(32) } seed=153 training_keys=[-2, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256]' in param
+
+def counts(s):
+    m=re.search(r'OpCounter \{ ([^}]+) \}',s); assert m,s
+    d=dict((k,int(v)) for k,v in re.findall(r'(\w+): (\d+)',m[1]))
+    assert list(d)==FIELDS,s
+    return [d[k] for k in FIELDS]
+assert counts(param)==COST
+pred=(L/'task-54-d4c2-ni-predicted-schedule.log').read_text().splitlines()
+fix=(L/'task-54-d4c2-ni-fix1-schedule.log').read_text().splitlines()
+assert [x for x in pred if x.startswith(('SCHEDULE ','TRACE '))]==[x for x in fix if x.startswith(('SCHEDULE ','TRACE '))]
+assert sum(x.startswith(('SCHEDULE ','TRACE ')) for x in pred)==2496
+key_re=re.compile(r'square=(true|false) ordinal=([01]) placement=(Au|Wn|Aa) update=([0-3])')
+def key(s):
+    m=key_re.search(s); assert m,s
+    return m[1],int(m[2]),m[3],int(m[4])
+schedule={}
+for n,s in enumerate(pred,1):
+    if s.startswith('SCHEDULE '):
+        k=key(s); assert k not in schedule
+        schedule[k]=(counts(s),'state_refresh=true' in s,n)
+order=[(sq,o,pl,t) for sq in ['true','false'] for o in range(2) for pl in ['Au','Wn','Aa'] for t in range(4)]
+assert list(schedule)==order
+assert sum(c[0][-1] for c in schedule.values())==212
+# Recover the exact source-derived diagnostic order; reject extra, missing or duplicate rows.
+raw=[(n,s) for n,s in enumerate(lines,1) if s.startswith(('BEGIN ','PREPARED ','PARITY ','PROJECTION ','BOOT '))]
+pos=0; totals=[0]*7; maxrows={}; parity={}; boots=[]; proj=[]; begins=[]; prep=[]
+def take(prefix):
+    global pos
+    n,s=raw[pos];pos+=1
+    assert s.startswith(prefix),(n,'expected '+prefix,s)
+    return n,s
+
+def numeric(s,k):
+    m=re.search(r'\b'+k+r'=([^ ]+)',s); assert m,(s,k)
+    d=Decimal(m[1]); assert d.is_finite(),s
+    return d
+
+def maximum(category,val,n,s):
+    if category not in maxrows or val>maxrows[category][0]:maxrows[category]=(val,n,s)
+
+def par(label):
+    n,s=take('PARITY '+label+' error=')
+    assert label not in parity
+    vals={f:numeric(s,f) for f in ['error','active','padding','replica','imaginary']}
+    for f,v in vals.items():
+        assert 0<=v<=E,(n,f,v)
+        maximum('PARITY.'+f,v,n,s)
+    assert vals['error']==max(vals['active'],vals['padding']),(n,s)
+    assert 0<=int(numeric(s,'worst_slot'))<512
+    parity[label]=(vals,n,s)
+    phase = label.split(' role=',1)[1].split(' } ',1)[-1].split(') ',1)[-1] if ' role=' in label else label.split(' update=',1)[1].split(' ',1)[1]
+    if ' role=' not in label:
+        phase = phase.split(' ',1)[0] if not phase.startswith('record=') else phase.split(' ',1)[1]
+    maximum('SNAPSHOT.'+phase,vals['error'],n,s)
+    return vals
+
+def state(label,sq,t,old):
+    result={}
+    for k in range(2):
+        result['W'+str(k)]=par(label+' W'+str(k))
+        if sq=='true':result['b'+str(k)]=par(label+' b'+str(k))
+        elif not old or t>0:result['U'+str(k)]=par(label+' U'+str(k))
+    return result
+cum=0
+for validated,k in enumerate(order):
+    sq,o,pl,t=k;label=f'square={sq} ordinal={o} placement={pl} update={t}'
+    ids=[[0,1,2],[0],[0,2],[0,1,2]][t]
+    n,s=take('BEGIN '+label+' ')
+    assert s==f'BEGIN {label} attempted={cum} completed={cum} validated_updates={validated}'
+    begins.append(n)
+    old=state(label+' old',sq,t,True)
+    n,s=take('PREPARED '+label+' '); observed=counts(s); expected,refresh,schedline=schedule[k]
+    assert observed==expected,(n,schedline,observed,expected)
+    assert refresh==(sq=='true' or pl!='Aa' or t in [1,3])
+    roles=[]
+    if pl=='Aa':roles.extend((f'Hidden {{ stage: {o}, record: {i} }}',None,i) for i in ids)
+    if refresh:
+        for layer in range(2):
+            roles.extend([(f'Weight({2*o+layer})','W'+str(layer),None),(f'{"Bias" if sq=="true" else "Velocity"}({2*o+layer})',('b' if sq=='true' else 'U')+str(layer),None)])
+    assert len(roles)==expected[-1]
+    cum+=len(roles)
+    assert f'attempted={cum} completed={cum} counts=' in s,(n,s)
+    assert s.endswith('diagnostic_boundary=after_prepare_before_commit')
+    prep.append((k,n,observed,schedline));totals=[a+b for a,b in zip(totals,observed)]
+    eventmetrics={}
+    for j,(role,staterole,record) in enumerate(roles):
+        ep=f'{label} event={j} role={role}'
+        before=par(ep+' pre_projection')
+        if staterole:
+            pn,ps=take('PROJECTION '+ep+' drift=');drift=numeric(ps,'drift');assert drift>=0
+            assert 0<=int(numeric(ps,'worst_slot'))<512
+            maximum('PROJECTION.drift',drift,pn,ps);proj.append((pn,ps))
+            projected=par(ep+' post_projection')
+        else:projected=before
+        inp=par(ep+' boot_input');out=par(ep+' boot_output')
+        bn,bs=take('BOOT '+ep+' norm=')
+        bound=Decimal('0.5') if record is not None else Decimal('0.1') if staterole.startswith('U') else Decimal('0.4')
+        reported=numeric(bs,'bound')
+        # Text reports the exact f64 literal rounded to 17 digits.
+        assert float(reported)==float(bound)
+        norm=numeric(bs,'norm'); inc=numeric(bs,'incremental')
+        assert 0<=norm<=bound and norm<=1 and 0<=inc<=EPS,(bn,bs)
+        assert int(numeric(bs,'input_level'))==0 and int(numeric(bs,'output_level'))==16
+        assert int(numeric(bs,'input_scale_bits'))==int(numeric(bs,'output_scale_bits'))==SCALE
+        assert counts(bs)==COST
+        assert 0<=int(numeric(bs,'worst_slot'))<512 and 0<=int(numeric(bs,'incremental_worst'))<512
+        maximum('BOOT.norm',norm,bn,bs);maximum('BOOT.incremental',inc,bn,bs)
+        maximum('BOOT.norm.'+role.split('(')[0].split(' ')[0],norm,bn,bs)
+        boots.append((bn,bs));eventmetrics[(staterole,record)]=(before,out)
+    retained=state(label+' old_retained',sq,t,True);assert old==retained
+    candidate=state(label+' candidate',sq,t,False)
+    committed=state(label+' committed_candidate',sq,t,False)
+    for r,vals in candidate.items():
+        if refresh:
+            pre,post=eventmetrics[(r,None)];assert vals==pre and committed[r]==post
+        else:assert committed[r]==vals
+    for i in ids:
+        pre=par(label+f' record={i} hidden.pre')
+        if pl=='Aa':
+            post=par(label+f' record={i} hidden.post')
+            ep,eo=eventmetrics[(None,i)];assert pre==ep and post==eo
+        selected=par(label+f' record={i} hidden.selected')
+        assert selected==(post if pl=='Aa' else pre)
+        par(label+f' record={i} output')
+assert pos==len(raw),(pos,len(raw))
+assert len(raw)==2400 and all(n in range(5,2405) for n,s in raw)
+assert len(begins)==len(prep)==48 and len(boots)==212 and len(proj)==176 and cum==212
+end=next(x for x in lines if x.startswith('PRIMARY_END '))
+assert end=='PRIMARY_END status=PASS current=square=false ordinal=1 placement=Aa update=3 attempted=212 completed=212 validated_updates=48 missing_updates=0 registered_cap=228 predicted_calls=212'
+assert sum(x.startswith('test result: ') for x in lines)==1
+assert 'test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 78.24s' in lines
+# Separate ordinary f64 scalar reconstruction from plan literals, never from encrypted feedback.
+# These are derived plaintext values, not additional program measurements.
+W0=[[[.25,-.125,.0625],[-.0625,.1875,.125],[.125,.0625,-.1875]],[[.1875,-.125,.0625],[.0625,.25,-.125],[-.125,.0625,.1875]]]
+B0=[[.25,.1875,-.125],[.25,-.1875,.125]]
+X=[[.75,-.375,.375],[-.375,.75,.1875],[.375,.1875,-.75],[.5,-.5,.5]]
+Y=[[.5,0,0],[0,.5,0],[.25,.25,0],[.875,-.875,.875]]
+scalar_notes=[]
+for square in [True,False]:
+    w=[[row[:] for row in m] for m in W0]
+    b=[row[:] for row in B0] if square else [[0.0]*3 for _ in range(2)]
+    v=[[[0.0]*3 for _ in range(3)] for _ in range(2)]
+    for t,rate in enumerate([.04,.01,.02,.08]):
+        ids=[[0,1,2],[0],[0,2],[0,1,2]][t]; g=[[[0.0]*3 for _ in range(3)] for _ in range(2)];gb=[[0.0]*3 for _ in range(2)]
+        for r in ids:
+            z1=[sum(w[0][o][i]*X[r][i] for i in range(3))+b[0][o] for o in range(3)]
+            h=[z*z if square else z*z+z for z in z1]
+            z2=[sum(w[1][o][i]*h[i] for i in range(3))+b[1][o] for o in range(3)]
+            y=[z*z if square else z for z in z2]
+            d2=[(y[o]-Y[r][o])*(2/3)*(2*z2[o]) if square else y[o]-Y[r][o] for o in range(3)]
+            d1=[sum(w[1][o][i]*d2[o] for o in range(3))*(2*z1[i] if square else 2*z1[i]+1) for i in range(3)]
+            for k,(a,d) in enumerate([(X[r],d1),(h,d2)]):
+                for o in range(3):
+                    gb[k][o]+=d[o]/len(ids)
+                    for i in range(3):g[k][o][i]+=d[o]*a[i]/len(ids)
+        for k in range(2):
+            for o in range(3):
+                for i in range(3):
+                    if square:w[k][o][i]-=rate*g[k][o][i]
+                    else:
+                        v[k][o][i]=.9*v[k][o][i]+g[k][o][i]
+                        w[k][o][i]-=rate*(g[k][o][i]+.9*v[k][o][i])
+                if square:b[k][o]-=rate*gb[k][o]
+    movement=[max(abs(w[k][o][i]-W0[k][o][i]) for o in range(3) for i in range(3)) for k in range(2)]
+    other=[max(abs(b[k][o]-B0[k][o]) for o in range(3)) if square else max(abs(.08*(1+.9)*v[k][o][i]) for o in range(3) for i in range(3)) for k in range(2)]
+    assert all(x>4*float(E) for x in movement+other)
+    scalar_notes.append(f'DERIVED PLAINTEXT {"Square" if square else "Poly"}: final W movement {movement}; '+('bias movement ' if square else 'U magnitude ')+str(other)+'; all > 4E. Independent arithmetic order can differ in final f64 bits; this is not encrypted telemetry.')
+notes += ['INTEGRITY PASS: all six attempt-manifest entries, exact directory membership, 13 source files vs live bytes AND read-only git show of supplied source commit, review identity, source-manifest identity, exact command/environment, executable snapshot and runner records verified.',
+'RAW COVERAGE PASS: 48 ordered BEGIN/PREPARED updates, 212 role-ordered BOOT events, 176 state projections, 36 hidden events, 48 validated / 0 missing, one successful PRIMARY_END and one harness result; all diagnostic rows consumed once.',
+'SCHEDULE PASS: all 2496 prospective SCHEDULE/TRACE lines byte-equal to FIX1; every PREPARED seven-field measured counter equals its corresponding frozen SCHEDULE row. Event counts/roles/record IDs derived independently from source contract.',
+'NUMERIC PASS: all '+str(len(parity))+' PARITY rows have finite nonnegative error/active/padding/replica/imaginary <= E; every BOOT norm passes its role bound and 1, every incremental <= EPS; all input/output BOOT metadata exact level0/16 and scale bits. All 212 observed BOOT seven-field counters equal (37,40,46,207,56,2,1).',
+'PARITY CROSS-CHECK PASS: old==old_retained; event source==candidate and output==committed for state refresh; carried candidate==committed without refresh; hidden event source==hidden.pre, event output==hidden.post, selected==post for AA and pre otherwise. Numeric tuples compared; slot-index fields not treated as distinct samples.',
+'INCLUSIVE UPDATE COUNTER TOTAL: '+str(dict(zip(FIELDS,totals))),
+'BOOT SUBINTERVAL COUNTER TOTAL (nested; do not add to inclusive): '+str(dict(zip(FIELDS,[x*212 for x in COST]))),
+'RAW TYPES: '+str(dict(Counter(s.split()[0] for n,s in raw))),
+'BOUNDARY: this audit does not decode or reconstruct ciphertexts; no slot arrays/ciphertexts saved in the logs. 512-slot checks are established from exact source and successful control flow, whereas independently recalculated numerical results cover saved aggregate maxima only.',
+'BOUNDARY: raw BOOT rows expose input/output levels/scales; live full DAG trace and candidate component/NTT flags are not separately serialized. Runtime success entails the exact source trace/count/metadata gates; no independent replay of those absent values is claimed.',
+'BOUNDARY: one retained runner process and one primary completion, no visible retry or duplicate/restarted case. A frozen evidence set cannot prove that no unrecorded external execution ever occurred.',
+'NO EXECUTION: only Python standard-library file/hash/regex/arithmetic and read-only git show; no build/test/keygen/HE/decrypt/network/SSH/Git mutations.'
+]
+notes+=['\nINPUT SHA256:']
+notes+=scalar_notes
+for pth in [A/'SHA256SUMS',A/'runner.txt',A/'runner_program.py',A/'source-SHA256SUMS',A/'stdout.txt',A/'stderr.txt',L/'task-54-d4c2-ni-predicted-schedule.log',L/'task-54-d4c2-ni-fix1-schedule.log',L/'task-54-d4c2-ni-main-outcome-brief.md',L/'task-54-d4c2-ni-implementation-report.md',L/'task-54-d4c2-ni-fix1-report.md',L/'task-54-d4c2-ni-fix1-rereview.md']:
+    notes.append(digest(pth)+'  '+str(pth.relative_to(ROOT)))
+notes+=['\nSOURCE COMMIT MATCHES:']+[sha+'  '+name for name,sha in sources]
+notes+=['\nUPDATE COUNTER CROSSWALK (zero-based update; observed raw line / forecast raw line / seven counters):']
+for k,n,c,sn in prep:notes.append(str(k)+' stdout:'+str(n)+' schedule:'+str(sn)+' '+str(c))
+notes+=['\nMAXIMA:']
+for cat,(v,n,s) in maxrows.items():notes.append(cat+' = '+str(v)+' stdout:'+str(n)+'\n'+s)
+OUT.write_text('\n'.join(notes)+'\n')
+TSV.write_text('category\tvalue_exact_printed\tstdout_line\traw_record\n'+'\n'.join(f'{cat}\t{v}\t{n}\t{s}' for cat,(v,n,s) in maxrows.items())+'\n')
+print('\n'.join(notes[:12]))
+print('\n'.join(f'{cat}: {v} stdout:{n}' for cat,(v,n,s) in maxrows.items()))

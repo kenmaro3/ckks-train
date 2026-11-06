@@ -1,0 +1,2 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.30s
+     Running tests/packed_training_ni.rs (target/debug/deps/packed_training_ni-bc3ce842ef23b812)

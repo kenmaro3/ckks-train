@@ -1,0 +1,143 @@
+INTEGRITY PASS: all six attempt-manifest entries, exact directory membership, 13 source files vs live bytes AND read-only git show of supplied source commit, review identity, source-manifest identity, exact command/environment, executable snapshot and runner records verified.
+RAW COVERAGE PASS: 48 ordered BEGIN/PREPARED updates, 212 role-ordered BOOT events, 176 state projections, 36 hidden events, 48 validated / 0 missing, one successful PRIMARY_END and one harness result; all diagnostic rows consumed once.
+SCHEDULE PASS: all 2496 prospective SCHEDULE/TRACE lines byte-equal to FIX1; every PREPARED seven-field measured counter equals its corresponding frozen SCHEDULE row. Event counts/roles/record IDs derived independently from source contract.
+NUMERIC PASS: all 1916 PARITY rows have finite nonnegative error/active/padding/replica/imaginary <= E; every BOOT norm passes its role bound and 1, every incremental <= EPS; all input/output BOOT metadata exact level0/16 and scale bits. All 212 observed BOOT seven-field counters equal (37,40,46,207,56,2,1).
+PARITY CROSS-CHECK PASS: old==old_retained; event source==candidate and output==committed for state refresh; carried candidate==committed without refresh; hidden event source==hidden.pre, event output==hidden.post, selected==post for AA and pre otherwise. Numeric tuples compared; slot-index fields not treated as distinct samples.
+INCLUSIVE UPDATE COUNTER TOTAL: {'rotations': 9626, 'relins': 9224, 'ct_ct_tensor': 10616, 'ct_pt_mults': 45122, 'rescales': 13854, 'sse_switches': 424, 'bootstraps': 212}
+BOOT SUBINTERVAL COUNTER TOTAL (nested; do not add to inclusive): {'rotations': 7844, 'relins': 8480, 'ct_ct_tensor': 9752, 'ct_pt_mults': 43884, 'rescales': 11872, 'sse_switches': 424, 'bootstraps': 212}
+RAW TYPES: {'BEGIN': 48, 'PARITY': 1916, 'PREPARED': 48, 'PROJECTION': 176, 'BOOT': 212}
+BOUNDARY: this audit does not decode or reconstruct ciphertexts; no slot arrays/ciphertexts saved in the logs. 512-slot checks are established from exact source and successful control flow, whereas independently recalculated numerical results cover saved aggregate maxima only.
+BOUNDARY: raw BOOT rows expose input/output levels/scales; live full DAG trace and candidate component/NTT flags are not separately serialized. Runtime success entails the exact source trace/count/metadata gates; no independent replay of those absent values is claimed.
+BOUNDARY: one retained runner process and one primary completion, no visible retry or duplicate/restarted case. A frozen evidence set cannot prove that no unrecorded external execution ever occurred.
+NO EXECUTION: only Python standard-library file/hash/regex/arithmetic and read-only git show; no build/test/keygen/HE/decrypt/network/SSH/Git mutations.
+
+INPUT SHA256:
+DERIVED PLAINTEXT Square: final W movement [0.0015611659425737168, 0.0027963696590344866]; bias movement [0.0021219056164396566, 0.01232951274440458]; all > 4E. Independent arithmetic order can differ in final f64 bits; this is not encrypted telemetry.
+DERIVED PLAINTEXT Poly: final W movement [0.02442884900825043, 0.03459904160047683]; U magnitude [0.027582647817067225, 0.03940561430308643]; all > 4E. Independent arithmetic order can differ in final f64 bits; this is not encrypted telemetry.
+f160b411c13e6db6278259b256c199ba6a6ba7561a155bd77ed7213519212127  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/SHA256SUMS
+a878c7d9e598618d217d4775c6075ab8d3713b066063263d011ad34da75fdec5  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/runner.txt
+dfc6d01b109aa7b5dea41c744f49c65f251403b93b154e52e28839f73a413c54  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/runner_program.py
+75f07083391da0b449204e976d7035886ccd860b204bbe9e5f591333aaf96a8d  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/source-SHA256SUMS
+f26da2e6a3ce29439aebea7311c078bd5bbe3461d5372de88fc9a700d543e116  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/stdout.txt
+698d8338ac326352bb4c44140c4f9267e1cf91ebbc8721d1d0b2241fe175e159  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-primary-attempt-1/stderr.txt
+7e182eb99fd5d19f4086071025c7bb238d5eb766eede91dfe64e9b3bb25248ed  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-predicted-schedule.log
+9ef4c91abab78306b0c3d01d28060a5f9e833caa1046dab5deea05ea5346b0e6  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-fix1-schedule.log
+79df853dcf993fd428f904c41666504b0819fca9cece7dd483b6af47f0073df3  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-main-outcome-brief.md
+7eb1248c7b8a753d23571f4441343c7f912232d05c91ac364fd751507b38d81d  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-implementation-report.md
+fadfce77294411ee6e4f1d89caeb1d6612f1804a0484e0a56446e3cb675237e5  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-fix1-report.md
+36198aab83efa7b7ba46d661fe4c1426ba8e17b0a7181c9614699156a215fdc2  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d4c2-ni-fix1-rereview.md
+
+SOURCE COMMIT MATCHES:
+4c42f7fb9a21ff015fec4af551e1b086209a58215d9e08693fd6ac6cc49a942c  crates/ckks-train-nn/src/packed_training/dag.rs
+4b541d2a3ea5f66a8617a35d3fd36082bbfa54aee0a0555faf266c497a84a3f2  crates/ckks-train-nn/src/packed_training/trainer.rs
+43683c8cce847e9aa734166b489ef8629464d18d04c98d6b8eca888fa3286cb3  crates/ckks-train-nn/src/packed_training/stage.rs
+ff9748df6f5055a9f84b58740a4b626091ef9b569e00c584a5d104e047a7460d  crates/ckks-train-nn/src/packed_training/refresh.rs
+4f15efea5eb317bd6fe0fe346f200a72f7564a3e1af12c71eaccf697f4bce38b  crates/ckks-train-nn/src/packed_training/optimizer.rs
+78322faa9d17e233666422eacbe2ba012a60489e5393c8dda3cb698331ffd733  crates/ckks-train-nn/src/packed_training/mod.rs
+05e6092d4075c8ea2ec59d0b5408ad577f9db6147c35dcd3df697ee59208f665  crates/ckks-train-nn/tests/packed_plan.rs
+1a85b23fbdaeaf75e6d6d34d6316ae96ced8a12a5bd34c4061b53cf544b77aa9  crates/ckks-train-nn/tests/packed_training_ni.rs
+9eb187195dd1d83c08c927704261b807c94de61bb48c306fa6c6fef6c8d9fbf4  crates/ckks-train-nn/tests/packed_ni_helpers/mod.rs
+f9954a2a3247a21b27f825e4caadc7aca2f4058e1bb5319f29e2b59075c88a49  crates/ckks-train-nn/tests/packed_ni_helpers/primary.rs
+1982b0a554c7538840dcda70bfbc5c887df307f0f04d9218b6fc02fd4f2ca1cd  crates/ckks-train-nn/tests/packed_ni_helpers/trace_ops.rs
+60dff90fa981b112829108d2afe5ce3e771cb7541a09f22d589727ffb6d861d0  docs/packed-refresh-design.md
+dda0481ace54c0da07983cc6bd4b415df032c0f21ba3e41e1fe182f6d9bc49f2  docs/packed-ni-validation-plan.md
+
+UPDATE COUNTER CROSSWALK (zero-based update; observed raw line / forecast raw line / seven counters):
+('true', 0, 'Au', 0) stdout:10 schedule:6 [202, 183, 211, 860, 279, 8, 4]
+('true', 0, 'Au', 1) stdout:61 schedule:71 [166, 169, 193, 844, 249, 8, 4]
+('true', 0, 'Au', 2) stdout:106 schedule:100 [184, 176, 202, 852, 264, 8, 4]
+('true', 0, 'Au', 3) stdout:154 schedule:147 [202, 183, 211, 860, 279, 8, 4]
+('true', 0, 'Wn', 0) stdout:205 schedule:212 [202, 183, 211, 860, 279, 8, 4]
+('true', 0, 'Wn', 1) stdout:256 schedule:277 [166, 169, 193, 844, 249, 8, 4]
+('true', 0, 'Wn', 2) stdout:301 schedule:306 [184, 176, 202, 852, 264, 8, 4]
+('true', 0, 'Wn', 3) stdout:349 schedule:353 [202, 183, 211, 860, 279, 8, 4]
+('true', 0, 'Aa', 0) stdout:400 schedule:418 [313, 303, 349, 1481, 447, 14, 7]
+('true', 0, 'Aa', 1) stdout:466 schedule:489 [203, 209, 239, 1051, 305, 10, 5]
+('true', 0, 'Aa', 2) stdout:516 schedule:520 [258, 256, 294, 1266, 376, 12, 6]
+('true', 0, 'Aa', 3) stdout:574 schedule:571 [313, 303, 349, 1481, 447, 14, 7]
+('true', 1, 'Au', 0) stdout:640 schedule:642 [193, 183, 211, 860, 279, 8, 4]
+('true', 1, 'Au', 1) stdout:691 schedule:707 [163, 169, 193, 844, 249, 8, 4]
+('true', 1, 'Au', 2) stdout:736 schedule:736 [178, 176, 202, 852, 264, 8, 4]
+('true', 1, 'Au', 3) stdout:784 schedule:783 [193, 183, 211, 860, 279, 8, 4]
+('true', 1, 'Wn', 0) stdout:835 schedule:848 [193, 183, 211, 860, 279, 8, 4]
+('true', 1, 'Wn', 1) stdout:886 schedule:913 [163, 169, 193, 844, 249, 8, 4]
+('true', 1, 'Wn', 2) stdout:931 schedule:942 [178, 176, 202, 852, 264, 8, 4]
+('true', 1, 'Wn', 3) stdout:979 schedule:989 [193, 183, 211, 860, 279, 8, 4]
+('true', 1, 'Aa', 0) stdout:1030 schedule:1054 [304, 303, 349, 1481, 447, 14, 7]
+('true', 1, 'Aa', 1) stdout:1096 schedule:1125 [200, 209, 239, 1051, 305, 10, 5]
+('true', 1, 'Aa', 2) stdout:1146 schedule:1156 [252, 256, 294, 1266, 376, 12, 6]
+('true', 1, 'Aa', 3) stdout:1204 schedule:1207 [304, 303, 349, 1481, 447, 14, 7]
+('false', 0, 'Au', 0) stdout:1268 schedule:1278 [202, 177, 205, 857, 270, 8, 4]
+('false', 0, 'Au', 1) stdout:1317 schedule:1337 [166, 167, 191, 847, 250, 8, 4]
+('false', 0, 'Au', 2) stdout:1362 schedule:1368 [184, 172, 198, 854, 262, 8, 4]
+('false', 0, 'Au', 3) stdout:1410 schedule:1415 [202, 177, 205, 859, 272, 8, 4]
+('false', 0, 'Wn', 0) stdout:1459 schedule:1476 [202, 177, 205, 857, 270, 8, 4]
+('false', 0, 'Wn', 1) stdout:1508 schedule:1535 [166, 167, 191, 847, 250, 8, 4]
+('false', 0, 'Wn', 2) stdout:1553 schedule:1566 [184, 172, 198, 854, 262, 8, 4]
+('false', 0, 'Wn', 3) stdout:1601 schedule:1613 [202, 177, 205, 859, 272, 8, 4]
+('false', 0, 'Aa', 0) stdout:1650 schedule:1674 [165, 137, 159, 646, 210, 6, 3]
+('false', 0, 'Aa', 1) stdout:1690 schedule:1739 [203, 207, 237, 1054, 306, 10, 5]
+('false', 0, 'Aa', 2) stdout:1740 schedule:1772 [110, 92, 106, 436, 146, 4, 2]
+('false', 0, 'Aa', 3) stdout:1774 schedule:1823 [313, 297, 343, 1480, 440, 14, 7]
+('false', 1, 'Au', 0) stdout:1838 schedule:1890 [193, 177, 205, 857, 270, 8, 4]
+('false', 1, 'Au', 1) stdout:1887 schedule:1949 [163, 167, 191, 847, 250, 8, 4]
+('false', 1, 'Au', 2) stdout:1932 schedule:1980 [178, 172, 198, 854, 262, 8, 4]
+('false', 1, 'Au', 3) stdout:1980 schedule:2027 [193, 177, 205, 859, 272, 8, 4]
+('false', 1, 'Wn', 0) stdout:2029 schedule:2088 [193, 177, 205, 857, 270, 8, 4]
+('false', 1, 'Wn', 1) stdout:2078 schedule:2147 [163, 167, 191, 847, 250, 8, 4]
+('false', 1, 'Wn', 2) stdout:2123 schedule:2178 [178, 172, 198, 854, 262, 8, 4]
+('false', 1, 'Wn', 3) stdout:2171 schedule:2225 [193, 177, 205, 859, 272, 8, 4]
+('false', 1, 'Aa', 0) stdout:2220 schedule:2286 [156, 137, 159, 646, 210, 6, 3]
+('false', 1, 'Aa', 1) stdout:2260 schedule:2351 [200, 207, 237, 1054, 306, 10, 5]
+('false', 1, 'Aa', 2) stdout:2310 schedule:2384 [104, 92, 106, 436, 146, 4, 2]
+('false', 1, 'Aa', 3) stdout:2344 schedule:2435 [304, 297, 343, 1480, 440, 14, 7]
+
+MAXIMA:
+PARITY.error = 2.53557821117368795E-8 stdout:577
+PARITY square=true ordinal=0 placement=Aa update=3 event=0 role=Hidden { stage: 0, record: 0 } boot_output error=2.53557821117368795e-8 worst_slot=184 active=2.53557821117368795e-8 padding=8.43214408786023474e-9 replica=2.51272725169997525e-8 imaginary=1.89978641330045830e-8
+PARITY.active = 2.53557821117368795E-8 stdout:577
+PARITY square=true ordinal=0 placement=Aa update=3 event=0 role=Hidden { stage: 0, record: 0 } boot_output error=2.53557821117368795e-8 worst_slot=184 active=2.53557821117368795e-8 padding=8.43214408786023474e-9 replica=2.51272725169997525e-8 imaginary=1.89978641330045830e-8
+PARITY.padding = 1.26475082515420745E-8 stdout:591
+PARITY square=true ordinal=0 placement=Aa update=3 event=3 role=Weight(0) boot_output error=1.26475082515420745e-8 worst_slot=428 active=1.22686641206520374e-8 padding=1.26475082515420745e-8 replica=0.00000000000000000e0 imaginary=1.23207086604379528e-8
+PARITY.replica = 3.06720765902612449E-8 stdout:807
+PARITY square=true ordinal=1 placement=Au update=3 event=3 role=Bias(3) boot_output error=2.05905179300480429e-8 worst_slot=386 active=2.05905179300480429e-8 padding=8.27617732759712195e-9 replica=3.06720765902612449e-8 imaginary=1.90383705647081808e-8
+PARITY.imaginary = 2.27929197722204910E-8 stdout:191
+PARITY square=true ordinal=0 placement=Au update=3 record=0 hidden.pre error=2.51210139382823488e-8 worst_slot=504 active=2.51210139382823488e-8 padding=1.36274629178954982e-10 replica=2.22386771345802717e-8 imaginary=2.27929197722204910e-8
+SNAPSHOT.old = 1.87381786838328984E-8 stdout:151
+PARITY square=true ordinal=0 placement=Au update=3 old b0 error=1.87381786838328984e-8 worst_slot=192 active=1.87381786838328984e-8 padding=8.30568890750466078e-9 replica=2.20433244578748778e-8 imaginary=1.43360312884063244e-8
+SNAPSHOT.pre_projection = 1.98250579213076406E-8 stdout:575
+PARITY square=true ordinal=0 placement=Aa update=3 event=0 role=Hidden { stage: 0, record: 0 } pre_projection error=1.98250579213076406e-8 worst_slot=184 active=1.98250579213076406e-8 padding=1.24029233226415464e-10 replica=1.57160523990932513e-8 imaginary=1.57719026915888149e-8
+PROJECTION.drift = 1.21086388574046290E-8 stdout:81
+PROJECTION square=true ordinal=0 placement=Au update=1 event=3 role=Bias(1) drift=1.21086388574046290e-8 worst_slot=380
+SNAPSHOT.post_projection = 1.87823458938662259E-8 stdout:163
+PARITY square=true ordinal=0 placement=Au update=3 event=1 role=Bias(0) post_projection error=1.87823458938662259e-8 worst_slot=192 active=1.87823458938662259e-8 padding=1.11682142535440775e-10 replica=2.20586880243295745e-8 imaginary=1.42756195795062176e-8
+SNAPSHOT.boot_input = 1.98250579213076406E-8 stdout:576
+PARITY square=true ordinal=0 placement=Aa update=3 event=0 role=Hidden { stage: 0, record: 0 } boot_input error=1.98250579213076406e-8 worst_slot=184 active=1.98250579213076406e-8 padding=1.24029233226415464e-10 replica=1.57160523990932513e-8 imaginary=1.57719026915888149e-8
+SNAPSHOT.boot_output = 2.53557821117368795E-8 stdout:577
+PARITY square=true ordinal=0 placement=Aa update=3 event=0 role=Hidden { stage: 0, record: 0 } boot_output error=2.53557821117368795e-8 worst_slot=184 active=2.53557821117368795e-8 padding=8.43214408786023474e-9 replica=2.51272725169997525e-8 imaginary=1.89978641330045830e-8
+BOOT.norm = 0.336142541618032420 stdout:2348
+BOOT square=false ordinal=1 placement=Aa update=3 event=0 role=Hidden { stage: 1, record: 0 } norm=3.36142541618032420e-1 worst_slot=1 bound=5.00000000000000000e-1 incremental=8.90520122753070221e-9 incremental_worst=417 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
+BOOT.incremental = 1.26730185407340126E-8 stdout:592
+BOOT square=true ordinal=0 placement=Aa update=3 event=3 role=Weight(0) norm=2.51561155535513670e-1 worst_slot=0 bound=4.00000000000000022e-1 incremental=1.26730185407340126e-8 incremental_worst=428 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
+BOOT.norm.Weight = 0.274428858451710611 stdout:1986
+BOOT square=false ordinal=1 placement=Au update=3 event=0 role=Weight(2) norm=2.74428858451710611e-1 worst_slot=0 bound=4.00000000000000022e-1 incremental=8.78664868237536365e-9 incremental_worst=474 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
+BOOT.norm.Bias = 0.262329525847428968 stdout:1240
+BOOT square=true ordinal=1 placement=Aa update=3 event=6 role=Bias(3) norm=2.62329525847428968e-1 worst_slot=372 bound=4.00000000000000022e-1 incremental=1.13999838692395710e-8 incremental_worst=348 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
+SNAPSHOT.old_retained = 1.87381786838328984E-8 stdout:180
+PARITY square=true ordinal=0 placement=Au update=3 old_retained b0 error=1.87381786838328984e-8 worst_slot=192 active=1.87381786838328984e-8 padding=8.30568890750466078e-9 replica=2.20433244578748778e-8 imaginary=1.43360312884063244e-8
+SNAPSHOT.candidate = 1.87413078953137433E-8 stdout:184
+PARITY square=true ordinal=0 placement=Au update=3 candidate b0 error=1.87413078953137433e-8 worst_slot=192 active=1.87413078953137433e-8 padding=8.22103777982162058e-9 replica=2.20427061233289532e-8 imaginary=1.43133985066039173e-8
+SNAPSHOT.committed_candidate = 2.05905179300480429E-8 stdout:820
+PARITY square=true ordinal=1 placement=Au update=3 committed_candidate b1 error=2.05905179300480429e-8 worst_slot=386 active=2.05905179300480429e-8 padding=8.27617732759712195e-9 replica=3.06720765902612449e-8 imaginary=1.90383705647081808e-8
+SNAPSHOT.hidden.pre = 2.51210139382823488E-8 stdout:191
+PARITY square=true ordinal=0 placement=Au update=3 record=0 hidden.pre error=2.51210139382823488e-8 worst_slot=504 active=2.51210139382823488e-8 padding=1.36274629178954982e-10 replica=2.22386771345802717e-8 imaginary=2.27929197722204910e-8
+SNAPSHOT.hidden.selected = 2.53557821117368795E-8 stdout:625
+PARITY square=true ordinal=0 placement=Aa update=3 record=0 hidden.selected error=2.53557821117368795e-8 worst_slot=184 active=2.53557821117368795e-8 padding=8.43214408786023474e-9 replica=2.51272725169997525e-8 imaginary=1.89978641330045830e-8
+SNAPSHOT.output = 1.22988710905294157E-8 stdout:1256
+PARITY square=true ordinal=1 placement=Aa update=3 record=0 output error=1.22988710905294157e-8 worst_slot=392 active=1.22988710905294157e-8 padding=1.59613214994326943e-10 replica=1.30458733062338341e-8 imaginary=1.06892061456583301e-8
+BOOT.norm.Hidden = 0.336142541618032420 stdout:2348
+BOOT square=false ordinal=1 placement=Aa update=3 event=0 role=Hidden { stage: 1, record: 0 } norm=3.36142541618032420e-1 worst_slot=1 bound=5.00000000000000000e-1 incremental=8.90520122753070221e-9 incremental_worst=417 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
+SNAPSHOT.hidden.post = 2.53557821117368795E-8 stdout:624
+PARITY square=true ordinal=0 placement=Aa update=3 record=0 hidden.post error=2.53557821117368795e-8 worst_slot=184 active=2.53557821117368795e-8 padding=8.43214408786023474e-9 replica=2.51272725169997525e-8 imaginary=1.89978641330045830e-8
+BOOT.norm.Velocity = 0.0394056167230180110 stdout:2380
+BOOT square=false ordinal=1 placement=Aa update=3 event=6 role=Velocity(3) norm=3.94056167230180110e-2 worst_slot=0 bound=1.00000000000000006e-1 incremental=8.91047467778950985e-9 incremental_worst=322 input_level=0 output_level=16 input_scale_bits=4796333603149578240 output_scale_bits=4796333603149578240 counts=OpCounter { rotations: 37, relins: 40, ct_ct_tensor: 46, ct_pt_mults: 207, rescales: 56, sse_switches: 2, bootstraps: 1 }
