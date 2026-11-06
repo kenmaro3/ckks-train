@@ -5,7 +5,7 @@
 | Operation | Level | hekit GPU | CPU 1 thr | CPU 12 thr | GPU speed-up (1 / 12 thr) | HEonGPU (RTX 4090) | GPU / HEonGPU |
 |---|---|---|---|---|---|---|---|
 | add | 31 | 0.111 | 15.674 | 14.611 | 141x / 132x | none published | — |
-| relinearize | 31 | 4.671 | 639.639 | 240.070 | 137x / 51x | 2.582 (l = 36, I = 4) | 1.81x (nominal) |
+| relinearize | 31 | 4.671 | 639.639 | 240.070 | 137x / 51x | 2.582 (l = 36, I = 4 primes per digit) | 1.81x (nominal) |
 | mul + relin + rescale | 31 | 5.823 | 725.209 | 337.731 | 125x / 58x | none published | — |
 | rotate(1) | 31 | 3.990 | 622.046 | 223.880 | 156x / 56x | none published | — |
 | hoisted rotate x16 | 31 | skipped: needs 5580 MiB (2377 MiB free) | 3765.068 | 689.471 | — | none published | — |
@@ -17,5 +17,5 @@
 | matvec_enc x4, 4 streams (untuned R-47-2) | 5 | 41.673 | — | — | — | none published | — |
 | matvec_enc x4, re-measured after the fix round | 5 | pending (R-47-3) | — | — | — | — | — |
 
-- HEonGPU relinearize: Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124 (Nov 2024 version), Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l~, l) = (4, 40, 36), level 35. Caveat: not the same parameters as n16_train (36 vs 32 Q primes, 4 special primes, dnum 8 vs I = 4 digits); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed.
+- HEonGPU relinearize: Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124, Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l~, l) = (4, 40, 36), level 35. The previously cited Nov 2024 manuscript version date is unverified; ePrint landing metadata alone does not establish that manuscript date. Caveat: not the same parameters as n16_train (36 vs 32 Q primes, 4 special primes; I = 4 primes per digit corresponds to alpha = 4, not four digits; n16_train uses dnum 8); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed.
 - Capped keys: the input is dropped to level 9 or 5 and the keys are cut to that level (faithful for that level, not the top-level cost); the CPU uses full keys at the same level. The shared RTX 4090 had 2-3 GiB free, so full-key GPU rows that need more were skipped.

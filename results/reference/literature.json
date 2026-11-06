@@ -4,9 +4,9 @@
   {
    "operation": "relinearize",
    "value_us": 2581.8,
-   "parameters": "l = 36, I = 4",
-   "source": "Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124 (Nov 2024 version), Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l~, l) = (4, 40, 36), level 35",
-   "caveat": "not the same parameters as n16_train (36 vs 32 Q primes, 4 special primes, dnum 8 vs I = 4 digits); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed."
+   "parameters": "l = 36, I = 4 primes per digit",
+   "source": "Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124, Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l~, l) = (4, 40, 36), level 35. The previously cited Nov 2024 manuscript version date is unverified; ePrint landing metadata alone does not establish that manuscript date",
+   "caveat": "not the same parameters as n16_train (36 vs 32 Q primes, 4 special primes; I = 4 primes per digit corresponds to alpha = 4, not four digits; n16_train uses dnum 8); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed."
   }
  ]
 }

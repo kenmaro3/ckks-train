@@ -39,7 +39,6 @@ import rq1_summary as rq1  # noqa: E402  (FULL-1/2 validation, shared with Task 
 
 REPO = Path(__file__).resolve().parents[1]
 GATE_KS = 0.70
-SERVER_CPU = '13th Gen Intel(R) Core(TM) i9-13900KF'
 
 
 class TableError(ValueError):
@@ -213,16 +212,33 @@ class Inputs:
     def path(self, key):
         """The input file of a registered run, or None (pending)."""
         canonical, run_id, _ = RUN[key]
+        # Quick IDs are deliberately not aliases for full or archived measurements.
+        if self.run_all == 'quick':
+            return None
         if self.run_all:
             if run_id is None:
                 return None
             p = f'results/run_all/{self.run_all}/{run_id}.json'
-            return p if self.store.exists(p) else None
+            return self.new_result(p)
         return first_existing(self.store, canonical)
 
     def simple(self, canonical, run_id):
         p = f'results/run_all/{self.run_all}/{run_id}.json' if self.run_all else canonical
+        if self.run_all:
+            return self.new_result(p)
         return p if self.store.exists(p) else None
+
+    def new_result(self, rel):
+        if not self.store.exists(rel):
+            return None
+        provenance = self.store.json(rel).get('provenance', {})
+        require(re.fullmatch(r'the [a-z_]+ binary \(raw output, not assembled\)',
+                             str(provenance.get('written_by', ''))) is not None,
+                f'{rel}: new output requires binary-written provenance')
+        require(re.fullmatch(r'[0-9a-f]{40}', str(provenance.get('git_commit', ''))) is not None,
+                f'{rel}: missing binary git commit')
+        require(not provenance.get('note'), f'{rel}: annotated provenance is historical only')
+        return rel
 
     @staticmethod
     def pending(key):
@@ -242,6 +258,7 @@ def ni_counts(s, rel):
     h, hs = s.num(rel, 'measured.total.bootstraps')
     n, ns = s.num(rel, 'training.samples')
     boot, bs = s.num(rel, 'setup.boot_ks')
+    require(n > 0 and boot > 0, f'{rel}: samples and bootstrap cost must be positive')
     require(k == rot + rel_ + sse, f'{rel}: key_switches != rotations + relins + sse_switches')
     require(sse == 2 * h, f'{rel}: sse_switches != 2 x bootstraps')
     every, _ = s.get(rel, 'measured.every_update_equals_prediction')
@@ -285,6 +302,7 @@ def reboot_constants(s):
     boot502, src502 = s.num(f2, 'rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks')
     m0, src_m0 = s.num(f2, 'rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps')
     lazy, src_lazy = s.num(LAYOUT, 'modes.lazy.run.measured.key_switches_per_sample')
+    require(min(calls, batch, boot502, m0, lazy) > 0, 'ReBoot comparison denominators must be positive')
     require(cts % calls == 0, 'ReBoot bootstraps per update is not an integer')
     return {'per_update': (cts // calls, [src_cts, src_calls]), 'batch': (batch, [src_b]),
             'boot': (boot502, [src502]), 'm0': (m0, [src_m0]), 'lazy': (lazy, [src_lazy])}
@@ -318,7 +336,7 @@ def table_rq1(s, inp):
         src = [ks, hs, ns, bs] + rsrc + const_src
         forms = ['(K/S)/(R+4*502/48)', '((K-111H+502H)/S)/(R+4*502/48)', '(K/S)/(R+4*111/48)', '((K-111H)/S)/R']
         passing = ''.join(w for w, v in zip('abcd', ways) if v <= GATE_KS) or 'none'
-        t.row([label, input_label, placement, Cell(str(batch), [bsrc]), Cell(config_label(s, rel), [(rel, 'provenance.command_line')]),
+        t.row([label, input_label, placement, Cell(batch_label or str(batch), [bsrc]), Cell(config_label(s, rel), [(rel, 'provenance.command_line')]),
                Cell(str(n), [ns]), Cell(f(own, 3), [ks, ns], 'K/S'), Cell(str(h), [hs]),
                Cell(f'{r:g} ({basis_label})', rsrc)]
               + [Cell(f(v, 3), src, fm) for v, fm in zip(ways, forms)]
@@ -337,17 +355,18 @@ def table_rq1(s, inp):
     t.section('Interactive hekit, client refresh, no bootstraps (separate row, not way (d))')
     rel = inp.path('INT-B32')
     if rel is None:
-        t.row(['interactive', '784', '—', '32', '', '', inp.pending('INT-B32'), '0', ''] + ['—'] * 3 + [inp.pending('INT-B32'), ''])
+        t.row(['interactive', '784', '—', '32', '', '', inp.pending('INT-B32'), '0', ''] + ['—'] * 5)
     else:
         v, vs = s.num(rel, 'measured.per_sample.key_switches_per_sample')
         n, ns = s.num(rel, 'training.samples')
         b, bsrc = s.num(rel, 'training.batches')
+        require(b > 0 and n > 0, f'{rel}: interactive samples/batches must be positive')
         lazy, lsrc = c['lazy']
         ratio = v / lazy
         t.row(['interactive', '784', '—', Cell(f'{n // b}', [ns, bsrc]), 'legacy (M2)', Cell(str(n), [ns]), Cell(f(v, 3), [vs]), '0',
-               Cell(f'{lazy:g} (Lazy, measured)', lsrc), '—', '—', '—',
-               Cell(f(ratio, 3), [vs] + lsrc, 'hekit interactive KS/sample / ReBoot Lazy KS/sample'),
-               Cell('d' if ratio <= GATE_KS else 'none', [vs] + lsrc)])
+               Cell(f'{lazy:g} (Lazy, measured)', lsrc)] + ['—'] * 5)
+        t.note(f'Independent interactive reference: ratio {f(ratio, 3)} against ReBoot Lazy; '
+               'client refresh, not NI-derived way (d) and not a four-way pass result.', [vs] + lsrc)
     t.note('KS = rotations + relinearizations + SSE key switches (OpCounter). hekit bootstrap = '
            '111 KS (measured, setup.boot_ks). ReBoot bootstrap = 502 KS and 196-input non-boot = 37 '
            'KS/sample are M0 cost-model values (OpenFHE does not count key switches); ReBoot '
@@ -377,6 +396,7 @@ def table_wallclock(s, inp):
     require(rb_n == len(steps) * rb_b, 'ReBoot trained samples != steps x batch')
     host, hsrc = s.get(REBOOT_SUBSET, 'provenance.host')
     rb_thr, tsrc = s.num(REBOOT_SUBSET, 'setting.omp_num_threads')
+    require(rb_n > 0 and rb_train > 0 and rb_thr > 0, 'ReBoot timing denominators must be positive')
     step_src = (REBOOT_SUBSET_STATS, 'steps[*].reboot_step_time_s')
     boot_src = (REBOOT_SUBSET_STATS, 'bootstrap.seconds_per_call[*]')
     rb_per = rb_train / rb_n
@@ -386,7 +406,8 @@ def table_wallclock(s, inp):
         if rel is None:
             t.row([key, '196', b, '48000', inp.pending(key), '', 'ReBoot 196 full: not measured', '', '', ''])
         else:
-            hekit_time_row(t, s, rel, key, '196', host, hsrc, None)
+            validate_full(s, rel, 64 if key == 'FULL-1' else 48)
+            hekit_time_row(t, s, rel, key, '196', host, hsrc, None, rb_thr, b)
     t.section('784 inputs, ReBoot encrypted-script subset')
     t.row(['ReBoot official (OpenFHE)', '784', Cell(f'{rb_b:g}', [bsrc]), Cell(f'{rb_n:g}', [nsrc]),
            Cell(f(rb_train, 1), [step_src], 'sum of step_time'), Cell(f(rb_per, 3), [step_src, nsrc]), '1',
@@ -399,18 +420,18 @@ def table_wallclock(s, inp):
         if rel is None:
             t.row([key, '784', '', '', inp.pending(key)] + [''] * 5)
             continue
-        hekit_time_row(t, s, rel, key, '784', host, hsrc, (rb_per, [step_src, nsrc]))
+        hekit_time_row(t, s, rel, key, '784', host, hsrc, (rb_per, [step_src, nsrc]), rb_thr)
     t.note('ReBoot time = sum of its own step_time (encrypt batch, forward/backward, decrypt prediction, '
            'weight bootstrap; setup excluded). hekit time = time_s.train_total (all updates including '
-           'bootstraps; key generation and bootstrapper setup excluded). Rows are included only when '
-           "the binary's provenance names the same host as the ReBoot run.", [hsrc])
+           'bootstraps; key generation and bootstrapper setup excluded). Present rows fail closed unless '
+           "the binary's provenance names the same host and thread count as the ReBoot run.", [hsrc, tsrc])
     t.note('Shared machine: other users\' jobs (SLAM, ~4 cores) ran during some rows; see '
            'docs/m3-report.md §3.2. ReBoot\'s full 196-input setting was not run (estimated 47.6 h), so '
            'the headline has no same-CPU wall-clock ratio.')
     return t
 
 
-def hekit_time_row(t, s, rel, key, input_label, host, hsrc, reboot):
+def hekit_time_row(t, s, rel, key, input_label, host, hsrc, reboot, rb_threads, batch_label=None):
     h, hs = s.get(rel, 'provenance.machine.host')
     require(h == host, f'{rel}: host {h} is not the ReBoot host {host} (same-CPU table)')
     train, trs = s.num(rel, 'time_s.train_total')
@@ -419,9 +440,12 @@ def hekit_time_row(t, s, rel, key, input_label, host, hsrc, reboot):
     b, bs = s.num(rel, 'setup.batch')
     thr, ths = s.get(rel, 'provenance.threads')
     m = re.search(r'RAYON_NUM_THREADS = (\d+)', thr)
+    require(m is not None and int(m.group(1)) == rb_threads,
+            f'{rel}: thread count does not match ReBoot {rb_threads:g} threads')
+    require(n > 0 and train > 0 and 0 <= boot <= train, f'{rel}: invalid timing/sample denominator')
     per = train / n
     vs = Cell(f(per / reboot[0], 3), [trs, ns] + reboot[1], 'hekit s/sample / ReBoot s/sample') if reboot else 'not measured'
-    t.row([key, input_label, Cell(f'{b:g}', [bs]), Cell(f'{n:g}', [ns]), Cell(f(train, 1), [trs]),
+    t.row([key, input_label, Cell(batch_label or f'{b:g}', [bs]), Cell(f'{n:g}', [ns]), Cell(f(train, 1), [trs]),
            Cell(f(per, 3), [trs, ns]), vs, Cell(f(boot / n, 3), [bts, ns]), Cell(f((train - boot) / n, 3), [trs, bts, ns]),
            Cell(f'rayon {m.group(1)}' if m else thr, [ths, hs, hsrc])])
 
@@ -432,22 +456,23 @@ def table_accuracy(s, inp):
     per_seed, _ = s.get(REBOOT_FULL_CFG, 'per_seed')
     keys = sorted(per_seed, key=int)
     rb_vals = [s.num(REBOOT_FULL_CFG, f'per_seed.{k}.twin.test_acc_argmax10') for k in keys]
-    rb_mean = statistics.mean(v for v, _ in rb_vals)
     rb0, rb0s = s.num(REBOOT_FULL_CFG, 'per_seed.0.twin.test_acc_argmax10')
     t.section('Full setting: 196 inputs, 4800 samples x 10 epochs, B = 48 (the ±0.5 pt gate)')
     t.row(["ReBoot released code, plaintext (recomputed twin)", 'full', len(rb_vals),
            mean_std([v for v, _ in rb_vals], [x for _, x in rb_vals], 2, 100), '—', '—', '—', 'reference'])
-    tw = []
-    for canonical, run_id in PLAIN196:
+    tw, matched_rb = [], []
+    for seed, (canonical, run_id) in enumerate(PLAIN196):
         rel = inp.simple(canonical, run_id)
         if rel is not None:
             tw.append(s.num(rel, 'epochs[-1].test_acc'))
+            require(str(seed) in per_seed, f'ReBoot reference missing twin seed {seed}')
+            matched_rb.append(s.num(REBOOT_FULL_CFG, f'per_seed.{seed}.twin.test_acc_argmax10'))
     if tw:
-        d = statistics.mean(v for v, _ in tw) - rb_mean
+        d = statistics.mean(v for v, _ in tw) - statistics.mean(v for v, _ in matched_rb)
         t.row(['hekit plaintext twin (ReBoot weights, order, lr)', 'full', len(tw),
                mean_std([v for v, _ in tw], [x for _, x in tw], 2, 100), '—',
-               mean_std([v for v, _ in rb_vals], [x for _, x in rb_vals], 2, 100),
-               Cell(f'{100 * d:+.2f}', [x for _, x in tw] + [x for _, x in rb_vals], 'difference of means'), 'twin check'])
+               mean_std([v for v, _ in matched_rb], [x for _, x in matched_rb], 2, 100),
+               Cell(f'{100 * d:+.2f}', [x for _, x in tw] + [x for _, x in matched_rb], 'difference of means over matching seeds'), 'twin check'])
     else:
         t.row(['hekit plaintext twin', 'full', 0, 'pending', '', '', '', ''])
     for key, label, gate in (('FULL-2', 'hekit encrypted, B = 48 in 64 lanes, WN', True),
@@ -518,6 +543,12 @@ def table_ablation(s, inp):
               ['Source', 'Backend / level', 'hoist bsgs lazy', 'Rotations', 'Relins', 'KS/iter',
                'Closed form', 'Step median (s)', 'Step / default', 'Max |ΔW| vs default'], wide=True)
     caveats = None
+    pair = [inp.path(key) for key in ('ABL-CUDA-L7', 'ABL-CPU-L7')]
+    if all(pair):
+        conditions = ('params', 'start_level', 'optimizer', 'layout_d', 'lanes_b', 'seed')
+        gpu_setup, cpu_setup = [s.get(rel, 'setup')[0] for rel in pair]
+        require(all(gpu_setup.get(k) == cpu_setup.get(k) for k in conditions),
+                'RQ3 CPU/GPU pair must use the same params/level/optimizer/layout/batch/seed')
     for key, label in (('ABL-CPU-L31', 'CPU, n16_train, level 31'), ('ABL-CUDA-L7', 'GPU, n16_train, level 7'),
                        ('ABL-CPU-L7', 'CPU, n16_train, level 7'), ('ABL-SMOKE', 'CPU smoke')):
         rel = inp.path(key)
@@ -532,6 +563,14 @@ def table_ablation(s, inp):
         ok, oks = s.get(rel, 'all_checks_pass')
         require(ok is True, f'{rel}: all_checks_pass is not true')
         configs, _ = s.get(rel, 'configs')
+        require(isinstance(configs, list) and len(configs) == 8,
+                f'{rel}: the RQ3 research table requires all eight configurations')
+        setup, _ = s.get(rel, 'setup')
+        t.note(f'{label}: optimizer {setup["optimizer"]}, B = {setup["lanes_b"]}, '
+               f'layout d = {setup["layout_d"]}, start level {setup["start_level"]}. '
+               'Rows with unlike conditions are not a CPU/GPU speed comparison.',
+               [(rel, 'setup.optimizer'), (rel, 'setup.lanes_b'),
+                (rel, 'setup.layout_d'), (rel, 'setup.start_level')])
         for i, cfg in enumerate(configs):
             src = lambda fld: (rel, f'configs[{i}].{fld}')  # noqa: E731
             counts = cfg['counter_per_iteration']
@@ -719,6 +758,15 @@ def tex_escape(text):
 def tex_prose(text):
     """A note for LaTeX: Markdown emphasis, code and link brackets dropped; an inline Markdown
     table becomes 'cell / cell / ...' clauses. The words are unchanged."""
+    # The binary's verbatim caveat serializes its five-column Markdown table inline.
+    # Turn each row into a clause, including the header; separator rows carry no words.
+    def inline_row(match):
+        cells = [c.strip() for c in match.group(1).split('|')]
+        if all(re.fullmatch(r'[-: ]+', c) for c in cells):
+            return ' '
+        return '(' + ' / '.join(cells) + '); '
+
+    text = re.sub(r'\|([^|\n]+(?:\|[^|\n]+){4})\|', inline_row, str(text))
     out = []
     for line in str(text).split('\n'):
         s = line.strip()
@@ -731,6 +779,20 @@ def tex_prose(text):
     s = s.replace('**', '').replace('`', '')
     s = re.sub(r'\[([^\]]+)\]', r'\1', s)
     return tex_escape(s)
+
+
+def table_quick(s, inp):
+    """Quick outputs expose coverage only, never FULL validation or research gates."""
+    t = Table('quick_coverage', 'Quick pipeline coverage (not paper measurements)',
+              ['Run', 'Scope', 'Evidence'])
+    for path in sorted((s.root / 'results/run_all/quick').glob('q_*.json')):
+        rel = str(path.relative_to(s.root))
+        inp.new_result(rel)
+        t.row([path.stem, 'pipeline smoke only', Cell('binary output present; research gates not evaluated',
+                                                      [(rel, 'provenance.written_by')])])
+    t.note('Quick subsets are not full-length results. No FULL validator, acceptance verdict, '
+           'paper accuracy gate, or CPU/GPU performance comparison is applied here.')
+    return t
 
 
 def render_tex(t, origin):
@@ -794,8 +856,13 @@ def main(argv=None):
         tex_dir = Path(args.tex_dir or Path(args.root) / 'paper' / 'tables')
         md_dir = Path(args.md_dir or Path(args.root) / 'results' / 'tables')
     try:
-        tables = [build(store, inp) for build in TABLES]
-    except TableError as exc:
+        tables = [table_quick(store, inp)] if args.from_run_all == 'quick' else [build(store, inp) for build in TABLES]
+        # Render into memory before touching any output, even if a later renderer fails.
+        files = {}
+        for t in tables:
+            files[md_dir / f'{t.name}.md'] = render_md(t, origin)
+            files[tex_dir / f'{t.name}.tex'] = render_tex(t, origin)
+    except (TableError, KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
         print(f'paper_tables.py: {exc}', file=sys.stderr)
         return 2
     header = 'table\trow\tcolumn\tvalue\tfile\tfield\tformula'
@@ -809,10 +876,6 @@ def main(argv=None):
             if args.sources in ('all', t.name):
                 print('\n'.join(source_lines(t)))
         return 0
-    files = {}
-    for t in tables:
-        files[md_dir / f'{t.name}.md'] = render_md(t, origin)
-        files[tex_dir / f'{t.name}.tex'] = render_tex(t, origin)
     files[md_dir / 'sources.tsv'] = header + '\n' + '\n'.join(line for t in tables for line in source_lines(t)) + '\n'
     if args.check:
         stale = [p for p, text in files.items() if not p.is_file() or p.read_text() != text]

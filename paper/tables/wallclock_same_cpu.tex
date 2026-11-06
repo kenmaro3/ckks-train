@@ -25,7 +25,7 @@ R-41-5 & 784 & 32 & 1024 & 3606.6 & 3.522 & 0.986 & 1.316 & 2.206 & rayon 12 \\
 \bottomrule
 \end{tabular}}
 \par\smallskip\begin{minipage}{\linewidth}\scriptsize
-ReBoot time = sum of its own step\_time (encrypt batch, forward/backward, decrypt prediction, weight bootstrap; setup excluded). hekit time = time\_s.train\_total (all updates including bootstraps; key generation and bootstrapper setup excluded). Rows are included only when the binary's provenance names the same host as the ReBoot run.\par
+ReBoot time = sum of its own step\_time (encrypt batch, forward/backward, decrypt prediction, weight bootstrap; setup excluded). hekit time = time\_s.train\_total (all updates including bootstraps; key generation and bootstrapper setup excluded). Present rows fail closed unless the binary's provenance names the same host and thread count as the ReBoot run.\par
 Shared machine: other users' jobs (SLAM, \textasciitilde{}4 cores) ran during some rows; see docs/m3-report.md \S{}3.2. ReBoot's full 196-input setting was not run (estimated 47.6 h), so the headline has no same-CPU wall-clock ratio.\par
 \end{minipage}
 \end{table*}

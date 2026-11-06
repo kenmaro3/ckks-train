@@ -16,8 +16,9 @@
 | R-41-2 | 784 | AU | 64 | legacy (R-M3-12) | 1024 | 20.641 | 64 | 35.0625 (Lazy, measured) | 0.268 | 0.586 | 0.466 | 0.391 | abcd |
 | R-41-5 | 784 | AA | 32 | legacy (R-M3-12) | 1024 | 36.000 | 96 | 35.0625 (Lazy, measured) | 0.468 | 0.945 | 0.812 | 0.730 | a |
 | **Interactive hekit, client refresh, no bootstraps (separate row, not way (d))** | | | | | | | | | | | | | |
-| interactive | 784 | — | 32 | legacy (M2) | 1024 | 19.781 | 0 | 35.0625 (Lazy, measured) | — | — | — | 0.564 | d |
+| interactive | 784 | — | 32 | legacy (M2) | 1024 | 19.781 | 0 | 35.0625 (Lazy, measured) | — | — | — | — | — |
 
+- Independent interactive reference: ratio 0.564 against ReBoot Lazy; client refresh, not NI-derived way (d) and not a four-way pass result.
 - KS = rotations + relinearizations + SSE key switches (OpCounter). hekit bootstrap = 111 KS (measured, setup.boot_ks). ReBoot bootstrap = 502 KS and 196-input non-boot = 37 KS/sample are M0 cost-model values (OpenFHE does not count key switches); ReBoot bootstraps 4 ciphertexts per update at B = 48 (measured on the official subset run: 84 bootstraps / 21 steps).
 - (a) own bootstrap costs; (b) both 502; (c) both 111; (d) bootstraps excluded on both sides. (b)-(d) are derived from the measured counters, not separate executions. Criterion: ratio ≤ 0.70 (research plan §4.3.2).
 - 784 rows are the supplementary subset rows (R-M3-13): ReBoot non-boot = Lazy 35.06, the in-library measurement of ReBoot's layout (Task 33, baseline c). Legacy rows use the pre-R-M3-12 config; their counts equal the faithful config but their accuracy is not comparable.
