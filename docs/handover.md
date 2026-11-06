@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [target基盤・取得前提と現在の運用状態](#latest-evidence-20261107-static)。
+最新の追記: [Linux起動前提とCIの未実行](#latest-evidence-20261107-bootstrap)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-static)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-bootstrap)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -447,3 +447,13 @@ Target lockは`66a4b36`で独立レビュー後に統合済み。[StudyTrainの�
 同観測でFULL-2はupdate39（0始まり）=40/1000更新、elapsed5780s、直近6更新の計数は予測と一致。chain PID1700979/start465769819、queue PID1739838/start467041669は自UIDでstate S、queueはowner.jsonのみ。正しいFULL-2結果pathにはまだファイルがない。後続R47/R48/R52は両FULL成功とchain終了の検証待ちで、追加投入・再起動・キュー変更はない。FULL-2対ReBoot seed0=0.9041の±0.5ptは未確定。
 
 Mac容量対策として、稼働していないSage環境を削除した。394個のinstalled packageのURL・version・hashとconda historyをledger `sage-env-reinstall-20261107/`へ保存し、見積もり結果・実行スクリプト・estimator checkoutは保持。追加削除4,441,407,488 bytes、累計17,264,930,816 bytes（独立割当量）。削除直後の空き容量は9,881,452,544 bytesで、空き容量変動を削除量と同一視しない。Sage再計算には再インストールが必要。現在使うRust/ReBoot/TinyTeXとデータ・結果・原ログは保持した。
+
+
+<a id="latest-evidence-20261107-bootstrap"></a>
+## 2026-11-07追記: Linux起動前提とCIの未実行
+
+[R-REB-8-ARCHIVE](../results/quadruped/raw/R-REB-8-ARCHIVE/README.md)でLinuxの元configを無変更で回収した。固定済みのtracked configとの違いはローカル側のstructure_summaryだけで、共通する6,048個のF64値はbit一致。固定pinを変えず、今後の比較用archiveには新しいcheckout内の検証済み既存trackedコピーを使う。元の出力は別証跡として保持し、remote重み・順序・contextの照合完了は主張しない。
+
+[R-REB-9-BOOTSTRAP-STATIC](../results/quadruped/raw/R-REB-9-BOOTSTRAP-STATIC/README.md)は05:12:43 JSTの固定source読み取り。既存venvの起動時_virtualenv importは、現在の「検証前に読み込んだ管理対象sourceを拒否する」ルールと衝突すると予測される。target起動や科学用importは実行していない。新しい空のstdlib venvと明示した既存package pathを用いる案を設計中で、元環境の変更・新環境作成・guard例外は行っていない。実行前にcreator/startup・launcher・context・native/isolationと完全一致ゲートを検証する。
+
+CIは`50a6dee`までの直近記録では成功。一方、`c6ab260` [run42285149048](https://github.com/kenmaro3/ckks-train/actions/runs/42285149048)と`2434c4b` [run42286055904](https://github.com/kenmaro3/ckks-train/actions/runs/42286055904)は6ジョブすべてstepなしのfailureで終了した。各runのtest注釈は、アカウントの支払い失敗または利用上限によりジョブを開始しなかったと報告している。コード検証の失敗とは区別し、この2commitのCIは未実行として扱う。請求設定・上限・支払いは変更していない。一次API記録はledger `task-54-ci-billing-block-observation-20261107.json`。ローカル限定検証・レビューを続け、直前の成功を後続commitへ継承しない。

@@ -1,0 +1,2534 @@
+{
+  "kind": "static_bootstrap_and_import_facts_not_runtime_approval",
+  "observed_unix": 1793995963.0479403,
+  "nice": 10,
+  "base_resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu",
+  "pth": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.pth",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.pth",
+      "bytes": 18,
+      "sha256": "69ac3d8f27e679c81b94ab30b3b56e9cd138219b1ba94a1fa3606d5a76a1433d",
+      "startup_lines": [
+        {
+          "line": 1,
+          "imports": [
+            {
+              "line": 1,
+              "scope": [],
+              "modules": [
+                "_virtualenv"
+              ]
+            }
+          ],
+          "calls": []
+        }
+      ]
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/distutils-precedence.pth",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/distutils-precedence.pth",
+      "bytes": 151,
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "startup_lines": [
+        {
+          "line": 1,
+          "imports": [
+            {
+              "line": 1,
+              "scope": [],
+              "modules": [
+                "os"
+              ]
+            }
+          ],
+          "calls": [
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "os.environ.get"
+            },
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "call(__import__).add_shim"
+            },
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "__import__"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/distutils-precedence.pth",
+      "exists": true,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/distutils-precedence.pth",
+      "bytes": 151,
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "startup_lines": [
+        {
+          "line": 1,
+          "imports": [
+            {
+              "line": 1,
+              "scope": [],
+              "modules": [
+                "os"
+              ]
+            }
+          ],
+          "calls": [
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "os.environ.get"
+            },
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "call(__import__).add_shim"
+            },
+            {
+              "line": 1,
+              "scope": [],
+              "callee": "__import__"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_virtualenv.py",
+      "bytes": 5246,
+      "sha256": "cfb3db86aaa53bb62b5ff764970bec2d71c9228590a0ebec57f6ec926cc0bf1a",
+      "imports": [
+        {
+          "line": 3,
+          "scope": [],
+          "modules": [
+            "contextlib"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "modules": [
+            "os"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "modules": [
+            "sys"
+          ]
+        },
+        {
+          "line": 62,
+          "scope": [
+            "class:_Finder",
+            "function:find_spec",
+            "if@59",
+            "if@61"
+          ],
+          "modules": [
+            "threading"
+          ]
+        },
+        {
+          "line": 72,
+          "scope": [
+            "class:_Finder",
+            "function:find_spec",
+            "if@59"
+          ],
+          "module": "functools",
+          "level": 0,
+          "names": [
+            "partial"
+          ]
+        },
+        {
+          "line": 73,
+          "scope": [
+            "class:_Finder",
+            "function:find_spec",
+            "if@59"
+          ],
+          "module": "importlib.util",
+          "level": 0,
+          "names": [
+            "find_spec"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 7,
+          "scope": [],
+          "callee": "os.path.abspath"
+        },
+        {
+          "line": 121,
+          "scope": [],
+          "callee": "sys.meta_path.insert"
+        },
+        {
+          "line": 121,
+          "scope": [],
+          "callee": "_Finder"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_distutils_hack/__init__.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/_distutils_hack/__init__.py",
+      "bytes": 6755,
+      "sha256": "df81e6bcba34ee3e3952f776551fb669143b9490fdd6c4caeb32609f97e985b4",
+      "imports": [
+        {
+          "line": 2,
+          "scope": [],
+          "modules": [
+            "os"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "modules": [
+            "sys"
+          ]
+        },
+        {
+          "line": 13,
+          "scope": [
+            "function:warn_distutils_present"
+          ],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 28,
+          "scope": [
+            "function:clear_distutils"
+          ],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 51,
+          "scope": [
+            "function:enabled",
+            "if@50"
+          ],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 64,
+          "scope": [
+            "function:ensure_local_distutils"
+          ],
+          "modules": [
+            "importlib"
+          ]
+        },
+        {
+          "line": 115,
+          "scope": [
+            "class:DistutilsMetaFinder",
+            "function:spec_for_distutils"
+          ],
+          "modules": [
+            "importlib"
+          ]
+        },
+        {
+          "line": 116,
+          "scope": [
+            "class:DistutilsMetaFinder",
+            "function:spec_for_distutils"
+          ],
+          "modules": [
+            "importlib.abc"
+          ]
+        },
+        {
+          "line": 117,
+          "scope": [
+            "class:DistutilsMetaFinder",
+            "function:spec_for_distutils"
+          ],
+          "modules": [
+            "importlib.util"
+          ]
+        },
+        {
+          "line": 167,
+          "scope": [
+            "class:DistutilsMetaFinder",
+            "function:pip_imported_during_build"
+          ],
+          "modules": [
+            "traceback"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 204,
+          "scope": [],
+          "callee": "setattr"
+        },
+        {
+          "line": 211,
+          "scope": [],
+          "callee": "DistutilsMetaFinder"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site.py",
+      "exists": true,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site.py",
+      "bytes": 22987,
+      "sha256": "0577e4b379d8ef4aa0ecf88a264ef18c10f72ea72119afae36524d1aae77c9bf",
+      "imports": [
+        {
+          "line": 72,
+          "scope": [],
+          "modules": [
+            "sys"
+          ]
+        },
+        {
+          "line": 73,
+          "scope": [],
+          "modules": [
+            "os"
+          ]
+        },
+        {
+          "line": 74,
+          "scope": [],
+          "modules": [
+            "builtins"
+          ]
+        },
+        {
+          "line": 75,
+          "scope": [],
+          "modules": [
+            "_sitebuiltins"
+          ]
+        },
+        {
+          "line": 76,
+          "scope": [],
+          "modules": [
+            "io"
+          ]
+        },
+        {
+          "line": 77,
+          "scope": [],
+          "modules": [
+            "stat"
+          ]
+        },
+        {
+          "line": 205,
+          "scope": [
+            "function:addpackage",
+            "try@193"
+          ],
+          "modules": [
+            "traceback"
+          ]
+        },
+        {
+          "line": 453,
+          "scope": [
+            "function:enablerlcompleter",
+            "function:register_readline"
+          ],
+          "modules": [
+            "atexit"
+          ]
+        },
+        {
+          "line": 455,
+          "scope": [
+            "function:enablerlcompleter",
+            "function:register_readline",
+            "try@454"
+          ],
+          "modules": [
+            "readline"
+          ]
+        },
+        {
+          "line": 456,
+          "scope": [
+            "function:enablerlcompleter",
+            "function:register_readline",
+            "try@454"
+          ],
+          "modules": [
+            "rlcompleter"
+          ]
+        },
+        {
+          "line": 558,
+          "scope": [
+            "function:execsitecustomize",
+            "try@556",
+            "try@557"
+          ],
+          "modules": [
+            "sitecustomize"
+          ]
+        },
+        {
+          "line": 578,
+          "scope": [
+            "function:execusercustomize",
+            "try@576",
+            "try@577"
+          ],
+          "modules": [
+            "usercustomize"
+          ]
+        },
+        {
+          "line": 678,
+          "scope": [
+            "function:_script",
+            "if@667"
+          ],
+          "modules": [
+            "textwrap"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 626,
+          "scope": [
+            "if@625"
+          ],
+          "callee": "main"
+        },
+        {
+          "line": 683,
+          "scope": [
+            "if@682"
+          ],
+          "callee": "_script"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/__init__.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy/__init__.py",
+      "bytes": 21817,
+      "sha256": "c09e25b58f6b2f8e2cb3c158168f902d447f8171e5ea6513c0aca41ecbda7c2b",
+      "imports": [
+        {
+          "line": 88,
+          "scope": [],
+          "modules": [
+            "os"
+          ]
+        },
+        {
+          "line": 89,
+          "scope": [],
+          "modules": [
+            "sys"
+          ]
+        },
+        {
+          "line": 90,
+          "scope": [],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 92,
+          "scope": [],
+          "module": "_globals",
+          "level": 1,
+          "names": [
+            "_NoValue",
+            "_CopyMode"
+          ]
+        },
+        {
+          "line": 93,
+          "scope": [],
+          "module": "_expired_attrs_2_0",
+          "level": 1,
+          "names": [
+            "__expired_attributes__"
+          ]
+        },
+        {
+          "line": 97,
+          "scope": [],
+          "module": null,
+          "level": 1,
+          "names": [
+            "version"
+          ]
+        },
+        {
+          "line": 98,
+          "scope": [],
+          "module": "version",
+          "level": 1,
+          "names": [
+            "__version__"
+          ]
+        },
+        {
+          "line": 111,
+          "scope": [
+            "if@107"
+          ],
+          "module": null,
+          "level": 1,
+          "names": [
+            "_distributor_init"
+          ]
+        },
+        {
+          "line": 114,
+          "scope": [
+            "if@107",
+            "try@113"
+          ],
+          "module": "numpy.__config__",
+          "level": 0,
+          "names": [
+            "show"
+          ]
+        },
+        {
+          "line": 121,
+          "scope": [
+            "if@107"
+          ],
+          "module": null,
+          "level": 1,
+          "names": [
+            "_core"
+          ]
+        },
+        {
+          "line": 122,
+          "scope": [
+            "if@107"
+          ],
+          "module": "_core",
+          "level": 1,
+          "names": [
+            "False_",
+            "ScalarType",
+            "True_",
+            "_get_promotion_state",
+            "_no_nep50_warning",
+            "_set_promotion_state",
+            "abs",
+            "absolute",
+            "acos",
+            "acosh",
+            "add",
+            "all",
+            "allclose",
+            "amax",
+            "amin",
+            "any",
+            "arange",
+            "arccos",
+            "arccosh",
+            "arcsin",
+            "arcsinh",
+            "arctan",
+            "arctan2",
+            "arctanh",
+            "argmax",
+            "argmin",
+            "argpartition",
+            "argsort",
+            "argwhere",
+            "around",
+            "array",
+            "array2string",
+            "array_equal",
+            "array_equiv",
+            "array_repr",
+            "array_str",
+            "asanyarray",
+            "asarray",
+            "ascontiguousarray",
+            "asfortranarray",
+            "asin",
+            "asinh",
+            "atan",
+            "atanh",
+            "atan2",
+            "astype",
+            "atleast_1d",
+            "atleast_2d",
+            "atleast_3d",
+            "base_repr",
+            "binary_repr",
+            "bitwise_and",
+            "bitwise_count",
+            "bitwise_invert",
+            "bitwise_left_shift",
+            "bitwise_not",
+            "bitwise_or",
+            "bitwise_right_shift",
+            "bitwise_xor",
+            "block",
+            "bool",
+            "bool_",
+            "broadcast",
+            "busday_count",
+            "busday_offset",
+            "busdaycalendar",
+            "byte",
+            "bytes_",
+            "can_cast",
+            "cbrt",
+            "cdouble",
+            "ceil",
+            "character",
+            "choose",
+            "clip",
+            "clongdouble",
+            "complex128",
+            "complex64",
+            "complexfloating",
+            "compress",
+            "concat",
+            "concatenate",
+            "conj",
+            "conjugate",
+            "convolve",
+            "copysign",
+            "copyto",
+            "correlate",
+            "cos",
+            "cosh",
+            "count_nonzero",
+            "cross",
+            "csingle",
+            "cumprod",
+            "cumsum",
+            "datetime64",
+            "datetime_as_string",
+            "datetime_data",
+            "deg2rad",
+            "degrees",
+            "diagonal",
+            "divide",
+            "divmod",
+            "dot",
+            "double",
+            "dtype",
+            "e",
+            "einsum",
+            "einsum_path",
+            "empty",
+            "empty_like",
+            "equal",
+            "errstate",
+            "euler_gamma",
+            "exp",
+            "exp2",
+            "expm1",
+            "fabs",
+            "finfo",
+            "flatiter",
+            "flatnonzero",
+            "flexible",
+            "float16",
+            "float32",
+            "float64",
+            "float_power",
+            "floating",
+            "floor",
+            "floor_divide",
+            "fmax",
+            "fmin",
+            "fmod",
+            "format_float_positional",
+            "format_float_scientific",
+            "frexp",
+            "from_dlpack",
+            "frombuffer",
+            "fromfile",
+            "fromfunction",
+            "fromiter",
+            "frompyfunc",
+            "fromstring",
+            "full",
+            "full_like",
+            "gcd",
+            "generic",
+            "geomspace",
+            "get_printoptions",
+            "getbufsize",
+            "geterr",
+            "geterrcall",
+            "greater",
+            "greater_equal",
+            "half",
+            "heaviside",
+            "hstack",
+            "hypot",
+            "identity",
+            "iinfo",
+            "iinfo",
+            "indices",
+            "inexact",
+            "inf",
+            "inner",
+            "int16",
+            "int32",
+            "int64",
+            "int8",
+            "int_",
+            "intc",
+            "integer",
+            "intp",
+            "invert",
+            "is_busday",
+            "isclose",
+            "isdtype",
+            "isfinite",
+            "isfortran",
+            "isinf",
+            "isnan",
+            "isnat",
+            "isscalar",
+            "issubdtype",
+            "lcm",
+            "ldexp",
+            "left_shift",
+            "less",
+            "less_equal",
+            "lexsort",
+            "linspace",
+            "little_endian",
+            "log",
+            "log10",
+            "log1p",
+            "log2",
+            "logaddexp",
+            "logaddexp2",
+            "logical_and",
+            "logical_not",
+            "logical_or",
+            "logical_xor",
+            "logspace",
+            "long",
+            "longdouble",
+            "longlong",
+            "matmul",
+            "matrix_transpose",
+            "max",
+            "maximum",
+            "may_share_memory",
+            "mean",
+            "memmap",
+            "min",
+            "min_scalar_type",
+            "minimum",
+            "mod",
+            "modf",
+            "moveaxis",
+            "multiply",
+            "nan",
+            "ndarray",
+            "ndim",
+            "nditer",
+            "negative",
+            "nested_iters",
+            "newaxis",
+            "nextafter",
+            "nonzero",
+            "not_equal",
+            "number",
+            "object_",
+            "ones",
+            "ones_like",
+            "outer",
+            "partition",
+            "permute_dims",
+            "pi",
+            "positive",
+            "pow",
+            "power",
+            "printoptions",
+            "prod",
+            "promote_types",
+            "ptp",
+            "put",
+            "putmask",
+            "rad2deg",
+            "radians",
+            "ravel",
+            "recarray",
+            "reciprocal",
+            "record",
+            "remainder",
+            "repeat",
+            "require",
+            "reshape",
+            "resize",
+            "result_type",
+            "right_shift",
+            "rint",
+            "roll",
+            "rollaxis",
+            "round",
+            "sctypeDict",
+            "searchsorted",
+            "set_printoptions",
+            "setbufsize",
+            "seterr",
+            "seterrcall",
+            "shape",
+            "shares_memory",
+            "short",
+            "sign",
+            "signbit",
+            "signedinteger",
+            "sin",
+            "single",
+            "sinh",
+            "size",
+            "sort",
+            "spacing",
+            "sqrt",
+            "square",
+            "squeeze",
+            "stack",
+            "std",
+            "str_",
+            "subtract",
+            "sum",
+            "swapaxes",
+            "take",
+            "tan",
+            "tanh",
+            "tensordot",
+            "timedelta64",
+            "trace",
+            "transpose",
+            "true_divide",
+            "trunc",
+            "typecodes",
+            "ubyte",
+            "ufunc",
+            "uint",
+            "uint16",
+            "uint32",
+            "uint64",
+            "uint8",
+            "uintc",
+            "uintp",
+            "ulong",
+            "ulonglong",
+            "unsignedinteger",
+            "ushort",
+            "var",
+            "vdot",
+            "vecdot",
+            "void",
+            "vstack",
+            "where",
+            "zeros",
+            "zeros_like"
+          ]
+        },
+        {
+          "line": 181,
+          "scope": [
+            "if@107"
+          ],
+          "module": null,
+          "level": 1,
+          "names": [
+            "lib"
+          ]
+        },
+        {
+          "line": 182,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib",
+          "level": 1,
+          "names": [
+            "scimath"
+          ]
+        },
+        {
+          "line": 183,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._histograms_impl",
+          "level": 1,
+          "names": [
+            "histogram",
+            "histogram_bin_edges",
+            "histogramdd"
+          ]
+        },
+        {
+          "line": 186,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._nanfunctions_impl",
+          "level": 1,
+          "names": [
+            "nanargmax",
+            "nanargmin",
+            "nancumprod",
+            "nancumsum",
+            "nanmax",
+            "nanmean",
+            "nanmedian",
+            "nanmin",
+            "nanpercentile",
+            "nanprod",
+            "nanquantile",
+            "nanstd",
+            "nansum",
+            "nanvar"
+          ]
+        },
+        {
+          "line": 191,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._function_base_impl",
+          "level": 1,
+          "names": [
+            "select",
+            "piecewise",
+            "trim_zeros",
+            "copy",
+            "iterable",
+            "percentile",
+            "diff",
+            "gradient",
+            "angle",
+            "unwrap",
+            "sort_complex",
+            "flip",
+            "rot90",
+            "extract",
+            "place",
+            "vectorize",
+            "asarray_chkfinite",
+            "average",
+            "bincount",
+            "digitize",
+            "cov",
+            "corrcoef",
+            "median",
+            "sinc",
+            "hamming",
+            "hanning",
+            "bartlett",
+            "blackman",
+            "kaiser",
+            "trapezoid",
+            "trapz",
+            "i0",
+            "meshgrid",
+            "delete",
+            "insert",
+            "append",
+            "interp",
+            "quantile"
+          ]
+        },
+        {
+          "line": 199,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._twodim_base_impl",
+          "level": 1,
+          "names": [
+            "diag",
+            "diagflat",
+            "eye",
+            "fliplr",
+            "flipud",
+            "tri",
+            "triu",
+            "tril",
+            "vander",
+            "histogram2d",
+            "mask_indices",
+            "tril_indices",
+            "tril_indices_from",
+            "triu_indices",
+            "triu_indices_from"
+          ]
+        },
+        {
+          "line": 204,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._shape_base_impl",
+          "level": 1,
+          "names": [
+            "apply_over_axes",
+            "apply_along_axis",
+            "array_split",
+            "column_stack",
+            "dsplit",
+            "dstack",
+            "expand_dims",
+            "hsplit",
+            "kron",
+            "put_along_axis",
+            "row_stack",
+            "split",
+            "take_along_axis",
+            "tile",
+            "vsplit"
+          ]
+        },
+        {
+          "line": 209,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._type_check_impl",
+          "level": 1,
+          "names": [
+            "iscomplexobj",
+            "isrealobj",
+            "imag",
+            "iscomplex",
+            "isreal",
+            "nan_to_num",
+            "real",
+            "real_if_close",
+            "typename",
+            "mintypecode",
+            "common_type"
+          ]
+        },
+        {
+          "line": 213,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._arraysetops_impl",
+          "level": 1,
+          "names": [
+            "ediff1d",
+            "in1d",
+            "intersect1d",
+            "isin",
+            "setdiff1d",
+            "setxor1d",
+            "union1d",
+            "unique",
+            "unique_all",
+            "unique_counts",
+            "unique_inverse",
+            "unique_values"
+          ]
+        },
+        {
+          "line": 217,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._ufunclike_impl",
+          "level": 1,
+          "names": [
+            "fix",
+            "isneginf",
+            "isposinf"
+          ]
+        },
+        {
+          "line": 218,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._arraypad_impl",
+          "level": 1,
+          "names": [
+            "pad"
+          ]
+        },
+        {
+          "line": 219,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._utils_impl",
+          "level": 1,
+          "names": [
+            "show_runtime",
+            "get_include",
+            "info"
+          ]
+        },
+        {
+          "line": 222,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._stride_tricks_impl",
+          "level": 1,
+          "names": [
+            "broadcast_arrays",
+            "broadcast_shapes",
+            "broadcast_to"
+          ]
+        },
+        {
+          "line": 225,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._polynomial_impl",
+          "level": 1,
+          "names": [
+            "poly",
+            "polyint",
+            "polyder",
+            "polyadd",
+            "polysub",
+            "polymul",
+            "polydiv",
+            "polyval",
+            "polyfit",
+            "poly1d",
+            "roots"
+          ]
+        },
+        {
+          "line": 229,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._npyio_impl",
+          "level": 1,
+          "names": [
+            "savetxt",
+            "loadtxt",
+            "genfromtxt",
+            "load",
+            "save",
+            "savez",
+            "packbits",
+            "savez_compressed",
+            "unpackbits",
+            "fromregex"
+          ]
+        },
+        {
+          "line": 233,
+          "scope": [
+            "if@107"
+          ],
+          "module": "lib._index_tricks_impl",
+          "level": 1,
+          "names": [
+            "diag_indices_from",
+            "diag_indices",
+            "fill_diagonal",
+            "ndindex",
+            "ndenumerate",
+            "ix_",
+            "c_",
+            "r_",
+            "s_",
+            "ogrid",
+            "mgrid",
+            "unravel_index",
+            "ravel_multi_index",
+            "index_exp"
+          ]
+        },
+        {
+          "line": 238,
+          "scope": [
+            "if@107"
+          ],
+          "module": null,
+          "level": 1,
+          "names": [
+            "matrixlib"
+          ]
+        },
+        {
+          "line": 239,
+          "scope": [
+            "if@107"
+          ],
+          "module": "matrixlib",
+          "level": 1,
+          "names": [
+            "asmatrix",
+            "bmat",
+            "matrix"
+          ]
+        },
+        {
+          "line": 325,
+          "scope": [
+            "if@107",
+            "function:__getattr__"
+          ],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 328,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327"
+          ],
+          "modules": [
+            "numpy.linalg"
+          ]
+        },
+        {
+          "line": 331,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330"
+          ],
+          "modules": [
+            "numpy.fft"
+          ]
+        },
+        {
+          "line": 334,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333"
+          ],
+          "modules": [
+            "numpy.dtypes"
+          ]
+        },
+        {
+          "line": 337,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336"
+          ],
+          "modules": [
+            "numpy.random"
+          ]
+        },
+        {
+          "line": 340,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339"
+          ],
+          "modules": [
+            "numpy.polynomial"
+          ]
+        },
+        {
+          "line": 343,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342"
+          ],
+          "modules": [
+            "numpy.ma"
+          ]
+        },
+        {
+          "line": 346,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345"
+          ],
+          "modules": [
+            "numpy.ctypeslib"
+          ]
+        },
+        {
+          "line": 349,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348"
+          ],
+          "modules": [
+            "numpy.exceptions"
+          ]
+        },
+        {
+          "line": 352,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351"
+          ],
+          "modules": [
+            "numpy.testing"
+          ]
+        },
+        {
+          "line": 355,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354"
+          ],
+          "modules": [
+            "numpy.matlib"
+          ]
+        },
+        {
+          "line": 358,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357"
+          ],
+          "modules": [
+            "numpy.f2py"
+          ]
+        },
+        {
+          "line": 361,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360"
+          ],
+          "modules": [
+            "numpy.typing"
+          ]
+        },
+        {
+          "line": 364,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360",
+            "if@363"
+          ],
+          "modules": [
+            "numpy.rec"
+          ]
+        },
+        {
+          "line": 367,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360",
+            "if@363",
+            "if@366"
+          ],
+          "modules": [
+            "numpy.char"
+          ]
+        },
+        {
+          "line": 373,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360",
+            "if@363",
+            "if@366",
+            "if@369",
+            "if@372"
+          ],
+          "modules": [
+            "numpy.core"
+          ]
+        },
+        {
+          "line": 376,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360",
+            "if@363",
+            "if@366",
+            "if@369",
+            "if@372",
+            "if@375"
+          ],
+          "modules": [
+            "numpy.strings"
+          ]
+        },
+        {
+          "line": 380,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@327",
+            "if@330",
+            "if@333",
+            "if@336",
+            "if@339",
+            "if@342",
+            "if@345",
+            "if@348",
+            "if@351",
+            "if@354",
+            "if@357",
+            "if@360",
+            "if@363",
+            "if@366",
+            "if@369",
+            "if@372",
+            "if@375",
+            "if@378",
+            "if@379"
+          ],
+          "modules": [
+            "numpy.distutils"
+          ]
+        },
+        {
+          "line": 407,
+          "scope": [
+            "if@107",
+            "function:__getattr__",
+            "if@402"
+          ],
+          "modules": [
+            "numpy.char"
+          ]
+        },
+        {
+          "line": 424,
+          "scope": [
+            "if@107"
+          ],
+          "module": "numpy._pytesttester",
+          "level": 0,
+          "names": [
+            "PytestTester"
+          ]
+        },
+        {
+          "line": 468,
+          "scope": [
+            "if@107",
+            "if@467"
+          ],
+          "module": null,
+          "level": 1,
+          "names": [
+            "exceptions"
+          ]
+        },
+        {
+          "line": 533,
+          "scope": [
+            "if@107",
+            "function:_pyinstaller_hooks_dir"
+          ],
+          "module": "pathlib",
+          "level": 0,
+          "names": [
+            "Path"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 108,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "sys.stderr.write"
+        },
+        {
+          "line": 119,
+          "scope": [
+            "if@107",
+            "try@113"
+          ],
+          "callee": "ImportError"
+        },
+        {
+          "line": 176,
+          "scope": [
+            "if@107",
+            "try@175"
+          ],
+          "callee": "globals"
+        },
+        {
+          "line": 176,
+          "scope": [
+            "if@107",
+            "try@175"
+          ],
+          "callee": "getattr"
+        },
+        {
+          "line": 274,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_specific_msg.format"
+        },
+        {
+          "line": 275,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_specific_msg.format"
+        },
+        {
+          "line": 276,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_specific_msg.format"
+        },
+        {
+          "line": 277,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_int_extended_msg.format"
+        },
+        {
+          "line": 280,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_msg.format"
+        },
+        {
+          "line": 295,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_core.getlimits._register_known_types"
+        },
+        {
+          "line": 297,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "list"
+        },
+        {
+          "line": 299,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 300,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 301,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 302,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 303,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 304,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 305,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 306,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 307,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 308,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 309,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 310,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 311,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 312,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 313,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 314,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "set"
+        },
+        {
+          "line": 319,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "warnings.filterwarnings"
+        },
+        {
+          "line": 320,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "warnings.filterwarnings"
+        },
+        {
+          "line": 321,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "warnings.filterwarnings"
+        },
+        {
+          "line": 425,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "PytestTester"
+        },
+        {
+          "line": 451,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_sanity_check"
+        },
+        {
+          "line": 469,
+          "scope": [
+            "if@107",
+            "if@467"
+          ],
+          "callee": "warnings.catch_warnings"
+        },
+        {
+          "line": 470,
+          "scope": [
+            "if@107",
+            "if@467"
+          ],
+          "callee": "_mac_os_check"
+        },
+        {
+          "line": 472,
+          "scope": [
+            "if@107",
+            "if@467",
+            "if@472"
+          ],
+          "callee": "len"
+        },
+        {
+          "line": 476,
+          "scope": [
+            "if@107",
+            "if@467",
+            "if@472",
+            "if@474"
+          ],
+          "callee": "str"
+        },
+        {
+          "line": 478,
+          "scope": [
+            "if@107",
+            "if@467",
+            "if@472",
+            "if@474"
+          ],
+          "callee": "<literal:str>.format"
+        },
+        {
+          "line": 484,
+          "scope": [
+            "if@107",
+            "if@467",
+            "if@472",
+            "if@474"
+          ],
+          "callee": "RuntimeError"
+        },
+        {
+          "line": 519,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_core.multiarray._set_madvise_hugepage"
+        },
+        {
+          "line": 519,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "hugepage_setup"
+        },
+        {
+          "line": 525,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_core.multiarray._multiarray_umath._reload_guard"
+        },
+        {
+          "line": 528,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "_core._set_promotion_state"
+        },
+        {
+          "line": 529,
+          "scope": [
+            "if@107"
+          ],
+          "callee": "os.environ.get"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/_statistics.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/_statistics.py",
+      "bytes": 24946,
+      "sha256": "f291bb6ade95b566ffba345e237f6a4c1ef4bd616001f0a64db5a60e64c99ad5",
+      "imports": [
+        {
+          "line": 27,
+          "scope": [],
+          "module": "numbers",
+          "level": 0,
+          "names": [
+            "Number"
+          ]
+        },
+        {
+          "line": 28,
+          "scope": [],
+          "module": "statistics",
+          "level": 0,
+          "names": [
+            "NormalDist"
+          ]
+        },
+        {
+          "line": 29,
+          "scope": [],
+          "modules": [
+            "numpy"
+          ]
+        },
+        {
+          "line": 30,
+          "scope": [],
+          "modules": [
+            "pandas"
+          ]
+        },
+        {
+          "line": 32,
+          "scope": [
+            "try@31"
+          ],
+          "module": "scipy.stats",
+          "level": 0,
+          "names": [
+            "gaussian_kde"
+          ]
+        },
+        {
+          "line": 35,
+          "scope": [
+            "try@31"
+          ],
+          "module": "external.kde",
+          "level": 1,
+          "names": [
+            "gaussian_kde"
+          ]
+        },
+        {
+          "line": 38,
+          "scope": [],
+          "module": "algorithms",
+          "level": 1,
+          "names": [
+            "bootstrap"
+          ]
+        },
+        {
+          "line": 39,
+          "scope": [],
+          "module": "utils",
+          "level": 1,
+          "names": [
+            "_check_argument"
+          ]
+        }
+      ],
+      "module_calls": [],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/relational.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn/relational.py",
+      "bytes": 34630,
+      "sha256": "530d2f5606f33bd189bdef544242a1f7ba37dac7a243fbda0786765426b1a211",
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "module": "functools",
+          "level": 0,
+          "names": [
+            "partial"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "modules": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "modules": [
+            "numpy"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "modules": [
+            "pandas"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "modules": [
+            "matplotlib"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "modules": [
+            "matplotlib.pyplot"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "module": "matplotlib.cbook",
+          "level": 0,
+          "names": [
+            "normalize_kwargs"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "module": "_base",
+          "level": 1,
+          "names": [
+            "VectorPlotter"
+          ]
+        },
+        {
+          "line": 13,
+          "scope": [],
+          "module": "utils",
+          "level": 1,
+          "names": [
+            "adjust_legend_subtitles",
+            "_default_color",
+            "_deprecate_ci",
+            "_get_transform_functions",
+            "_scatter_legend_artist"
+          ]
+        },
+        {
+          "line": 20,
+          "scope": [],
+          "module": "_compat",
+          "level": 1,
+          "names": [
+            "groupby_apply_include_groups"
+          ]
+        },
+        {
+          "line": 21,
+          "scope": [],
+          "module": "_statistics",
+          "level": 1,
+          "names": [
+            "EstimateAggregator",
+            "WeightedAggregator"
+          ]
+        },
+        {
+          "line": 22,
+          "scope": [],
+          "module": "axisgrid",
+          "level": 1,
+          "names": [
+            "FacetGrid",
+            "_facet_docs"
+          ]
+        },
+        {
+          "line": 23,
+          "scope": [],
+          "module": "_docstrings",
+          "level": 1,
+          "names": [
+            "DocstringComponents",
+            "_core_docs"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 29,
+          "scope": [],
+          "callee": "DocstringComponents"
+        },
+        {
+          "line": 29,
+          "scope": [],
+          "callee": "dict"
+        },
+        {
+          "line": 56,
+          "scope": [],
+          "callee": "dict"
+        },
+        {
+          "line": 180,
+          "scope": [],
+          "callee": "DocstringComponents.from_nested_components"
+        },
+        {
+          "line": 182,
+          "scope": [],
+          "callee": "DocstringComponents"
+        },
+        {
+          "line": 183,
+          "scope": [],
+          "callee": "DocstringComponents"
+        },
+        {
+          "line": 184,
+          "scope": [],
+          "callee": "DocstringComponents.from_function_params"
+        },
+        {
+          "line": 519,
+          "scope": [],
+          "callee": "<literal:str>.format"
+        },
+        {
+          "line": 641,
+          "scope": [],
+          "callee": "<literal:str>.format"
+        },
+        {
+          "line": 902,
+          "scope": [],
+          "callee": "<literal:str>.format"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/array_api_compat/_internal.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy/_lib/array_api_compat/_internal.py",
+      "bytes": 2072,
+      "sha256": "b582646b123157110b62fa3d24ad9480208904cc34d498959a89932235693395",
+      "imports": [
+        {
+          "line": 5,
+          "scope": [],
+          "modules": [
+            "importlib"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "module": "collections.abc",
+          "level": 0,
+          "names": [
+            "Callable"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "module": "functools",
+          "level": 0,
+          "names": [
+            "wraps"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "module": "inspect",
+          "level": 0,
+          "names": [
+            "signature"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "module": "types",
+          "level": 0,
+          "names": [
+            "ModuleType"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "module": "typing",
+          "level": 0,
+          "names": [
+            "TypeVar"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 12,
+          "scope": [],
+          "callee": "TypeVar"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/lib/utils/nn.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/lib/utils/nn.py",
+      "bytes": 6033,
+      "sha256": "7b8141b843b3dc4aa564b2e463baa4789aa3ece439f5474796b46206e7a7d306",
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "modules": [
+            "numpy"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "modules": [
+            "seaborn"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "module": "matplotlib",
+          "level": 0,
+          "names": [
+            "pyplot"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "module": "numpy.typing",
+          "level": 0,
+          "names": [
+            "NDArray"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "modules": [
+            "reboot_cpp"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "module": "lib.layers.activations",
+          "level": 0,
+          "names": [
+            "PolyReLU",
+            "Square"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "module": "lib.layers.modules",
+          "level": 0,
+          "names": [
+            "Module"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "module": "lib.optim.optimizers",
+          "level": 0,
+          "names": [
+            "SGD",
+            "EncryptedNesterovSGD",
+            "Optimizer",
+            "PlainNesterovSGD"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "module": "lib.types",
+          "level": 0,
+          "names": [
+            "Array"
+          ]
+        },
+        {
+          "line": 11,
+          "scope": [],
+          "module": "lib.utils.enums",
+          "level": 0,
+          "names": [
+            "NonLinearity",
+            "OptimizerName"
+          ]
+        }
+      ],
+      "module_calls": [
+        {
+          "line": 13,
+          "scope": [],
+          "callee": "sns.set_theme"
+        }
+      ],
+      "optional_flag_names": []
+    },
+    {
+      "path": "/home/kmihara/reboot/src/ReBoot/lib/models/local_loss_models.py",
+      "exists": true,
+      "resolved": "/home/kmihara/reboot/src/ReBoot/lib/models/local_loss_models.py",
+      "bytes": 9686,
+      "sha256": "5172566a238fb992dad024c2ed1951209638e05f6839f1994920fab4594a5e04",
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "module": "typing",
+          "level": 0,
+          "names": [
+            "Literal"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "module": "lib.blocks.local_linear_block",
+          "level": 0,
+          "names": [
+            "LocalLinearBlock"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "module": "lib.cryptocontext",
+          "level": 0,
+          "names": [
+            "CryptoContext"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "module": "lib.layers.linear",
+          "level": 0,
+          "names": [
+            "CKKSPackedLinear",
+            "PlainLinear"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "module": "lib.models.models",
+          "level": 0,
+          "names": [
+            "LocalLossModel"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "module": "lib.models.sequential",
+          "level": 0,
+          "names": [
+            "Sequential"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "module": "lib.types",
+          "level": 0,
+          "names": [
+            "Array"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "module": "lib.utils.enums",
+          "level": 0,
+          "names": [
+            "NonLinearity",
+            "OptimizerName"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "module": "lib.utils.nn",
+          "level": 0,
+          "names": [
+            "create_non_linearity"
+          ]
+        }
+      ],
+      "module_calls": [],
+      "optional_flag_names": []
+    }
+  ],
+  "customization_candidates": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/sitecustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/sitecustomize.py"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/usercustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/usercustomize.py"
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize.py"
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize.py"
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize.py"
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize.py",
+      "exists": false,
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize.py"
+    }
+  ],
+  "limits": "Fixed source-only inspection; AST scope facts are not dynamic execution. No target startup, scientific imports, package-wide consumer scan, process mutation or capture.",
+  "publication_derivation": {
+    "kind": "sanitized_derivative_not_byte_exact_original_stdout",
+    "original_stdout_sha256": "1751c6d13904076120da2610792a7de7d2b814473d3d642eaca683607e62c0c9",
+    "original_stdout_bytes": 61957,
+    "rule": "AST callee expressions reduced to symbol/node kinds; arguments and literal receivers omitted",
+    "changes": [
+      {
+        "json_path": "/pth/1/startup_lines/0/calls/1/callee",
+        "original_expression_sha256": "71da2cf299403610f9c17c350b79dd44481bd3737191899a924ad013075e0d03",
+        "original_expression_bytes": 38,
+        "symbolic_callee": "call(__import__).add_shim",
+        "dynamic_import_module_names": [
+          "_distutils_hack"
+        ]
+      },
+      {
+        "json_path": "/pth/2/startup_lines/0/calls/1/callee",
+        "original_expression_sha256": "71da2cf299403610f9c17c350b79dd44481bd3737191899a924ad013075e0d03",
+        "original_expression_bytes": 38,
+        "symbolic_callee": "call(__import__).add_shim",
+        "dynamic_import_module_names": [
+          "_distutils_hack"
+        ]
+      },
+      {
+        "json_path": "/sources/3/module_calls/36/callee",
+        "original_expression_sha256": "928d024c0a18dc917df94d83ded49b829403c758bc10c2a0f4e1051f93d5604c",
+        "original_expression_bytes": 274,
+        "symbolic_callee": "<literal:str>.format"
+      },
+      {
+        "json_path": "/sources/5/module_calls/7/callee",
+        "original_expression_sha256": "74a116243e3f98e05ea6d0095b430e9520a6cff26c2e0b4150ad008700eae267",
+        "original_expression_bytes": 2584,
+        "symbolic_callee": "<literal:str>.format"
+      },
+      {
+        "json_path": "/sources/5/module_calls/8/callee",
+        "original_expression_sha256": "e0fb66eaffd7f9320ea80951a52917342f9956caba446265deeaa15390e91d95",
+        "original_expression_bytes": 1341,
+        "symbolic_callee": "<literal:str>.format"
+      },
+      {
+        "json_path": "/sources/5/module_calls/9/callee",
+        "original_expression_sha256": "238f2bb5efb02805a0c0aa86013d3443b5b300bb810980e1ad2fc85351af0a49",
+        "original_expression_bytes": 2626,
+        "symbolic_callee": "<literal:str>.format"
+      }
+    ]
+  }
+}

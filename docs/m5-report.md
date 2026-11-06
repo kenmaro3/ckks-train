@@ -234,4 +234,10 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 
 本人の容量整理依頼により、完了済みセキュリティ見積もり用の非稼働Sage環境を削除し、394 packageの再インストール情報を保持した。追加4,441,407,488 bytes、累計17,264,930,816 bytesの独立割当量を整理。見積もり結果・原ログ・コード・データ・現在使用中の環境は残した。以前の「Sage環境保持」は過去時点の記録であり、再計算には保存したpinsからの再インストールが必要。
 
+## 2026-11-07追記: 取得経路とCIの制限
+
+[R-REB-8](../results/quadruped/raw/R-REB-8-ARCHIVE/README.md)は元configと固定済みarchiveの差をstructure_summaryだけと確認した。共有F64値はbit一致だが、byte pinは異なるため元出力をそのまま比較archiveとして受理しない。今後の新checkoutで既存pinnedコピーを完全検証して使い、pin・元出力は保持する。[R-REB-9](../results/quadruped/raw/R-REB-9-BOOTSTRAP-STATIC/README.md)では既存venvの起動時importとsource guardの衝突が静的に予測された。新しい起動経路は設計中で、環境作成・実import・compatibilityは未実行。
+
+`c6ab260`と`2434c4b`のCIは6ジョブすべてstepなしで終了し、test注釈はアカウントの支払いまたは利用上限による起動拒否を示した。この2commitのCIは未実行であり、ローカル検証や前commitの成功で代替したとは扱わない。請求・上限を変更せず、実装と独立レビューは継続する。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

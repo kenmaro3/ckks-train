@@ -1,0 +1,31 @@
+{
+  "started_unix": 1793995954.784895,
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 python3 -"
+  ],
+  "source_sha256": "413e60c53b8753beb21cb2cae7c4ba00c15f6a22e12af5b6fc3a8fabd35f506f",
+  "returncode": 0,
+  "finished_unix": 1793995963.47013
+}

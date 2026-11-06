@@ -491,3 +491,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-original-archive-20261107.{json,stderr,meta.json}` and separate local comparison report.
 - **pass criterion:** hash equality to observed source or explicit drift, then exact local JSON-field comparison. No pin changes, normalization or replacement of historical results.
 - **status:** done (exit0; controller 4.476 s including SSH). Original191369 bytes retained unmodified, SHA2569d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444 matches prior observation. Parsed field comparison is recorded in `raw/R-REB-8-ARCHIVE/`: only local structure_summary is additional; shared values including F64 bits match. Original file/pin remains unchanged; future comparison archive must be the verified pinned tracked copy.
+
+
+## R-REB-9-BOOTSTRAP-STATIC: fixed startup/import-source prerequisites
+
+- **purpose:** inspect actual executable .pth import targets, referenced startup-module facts, base site.py and selected known NumPy import-chain source identities before starting the target interpreter.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** read-only /home/kmihara/reboot and resolved CPython base library.
+- **command:** key-only SSH `nice -n 10 python3 -`; original stdlib-only observer via stdin, SHA256 413e60c53b8753beb21cb2cae7c4ba00c15f6a22e12af5b6fc3a8fabd35f506f; ledger `task-54-linux-bootstrap-static-20261107.py`. Selected sources parsed as AST, never imported. Raw stdout also contained dependency string-literal receivers; publish a labelled sanitized derivative while retaining original stdout in the ledger.
+- **expected duration:** under 2 minutes; one process/thread, fixed small source list.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** controller ledger `task-54-linux-bootstrap-static-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual source/hash/startup facts with explicit limitations, not dynamic reachability, target-startup approval or full consumer audit. No timed job/capture/queue mutation.
+- **status:** done (2026-11-07T05:12:43.047940+09:00, exit0; controller8.685s including SSH). Actual _virtualenv.pth unconditionally imports a module under the governed site-packages root; its source installs a meta-path finder. Distutils .pth has an environment-dependent hook. Target interpreter was not started; static facts do not approve startup or full import reachability.
