@@ -1,6 +1,6 @@
 # Security estimate (dev tool)
 
-Runs [malb/lattice-estimator](https://github.com/malb/lattice-estimator) on the hekit-ckks presets.
+Runs [malb/lattice-estimator](https://github.com/malb/lattice-estimator) on the ckks-train-ckks presets.
 It needs SageMath, is a development tool only, and `_ext/` (Sage, estimator) is not committed
 (`_ext/` is gitignored).
 
@@ -19,7 +19,7 @@ hekit crate, and the scripts here only import the estimator when run.
 
 ## Run
 
-    cargo run -p hekit-ckks --example export_params > params.json
+    cargo run -p ckks-train-ckks --example export_params > params.json
     _ext/sage-env/bin/python estimate.py                       # BDGL16 cost model
     _ext/sage-env/bin/python estimate.py --cost-model matzov   # estimator default
     _ext/sage-env/bin/python estimate.py --cost-model adps16   # Core-SVP

@@ -1,6 +1,6 @@
 # Precision of the basic operations
 
-Measured by `cargo run -p hekit-ckks --release --example precision` (`hekit_ckks::precision::run_precision_suite`).
+Measured by `cargo run -p ckks-train-ckks --release --example precision` (`ckks_train_ckks::precision::run_precision_suite`).
 
 - Date: 2026-11-05
 - Machine: Apple M3 Pro (12 cores, 36 GB), macOS; rustc 1.85.1; ran in about 21 s for both presets (including key generation)
@@ -14,7 +14,7 @@ Measured by `cargo run -p hekit-ckks --release --example precision` (`hekit_ckks
 `bits` = `-log2(max abs error)` over all N/2 slots, inputs uniform in [-1, 1) at the top level with the preset scale, fixed seeds.
 `level` is the level of the decrypted ciphertext. `matvec` is a 16 x 16 matrix-vector product (BSGS, plaintext diagonals, then one rescale);
 `matvec_enc` the same with encrypted diagonals. `rotate` is a rotation by 1. Test thresholds: seal_2020 >= 20 bits, n16_train >= 24 bits
-(`crates/hekit-ckks/tests/precision.rs`, about 19 s in the normal test suite).
+(`crates/ckks-train-ckks/tests/precision.rs`, about 19 s in the normal test suite).
 
 ### seal_2020
 

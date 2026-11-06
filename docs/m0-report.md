@@ -66,7 +66,7 @@
 | 3 ReBoot (eMLP-1, MNIST) | ビルド | **OK**(OpenFHE 1.2.1、ReBoot `3ac173f`、移植用の 3 パッチ。パッチは gitignore 下にだけ置く) | — | ReBoot は **GPL-3.0**。実行するだけのベースラインで、コードは hekit に一切コピーしていない |
 | | 実行 | **メモリ不足 (OOM) で未計測** | 機械は 36 GB RAM | context 生成直後の footprint ≥ **44 GB**(`footprint` で対話的に読んだ値で、ログは無い)。`/usr/bin/time -l` の peak footprint は 4 回の実行で **51–54 GB**(`spikes/reboot/logs-summary.txt`)。最初の反復の重みブートストラップ(eMLP-1 は W 2 + V 2 = 4 暗号文)で kill |
 | | epoch 時間 / 精度 | **メモリ不足で未計測** | 論文値: **190.32 s/iter**、ピーク **76.07 GB**(2× Xeon 5318S, 384 GB) | 論文値からの算術: 100 it ≈ 5.3 h、全 MNIST 1250 it ≈ 66 h。test acc 94.61 %(論文値、平文ツイン) |
-| | 設定の転記 | `crates/hekit-bench/configs/reboot_emlp{1,2,3}.json` | 784-32-10、2^16、l 24、Δ 2^49、B 48、lr 1e-3、mom 0.9 | epochs = 10 はリポジトリのスクリプト由来で論文には無い。weight decay は JSON に無い。emlp2/3 はブロック構造を持たない(§6) |
+| | 設定の転記 | `crates/ckks-train-bench/configs/reboot_emlp{1,2,3}.json` | 784-32-10、2^16、l 24、Δ 2^49、B 48、lr 1e-3、mom 0.9 | epochs = 10 はリポジトリのスクリプト由来で論文には無い。weight decay は JSON に無い。emlp2/3 はブロック構造を持たない(§6) |
 | 4 コストモデル | ReBoot eMLP-1 / sample | 30 rot + 7 relin = **37 KS**、ブートストラップ 4 / mini-batch | lazy relin にした仮想 ReBoot は 35。2^17 は出荷版 39、寛大版 (custom sumRows) 37 | (r, c) = (1024, 32) は ReBoot のログと一致 |
 | | diag_batched (2^16, 48) / sample | KS 16.8、KS_spec 58.6(ReBoot 78.8) | 比 0.454 / **0.744** | 2 暗号文/batch |
 | | diag_batched (2^16, 48) 対話版 / sample | KS **8.2**(サーバが転置)/ 7.9(クライアントが W^T を渡す) | 比 **0.222** / 0.214 | M2 Task 32 の 10% 確認の比較対象 |
@@ -188,13 +188,13 @@ H100 を使うなら $500–900 を見込む。spot や Vast は中断と品質�
     - バイアス: ReBoot は `bias=False`、JSON の形はバイアスあり。
     - 初期化: ReBoot は Xavier 一様 ±sqrt(1/(fan_in+fan_out))、hekit は PyTorch 既定。
     - 結果として、これを使った Task 32 と Task 41 の実行は、精度が公式 ReBoot の 0.75 に対して 0.33(B = 32)と 0.19(B = 64)。鍵切替回数はこの差の影響を受けない。
-    - 忠実な設定は `crates/hekit-bench/configs/reboot_emlp1_faithful.json`(`mnist --faithful`)。既存の実行が使ったので、古いファイルも残す。
+    - 忠実な設定は `crates/ckks-train-bench/configs/reboot_emlp1_faithful.json`(`mnist --faithful`)。既存の実行が使ったので、古いファイルも残す。
     - **入力次元も違う(ルーリング R-M3-13)。** 論文(Table 2)と ReBoot の本設定のコード経路は 14×14 に縮めた MNIST を使う。論文の eMLP-1 は **196-32-10(出力は 16 にパディング)** で、784-32-10 ではない。
       - 784 入力のこれまでの実行(Task 32、Task 41 の R-41-1〜4 と忠実版 F1/F2)は補足の行として残す。これらは ReBoot の `training_encrypted.py` の subset 実行(両側とも 784)と対応する。
       - RQ1 の見出しと精度の ±0.5 pt 確認は 196 入力で行う。参照は論文 Table 4 の eMLP-1 MNIST 94.61±0.27(平文の ReBoot 学習、10 回)。
       - データは gpu-runner の `.npy`(`mnist --dataset-npy`)で、sha256 を照合する。
   - **`reboot_emlp2/3.json` は eMLP-2/3 に忠実ではない。** 論文 Table 3 では、eMLP-2 = RE-Block(64) → CE-Block(32) で、ブロックごとに局所分類器(CE-FC / RE-FC)と局所損失を持ち、ブロック間に勾配は流れない。JSON は素の BP の形(784-64-32-10 など)しか表せない。スキーマにブロックのフィールドが入るまでは eMLP-2/3 として使わないこと。eMLP-1 は単一ブロックなので影響を受けない(RUN.md に記載)。
-    - **解消済み(Task 52、R-REB-5 の値による)。** 実際の構造は、局所ブロック(下へ勾配を流さない線形 → z²+z → 局所ヘッド width→16、ブロック自身の二乗誤差損失だけで更新)と、別の出力スタック(線形 → z²+z → 線形→16、主損失、テスト時の出力)からなる。eMLP-2 = ブロック 196→64 + 出力 64→32→16、eMLP-3 = ブロック 196→128、128→64 + 出力 64→32→16。入力は 784 ではなく 196、バイアスなし、wd 0、lr 5e-4 を 5 epoch のあと cosine restart。`configs/reboot_emlp{2,3}.json` は `blocks` と `output_stack` のフィールドで書き直した(`mnist --blocks`、`hekit_nn::block`)。平文 twin は seed 0 で ReBoot と一致した(バッチ精度 1000/1000、テスト精度 0.9156 / 0.9175、`results/mnist196_plain_emlp{2,3}_seed0.json`)。RE/CE は ReBoot の行/列パッキングの区別で、hekit の対角バッチ配置では全層が同じ形なので対応物はない。
+    - **解消済み(Task 52、R-REB-5 の値による)。** 実際の構造は、局所ブロック(下へ勾配を流さない線形 → z²+z → 局所ヘッド width→16、ブロック自身の二乗誤差損失だけで更新)と、別の出力スタック(線形 → z²+z → 線形→16、主損失、テスト時の出力)からなる。eMLP-2 = ブロック 196→64 + 出力 64→32→16、eMLP-3 = ブロック 196→128、128→64 + 出力 64→32→16。入力は 784 ではなく 196、バイアスなし、wd 0、lr 5e-4 を 5 epoch のあと cosine restart。`configs/reboot_emlp{2,3}.json` は `blocks` と `output_stack` のフィールドで書き直した(`mnist --blocks`、`ckks_train_nn::block`)。平文 twin は seed 0 で ReBoot と一致した(バッチ精度 1000/1000、テスト精度 0.9156 / 0.9175、`results/mnist196_plain_emlp{2,3}_seed0.json`)。RE/CE は ReBoot の行/列パッキングの区別で、hekit の対角バッチ配置では全層が同じ形なので対応物はない。
   - RUN.md にあった「重みブートストラップは 64 暗号文」は誤りで、正しくは 4 暗号文(W 2 + V 2、`models.py:121-133`)。訂正した(**修正済み**)。
 - **コストモデル**:
   - ブートストラップの回転数が 216 か 218 か(レビュー由来)は、修正ラウンド 1 で 218 に確定した(**修正済み**)。

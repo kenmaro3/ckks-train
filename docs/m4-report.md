@@ -67,7 +67,7 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
 
 ### 1.3 実装状況(Task 47)
 
-- `CudaEvaluator`(`hekit_ckks::HeOps` の実装)。CPU と同じ検査順・エラー種別・`OpCounter`。R-47-1(`ce4730a`、`results/quadruped/hekit_cuda_task47_tests.txt`、`results/quadruped/raw/R-47-1/`)は 45 テスト関数が ok、うち 42 実行・3 SKIP。実行した演算・matvec の CPU とのビット一致を確認した。全鍵 matvec、全鍵 sequence、hoisted ×16 はメモリ不足で SKIP しており、その行の一致は未確認。BSGS の手順は CPU と共通の `hekit_cuda::matvec` にある。
+- `CudaEvaluator`(`ckks_train_ckks::HeOps` の実装)。CPU と同じ検査順・エラー種別・`OpCounter`。R-47-1(`ce4730a`、`results/quadruped/hekit_cuda_task47_tests.txt`、`results/quadruped/raw/R-47-1/`)は 45 テスト関数が ok、うち 42 実行・3 SKIP。実行した演算・matvec の CPU とのビット一致を確認した。全鍵 matvec、全鍵 sequence、hoisted ×16 はメモリ不足で SKIP しており、その行の一致は未確認。BSGS の手順は CPU と共通の `ckks_train_cuda::matvec` にある。
 - RQ3 の 3 フラグ(hoist / bsgs / lazy_relin)は CPU と同じ意味。d = 16 の 8 通りすべてで `EvalConfig::matvec_rotations` / `matvec_enc_relins` と一致することを R-47-1 の GPU テストで確認済み。
 - `matvec_enc_batch`: 修正後は独立な積を呼び出しスレッドから各ストリームに積む。§1.1a の遅延値は修正前の R-47-2 の結果で、修正後の性能は R-47-3 待ち。開始前に各ストリームの作業領域が空き容量に収まるか確かめ、収まらなければ何も確保せずに `Device` エラーを返す。
 - 小さな表(内積の桁アドレス、スカラー定数)は、ストリームごとの pinned 転送リングで非同期に送る。
@@ -78,7 +78,7 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
 
 ### 2.1 実装
 
-- **バックエンド切り替え**: `mnist` と `iris` に `--backend cpu|cuda` を足した(`cuda` は `cuda` 機能付きのビルドが必要)。共通部分は `hekit_bench::backend`。暗号化・復号・エンコード・クライアント再暗号化・ブートストラップはホストに残し、GPU では次のように分ける(「レベル演算は GPU、ブートストラップは CPU」)。
+- **バックエンド切り替え**: `mnist` と `iris` に `--backend cpu|cuda` を足した(`cuda` は `cuda` 機能付きのビルドが必要)。共通部分は `ckks_train_bench::backend`。暗号化・復号・エンコード・クライアント再暗号化・ブートストラップはホストに残し、GPU では次のように分ける(「レベル演算は GPU、ブートストラップは CPU」)。
   - 対話モードのクライアント再暗号化は `HostRefresher` の後ろで行う(ダウンロード、ホストで再暗号化、アップロード)。
   - 非対話モードのブートストラップは `HostBootstrapper` の後ろで行う。ホスト側の計数は GPU 評価器の `OpCounter` に足し込む。
   - GPU ブートストラップ(Task 49)は §3 の別実装である。現在の訓練ベンチへの接続はしておらず、非対話 GPU 訓練の時間には引き続き CPU の `HostBootstrapper` と転送を分けて記録する。
@@ -87,7 +87,7 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
   - 対話モード: `predict` の行列ベクトル積を `EvalConfig::matvec_rotations` / `matvec_enc_relins` で数える。8 通りすべてで実測と一致する(`tests/mnist_flags.rs`、`small`)。
   - 非対話モード: `predict_update_with` を使う。全オフで実測と一致する(`mini_boot`)。
   - コストモデルとその補正項は既定フラグのもの、と出力 JSON に明記した。
-- **`HostRefresher` の N1/N2(Task 43 レビュー)**: `HostBootstrapper` と同じにそろえた。単体テストあり(`hekit-nn` `refresh.rs`)。
+- **`HostRefresher` の N1/N2(Task 43 レビュー)**: `HostBootstrapper` と同じにそろえた。単体テストあり(`ckks-train-nn` `refresh.rs`)。
   - ホスト評価器が評価器 E 自身のときは、何もせずに `InvalidParams` を返す(アドレスで判定)。
   - 計数はアップロードが成功した後でだけ足す。
 - **行列ベクトル積は逐次**: `--matvec sequential` が既定で、訓練に通っている唯一のモード。`--matvec batch` は理由を示して拒否する。
@@ -107,7 +107,7 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
 
 ### 2.2 Step 1: GPU と CPU の訓練一致テスト(未実行、サーバ待ち)
 
-`crates/hekit-bench/tests/mnist_cuda.rs` と `iris_cuda.rs` に置いた(どちらも `#[ignore]`、`--features cuda`)。
+`crates/ckks-train-bench/tests/mnist_cuda.rs` と `iris_cuda.rs` に置いた(どちらも `#[ignore]`、`--features cuda`)。
 
 - mnist の 3 テストは、実 MNIST の subset 1024 で同じ対話訓練を `--backend cuda` と `--backend cpu` で走らせ、次を確かめる。GPU を先に走らせ、メモリ不足でスキップしたら CPU は走らせない。
   - **バッチごとの `OpCounter` が完全に一致する**(回転、relin、鍵切替、積、rescale、ブートストラップ)。
@@ -126,14 +126,14 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
 
 ### 2.3 RQ3 アブレーションの表
 
-`crates/hekit-bench/src/bin/ablation.rs` は、対話モードの eMLP-1 の 1 反復(784 → 32(z^2 + z)→ 10(線形)、既定 NAG、容量不足時の登録済み代替は SGD、1 バッチ 1 暗号文、クライアント再暗号化)を、8 通りの `EvalConfig` で測る。出力先は CLI の `--out` で指定する。登録した本番の出力先は下表の `results/quadruped/` 配下であり、smoke JSON と分ける。
+`crates/ckks-train-bench/src/bin/ablation.rs` は、対話モードの eMLP-1 の 1 反復(784 → 32(z^2 + z)→ 10(線形)、既定 NAG、容量不足時の登録済み代替は SGD、1 バッチ 1 暗号文、クライアント再暗号化)を、8 通りの `EvalConfig` で測る。出力先は CLI の `--out` で指定する。登録した本番の出力先は下表の `results/quadruped/` 配下であり、smoke JSON と分ける。
 
 - 鍵、初期ネットワーク、バッチは全構成で同じ。ウォームアップの後に計測反復を回し、中央値を取る。
 - 時間は「ステップ」(サーバ側、デバイスの待ちを含む)と「再暗号化」(ホスト。フラグは影響しない)に分ける。
 - 計数は 1 反復分。閉形式は「既定の実測 + 各 matvec のフラグ差分」で、全構成で照合する。
 - 重みは既定構成との差を出す。
 
-**この表が述べなければならないこと**(`hekit_ckks::ops` の "What the RQ3 table must state" をそのまま写す。`ablation` の出力 JSON の `caveats` にも同じ文がある):
+**この表が述べなければならないこと**(`ckks_train_ckks::ops` の "What the RQ3 table must state" をそのまま写す。`ablation` の出力 JSON の `caveats` にも同じ文がある):
 
 1. **Definition of `bsgs = false`.** The giant rotation is not shared; the weights keep
    the same pre-rotated (BSGS) layout and the same Galois keys. Every product with a

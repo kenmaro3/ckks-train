@@ -1,7 +1,7 @@
 # SEAL 4.1.2 encoder known-answer vectors
 
 `kat.cpp` generates the vectors that are hard-coded in the `matches_seal_4_1_encoder` test in
-`crates/hekit-ckks/src/encoder.rs`. That test pins hekit's CKKS encoder (slot order with
+`crates/ckks-train-ckks/src/encoder.rs`. That test pins hekit's CKKS encoder (slot order with
 generator 3, the DWT, and rounding) to Microsoft SEAL 4.1.2's `CKKSEncoder`.
 
 Parameters:

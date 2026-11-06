@@ -1,7 +1,7 @@
 # SEAL 4.1.2 interop known-answer test
 
 `kat.cpp` (Microsoft SEAL 4.1.2, MIT, via CMake FetchContent; SEAL is not vendored) and
-`crates/hekit-ckks/tests/seal_kat.rs` check that hekit-ckks and SEAL read each other's
+`crates/ckks-train-ckks/tests/seal_kat.rs` check that ckks-train-ckks and SEAL read each other's
 objects and agree on the scheme, for the `seal_2020` preset:
 CKKS, N = 2^15, `CoeffModulus::Create(32768, {60, 40 x 9, 60})` (the last prime is the
 special prime), `sec_level_type::tc128`, scale 2^40, `compr_mode_type::none`.
@@ -13,7 +13,7 @@ tools/seal-kat/run_kat.sh
 ```
 
 It builds this directory (Release), runs `seal_interop_kat generate kat/seal_2020`, then
-`cargo test -p hekit-ckks --test seal_kat -- --ignored`, then
+`cargo test -p ckks-train-ckks --test seal_kat -- --ignored`, then
 `seal_interop_kat verify kat/seal_2020` (exit 0 iff SEAL accepts and decrypts every hekit
 file within its bound). `kat/` is gitignored (~80 MB). Each run uses fresh SEAL randomness
 (SEAL's default PRNG); the inputs are fixed (`mt19937_64`, seed 20201225, uniform in
@@ -47,7 +47,7 @@ tensor product and relinearization at scale 2^80; 2^-23 for public-key encryptio
 rescale, whose noise is the rounding `r_0 + r_1 s` (SEAL's uniform ternary key: median max
 error 2^-24.8, so 2^-25 fails SEAL's own decryption about half the time); 2^-15 for SEAL's
 rotation (SEAL's non-centered per-prime decomposition puts ~2^-17.5 of key-switching error
-on slot 0). The derivations are in `bound_log2` in `crates/hekit-ckks/tests/seal_kat.rs`.
+on slot 0). The derivations are in `bound_log2` in `crates/ckks-train-ckks/tests/seal_kat.rs`.
 Independently of these bounds, hekit's decryption of every SEAL ciphertext must be
 bit-identical to SEAL's, and hekit's `add` / `mul_no_relin` / `rescale` of SEAL
 ciphertexts bit-identical to SEAL's `add` / `multiply` / `rescale_to_next`.

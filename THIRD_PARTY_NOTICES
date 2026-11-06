@@ -13,21 +13,21 @@ Source: https://github.com/microsoft/SEAL (version 4.1.2), MIT License.
 
 Ported from SEAL (derived code):
 
-- crates/hekit-ckks/src/encoder.rs: the bit-reversed negacyclic DWT
+- crates/ckks-train-ckks/src/encoder.rs: the bit-reversed negacyclic DWT
   (util::DWTHandler::transform_to_rev / transform_from_rev), the complex root table
   (util::ComplexRoots) and the CKKSEncoder slot index map (matrix_reps_index_map_), ported
   so that encodings agree with SEAL coefficient by coefficient.
 
 Written against the SEAL 4.1.2 sources to reproduce its results or formats (interop):
 
-- crates/hekit-ckks/src/params.rs: the prime assignment order of CoeffModulus::Create.
-- crates/hekit-core/src/baseconv.rs: the formulas of BaseConverter::fast_convert_array and
+- crates/ckks-train-ckks/src/params.rs: the prime assignment order of CoeffModulus::Create.
+- crates/ckks-train-core/src/baseconv.rs: the formulas of BaseConverter::fast_convert_array and
   of divide_and_round_q_last (rescale / mod_down) for one special prime.
-- crates/hekit-core/src/ntt.rs: the NTT root and storage conventions.
-- crates/hekit-ckks/src/seal_compat.rs: the SEAL serialization format (SEALHeader,
+- crates/ckks-train-core/src/ntt.rs: the NTT root and storage conventions.
+- crates/ckks-train-ckks/src/seal_compat.rs: the SEAL serialization format (SEALHeader,
   Ciphertext / Plaintext / key layouts) and parms_id. The BLAKE2b used for parms_id is an
   independent implementation from RFC 7693, not SEAL code.
-- crates/hekit-ckks/src/encoder.rs (tests): known-answer values printed by SEAL.
+- crates/ckks-train-ckks/src/encoder.rs (tests): known-answer values printed by SEAL.
 
 Not distributed with hekit: the tools under tools/seal-kat/ and the spikes under spikes/
 build against SEAL fetched by CMake FetchContent; no SEAL source file is vendored in this
@@ -64,7 +64,7 @@ Data sets
 - Iris (R. A. Fisher, 1936), UCI Machine Learning Repository,
   https://doi.org/10.24432/C56C76, CC BY 4.0
   (https://creativecommons.org/licenses/by/4.0/). The bundled file is
-  crates/hekit-bench/data/iris.csv, sourced from the scikit-learn data copy;
+  crates/ckks-train-bench/data/iris.csv, sourced from the scikit-learn data copy;
   its local checksum and source are recorded in the data README.
 - MNIST (Yann LeCun, Corinna Cortes, Christopher J. C. Burges),
   http://yann.lecun.com/exdb/mnist/. Not distributed here; scripts/fetch_mnist.sh
@@ -73,8 +73,8 @@ Data sets
   Olvi L. Mangasarian (UCI Machine Learning Repository, https://doi.org/10.24432/C5DW2B),
   licensed under Creative Commons Attribution 4.0 International (CC BY 4.0,
   https://creativecommons.org/licenses/by/4.0/). Distributed unmodified as
-  crates/hekit-bench/data/breast_cancer.csv (UCI's wdbc.data, renamed); source URL and
-  sha256 in crates/hekit-bench/data/README.md.
+  crates/ckks-train-bench/data/breast_cancer.csv (UCI's wdbc.data, renamed); source URL and
+  sha256 in crates/ckks-train-bench/data/README.md.
 - Fashion-MNIST (Han Xiao, Kashif Rasul, Roland Vollgraf; Copyright (c) 2017 Zalando SE,
   MIT License, https://github.com/zalandoresearch/fashion-mnist) is not distributed with
   hekit: scripts/fetch_fashion_mnist.sh downloads it from the official repository into the
@@ -88,7 +88,7 @@ The projects below informed algorithmic choices. No source file of theirs was re
 into or ported to hekit, so their licenses impose no notice; they are listed for credit only.
 
 - Lattigo (https://github.com/tuneinsight/lattigo, Apache-2.0): the baby-step split rule of
-  the level-optimal Chebyshev evaluation (crates/hekit-ckks/src/bootstrap/poly.rs,
+  the level-optimal Chebyshev evaluation (crates/ckks-train-ckks/src/bootstrap/poly.rs,
   optimal_split), a cost formula known from the Lattigo implementation of Bossuat, Mouchet,
   Troncoso-Pastoriza and Hubaux (Eurocrypt 2021), reimplemented from the formula.
 
@@ -100,7 +100,7 @@ hekit links these crates as ordinary dependencies (no code of theirs is copied i
 They are listed so the license set stays visible.
 
 - libloading 0.8 (https://github.com/nagisa/rust_libloading), ISC License. Pulled in by
-  cudarc for dynamic loading of the CUDA driver/NVRTC in crates/hekit-cuda (feature `cuda`
+  cudarc for dynamic loading of the CUDA driver/NVRTC in crates/ckks-train-cuda (feature `cuda`
   only). ISC is an OSI-approved permissive license equivalent to MIT; accepted by planner
   ruling on 2026-11-05.
 

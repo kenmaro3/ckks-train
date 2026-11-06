@@ -1,4 +1,4 @@
-// Known-answer interop between hekit-ckks and Microsoft SEAL 4.1.2 (MIT), seal_2020 preset.
+// Known-answer interop between ckks-train-ckks and Microsoft SEAL 4.1.2 (MIT), seal_2020 preset.
 //
 //   seal_interop_kat generate <dir>   SEAL keys + ciphertexts + decryptions -> <dir>
 //   seal_interop_kat verify <dir>     SEAL decrypts hekit's <dir>/hekit_*.bin; exit 0 iff

@@ -1,5 +1,5 @@
-// Known-answer vectors for hekit-ckks `Encoder` (test `matches_seal_4_1_encoder` in
-// crates/hekit-ckks/src/encoder.rs), generated with Microsoft SEAL 4.1.2 (MIT).
+// Known-answer vectors for ckks-train-ckks `Encoder` (test `matches_seal_4_1_encoder` in
+// crates/ckks-train-ckks/src/encoder.rs), generated with Microsoft SEAL 4.1.2 (MIT).
 //
 // For N in {16, 32}: CKKS, CoeffModulus::Create(N, {60, 40, 60}), sec_level_type::none,
 // scale 2^30, encode at context.first_parms_id() (data primes {60, 40}). Prints the

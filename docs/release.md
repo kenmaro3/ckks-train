@@ -15,31 +15,39 @@ cargo clippy --workspace --all-targets --features cuda -- -D warnings
 cargo test --workspace
 cargo deny check licenses bans
 cargo doc --workspace --no-deps                          # must print no warning
-cargo doc --workspace --no-deps --features hekit-cuda/cuda
+cargo doc --workspace --no-deps --features ckks-train-cuda/cuda
 ```
 
-## 2. Crate names (decided; apply before the first publication)
+## 2. Crate names (applied on 2026-11-06)
 
-The user has chosen ckks-train and requested the crate rename; no further naming approval
-is needed. The crates still carry the working name `hekit-*` while the current source writers
-finish. Applying the rename and validating the final tree remain release preparation tasks.
-`scripts/rename.sh` renames `hekit-{core,ckks,nn,cuda,bench}` to `ckks-train-*` in package
-names, dependency keys and paths, `hekit_*` to `ckks_train_*` in Rust paths, and moves the
-crate directories (`git mv`). It leaves `results/`, `spikes/`, `kat/` and
-`docs/quadruped-log.md` alone (they record the names their results were produced with) and
-other spellings such as `HekitError` or `HEKIT_*`.
+The workspace now uses `ckks-train-{core,ckks,nn,cuda,bench}` and Rust paths
+`ckks_train_*`. The user-requested `scripts/rename.sh` migration changed 903 occurrences
+on 847 lines in 158 tracked text files and moved five crate directories. Rustfmt then
+normalized import order and line wrapping. The root checkout directory remains `hekit`;
+`HekitError` and `HEKIT_*` remain compatible API/environment names.
 
-```sh
-scripts/rename.sh --dry-run | less     # every file and line that would change, and a summary
-scripts/rename.sh                      # apply (refuses to run on a dirty working tree)
-cargo check --workspace --all-targets && cargo test --workspace
-```
+Historical results, spikes, known-answer vectors and `docs/quadruped-log.md` retain their
+original names. The historical `tools/reboot_layout/assemble.py` also retains its original
+bytes: its provenance describes old commits, so rewriting those paths would be false. All 755 tracked files in those excluded paths have identical SHA-256
+hashes before and after the migration. The earlier Task55 dry run (822 lines, 155 files)
+was performed before the final paper and runner additions; it is not this migration's count.
 
-On 2026-11-06, at the Task 55 commit, the dry run reported 822 lines (875 occurrences) in 155
-files plus 5 directory moves; 979 lines keep another spelling of "hekit". Applied in a
-throwaway clone (not in this repository), the renamed workspace passed
-`cargo check --workspace --all-targets --features cuda`. Crate names on crates.io are
-permanent once published. Apply the already decided rename before step 4.
+The migration script is retained as the original `hekit-*` migration procedure. It does
+not publish packages. Crate names on crates.io become permanent only when published.
+The full workspace test caught two fixed-source-hash failures because five CUDA kernel
+comment lines had changed their crate paths. The executable CUDA code was unchanged.
+We retain the exact four previously reviewed kernel files and their existing hash pins,
+and exclude `crates/*-cuda/kernels/*.cu` from the migration script. Their old paths in
+comments are historical references. Repinning comment-only changes was an alternative,
+but retaining the byte identity preserves the direct link to existing GPU evidence.
+Post-rename macOS checks passed: workspace tests **462 passed, 12 ignored**; fmt;
+all-target CUDA compilation; Clippy with/without CUDA; rustdoc with/without CUDA under
+`RUSTDOCFLAGS="-D warnings"`; and cargo-deny licenses/bans (only the unused BSD-3-Clause
+allowance warning). All **49 Python tests** passed, both shell scripts parsed, and
+`run_all.sh --tables-only` reproduced the existing tables. Table/figure freshness and
+all 755 historical-file hashes still match. The paper sources and generated artifacts
+were unchanged by the migration, so their reviewed 9-page PDF builds remain applicable.
+The final renamed commit still needs its own Linux CI result before publication.
 
 ## 3. Publishing to GitHub (owner's decision)
 
@@ -67,19 +75,19 @@ permanent once published. Apply the already decided rename before step 4.
 
 ## 4. Publishing to crates.io (owner's decision)
 
-Order: `hekit-core`, `hekit-ckks`, `hekit-nn`, `hekit-cuda` (or the renamed crates).
-`hekit-bench` has `publish = false`. Every path dependency carries `version = "1.0.0"`, and
+Order: `ckks-train-core`, `ckks-train-ckks`, `ckks-train-nn`, `ckks-train-cuda`.
+`ckks-train-bench` has `publish = false`. Every path dependency carries `version = "1.0.0"`, and
 each publishable crate ships `LICENSE` and `THIRD_PARTY_NOTICES` (symbolic links to the
 repository root, which cargo packages as files) and its own `README.md`.
 
 ```sh
-cargo publish -p hekit-core
-cargo publish -p hekit-ckks     # after hekit-core 1.0.0 is visible in the index
-cargo publish -p hekit-nn
-cargo publish -p hekit-cuda
+cargo publish -p ckks-train-core
+cargo publish -p ckks-train-ckks     # after ckks-train-core 1.0.0 is visible in the index
+cargo publish -p ckks-train-nn
+cargo publish -p ckks-train-cuda
 ```
 
-Dry runs on 2026-11-06 (Rust 1.85.1):
+Pre-rename dry runs on 2026-11-06 (Rust 1.85.1, original `hekit-*` names):
 
 | crate | `cargo publish --dry-run` | packaging check |
 |---|---|---|
@@ -99,14 +107,32 @@ and hekit-cuda (40 files), and for hekit-cuda also with `--features cuda`. So ea
 should pass once its dependencies are on crates.io, provided nothing else changes. The `hekit-cuda` dev-dependency on `hekit-nn` is versioned too, so its
 packaged tests build once `hekit-nn` is published.
 
-The docs.rs build of `hekit-cuda` enables the `cuda` feature (`[package.metadata.docs.rs]`);
+### Post-rename package verification (2026-11-06)
+
+The renamed `ckks-train-core` registry publish dry run also succeeded and explicitly
+aborted upload. The other three registry dry runs still fail because `ckks-train-core`
+or `ckks-train-ckks` is unpublished. An isolated copy of the actual renamed source was
+packaged using an offline directory source: all four extracted packages built, and
+`ckks-train-cuda` also built with `--features cuda`. The snapshot excludes `.git`, so its
+archives have 17 / 34 / 31 / 39 files respectively (no `.cargo_vcs_info.json`).
+
+The archive audit checks the complete LICENSE and THIRD_PARTY_NOTICES, including the
+approved Unicode V3 notice, the current crate READMEs, normalized internal dependency
+names and the unchanged CUDA kernels. No external tool checkouts or credential-pattern
+hits were found in those archives. This is an artifact-content check, not a security
+audit of the library. No package was uploaded; actual registry publication remains a
+separate operation in dependency order.
+
+The docs.rs build of `ckks-train-cuda` enables the `cuda` feature (`[package.metadata.docs.rs]`);
 `cudarc` loads CUDA at run time, so no toolkit is needed to build the documentation.
 
 ## 5. CI
 
 `.github/workflows/ci.yml` runs fmt, clippy (with and without `cuda`), a compile check of the
 `cuda` feature, the tests, and `cargo deny check licenses bans` on `ubuntu-latest` for every
-push to `main` and every pull request.
+push to `main` and every pull request. A research-tools job also runs the Python regression
+tests, checks shell syntax and verifies generated tables/figures against archived inputs.
+These checks do not launch training runs or claim hardware measurements.
 
 `act` is not installed on the development machine (`which act`: not found on 2026-11-06), so
 **the workflow was not run locally with `act`**. Instead, the commands of each job were run

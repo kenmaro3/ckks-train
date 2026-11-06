@@ -38,7 +38,7 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo clippy --workspace --all-targets --features cuda -- -D warnings
   cuda-check:
-    # The `cuda` feature (hekit-cuda) is compile-checked only: cudarc dlopens libcuda / libnvrtc
+    # The `cuda` feature (ckks-train-cuda) is compile-checked only: cudarc dlopens libcuda / libnvrtc
     # at run time, so no CUDA toolkit, driver or NVRTC is needed here. GPU tests are #[ignore]d
     # and run on quadruped-gpu.
     runs-on: ubuntu-latest

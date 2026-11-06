@@ -53,7 +53,7 @@ bootstrapping keys. M3 Task 39 did that (next section): `n16_boot_sparse` sets h
 
 Same route and estimator as above: SageMath 10.9, malb/lattice-estimator commit
 `ae45d740ceb138af87a4f92edc592a0ab0d4f43f` (unchanged since M1), `tools/estimate/estimate.py`,
-`params.json` from `cargo run -p hekit-ckks --example export_params`. One Sage process at a
+`params.json` from `cargo run -p ckks-train-ckks --example export_params`. One Sage process at a
 time, while Task 33's baseline job ran on the Mac.
 
 ### Settings

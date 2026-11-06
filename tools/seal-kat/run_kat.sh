@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Known-answer interop between hekit-ckks and Microsoft SEAL 4.1.2 (seal_2020 preset).
+# Known-answer interop between ckks-train-ckks and Microsoft SEAL 4.1.2 (seal_2020 preset).
 #
 # 1. builds tools/seal-kat/interop (Release; SEAL via FetchContent, offline from the spike's
 #    checkout when it exists),
 # 2. SEAL writes keys, ciphertexts, its decryptions and values.json to kat/seal_2020/
 #    (gitignored, ~80 MB, regenerated on every run with fresh SEAL randomness),
-# 3. cargo test -p hekit-ckks --test seal_kat -- --ignored (SEAL -> hekit; hekit writes
+# 3. cargo test -p ckks-train-ckks --test seal_kat -- --ignored (SEAL -> hekit; hekit writes
 #    kat/seal_2020/hekit_*.bin),
 # 4. SEAL decrypts hekit's files (hekit -> SEAL); exits non-zero on any failure.
 #
@@ -37,8 +37,8 @@ KAT=$(cd "$KAT" && pwd)
 find "$KAT" -maxdepth 1 -type f \( -name '*.bin' -o -name 'values.json' -o -name 'inputs.f64' \) -delete
 "$BUILD/seal_interop_kat" generate "$KAT"
 
-echo "== [3/4] hekit: cargo test -p hekit-ckks --test seal_kat -- --ignored"
-(cd "$ROOT" && HEKIT_SEAL_KAT_DIR="$KAT" cargo test -p hekit-ckks --test seal_kat -- --ignored --nocapture --test-threads=1)
+echo "== [3/4] hekit: cargo test -p ckks-train-ckks --test seal_kat -- --ignored"
+(cd "$ROOT" && HEKIT_SEAL_KAT_DIR="$KAT" cargo test -p ckks-train-ckks --test seal_kat -- --ignored --nocapture --test-threads=1)
 
 echo "== [4/4] SEAL decrypts hekit's ciphertexts"
 "$BUILD/seal_interop_kat" verify "$KAT"

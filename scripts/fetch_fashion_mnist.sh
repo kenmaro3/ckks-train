@@ -1,7 +1,7 @@
 #!/bin/sh
 # Downloads Fashion-MNIST (Xiao, Rasul, Vollgraf 2017; Zalando SE, MIT License) into
 # data/fashion_mnist/ (gitignored; the data is not committed) and unpacks the four IDX files,
-# which crates/hekit-bench/src/data.rs reads with the MNIST loader (same format).
+# which crates/ckks-train-bench/src/data.rs reads with the MNIST loader (same format).
 #
 # Source: the official repository, https://github.com/zalandoresearch/fashion-mnist
 # (data/fashion/*.gz). Each .gz is checked against the MD5 published in that repository's

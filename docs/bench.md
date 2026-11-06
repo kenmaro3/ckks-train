@@ -1,6 +1,6 @@
 # Benchmarks
 
-Machine: Apple M3 Pro (12 cores; benches use 1 core). Criterion, `cargo bench -p hekit-core --bench ntt`
+Machine: Apple M3 Pro (12 cores; benches use 1 core). Criterion, `cargo bench -p ckks-train-core --bench ntt`
 (profile.bench: opt-level 3, LTO, codegen-units 1). Values are criterion's point estimate (mean) of
 a single in-place transform, input clone excluded from timing.
 
@@ -8,7 +8,7 @@ Note: the rows in this file are criterion's point estimates of the **mean**; the
 tables in `docs/m1-report.md` section 1 use **medians** (of criterion's samples for hekit, of the
 timed repetitions for SEAL), so the same operation can differ slightly between the two files.
 
-## NTT (hekit-core, Task 10)
+## NTT (ckks-train-core, Task 10)
 
 | date | rustc | N | q | forward (µs) | inverse (µs) | `uptime` load (1-min, before -> after) |
 |------|-------|---|---|--------------|--------------|----------------------------------------|
@@ -21,17 +21,17 @@ The first two rows were measured on a loaded machine (other sessions running); l
 gate) and is after the NTT loop change of 2152d02 (stages iterate `chunks_exact_mut` zipped with
 the root table; the last forward stage is fused with the final reduction; the first inverse stage
 works on adjacent pairs). The same change measured under load ~5 (criterion `--quick`) went from
-419.0 / 399.1 us to 384.8 / 357.6 us. Against SEAL 4.1.2's idle 373.7 us forward (M0), hekit-core
+419.0 / 399.1 us to 384.8 / 357.6 us. Against SEAL 4.1.2's idle 373.7 us forward (M0), ckks-train-core
 forward is now 1.03x SEAL's time.
 
 Reference points from M0 (`spikes/RESULTS.md`, idle machine): Rust spike forward 417.8 µs, SEAL 4.1
-forward 373.7 µs. Before Task 24, hekit-core forward was about 4% above the spike and about 17% above
+forward 373.7 µs. Before Task 24, ckks-train-core forward was about 4% above the spike and about 17% above
 SEAL (under load; the spike itself was measured at 3.0-3.2 load); after it, 8% below the spike and
 3% above SEAL.
 
-## Rotations: `rotate` x 32 vs `hoisted_rotate` (hekit-ckks, Task 18)
+## Rotations: `rotate` x 32 vs `hoisted_rotate` (ckks-train-ckks, Task 18)
 
-`cargo bench -p hekit-ckks --bench rotate` (`crates/hekit-ckks/benches/rotate.rs`): one fresh
+`cargo bench -p ckks-train-ckks --bench rotate` (`crates/ckks-train-ckks/benches/rotate.rs`): one fresh
 seal_2020 ciphertext at the top level (N = 2^15, level 9, dnum 10, alpha 1, one 60-bit special
 prime), steps 1..=32, one Galois key per step. `rotate_x32` calls `rotate` 32 times;
 `hoisted_rotate_32` is one `hoisted_rotate(ct, &[1..=32])`. Single thread, criterion with
@@ -64,6 +64,6 @@ while the per-step part (permutations, key inner product, two `mod_down`) did no
 
 ## CKKS operations vs SEAL 4.1.2 (Task 24)
 
-`cargo bench -p hekit-bench --bench ckks_ops` (`crates/hekit-bench/benches/ckks_ops.rs`) and
+`cargo bench -p ckks-train-bench --bench ckks_ops` (`crates/ckks-train-bench/benches/ckks_ops.rs`) and
 `tools/seal-kat/bench/run_bench.sh` (`seal_ops_bench`, SEAL 4.1.2). The table, method and ratios
 are in `docs/m1-report.md` section 1.

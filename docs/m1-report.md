@@ -62,7 +62,7 @@ SEAL の n16 では、鍵メモリを抑えるため Galois 鍵を 2 本(ステ�
 - 試して効果が無かったもの: BaseConverter のキャッシュ(構築コストは k^2·l 語演算で、N に比べて無視できる)、内積の係数ブロック化、別の 1 素数持ち上げ(いずれも測定誤差内か、遅くなった)。
 - 回転の内訳(seal_2020): 分解 ≈ 23.5 ms(NTT 110 回 ≈ 20.4 ms)+ 内積と mod_down ≈ 10 ms。SEAL は同じ NTT 回数で約 29 ms なので、残る差は NTT 以外(変換・内積・メモリ確保)にある。
 
-再現方法: `cargo bench -p hekit-bench --bench ckks_ops`(`HEKIT_BENCH_PRESET=seal_2020|n16_train` で絞れる。n16_train は約 10 GB のメモリを使う)、`tools/seal-kat/bench/run_bench.sh [seal_2020] [n16]`。NTT と hoisting の再測定は `docs/bench.md` にある。
+再現方法: `cargo bench -p ckks-train-bench --bench ckks_ops`(`HEKIT_BENCH_PRESET=seal_2020|n16_train` で絞れる。n16_train は約 10 GB のメモリを使う)、`tools/seal-kat/bench/run_bench.sh [seal_2020] [n16]`。NTT と hoisting の再測定は `docs/bench.md` にある。
 
 
 ## 2. KAT(SEAL 4.1.2 との既知解相互運用、正当性ゲート)
@@ -72,12 +72,12 @@ SEAL の n16 では、鍵メモリを抑えるため Galois 鍵を 2 本(ステ�
 - **SEAL → hekit**: SEAL が作った 8 個の暗号文(対称暗号 x, y、公開鍵暗号 x、add、multiply の 3 成分、relinearize、rescale_to_next、rotate_vector(1))について、hekit の復号は SEAL の復号と**ビット一致**した(hekit と SEAL の decode の差は 2^-inf。スケール 2^80 の 2 個だけは浮動小数点の decode の差で 2^-51)。hekit の add / mul_no_relin / rescale を SEAL の暗号文にかけた結果も、SEAL の add / multiply / rescale_to_next と**ビット一致**した。
 - **hekit → SEAL**: hekit が作った 6 個(対称暗号 x のレベル 9 とレベル 3、SEAL の公開鍵での暗号、add、3 成分の積、SEAL の積を hekit で rescale したもの)を、SEAL がすべて読み込んで上限内で復号した。この方向はビット一致ではなく誤差上限だけで検査している(§5 の未達項目)。
 - **誤差(最大スロット絶対誤差)と上限**: 対称暗号 / add / テンソル積 / relin は 2^-28.7 〜 2^-29.5(上限 2^-25)。公開鍵暗号は 2^-24.8 〜 2^-24.9、rescale は 2^-24.8(上限 2^-23)。SEAL の回転は 2^-19.1(上限 2^-15)。
-- **上限がブリーフの一律 2^-25 でない理由**: 公開鍵暗号と rescale の誤差は丸め r_0 + r_1·s が支配する。SEAL の一様三値鍵では最大誤差の中央値が 2^-24.8 で、2^-25 だと SEAL 自身の復号が約半分の確率で落ちる。SEAL の回転は非中心化の素数ごとの分解なので、スロット 0 付近に約 2^-17.5 の鍵切替誤差が乗る。そこで主ゲートを「ビット一致 + SEAL 自身と同じ誤差」とし、2^-23 / 2^-15 は副次的な上限にした(ルーリング 9)。導出は `crates/hekit-ckks/tests/seal_kat.rs` の `bound_log2` にある。
+- **上限がブリーフの一律 2^-25 でない理由**: 公開鍵暗号と rescale の誤差は丸め r_0 + r_1·s が支配する。SEAL の一様三値鍵では最大誤差の中央値が 2^-24.8 で、2^-25 だと SEAL 自身の復号が約半分の確率で落ちる。SEAL の回転は非中心化の素数ごとの分解なので、スロット 0 付近に約 2^-17.5 の鍵切替誤差が乗る。そこで主ゲートを「ビット一致 + SEAL 自身と同じ誤差」とし、2^-23 / 2^-15 は副次的な上限にした(ルーリング 9)。導出は `crates/ckks-train-ckks/tests/seal_kat.rs` の `bound_log2` にある。
 - hekit の回転(厳密中心化の持ち上げ)は、設計上 SEAL の回転(非中心化)とビット一致しない。比べているのは復号結果だけ。
 
 ## 3. 精度(正当性ゲート)
 
-**結果: 合格。** 閾値は seal_2020 ≥ 20 bit、n16_train ≥ 24 bit(`crates/hekit-ckks/tests/precision.rs`)。bits = −log2(全 N/2 スロットの最大絶対誤差)。入力は [−1, 1) の一様乱数、固定シード。Task 24 の CDT サンプラ導入後に再実行した値(`docs/precision.md`、カッコ内は Task 20 の値)。
+**結果: 合格。** 閾値は seal_2020 ≥ 20 bit、n16_train ≥ 24 bit(`crates/ckks-train-ckks/tests/precision.rs`)。bits = −log2(全 N/2 スロットの最大絶対誤差)。入力は [−1, 1) の一様乱数、固定シード。Task 24 の CDT サンプラ導入後に再実行した値(`docs/precision.md`、カッコ内は Task 20 の値)。
 
 | op | seal_2020(level) | n16_train(level) |
 |---|---|---|

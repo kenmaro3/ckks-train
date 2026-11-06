@@ -1,0 +1,16 @@
+[package]
+name = "ckks-train-nn"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Encrypted MLP training on RNS-CKKS, interactive and non-interactive (bootstrapping), for ckks-train"
+readme = "README.md"
+keywords = ["ckks", "fhe", "neural-network", "privacy", "machine-learning"]
+categories = ["cryptography", "science"]
+
+[dependencies]
+ckks-train-core = { path = "../ckks-train-core", version = "1.0.0" }
+ckks-train-ckks = { path = "../ckks-train-ckks", version = "1.0.0" }
+ndarray = "0.16"

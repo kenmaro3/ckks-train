@@ -1,4 +1,4 @@
-"""Run malb/lattice-estimator on the hekit-ckks presets (dev tool; needs SageMath).
+"""Run malb/lattice-estimator on the ckks-train-ckks presets (dev tool; needs SageMath).
 
 Usage (from this directory):
     _ext/sage-env/bin/python estimate.py [--rough] [--cost-model bdgl16|matzov|adps16]
@@ -12,7 +12,7 @@ Modelling choices:
   * secret "ternary_default" = hekit's sampler (-1/0/1 with prob 1/4, 1/2, 1/4), modelled as
     SparseTernary(n/4, n/4, n); an integer secret = exact Hamming weight h (h/2 of each sign);
     a pair [p, m] = exactly p coefficients +1 and m coefficients -1 (reboot_params.json).
-  * error = discrete Gaussian, sigma from params.json (hekit_ckks::keys::ERROR_STD_DEV = 3.2);
+  * error = discrete Gaussian, sigma from params.json (ckks_train_ckks::keys::ERROR_STD_DEV = 3.2);
     m = n samples (or unbounded with --m oo).
   * cost models: bdgl16 = asymptotic sieve 8d*2^(0.292*beta+16.4) (HE Standard "BKZ.sieve"),
     matzov = estimator default, adps16 = Core-SVP (2^(0.292*beta), no lower-order terms).

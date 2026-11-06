@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-06）
 
-**研究全体は未完了。** M3 の全長 196 入力行、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのドラフトを準備中で、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
+**研究全体は未完了。** M3 の全長 196 入力行、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
 この報告は Task 57 の現状整理である。後続の測定を「完了」と見なす代わりにはならない。数値の一次資料と条件は [M3](m3-report.md)、[M4](m4-report.md)、[再現手順](../results/README.md)、[セキュリティ推定](security.md)を参照する。
 
@@ -16,11 +16,11 @@
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset は R-52-1/2 を依頼済み・未投入。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | `962b7d2` 以降、旧レビュー指摘を Codex が引き継いで修正中 | `--dry-run` は通過。R-54-1 の実機 `--quick` は依頼済み・未投入 | 実験行列の未対応部分、新規出力の provenance、run_all からの表再生成入口を確認中 |
-| 55: v1.0 準備 | `91219e9` / `49126d4`、README・Cargo metadata・notices・rename 手順あり | ローカルのビルド・テスト・パッケージ検証あり | **準備中**。実 checkout の crate rename は未適用。公開操作は未実施 |
-| 56: 論文 | `paper/` で執筆中 | 初回の匿名版・著者仮置き版とも 9 ページで build。最終表の反映待ち | 初回 build・表示確認済み。最終表の反映後の確認と独立レビューは未完了 |
-| 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の更新後に再照合 |
-| 58: PyO3（最後、削減可） | 未着手 | 未検証 | 必須の研究評価・公開準備より後。提供済みとは記載しない |
+| 54: 実験・表生成 | `7752459`、引継ぎ修正と独立再レビュー済み | 合計49件の Python 回帰テスト、表・図の freshness、shell syntax が合格。`--tables-only` で再生成可能 | **再現入口は実装済み**。実機 `--quick`（R-54-1）は依頼済み・未投入。未対応行列は coverage に明記 |
+| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。最終 SHA の Linux CI は別途確認。公開操作は未実施 |
+| 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 最終表を含む匿名版・著者仮置き版とも9ページ、全ページ表示と修正影響ページを確認 | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
+| 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
+| 58: PyO3（最後、削減可） | 今回の範囲から削減 | 未検証 | Rust API と再現手順を優先。Python binding は提供しない |
 
 ## 2. 研究ゲートと主張の範囲
 
@@ -55,9 +55,11 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 ## 4. v1.0 の残作業
 
-名称は **ckks-train**、リポジトリは `kenmaro3/ckks-train` で確定している。名称の再承認は不要。現在の crate は `hekit-*` のままなので、編集中のコードと生成物の担当が落ち着いた後、`scripts/rename.sh` で `ckks-train-*` に変更し、ビルド・テスト・rustdoc・ライセンス検査・生成手順を再確認する。歴史的な結果 JSON と外部ベースラインを改名の対象にしない。
+名称は **ckks-train**、リポジトリは `kenmaro3/ckks-train` で確定している。名称の再承認は不要。`scripts/rename.sh` で実 checkout の5 crate を `ckks-train-*` に変更した。改名後のビルド・テスト・rustdoc・ライセンス検査・生成手順と配布パッケージの検証が合格した。歴史的な結果 JSON と外部ベースラインを改名の対象にしない。
 
-Task 55 の報告ではローカルの workspace テスト、fmt、Clippy、rustdoc、cargo-deny が通過した。`hekit-core` の publish dry run は成功し、後続 crate の dry run は未公開の内部依存を crates.io が解決できず失敗した。ローカル directory source を使ったパッケージ連鎖のビルド確認は別に成功している。**実際の crates.io publish 成功を意味しない。** 詳細は [release.md](release.md)。
+改名前の Task 55 報告ではローカルの workspace テスト、fmt、Clippy、rustdoc、cargo-deny が通過した。旧名 `hekit-core` の publish dry run は成功し、後続 crate の dry run は未公開の内部依存を crates.io が解決できず失敗した。ローカル directory source を使ったパッケージ連鎖のビルド確認は別に成功している。**実際の crates.io publish 成功を意味しない。** 詳細は [release.md](release.md)。
+
+改名後は462 Rust testsが合格（12 ignored）、49 Python testsと表・図の freshness も合格。CUDA はコンパイル検証であり、実機計測ではない。4パッケージの隔離環境での連鎖ビルドと CUDA feature のビルドが通った。改名後の core の registry dry run も成功したが、残り3つは未公開内部依存のため失敗する。README の最終修正はローカルの梱包・ビルドで再検証し、registry dry run を再実行したとは扱わない。詳細は release.md に区別して記す。
 
 GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は fmt / clippy / cuda-check / test / deny の全5ジョブが成功した。この結果は `0daf778` の検証であり、後続の provenance 修正・表生成・crate rename を検証したものではない。最終 SHA の Linux CI は別途確認する。
 
@@ -67,12 +69,12 @@ GitHub CI は実際に起動している。`0daf778` の [CI run](https://github
 
 | 項目 | 状態 / 完了に必要なもの |
 |---|---|
-| 原稿 | `paper/` で準備中。7 節と付録、2020 年手法からの差分、RQ1〜RQ3、Limitations を含める |
+| 原稿 | `paper/` にレビュー済みドラフト。7節と付録、2020年手法からの差分、RQ1〜RQ3、Limitations を含む |
 | 数値・表・図 | 表は generator の出力を input、図も元結果から生成。欠測を埋める手入力をしない。source trace を維持 |
 | 著者・所属・連絡先 | 仮置き。著者順・所属・連絡先・貢献の確認は本人の未決事項 |
 | 匿名版 | 匿名 acmart sigconf と、仮置き著者を表示する版を分ける。投稿前に自己参照と artifact URL も匿名性を確認 |
 | ページ制限 | 前年 WAHC 2026 の公式 CFP は参考文献・付録込み 12 ページ。2027 の規則は未確認。前年規則を暫定上限とし、2027 CFP 公開後に再確認 |
-| build / 表示 | `latexmk -pdf`、ページ数、未解決引用・参照、はみ出し、全ページの図表の可読性を確認。初回 9 ページの build・表示確認済み。最終表反映後の再検証待ち |
+| build / 表示 | `latexmk -pdf`、ページ数、未解決引用・参照、はみ出し、全ページの図表の可読性を確認。最終表反映後、両版9ページで build・表示確認と独立レビュー済み |
 | 参考文献 | 原論文・公式資料で書誌を確認。ベースラインのソース抜粋を取り込まない |
 | 図の権利 | 自作図と結果から生成した図を使い、外部図の転載を前提にしない。データ・文献の帰属を付記 |
 | arXiv ライセンス | ソフトウェアの MIT と原稿のライセンスは別。本人が選ぶ。著者全員の公開同意、投稿アカウント・endorsement が必要なら確認 |
@@ -80,6 +82,8 @@ GitHub CI は実際に起動している。`0daf778` の [CI run](https://github
 | 投稿・公開 | 未実施。ドラフト作成は投稿済みを意味しない |
 
 ページ制限の一次資料: [WAHC 2026 Call for Papers](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/)。2027 の締切や上限が確定したとは扱わない。
+
+Task 58 は計画と本人の指示で削減可能な最後の項目であるため、今回の公開準備では削減する。Rust API・論文の再現手順・未完の研究ゲートを優先する判断であり、代替は研究評価の確定後に PyO3 を別途追加すること。Python binding の実装・検証済みという主張はしない。
 
 ## 6. 本人の未決事項（作業は継続）
 

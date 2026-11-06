@@ -1,6 +1,6 @@
 #!/bin/sh
 # Downloads MNIST (LeCun, Cortes, Burges) into data/mnist/ (gitignored; MNIST is not
-# committed) and unpacks the four IDX files that crates/hekit-bench/src/data.rs reads.
+# committed) and unpacks the four IDX files that crates/ckks-train-bench/src/data.rs reads.
 #
 # Mirror: the PyTorch/torchvision mirror on S3 (the original yann.lecun.com host is often
 # unavailable). Each .gz is checked against torchvision's MD5, and each unpacked file against

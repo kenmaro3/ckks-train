@@ -2,25 +2,25 @@
 
 A short map of the crates, the types that matter and one training step. The detailed design
 documents are `docs/layout.md` (slot layout, cost model), `docs/bootstrap.md`,
-`docs/precision.md`, `docs/security.md` and `docs/gpu-bootstrap-design.md`. The crates still
-carry the working name `hekit-*`.
+`docs/precision.md`, `docs/security.md` and `docs/gpu-bootstrap-design.md`. The workspace uses the
+`ckks-train-*` crate names.
 
 ## Crate graph
 
 ```
-hekit-core            RNS / NTT arithmetic, base conversion, ChaCha20 sampling
+ckks-train-core            RNS / NTT arithmetic, base conversion, ChaCha20 sampling
     ^
-hekit-ckks            RNS-CKKS, key switching, BSGS, bootstrapping, HeOps / BootstrapOps
+ckks-train-ckks            RNS-CKKS, key switching, BSGS, bootstrapping, HeOps / BootstrapOps
     ^        ^
-    |     hekit-cuda  CUDA backend: impl HeOps (CudaEvaluator), BootstrapOps (CudaBootstrapper)
+    |     ckks-train-cuda  CUDA backend: impl HeOps (CudaEvaluator), BootstrapOps (CudaBootstrapper)
     |        .
-hekit-nn  .  .  .  .  (dev-dependency of hekit-cuda only: GPU training tests)
+ckks-train-nn  .  .  .  .  (dev-dependency of ckks-train-cuda only: GPU training tests)
     ^        ^
-hekit-bench           binaries and benches (not published); feature `cuda` adds hekit-cuda
+ckks-train-bench           binaries and benches (not published); feature `cuda` adds ckks-train-cuda
 ```
 
-`hekit-nn` does not depend on `hekit-cuda`: the trainers are generic over the `HeOps` trait of
-`hekit-ckks`, and the backend is chosen by the caller (`hekit-bench`).
+`ckks-train-nn` does not depend on `ckks-train-cuda`: the trainers are generic over the `HeOps` trait of
+`ckks-train-ckks`, and the backend is chosen by the caller (`ckks-train-bench`).
 
 ## Main types
 

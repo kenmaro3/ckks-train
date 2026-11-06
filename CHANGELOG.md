@@ -9,16 +9,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - unreleased
 
-First release. The crates are published under the working names `hekit-core`, `hekit-ckks`,
-`hekit-nn` and `hekit-cuda` unless `scripts/rename.sh` is applied first; `hekit-bench` is not
-published.
+First release preparation; nothing has been published. The crate names are
+`ckks-train-core`, `ckks-train-ckks`, `ckks-train-nn` and `ckks-train-cuda`.
+The `ckks-train-bench` crate has `publish = false`.
 
 ### Added
 
 - **M0, spikes** (outside the workspace): NTT and CUDA NTT prototypes, the key-switch cost
   model, the 2020 SEAL-based training reproduction used as the reference, and a separate
   environment that runs the ReBoot baseline (no ReBoot code is in the repository).
-- **M1, CKKS core** (`hekit-core`, `hekit-ckks`):
+- **M1, CKKS core** (`ckks-train-core`, `ckks-train-ckks`):
   - RNS arithmetic with Barrett and Shoup reduction, NTT-friendly prime generation, the
     negacyclic NTT, fast base conversion, and ChaCha20-based sampling;
   - RNS-CKKS: the presets `seal_2020` (N = 2^15) and `n16_train` (N = 2^16), an encoder
@@ -28,7 +28,7 @@ published.
   - `OpCounter` (rotations, relinearizations, SSE switches, multiplications, rescales,
     bootstraps) and a precision suite;
   - SEAL serialization (`seal_compat`) and known-answer tests against SEAL 4.1.2.
-- **M2, interactive training** (`hekit-nn`, `hekit-bench`):
+- **M2, interactive training** (`ckks-train-nn`, `ckks-train-bench`):
   - the batched slot layout, encrypted dense layers with transposition by rotations,
     polynomial activations, squared-error loss, SGD and Nesterov momentum;
   - `Trainer` with client-side refresh, and a plaintext simulator of levels and counts;
@@ -43,7 +43,7 @@ published.
   - ReBoot-faithful configurations (input, initial weights, sample order, learning-rate
     schedule taken as data) and the ReBoot slot layout as a baseline;
   - lattice-estimator security estimates for every preset and key (`docs/security.md`).
-- **M4, CUDA backend** (`hekit-cuda`):
+- **M4, CUDA backend** (`ckks-train-cuda`):
   - device memory, batched NTT, pointwise arithmetic, base conversion and hybrid key
     switching, compiled at run time by NVRTC through `cudarc` with dynamic loading;
   - `HeOps` and `BootstrapOps` traits so that the trainers are generic over the backend;

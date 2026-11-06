@@ -235,11 +235,11 @@ if [ "$MODE" = full ]; then
   done
   # Task 51 dataset reproduction (plaintext, 10 seeds each). Basis: ~22 s per MNIST-family
   # config on the Mac with -j 4, x2 for the server.
-  add plain_mnist_emlp1_paper plain-datasets cpu 0.02 "$IDX_MNIST" $BIN/plain --config crates/hekit-bench/configs/mnist_emlp1_paper.json --jobs $PLAIN_JOBS --out {OUT}
-  add plain_fmnist_emlp1 plain-datasets cpu 0.02 "$IDX_FMNIST" $BIN/plain --config crates/hekit-bench/configs/fmnist_emlp1.json --jobs $PLAIN_JOBS --out {OUT}
-  add plain_bc_mlp plain-datasets cpu 0.001 "" $BIN/plain --config crates/hekit-bench/configs/bc_mlp.json --jobs $PLAIN_JOBS --out {OUT}
-  add plain_bc_mlp_split_per_run plain-datasets cpu 0.001 "" $BIN/plain --config crates/hekit-bench/configs/bc_mlp.json --split-seed per_run --jobs $PLAIN_JOBS --out {OUT}
-  add plain_bc_mlp_standardize plain-datasets cpu 0.001 "" $BIN/plain --config crates/hekit-bench/configs/bc_mlp.json --scaling standardize --jobs $PLAIN_JOBS --out {OUT}
+  add plain_mnist_emlp1_paper plain-datasets cpu 0.02 "$IDX_MNIST" $BIN/plain --config crates/ckks-train-bench/configs/mnist_emlp1_paper.json --jobs $PLAIN_JOBS --out {OUT}
+  add plain_fmnist_emlp1 plain-datasets cpu 0.02 "$IDX_FMNIST" $BIN/plain --config crates/ckks-train-bench/configs/fmnist_emlp1.json --jobs $PLAIN_JOBS --out {OUT}
+  add plain_bc_mlp plain-datasets cpu 0.001 "" $BIN/plain --config crates/ckks-train-bench/configs/bc_mlp.json --jobs $PLAIN_JOBS --out {OUT}
+  add plain_bc_mlp_split_per_run plain-datasets cpu 0.001 "" $BIN/plain --config crates/ckks-train-bench/configs/bc_mlp.json --split-seed per_run --jobs $PLAIN_JOBS --out {OUT}
+  add plain_bc_mlp_standardize plain-datasets cpu 0.001 "" $BIN/plain --config crates/ckks-train-bench/configs/bc_mlp.json --scaling standardize --jobs $PLAIN_JOBS --out {OUT}
   # Baseline (a): the 2020 method (Mihara et al.) on hekit, Iris 4-10-3, seal_2020, seed 2020.
   # Basis: server iris_20 (5686 s, 1 thread).
   add iris_b20_e400_s2020 baseline-a cpu 1.58 "" $BIN/iris --epochs 400 --batch 20 --seed 2020 --out {OUT}
@@ -270,9 +270,9 @@ else
   add q_plain196_emlp1_s0 plain-twin cpu 0.002 "$NPY196" $BIN/mnist $(plain196 0 train_indices.txt) --out {OUT}
   add q_plain196_emlp2_s0 plain-twin cpu 0.002 "$NPY196" $BIN/mnist $(plain23 emlp2 64 0) --out {OUT}
   add q_plain196_emlp3_s0 plain-twin cpu 0.002 "$NPY196" $BIN/mnist $(plain23 emlp3 128,64 0) --out {OUT}
-  add q_plain_mnist_emlp1_paper plain-datasets cpu 0.005 "$IDX_MNIST" $BIN/plain --config crates/hekit-bench/configs/mnist_emlp1_paper.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
-  add q_plain_fmnist_emlp1 plain-datasets cpu 0.005 "$IDX_FMNIST" $BIN/plain --config crates/hekit-bench/configs/fmnist_emlp1.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
-  add q_plain_bc_mlp plain-datasets cpu 0.001 "" $BIN/plain --config crates/hekit-bench/configs/bc_mlp.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
+  add q_plain_mnist_emlp1_paper plain-datasets cpu 0.005 "$IDX_MNIST" $BIN/plain --config crates/ckks-train-bench/configs/mnist_emlp1_paper.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
+  add q_plain_fmnist_emlp1 plain-datasets cpu 0.005 "$IDX_FMNIST" $BIN/plain --config crates/ckks-train-bench/configs/fmnist_emlp1.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
+  add q_plain_bc_mlp plain-datasets cpu 0.001 "" $BIN/plain --config crates/ckks-train-bench/configs/bc_mlp.json --seeds 0 --jobs $PLAIN_JOBS --out {OUT}
   add q_iris_b20_e2_s2020 baseline-a cpu 0.02 "" $BIN/iris --epochs 2 --batch 20 --seed 2020 --out {OUT}
   add q_iris_b1_timing baseline-a cpu 0.01 "" $BIN/iris --batch 1 --time-iters 2 --warmup 1 --seed 2020 --out {OUT}
   add q_reboot_layout_lazy_32 baseline-c cpu 0.20 "$IDX_MNIST" $BIN/mnist_reboot_layout --mode lazy --subset 32 --batch 32 --data $MNIST --out {OUT}
@@ -360,8 +360,8 @@ printf '  %-16s %8.2f\n' TOTAL "$(awk -v a="$total" -v b="$build_h" 'BEGIN { pri
 if [ "$DRY" = 1 ]; then
   echo
   if [ "$BUILD" = 1 ]; then
-    [ "$any_cpu" = 1 ] && echo "build: RUSTC=$RUSTC_BIN nice -n 10 cargo build -j $THREADS --release -p hekit-bench --features parallel --bins --target-dir $REPO/$CPU_TARGET --target $NATIVE_TARGET --config 'build.rustc-wrapper=\"\"' --config 'build.rustc-workspace-wrapper=\"\"'"
-    [ "$need_cuda" = 1 ] && echo "build: RUSTC=$RUSTC_BIN nice -n 10 cargo build -j $THREADS --release -p hekit-bench --features cuda --bins --target-dir $REPO/$GPU_TARGET --target $NATIVE_TARGET --config 'build.rustc-wrapper=\"\"' --config 'build.rustc-workspace-wrapper=\"\"'"
+    [ "$any_cpu" = 1 ] && echo "build: RUSTC=$RUSTC_BIN nice -n 10 cargo build -j $THREADS --release -p ckks-train-bench --features parallel --bins --target-dir $REPO/$CPU_TARGET --target $NATIVE_TARGET --config 'build.rustc-wrapper=\"\"' --config 'build.rustc-workspace-wrapper=\"\"'"
+    [ "$need_cuda" = 1 ] && echo "build: RUSTC=$RUSTC_BIN nice -n 10 cargo build -j $THREADS --release -p ckks-train-bench --features cuda --bins --target-dir $REPO/$GPU_TARGET --target $NATIVE_TARGET --config 'build.rustc-wrapper=\"\"' --config 'build.rustc-workspace-wrapper=\"\"'"
   fi
   exit 0
 fi
@@ -398,14 +398,14 @@ PY
 }
 if [ "$BUILD" = 1 ]; then
   if [ "$any_cpu" = 1 ]; then
-    RUSTC="$RUSTC_BIN" nice -n 10 cargo build -j "$THREADS" --release -p hekit-bench --features parallel --bins \
+    RUSTC="$RUSTC_BIN" nice -n 10 cargo build -j "$THREADS" --release -p ckks-train-bench --features parallel --bins \
       --target-dir "$REPO/$CPU_TARGET" --target "$NATIVE_TARGET" \
       --config 'build.rustc-wrapper=""' --config 'build.rustc-workspace-wrapper=""' > "$OUT/logs/build_cpu.log" 2>&1 ||
       { echo "run_all.sh: CPU build failed, see $OUT/logs/build_cpu.log" >&2; exit 1; }
     [ "$(source_identity)" = "$SOURCE_ID" ] && build_receipt write "$BIN" parallel || exit 1
   fi
   if [ "$need_cuda" = 1 ]; then
-    RUSTC="$RUSTC_BIN" nice -n 10 cargo build -j "$THREADS" --release -p hekit-bench --features cuda --bins \
+    RUSTC="$RUSTC_BIN" nice -n 10 cargo build -j "$THREADS" --release -p ckks-train-bench --features cuda --bins \
       --target-dir "$REPO/$GPU_TARGET" --target "$NATIVE_TARGET" \
       --config 'build.rustc-wrapper=""' --config 'build.rustc-workspace-wrapper=""' > "$OUT/logs/build_cuda.log" 2>&1 ||
       { echo "run_all.sh: CUDA build failed, see $OUT/logs/build_cuda.log" >&2; exit 1; }

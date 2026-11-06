@@ -1,6 +1,6 @@
 # M2 報告(2026-11-05、Task 25〜34)
 
-M2(学習層 hekit-nn、対話モード)の報告。対象は Task 25〜34。
+M2(学習層 ckks-train-nn、対話モード)の報告。対象は Task 25〜34。
 - Task 25〜30: レイアウト、行列ベクトル積、回転だけの転置、勾配と SGD / NAG、活性化、trainer(設計は `docs/layout.md`)。
 - Task 31: Iris のエンドツーエンド(§3)。
 - Task 32: MNIST eMLP-1 の対話モード学習と鍵切替の実測(§4)。
@@ -23,7 +23,7 @@ M2(学習層 hekit-nn、対話モード)の報告。対象は Task 25〜34。
 
 ## 1. RQ1 の表(Step 1)
 
-MNIST eMLP-1(784 → 32 → 10)の行と、2020 年手法(Iris)の行を並べた。「同一 CPU」は Apple M3 Pro(36 GB)。M2 の走行はすべて hekit-ckks の `parallel` 機能なし(1 スレッド)。HEAD の hekit-ckks には rayon による任意の `parallel` 機能がある(633ca08)。
+MNIST eMLP-1(784 → 32 → 10)の行と、2020 年手法(Iris)の行を並べた。「同一 CPU」は Apple M3 Pro(36 GB)。M2 の走行はすべて ckks-train-ckks の `parallel` 機能なし(1 スレッド)。HEAD の ckks-train-ckks には rayon による任意の `parallel` 機能がある(633ca08)。
 
 | 行 | N | 128 bit の確認 | 鍵切替 / サンプル(回転 + relin) | epoch 時間(同一 CPU、スレッド数) | 平文との重み差 | 精度(subset) |
 |---|---|---|---|---|---|---|
@@ -110,15 +110,15 @@ A〜C は組み合わせられる(たとえば A と C を両方とる)。
 
 ## 3. Iris
 
-2020 年論文(Mihara et al., arXiv:2012.13552)の Iris 設定を hekit で再現した。バイナリは `crates/hekit-bench/src/bin/iris.rs`、結果は `results/iris_1_timing.json`(batch 1 の反復時間)と `results/iris_20.json`(batch 20 の 400 epoch 学習)。どちらの JSON にも、ビルド(693040a の main に、のちに 90b6572 と ce2ab74 としてコミットされた未コミットの変更を載せた作業ツリー、`[profile.bench]`)、走行時刻(03:52〜04:48 JST)、使われないフィールドを書いた `provenance` を M2 の修正ラウンドで加えた。M2 最終レビューは ec270a0 で iris を再ビルドし、batch 1 の双子との最大誤差をビット単位で、batch 20 の epoch 0〜2 の値を再現した。
+2020 年論文(Mihara et al., arXiv:2012.13552)の Iris 設定を hekit で再現した。バイナリは `crates/ckks-train-bench/src/bin/iris.rs`、結果は `results/iris_1_timing.json`(batch 1 の反復時間)と `results/iris_20.json`(batch 20 の 400 epoch 学習)。どちらの JSON にも、ビルド(693040a の main に、のちに 90b6572 と ce2ab74 としてコミットされた未コミットの変更を載せた作業ツリー、`[profile.bench]`)、走行時刻(03:52〜04:48 JST)、使われないフィールドを書いた `provenance` を M2 の修正ラウンドで加えた。M2 最終レビューは ec270a0 で iris を再ビルドし、batch 1 の双子との最大誤差をビット単位で、batch 20 の epoch 0〜2 の値を再現した。
 
 ### 設定
 
 - **ネットワーク**: 4-10-3 MLP、バイアス付き。両層の後に Square。損失は MSE(3 出力で平均、標本でも平均)。SGD、lr 0.1。論文と M0 の SEAL 再現(`spikes/seal-2020`、`spikes/RESULTS.md` "Task 4")に合わせた。
-- **損失の定数**: trainer の損失勾配は `a - y`(`hekit_nn::loss::Mse`)なので、`2 / d_out` を学習率に畳み込んだ。暗号化側の optimizer には `lr_eff = 0.1 · 2/3` を渡す。更新は M0 の `sgd_step` の `W -= lr · dL/dW` と同じになる。
+- **損失の定数**: trainer の損失勾配は `a - y`(`ckks_train_nn::loss::Mse`)なので、`2 / d_out` を学習率に畳み込んだ。暗号化側の optimizer には `lr_eff = 0.1 · 2/3` を渡す。更新は M0 の `sgd_step` の `W -= lr · dL/dW` と同じになる。
 - **データ・分割・前処理**: M0 スパイクと同じものを使った。
-  - `crates/hekit-bench/data/iris.csv` はスパイクのファイル(UCI Iris、CC BY 4.0、scikit-learn 同梱版。出典は README)。
-  - `crates/hekit-bench/data/iris_split_seed2020.txt` はスパイクの既定シード 2020 の 80:20 分割(120 / 30)。スパイクの `split_80_20`(`std::mt19937_64`)を書き出したもの。
+  - `crates/ckks-train-bench/data/iris.csv` はスパイクのファイル(UCI Iris、CC BY 4.0、scikit-learn 同梱版。出典は README)。
+  - `crates/ckks-train-bench/data/iris_split_seed2020.txt` はスパイクの既定シード 2020 の 80:20 分割(120 / 30)。スパイクの `split_80_20`(`std::mt19937_64`)を書き出したもの。
   - 入力は学習データの平均と母標準偏差で z-score 化した。
   - 初期値は N(0, 0.2²)(重みとバイアス)。
   - 初期値とエポックごとのシャッフルは ChaCha20(`--seed 2020`)から取った。プロジェクトの乱数規則に従ったので、スパイクと同じ乱数列ではない。
@@ -221,7 +221,7 @@ A〜C は組み合わせられる(たとえば A と C を両方とる)。
 
 ## 4. MNIST eMLP-1
 
-ReBoot の eMLP-1(`crates/hekit-bench/configs/reboot_emlp1.json`)を n16_train で対話モード学習し、RQ1 の鍵切替回数を実測した。バイナリは `crates/hekit-bench/src/bin/mnist.rs`、結果は `results/mnist_emlp1.json`、ログは `results/logs/mnist_emlp1.log`(gitignore)。JSON の一部(ピーク RSS、プロセス時間、ビルド、load の注記、サンプルあたりの回転・relin)は走行後に手で加えたもので、出所は JSON の `provenance` に書いた(今の binary は RSS・ビルド・load を自分で記録する)。走行したバイナリは、`provenance` の旧版にあった 693040a ではなく、走行開始時(04:54 JST)の作業ツリー、つまり ce2ab74(04:52)前後の main に未コミットの変更が乗ったものからビルドされていた(Task 34 でコミット時刻とログの時刻から訂正。値には影響しない)。MNIST は `scripts/fetch_mnist.sh` で gitignore された `data/mnist/` に取得する(コミットしない)。この節(§4)の中の「§2.3」「§3」「§4」「§5 の n」は `docs/layout.md` の節番号で、本報告の節番号ではない。
+ReBoot の eMLP-1(`crates/ckks-train-bench/configs/reboot_emlp1.json`)を n16_train で対話モード学習し、RQ1 の鍵切替回数を実測した。バイナリは `crates/ckks-train-bench/src/bin/mnist.rs`、結果は `results/mnist_emlp1.json`、ログは `results/logs/mnist_emlp1.log`(gitignore)。JSON の一部(ピーク RSS、プロセス時間、ビルド、load の注記、サンプルあたりの回転・relin)は走行後に手で加えたもので、出所は JSON の `provenance` に書いた(今の binary は RSS・ビルド・load を自分で記録する)。走行したバイナリは、`provenance` の旧版にあった 693040a ではなく、走行開始時(04:54 JST)の作業ツリー、つまり ce2ab74(04:52)前後の main に未コミットの変更が乗ったものからビルドされていた(Task 34 でコミット時刻とログの時刻から訂正。値には影響しない)。MNIST は `scripts/fetch_mnist.sh` で gitignore された `data/mnist/` に取得する(コミットしない)。この節(§4)の中の「§2.3」「§3」「§4」「§5 の n」は `docs/layout.md` の節番号で、本報告の節番号ではない。
 
 ### 設定
 

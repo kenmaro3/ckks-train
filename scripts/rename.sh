@@ -15,7 +15,9 @@
 # are left alone; the dry run counts the lines that still contain one.
 #
 # Out of scope (history and data, which must keep the names they were produced with):
-# results/, spikes/, kat/, .superpowers/, docs/quadruped-log.md and symbolic links.
+# results/, spikes/, kat/, .superpowers/, docs/quadruped-log.md, pinned CUDA kernel sources
+# (their comments retain historical crate paths), the historical ReBoot-layout assembler,
+# and symbolic links.
 #
 # After applying: `cargo check --workspace --all-targets`, `cargo test --workspace`, and review
 # `git diff` before committing. The script never commits, pushes or publishes.
@@ -60,7 +62,7 @@ while IFS= read -r f; do
     [ -f "$f" ] || continue
     [ -L "$f" ] && continue
     case "$f" in
-        results/* | spikes/* | kat/* | .superpowers/* | docs/quadruped-log.md) continue ;;
+        results/* | spikes/* | kat/* | .superpowers/* | docs/quadruped-log.md | tools/reboot_layout/assemble.py | crates/*-cuda/kernels/*.cu) continue ;;
     esac
     grep -Iq . "$f" 2>/dev/null || continue
     files+=("$f")

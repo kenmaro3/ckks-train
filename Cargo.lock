@@ -90,6 +90,65 @@ dependencies = [
 ]
 
 [[package]]
+name = "ckks-train-bench"
+version = "1.0.0"
+dependencies = [
+ "ckks-train-ckks",
+ "ckks-train-core",
+ "ckks-train-cuda",
+ "ckks-train-nn",
+ "criterion",
+ "libc",
+ "ndarray",
+ "rayon",
+ "serde_json",
+]
+
+[[package]]
+name = "ckks-train-ckks"
+version = "1.0.0"
+dependencies = [
+ "ckks-train-core",
+ "criterion",
+ "ndarray",
+ "num-complex",
+ "rand_chacha",
+ "rand_core",
+ "rayon",
+]
+
+[[package]]
+name = "ckks-train-core"
+version = "1.0.0"
+dependencies = [
+ "criterion",
+ "proptest",
+ "rand_chacha",
+ "rand_core",
+]
+
+[[package]]
+name = "ckks-train-cuda"
+version = "1.0.0"
+dependencies = [
+ "ckks-train-ckks",
+ "ckks-train-core",
+ "ckks-train-nn",
+ "cudarc",
+ "rand_chacha",
+ "rand_core",
+]
+
+[[package]]
+name = "ckks-train-nn"
+version = "1.0.0"
+dependencies = [
+ "ckks-train-ckks",
+ "ckks-train-core",
+ "ndarray",
+]
+
+[[package]]
 name = "clap"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -248,65 +307,6 @@ dependencies = [
  "cfg-if",
  "crunchy",
  "zerocopy",
-]
-
-[[package]]
-name = "hekit-bench"
-version = "1.0.0"
-dependencies = [
- "criterion",
- "hekit-ckks",
- "hekit-core",
- "hekit-cuda",
- "hekit-nn",
- "libc",
- "ndarray",
- "rayon",
- "serde_json",
-]
-
-[[package]]
-name = "hekit-ckks"
-version = "1.0.0"
-dependencies = [
- "criterion",
- "hekit-core",
- "ndarray",
- "num-complex",
- "rand_chacha",
- "rand_core",
- "rayon",
-]
-
-[[package]]
-name = "hekit-core"
-version = "1.0.0"
-dependencies = [
- "criterion",
- "proptest",
- "rand_chacha",
- "rand_core",
-]
-
-[[package]]
-name = "hekit-cuda"
-version = "1.0.0"
-dependencies = [
- "cudarc",
- "hekit-ckks",
- "hekit-core",
- "hekit-nn",
- "rand_chacha",
- "rand_core",
-]
-
-[[package]]
-name = "hekit-nn"
-version = "1.0.0"
-dependencies = [
- "hekit-ckks",
- "hekit-core",
- "ndarray",
 ]
 
 [[package]]

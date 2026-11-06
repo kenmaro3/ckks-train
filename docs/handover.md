@@ -1,10 +1,10 @@
-# hekit 引き継ぎ書(2026-11-06 時点)
+# ckks-train 引き継ぎ書(旧 hekit、2026-11-06 時点)
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
 ## 0. 30 秒で分かる現在地
 
-- **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **hekit**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
+- **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **ckks-train**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
 - **主ベースライン**: ReBoot(AAAI-26、OpenFHE、GPL-3.0。実行のみ、コードは一切取り込まない)。
 - **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
 - **進捗**: 全 58 タスク中、Task 1〜41、43〜47 が完了(レビュー済み)。Task 42(M3 報告)は草稿、Task 47 は再計測(R-47-3)待ち。M5 は Task 51 に着手済み。
@@ -31,27 +31,27 @@
 
 ```
 hekit/
-  crates/hekit-core   RNS 算術、NTT、サンプラ(ChaCha20 のみ)
-  crates/hekit-ckks   RNS-CKKS、hybrid key switching、hoisting、BSGS、bootstrapping(bootstrap/)、OpCounter
-  crates/hekit-nn     学習層: layout、Dense、転置、勾配、NAG、Trainer(対話)、trainer_ni(非対話)、compact、layout_reboot(ベースライン c)
-  crates/hekit-cuda   CUDA バックエンド(cudarc 0.19.0、dynamic-loading、NVRTC)。feature `cuda` で有効、無くても check は通る
-  crates/hekit-bench  bins: iris, mnist, mnist_reboot_layout, plain。configs/*.json。コストモデルの移植
+  crates/ckks-train-core   RNS 算術、NTT、サンプラ(ChaCha20 のみ)
+  crates/ckks-train-ckks   RNS-CKKS、hybrid key switching、hoisting、BSGS、bootstrapping(bootstrap/)、OpCounter
+  crates/ckks-train-nn     学習層: layout、Dense、転置、勾配、NAG、Trainer(対話)、trainer_ni(非対話)、compact、layout_reboot(ベースライン c)
+  crates/ckks-train-cuda   CUDA バックエンド(cudarc 0.19.0、dynamic-loading、NVRTC)。feature `cuda` で有効、無くても check は通る
+  crates/ckks-train-bench  bins: iris, mnist, mnist_reboot_layout, plain。configs/*.json。コストモデルの移植
   docs/  results/  results/quadruped/  spikes/(M0、workspace 外)  tools/(seal-kat, estimate, bootstrap)  kat/
 ```
 
 - toolchain: `rust-toolchain.toml`(1.85.1)、edition 2024。`[profile.test]` opt-level 3。`cargo deny check licenses` 必須(allow: MIT, Apache-2.0, BSD-*, ISC。GPL と BSD-3-Clause-Clear は拒否)。
 - 通常のテスト: `cargo test --workspace`(約 400 件)。n16_boot の 10 GB 超のテストは `#[ignore]`(`cargo test -- --ignored` で手動)。
 - 並列: feature `parallel`(rayon)。ブートストラップは `HEKIT_BOOT_THREADS` で本数指定。学習の非ブートストラップ経路は部分的にしか並列化されていない(サーバーの F1/F2 で CPU 使用率 272〜308%、ReBoot は 518%。M4 の改善対象)。
-- GPU テスト: `cargo test -p hekit-cuda --features cuda`。各テストは必要 GPU メモリを宣言し、足りなければ SKIP 行を出す。
+- GPU テスト: `cargo test -p ckks-train-cuda --features cuda`。各テストは必要 GPU メモリを宣言し、足りなければ SKIP 行を出す。
 - データ: `scripts/fetch_mnist.sh`、`scripts/fetch_fashion_mnist.sh`(gitignore 下の `data/`)。Iris は同梱(CC BY 4.0)。
 - 主な実行例(引数は各 bin の `--help`):
-  - `cargo run --release -p hekit-bench --bin iris -- --epochs 400 --batch 20 --seed 2020 --out results/iris_20.json`
-  - `cargo run --release -p hekit-bench --bin mnist -- --config crates/hekit-bench/configs/reboot_emlp1_faithful.json --mode noninteractive --placement when_needed --batch 64 ...`(`--dataset-npy`, `--init-weights`, `--lr-schedule`, `--lr-schedule-batch 48`, `--epoch-orders`, `--plan` あり)
+  - `cargo run --release -p ckks-train-bench --bin iris -- --epochs 400 --batch 20 --seed 2020 --out results/iris_20.json`
+  - `cargo run --release -p ckks-train-bench --bin mnist -- --config crates/ckks-train-bench/configs/reboot_emlp1_faithful.json --mode noninteractive --placement when_needed --batch 64 ...`(`--dataset-npy`, `--init-weights`, `--lr-schedule`, `--lr-schedule-batch 48`, `--epoch-orders`, `--plan` あり)
 - 結果 JSON の規則: バイナリが自分で `provenance`(git commit、dirty files、コマンド行、スレッド数、load、RSS、時刻)を書く。**数字を手で書き換えない**。
 
 ## 3. 確定した仕様(計画と違う点を含む)
 
-### 3.1 パラメータプリセット(`hekit-ckks/src/params.rs`)
+### 3.1 パラメータプリセット(`ckks-train-ckks/src/params.rs`)
 
 | preset | N | q(レベル 0 →) | P | dnum | log PQ | 用途 |
 |---|---|---|---|---|---|---|
@@ -90,7 +90,7 @@ hekit/
 ### 3.5 CUDA(Task 43〜47)
 
 - `HeOps` トレイト(Task 43)で evaluator を抽象化。`EvalConfig { hoist, bsgs, lazy_relin }` で RQ3 の ablation。d=16 の回数(`ops.rs` の「What the RQ3 table must state」が正本): 既定 = hoist 可能な回転 3 + 個別回転 3、relin 4。bsgs=false = 3 + 12、relin 13(事前回転レイアウトのまま。教科書版は 15 + 0、relin 1 で未実装)。全オフ = 回転 15、relin 16。bsgs の利得は上限、bsgs オフ内の hoist / lazy の利得は下限。hoist は OpCounter を変えない(wall-clock のみ)。
-- `hekit-cuda`: `CudaDevice`、`DevicePoly`、`DeviceKsk`(capped keys: level 9 で 42 MiB、level 5 で 20 MiB、full 288 MiB)、`CudaEvaluator`(BSGS、マルチストリーム)。NVRTC は `--fmad=false`。CPU と **bit-exact**(45/45、想定スキップ 3)。
+- `ckks-train-cuda`: `CudaDevice`、`DevicePoly`、`DeviceKsk`(capped keys: level 9 で 42 MiB、level 5 で 20 MiB、full 288 MiB)、`CudaEvaluator`(BSGS、マルチストリーム)。NVRTC は `--fmad=false`。CPU と **bit-exact**(45/45、想定スキップ 3)。
 - GPU メモリプールは使用中 + 256 MiB までしか保持しない(`DEFAULT_POOL_RELEASE_THRESHOLD`、共有 GPU のため)。Task 48 の学習は epoch 境界で `trim_pool(0)`。
 - 4 ストリームのバッチは逐次より遅い(41.7 対 35.0 ms、N=2^16 では 1 演算で GPU が飽和)。Task 48 は逐次で進める。
 - HEonGPU 比較: 4090 の公表値は ePrint 2025/124 Table 3 の relin 2581.8 µs のみ。hekit は 4.67 ms(1.81 倍、同 ℓ で約 2.0 倍、目標の「2 倍以内」ぎりぎり)。ePrint 2024/1543 は PDF が 403 で未確認。4090 の CKKS bootstrapping は HEonGPU docs で Regular 109.28 ms / Slim 38.55 ms(Task 49 の目標値)。
@@ -275,4 +275,15 @@ R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)�
 
 SSH の接続に約47秒かかる記録がある。5秒の connect timeout は到達不能を判断するには短かった。鍵認証のみで待ち時間を適切に設定し、長い観測はバックグラウンドで待つ。実行中の clone を変更しない。ログは `~/hekit-runs/logs/`、runner provenance は `~/hekit-runs/out/`、DONE は `post.txt` 最終行の `JOB_DONE rc=...`。元の学習 JSON は `~/hekit-r41full/results/quadruped/` にある。
 
-Codex の 55 秒・90 秒の接続待ちでも SSH はタイムアウトした。ローカルの経路と alias の宛先は確認したが、認証成功・サーバー状態の再確認には至っていない。最後に確認された FULL の状態は旧 runner の 09:27 観測である。追加キューの投入や実行中ジョブの変更は行っていない。
+Codex の 55 秒・90 秒の接続待ち、その後の60秒の読み取り専用再接続も SSH はタイムアウトした。ローカルの経路と alias の宛先は確認したが、認証成功・サーバー状態の再確認には至っていない。最後に確認された FULL の状態は旧 runner の 09:27 観測である。追加キューの投入や実行中ジョブの変更は行っていない。
+
+
+### 12.2 論文・再現入口の確定と crate 改名（2026-11-06）
+
+- `e2d27b6`: Task56 の論文ドラフトを独立再レビュー後に commit。匿名・著者仮置きとも最終表込み9ページ。寸法の2冪 padding と先行する矩形転置への帰属を明記した。FULL/GPU 欠測と安全性の比較限界を残す。
+- `7752459`: Task54 の表生成・runner 修正を独立再レビュー後に commit。49 Python tests が合格。古いバイナリの誤採用、Cargo設定やスレッド数変更の見落とし、メタデータ書込失敗の握り潰しを防ぐ。`--tables-only` と `tools/tables.py` で保存済み結果から表を再生成できる。
+- `c820638`: Python 回帰テストと表・図の freshness を CI に追加。`0daf778` の実 Linux CI 全5ジョブ成功は、後続 SHA の成功とは分ける。
+- `scripts/rename.sh` を実 checkout に適用し、5 crate を `ckks-train-*` に変更した。903箇所・847行・158ファイルとディレクトリ移動、続いて rustfmt の整形。結果・spikes・kat・サーバーログの755ファイルは改名前後で同一バイト。改名後462 Rust tests合格（12 ignored）、49 Python tests合格、CUDA compile・Clippy両feature・rustdoc警告0・deny・4パッケージ連鎖ビルドが通過。最終 SHA の Linux CI は別途確認する。変更は独立レビュー後に commit する。
+- Task58（PyO3）は計画の削減枠として今回は削減する。Rust API と再現手順、未完の研究ゲートを優先し、binding 提供済みとはしない。理由と後日の代替案は M5 報告に記載した。
+
+改名時の例外: CUDA kernel のコメント置換がソース固定ハッシュ検査に掛かったため、4 kernel は旧版と同一バイトを保持した。`tools/reboot_layout/assemble.py` も過去コミットの provenance を記述するため同一バイトを保持し、両者を rename.sh の対象外にした。ハッシュの付け替えや過去の結果の書換えは行っていない。

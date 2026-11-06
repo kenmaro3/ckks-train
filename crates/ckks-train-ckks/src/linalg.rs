@@ -1,0 +1,1682 @@
+//! Matrix-vector products by the diagonal method with baby-step giant-step (BSGS) rotations.
+//!
+//! # Layout (Halevi-Shoup diagonals, strided)
+//!
+//! A square `d x d` matrix `W` (`d` a power of two) acts on `stride` independent vectors
+//! ("lanes") `x_0, ..., x_{stride-1}` at once. With `D = d * stride` (a divisor of the slot
+//! count `N/2`), slot `t` with `t mod D = j * stride + b` (`j < d`, `b < stride`) holds
+//! `x_b[j]`: feature-major packing, `slot(j, b) = j * stride + b`, with the block of `D` slots
+//! repeated `slots / D` times. `stride = 1` is the classic replicated layout (slot `j` holds
+//! `x[j mod d]`); `stride = batch` with `D = slots` is M2's layout (Task 25).
+//!
+//! Diagonal `i` holds `W[j][(j + i) mod d]` in slot `j * stride + b` for every lane `b` (and
+//! every replica), see [`diagonals_from_matrix`]. Since a rotation by `i * stride` moves
+//! feature `j + i` of every lane onto feature `j`,
+//!
+//! `(W x_b)[j] = sum_{i < d} diag_i[j stride + b] * rot(x, i stride)[j stride + b]`
+//!
+//! and the result is in the same layout as `x` (slot `j * stride + b` holds `(W x_b)[j]`), so
+//! it can be fed to the next product. In general, for any `d` slot vectors `diag_i` and any
+//! `x`, slot `t` of the result is `sum_{i < d} diag_i[t] * x[(t + i * stride) mod slots]`.
+//!
+//! # BSGS split
+//!
+//! [`bsgs_split`]: `baby = 2^ceil(log2(d) / 2)`, `giant = d / baby` (so `baby >= giant`;
+//! d = 16 -> 4 x 4, d = 32 -> 8 x 4, d = 64 -> 8 x 8). With `g = baby`, `s = stride` and
+//! `i = g k1 + k2` (`k1 < giant`, `k2 < baby`),
+//!
+//! `W x = sum_{k1} rot( sum_{k2} rot(diag_{g k1 + k2}, -g k1 s) * rot(x, k2 s), g k1 s )`.
+//!
+//! [`Diagonals`] stores the pre-rotated diagonals `rot(diag_{g k1 + k2}, -g k1 s)` at
+//! `entries[k1 * baby + k2]` (pre-rotation is done in the clear, before encoding or
+//! encryption; [`Diagonals::from_prerotated`] accepts entries prepared by the caller). The
+//! `baby - 1` nonzero baby rotations of `x` share one decomposition
+//! ([`Evaluator::hoisted_rotate`]); then each nonzero giant step costs one rotation: in all
+//! `baby + giant - 2` key-switching rotations, needing Galois keys for exactly the steps
+//! [`bsgs_rotation_steps`]`(d, stride)` (`k2 * s` for `k2 in 1..baby` and `g * k1 * s` for
+//! `k1 in 1..giant`).
+//!
+//! # Offsets (diagonals of negative index)
+//!
+//! A sparse matrix whose nonzero diagonals are `i * stride` for `i` in a window
+//! `offset..offset + d` around 0 (the merged butterfly stages of the bootstrapping DFT,
+//! [`crate::bootstrap::linear`]) uses an `offset` in `-d < offset <= 0`: entry
+//! `k1 * baby + k2` is then diagonal `offset + g k1 + k2` rotated by `-(offset + g k1) s`, and
+//! the giant steps are `(offset + g k1) * s` (a zero giant step costs no rotation), see
+//! [`bsgs_rotation_steps_with_offset`]. `offset = 0` is the layout above.
+//!
+//! # Levels and scales
+//!
+//! All entries are encoded (or encrypted) at one `scale` and `level`; that level must equal
+//! `x.level()` (else `LevelMismatch`). Every term of the sum then has scale `s_x * scale`
+//! exactly, so the additions never see a scale mismatch. The products return the result
+//! **before rescaling**, like [`Evaluator::mul`]: 2 components, level `x.level()`, scale
+//! `x.scale() * scale`; the caller rescales once (typically with `scale = Delta`, giving back
+//! `~Delta` one level down).
+//!
+//! # Checks before work
+//!
+//! [`Evaluator::matvec_plain`] and [`Evaluator::matvec_enc`] validate everything before the
+//! first homomorphic operation: the shape of `x` and of every entry, equal entry levels (and
+//! `== x.level()`), equal entry scales, `d * stride | slots`, every Galois key of
+//! [`Diagonals::rotation_steps`] and (for `matvec_enc`) the relinearization key. So a failing
+//! product returns its error without having counted anything ([`crate::counter`]).
+
+use ndarray::Array2;
+use num_complex::Complex64;
+
+use ckks_train_core::error::{HekitError, Result};
+use ckks_train_core::sampler::Rng;
+
+use crate::ciphertext::Ciphertext;
+use crate::encoder::Encoder;
+use crate::encrypt::Encryptor;
+use crate::evaluator::Evaluator;
+use crate::ops::HeOps;
+use crate::plaintext::Plaintext;
+
+/// The metadata of an entry type of [`Diagonals`]: its level, scale and slot count, which
+/// [`Diagonals::from_prerotated`] and the products validate. Implemented by [`Plaintext`] and
+/// [`Ciphertext`], and by the device types of other backends
+/// ([`crate::ops::HeOps::Ct`] / [`crate::ops::HeOps::Pt`]); not sealed since Task 43, so a
+/// backend crate can implement it.
+pub trait DiagonalEntry {
+    /// The level of the entry.
+    fn level(&self) -> usize;
+    /// The scale of the entry.
+    fn scale(&self) -> f64;
+    /// The slot count `N/2` of the ring the entry lives in.
+    fn slots(&self) -> usize;
+}
+
+impl DiagonalEntry for Plaintext {
+    fn level(&self) -> usize {
+        Plaintext::level(self)
+    }
+    fn scale(&self) -> f64 {
+        Plaintext::scale(self)
+    }
+    fn slots(&self) -> usize {
+        self.poly().basis().n() / 2
+    }
+}
+
+impl DiagonalEntry for Ciphertext {
+    fn level(&self) -> usize {
+        Ciphertext::level(self)
+    }
+    fn scale(&self) -> f64 {
+        Ciphertext::scale(self)
+    }
+    fn slots(&self) -> usize {
+        self.polys()[0].basis().n() / 2
+    }
+}
+
+/// The pre-rotated diagonals of a `d x d` matrix in BSGS order for a layout of `stride`
+/// lanes (see the [module docs](self)): `entries[k1 * baby + k2]` is diagonal `g k1 + k2`
+/// (`g = baby`) rotated by `-g k1 stride`.
+///
+/// `T` is [`Plaintext`] ([`Evaluator::matvec_plain`]) or [`Ciphertext`]
+/// ([`Evaluator::matvec_enc`]); [`Diagonals::try_map`] can also produce other types (e.g.
+/// decrypted `Vec<f64>` values) with the same shape. The split is always
+/// [`bsgs_split`]`(d)`.
+#[derive(Debug, Clone)]
+pub struct Diagonals<T> {
+    d: usize,
+    baby: usize,
+    giant: usize,
+    stride: usize,
+    offset: i64,
+    entries: Vec<T>,
+}
+
+impl<T> Diagonals<T> {
+    /// The matrix dimension `d`.
+    pub fn d(&self) -> usize {
+        self.d
+    }
+
+    /// The number of baby steps (`= g`, the giant stride in diagonals); see [`bsgs_split`].
+    pub fn baby(&self) -> usize {
+        self.baby
+    }
+
+    /// The number of giant steps; see [`bsgs_split`].
+    pub fn giant(&self) -> usize {
+        self.giant
+    }
+
+    /// The slot distance between consecutive features of one lane (the number of lanes
+    /// packed per block of `d * stride` slots); 1 for the classic replicated layout.
+    pub fn stride(&self) -> usize {
+        self.stride
+    }
+
+    /// The diagonal index of entry 0, in `-d < offset <= 0` (0 except for
+    /// [`Diagonals::from_prerotated_with_offset`] and [`Diagonals::encode_complex`]; see the
+    /// [module docs](self)).
+    pub fn offset(&self) -> i64 {
+        self.offset
+    }
+
+    /// The `d` pre-rotated diagonals, `entries[k1 * baby + k2]`.
+    pub fn entries(&self) -> &[T] {
+        &self.entries
+    }
+
+    /// Mutable access to the entries (e.g. for an in-place weight update). The count is
+    /// fixed; changing levels or scales so that they no longer agree is reported by the
+    /// products (`LevelMismatch` / `ScaleMismatch`) before any work.
+    pub fn entries_mut(&mut self) -> &mut [T] {
+        &mut self.entries
+    }
+
+    /// Consumes the diagonals and returns the entries (rebuild with
+    /// [`Diagonals::from_prerotated`]).
+    pub fn into_entries(self) -> Vec<T> {
+        self.entries
+    }
+
+    /// Applies `f` to every entry, keeping `d`, the split and the stride; the first error is
+    /// returned. The result is not re-validated (for [`Plaintext`] / [`Ciphertext`] results
+    /// the products check levels and scales at use; to validate eagerly, pass
+    /// [`Diagonals::into_entries`] to [`Diagonals::from_prerotated`]).
+    pub fn try_map<U>(&self, f: impl FnMut(&T) -> Result<U>) -> Result<Diagonals<U>> {
+        Ok(Diagonals {
+            d: self.d,
+            baby: self.baby,
+            giant: self.giant,
+            stride: self.stride,
+            offset: self.offset,
+            entries: self.entries.iter().map(f).collect::<Result<Vec<_>>>()?,
+        })
+    }
+
+    /// [`Diagonals::try_map`] by value: `f` takes each entry (e.g. a move to another backend);
+    /// `d`, the split, the stride and the offset are kept.
+    pub fn try_map_owned<U>(self, f: impl FnMut(T) -> Result<U>) -> Result<Diagonals<U>> {
+        Ok(Diagonals {
+            d: self.d,
+            baby: self.baby,
+            giant: self.giant,
+            stride: self.stride,
+            offset: self.offset,
+            entries: self
+                .entries
+                .into_iter()
+                .map(f)
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+
+    /// The rotation steps whose Galois keys the products need:
+    /// [`bsgs_rotation_steps_with_offset`]`(d, stride, offset)` (that is
+    /// [`bsgs_rotation_steps`]`(d, stride)` for offset 0).
+    pub fn rotation_steps(&self) -> Vec<i32> {
+        bsgs_rotation_steps_with_offset(self.d, self.stride, self.offset)
+    }
+}
+
+impl<T: DiagonalEntry> Diagonals<T> {
+    /// Wraps `entries` that are already pre-rotated for BSGS (`entries[k1 * baby + k2]` =
+    /// `rot(diag_{g k1 + k2}, -g k1 stride)`, `(baby, giant) = bsgs_split(d)`), e.g. built by
+    /// the caller in its own layout code or returned by [`Diagonals::into_entries`].
+    ///
+    /// Errors: `InvalidParams` if `d` is not a power of two, `entries.len() != d`,
+    /// `stride == 0` or `d * stride` does not divide the slot count; `LevelMismatch` if the
+    /// entries are not all at one level; `ScaleMismatch` if their scales are not all
+    /// exactly equal.
+    pub fn from_prerotated(d: usize, stride: usize, entries: Vec<T>) -> Result<Diagonals<T>> {
+        Self::from_prerotated_with_offset(d, stride, 0, entries)
+    }
+
+    /// [`Diagonals::from_prerotated`] for diagonals `offset..offset + d` (see the
+    /// [module docs](self)): `entries[k1 * baby + k2]` = `rot(diag_{offset + g k1 + k2},
+    /// -(offset + g k1) stride)`. Errors as [`Diagonals::from_prerotated`], and
+    /// `InvalidParams` unless `-d < offset <= 0`.
+    pub fn from_prerotated_with_offset(
+        d: usize,
+        stride: usize,
+        offset: i64,
+        entries: Vec<T>,
+    ) -> Result<Diagonals<T>> {
+        check_offset(d, offset)?;
+        if !d.is_power_of_two() || entries.len() != d {
+            return Err(HekitError::InvalidParams(format!(
+                "{} entries for d = {d} (d must be a power of two, one entry per diagonal)",
+                entries.len()
+            )));
+        }
+        check_stride(d, stride, entries[0].slots())?;
+        check_entries(&entries)?;
+        let (baby, giant) = bsgs_split(d);
+        Ok(Diagonals {
+            d,
+            baby,
+            giant,
+            stride,
+            offset,
+            entries,
+        })
+    }
+}
+
+impl Diagonals<Plaintext> {
+    /// Pre-rotates and encodes `diagonals` (`d` vectors of `N/2` values each, e.g. from
+    /// [`diagonals_from_matrix`] with the same `stride`) at `scale` and `level`.
+    ///
+    /// To move plaintext diagonals to another level, encode them again at that level (there
+    /// is no plaintext `mod_switch`).
+    ///
+    /// Errors (`InvalidParams`): `d` zero or not a power of two; `stride == 0` or
+    /// `d * stride` not dividing `N/2`; a diagonal whose length is not `N/2`; and the
+    /// [`Encoder::encode`] errors.
+    pub fn encode(
+        encoder: &Encoder,
+        diagonals: &[Vec<f64>],
+        stride: usize,
+        scale: f64,
+        level: usize,
+    ) -> Result<Diagonals<Plaintext>> {
+        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, 0)?;
+        let entries = pre
+            .iter()
+            .map(|v| encoder.encode(v, scale, level))
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Diagonals {
+            d: diagonals.len(),
+            baby,
+            giant,
+            stride,
+            offset: 0,
+            entries,
+        })
+    }
+
+    /// Complex diagonals `offset..offset + d` (`diagonals[i]` is diagonal `offset + i`: slot
+    /// `t` multiplies `x[(t + (offset + i) stride) mod slots]`), pre-rotated and encoded with
+    /// [`Encoder::encode_complex`] at `scale` and `level` (see the [module docs](self)).
+    ///
+    /// Errors as [`Diagonals::<Plaintext>::encode`], and `InvalidParams` unless
+    /// `-d < offset <= 0`.
+    pub fn encode_complex(
+        encoder: &Encoder,
+        diagonals: &[Vec<Complex64>],
+        stride: usize,
+        offset: i64,
+        scale: f64,
+        level: usize,
+    ) -> Result<Diagonals<Plaintext>> {
+        check_offset(diagonals.len(), offset)?;
+        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, offset)?;
+        let entries = pre
+            .iter()
+            .map(|v| encoder.encode_complex(v, scale, level))
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Diagonals {
+            d: diagonals.len(),
+            baby,
+            giant,
+            stride,
+            offset,
+            entries,
+        })
+    }
+}
+
+impl Diagonals<Option<Plaintext>> {
+    /// [`Diagonals::<Plaintext>::encode_complex`] that stores no plaintext for an all-zero
+    /// (pre-rotated) diagonal: such entries are `None`. Used by the bootstrapping DFT stages
+    /// ([`crate::bootstrap::linear`]), where about one diagonal in six is zero (at n16_boot a
+    /// plaintext at the CoeffToSlot levels is 16 MB). Errors as `encode_complex`, and
+    /// `InvalidParams` if every diagonal is zero.
+    pub fn encode_complex_sparse(
+        encoder: &Encoder,
+        diagonals: &[Vec<Complex64>],
+        stride: usize,
+        offset: i64,
+        scale: f64,
+        level: usize,
+    ) -> Result<Diagonals<Option<Plaintext>>> {
+        check_offset(diagonals.len(), offset)?;
+        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, offset)?;
+        let zero = Complex64::new(0.0, 0.0);
+        let entries = pre
+            .iter()
+            .map(|v| {
+                if v.iter().all(|&x| x == zero) {
+                    Ok(None)
+                } else {
+                    encoder.encode_complex(v, scale, level).map(Some)
+                }
+            })
+            .collect::<Result<Vec<_>>>()?;
+        if entries.iter().all(Option::is_none) {
+            return Err(HekitError::InvalidParams(
+                "every diagonal is zero (nothing to encode)".into(),
+            ));
+        }
+        Ok(Diagonals {
+            d: diagonals.len(),
+            baby,
+            giant,
+            stride,
+            offset,
+            entries,
+        })
+    }
+
+    /// The common scale of the encoded entries (`None` if every entry is `None`).
+    pub fn plain_scale(&self) -> Option<f64> {
+        self.entries.iter().flatten().next().map(Plaintext::scale)
+    }
+
+    /// The number of encoded (nonzero) entries.
+    pub fn nonzero(&self) -> usize {
+        self.entries.iter().flatten().count()
+    }
+}
+
+impl Diagonals<Ciphertext> {
+    /// Pre-rotates, encodes (at `scale` and `level`) and encrypts `diagonals`; errors as
+    /// [`Diagonals::<Plaintext>::encode`]. `encoder` and `encryptor` must be for the same
+    /// parameters as the evaluator that will use the result.
+    pub fn encrypt(
+        encoder: &Encoder,
+        encryptor: &Encryptor,
+        diagonals: &[Vec<f64>],
+        stride: usize,
+        scale: f64,
+        level: usize,
+        rng: &mut Rng,
+    ) -> Result<Diagonals<Ciphertext>> {
+        let pts = Diagonals::<Plaintext>::encode(encoder, diagonals, stride, scale, level)?;
+        pts.try_map(|p| Ok(encryptor.encrypt(p, rng)))
+    }
+}
+
+impl<C> Diagonals<C> {
+    /// Every entry switched down to `level` ([`HeOps::mod_switch_to_level`]: primes dropped,
+    /// scale unchanged), e.g. to multiply an `x` that has been rescaled. Generic over the
+    /// backend since Task 43 (`C` = [`Ciphertext`] for the CPU [`Evaluator`]).
+    ///
+    /// Errors as [`Evaluator::mod_switch_to_level`] (`InvalidParams` for `level` above the
+    /// entries' level or entries not over `eval`'s basis).
+    pub fn mod_switch_to_level<E: HeOps<Ct = C>>(
+        &self,
+        eval: &E,
+        level: usize,
+    ) -> Result<Diagonals<C>> {
+        self.try_map(|ct| eval.mod_switch_to_level(ct, level))
+    }
+}
+
+/// The BSGS split `(baby, giant)` of `d`: `baby = 2^ceil(log2(d) / 2)`, `giant = d / baby`.
+///
+/// # Panics
+/// If `d` is not a power of two.
+pub fn bsgs_split(d: usize) -> (usize, usize) {
+    assert!(d.is_power_of_two(), "d = {d} must be a power of two");
+    let log_d = d.trailing_zeros();
+    let baby = 1usize << log_d.div_ceil(2);
+    (baby, d / baby)
+}
+
+/// The rotation steps used by the BSGS products for dimension `d` and lane stride
+/// `stride`: the baby steps `k2 * stride` for `k2 = 1, ..., baby - 1`, then the giant steps
+/// `baby * k1 * stride` for `k1 = 1, ..., giant - 1` (`baby + giant - 2` steps, all
+/// distinct, all `< d * stride`). `stride = 1` gives `1..baby` and `baby * k1`.
+///
+/// # Panics
+/// If `d` is not a power of two, `stride == 0`, or `d * stride` exceeds `i32::MAX`.
+pub fn bsgs_rotation_steps(d: usize, stride: usize) -> Vec<i32> {
+    let (baby, giant) = bsgs_split(d);
+    assert!(stride > 0, "stride must be positive");
+    assert!(
+        d.checked_mul(stride)
+            .is_some_and(|n| n <= i32::MAX as usize),
+        "d * stride = {d} * {stride} overflows a rotation step"
+    );
+    (1..baby)
+        .map(|k2| k2 * stride)
+        .chain((1..giant).map(|k1| baby * k1 * stride))
+        .map(|s| s as i32)
+        .collect()
+}
+
+/// [`bsgs_rotation_steps`] for diagonals `offset..offset + d` (`-d < offset <= 0`, see the
+/// [module docs](self)): the baby steps `k2 * stride` for `k2 = 1, ..., baby - 1`, then the
+/// nonzero giant steps `(offset + baby * k1) * stride` for `k1 = 0, ..., giant - 1` (negative
+/// for the diagonals left of 0). `offset = 0` gives [`bsgs_rotation_steps`].
+///
+/// # Panics
+/// As [`bsgs_rotation_steps`], and unless `-d < offset <= 0`.
+pub fn bsgs_rotation_steps_with_offset(d: usize, stride: usize, offset: i64) -> Vec<i32> {
+    assert!(
+        check_offset(d, offset).is_ok(),
+        "offset {offset} outside -d < offset <= 0 for d = {d}"
+    );
+    // Validates d and stride (same panics as the offset-0 steps).
+    bsgs_rotation_steps(d, stride);
+    let (baby, giant) = bsgs_split(d);
+    let s = stride as i64;
+    (1..baby as i64)
+        .map(|k2| k2 * s)
+        .chain(
+            (0..giant as i64)
+                .map(|k1| (offset + baby as i64 * k1) * s)
+                .filter(|&g| g != 0),
+        )
+        .map(|v| v as i32)
+        .collect()
+}
+
+/// The `d` generalized diagonals of the square matrix `w` laid out for `slots` slots with
+/// `stride` lanes: slot `t` of diagonal `i`, with `t mod (d * stride) = j * stride + b`, is
+/// `w[j][(j + i) mod d]` (the same for every lane `b` and every replica of the
+/// `d * stride`-slot block). `stride = 1`: slot `j` is `w[j mod d][(j mod d + i) mod d]`.
+///
+/// # Panics
+/// If `w` is not square, `d` is not a power of two, `stride == 0`, or `d * stride` does not
+/// divide `slots`.
+pub fn diagonals_from_matrix(w: &Array2<f64>, slots: usize, stride: usize) -> Vec<Vec<f64>> {
+    let (rows, cols) = w.dim();
+    assert_eq!(rows, cols, "matrix must be square (got {rows} x {cols})");
+    let d = rows;
+    assert!(d.is_power_of_two(), "d = {d} must be a power of two");
+    assert!(stride > 0, "stride must be positive");
+    let block = d * stride;
+    assert!(
+        slots % block == 0,
+        "d * stride = {d} * {stride} must divide the slot count {slots}"
+    );
+    (0..d)
+        .map(|i| {
+            (0..slots)
+                .map(|t| {
+                    let j = (t % block) / stride;
+                    w[[j, (j + i) % d]]
+                })
+                .collect()
+        })
+        .collect()
+}
+
+/// `InvalidParams` unless `stride >= 1` and `d * stride` divides `slots`.
+fn check_stride(d: usize, stride: usize, slots: usize) -> Result<()> {
+    match d.checked_mul(stride) {
+        Some(block) if stride > 0 && slots % block == 0 => Ok(()),
+        _ => Err(HekitError::InvalidParams(format!(
+            "d * stride = {d} * {stride} must divide the slot count {slots} (stride >= 1)"
+        ))),
+    }
+}
+
+/// `InvalidParams` unless `-d < offset <= 0`.
+fn check_offset(d: usize, offset: i64) -> Result<()> {
+    if offset <= 0 && offset > -(d as i64) {
+        Ok(())
+    } else {
+        Err(HekitError::InvalidParams(format!(
+            "diagonal offset {offset} outside -d < offset <= 0 for d = {d}"
+        )))
+    }
+}
+
+/// `LevelMismatch` / `ScaleMismatch` unless all entries share one level and one scale
+/// (exactly).
+fn check_entries<T: DiagonalEntry>(entries: &[T]) -> Result<()> {
+    let Some(first) = entries.first() else {
+        return Ok(());
+    };
+    if entries.iter().any(|e| e.level() != first.level()) {
+        return Err(HekitError::LevelMismatch);
+    }
+    if entries.iter().any(|e| e.scale() != first.scale()) {
+        return Err(HekitError::ScaleMismatch);
+    }
+    Ok(())
+}
+
+/// Checks `diagonals` and returns `(baby, giant, pre)` with `pre[k1 * baby + k2]` =
+/// `rot(diagonals[g k1 + k2], -(offset + g k1) stride)` (`g = baby`, rotation over all
+/// `slots`; `diagonals[i]` is diagonal `offset + i`).
+fn prerotated<V: Copy>(
+    diagonals: &[Vec<V>],
+    slots: usize,
+    stride: usize,
+    offset: i64,
+) -> Result<(usize, usize, Vec<Vec<V>>)> {
+    let d = diagonals.len();
+    if !d.is_power_of_two() {
+        return Err(HekitError::InvalidParams(format!(
+            "number of diagonals {d} must be a power of two"
+        )));
+    }
+    check_stride(d, stride, slots)?;
+    if let Some(v) = diagonals.iter().find(|v| v.len() != slots) {
+        return Err(HekitError::InvalidParams(format!(
+            "a diagonal has {} values, expected the slot count {slots}",
+            v.len()
+        )));
+    }
+    let (baby, giant) = bsgs_split(d);
+    let mut pre = Vec::with_capacity(d);
+    for k1 in 0..giant {
+        let shift = ((offset + (baby * k1) as i64) * stride as i64).rem_euclid(slots as i64);
+        let shift = shift as usize;
+        for k2 in 0..baby {
+            let v = &diagonals[baby * k1 + k2];
+            // rot(v, -shift)[j] = v[(j - shift) mod slots].
+            pre.push((0..slots).map(|j| v[(j + slots - shift) % slots]).collect());
+        }
+    }
+    Ok((baby, giant, pre))
+}
+
+impl Evaluator {
+    /// `W x` for plaintext diagonals of `W` (BSGS, see the [module docs](crate::linalg)).
+    ///
+    /// Costs `d` [`Evaluator::mul_plain`], `baby + giant - 2` rotations (`baby - 1` of them
+    /// hoisted; one more giant rotation for an offset that is not a multiple of `baby`) and no
+    /// relinearization. With [`crate::ops::EvalConfig::bsgs`] off: `d - 1` rotations (offset
+    /// 0); with `hoist` off the baby rotations are individual (same count). Returns the
+    /// unrescaled product: level `x.level()`, scale `x.scale() * entry scale`.
+    ///
+    /// Errors, all reported before any work: `InvalidParams` if `x` is not a 2-component
+    /// ciphertext over this evaluator's basis, an entry is not over it, `d * stride` does
+    /// not divide the slot count, or a Galois key of [`Diagonals::rotation_steps`] is
+    /// missing (`"missing galois key"`); `LevelMismatch` if the entries are not all at
+    /// `x.level()`; `ScaleMismatch` if their scales differ.
+    pub fn matvec_plain(&self, diag: &Diagonals<Plaintext>, x: &Ciphertext) -> Result<Ciphertext> {
+        self.check_galois_input(x)?;
+        for p in diag.entries() {
+            self.check_basis(std::slice::from_ref(p.poly()))?;
+        }
+        self.check_bsgs(diag, x)?;
+        self.bsgs(
+            &[(diag, x)],
+            self.config().bsgs,
+            |_| false,
+            |w, xr| self.mul_plain(xr, w),
+            Ok,
+        )
+    }
+
+    /// `W x` for encrypted diagonals of `W` (BSGS, see the [module docs](crate::linalg)).
+    ///
+    /// Per giant step, the `baby` tensor products [`Evaluator::mul_no_relin`] are summed at
+    /// degree 2 and relinearized once before the giant rotation: `d` tensor products, `giant`
+    /// relinearizations (one per giant step, including step 0) and `baby + giant - 2`
+    /// rotations (`baby - 1` of them hoisted). Returns the unrescaled product: 2 components,
+    /// level `x.level()`, scale `x.scale() * entry scale`. Those are the default flags; the
+    /// counts under [`crate::ops::EvalConfig`] are
+    /// [`EvalConfig::matvec_rotations`](crate::ops::EvalConfig::matvec_rotations) and
+    /// [`EvalConfig::matvec_enc_relins`](crate::ops::EvalConfig::matvec_enc_relins) (`lazy_relin`
+    /// off: one [`Evaluator::mul`] per product).
+    ///
+    /// Errors, all reported before any work: those of [`Evaluator::matvec_plain`] (with
+    /// entries that must also be 2-component ciphertexts), `NoLevelsLeft` at level 0, and
+    /// `InvalidParams` for a missing (or foreign) relinearization key.
+    pub fn matvec_enc(&self, diag: &Diagonals<Ciphertext>, x: &Ciphertext) -> Result<Ciphertext> {
+        self.check_galois_input(x)?;
+        for c in diag.entries() {
+            self.check_galois_input(c)?;
+        }
+        self.check_bsgs(diag, x)?;
+        if x.level() == 0 {
+            return Err(HekitError::NoLevelsLeft);
+        }
+        self.relin_key_checked()?;
+        if self.config().lazy_relin {
+            self.bsgs(
+                &[(diag, x)],
+                self.config().bsgs,
+                |_| false,
+                |w, xr| self.mul_no_relin(w, xr),
+                |ct| self.relinearize(&ct),
+            )
+        } else {
+            self.bsgs(
+                &[(diag, x)],
+                self.config().bsgs,
+                |_| false,
+                |w, xr| self.mul(w, xr),
+                Ok,
+            )
+        }
+    }
+
+    /// The checks shared by both products: entry levels (`== x.level()`) and scales, the
+    /// stride, and every Galois key of [`Diagonals::rotation_steps`].
+    fn check_bsgs<T: DiagonalEntry>(&self, diag: &Diagonals<T>, x: &Ciphertext) -> Result<()> {
+        check_entries(diag.entries())?;
+        if diag.entries().iter().any(|e| e.level() != x.level()) {
+            return Err(HekitError::LevelMismatch);
+        }
+        check_stride(diag.d(), diag.stride(), self.params().slots())?;
+        self.check_rotation_keys(&diag.rotation_steps())
+    }
+
+    /// `sum_t W_t x_t` for several plaintext-diagonal products of one shape, with the giant
+    /// rotations shared: per giant step the baby products of every term are summed before the
+    /// one giant rotation. Entries that are the zero polynomial (all limbs 0, e.g. the masked
+    /// half of a parity-split matrix) are skipped, and so is a baby rotation of `x_t` that no
+    /// nonzero entry of term `t` uses. Used by the two-input stages of
+    /// [`crate::bootstrap::linear`].
+    ///
+    /// Costs one [`Evaluator::mul_plain`] per nonzero entry, at most
+    /// `terms.len() * (baby - 1)` hoisted baby rotations and at most `giant - 1` giant
+    /// rotations (a giant step whose entries are all zero, or whose shift is 0, costs none).
+    /// Returns the unrescaled sum: level and scale of each `x_t.scale() * entry scale`.
+    ///
+    /// Errors, all before any work: those of [`Evaluator::matvec_plain`] for every term;
+    /// `InvalidParams` if `terms` is empty or the diagonals differ in `d`, `stride` or
+    /// `offset`; `LevelMismatch` if the `x_t` differ in level; `ScaleMismatch` unless every
+    /// `x_t` has exactly the scale of `x_0` and every entry exactly the scale of the first
+    /// term's entries (so all products have one scale).
+    pub fn matvec_plain_sum(
+        &self,
+        terms: &[(&Diagonals<Plaintext>, &Ciphertext)],
+    ) -> Result<Ciphertext> {
+        let Some(&(d0, x0)) = terms.first() else {
+            return Err(HekitError::InvalidParams(
+                "matvec_plain_sum needs at least one term".into(),
+            ));
+        };
+        for &(diag, x) in terms {
+            self.check_galois_input(x)?;
+            for p in diag.entries() {
+                self.check_basis(std::slice::from_ref(p.poly()))?;
+            }
+            if (diag.d, diag.stride, diag.offset) != (d0.d, d0.stride, d0.offset) {
+                return Err(HekitError::InvalidParams(
+                    "matvec_plain_sum terms must share d, stride and offset".into(),
+                ));
+            }
+            if x.level() != x0.level() {
+                return Err(HekitError::LevelMismatch);
+            }
+            self.check_bsgs(diag, x)?;
+            if x.scale() != x0.scale() || diag.entries[0].scale() != d0.entries[0].scale() {
+                return Err(HekitError::ScaleMismatch);
+            }
+        }
+        self.bsgs(
+            terms,
+            self.config().bsgs,
+            is_zero_plaintext,
+            |w, xr| self.mul_plain(xr, w),
+            Ok,
+        )
+    }
+
+    /// [`Evaluator::matvec_plain_sum`] for diagonals whose zero entries are not stored
+    /// ([`Diagonals::<Option<Plaintext>>::encode_complex_sparse`]): `None` entries are
+    /// skipped exactly as zero plaintexts are there, with the same costs and result.
+    ///
+    /// Errors, all before any work: `InvalidParams` if `terms` is empty, an `x_t` is not a
+    /// 2-component ciphertext over this evaluator's basis, an entry is not over the basis,
+    /// the diagonals differ in `d`, `stride` or `offset`, the stride does not fit, a term has
+    /// no entry at all, or a Galois key is missing; `LevelMismatch` if the `x_t` or the
+    /// entries differ in level; `ScaleMismatch` unless every `x_t` has exactly the scale of
+    /// `x_0` and every entry exactly one common scale.
+    pub fn matvec_plain_sum_sparse(
+        &self,
+        terms: &[(&Diagonals<Option<Plaintext>>, &Ciphertext)],
+    ) -> Result<Ciphertext> {
+        let Some(&(d0, x0)) = terms.first() else {
+            return Err(HekitError::InvalidParams(
+                "matvec_plain_sum_sparse needs at least one term".into(),
+            ));
+        };
+        let sp = d0.plain_scale();
+        for &(diag, x) in terms {
+            self.check_galois_input(x)?;
+            if (diag.d, diag.stride, diag.offset) != (d0.d, d0.stride, d0.offset) {
+                return Err(HekitError::InvalidParams(
+                    "matvec_plain_sum_sparse terms must share d, stride and offset".into(),
+                ));
+            }
+            if diag.nonzero() == 0 {
+                return Err(HekitError::InvalidParams(
+                    "a term of matvec_plain_sum_sparse has no nonzero diagonal".into(),
+                ));
+            }
+            for p in diag.entries.iter().flatten() {
+                self.check_basis(std::slice::from_ref(p.poly()))?;
+                if p.level() != x.level() {
+                    return Err(HekitError::LevelMismatch);
+                }
+                if Some(p.scale()) != sp {
+                    return Err(HekitError::ScaleMismatch);
+                }
+            }
+            if x.level() != x0.level() {
+                return Err(HekitError::LevelMismatch);
+            }
+            if x.scale() != x0.scale() {
+                return Err(HekitError::ScaleMismatch);
+            }
+            check_stride(diag.d(), diag.stride(), self.params().slots())?;
+            self.check_rotation_keys(&diag.rotation_steps())?;
+        }
+        self.bsgs(
+            terms,
+            self.config().bsgs,
+            Option::is_none,
+            |w, xr| self.mul_plain(xr, w.as_ref().expect("skipped if None")),
+            Ok,
+        )
+    }
+
+    /// `sum_{k1} rot(finish(sum_t sum_{k2} mul(entries_t[k1 baby + k2], rot(x_t, k2 s))),
+    /// (offset + g k1) s)`, skipping the entries for which `skip` holds (and the baby
+    /// rotations and giant blocks only they would use). All terms share one shape. The
+    /// callers have validated everything, so no step fails part-way.
+    ///
+    /// With `share_giant == false` ([`crate::ops::EvalConfig::bsgs`] off, the RQ3 ablation)
+    /// the giant rotation is not shared: every kept product with a nonzero giant shift is finished and
+    /// rotated on its own, `rot(finish(mul(entry, rot(x_t, k2 s))), (offset + g k1) s)`, and
+    /// only the products of a zero shift are summed before one `finish`. Same keys, same
+    /// value; for `offset = 0` and no skipped entry that is `d - 1` rotations (`baby - 1`
+    /// baby, `d - baby` product rotations) instead of `baby + giant - 2`.
+    fn bsgs<T: Sync>(
+        &self,
+        terms: &[(&Diagonals<T>, &Ciphertext)],
+        share_giant: bool,
+        skip: impl Fn(&T) -> bool + Sync + Send,
+        mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext> + Sync + Send,
+        finish: impl Fn(Ciphertext) -> Result<Ciphertext> + Sync + Send,
+    ) -> Result<Ciphertext> {
+        let first = terms[0].0;
+        let (baby, giant, stride, offset) = (first.baby, first.giant, first.stride, first.offset);
+        // xs[t][k2] = rot(x_t, k2 s) for the baby steps that a kept entry of term t uses.
+        let mut xs: Vec<Vec<Option<Ciphertext>>> = Vec::with_capacity(terms.len());
+        for &(diag, x) in terms {
+            let used: Vec<usize> = (0..baby)
+                .filter(|&k2| (0..giant).any(|k1| !skip(&diag.entries[k1 * baby + k2])))
+                .collect();
+            let steps: Vec<i32> = used.iter().map(|&k2| (k2 * stride) as i32).collect();
+            // Step 0 is a copy (no key switch, not counted).
+            let rotated = self.hoisted_rotate(x, &steps)?;
+            let mut row = vec![None; baby];
+            for (k2, ct) in used.into_iter().zip(rotated) {
+                row[k2] = Some(ct);
+            }
+            xs.push(row);
+        }
+        // The giant-step blocks are independent (in parallel with the `parallel` feature,
+        // crate::par); they are summed in their sequential order, so the result is the same.
+        let block = |k1: usize| -> Result<Option<Ciphertext>> {
+            let shift = (offset + (baby * k1) as i64) * stride as i64;
+            if !share_giant && shift != 0 {
+                // Naive: one finish and one giant rotation per product.
+                let mut sum: Option<Ciphertext> = None;
+                for (&(diag, _), xr) in terms.iter().zip(&xs) {
+                    let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
+                    for (w, xk) in row.iter().zip(xr) {
+                        if skip(w) {
+                            continue;
+                        }
+                        let t = finish(mul(w, xk.as_ref().expect("rotated for a kept entry"))?)?;
+                        let t = self.rotate(&t, shift as i32)?;
+                        sum = Some(match sum {
+                            None => t,
+                            Some(s) => self.add(&s, &t)?,
+                        });
+                    }
+                }
+                return Ok(sum);
+            }
+            let mut inner: Option<Ciphertext> = None;
+            for (&(diag, _), xr) in terms.iter().zip(&xs) {
+                let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
+                for (w, xk) in row.iter().zip(xr) {
+                    if skip(w) {
+                        continue;
+                    }
+                    let t = mul(w, xk.as_ref().expect("rotated for a kept entry"))?;
+                    inner = Some(match inner {
+                        None => t,
+                        Some(s) => self.add(&s, &t)?,
+                    });
+                }
+            }
+            let Some(inner) = inner else {
+                return Ok(None);
+            };
+            let mut block = finish(inner)?;
+            if shift != 0 {
+                block = self.rotate(&block, shift as i32)?;
+            }
+            Ok(Some(block))
+        };
+        let mut acc: Option<Ciphertext> = None;
+        for block in crate::par::map_range(giant, block) {
+            let Some(block) = block? else {
+                continue;
+            };
+            acc = Some(match acc {
+                None => block,
+                Some(s) => self.add(&s, &block)?,
+            });
+        }
+        match acc {
+            Some(a) => Ok(a),
+            // Every entry skipped: the zero product, from entry 0 (zero) times x_0.
+            None => mul(&first.entries[0], terms[0].1),
+        }
+    }
+}
+
+/// `true` when every limb of `p` is zero (the encoding of the zero vector).
+fn is_zero_plaintext(p: &Plaintext) -> bool {
+    p.poly().limbs().iter().all(|l| l.iter().all(|&v| v == 0))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::counter::OpCounter;
+    use crate::encrypt::Decryptor;
+    use crate::keys::KeyGenerator;
+    use crate::params::CkksParams;
+    use std::sync::Arc;
+
+    fn rng(seed: u8) -> Rng {
+        Rng::from_seed([seed; 32])
+    }
+
+    /// Uniform values in `[-1, 1)`.
+    fn rand_vals(r: &mut Rng, len: usize) -> Vec<f64> {
+        (0..len)
+            .map(|_| 2.0 * ((r.next_u64() >> 11) as f64 * 2f64.powi(-53)) - 1.0)
+            .collect()
+    }
+
+    fn rand_matrix(r: &mut Rng, d: usize) -> Array2<f64> {
+        Array2::from_shape_vec((d, d), rand_vals(r, d * d)).unwrap()
+    }
+
+    /// `v` rotated left by `s` (slot `j` gets `v[(j + s) mod len]`).
+    fn rot(v: &[f64], s: i64) -> Vec<f64> {
+        let n = v.len() as i64;
+        (0..n).map(|j| v[(j + s).rem_euclid(n) as usize]).collect()
+    }
+
+    /// `b - a` field by field.
+    fn delta(a: &OpCounter, b: &OpCounter) -> OpCounter {
+        OpCounter {
+            rotations: b.rotations - a.rotations,
+            relins: b.relins - a.relins,
+            ct_ct_tensor: b.ct_ct_tensor - a.ct_ct_tensor,
+            ct_pt_mults: b.ct_pt_mults - a.ct_pt_mults,
+            rescales: b.rescales - a.rescales,
+            sse_switches: b.sse_switches - a.sse_switches,
+            bootstraps: b.bootstraps - a.bootstraps,
+        }
+    }
+
+    /// `lanes` vectors of length `d` packed with `stride = lanes`: slot `j * stride + b` (and
+    /// its replicas every `d * stride` slots) holds `xs[b][j]`.
+    fn pack(xs: &[Vec<f64>], slots: usize) -> Vec<f64> {
+        let (stride, d) = (xs.len(), xs[0].len());
+        (0..slots)
+            .map(|t| {
+                let p = t % (d * stride);
+                xs[p % stride][p / stride]
+            })
+            .collect()
+    }
+
+    #[test]
+    fn split_rule() {
+        let cases = [
+            (1, (1, 1)),
+            (2, (2, 1)),
+            (4, (2, 2)),
+            (8, (4, 2)),
+            (16, (4, 4)),
+            (32, (8, 4)),
+            (64, (8, 8)),
+            (128, (16, 8)),
+        ];
+        for (d, split) in cases {
+            assert_eq!(bsgs_split(d), split, "d = {d}");
+            let steps = bsgs_rotation_steps(d, 1);
+            assert_eq!(steps.len(), split.0 + split.1 - 2, "d = {d}");
+        }
+        assert_eq!(bsgs_rotation_steps(16, 1), vec![1, 2, 3, 4, 8, 12]);
+        assert_eq!(
+            bsgs_rotation_steps(32, 1),
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 16, 24]
+        );
+        // Strided: baby k2 * stride, giant g * k1 * stride.
+        assert_eq!(bsgs_rotation_steps(16, 8), vec![8, 16, 24, 32, 64, 96]);
+        assert_eq!(bsgs_rotation_steps(1, 4), Vec::<i32>::new());
+    }
+
+    /// Offset layouts: baby steps as before, giant steps `(offset + g k1) * stride` without
+    /// the zero one.
+    #[test]
+    fn offset_rotation_steps() {
+        assert_eq!(
+            bsgs_rotation_steps_with_offset(16, 1, 0),
+            bsgs_rotation_steps(16, 1)
+        );
+        assert_eq!(
+            bsgs_rotation_steps_with_offset(16, 1, -8),
+            vec![1, 2, 3, -8, -4, 4]
+        );
+        assert_eq!(
+            bsgs_rotation_steps_with_offset(32, 128, -16),
+            vec![128, 256, 384, 512, 640, 768, 896, -2048, -1024, 1024]
+        );
+        // An offset that is not a multiple of the baby step keeps every giant step.
+        assert_eq!(bsgs_rotation_steps_with_offset(4, 2, -1), vec![2, -2, 2]);
+        assert!(std::panic::catch_unwind(|| bsgs_rotation_steps_with_offset(16, 1, 1)).is_err());
+        assert!(std::panic::catch_unwind(|| bsgs_rotation_steps_with_offset(16, 1, -16)).is_err());
+    }
+
+    /// The BSGS identity with an offset, in the clear: `y[t] = sum_i diag_i[t] x[t + (offset
+    /// + i) s]`.
+    #[test]
+    fn bsgs_identity_with_offset_in_the_clear() {
+        let mut r = rng(40);
+        for (d, slots, stride, offset) in [(16, 64, 1, -8), (8, 64, 4, -4), (4, 16, 2, -3)] {
+            let diags: Vec<Vec<f64>> = (0..d).map(|_| rand_vals(&mut r, slots)).collect();
+            let x = rand_vals(&mut r, slots);
+            let (baby, giant, pre) = prerotated(&diags, slots, stride, offset).unwrap();
+            let mut y = vec![0.0; slots];
+            for k1 in 0..giant {
+                let mut inner = vec![0.0; slots];
+                for k2 in 0..baby {
+                    let xk = rot(&x, (k2 * stride) as i64);
+                    for j in 0..slots {
+                        inner[j] += pre[k1 * baby + k2][j] * xk[j];
+                    }
+                }
+                let shift = (offset + (baby * k1) as i64) * stride as i64;
+                for (yj, v) in y.iter_mut().zip(rot(&inner, shift)) {
+                    *yj += v;
+                }
+            }
+            for (t, yt) in y.iter().enumerate() {
+                let want: f64 = (0..d)
+                    .map(|i| {
+                        let src = (t as i64 + (offset + i as i64) * stride as i64)
+                            .rem_euclid(slots as i64) as usize;
+                        diags[i][t] * x[src]
+                    })
+                    .sum();
+                assert!((yt - want).abs() < 1e-12, "d {d} offset {offset} slot {t}");
+            }
+        }
+    }
+
+    /// Complex offset diagonals through `matvec_plain`, and `matvec_plain_sum` of two terms
+    /// in which the zero entries (and the baby rotations only they use) are skipped.
+    #[test]
+    fn offset_and_sum_products() {
+        let (d, offset) = (8usize, -4i64);
+        let steps = bsgs_rotation_steps_with_offset(d, 1, offset);
+        let c = ctx_with(small(), &steps, false, 41);
+        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let mut r = rng(42);
+        let cplx = |r: &mut Rng| -> Vec<Complex64> {
+            let (a, b) = (rand_vals(r, slots), rand_vals(r, slots));
+            a.into_iter()
+                .zip(b)
+                .map(|(x, y)| Complex64::new(x, y))
+                .collect()
+        };
+        let da: Vec<Vec<Complex64>> = (0..d).map(|_| cplx(&mut r)).collect();
+        // Term b: only the even diagonals are nonzero.
+        let db: Vec<Vec<Complex64>> = (0..d)
+            .map(|i| {
+                if i % 2 == 0 {
+                    cplx(&mut r)
+                } else {
+                    vec![Complex64::new(0.0, 0.0); slots]
+                }
+            })
+            .collect();
+        let (xa, xb) = (rand_vals(&mut r, slots), rand_vals(&mut r, slots));
+        let enc_x =
+            |v: &[f64], r: &mut Rng| c.encryptor.encrypt(&c.enc.encode(v, s, top).unwrap(), r);
+        let (ca, cb) = (enc_x(&xa, &mut r), enc_x(&xb, &mut r));
+        let pa = Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, offset, s, top).unwrap();
+        let pb = Diagonals::<Plaintext>::encode_complex(&c.enc, &db, 1, offset, s, top).unwrap();
+        assert_eq!((pa.offset(), pa.rotation_steps()), (offset, steps.clone()));
+        let want = |diags: &[Vec<Complex64>], x: &[f64], t: usize| -> Complex64 {
+            (0..d)
+                .map(|i| {
+                    let src = (t as i64 + offset + i as i64).rem_euclid(slots as i64) as usize;
+                    diags[i][t] * x[src]
+                })
+                .sum()
+        };
+        let before = c.eval.counter();
+        let ya = c.eval.matvec_plain(&pa, &ca).unwrap();
+        let ops = delta(&before, &c.eval.counter());
+        // baby 4, giant 2: 3 baby + 1 giant (shift -4; shift 0 is free).
+        assert_eq!((ops.rotations, ops.ct_pt_mults), (4, 8));
+        let got = c
+            .enc
+            .decode_complex(&c.dec.decrypt(&c.eval.rescale(&ya).unwrap()));
+        let err = (0..slots)
+            .map(|t| (got[t] - want(&da, &xa, t)).norm())
+            .fold(0.0, f64::max);
+        assert!(err < 2f64.powi(-15), "offset matvec_plain {err:e}");
+
+        let before = c.eval.counter();
+        let y = c.eval.matvec_plain_sum(&[(&pa, &ca), (&pb, &cb)]).unwrap();
+        let ops = delta(&before, &c.eval.counter());
+        // Term a: 3 baby rotations, term b: only k2 = 2 (k2 = 0 is a copy); 1 shared giant.
+        assert_eq!((ops.rotations, ops.ct_pt_mults), (3 + 1 + 1, 8 + 4));
+        let got = c
+            .enc
+            .decode_complex(&c.dec.decrypt(&c.eval.rescale(&y).unwrap()));
+        let err = (0..slots)
+            .map(|t| (got[t] - want(&da, &xa, t) - want(&db, &xb, t)).norm())
+            .fold(0.0, f64::max);
+        assert!(err < 2f64.powi(-15), "matvec_plain_sum {err:e}");
+
+        // Mismatched terms fail before any work.
+        let before = c.eval.counter();
+        let p0 = Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, 0, s, top).unwrap();
+        assert!(matches!(
+            c.eval.matvec_plain_sum(&[(&pa, &ca), (&p0, &cb)]),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let p2 =
+            Diagonals::<Plaintext>::encode_complex(&c.enc, &db, 1, offset, 2.0 * s, top).unwrap();
+        assert_eq!(
+            c.eval
+                .matvec_plain_sum(&[(&pa, &ca), (&p2, &cb)])
+                .unwrap_err(),
+            HekitError::ScaleMismatch
+        );
+        assert!(matches!(
+            c.eval.matvec_plain_sum(&[]),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert!(matches!(
+            Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, 1, s, top),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert_eq!(c.eval.counter(), before);
+    }
+
+    #[test]
+    #[should_panic(expected = "stride")]
+    fn zero_stride_panics() {
+        bsgs_rotation_steps(16, 0);
+    }
+
+    #[test]
+    fn diagonal_layout() {
+        let w = Array2::from_shape_fn((4, 4), |(r, c)| (10 * r + c) as f64);
+        let diags = diagonals_from_matrix(&w, 8, 1);
+        assert_eq!(diags.len(), 4);
+        // Diagonal 1: w[0][1], w[1][2], w[2][3], w[3][0], repeated twice.
+        assert_eq!(diags[1], vec![1.0, 12.0, 23.0, 30.0, 1.0, 12.0, 23.0, 30.0]);
+        assert_eq!(diags[0], vec![0.0, 11.0, 22.0, 33.0, 0.0, 11.0, 22.0, 33.0]);
+        // Stride 2: slot j * 2 + b holds w[j][(j + i) mod 4] for both lanes b, and the block
+        // of d * stride = 8 slots repeats.
+        let diags = diagonals_from_matrix(&w, 16, 2);
+        let d1 = [1.0, 1.0, 12.0, 12.0, 23.0, 23.0, 30.0, 30.0];
+        assert_eq!(diags[1], [d1, d1].concat());
+    }
+
+    #[test]
+    #[should_panic(expected = "square")]
+    fn non_square_matrix_panics() {
+        diagonals_from_matrix(&Array2::zeros((4, 8)), 16, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "must divide the slot count")]
+    fn stride_must_fit_slots() {
+        diagonals_from_matrix(&Array2::zeros((4, 4)), 16, 8);
+    }
+
+    /// The BSGS identity in the clear: pre-rotated (strided) diagonals give `W x_b` in every
+    /// lane `b` of the packed `x`.
+    #[test]
+    fn bsgs_identity_in_the_clear() {
+        let mut r = rng(1);
+        for (d, slots, stride) in [
+            (4, 16, 1),
+            (16, 64, 1),
+            (32, 64, 1),
+            (64, 64, 1),
+            (4, 16, 4),
+            (16, 256, 8),
+            (16, 128, 8),
+            (8, 128, 2),
+        ] {
+            let w = rand_matrix(&mut r, d);
+            let xs: Vec<Vec<f64>> = (0..stride).map(|_| rand_vals(&mut r, d)).collect();
+            let xr = pack(&xs, slots);
+            let diags = diagonals_from_matrix(&w, slots, stride);
+            let (baby, giant, pre) = prerotated(&diags, slots, stride, 0).unwrap();
+            let mut y = vec![0.0; slots];
+            for k1 in 0..giant {
+                let mut inner = vec![0.0; slots];
+                for k2 in 0..baby {
+                    let xk = rot(&xr, (k2 * stride) as i64);
+                    for j in 0..slots {
+                        inner[j] += pre[k1 * baby + k2][j] * xk[j];
+                    }
+                }
+                for (yj, v) in y.iter_mut().zip(rot(&inner, (baby * k1 * stride) as i64)) {
+                    *yj += v;
+                }
+            }
+            for (t, yt) in y.iter().enumerate() {
+                let p = t % (d * stride);
+                let (j, b) = (p / stride, p % stride);
+                let want: f64 = (0..d).map(|c| w[[j, c]] * xs[b][c]).sum();
+                assert!((yt - want).abs() < 1e-12, "d {d} stride {stride} slot {t}");
+            }
+        }
+    }
+
+    struct Ctx {
+        params: Arc<CkksParams>,
+        enc: Encoder,
+        encryptor: Encryptor,
+        dec: Decryptor,
+        eval: Evaluator,
+    }
+
+    /// A context with Galois keys for exactly `steps` (and a relinearization key if `relin`).
+    fn ctx_with(params: CkksParams, steps: &[i32], relin: bool, seed: u8) -> Ctx {
+        let params = Arc::new(params);
+        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(seed)).unwrap();
+        let pk = kg.public_key();
+        let rk = kg.relin_key();
+        let gks = kg.galois_keys(steps);
+        Ctx {
+            enc: Encoder::new(Arc::clone(&params)),
+            encryptor: Encryptor::new(Arc::clone(&params), pk),
+            dec: Decryptor::new(Arc::clone(&params), kg.secret_key()),
+            eval: Evaluator::new(Arc::clone(&params), relin.then_some(rk), Some(gks)),
+            params,
+        }
+    }
+
+    /// A context with Galois keys for exactly [`bsgs_rotation_steps`]`(d, stride)`.
+    fn ctx(params: CkksParams, d: usize, stride: usize, seed: u8) -> Ctx {
+        let steps = bsgs_rotation_steps(d, stride);
+        let c = ctx_with(params, &steps, true, seed);
+        assert_eq!(c.eval.galois_keys().unwrap().len(), steps.len());
+        c
+    }
+
+    fn small() -> CkksParams {
+        CkksParams::new(12, &[60, 40, 40, 40], &[60], 40, 4).unwrap()
+    }
+
+    /// Max error of slot `t` against `want[b][j]` (`t mod (d stride) = j stride + b`).
+    fn max_err_lanes(got: &[f64], want: &[Vec<f64>]) -> f64 {
+        let (stride, d) = (want.len(), want[0].len());
+        got.iter()
+            .enumerate()
+            .map(|(t, g)| {
+                let p = t % (d * stride);
+                (g - want[p % stride][p / stride]).abs()
+            })
+            .fold(0.0, f64::max)
+    }
+
+    /// seal_2020, random `W` (d x d) and `stride` lanes `x_b` in [-1, 1): both products
+    /// decode to `W x_b` in every lane (after one rescale) within 2^-15 in every slot, with
+    /// the documented op counts.
+    fn check_matvec(d: usize, stride: usize, seed: u8) {
+        let c = ctx(CkksParams::seal_2020(), d, stride, seed);
+        let (slots, top, delta_s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let (baby, giant) = bsgs_split(d);
+        let mut r = rng(seed.wrapping_add(100));
+        let w = rand_matrix(&mut r, d);
+        let xs: Vec<Vec<f64>> = (0..stride).map(|_| rand_vals(&mut r, d)).collect();
+        let want: Vec<Vec<f64>> = xs
+            .iter()
+            .map(|x| {
+                (0..d)
+                    .map(|i| (0..d).map(|j| w[[i, j]] * x[j]).sum())
+                    .collect()
+            })
+            .collect();
+        let diags = diagonals_from_matrix(&w, slots, stride);
+        let ct_x = c.encryptor.encrypt(
+            &c.enc.encode(&pack(&xs, slots), delta_s, top).unwrap(),
+            &mut r,
+        );
+        let e = &c.eval;
+
+        let pdiag = Diagonals::<Plaintext>::encode(&c.enc, &diags, stride, delta_s, top).unwrap();
+        assert_eq!(
+            (pdiag.d(), pdiag.baby(), pdiag.giant(), pdiag.stride()),
+            (d, baby, giant, stride)
+        );
+        assert_eq!(pdiag.entries().len(), d);
+        assert_eq!(pdiag.rotation_steps(), bsgs_rotation_steps(d, stride));
+        let before = e.counter();
+        let y = e.matvec_plain(&pdiag, &ct_x).unwrap();
+        let ops = delta(&before, &e.counter());
+        assert_eq!(ops.relins, 0, "plain relins");
+        assert_eq!(ops.rotations, (baby + giant - 2) as u64, "plain rotations");
+        assert_eq!((ops.ct_pt_mults, ops.ct_ct_tensor), (d as u64, 0));
+        assert_eq!((y.len(), y.level(), y.scale()), (2, top, delta_s * delta_s));
+        let got = c.enc.decode(&c.dec.decrypt(&e.rescale(&y).unwrap()));
+        let err = max_err_lanes(&got, &want);
+        eprintln!(
+            "d = {d}, stride {stride}: matvec_plain error 2^{:.2}, {ops:?}",
+            err.log2()
+        );
+        assert!(err < 2f64.powi(-15), "plain d = {d}: {err:e}");
+
+        let cdiag = Diagonals::<Ciphertext>::encrypt(
+            &c.enc,
+            &c.encryptor,
+            &diags,
+            stride,
+            delta_s,
+            top,
+            &mut r,
+        )
+        .unwrap();
+        let before = e.counter();
+        let y = e.matvec_enc(&cdiag, &ct_x).unwrap();
+        let ops = delta(&before, &e.counter());
+        assert_eq!(ops.relins, giant as u64, "enc relins");
+        assert_eq!(ops.rotations, (baby + giant - 2) as u64, "enc rotations");
+        assert_eq!((ops.ct_ct_tensor, ops.ct_pt_mults), (d as u64, 0));
+        assert_eq!((y.len(), y.level(), y.scale()), (2, top, delta_s * delta_s));
+        let got = c.enc.decode(&c.dec.decrypt(&e.rescale(&y).unwrap()));
+        let err = max_err_lanes(&got, &want);
+        eprintln!(
+            "d = {d}, stride {stride}: matvec_enc error 2^{:.2}, {ops:?}",
+            err.log2()
+        );
+        assert!(err < 2f64.powi(-15), "enc d = {d}: {err:e}");
+    }
+
+    #[test]
+    fn matvec_d16() {
+        check_matvec(16, 1, 19);
+    }
+
+    /// The limbs of every component (bit-exact comparison).
+    fn bits(c: &Ciphertext) -> Vec<Vec<Vec<u64>>> {
+        c.polys().iter().map(|p| p.limbs().to_vec()).collect()
+    }
+
+    /// Task 43: the RQ3 ablation flags on `matvec_enc` / `matvec_plain` (d = 16, baby =
+    /// giant = 4). Every one of the 8 configurations decodes within 2^-20 of the default; all
+    /// off costs `d - 1` rotations and `d` relins; the counts of every combination follow
+    /// the documented rule; hoisting changes nothing but the cost (bit-identical results).
+    #[test]
+    fn ablation_flags_matvec_d16() {
+        use crate::ops::EvalConfig;
+        let d = 16;
+        let c = ctx(small(), d, 1, 23);
+        let (slots, top, delta_s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let (baby, giant) = bsgs_split(d);
+        let mut r = rng(124);
+        let w = rand_matrix(&mut r, d);
+        let x = rand_vals(&mut r, d);
+        let diags = diagonals_from_matrix(&w, slots, 1);
+        let ct_x = c.encryptor.encrypt(
+            &c.enc.encode(&pack(&[x], slots), delta_s, top).unwrap(),
+            &mut r,
+        );
+        let cdiag =
+            Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, delta_s, top, &mut r)
+                .unwrap();
+        let pdiag = Diagonals::<Plaintext>::encode(&c.enc, &diags, 1, delta_s, top).unwrap();
+        let run = |cfg: EvalConfig| {
+            let e = Evaluator::with_config(
+                Arc::clone(&c.params),
+                c.eval.relin_key().cloned(),
+                c.eval.galois_keys().cloned(),
+                cfg,
+            );
+            let ye = e.matvec_enc(&cdiag, &ct_x).unwrap();
+            let enc_ops = e.counter();
+            e.reset_counter();
+            let yp = e.matvec_plain(&pdiag, &ct_x).unwrap();
+            let plain_ops = e.counter();
+            assert_eq!(
+                (ye.len(), ye.level(), ye.scale()),
+                (2, top, delta_s * delta_s)
+            );
+            assert_eq!(yp.scale(), delta_s * delta_s);
+            let dec = |y: &Ciphertext| c.enc.decode(&c.dec.decrypt(&e.rescale(y).unwrap()));
+            (dec(&ye), dec(&yp), enc_ops, plain_ops)
+        };
+        let (ref_e, ref_p, _, _) = run(EvalConfig::default());
+        for cfg in EvalConfig::all() {
+            let (ge, gp, oe, op) = run(cfg);
+            let err_e = ge
+                .iter()
+                .zip(&ref_e)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            let err_p = gp
+                .iter()
+                .zip(&ref_p)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            eprintln!(
+                "{cfg:?}: enc {oe:?} (vs default 2^{:.1}), plain rotations {} (2^{:.1})",
+                err_e.log2(),
+                op.rotations,
+                err_p.log2()
+            );
+            assert!(err_e < 2f64.powi(-20), "{cfg:?} enc {err_e:e}");
+            assert!(err_p < 2f64.powi(-20), "{cfg:?} plain {err_p:e}");
+            let rot = if cfg.bsgs { baby + giant - 2 } else { d - 1 } as u64;
+            let relins = match (cfg.bsgs, cfg.lazy_relin) {
+                (_, false) => d,
+                (true, true) => giant,
+                (false, true) => 1 + d - baby,
+            } as u64;
+            assert_eq!(
+                (oe.rotations, oe.relins, oe.ct_ct_tensor),
+                (rot, relins, d as u64)
+            );
+            assert_eq!(
+                (op.rotations, op.relins, op.ct_pt_mults),
+                (rot, 0, d as u64)
+            );
+            assert_eq!(
+                (cfg.matvec_rotations(d), cfg.matvec_enc_relins(d)),
+                (rot, relins)
+            );
+        }
+        // The brief's case: all off.
+        let (_, _, oe, _) = run(EvalConfig::NAIVE);
+        assert_eq!((oe.rotations, oe.relins), (d as u64 - 1, d as u64));
+
+        // hoist only: bit-identical to the default (the hoisted rotation is exact).
+        let no_hoist = EvalConfig {
+            hoist: false,
+            ..EvalConfig::default()
+        };
+        let e0 = &c.eval;
+        let e1 = Evaluator::with_config(
+            Arc::clone(&c.params),
+            c.eval.relin_key().cloned(),
+            c.eval.galois_keys().cloned(),
+            no_hoist,
+        );
+        let a = e0.matvec_enc(&cdiag, &ct_x).unwrap();
+        let b = e1.matvec_enc(&cdiag, &ct_x).unwrap();
+        assert_eq!(bits(&a), bits(&b));
+        let steps = bsgs_rotation_steps(d, 1);
+        let h0 = e0.hoisted_rotate(&ct_x, &steps).unwrap();
+        let before = e1.counter();
+        let h1 = e1.hoisted_rotate(&ct_x, &steps).unwrap();
+        assert_eq!(delta(&before, &e1.counter()).rotations, steps.len() as u64);
+        for (p, q) in h0.iter().zip(&h1) {
+            assert_eq!(bits(p), bits(q));
+        }
+        // A missing key fails before any work in the naive path too.
+        let before = e1.counter();
+        assert!(e1.hoisted_rotate(&ct_x, &[1, 5]).is_err());
+        assert_eq!(e1.counter(), before);
+    }
+
+    /// d = 32: baby 8, giant 4 (not a square split).
+    #[test]
+    fn matvec_d32() {
+        check_matvec(32, 1, 20);
+    }
+
+    #[test]
+    fn matvec_d64() {
+        check_matvec(64, 1, 21);
+    }
+
+    /// M2's feature-major layout (`slot(j, b) = j * batch + b`): d = 16, 8 batch lanes, each
+    /// lane against the plaintext `W x_b`.
+    #[test]
+    fn matvec_d16_stride8() {
+        check_matvec(16, 8, 24);
+    }
+
+    #[test]
+    fn matvec_errors() {
+        let c = ctx(small(), 4, 1, 22);
+        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let mut r = rng(23);
+        let three = vec![vec![0.0; slots]; 3];
+        assert!(matches!(
+            Diagonals::<Plaintext>::encode(&c.enc, &three, 1, s, top),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let short = vec![vec![0.0; slots - 1]; 4];
+        assert!(matches!(
+            Diagonals::<Plaintext>::encode(&c.enc, &short, 1, s, top),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let four = vec![vec![0.0; slots]; 4];
+        for stride in [0, 3, slots] {
+            assert!(
+                matches!(
+                    Diagonals::<Plaintext>::encode(&c.enc, &four, stride, s, top),
+                    Err(HekitError::InvalidParams(_))
+                ),
+                "stride {stride}"
+            );
+        }
+        let diags = diagonals_from_matrix(&rand_matrix(&mut r, 4), slots, 1);
+        let x = c.encryptor.encrypt(
+            &c.enc.encode(&rand_vals(&mut r, slots), s, top).unwrap(),
+            &mut r,
+        );
+        let low = Diagonals::<Plaintext>::encode(&c.enc, &diags, 1, s, top - 1).unwrap();
+        assert_eq!(
+            c.eval.matvec_plain(&low, &x).unwrap_err(),
+            HekitError::LevelMismatch
+        );
+        let low =
+            Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, s, top - 1, &mut r)
+                .unwrap();
+        assert_eq!(
+            c.eval.matvec_enc(&low, &x).unwrap_err(),
+            HekitError::LevelMismatch
+        );
+        // d = 8 needs keys for steps 1, 2, 3 (baby 4 > 2) and 4: step 3 is missing here.
+        let d8 = diagonals_from_matrix(&rand_matrix(&mut r, 8), slots, 1);
+        let p8 = Diagonals::<Plaintext>::encode(&c.enc, &d8, 1, s, top).unwrap();
+        assert_eq!(
+            c.eval.matvec_plain(&p8, &x).unwrap_err(),
+            HekitError::InvalidParams("missing galois key".into())
+        );
+    }
+
+    /// m1: every key is checked before any work, so a failing product counts nothing.
+    #[test]
+    fn missing_keys_fail_before_any_work() {
+        let d = 16;
+        let steps = bsgs_rotation_steps(d, 1);
+        // All baby keys (1, 2, 3) and giant step 4, but not giant steps 8 and 12.
+        let c = ctx_with(small(), &steps[..4], true, 25);
+        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let mut r = rng(26);
+        let diags = diagonals_from_matrix(&rand_matrix(&mut r, d), slots, 1);
+        let x = c.encryptor.encrypt(
+            &c.enc.encode(&rand_vals(&mut r, slots), s, top).unwrap(),
+            &mut r,
+        );
+        let p = Diagonals::<Plaintext>::encode(&c.enc, &diags, 1, s, top).unwrap();
+        let ce = Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, s, top, &mut r)
+            .unwrap();
+        let before = c.eval.counter();
+        assert_eq!(
+            c.eval.matvec_plain(&p, &x).unwrap_err(),
+            HekitError::InvalidParams("missing galois key".into())
+        );
+        assert_eq!(
+            c.eval.matvec_enc(&ce, &x).unwrap_err(),
+            HekitError::InvalidParams("missing galois key".into())
+        );
+        assert_eq!(c.eval.counter(), before, "a failed matvec counts nothing");
+
+        // A missing relinearization key fails matvec_enc up front too.
+        let c = ctx_with(small(), &steps, false, 27);
+        let x = c.encryptor.encrypt(
+            &c.enc.encode(&rand_vals(&mut r, slots), s, top).unwrap(),
+            &mut r,
+        );
+        let ce = Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, s, top, &mut r)
+            .unwrap();
+        assert!(matches!(
+            c.eval.matvec_enc(&ce, &x),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert_eq!(c.eval.counter(), OpCounter::default());
+    }
+
+    /// I1: `from_prerotated` validates count, stride, levels and scales; `into_entries` /
+    /// `from_prerotated` round-trips; `entries_mut` changes are re-validated at use.
+    #[test]
+    fn from_prerotated_validates_and_round_trips() {
+        let d = 4;
+        let c = ctx(small(), d, 2, 28);
+        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let mut r = rng(29);
+        let w = rand_matrix(&mut r, d);
+        let diags = diagonals_from_matrix(&w, slots, 2);
+        let p = Diagonals::<Plaintext>::encode(&c.enc, &diags, 2, s, top).unwrap();
+        let xs: Vec<Vec<f64>> = (0..2).map(|_| rand_vals(&mut r, d)).collect();
+        let x = c
+            .encryptor
+            .encrypt(&c.enc.encode(&pack(&xs, slots), s, top).unwrap(), &mut r);
+        let want = c
+            .enc
+            .decode(&c.dec.decrypt(&c.eval.matvec_plain(&p, &x).unwrap()));
+
+        let entries = p.clone().into_entries();
+        assert_eq!(entries.len(), d);
+        // Wrong count, bad d, bad strides.
+        assert!(matches!(
+            Diagonals::from_prerotated(d, 2, entries[..3].to_vec()),
+            Err(HekitError::InvalidParams(_))
+        ));
+        assert!(matches!(
+            Diagonals::from_prerotated(3, 2, entries[..3].to_vec()),
+            Err(HekitError::InvalidParams(_))
+        ));
+        for stride in [0, 3, slots / 2] {
+            assert!(
+                matches!(
+                    Diagonals::from_prerotated(d, stride, entries.clone()),
+                    Err(HekitError::InvalidParams(_))
+                ),
+                "stride {stride}"
+            );
+        }
+        // Mixed levels and scales.
+        let mut mixed = entries.clone();
+        mixed[3] = c.enc.encode(&diags[3], s, top - 1).unwrap();
+        assert_eq!(
+            Diagonals::from_prerotated(d, 2, mixed).unwrap_err(),
+            HekitError::LevelMismatch
+        );
+        let mut mixed = entries.clone();
+        mixed[1] = c.enc.encode(&diags[1], s * 2.0, top).unwrap();
+        assert_eq!(
+            Diagonals::from_prerotated(d, 2, mixed).unwrap_err(),
+            HekitError::ScaleMismatch
+        );
+        // Round trip: same product.
+        let back = Diagonals::from_prerotated(d, 2, entries).unwrap();
+        assert_eq!(
+            (back.d(), back.baby(), back.giant(), back.stride()),
+            (4, 2, 2, 2)
+        );
+        let got = c
+            .enc
+            .decode(&c.dec.decrypt(&c.eval.matvec_plain(&back, &x).unwrap()));
+        assert_eq!(got, want);
+
+        // entries_mut can break the invariants; the product re-checks them.
+        let mut broken = back.clone();
+        broken.entries_mut()[2] = c.enc.encode(&diags[2], s * 2.0, top).unwrap();
+        assert_eq!(
+            c.eval.matvec_plain(&broken, &x).unwrap_err(),
+            HekitError::ScaleMismatch
+        );
+        let mut broken = back;
+        broken.entries_mut()[0] = c.enc.encode(&diags[0], s, top - 1).unwrap();
+        assert_eq!(
+            c.eval.matvec_plain(&broken, &x).unwrap_err(),
+            HekitError::LevelMismatch
+        );
+    }
+
+    /// I1: `try_map` keeps the shape (e.g. decrypting the diagonals gives the pre-rotated
+    /// values) and propagates errors; `mod_switch_to_level` gives diagonals that multiply a
+    /// lower-level `x`.
+    #[test]
+    fn try_map_and_mod_switch() {
+        let d = 8;
+        let c = ctx(small(), d, 1, 30);
+        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
+        let mut r = rng(31);
+        let w = rand_matrix(&mut r, d);
+        let diags = diagonals_from_matrix(&w, slots, 1);
+        let ce = Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, s, top, &mut r)
+            .unwrap();
+        let (_, _, pre) = prerotated(&diags, slots, 1, 0).unwrap();
+        let dec: Diagonals<Vec<f64>> = ce
+            .try_map(|ct| Ok(c.enc.decode(&c.dec.decrypt(ct))))
+            .unwrap();
+        assert_eq!(
+            (dec.d(), dec.baby(), dec.giant(), dec.stride()),
+            (8, 4, 2, 1)
+        );
+        for (got, want) in dec.entries().iter().zip(&pre) {
+            let err = got
+                .iter()
+                .zip(want)
+                .map(|(a, b)| (a - b).abs())
+                .fold(0.0, f64::max);
+            assert!(err < 2f64.powi(-20), "decrypted diagonal error {err:e}");
+        }
+        let failed: Result<Diagonals<()>> = ce.try_map(|_| Err(HekitError::NoLevelsLeft));
+        assert_eq!(failed.unwrap_err(), HekitError::NoLevelsLeft);
+
+        // Down to level 1, then the product with a level-1 x.
+        let low = ce.mod_switch_to_level(&c.eval, 1).unwrap();
+        assert!(low.entries().iter().all(|e| e.level() == 1));
+        assert!(matches!(
+            ce.mod_switch_to_level(&c.eval, top + 1),
+            Err(HekitError::InvalidParams(_))
+        ));
+        let x = rand_vals(&mut r, d);
+        let xr: Vec<f64> = (0..slots).map(|j| x[j % d]).collect();
+        let ct_x = c
+            .encryptor
+            .encrypt(&c.enc.encode(&xr, s, 1).unwrap(), &mut r);
+        let y = c.eval.matvec_enc(&low, &ct_x).unwrap();
+        assert_eq!(y.level(), 1);
+        let got = c.enc.decode(&c.dec.decrypt(&c.eval.rescale(&y).unwrap()));
+        let want: Vec<f64> = (0..d)
+            .map(|i| (0..d).map(|j| w[[i, j]] * x[j]).sum())
+            .collect();
+        let err = got
+            .iter()
+            .enumerate()
+            .map(|(j, g)| (g - want[j % d]).abs())
+            .fold(0.0, f64::max);
+        assert!(err < 2f64.powi(-15), "level-1 matvec_enc error {err:e}");
+    }
+}

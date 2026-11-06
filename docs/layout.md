@@ -1,8 +1,8 @@
 # Slot layout for encrypted MLP training (M2, Task 25)
 
 This document fixes the slot layout, the formulas of every layout operation, their costs, and the
-level budget of one training iteration. `crates/hekit-nn/src/layout.rs` (packing, transpose plan)
-and `crates/hekit-nn/src/sim.rs` (plaintext slot simulator) implement exactly these formulas. The
+level budget of one training iteration. `crates/ckks-train-nn/src/layout.rs` (packing, transpose plan)
+and `crates/ckks-train-nn/src/sim.rs` (plaintext slot simulator) implement exactly these formulas. The
 encrypted code of Tasks 26–30 must run the same op sequence as the `sim_*` functions, so its
 `OpCounter` can be asserted equal to the simulator's `SimCounter`.
 
@@ -344,7 +344,7 @@ is rewritten with the scaled velocity `U = lr(1+mu)V`:
 - `U' = mu U + h`;
 - `W' = W - h - (mu²/(1+mu)) U`.
 
-**Weight decay is deferred.** The implemented optimizers (`hekit_nn::optim`, Task 28) have no
+**Weight decay is deferred.** The implemented optimizers (`ckks_train_nn::optim`, Task 28) have no
 `decay` term: `Sgd` and `Nag` use `g = G/n` only (as if `decay = 0`). The `lr(1+mu) decay * W`
 term above is a `mul_scalar` on the fresh `W` (one level off the critical path, no new keys), so
 it fits the same budget when added. Neither the 2020 paper (Iris, SGD) nor Task 31 needs it;
@@ -410,7 +410,7 @@ number of ciphertexts that hold the weights. The `m` diagonals of §2 are each r
 the `L`-periodic feature index. One copy of each is enough. The compact form puts
 `cap = S / L` diagonals into one ciphertext, so a layer needs `ceil(m / cap)` bootstraps
 instead of `m`. This is premise 1 of the M0 cost model (`spikes/costmodel/costmodel.py`,
-`_diag_batched`, `compact=True`). `crates/hekit-nn/src/compact.rs` implements this section.
+`_diag_batched`, `compact=True`). `crates/ckks-train-nn/src/compact.rs` implements this section.
 
 ### 6.1 Plan and offsets
 
@@ -529,7 +529,7 @@ first row on the real n16_boot preset.
 
 ## 7. Non-interactive training (M3, Task 41)
 
-`crates/hekit-nn/src/trainer_ni.rs` (`NonInteractiveTrainer`) trains with no client in the
+`crates/ckks-train-nn/src/trainer_ni.rs` (`NonInteractiveTrainer`) trains with no client in the
 loop: every level is restored by bootstrapping (`docs/bootstrap.md` §11). The trainer holds an
 `Evaluator` (relinearization and Galois keys) and a `Bootstrapper` (its evaluation keys), and no
 `Decryptor`: the type has no field that can hold a secret key, and its tests build the
@@ -701,7 +701,7 @@ levels per update" (mask and unpack) over the 6 of the mask-free interactive ste
 
 `predict_update_for` is the closed form of one update, op for op the trainer's (the tests assert
 the measured counter equal to it, bootstraps included, on every update). Against
-`network_cost("diag_batched", …, compact=True)` (ported in `crates/hekit-bench/src/bin/mnist.rs`,
+`network_cost("diag_batched", …, compact=True)` (ported in `crates/ckks-train-bench/src/bin/mnist.rs`,
 `cost_model_ni`, and checked against the spike's numbers), with Task 32's terms where they apply:
 
 | eMLP-1, n16_boot, `AfterUpdate`, Reuse transpose | B = 32 (k = 1) | B = 64 (k = 2) | B = 48 (formula only, k = 2) |

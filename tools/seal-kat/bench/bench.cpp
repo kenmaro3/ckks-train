@@ -1,5 +1,5 @@
 // Operation micro-benchmark of Microsoft SEAL 4.1.2 (MIT), the SEAL side of hekit's
-// crates/hekit-bench/benches/ckks_ops.rs (M1 gate, Task 24). Single thread (SEAL has no
+// crates/ckks-train-bench/benches/ckks_ops.rs (M1 gate, Task 24). Single thread (SEAL has no
 // internal threading).
 //
 //   seal_ops_bench <preset> [reps]     preset: seal_2020 | n16   (reps default 10)

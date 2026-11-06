@@ -5,23 +5,23 @@ with RNS-CKKS. It extends the 2020 work of Mihara et al. (arXiv:2012.13552), whi
 MLP under CKKS with a client refreshing the ciphertexts, to training without the client, using
 bootstrapping, and adds a CUDA backend.
 
-The crates still carry the working name `hekit-*`; `scripts/rename.sh` renames them to
-`ckks-train-*` (see [docs/release.md](docs/release.md)).
+The workspace crates use the `ckks-train-*` names. Historical measurements retain the
+`hekit-*` names they were produced with; see [docs/release.md](docs/release.md).
 
 ## Overview
 
-- **RNS-CKKS** (`hekit-core`, `hekit-ckks`): RNS/NTT arithmetic, encoding bit-exact with
+- **RNS-CKKS** (`ckks-train-core`, `ckks-train-ckks`): RNS/NTT arithmetic, encoding bit-exact with
   Microsoft SEAL 4.1.2, hybrid key switching, hoisted rotations, baby-step giant-step (BSGS)
   matrix-vector products, exact-scale arithmetic and an operation counter that counts every
   key switch.
-- **Bootstrapping with sparse-secret encapsulation (SSE)** (`hekit-ckks::bootstrap`): the
+- **Bootstrapping with sparse-secret encapsulation (SSE)** (`ckks-train-ckks::bootstrap`): the
   ciphertext is switched to a sparse ephemeral key (h' = 32) before ModRaise, then
   CoeffToSlot, a Chebyshev EvalMod and SlotToCoeff. On the `n16_boot` preset (N = 2^16) one
   bootstrap gives 17.46 bits of precision with 111 key switches and leaves 16 levels.
-- **CUDA backend** (`hekit-cuda`, feature `cuda`): batched NTT, base conversion, key switching
-  and the full evaluator on the GPU, bit-exact with the CPU code. The `hekit-nn` trainers run
+- **CUDA backend** (`ckks-train-cuda`, feature `cuda`): batched NTT, base conversion, key switching
+  and the full evaluator on the GPU, bit-exact with the CPU code. The `ckks-train-nn` trainers run
   on it unchanged through the `HeOps` trait.
-- **Encrypted MLP training** (`hekit-nn`), in two modes:
+- **Encrypted MLP training** (`ckks-train-nn`), in two modes:
   - *interactive* (`Trainer`): the key owner refreshes the ciphertexts after each update, as
     in the 2020 work;
   - *non-interactive* (`NonInteractiveTrainer`): the server trains alone, restoring levels by
@@ -40,8 +40,8 @@ Architecture: [docs/architecture.md](docs/architecture.md). Changes:
 
 ## Build
 
-Requirements: Rust **1.85.1** (pinned by `rust-toolchain.toml`; rustup installs it
-automatically), edition 2024. No C/C++ toolchain is needed.
+Requirements: Rust **1.85** (tested with 1.85.1; `rust-toolchain.toml` selects the
+1.85 toolchain through rustup), edition 2024. No C/C++ toolchain is needed.
 
 ```sh
 cargo build --release --workspace
@@ -51,13 +51,13 @@ cargo test --workspace -- --ignored   # the heavy N = 2^16 bootstrapping tests (
 
 Optional features:
 
-- `parallel` (`hekit-ckks`, `hekit-bench`): rayon data parallelism. Results are bit-identical
+- `parallel` (`ckks-train-ckks`, `ckks-train-bench`): rayon data parallelism. Results are bit-identical
   with and without it. The thread count is rayon's (`RAYON_NUM_THREADS`).
-- `cuda` (`hekit-cuda`, `hekit-bench`): the GPU backend.
+- `cuda` (`ckks-train-cuda`, `ckks-train-bench`): the GPU backend.
 
 ```sh
-cargo build --release -p hekit-cuda --features cuda
-cargo test -p hekit-cuda --features cuda --release -- --ignored   # needs a GPU
+cargo build --release -p ckks-train-cuda --features cuda
+cargo test -p ckks-train-cuda --features cuda --release -- --ignored   # needs a GPU
 ```
 
 `cudarc` loads `libcuda` and `libnvrtc` at run time, so the `cuda` feature builds on machines
@@ -116,7 +116,7 @@ The 2020 work it extends is arXiv:2012.13552 (Mihara et al.).
 MIT; see [LICENSE](LICENSE). Third-party notices are in
 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES):
 
-- **Microsoft SEAL 4.1.2 (MIT).** Parts of the CKKS encoder (`hekit-ckks`: the DWT, the root
+- **Microsoft SEAL 4.1.2 (MIT).** Parts of the CKKS encoder (`ckks-train-ckks`: the DWT, the root
   table, the slot index map) are ported from SEAL; other parts reproduce SEAL's formulas and
   serialization format for interoperability. SEAL's copyright and permission notice is
   reproduced in `THIRD_PARTY_NOTICES`. No SEAL source is vendored.
@@ -139,16 +139,16 @@ encryption parameters) are used as data.
 ### Data
 
 - **Iris** (R. A. Fisher, 1936): UCI Machine Learning Repository, doi:10.24432/C56C76,
-  CC BY 4.0. `crates/hekit-bench/data/iris.csv` is the copy bundled with scikit-learn.
+  CC BY 4.0. `crates/ckks-train-bench/data/iris.csv` is the copy bundled with scikit-learn.
 - **Breast Cancer Wisconsin (Diagnostic), WDBC** (W. H. Wolberg, W. N. Street,
   O. L. Mangasarian): UCI Machine Learning Repository, doi:10.24432/C5DW2B, CC BY 4.0.
-  Distributed unmodified as `crates/hekit-bench/data/breast_cancer.csv`.
+  Distributed unmodified as `crates/ckks-train-bench/data/breast_cancer.csv`.
 - **MNIST** (Y. LeCun, C. Cortes, C. J. C. Burges): not distributed;
   `scripts/fetch_mnist.sh` downloads it.
 - **Fashion-MNIST** (H. Xiao, K. Rasul, R. Vollgraf; Zalando SE, MIT): not distributed;
   `scripts/fetch_fashion_mnist.sh` downloads it.
 
-Sources and checksums are in `crates/hekit-bench/data/README.md`.
+Sources and checksums are in `crates/ckks-train-bench/data/README.md`.
 
 ## Status
 

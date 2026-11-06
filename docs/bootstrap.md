@@ -293,7 +293,7 @@ n16_boot is kept unchanged, with no EvalMod prime trimmed.
 
 ## 9. CoeffToSlot and SlotToCoeff (Task 36)
 
-`crates/hekit-ckks/src/bootstrap/linear.rs` implements both transforms. Its tests check them on `CkksParams::test_tiny()` (N = 2^5, log_slots 4, insecure, tests only). They count the n16_boot layouts and keys without generating any key.
+`crates/ckks-train-ckks/src/bootstrap/linear.rs` implements both transforms. Its tests check them on `CkksParams::test_tiny()` (N = 2^5, log_slots 4, insecure, tests only). They count the n16_boot layouts and keys without generating any key.
 
 ### 9.1 The special DFT in SEAL's slot order
 
@@ -386,7 +386,7 @@ In the identity test, StC starts from the CtS output scale 2^58 rather than from
 
 ## 10. ModRaise, SSE, Chebyshev evaluation and EvalMod (Task 37)
 
-The code is in `crates/hekit-ckks/src/bootstrap/`: `modraise.rs`, `poly.rs` and `evalmod.rs`, plus `RnsPoly::raise_from_level0` in hekit-core and `KeyGenerator::sse_keys` / `SseKeys` in `keys.rs`.
+The code is in `crates/ckks-train-ckks/src/bootstrap/`: `modraise.rs`, `poly.rs` and `evalmod.rs`, plus `RnsPoly::raise_from_level0` in ckks-train-core and `KeyGenerator::sse_keys` / `SseKeys` in `keys.rs`.
 
 ### 10.1 Level-optimal, scale-invariant Chebyshev evaluation
 
@@ -503,7 +503,7 @@ Both are far above the binding 17.4-bit input-noise term, and the top switch mov
 
 ## 11. The assembled bootstrap (Task 38)
 
-`crates/hekit-ckks/src/bootstrap/bootstrapper.rs` has `BootstrapKeys` and `Bootstrapper`; `crates/hekit-nn/src/refresh.rs` has `BootstrapRefresher`.
+`crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs` has `BootstrapKeys` and `Bootstrapper`; `crates/ckks-train-nn/src/refresh.rs` has `BootstrapRefresher`.
 
 ### 11.1 Pipeline and interfaces
 
@@ -591,13 +591,13 @@ The rows show uniform m. The \|m\| = 1 run gives the same numbers to within 0.1 
 | the same | 12 | **7.70 s** (7.41–8.05 s, 10 samples): a 3.1× speedup |
 | criterion, quadruped-gpu | 1 and 32 | **pending (user-driven session)** |
 
-Run: `cargo bench -p hekit-ckks --features parallel --bench bootstrap` on 2026-11-05, setup 22.5 s. The load average was 6.30 / 5.52 / 5.89 before and 10.96 / 8.10 / 6.89 after (1 / 5 / 15 min). The before value includes the bench build that had just finished. A reviewer's single-threaded Sage estimator held one core for the whole run, so the 12-thread run shared that core.
+Run: `cargo bench -p ckks-train-ckks --features parallel --bench bootstrap` on 2026-11-05, setup 22.5 s. The load average was 6.30 / 5.52 / 5.89 before and 10.96 / 8.10 / 6.89 after (1 / 5 / 15 min). The before value includes the bench build that had just finished. A reviewer's single-threaded Sage estimator held one core for the whole run, so the 12-thread run shared that core.
 
 **Target (≤ 10 s with 32 threads): met on the Mac with 12 threads (7.70 s).** The Mac has 12 cores, so the brief's "32 threads" runs as 12 threads here. The 32-thread figure on quadruped-gpu is pending.
 
 The test-profile runs are slower than the criterion 1-thread run (38 s against 23.8 s). They use no LTO and ran next to Task 33's baseline. In the single-thread run, EvalMod takes about 10 s (2 × 5.0 s, §10.2). The rest is the 69 rotations of CoeffToSlot and SlotToCoeff at levels 31–17 and the two SSE switches. The parallel speedup is limited by what stays sequential:
 - the Chebyshev recursion (only the two EvalMods run side by side);
-- `mod_down` and the NTTs inside each key switch, which are in hekit-core and not parallelized;
+- `mod_down` and the NTTs inside each key switch, which are in ckks-train-core and not parallelized;
 - rescales and plaintext products.
 
 ### 11.6 Heavy tests
@@ -617,12 +617,12 @@ The last two stay in the default run, because they need far less than the ~10 GB
 The n16_boot tests that need no keys (layouts, scale history, stage values: `n16_boot_rotation_steps`, `n16_boot_stages_match_a_direct_dft` and the params tests) still run by default. On a machine with at least 16 GB free, run the ignored ones one at a time:
 
 ```
-RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys --skip observe
-RUST_TEST_THREADS=1 cargo test -p hekit-ckks --lib -- --ignored n16_boot_keys_observe --nocapture
+RUST_TEST_THREADS=1 cargo test -p ckks-train-ckks --lib -- --ignored n16_boot_keys --skip observe
+RUST_TEST_THREADS=1 cargo test -p ckks-train-ckks --lib -- --ignored n16_boot_keys_observe --nocapture
 ```
 
-hekit-nn's n16_boot tests (`tests/compact.rs`, `tests/trainer_ni.rs`) were already ignored on the same grounds. `trainer_ni`'s gate (Task 41, 3 non-interactive updates on n16_boot, ~13 GB of bootstrap keys plus the training keys) is `n16_boot_keys_three_updates`, with the same reason string:
+ckks-train-nn's n16_boot tests (`tests/compact.rs`, `tests/trainer_ni.rs`) were already ignored on the same grounds. `trainer_ni`'s gate (Task 41, 3 non-interactive updates on n16_boot, ~13 GB of bootstrap keys plus the training keys) is `n16_boot_keys_three_updates`, with the same reason string:
 
 ```
-cargo test --release -p hekit-nn --test trainer_ni -- --ignored n16_boot_keys --nocapture
+cargo test --release -p ckks-train-nn --test trainer_ni -- --ignored n16_boot_keys --nocapture
 ```

@@ -1,0 +1,42 @@
+[package]
+name = "ckks-train-bench"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Benchmarks, training binaries and the cost model of ckks-train (not published)"
+readme = "README.md"
+publish = false
+
+[dependencies]
+ckks-train-ckks = { path = "../ckks-train-ckks" }
+ckks-train-core = { path = "../ckks-train-core" }
+ckks-train-nn = { path = "../ckks-train-nn" }
+ndarray = "0.16"
+libc = "0.2"
+# Task 51: the `plain` bin reads its JSON configs (already in the lock file via criterion).
+serde_json = "1"
+
+# Task 47: only for the `cuda_ops` benchmark (feature `cuda`).
+ckks-train-cuda = { path = "../ckks-train-cuda", optional = true }
+rayon = { version = "1.10", optional = true }
+
+[features]
+# rayon data parallelism in ckks-train-ckks (bit-identical results; Task 41 runs label it).
+parallel = ["ckks-train-ckks/parallel"]
+# The GPU-vs-CPU benchmark `cuda_ops` (Task 47): the CUDA backend, and rayon for the CPU
+# baseline on 1 and N threads.
+cuda = ["dep:ckks-train-cuda", "ckks-train-cuda/cuda", "dep:rayon", "parallel"]
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "ckks_ops"
+harness = false
+
+[[bench]]
+name = "cuda_ops"
+harness = false
+required-features = ["cuda"]
