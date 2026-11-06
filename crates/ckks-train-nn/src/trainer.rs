@@ -2,8 +2,8 @@
 //!
 //! # One training step ([`Trainer::train_batch`])
 //!
-//! The op sequence is [`crate::sim::sim_train_step_sgd`]'s, op for op (the counters are
-//! equal; tested), generalised to any [`Activation`] and [`LayerOptimizer`]:
+//! The default SGD op sequence is [`crate::sim::sim_train_step_sgd`]'s, op for op (the
+//! counters are equal; tested), generalised to any [`Activation`] and [`LayerOptimizer`]:
 //!
 //! 1. forward, per layer: `z = Dense::forward(a)`, `a' = act.forward(z)`;
 //! 2. loss gradient `delta_L = a_L - y` ([`Mse::grad`]: `y` must be encrypted at exactly
@@ -21,7 +21,10 @@
 //!      first: fewer limbs to key-switch) and `delta_{l-1} = Dense::backward_input(dz)`;
 //!    - `dW = Dense::weight_grad_scaled(dz, a_{l-1}, c)` with `c = grad_scale / n` folded into
 //!      the lane-0 mask (no level; [`crate::optim`] module docs), and the bias gradient
-//!      `Dense::bias_grad_scaled(dz, c_b)` with `c_b = bias_grad_scale / n`;
+//!      `Dense::bias_grad_scaled(dz, c_b)` with `c_b = bias_grad_scale / n` (zero for
+//!      [`Trainer::with_frozen_biases`]). Scheduled NAG additionally uses a reference-rate
+//!      gradient from shared products/reduction when current rate differs from reference:
+//!      `m` extra ct-pt products, `m` rescales and `m log2(B)` rotations, no extra depth;
 //! 4. the optimizer steps (`W' = W - dW` for SGD; NAG's scaled-velocity form) and
 //!    `b' = b - db`; all at exactly the old scales;
 //! 5. the refresh: every weight diagonal, every bias and every optimizer state (the NAG
@@ -33,10 +36,12 @@
 //! `W1'` lands on level 0 before the refresh ([`Trainer::trace`] records the level of every
 //! value, labelled as the simulator's level table). No `seal_2020_l10` is needed.
 //!
+//! [`Trainer::set_lr`] validates every optimizer before committing any rate change.
 //! Errors in steps 1–3 (levels, scales, keys, shapes) leave the network and the optimizer
-//! states unchanged: nothing is written before all gradients exist. The optimizer steps only
-//! fail on their own input checks (which the gradients of step 3 satisfy by construction);
-//! a refresh failure (a client error) leaves the network updated but not refreshed.
+//! states unchanged: nothing is written before all gradients exist. An optimizer error can
+//! leave earlier optimizers updated while the network is still uncommitted; there is no
+//! cross-optimizer rollback. A refresh failure can leave a partially refreshed updated
+//! network. Rate-change validation is atomic independently of these training-step errors.
 //!
 //! # Deviations from the brief's interface
 //!
@@ -87,7 +92,7 @@ use crate::dense::{
 };
 use crate::layout::{Layout, pack_activations, unpack_activations};
 use crate::loss::Mse;
-use crate::optim::{Nag, Optimizer, Sgd};
+use crate::optim::{Nag, Optimizer, Sgd, check_lr};
 use crate::refresh::Refresher;
 use crate::sim::valid_lane_mask;
 
@@ -106,9 +111,33 @@ pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
     /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
     /// of ciphertexts refreshed. On an error the state is unchanged.
     fn refresh_state(&mut self, refresher: &mut dyn Refresher<E>) -> Result<usize>;
+
+    /// Read-only rate-change validation. Defaults to unsupported so existing custom
+    /// optimizers remain usable without silently claiming schedule support.
+    /// Implement together with [`LayerOptimizer::apply_lr`].
+    fn validate_lr(&self, _lr: f64) -> Result<()> {
+        Err(HekitError::InvalidParams(
+            "layer optimizer does not support learning-rate changes".into(),
+        ))
+    }
+
+    /// Infallible commit of a rate accepted by [`LayerOptimizer::validate_lr`].
+    /// The trainer validates every optimizer before calling this on any layer. An opt-in
+    /// custom implementation must assign the validated value without failure or panic and
+    /// without resetting state. The default is unreachable through the trainer's setter
+    /// because default validation always rejects; callers must not bypass validation.
+    fn apply_lr(&mut self, _lr: f64) {}
 }
 
 impl<E: HeOps> LayerOptimizer<E> for Sgd {
+    fn validate_lr(&self, lr: f64) -> Result<()> {
+        check_lr(lr)
+    }
+
+    fn apply_lr(&mut self, lr: f64) {
+        self.lr = lr;
+    }
+
     fn bias_grad_scale(&self) -> f64 {
         Sgd::bias_grad_scale(self)
     }
@@ -120,6 +149,14 @@ impl<E: HeOps> LayerOptimizer<E> for Sgd {
 }
 
 impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
+    fn validate_lr(&self, lr: f64) -> Result<()> {
+        Nag::validate_rate(self, lr)
+    }
+
+    fn apply_lr(&mut self, lr: f64) {
+        self.lr = lr;
+    }
+
     fn bias_grad_scale(&self) -> f64 {
         Nag::bias_grad_scale(self)
     }
@@ -588,6 +625,7 @@ pub struct Trainer<'a, E: HeOps = Evaluator> {
     trace: Vec<(String, usize)>,
     refreshes: usize,
     refresh_seconds: f64,
+    frozen_biases: bool,
     /// One entry per finished epoch.
     pub log: Vec<EpochLog>,
 }
@@ -674,6 +712,7 @@ impl<'a, E: HeOps> Trainer<'a, E> {
             trace: Vec::new(),
             refreshes: 0,
             refresh_seconds: 0.0,
+            frozen_biases: false,
             log: Vec::new(),
         })
     }
@@ -682,6 +721,30 @@ impl<'a, E: HeOps> Trainer<'a, E> {
     /// when key memory binds).
     pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> Trainer<'a, E> {
         self.transpose_keys = keys;
+        self
+    }
+
+    /// Sets the rate of subsequent updates without clearing optimizer state. Every layer
+    /// is validated before any rate is committed: malformed rates, NAG reference ceilings,
+    /// or unsupported custom optimizers leave the entire rate set unchanged. NAG reference
+    /// maxima must be configured on each optimizer before constructing the trainer.
+    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        check_lr(lr)?;
+        for opt in &self.optims {
+            opt.validate_lr(lr)?;
+        }
+        for opt in &mut self.optims {
+            opt.apply_lr(lr);
+        }
+        Ok(())
+    }
+
+    /// Keeps the initialized bias values by folding a zero coefficient into their gradient.
+    /// Initialize biases as zero for a bias-free profile. Like NI, the bias operations and
+    /// refreshes remain, preserving counts/levels; decoded values are approximate CKKS.
+    /// The default is to train biases using the optimizer's bias-gradient scale.
+    pub fn with_frozen_biases(mut self) -> Trainer<'a, E> {
+        self.frozen_biases = true;
         self
     }
 
@@ -723,12 +786,14 @@ impl<'a, E: HeOps> Trainer<'a, E> {
     /// factor (0 extra levels). Afterwards every weight, bias and optimizer state is on
     /// [`Trainer::refresh_level`] at its old exact scale.
     ///
-    /// Errors, reported before anything is written (the network and the optimizers are
-    /// unchanged): `InvalidParams` if the network is empty, there is not one optimizer per
+    /// Input and gradient errors, before network/optimizer writes: `InvalidParams` if the
+    /// network is empty, there is not one optimizer per
     /// layer, the shapes do not chain, `n_valid` is not in `1..=batch`, or a key is missing;
     /// `ScaleMismatch` if `y` is not at the output's exact scale; `NoLevelsLeft` if the step
-    /// does not fit the levels; and the errors of the layer operations. After the updates,
-    /// the refresher's errors.
+    /// does not fit the levels; and the errors of the layer operations. NAG configuration
+    /// errors are checked before forward work. An optimizer failure may leave earlier
+    /// optimizer states updated (the network is committed only after all optimizers succeed).
+    /// A subsequent refresher failure may leave the updated network partially refreshed.
     pub fn train_batch_valid(
         &mut self,
         mlp: &mut Mlp<E>,
@@ -776,6 +841,13 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 "layer shapes do not chain".into(),
             ));
         }
+        // Validate all fixed-basis configurations before any forward work. The optional
+        // extra gradient is computed at the same level as the current-rate gradient.
+        let reference_scales = self
+            .optims
+            .iter()
+            .map(|opt| opt.reference_grad_scale())
+            .collect::<Result<Vec<_>>>()?;
         let ev = self.ev;
         let enc = &self.encoder;
         let layout = &self.layout;
@@ -833,10 +905,30 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 None
             };
             let opt = &self.optims[i];
-            let dw = dense.weight_grad_scaled(ev, &dz, &acts[i], layout, opt.grad_scale() / n)?;
-            let db = bias_grad(ev, dense, &dz, layout, opt.bias_grad_scale() / n)?;
+            let (dw, reference) = if let Some(c_ref) = reference_scales[i] {
+                let mut gs = dense.weight_grad_scaled_consts(
+                    ev,
+                    &dz,
+                    &acts[i],
+                    layout,
+                    &[opt.grad_scale() / n, c_ref / n],
+                )?;
+                let reference = gs.pop().expect("two gradient constants");
+                (gs.pop().expect("two gradient constants"), Some(reference))
+            } else {
+                (
+                    dense.weight_grad_scaled(ev, &dz, &acts[i], layout, opt.grad_scale() / n)?,
+                    None,
+                )
+            };
+            let c_b = if self.frozen_biases {
+                0.0
+            } else {
+                opt.bias_grad_scale() / n
+            };
+            let db = bias_grad(ev, dense, &dz, layout, c_b)?;
             let b_new = ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?;
-            updates.push((i, dw, b_new));
+            updates.push((i, dw, reference, b_new));
             if let Some(v) = next {
                 delta = v;
             }
@@ -844,9 +936,9 @@ impl<'a, E: HeOps> Trainer<'a, E> {
 
         // 4. Optimizer steps (on copies), then commit.
         let mut new_layers = Vec::with_capacity(n_layers);
-        for (i, dw, b_new) in updates {
+        for (i, dw, reference, b_new) in updates {
             let mut w = mlp.layers[i].0.w.clone();
-            self.optims[i].step(ev, &mut w, &dw)?;
+            self.optims[i].step_with_reference_gradient(ev, &mut w, &dw, reference.as_ref())?;
             trace.push((format!("W{}'", i + 1), w.level()));
             trace.push((format!("b{}'", i + 1), b_new.level()));
             new_layers.push((i, w, b_new));

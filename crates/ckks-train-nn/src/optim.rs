@@ -13,11 +13,20 @@
 //! (`Dense::weight_grad_scaled` targets `W.scale()`), and:
 //!
 //! - [`Sgd`]: `grad_scale = lr`, `W' = W - dw` (subtractions only).
-//! - [`Nag`]: `grad_scale = lr (1 + mu)`, and with the scaled velocity `U = lr (1 + mu) V`
+//! - [`Nag`] at constant rate: `grad_scale = lr (1 + mu)`, with velocity `U = lr (1 + mu) V`
 //!   (`h = dw`): `U' = mu U + h`, `W' = W - h - (mu^2 / (1 + mu)) U`. The two scalar
 //!   multiplications act on `U` only ([`ckks_train_ckks::Evaluator::mul_scalar`] with the exact
 //!   target scale), which sits at least one level above `h`, so `W'` and `U'` land at `h`'s
 //!   level: no level on the critical path.
+//!
+//! Scheduled NAG fixes `U = r (1 + mu) V` at reference rate `r`. When `lr != r`, a second
+//! gradient `h_ref = r (1 + mu) g` feeds `U' = mu U + h_ref`, and the weight's scalar is
+//! `(mu^2 / (1 + mu)) * (lr / r)`. [`Optimizer::reference_grad_scale`] and
+//! [`Optimizer::step_with_reference_gradient`] expose this branch. The trainer shares
+//! products/reductions with [`Dense::weight_grad_scaled_consts`](crate::dense::Dense::weight_grad_scaled_consts):
+//! each extra replicated gradient costs `m` ct-pt, `m` rescales and `m log2(B)` rotations,
+//! but no extra depth. Configure `r` as the schedule maximum using [`Nag::set_lr_reference`]
+//! before initialization; later rates must be positive and at most `r`.
 //!
 //! The updated weights keep their packed, pre-rotated, replicated layout and their exact
 //! scale, so the next [`crate::dense::Dense::forward`] needs no repacking (only levels: the
@@ -41,6 +50,13 @@ pub trait Optimizer<E: HeOps = Evaluator> {
     /// `grad_scale() / n` as `c` to [`crate::dense::Dense::weight_grad_scaled`].
     fn grad_scale(&self) -> f64;
 
+    /// An additional folded gradient constant for a fixed-basis optimizer state.
+    /// The default needs only [`Optimizer::grad_scale`]. The trainer queries every layer
+    /// before forward work, so configuration errors leave the entire step untouched.
+    fn reference_grad_scale(&self) -> Result<Option<f64>> {
+        Ok(None)
+    }
+
     /// Updates `w` in place with the folded gradient `dw = grad_scale() * dW` (as returned by
     /// [`crate::dense::Dense::weight_grad_scaled`]): the result is at `dw`'s level with
     /// `w`'s scale and layout.
@@ -51,6 +67,33 @@ pub trait Optimizer<E: HeOps = Evaluator> {
     /// `ScaleMismatch` unless every scale equals `w.scale()` exactly; and the optimizer's own
     /// checks.
     fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()>;
+
+    /// Update with an optional second gradient at [`Optimizer::reference_grad_scale`].
+    /// Both gradients have the same shape, level and exact scale. The default preserves
+    /// the legacy update for `None` and rejects an unsupported extra gradient before work.
+    fn step_with_reference_gradient(
+        &mut self,
+        ev: &E,
+        w: &mut EncWeights<E::Ct>,
+        dw: &Diagonals<E::Ct>,
+        reference: Option<&Diagonals<E::Ct>>,
+    ) -> Result<()> {
+        if reference.is_some() {
+            return Err(HekitError::InvalidParams(
+                "optimizer does not accept a reference gradient".into(),
+            ));
+        }
+        self.step(ev, w, dw)
+    }
+}
+
+pub(crate) fn check_lr(lr: f64) -> Result<()> {
+    if !(lr.is_finite() && lr > 0.0) {
+        return Err(HekitError::InvalidParams(format!(
+            "learning rate {lr} must be finite and positive"
+        )));
+    }
+    Ok(())
 }
 
 /// The checks shared by the optimizers: shape, uniform level and scale of `dw`, `w` at or
@@ -92,6 +135,14 @@ pub struct Sgd {
 }
 
 impl Sgd {
+    /// Changes the rate of following updates. Rejects nonfinite/nonpositive rates without
+    /// changing this optimizer; SGD has no velocity or reference-rate ceiling.
+    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        check_lr(lr)?;
+        self.lr = lr;
+        Ok(())
+    }
+
     /// The gradient constant `lr` ([`Optimizer::grad_scale`]; inherent so that it needs no
     /// evaluator type).
     pub fn grad_scale(&self) -> f64 {
@@ -123,9 +174,11 @@ impl<E: HeOps> Optimizer<E> for Sgd {
 /// Nesterov accelerated gradient for one layer (one instance per layer: it holds that layer's
 /// velocity), in the scaled-velocity form of the [module docs](self):
 /// [`Optimizer::grad_scale`] `= lr (1 + mu)`, `U' = mu U + h`,
-/// `W' = W - h - (mu^2 / (1 + mu)) U` with `h` the folded gradient.
+/// `W' = W - h - (mu^2 / (1 + mu)) U` at the reference rate, with `h` the folded gradient.
+/// For changing rates use the additional reference gradient and scaled momentum contribution
+/// described in the module docs. `step` rejects a required missing reference gradient.
 ///
-/// The first step (no velocity) is `U' = h`, `W' = W - h` (subtractions only). Later steps
+/// The first step (no velocity) is `U' = h_ref`, `W' = W - h` (subtractions only). Later steps
 /// cost `2 m` [`Evaluator::mul_scalar`] (counted as ct-pt) and `2 m` rescales on `U`, which
 /// must be at least one level above `h` (`LevelMismatch` otherwise): `U'` lands at `h`'s
 /// level, like `W'`, so the client must refresh the velocity together with the weights
@@ -135,11 +188,15 @@ impl<E: HeOps> Optimizer<E> for Sgd {
 /// the CPU constructor, [`Nag::new_for`] the one for any backend).
 #[derive(Debug, Clone)]
 pub struct Nag<C = Ciphertext> {
-    /// The learning rate.
+    /// Current learning rate. Prefer [`Nag::set_lr`], which validates it before assignment.
+    /// Direct field writes are checked by the reference-gradient query and update.
     pub lr: f64,
-    /// The momentum `mu`.
+    /// The momentum `mu`. Changing it after velocity initialization is unsupported and is
+    /// rejected by the next query/update, even when the ciphertext state was taken out.
     pub momentum: f64,
     velocity: Option<Diagonals<C>>,
+    lr_reference: f64,
+    basis_momentum: Option<f64>,
 }
 
 impl Nag {
@@ -157,24 +214,102 @@ impl<C> Nag<C> {
             lr,
             momentum,
             velocity: None,
+            lr_reference: lr,
+            basis_momentum: None,
         }
     }
 
-    /// The scaled velocity `U = lr (1 + mu) V` (pre-rotated diagonals in the weights' layout
+    /// The scaled velocity `U = lr_reference (1 + mu) V` (pre-rotated diagonals in the weights' layout
     /// and scale), `None` before the first step.
     pub fn velocity(&self) -> Option<&Diagonals<C>> {
         self.velocity.as_ref()
     }
 
     /// Replaces the velocity, e.g. by a client-refreshed copy at the top level. It must have
-    /// the weights' shape and scale; checked at the next [`Optimizer::step`].
+    /// the weights' shape and scale; checked at the next update. Supplied values must use
+    /// the existing reference-rate/momentum basis (or the current basis for the first supply).
+    /// Removing state does not unlock its basis; encrypted values cannot be inspected here.
     pub fn set_velocity(&mut self, velocity: Option<Diagonals<C>>) {
+        if velocity.is_some() && self.basis_momentum.is_none() {
+            self.basis_momentum = Some(self.momentum);
+        }
         self.velocity = velocity;
     }
 
     /// Takes the velocity out (e.g. to refresh it), leaving `None`.
     pub fn take_velocity(&mut self) -> Option<Diagonals<C>> {
         self.velocity.take()
+    }
+
+    /// Changes the current rate, retaining the fixed-basis velocity. The rate must be
+    /// finite, positive and at most [`Nag::lr_reference`]. Invalid factors or a changed
+    /// momentum basis also fail before mutation. Configure the schedule maximum first.
+    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        self.validate_rate(lr)?;
+        self.lr = lr;
+        Ok(())
+    }
+
+    /// Sets the velocity's reference rate before its first initialization/supply. It must
+    /// be finite, positive and at least the current rate, with finite positive folded
+    /// gradient factors. Taking or clearing velocity does not permit a later basis change.
+    pub fn set_lr_reference(&mut self, lr_reference: f64) -> Result<()> {
+        if self.basis_momentum.is_some() {
+            return Err(HekitError::InvalidParams(
+                "reference learning rate is locked after velocity initialization".into(),
+            ));
+        }
+        self.check_config(self.lr, lr_reference)?;
+        self.lr_reference = lr_reference;
+        Ok(())
+    }
+
+    /// The immutable reference rate of initialized velocity; initially the constructor rate.
+    pub fn lr_reference(&self) -> f64 {
+        self.lr_reference
+    }
+
+    pub(crate) fn validate_rate(&self, lr: f64) -> Result<()> {
+        self.check_config(lr, self.lr_reference)
+    }
+
+    fn check_config(&self, lr: f64, reference: f64) -> Result<()> {
+        check_lr(lr)?;
+        check_lr(reference)?;
+        if lr > reference {
+            return Err(HekitError::InvalidParams(format!(
+                "learning rate {lr} above velocity reference {reference}"
+            )));
+        }
+        let mu = self.momentum;
+        if self.basis_momentum.is_some_and(|basis| basis != mu) {
+            return Err(HekitError::InvalidParams(
+                "momentum differs from initialized velocity basis".into(),
+            ));
+        }
+        let current_factor = lr * (1.0 + mu);
+        let reference_factor = reference * (1.0 + mu);
+        let kappa = mu * mu / (1.0 + mu);
+        if !(mu.is_finite()
+            && kappa.is_finite()
+            && current_factor.is_finite()
+            && current_factor > 0.0
+            && reference_factor.is_finite()
+            && reference_factor > 0.0
+            && lr / reference != 0.0)
+        {
+            return Err(HekitError::InvalidParams(
+                "NAG rate and momentum must give finite usable folded factors".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    /// The extra reference-rate gradient constant, when current and reference rates differ.
+    /// Validates rate/factor/basis metadata even when no second gradient is needed.
+    pub fn reference_grad_scale(&self) -> Result<Option<f64>> {
+        self.validate_rate(self.lr)?;
+        Ok((self.lr != self.lr_reference).then_some(self.lr_reference * (1.0 + self.momentum)))
     }
 }
 
@@ -196,11 +331,52 @@ impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
         Nag::grad_scale(self)
     }
 
+    fn reference_grad_scale(&self) -> Result<Option<f64>> {
+        Nag::reference_grad_scale(self)
+    }
+
     fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()> {
+        self.step_with_reference_gradient(ev, w, dw, None)
+    }
+
+    fn step_with_reference_gradient(
+        &mut self,
+        ev: &E,
+        w: &mut EncWeights<E::Ct>,
+        dw: &Diagonals<E::Ct>,
+        reference: Option<&Diagonals<E::Ct>>,
+    ) -> Result<()> {
+        let needs_reference = self.reference_grad_scale()?.is_some();
+        if needs_reference != reference.is_some() {
+            return Err(HekitError::InvalidParams(
+                "NAG reference gradient presence must match current/reference rate difference"
+                    .into(),
+            ));
+        }
         let level = check_update(w, dw)?;
+        let h_ref = reference.unwrap_or(dw);
+        if check_update(w, h_ref)? != level {
+            return Err(HekitError::LevelMismatch);
+        }
         let mu = self.momentum;
-        let kappa = mu * mu / (1.0 + mu);
+        let factor = if needs_reference {
+            self.lr / self.lr_reference
+        } else {
+            1.0
+        };
+        let kappa = mu * mu / (1.0 + mu) * factor;
         let target = w.scale();
+        if let Some(u) = &self.velocity {
+            w.check_same_shape(u)?;
+            check_uniform(u)?;
+            if u.entries()[0].level() <= level {
+                return Err(HekitError::LevelMismatch);
+            }
+            if u.entries()[0].scale() != target {
+                return Err(HekitError::ScaleMismatch);
+            }
+            ev.exact_product_scale(level + 1, target)?;
+        }
         let ws = weights_at(ev, w, level)?;
         let (w_new, u_new) = match &self.velocity {
             None => {
@@ -209,38 +385,30 @@ impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
                     .zip(dw.entries())
                     .map(|(we, h)| ev.sub(we, h))
                     .collect::<Result<Vec<_>>>()?;
-                (w_new, dw.entries().to_vec())
+                (w_new, h_ref.entries().to_vec())
             }
             Some(u) => {
-                w.check_same_shape(u)?;
-                check_uniform(u)?;
-                if u.entries()[0].level() <= level {
-                    return Err(HekitError::LevelMismatch);
-                }
-                if u.entries()[0].scale() != target {
-                    return Err(HekitError::ScaleMismatch);
-                }
-                if !(mu.is_finite() && kappa.is_finite()) {
-                    return Err(HekitError::InvalidParams(format!(
-                        "momentum {mu} gives a non-finite factor"
-                    )));
-                }
-                // The target is reachable from level + 1 (checked before any work).
-                ev.exact_product_scale(level + 1, target)?;
                 let mut w_new = Vec::with_capacity(ws.len());
                 let mut u_new = Vec::with_capacity(ws.len());
-                for ((we, h), ue) in ws.iter().zip(dw.entries()).zip(u.entries()) {
+                for (((we, h), ue), hr) in ws
+                    .iter()
+                    .zip(dw.entries())
+                    .zip(u.entries())
+                    .zip(h_ref.entries())
+                {
                     let ue = ev.mod_switch_to_level(ue, level + 1)?;
                     let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, target)?)?;
                     let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, target)?)?;
                     w_new.push(ev.sub(&ev.sub(we, h)?, &k_u)?);
-                    u_new.push(ev.add(&mu_u, h)?);
+                    u_new.push(ev.add(&mu_u, hr)?);
                 }
                 (w_new, u_new)
             }
         };
+        let new_velocity = diags_like(dw, u_new)?;
         w.set_diagonals(diags_like(dw, w_new)?)?;
-        self.velocity = Some(diags_like(dw, u_new)?);
+        self.velocity = Some(new_velocity);
+        self.basis_momentum = Some(mu);
         Ok(())
     }
 }

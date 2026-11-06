@@ -905,18 +905,34 @@ fn batch_sum<E: HeOps>(
     target: f64,
     layout: &Layout,
 ) -> Result<E::Ct> {
+    Ok(batch_sum_consts(ev, v, &[mask], target, layout)?.remove(0))
+}
+
+/// Share the reduction while each folded constant gets its own mask and replication.
+fn batch_sum_consts<E: HeOps>(
+    ev: &E,
+    v: &E::Ct,
+    masks: &[&E::Pt],
+    target: f64,
+    layout: &Layout,
+) -> Result<Vec<E::Ct>> {
     let (reduce, replicate) = lane_steps(layout);
     let mut v = v.clone();
     for s in reduce {
         let r = ev.rotate(&v, s)?;
         v = ev.add(&v, &r)?;
     }
-    let mut v = ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?;
-    for s in replicate {
-        let r = ev.rotate(&v, s)?;
-        v = ev.add(&v, &r)?;
-    }
-    Ok(v)
+    masks
+        .iter()
+        .map(|mask| {
+            let mut out = ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?;
+            for &s in &replicate {
+                let r = ev.rotate(&out, s)?;
+                out = ev.add(&out, &r)?;
+            }
+            Ok(out)
+        })
+        .collect()
 }
 
 /// `c * lane0_mask` encoded at `scale` and `level`.
@@ -1003,6 +1019,30 @@ impl<C: HeCiphertext + Clone> Dense<C> {
         layout: &Layout,
         c: f64,
     ) -> Result<Diagonals<C>> {
+        Ok(self
+            .weight_grad_scaled_consts(ev, delta, a_prev, layout, &[c])?
+            .remove(0))
+    }
+
+    /// [`Dense::weight_grad_scaled`] for several folded constants. Products, input
+    /// rotations and batch reductions are shared. Each additional constant costs `m`
+    /// ct-pt products, `m` rescales and `m log2(B)` replication rotations, with no extra
+    /// level, tensor product or relinearization. Every output has the fully replicated
+    /// weight layout, exact weight scale and the single-gradient output level.
+    ///
+    /// Errors as [`Dense::weight_grad_scaled`], plus `InvalidParams` for no constants.
+    /// All constants and original input requirements are checked before evaluator work.
+    pub fn weight_grad_scaled_consts<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        delta: &C,
+        a_prev: &C,
+        layout: &Layout,
+        cs: &[f64],
+    ) -> Result<Vec<Diagonals<C>>> {
+        if cs.is_empty() {
+            return Err(HekitError::InvalidParams("no gradient constant".into()));
+        }
         let sh = self.w.shape(layout)?;
         check_slots(layout, ev.params().slots())?;
         self.w.check_batch(layout)?;
@@ -1024,7 +1064,11 @@ impl<C: HeCiphertext + Clone> Dense<C> {
         let prod_scale = delta.scale() * a_prev.scale() / ev.params().q()[level] as f64;
         let target = self.w.scale();
         let mask_scale = ev.exact_product_scale(level - 1, target)? / prod_scale;
-        let mask = lane0_plaintext(ev, layout, c, mask_scale, level - 1)?;
+        let masks = cs
+            .iter()
+            .map(|&c| lane0_plaintext(ev, layout, c, mask_scale, level - 1))
+            .collect::<Result<Vec<_>>>()?;
+        let mask_refs = masks.iter().collect::<Vec<_>>();
 
         let b = layout.batch;
         let delta = ev.mod_switch_to_level(delta, level)?;
@@ -1035,13 +1079,18 @@ impl<C: HeCiphertext + Clone> Dense<C> {
             .collect();
         let a_rot = ev.hoisted_rotate(&a, &a_steps)?;
         let d_rot = ev.hoisted_rotate(&delta, &d_steps)?;
-        let entries = (0..sh.m)
-            .map(|e| {
-                let p = ev.rescale(&ev.mul(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?)?;
-                batch_sum(ev, &p, &mask, target, layout)
-            })
-            .collect::<Result<Vec<_>>>()?;
-        Diagonals::from_prerotated(sh.m, b, entries)
+        let mut entries: Vec<Vec<C>> = cs.iter().map(|_| Vec::with_capacity(sh.m)).collect();
+        for e in 0..sh.m {
+            let p = ev.rescale(&ev.mul(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?)?;
+            let values = batch_sum_consts(ev, &p, &mask_refs, target, layout)?;
+            for (out, value) in entries.iter_mut().zip(values) {
+                out.push(value);
+            }
+        }
+        entries
+            .into_iter()
+            .map(|es| Diagonals::from_prerotated(sh.m, b, es))
+            .collect()
     }
 
     /// The bias gradient `sum_b delta_b / batch` in canonical form (every lane):

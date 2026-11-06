@@ -425,6 +425,284 @@ fn nag_two_batches_carry_refreshed_velocity() {
     assert_eq!(trainer.refreshes(), 2 * 14);
 }
 
+#[derive(Debug, PartialEq)]
+struct ProfileRun {
+    decoded: Vec<Vec<f64>>,
+    counts: Vec<OpCounter>,
+    traces: Vec<Vec<(String, usize)>>,
+    refreshes: usize,
+}
+
+fn run_interactive_profile(c: &Ctx, rates: &[f64], set_each: bool, frozen: bool) -> ProfileRun {
+    let mut r = rng(175);
+    let mut want = random_net(&mut r);
+    for l in &mut want {
+        l.b.fill(0.0);
+    }
+    let initial = want.clone();
+    let mut v = want
+        .iter()
+        .map(|l| Array2::zeros(l.w.dim()))
+        .collect::<Vec<_>>();
+    let mut mlp = encrypt_mlp(c, &want, &mut r);
+    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
+    let optims = (0..want.len())
+        .map(|_| {
+            let mut opt = Nag::new(rates[0], 0.9);
+            opt.set_lr_reference(0.08).unwrap();
+            Box::new(opt) as Box<dyn LayerOptimizer>
+        })
+        .collect();
+    let mut trainer = Trainer::new(&c.ev, Box::new(c.client(76)), optims, c.layout).unwrap();
+    if frozen {
+        trainer = trainer.with_frozen_biases();
+    }
+    let mut counts = Vec::new();
+    let mut traces = Vec::new();
+    for (i, &lr) in rates.iter().enumerate() {
+        if set_each {
+            trainer.set_lr(lr).unwrap();
+        }
+        let n = if i == 1 { 5 } else { 8 };
+        let x = rand_mat(&mut r, n, 4, 1.0);
+        let y = rand_mat(&mut r, n, 2, 1.0);
+        let (xc, yc) = spec
+            .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
+            .unwrap();
+        let before = c.ev.counter();
+        trainer.train_batch_valid(&mut mlp, &xc, &yc, n).unwrap();
+        counts.push(&c.ev.counter() - &before);
+        traces.push(trainer.trace().to_vec());
+        nag_reference(&mut want, &mut v, &x, &y, lr, 0.9);
+        if frozen {
+            for l in &mut want {
+                l.b.fill(0.0);
+            }
+        }
+        let got = decrypt_layers(c, &mlp);
+        assert_close(&format!("scheduled interactive step {i}"), &got, &want);
+        if frozen {
+            assert!(got.iter().flat_map(|l| &l.b).all(|b| b.abs() <= TOL));
+        }
+    }
+    let got = decrypt_layers(c, &mlp);
+    let learned = layer_errors(&got, &initial)
+        .iter()
+        .map(|(w, _)| *w)
+        .fold(0.0, f64::max);
+    let roundoff = layer_errors(&got, &want)
+        .iter()
+        .map(|(w, _)| *w)
+        .fold(0.0, f64::max);
+    assert!(
+        learned > 100.0 * roundoff && learned > 1e-7,
+        "weight change {learned:e} must dominate CKKS error {roundoff:e}"
+    );
+    let decoded = mlp
+        .layers
+        .iter()
+        .flat_map(|(d, _)| {
+            d.w.diagonals()
+                .entries()
+                .iter()
+                .chain(std::iter::once(&d.b))
+                .map(|ct| c.encoder.decode(&c.dec.decrypt(ct)))
+        })
+        .collect();
+    ProfileRun {
+        decoded,
+        counts,
+        traces,
+        refreshes: trainer.refreshes(),
+    }
+}
+
+#[test]
+fn interactive_schedule_frozen_biases_and_exact_extra_costs() {
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
+    let c = ctx(&steps, 75);
+    let rates = [0.04, 0.00008, 0.02, 0.08];
+    let scheduled = run_interactive_profile(&c, &rates, true, true);
+    let flat = run_interactive_profile(&c, &[0.08; 4], false, true);
+    let train_bias = run_interactive_profile(&c, &rates, true, false);
+    assert_eq!(
+        scheduled.counts, train_bias.counts,
+        "freezing changes no operations"
+    );
+    assert_eq!(scheduled.traces, train_bias.traces);
+    assert_eq!(
+        scheduled.traces, flat.traces,
+        "the extra branch costs no depth"
+    );
+    assert_eq!(scheduled.refreshes, flat.refreshes);
+    assert_eq!(scheduled.refreshes, 4 * 14);
+    for (i, (actual, base)) in scheduled.counts.iter().zip(&flat.counts).enumerate() {
+        let mut expected = base.clone();
+        if rates[i] != 0.08 {
+            expected.ct_pt_mults += 6;
+            expected.rescales += 6;
+            expected.rotations += 18;
+        }
+        assert_eq!(actual, &expected, "scheduled step {i}");
+    }
+    assert_ne!(
+        scheduled.decoded, flat.decoded,
+        "the schedule affects the model"
+    );
+    assert_ne!(
+        scheduled.decoded, train_bias.decoded,
+        "default bias training remains active"
+    );
+}
+
+#[test]
+fn constant_rate_setter_is_bit_identical_to_legacy_training() {
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
+    let c = ctx(&steps, 77);
+    assert_eq!(
+        run_interactive_profile(&c, &[0.08; 3], false, false),
+        run_interactive_profile(&c, &[0.08; 3], true, false)
+    );
+}
+
+#[test]
+fn trainer_rate_validation_is_atomic_and_old_custom_optimizers_still_work() {
+    use ckks_train_ckks::Diagonals;
+    use ckks_train_core::error::Result;
+    use ckks_train_nn::dense::EncWeights;
+    use ckks_train_nn::optim::Optimizer;
+    use std::cell::Cell;
+    use std::rc::Rc;
+
+    struct Observed(Rc<Cell<f64>>);
+    impl Optimizer for Observed {
+        fn grad_scale(&self) -> f64 {
+            self.0.get()
+        }
+        fn step(
+            &mut self,
+            ev: &Evaluator,
+            w: &mut EncWeights,
+            dw: &Diagonals<ckks_train_ckks::Ciphertext>,
+        ) -> Result<()> {
+            Sgd { lr: self.0.get() }.step(ev, w, dw)
+        }
+    }
+    impl LayerOptimizer for Observed {
+        fn bias_grad_scale(&self) -> f64 {
+            self.0.get()
+        }
+        fn refresh_state(&mut self, _: &mut dyn Refresher) -> Result<usize> {
+            Ok(0)
+        }
+        fn validate_lr(&self, lr: f64) -> Result<()> {
+            Sgd { lr: self.0.get() }.set_lr(lr)
+        }
+        fn apply_lr(&mut self, lr: f64) {
+            self.0.set(lr);
+        }
+    }
+    // This implements precisely the old requirements, with no new methods.
+    struct Legacy(Sgd);
+    impl Optimizer for Legacy {
+        fn grad_scale(&self) -> f64 {
+            self.0.grad_scale()
+        }
+        fn step(
+            &mut self,
+            ev: &Evaluator,
+            w: &mut EncWeights,
+            dw: &Diagonals<ckks_train_ckks::Ciphertext>,
+        ) -> Result<()> {
+            self.0.step(ev, w, dw)
+        }
+    }
+    impl LayerOptimizer for Legacy {
+        fn bias_grad_scale(&self) -> f64 {
+            self.0.bias_grad_scale()
+        }
+        fn refresh_state(&mut self, _: &mut dyn Refresher) -> Result<usize> {
+            Ok(0)
+        }
+    }
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
+    let c = ctx(&steps, 78);
+    let observed = Rc::new(Cell::new(0.04));
+    let optims: Vec<Box<dyn LayerOptimizer>> = vec![
+        Box::new(Observed(observed.clone())),
+        Box::new(Legacy(Sgd { lr: 0.04 })),
+    ];
+    let mut t = Trainer::new(&c.ev, Box::new(c.client(79)), optims, c.layout).unwrap();
+    for lr in [0.0, -0.1, f64::NAN, f64::INFINITY, 0.08] {
+        let before = c.ev.counter();
+        assert!(t.set_lr(lr).is_err());
+        assert_eq!(
+            observed.get(),
+            0.04,
+            "later validation failure cannot commit earlier rates"
+        );
+        assert_eq!(c.ev.counter(), before);
+    }
+    let mut r = rng(178);
+    let net = random_net(&mut r);
+    let mut mlp = encrypt_mlp(&c, &net, &mut r);
+    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
+    let x = rand_mat(&mut r, 8, 4, 1.0);
+    let y = rand_mat(&mut r, 8, 2, 1.0);
+    let (xc, yc) = spec
+        .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
+        .unwrap();
+    t.train_batch(&mut mlp, &xc, &yc).unwrap();
+    assert_close(
+        "legacy custom training",
+        &decrypt_layers(&c, &mlp),
+        &sim_train_step_sgd(&net, &x, &y, 0.04, &layout).layers,
+    );
+
+    let optims: Vec<Box<dyn LayerOptimizer>> = vec![
+        Box::new(Observed(observed.clone())),
+        Box::new(Nag::new(0.04, 0.9)),
+    ];
+    let mut t = Trainer::new(&c.ev, Box::new(c.client(79)), optims, c.layout).unwrap();
+    assert!(
+        t.set_lr(0.08).is_err(),
+        "later NAG ceiling fails atomically"
+    );
+    assert_eq!(observed.get(), 0.04);
+    t.set_lr(0.02).unwrap();
+    assert_eq!(observed.get(), 0.02);
+}
+
+#[test]
+fn interactive_sgd_schedule_matches_independent_updates() {
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
+    let c = ctx(&steps, 80);
+    let mut r = rng(180);
+    let mut want = random_net(&mut r);
+    let mut mlp = encrypt_mlp(&c, &want, &mut r);
+    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
+    let mut t = Trainer::new(&c.ev, Box::new(c.client(81)), sgd_optims(0.04), c.layout).unwrap();
+    for lr in [0.04, 0.01, 0.08] {
+        t.set_lr(lr).unwrap();
+        let x = rand_mat(&mut r, 8, 4, 1.0);
+        let y = rand_mat(&mut r, 8, 2, 1.0);
+        let (xc, yc) = spec
+            .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
+            .unwrap();
+        t.train_batch(&mut mlp, &xc, &yc).unwrap();
+        want = sim_train_step_sgd(&want, &x, &y, lr, &layout).layers;
+        assert_close("SGD schedule", &decrypt_layers(&c, &mlp), &want);
+    }
+}
+
 /// `ClientRefresher` restores the top level at the ciphertext's exact scale and keeps the
 /// values (any slot layout: decrypt, decode, re-encode, encrypt).
 #[test]

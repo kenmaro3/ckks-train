@@ -418,6 +418,191 @@ fn nag_two_steps_match_plaintext() {
     assert_eq!(layer.w.level(), 2);
 }
 
+/// A rate change must not reinterpret the velocity already stored by NAG.
+#[test]
+fn nag_changing_rate_keeps_the_original_velocity_basis() {
+    let params = CkksParams::seal_2020();
+    let layout = Layout::new(params.slots(), 8, 8).unwrap();
+    let c = ctx(&grad_rotation_steps(2, 8, &layout), 71);
+    let mut r = rng(171);
+    let (mut want, _, mut layer) = random_layer(&c, 2, 8, &layout, &mut r);
+    let mut v = Array2::<f64>::zeros((2, 8));
+    let mut nag = Nag::new(0.04, 0.9);
+    nag.set_lr_reference(0.08).unwrap();
+    for (&lr, level) in [0.04, 0.00008, 0.02, 0.08].iter().zip([9, 7, 5, 3]) {
+        if level == 5 {
+            nag.lr = lr; // Valid legacy public field writes use the same fixed basis.
+        } else {
+            nag.set_lr(lr).unwrap();
+        }
+        let delta = rand_mat(&mut r, 8, 2, 1.0);
+        let a = rand_mat(&mut r, 8, 8, 1.0);
+        let dc = c.encrypt(
+            &pack_activations(&delta, &layout),
+            c.params.scale(),
+            level,
+            &mut r,
+        );
+        let ac = c.encrypt(
+            &pack_activations(&a, &layout),
+            c.params.scale(),
+            level,
+            &mut r,
+        );
+        let mut constants = vec![nag.grad_scale() / 8.0];
+        if let Some(c_ref) = nag.reference_grad_scale().unwrap() {
+            constants.push(c_ref / 8.0);
+        }
+        let hs = layer
+            .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &constants)
+            .unwrap();
+        let before = c.ev.counter();
+        nag.step_with_reference_gradient(&c.ev, &mut layer.w, &hs[0], hs.get(1))
+            .unwrap();
+        let count = &c.ev.counter() - &before;
+        let products = if level == 9 {
+            0
+        } else {
+            2 * hs[0].entries().len() as u64
+        };
+        assert_eq!(count.ct_pt_mults, products);
+        assert_eq!(count.rescales, products);
+        assert_eq!(layer.w.level(), level - 2);
+        let g = delta.t().dot(&a) / 8.0;
+        v = 0.9 * &v + &g;
+        want = &want - &(lr * (&g + 0.9 * &v));
+        let error = mat_diff(&layer.w.decrypt(&c.dec, &c.encoder, &layout), &want);
+        assert!(
+            error <= TOL,
+            "lr={lr}, changing-rate weight error {error:e}"
+        );
+        let u = EncWeights::from_diagonals(nag.velocity().unwrap().clone(), 2, 8, &layout).unwrap();
+        assert!(mat_diff(&u.decrypt(&c.dec, &c.encoder, &layout), &(0.08 * 1.9 * &v)) <= TOL);
+        assert!(
+            nag.set_lr_reference(0.1).is_err(),
+            "basis locked after update"
+        );
+    }
+    let state_before = c.decrypt_diags(nag.velocity().unwrap());
+    let before = c.ev.counter();
+    for lr in [0.0, -0.01, f64::NAN, f64::INFINITY, 0.09] {
+        assert!(nag.set_lr(lr).is_err());
+        assert_eq!(nag.lr, 0.08);
+        assert_eq!(c.decrypt_diags(nag.velocity().unwrap()), state_before);
+    }
+    assert_eq!(c.ev.counter(), before);
+    let state = nag.take_velocity();
+    assert!(
+        nag.set_lr_reference(0.1).is_err(),
+        "taking state cannot unlock its basis"
+    );
+    nag.momentum = 0.8;
+    assert!(nag.reference_grad_scale().is_err());
+    assert!(nag.set_lr(0.02).is_err());
+    let dw = layer.w.diagonals().clone();
+    assert!(matches!(
+        nag.step(&c.ev, &mut layer.w, &dw),
+        Err(HekitError::InvalidParams(_))
+    ));
+    assert_eq!(c.ev.counter(), before);
+    nag.momentum = 0.9;
+    nag.set_velocity(state);
+    assert!(nag.reference_grad_scale().is_ok());
+}
+
+#[test]
+fn two_gradient_constants_share_products_and_reduction() {
+    for batch in [1, 8] {
+        let params = CkksParams::seal_2020();
+        let layout = Layout::new(params.slots(), 8, batch).unwrap();
+        let c = ctx(&grad_rotation_steps(2, 8, &layout), 72);
+        let mut r = rng(172);
+        let (_, _, layer) = random_layer(&c, 2, 8, &layout, &mut r);
+        let d = rand_mat(&mut r, batch, 2, 1.0);
+        let a = rand_mat(&mut r, batch, 8, 1.0);
+        let dc = c.encrypt(&pack_activations(&d, &layout), c.params.scale(), 7, &mut r);
+        let ac = c.encrypt(&pack_activations(&a, &layout), c.params.scale(), 7, &mut r);
+        let before = c.ev.counter();
+        let h = layer
+            .weight_grad_scaled(&c.ev, &dc, &ac, &layout, 0.03)
+            .unwrap();
+        let single = &c.ev.counter() - &before;
+        let href = layer
+            .weight_grad_scaled(&c.ev, &dc, &ac, &layout, 0.12)
+            .unwrap();
+        let before = c.ev.counter();
+        let both = layer
+            .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &[0.03, 0.12])
+            .unwrap();
+        let mut expected = single;
+        let m = h.entries().len() as u64;
+        expected.ct_pt_mults += m;
+        expected.rescales += m;
+        expected.rotations += m * layout.log_batch() as u64;
+        assert_eq!(&c.ev.counter() - &before, expected);
+        for (actual, wanted) in both.iter().zip([&h, &href]) {
+            assert_eq!(c.decrypt_diags(actual), c.decrypt_diags(wanted));
+            assert!(
+                actual
+                    .entries()
+                    .iter()
+                    .all(|ct| ct.level() == 5 && ct.scale() == layer.w.scale())
+            );
+        }
+        for constants in [vec![], vec![0.03, f64::NAN], vec![f64::INFINITY]] {
+            let before = c.ev.counter();
+            assert!(
+                layer
+                    .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &constants)
+                    .is_err()
+            );
+            assert_eq!(c.ev.counter(), before);
+        }
+        let mut nag = Nag::new(0.03, 0.9);
+        nag.set_lr_reference(0.12).unwrap();
+        let mut w = layer.w.clone();
+        let before = c.ev.counter();
+        assert!(
+            nag.step(&c.ev, &mut w, &h).is_err(),
+            "missing reference must not silently use h"
+        );
+        let low = href.mod_switch_to_level(&c.ev, 4).unwrap();
+        assert!(
+            nag.step_with_reference_gradient(&c.ev, &mut w, &h, Some(&low))
+                .is_err()
+        );
+        assert_eq!(c.ev.counter(), before);
+        assert!(nag.velocity().is_none());
+        assert_eq!(
+            c.decrypt_diags(w.diagonals()),
+            c.decrypt_diags(layer.w.diagonals())
+        );
+    }
+}
+
+#[test]
+fn checked_rates_preserve_configuration_on_errors() {
+    let mut nag = Nag::new(0.04, 0.9);
+    let mut sgd = Sgd { lr: 0.04 };
+    for lr in [0.0, -0.1, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(nag.set_lr(lr).is_err());
+        assert!(nag.set_lr_reference(lr).is_err());
+        assert!(sgd.set_lr(lr).is_err());
+        assert_eq!(nag.lr, 0.04);
+        assert_eq!(nag.lr_reference(), 0.04);
+        assert_eq!(sgd.lr, 0.04);
+    }
+    assert!(nag.set_lr(0.08).is_err());
+    assert!(nag.set_lr_reference(0.02).is_err());
+    nag.set_lr_reference(0.08).unwrap();
+    nag.set_lr(0.08).unwrap();
+    sgd.set_lr(0.8).unwrap();
+    assert_eq!(sgd.grad_scale(), 0.8);
+    assert_eq!(nag.reference_grad_scale().unwrap(), None);
+    nag.lr = f64::NAN;
+    assert!(nag.reference_grad_scale().is_err());
+}
+
 /// Errors are reported before any homomorphic work (the counter does not move).
 #[test]
 fn errors_before_work() {
