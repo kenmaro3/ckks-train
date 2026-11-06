@@ -478,3 +478,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** controller ledger `task-54-linux-static-prerequisites-20261107.{stdout,stderr,meta.json}`; later reviewed publication may retain exact raw copies.
 - **pass criterion:** actual path/hash/static facts with limitations; neither import success nor compatibility. Lightweight untimed read-only observation may overlap FULL-2; full context hashing/capture remain deferred.
 - **status:** done (2026-11-07T04:58:18.287347+09:00, exit0; controller wall 64.614 s including SSH). NumPy optional-query source matches Mac; unconditional module-level SVE query found. Scientific import reachability and target startup remain unverified. Chain and queue exact PID/start/own UID match live state S; FULL-2 log40/1000, authoritative result absent, queue owner.json only. No job mutation or scientific capture.
+
+
+## R-REB-8-ARCHIVE: preserve mismatching original-producer config bytes
+
+- **purpose:** compare the observed remote config hash9d6a2148… with the existing tracked/exporter-pinned artifact76c493e2… without changing either. Diagnose path/provenance before selecting the Linux comparison archive.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** read only `/home/kmihara/hekit-runs/out/R-REB-5/reboot_emlp23_full/`.
+- **command:** key-only SSH `nice -n 10 cat /home/kmihara/hekit-runs/out/R-REB-5/reboot_emlp23_full/config_values.json`; exact stdout saved unmodified in the controller ledger.
+- **expected duration:** under 2 minutes, one process; 191369 bytes expected. No scientific import, native execution or job mutation.
+- **GPU memory need:** 0. **RAM need:** streaming file only.
+- **output path:** ledger `task-54-linux-original-archive-20261107.{json,stderr,meta.json}` and separate local comparison report.
+- **pass criterion:** hash equality to observed source or explicit drift, then exact local JSON-field comparison. No pin changes, normalization or replacement of historical results.
+- **status:** done (exit0; controller 4.476 s including SSH). Original191369 bytes retained unmodified, SHA2569d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444 matches prior observation. Parsed field comparison is recorded in `raw/R-REB-8-ARCHIVE/`: only local structure_summary is additional; shared values including F64 bits match. Original file/pin remains unchanged; future comparison archive must be the verified pinned tracked copy.

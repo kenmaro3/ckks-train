@@ -1,0 +1,32 @@
+{
+  "started_unix": 1793995528.138933,
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 cat /home/kmihara/hekit-runs/out/R-REB-5/reboot_emlp23_full/config_values.json"
+  ],
+  "returncode": 0,
+  "finished_unix": 1793995532.6148539,
+  "stdout_bytes": 191369,
+  "stdout_sha256": "9d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444"
+}

@@ -1,0 +1,15 @@
+{
+  "remote_sha256": "9d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444",
+  "local_sha256": "76c493e28692531d07d54337dfcf89a21d8d78fa2979e02b20dccad47fb303c5",
+  "differences": [
+    {
+      "path": "/structure_summary",
+      "kind": "local_only"
+    }
+  ],
+  "shared_top_level_fields": [
+    "models",
+    "source"
+  ],
+  "scope": "Parsed values comparison; original byte mismatch retained; not new capture or parity success"
+}
