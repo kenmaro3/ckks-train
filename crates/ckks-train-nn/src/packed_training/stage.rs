@@ -195,6 +195,36 @@ impl<C: HeCiphertext + Clone> PackedStage<C> {
         self.biases.as_ref()
     }
 
+    // Complete reconstruction only. Callers cannot supply policy/index/generation tokens.
+    pub(super) fn with_refreshed_parts<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        weights: [PackedWeights<C>; 2],
+        velocities: [Option<PackedWeights<C>>; 2],
+        biases: Option<[PackedVector<C>; 2]>,
+    ) -> Result<Self> {
+        if biases.is_some() != self.biases.is_some() {
+            return invalid("packed refresh changes bias domain");
+        }
+        if let Some(b) = &biases {
+            for (k, bias) in b.iter().enumerate() {
+                validate_vector(ev, bias, self.layers[k].weights().layer().output(), true)?;
+            }
+        }
+        let [w0, w1] = weights;
+        let [u0, u1] = velocities;
+        let layers = [
+            self.layers[0].with_refreshed_ciphertexts(ev, w0, u0)?,
+            self.layers[1].with_refreshed_ciphertexts(ev, w1, u1)?,
+        ];
+        Ok(Self {
+            layers,
+            biases,
+            config: self.config,
+            real_classes: self.real_classes,
+        })
+    }
+
     /// Validates the entire current-stage DAG using metadata/host encodings only.
     /// All requested keys, contexts, factors and levels are checked before counted work.
     pub fn plan_step<E: HeOps<Ct = C>>(

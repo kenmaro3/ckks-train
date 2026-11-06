@@ -168,3 +168,117 @@ Use original small analytic input/weight/target arrays, non-power-of-two widths,
 Recommended rulings: approve fresh-generation private reconstruction; canonical hidden consumes its existing mask before bootstrap and incurs no extra projection; unknown/terminal next metadata causes conservative state refresh while future admission remains explicit; approve packed-local planned capability with shared CKKS P1 dependency; preserve one graph-wide immutable candidate commit.
 
 Unresolved proof/API work is concrete: P1's pure exact scalar/transform support descriptor is unimplemented; c2 must prove all reachable registered schedule histories and compare full costs to runtime; typed bootstrap capability cannot attest arbitrary implementation internals; bootstrap input ranges/production precision cannot be inferred from metadata; retained graph buffers have no memory proof. None warrants a secret fallback, modified preset, guessed count or reduced experiment coverage. D4d profile/backend/host timing and memory work, GPU validation, runner/campaign work and the explicit full-block user hold remain separate gates.
+
+## 9. c1 concrete API (2026-11-06, recorded before implementation)
+
+The authorized c1 surface is in `packed_training::refresh` (re-exported by
+`packed_training`). The client owns decryption keys and RNG; the generic server
+object stores only evaluator and public encoder references.
+
+```rust,ignore
+PackedRefreshContract::new(ev, output_level) -> Result<Self>;
+PackedRefreshBatch::new(ev, &old_or_updated_stage, contract) -> Result<Self>;
+batch.requests() -> &[PackedRefreshRequest<C>];
+PackedRefreshResponse::new(ev, &request, ct) -> Result<Self>;
+batch.complete(ev, Vec<PackedRefreshResponse<C>>) -> Result<PackedRefreshCandidate<C>>;
+candidate.stage() -> &PackedStage<C>;
+candidate.into_stage() -> PackedStage<C>; // infallible whole-state transfer
+
+trait PackedClientRefresh<E: HeOps> {
+    fn output_contract(&self) -> &PackedRefreshContract;
+    fn refresh(&mut self, request: &PackedRefreshRequest<E::Ct>)
+        -> Result<(PackedRefreshResponse<E::Ct>, ClientRefreshTiming)>;
+}
+PackedInteractiveStage::new(&ev, &encoder) -> Result<Self>;
+server.prepare_step(&old_stage, &encrypted_records, rate, relin, &mut client)
+    -> Result<(PackedRefreshCandidate<C>, PackedInteractiveReceipt<C>), PackedRefreshFailure>;
+project_state(ev, encoder, &state_request) -> Result<PackedBootInput<C>>;
+CanonicalHidden::new(ev, &backbone_layer, record_id, &canonical_hidden) -> Result<Self>;
+hidden.request(ev, contract) -> Result<PackedRefreshRequest<C>>;
+hidden.boot_input(ev) -> Result<PackedBootInput<C>>; // mod-switch only
+```
+
+`PackedRefreshRole` is `Weight(layer_ordinal)`, `Velocity(layer_ordinal)`,
+`Bias(layer_ordinal)`, or `Hidden { stage, record }`. `PackedRefreshShape` is
+`Matrix(LayerGeometry)` or `Vector(VectorSpec)`. Packet identity uses private
+process-local Arc tokens, including a distinct token for each batch role. Public
+read-only accessors expose role, exact shape, ciphertext and output contract.
+Responses carry the request token privately, so another role/transaction cannot
+be substituted even when level/shape match. This is an in-process protocol
+binding, not a cryptographic authenticated transport or serializable token.
+Batch completion requires exactly the ordered requests, rejecting permutations,
+duplicates, missing and extra entries before any reconstruction. The contract
+binds parameter Arc identity, output level and the parameter's exact Delta.
+
+Private reconstruction borrows the original layer and accepts only checked
+replacement W/U with identical geometry and U presence. Stage reconstruction
+receives ciphertext parts (not arbitrary replacement optimizer states), preserves
+bias presence/config/classes and invokes that narrow layer reconstruction.
+Every refreshed layer receives a new generation, even for identity refresh at
+the same index. `PackedStage::new` is not used for refresh.
+
+The interactive receipt retains the complete updated stage read-only, the old
+forward `PackedStepReceipt`, ordered successful refresh events and the single
+outer evaluator delta. It does not re-run an update. Its updated snapshot and the
+returned refreshed candidate allow subsequent code to compare boundaries without
+opening mutation APIs. Failure records carry a phase, optional role, completed
+events and measured counter delta when available; prior work is never rolled
+back. Client timing fields are optional monotonic durations/byte counts; absent
+transport/device timing remains `None`, not zero or fabricated GPU data.
+
+Projection accepts only state-role requests and checks context, shape, two
+components, exact Delta and level >= 1, then pre-encodes/uploads the support mask
+before counted work. It performs exactly one ct-pt product/rescale and mod-switch
+to zero. `PackedBootInput` exposes the ciphertext, role/shape and the explicit
+unverified all-slot absolute bound 1. Hidden adapters validate backbone ordinal,
+output VectorSpec and Delta, bind record identity, and mod-switch without another
+mask. Constructors validate representation metadata; callers still assert that
+canonical hidden values came from the completed stage activation mask. There is
+no bootstrap or NI trainer in c1 and no numeric range attestation.
+
+Validation uses an original insecure N=256 CPU fixture; no secure preset, GPU,
+real-bootstrap precision, production timing or memory claim is made. Existing
+stage/optimizer regressions are retained. Shared P1 exports are not required.
+
+`PackedRefreshEvent::counter_delta()` exposes an optional evaluator delta sampled
+around that client call and output validation. It is an observation nested inside
+the outer interval, never summed into it. In-process decrypt/re-encrypt fixtures
+must report zero HE work per successful client event; unavailable/reset counters
+remain absent. This completes the per-role count evidence without inventing a
+bootstrap or transfer measurement.
+
+### c1 implementation evidence (2026-11-06, independently reviewed; c1 approved)
+
+The six-path c1 patch implements the API above. The client reference exists only
+in `crates/ckks-train-nn/tests/packed_refresh.rs`; production refresh code has no
+SecretKey, Decryptor, RNG, plaintext optimizer or loss. The old stage is borrowed,
+the updated stage is retained read-only in the receipt, and the refreshed stage
+is a separate consumable candidate. No c2/c3 implementation is included.
+
+Focused CPU validation passes: 7 refresh tests, 10 existing packed stage tests and
+6 existing packed optimizer tests. Strict focused Clippy and owned-file rustfmt
+checks pass. Tests cover both RE/CE and CE/RE stages, non-power-of-two widths,
+active padded NAG outputs, encrypted labels and ignored invalid records. Four
+rates `[0.04, 0.00008, 0.02, 0.08]` with valid counts `[3,1,2,3]` preserve independent
+unscaled-V NAG, all W/U/bias values and old-forward outputs at absolute error below
+`1e-7`. No tolerance, rate, production preset or learning rule was changed.
+
+Per-role client events have zero HE counter delta; the inclusive I delta equals
+the unmodified stage plan. Projection of W, initialized U and biases costs exactly
+one ct-pt/rescale per role, and level1 reaches0; level0 fails before counters move.
+Canonical hidden lowers without a second mask. Decoded full-slot checks include
+structural zeros, vector-copy averaging, preservation of active values above1
+(no clipping) and trained padded-class channels. Those above1 client fixtures are
+not NI input-range evidence. Generation tests reject both old bound layer gradients
+after same-index refresh. Wrong transaction/role, replay, missing/duplicate/extra
+responses, context, scale, components and output level fail. Late backend W/bias,
+client W/U/bias and response-replay failures preserve the old stage and report
+completed events/observed work; counters and client side effects are not undone.
+
+These are insecure N=256, deep-chain CPU learning/protocol tests. Client refresh
+removes accumulated numerical error differently from a no-refresh continuation;
+its only arithmetic on logical values is averaging redundant vector copies.
+Persistent U is never reset or converted to another reference unit. There is no
+real bootstrap, NI/AA admission, full schedule/profile proof, GPU/memory/transport
+measurement, dataset run or scientific-performance claim. Complete run commands,
+RED logs and frozen full patch hashes are in the Task54 c1 implementation report.

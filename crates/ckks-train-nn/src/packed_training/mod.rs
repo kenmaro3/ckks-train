@@ -1,11 +1,13 @@
 //! Checked whole-graph geometry and encrypted masked primitives for one sample per ciphertext.
 //!
-//! Includes immutable encrypted stage preparation; refresh, memory and NI admission remain separate.
+//! Includes immutable encrypted stage preparation, typed client refresh and state projection.
+//! Memory, range and NI admission remain separate.
 //! Structural metadata is checked; encrypted slot contents cannot be verified without a secret.
 //! Ingestion must supply the declared representation. Primitive outputs project structural padding.
 mod ops;
 mod optimizer;
 mod plan;
+mod refresh;
 mod stage;
 mod types;
 
@@ -16,6 +18,13 @@ pub use optimizer::{
 };
 pub use plan::{
     LayerGeometry, Orientation, PackedGeometryPlan, StageShape, VectorRepr, VectorSpec,
+};
+pub use refresh::{
+    CanonicalHidden, ClientRefreshTiming, PackedBootInput, PackedClientRefresh,
+    PackedInteractiveReceipt, PackedInteractiveResult, PackedInteractiveStage, PackedRefreshBatch,
+    PackedRefreshCandidate, PackedRefreshContract, PackedRefreshEvent, PackedRefreshFailure,
+    PackedRefreshPhase, PackedRefreshRequest, PackedRefreshResponse, PackedRefreshRole,
+    PackedRefreshShape, project_state,
 };
 pub use types::{PackedGradient, PackedVector, PackedWeights};
 

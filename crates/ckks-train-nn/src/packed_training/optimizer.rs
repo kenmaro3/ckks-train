@@ -130,6 +130,33 @@ impl<C: HeCiphertext + Clone> PackedLayerState<C> {
         self.update_index
     }
 
+    // Refresh changes ciphertext representation, never optimizer policy or update history.
+    pub(super) fn with_refreshed_ciphertexts<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        weights: PackedWeights<C>,
+        velocity: Option<PackedWeights<C>>,
+    ) -> Result<Self> {
+        if weights.layer() != self.weights.layer() || velocity.is_some() != self.velocity.is_some()
+        {
+            return invalid("packed refresh changes matrix geometry or velocity presence");
+        }
+        validate_weights(ev, &weights)?;
+        if let Some(u) = &velocity {
+            validate_weights(ev, u)?;
+            if u.layer() != weights.layer() {
+                return invalid("packed refreshed velocity geometry differs from weights");
+            }
+        }
+        Ok(Self {
+            weights,
+            velocity,
+            policy: self.policy,
+            update_index: self.update_index,
+            generation: Arc::new(()),
+        })
+    }
+
     /// Binds checked factors and actual valid sample count to this state's generation.
     /// Use these factors in `outer_sum_scaled_masks`; equal rates need only one branch.
     pub fn request(&self, rate: f64, valid_samples: usize) -> Result<PackedUpdateRequest> {
