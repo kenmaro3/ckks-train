@@ -1,28 +1,161 @@
-# hekit
+# ckks-train
 
-hekit (temporary name) is an MIT-licensed Rust RNS-CKKS library for encrypted neural-network training (CPU first, CUDA later).
+ckks-train is an MIT-licensed Rust library for training neural networks on data encrypted
+with RNS-CKKS. It extends the 2020 work of Mihara et al. (arXiv:2012.13552), which trained an
+MLP under CKKS with a client refreshing the ciphertexts, to training without the client, using
+bootstrapping, and adds a CUDA backend.
 
-## Crates
+The crates still carry the working name `hekit-*`; `scripts/rename.sh` renames them to
+`ckks-train-*` (see [docs/release.md](docs/release.md)).
 
-- `hekit-core`: RNS arithmetic, NTT, sampling
-- `hekit-ckks`: RNS-CKKS scheme
-- `hekit-nn`: encrypted NN training
-- `hekit-bench`: benchmarks and cost model
+## Overview
+
+- **RNS-CKKS** (`hekit-core`, `hekit-ckks`): RNS/NTT arithmetic, encoding bit-exact with
+  Microsoft SEAL 4.1.2, hybrid key switching, hoisted rotations, baby-step giant-step (BSGS)
+  matrix-vector products, exact-scale arithmetic and an operation counter that counts every
+  key switch.
+- **Bootstrapping with sparse-secret encapsulation (SSE)** (`hekit-ckks::bootstrap`): the
+  ciphertext is switched to a sparse ephemeral key (h' = 32) before ModRaise, then
+  CoeffToSlot, a Chebyshev EvalMod and SlotToCoeff. On the `n16_boot` preset (N = 2^16) one
+  bootstrap gives 17.46 bits of precision with 111 key switches and leaves 16 levels.
+- **CUDA backend** (`hekit-cuda`, feature `cuda`): batched NTT, base conversion, key switching
+  and the full evaluator on the GPU, bit-exact with the CPU code. The `hekit-nn` trainers run
+  on it unchanged through the `HeOps` trait.
+- **Encrypted MLP training** (`hekit-nn`), in two modes:
+  - *interactive* (`Trainer`): the key owner refreshes the ciphertexts after each update, as
+    in the 2020 work;
+  - *non-interactive* (`NonInteractiveTrainer`): the server trains alone, restoring levels by
+    bootstrapping. Weights are repacked compactly so that one bootstrap refreshes a whole
+    layer, and the bootstrap placement is configurable (`AfterUpdate`, `WhenNeeded`,
+    `AfterActivation`).
+  - Block MLPs with local classifiers (`BlockMlp`) reproduce the structure of ReBoot's
+    eMLP-2/3.
+- **Comparison with ReBoot** (AAAI-26): the benchmarks compare key switches per training
+  sample and wall-clock time with ReBoot's published implementation on the same machine, with
+  its configuration, initial weights and sample order. The figures and their caveats are in
+  `docs/m3-report.md`; the full-length runs are still pending.
+
+Architecture: [docs/architecture.md](docs/architecture.md). Changes:
+[CHANGELOG.md](CHANGELOG.md).
+
+## Build
+
+Requirements: Rust **1.85.1** (pinned by `rust-toolchain.toml`; rustup installs it
+automatically), edition 2024. No C/C++ toolchain is needed.
+
+```sh
+cargo build --release --workspace
+cargo test --workspace            # about 400 tests; tests above ~10 GB of RAM are #[ignore]d
+cargo test --workspace -- --ignored   # the heavy N = 2^16 bootstrapping tests (~13 GB RAM)
+```
+
+Optional features:
+
+- `parallel` (`hekit-ckks`, `hekit-bench`): rayon data parallelism. Results are bit-identical
+  with and without it. The thread count is rayon's (`RAYON_NUM_THREADS`).
+- `cuda` (`hekit-cuda`, `hekit-bench`): the GPU backend.
+
+```sh
+cargo build --release -p hekit-cuda --features cuda
+cargo test -p hekit-cuda --features cuda --release -- --ignored   # needs a GPU
+```
+
+`cudarc` loads `libcuda` and `libnvrtc` at run time, so the `cuda` feature builds on machines
+without CUDA. Running it needs an NVIDIA driver supporting CUDA >= 13.1 and NVRTC 13.1 on the
+library path (for example `/usr/local/cuda-13.1/lib64` in `LD_LIBRARY_PATH`). Kernels are
+compiled at run time by NVRTC with `--fmad=false`. Each GPU test declares the GPU memory it
+needs and prints a `SKIP` line when it is not available, so a passing exit code alone is not
+proof that a GPU test ran.
+
+## Reproducing the benchmarks
+
+`scripts/run_all.sh` runs the paper's experiments and regenerates the tables; see
+`results/README.md` for what each run produces and how long it takes. The datasets that are not
+in the repository are fetched by `scripts/fetch_mnist.sh` and `scripts/fetch_fashion_mnist.sh`.
+Every binary records its own provenance (commit, command line, threads, load, memory) in its
+result JSON. Comparisons of wall-clock time are only meaningful on the same machine with the
+same thread count.
+
+## Security
+
+The parameter presets are estimated with the lattice-estimator (secret and error
+distributions as used; details and the full output in [docs/security.md](docs/security.md)):
+
+| preset / key | BDGL16 (HE Standard sieve) | MATZOV (estimator default) |
+|---|---|---|
+| `n16_boot`, main key (dense ternary) | 131.5 bits | 129.3 bits |
+| `n16_boot`, SSE ephemeral key (h' = 32) | 133.8 bits | 134.2 bits |
+| `n16_train` | 143.9 bits | 141.2 bits |
+
+The Core-SVP (ADPS16) estimates are lower, below 128 bits for these presets; they are
+reported in `docs/security.md` for information. The HE Standard uses the sieve model. The
+presets `test_tiny` and `n16_boot_sparse` (about 122 bits) are not secure and exist for tests
+and comparison only.
+
+**This is research code. It has not been audited** and was not designed or reviewed for
+side-channel resistance (constant-time execution) or for attacks that use decryption results
+(IND-CPA-D). Do not use it to protect real data.
+
+## Citation
+
+The paper describing this library is in preparation. Until it appears, please cite:
+
+```bibtex
+@misc{ckks-train,
+  title  = {ckks-train: {RNS-CKKS} with bootstrapping and {CUDA} for encrypted neural-network training},
+  author = {TODO},
+  year   = {2026},
+  note   = {Software, https://github.com/kenmaro3/ckks-train},
+}
+```
+
+The 2020 work it extends is arXiv:2012.13552 (Mihara et al.).
 
 ## License
 
-MIT (see `LICENSE`). Dependencies must be MIT / Apache-2.0 / BSD-style only; `tfhe` and `concrete*` are banned.
+MIT; see [LICENSE](LICENSE). Third-party notices are in
+[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES):
 
-Parts of `hekit-ckks` (the CKKS encoder's DWT, root table and slot map) are ported from Microsoft SEAL 4.1.2 (MIT), and other parts reproduce SEAL's formulas and formats for interoperability; see `THIRD_PARTY_NOTICES` for the list and SEAL's copyright and permission notice.
+- **Microsoft SEAL 4.1.2 (MIT).** Parts of the CKKS encoder (`hekit-ckks`: the DWT, the root
+  table, the slot index map) are ported from SEAL; other parts reproduce SEAL's formulas and
+  serialization format for interoperability. SEAL's copyright and permission notice is
+  reproduced in `THIRD_PARTY_NOTICES`. No SEAL source is vendored.
+- **Lattigo (Apache-2.0), acknowledgement only.** The baby-step split rule of the Chebyshev
+  evaluation follows a cost formula known from Lattigo's implementation; it was reimplemented
+  from the formula and no Lattigo code was used.
+- **libloading (ISC)**, a dependency of `cudarc` (feature `cuda` only). Dependencies are
+  otherwise MIT / Apache-2.0 / BSD; `cargo deny check licenses` enforces the list.
 
-## Data
+**GPL note.** ReBoot (GPL-3.0) was only *run*, as a baseline, in a separate environment. None
+of its code is included in or linked by this repository, and no part of this library is
+derived from it. Values taken from
+ReBoot's published configuration (initial weights, sample order, learning-rate schedule,
+encryption parameters) are used as data.
 
-`crates/hekit-bench/data/iris.csv` is Fisher's Iris data set (R. A. Fisher, 1936), from the UCI Machine Learning Repository, "Iris", doi:10.24432/C56C76, licensed CC BY 4.0. The copy is the one bundled with scikit-learn (identical to R's `iris`; it differs from the UCI file in two known-erroneous entries), taken from `spikes/seal-2020/data/`. `crates/hekit-bench/data/iris_split_seed2020.txt` is that spike's 80:20 train/test split (seed 2020).
+### Data
 
-MNIST (Y. LeCun, C. Cortes, C. J. C. Burges) is not in the repository: `scripts/fetch_mnist.sh` downloads it (torchvision's mirror, MD5-checked) into the gitignored `data/mnist/` for `crates/hekit-bench/src/bin/mnist.rs`.
+- **Iris** (R. A. Fisher, 1936): UCI Machine Learning Repository, doi:10.24432/C56C76,
+  CC BY 4.0. `crates/hekit-bench/data/iris.csv` is the copy bundled with scikit-learn.
+- **Breast Cancer Wisconsin (Diagnostic), WDBC** (W. H. Wolberg, W. N. Street,
+  O. L. Mangasarian): UCI Machine Learning Repository, doi:10.24432/C5DW2B, CC BY 4.0.
+  Distributed unmodified as `crates/hekit-bench/data/breast_cancer.csv`.
+- **MNIST** (Y. LeCun, C. Cortes, C. J. C. Burges): not distributed;
+  `scripts/fetch_mnist.sh` downloads it.
+- **Fashion-MNIST** (H. Xiao, K. Rasul, R. Vollgraf; Zalando SE, MIT): not distributed;
+  `scripts/fetch_fashion_mnist.sh` downloads it.
+
+Sources and checksums are in `crates/hekit-bench/data/README.md`.
 
 ## Status
 
-M1 complete: the CKKS core (`hekit-core`, `hekit-ckks`): RNS / NTT arithmetic, the `seal_2020` and `n16_train` presets, encoding, encryption, hybrid key switching, rotations with hoisting, BSGS matrix-vector products, operation counters, a precision suite and known-answer interop with SEAL 4.1.2. See `docs/m1-report.md`. Next: M2, encrypted NN training (`hekit-nn`).
-
-M0 spikes (throwaway experiments under `spikes/`) are not part of the workspace.
+- **M0** (spikes: NTT, cost model, the 2020 SEAL reproduction): done. The spikes under
+  `spikes/` are not part of the workspace.
+- **M1** (CKKS core): done. Known-answer tests bit-exact with SEAL 4.1.2; `docs/m1-report.md`.
+- **M2** (interactive encrypted training): done. Iris reproduction (test accuracy 0.967) and
+  MNIST eMLP-1; `docs/m2-report.md`.
+- **M3** (bootstrapping, non-interactive training, ReBoot comparison): done; the full-length
+  runs (4800 samples x 10 epochs) are pending. `docs/m3-report.md`.
+- **M4** (CUDA backend): the GPU kernels and evaluator are verified bit-exact with the CPU on an
+  RTX 4090; GPU bootstrapping is implemented but its measurement on hardware is deferred.
+  `docs/m4-report.md`.
+- **M5** (block MLPs, additional datasets, release, paper): in progress.

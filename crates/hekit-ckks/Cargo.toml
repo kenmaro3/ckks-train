@@ -1,14 +1,17 @@
 [package]
 name = "hekit-ckks"
-version = "0.0.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish = false
-description = "hekit-ckks (temporary name)"
+repository.workspace = true
+description = "RNS-CKKS homomorphic encryption with hybrid key switching, hoisted rotations, BSGS matrix-vector products and SSE bootstrapping (ckks-train)"
+readme = "README.md"
+keywords = ["ckks", "fhe", "homomorphic", "bootstrapping", "encryption"]
+categories = ["cryptography", "mathematics"]
 
 [dependencies]
-hekit-core = { path = "../hekit-core" }
+hekit-core = { path = "../hekit-core", version = "1.0.0" }
 ndarray = "0.16"
 num-complex = "0.4"
 rayon = { version = "1.10", optional = true }

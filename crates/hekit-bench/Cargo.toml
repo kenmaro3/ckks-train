@@ -1,11 +1,13 @@
 [package]
 name = "hekit-bench"
-version = "0.0.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+description = "Benchmarks, training binaries and the cost model of ckks-train (not published)"
+readme = "README.md"
 publish = false
-description = "hekit-bench (temporary name)"
 
 [dependencies]
 hekit-ckks = { path = "../hekit-ckks" }

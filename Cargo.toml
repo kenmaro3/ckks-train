@@ -10,9 +10,11 @@ members = [
 exclude = ["spikes"]
 
 [workspace.package]
+version = "1.0.0"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT"
+repository = "https://github.com/kenmaro3/ckks-train"
 
 # Later tasks run N = 2^16 tests; keep debug-assertions and overflow-checks (default for test).
 [profile.test]

@@ -1,11 +1,14 @@
 [package]
 name = "hekit-core"
-version = "0.0.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish = false
-description = "hekit-core (temporary name)"
+repository.workspace = true
+description = "RNS arithmetic, NTT and sampling primitives of ckks-train, an RNS-CKKS library for encrypted neural-network training"
+readme = "README.md"
+keywords = ["fhe", "rns", "ntt", "lattice", "homomorphic"]
+categories = ["cryptography", "mathematics"]
 
 [dependencies]
 rand_chacha = "0.9"

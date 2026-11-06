@@ -152,7 +152,7 @@ use ndarray::{Array2, Axis, s};
 
 const CLASSES: usize = 10;
 
-/// Task 52: ReBoot's eMLP-2/3 block structure (`--blocks`).
+// Task 52: ReBoot's eMLP-2/3 block structure (`--blocks`); documented by its inner docs.
 #[path = "mnist/blocks.rs"]
 mod blocks;
 

@@ -55,6 +55,10 @@
 //! [`CudaDevice`] they live on, so they cannot outlive it (see the `compile_fail` examples on
 //! [`DevicePoly`] and [`CudaCiphertext`]).
 #![deny(missing_docs)]
+// The crate docs above link to the device types, which exist only with the `cuda` feature.
+// Without it those links cannot resolve; with it (and on docs.rs, see Cargo.toml) every link
+// is checked.
+#![cfg_attr(not(feature = "cuda"), allow(rustdoc::broken_intra_doc_links))]
 
 pub mod basis;
 #[cfg(any(test, feature = "cuda"))]

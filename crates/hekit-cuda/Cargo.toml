@@ -1,15 +1,18 @@
 [package]
 name = "hekit-cuda"
-version = "0.0.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish = false
-description = "hekit-cuda: CUDA backend for hekit RNS-CKKS (temporary crate name)"
+repository.workspace = true
+description = "CUDA backend for the ckks-train RNS-CKKS library: NTT, key switching and the evaluator on the GPU, bit-identical to the CPU"
+readme = "README.md"
+keywords = ["ckks", "fhe", "cuda", "gpu", "homomorphic"]
+categories = ["cryptography", "hardware-support"]
 
 [dependencies]
-hekit-core = { path = "../hekit-core" }
-hekit-ckks = { path = "../hekit-ckks" }
+hekit-core = { path = "../hekit-core", version = "1.0.0" }
+hekit-ckks = { path = "../hekit-ckks", version = "1.0.0" }
 # cudarc: CUDA 13.1 bindings (`cuda-13010`, matching NVRTC 13.1 at /usr/local/cuda-13.1 on
 # quadruped-gpu; its driver 595.91 supports CUDA 13.2) with `dynamic-loading`: libcuda / libnvrtc
 # are dlopened at first use, so the crate builds and `cargo check --features cuda` passes on
@@ -25,7 +28,7 @@ cudarc = { version = "=0.19.0", default-features = false, features = ["std", "dr
 cuda = ["dep:cudarc"]
 
 [dev-dependencies]
-hekit-nn = { path = "../hekit-nn" }
+hekit-nn = { path = "../hekit-nn", version = "1.0.0" }
 rand_chacha = "0.9"
 rand_core = "0.9"
 
@@ -33,3 +36,8 @@ rand_core = "0.9"
 [[example]]
 name = "batch_streams"
 required-features = ["cuda"]
+
+# docs.rs: document the device API (cudarc dlopens CUDA at run time, so no toolkit is needed
+# to build the docs).
+[package.metadata.docs.rs]
+features = ["cuda"]
