@@ -340,6 +340,8 @@ block will state its GPU memory need, and the tests skip with a message when the
 
 Run these blocks **after R-41-FULL-2 and R-47-3**, in the order R-48-1 → R-48-2 → R-48-3 → R-48-4, each one alone, and never during a FULL run.
 
+Run every R-48 block under **bash** (it uses `PIPESTATUS`).
+
 Common setup:
 ```
 cd ~/hekit-r48 && git fetch && git checkout --detach 0e07561 && git status --porcelain --untracked-files=no   # must print nothing (or rsync a clean tree at 0e07561)
@@ -372,6 +374,7 @@ if [ "$rc" -eq 3 ]; then
   OPT=sgd
   nice -n 10 target/release/ablation --backend cuda --params n16_train --top-level 7 --optimizer sgd --iters 5 --warmup 1 --data $MNIST --out results/quadruped/ablation_cuda_sgd.json 2>&1 | tee results/quadruped/logs/R-48-2-sgd.log
   rc=${PIPESTATUS[0]}
+  [ "$rc" -eq 3 ] && OPT=nag   # both GPU runs skipped: the CPU row R-48-3 stays NAG (the more useful row)
 fi
 echo "$OPT" > results/quadruped/logs/R-48-2.optimizer
 echo "R-48-2 optimizer=$OPT exit=$rc" | tee -a results/quadruped/logs/R-48-2.log
