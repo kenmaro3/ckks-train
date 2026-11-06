@@ -418,7 +418,7 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
   - `checks.test_acc_diff_within_0.005`
   - `checks.handoff_err_within_2^-10`
 
-  Also report `measured.measured_over_predicted` (expect 1.0), and for each boundary `twin.handoff_bootstraps[*].{max_abs_input_twin, inputs_above_1, log2_max_abs_err_vs_twin}`. Expect max |a| ≈ 2.3, so `precondition_hit` should be true.
+  Also report `measured.measured_over_predicted` (expect 1.0), and for each boundary `twin.handoff_bootstraps[*].{max_abs_input_twin, inputs_above_1, log2_max_abs_err_vs_twin}`. On the 21-step subset the plaintext twin reaches max |a| ≈ 1.19 (eMLP-2) and 0.97 / 0.50 (eMLP-3). So `precondition_hit` should be true for eMLP-2 and false for eMLP-3; neither result is an anomaly. The ≈ 2.3 maximum appears only in full-length runs.
 - **GPU memory need:** 0
 - **timing:** timed CPU runs. Run them alone, after R-41-FULL-2 and before R-47-3 / R-48, or after those; nothing of ours may overlap. Partial rule: after 5 updates, log the projected total; if it is more than 2× the estimate, stop and mark `partial`.
 - **output path:** as given in `--out`, plus `results/quadruped/logs/R-52-{1,2}.log`
