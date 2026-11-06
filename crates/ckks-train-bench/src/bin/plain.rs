@@ -52,16 +52,14 @@
 //! each seed's best epoch (test-set selected, so optimistic), each against the target's ±1 pt
 //! gate.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
-use ckks_train_bench::data::{
-    Mnist, Split, load_mnist, load_wdbc, min_max_columns, one_hot, reboot_preprocess, sha256_hex,
-    standardize, stratified_split,
-};
+use ckks_train_bench::data::{Split, one_hot, read_idx_u8};
+use ckks_train_bench::profile_data::{DataRequest, DataSource, Dataset, Scaling, load_dataset};
 use ckks_train_bench::twin::{
     WeightDecay, accuracy_over, forward_plain, init_net, permutation, rng, twin_step,
 };
@@ -71,17 +69,8 @@ use serde_json::{Value, json};
 /// The ±gate of Table 4 reproduction, in accuracy (1 pt).
 const GATE: f64 = 0.01;
 
-/// A loaded data set: features and labels of the training and test sets, and what was read.
-struct Data {
-    train_x: Array2<f64>,
-    train_y: Vec<u8>,
-    test_x: Array2<f64>,
-    test_y: Vec<u8>,
-    /// File names and SHA-256 digests read.
-    files: Vec<(String, String)>,
-    /// A description of the preprocessing.
-    prep: String,
-}
+/// Shared data consumed identically by plaintext and future encrypted adapters.
+type Data = Dataset;
 
 /// How the WDBC split is seeded.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -298,77 +287,84 @@ fn parse_cfg(argv: &[String]) -> Result<Cfg, String> {
     Ok(cfg)
 }
 
-/// The SHA-256 of a file, for the output's record of what was read.
-fn file_sha(path: &Path) -> Result<(String, String), String> {
-    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    Ok((path.display().to_string(), sha256_hex(&bytes)))
-}
-
 fn load(cfg: &Cfg, split_seed: u8) -> Result<Data, String> {
-    match cfg.kind.as_str() {
+    let (dataset_id, features, source) = match cfg.kind.as_str() {
         "mnist_idx" => {
-            let hint = |e: std::io::Error| {
-                format!(
-                    "{}: {e} (scripts/fetch_mnist.sh or scripts/fetch_fashion_mnist.sh)",
-                    cfg.path.display()
-                )
-            };
-            let tr = load_mnist(&cfg.path, Split::Train, None).map_err(hint)?;
-            let te = load_mnist(&cfg.path, Split::Test, None).map_err(hint)?;
-            let mut files = Vec::new();
-            for split in [Split::Train, Split::Test] {
-                let (a, b) = split.files();
-                files.push(file_sha(&cfg.path.join(a))?);
-                files.push(file_sha(&cfg.path.join(b))?);
-            }
-            let (tr, te, prep): (Mnist, Mnist, String) = match cfg.resize {
-                Some(side) => {
-                    let (a, b) = reboot_preprocess(&tr, &te, side);
-                    let prep = format!(
-                        "{0}x{1} -> {side}x{side} antialiased bicubic (a = -0.5), then min-max \
-                         scaling over the training set (data::reboot_preprocess)",
-                        tr.rows, tr.cols
-                    );
-                    (a, b, prep)
+            // Legacy plain configs do not declare raw IDX dimensions. Preserve that
+            // flexibility while the shared loader still checks an explicit width.
+            let features = match cfg.resize {
+                Some(side) => side.checked_mul(side).ok_or("resize width overflow")?,
+                None => {
+                    let image_file = cfg.path.join(Split::Train.files().0);
+                    let images = read_idx_u8(&image_file).map_err(|e| e.to_string())?;
+                    match images.dims.as_slice() {
+                        [_, rows, cols] => rows.checked_mul(*cols).ok_or("IDX width overflow")?,
+                        _ => return Err("IDX images must have three dimensions".into()),
+                    }
                 }
-                None => (tr, te, "pixels byte / 255".into()),
             };
-            Ok(Data {
-                train_x: tr.images,
-                train_y: tr.labels,
-                test_x: te.images,
-                test_y: te.labels,
-                files,
-                prep,
-            })
+            // The legacy names identify the committed references; custom configs can
+            // explicitly declare dataset.id, otherwise retain their own config name.
+            let identity = get(&cfg.raw, "dataset.id")
+                .and_then(Value::as_str)
+                .unwrap_or(match cfg.name.as_str() {
+                    "fmnist_emlp1" => "fashion_mnist",
+                    "mnist_emlp1_paper" => "mnist_paper",
+                    _ => &cfg.name,
+                });
+            (
+                identity.to_string(),
+                features,
+                DataSource::Idx {
+                    dir: cfg.path.clone(),
+                    resize: cfg.resize,
+                },
+            )
         }
-        _ => {
-            let t = load_wdbc(&cfg.path).map_err(|e| e.to_string())?;
-            let (tr, te) = stratified_split(&t.labels, cfg.test_size, &mut rng(split_seed, 4));
-            let mut train_x = t.features.select(Axis(0), &tr);
-            let mut test_x = t.features.select(Axis(0), &te);
-            let scaling = if cfg.scaling == "standardize" {
-                standardize(&mut train_x, &mut test_x);
-                "standardization with the training mean and population std (data::standardize)"
-            } else {
-                min_max_columns(&mut train_x, &mut test_x);
-                "per-column min-max scaling with the training ranges (data::min_max_columns)"
-            };
-            Ok(Data {
-                train_x,
-                train_y: tr.iter().map(|&i| t.labels[i]).collect(),
-                test_x,
-                test_y: te.iter().map(|&i| t.labels[i]).collect(),
-                files: vec![file_sha(&cfg.path)?],
-                prep: format!(
-                    "stratified split ({} train / {} test, ChaCha20 rng(split_seed = {split_seed}, \
-                     4), data::stratified_split), then {scaling}",
-                    tr.len(),
-                    te.len()
-                ),
-            })
+        "wdbc" => (
+            "breast_cancer".into(),
+            30,
+            DataSource::Wdbc {
+                path: cfg.path.clone(),
+                test_size: cfg.test_size,
+                split_seed,
+                scaling: if cfg.scaling == "standardize" {
+                    Scaling::Standardize
+                } else {
+                    Scaling::MinMax
+                },
+            },
+        ),
+        _ => return Err(format!("unsupported dataset.kind {}", cfg.kind)),
+    };
+    let mut profile_id = cfg.name.clone();
+    if cfg.kind == "wdbc"
+        && (cfg.split_seed != SplitSeed::Fixed(0)
+            || cfg.scaling != "min_max"
+            || cfg.test_size != 114)
+    {
+        let split = match cfg.split_seed {
+            SplitSeed::Fixed(s) => format!("fixed_{s}"),
+            SplitSeed::PerRun => format!("per_run_{split_seed}"),
+        };
+        profile_id = format!(
+            "{}__supplementary_split_{split}_scaling_{}",
+            cfg.name, cfg.scaling
+        );
+        if cfg.test_size != 114 {
+            profile_id.push_str(&format!("_test_{}", cfg.test_size));
         }
     }
+    load_dataset(&DataRequest {
+        profile_id,
+        dataset_id,
+        classes: cfg.classes,
+        features,
+        train_samples: None,
+        test_samples: None,
+        source,
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// One seed's training: the test and train accuracy and the test MSE after every epoch.
@@ -667,6 +663,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
 
     #[test]
     fn seeds_lists_and_ranges() {
@@ -697,6 +694,98 @@ mod tests {
         assert_eq!(g["within_1pt"], json!(true));
         let g = gated(&[0.9, 0.9], &Some((0.92, 0.0, String::new())));
         assert_eq!(g["within_1pt"], json!(false));
+    }
+
+    #[test]
+    fn shared_loader_adapter_preserves_wdbc_values_and_supplementary_identity() {
+        // A duplicate loader or ignored overrides breaks shared metadata or literal values.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut cfg = parse_cfg(&[
+            "--config".into(),
+            root.join("configs/bc_mlp.json").display().to_string(),
+        ])
+        .unwrap();
+        cfg.path = root.join("data/breast_cancer.csv");
+        let data = load(&cfg, 0).unwrap();
+        assert_eq!(data.dataset_id, "breast_cancer");
+        assert_eq!(data.profile_id, "bc_mlp");
+        let reference = ckks_train_bench::profile_data::load_dataset(
+            &ckks_train_bench::profile_data::DataRequest {
+                profile_id: "bc_mlp".into(),
+                dataset_id: "breast_cancer".into(),
+                classes: 2,
+                features: 30,
+                train_samples: Some(455),
+                test_samples: Some(114),
+                source: ckks_train_bench::profile_data::DataSource::Wdbc {
+                    path: cfg.path.clone(),
+                    test_size: 114,
+                    split_seed: 0,
+                    scaling: ckks_train_bench::profile_data::Scaling::MinMax,
+                },
+            },
+        )
+        .unwrap();
+        assert_eq!(data.train_x, reference.train_x);
+        assert_eq!(data.test_x, reference.test_x);
+        assert_eq!(data.train_y, reference.train_y);
+        assert_eq!(data.files, reference.files);
+        assert_eq!(data.prep, reference.prep);
+        cfg.split_seed = SplitSeed::PerRun;
+        cfg.scaling = "standardize".into();
+        let extra = load(&cfg, 3).unwrap();
+        assert_eq!(
+            extra.profile_id,
+            "bc_mlp__supplementary_split_per_run_3_scaling_standardize"
+        );
+        assert_ne!(extra.train_indices, data.train_indices);
+        let means = extra.train_x.mean_axis(Axis(0)).unwrap();
+        assert!(means.iter().all(|m| m.abs() < 1e-12));
+    }
+
+    #[test]
+    fn shared_loader_adapter_preserves_idx_raw_and_resize_numeric_behavior() {
+        use ckks_train_bench::data::{load_mnist, reboot_preprocess, write_idx_u8};
+        let dir = std::env::temp_dir().join(format!("hekit-plain-loader-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        for (split, pixels, labels) in [
+            (
+                Split::Train,
+                vec![0, 20, 40, 60, 80, 100, 120, 140],
+                vec![0, 1],
+            ),
+            (Split::Test, vec![255; 4], vec![1]),
+        ] {
+            let (im, la) = split.files();
+            std::fs::write(dir.join(im), write_idx_u8(&[labels.len(), 2, 2], &pixels)).unwrap();
+            std::fs::write(dir.join(la), write_idx_u8(&[labels.len()], &labels)).unwrap();
+        }
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut cfg = parse_cfg(&[
+            "--config".into(),
+            root.join("configs/fmnist_emlp1.json").display().to_string(),
+        ])
+        .unwrap();
+        cfg.path = dir.clone();
+        cfg.resize = None;
+        let raw = load(&cfg, 0).unwrap();
+        assert_eq!(raw.train_x.dim(), (2, 4));
+        assert_eq!(raw.train_x[[0, 1]], 20. / 255.);
+        assert_eq!(raw.prep, "pixels byte / 255");
+        assert_eq!(raw.dataset_id, "fashion_mnist");
+        let train = load_mnist(&dir, Split::Train, None).unwrap();
+        let test = load_mnist(&dir, Split::Test, None).unwrap();
+        let canonical = reboot_preprocess(&train, &test, 2);
+        cfg.resize = Some(2);
+        let resized = load(&cfg, 0).unwrap();
+        assert_eq!(resized.train_x, canonical.0.images);
+        assert_eq!(resized.test_x, canonical.1.images);
+        assert_eq!(resized.train_y, canonical.0.labels);
+        assert_eq!(
+            resized.prep,
+            "2x2 -> 2x2 antialiased bicubic (a = -0.5), then min-max scaling over the training set (data::reboot_preprocess)"
+        );
+        std::fs::remove_dir_all(dir).unwrap();
     }
 
     /// The committed configs parse, and the WDBC one trains end to end (2 epochs, 2 seeds).
