@@ -1,0 +1,45 @@
+{
+  "kind": "local_static_preparation_verification_not_execution",
+  "status": "passed",
+  "wrapper_execution": false,
+  "remote_access": false,
+  "payload_byte_comparisons": 4,
+  "helper_pins_unchanged": 35,
+  "sidecar_changed_leaves": [
+    {
+      "field": "/evidence/child",
+      "before": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-child.json",
+      "after": "/home/kmihara/hekit-runs/task54-launch/v2/startup2-child.json"
+    },
+    {
+      "field": "/evidence/parent",
+      "before": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-parent.json",
+      "after": "/home/kmihara/hekit-runs/task54-launch/v2/startup2-parent.json"
+    },
+    {
+      "field": "/exporter/path",
+      "before": "/home/kmihara/hekit-runs/task54-launch/v1/export_reboot_block_seed_inputs.py",
+      "after": "/home/kmihara/hekit-runs/task54-launch/v2/export_reboot_block_seed_inputs.py"
+    },
+    {
+      "field": "/programs/launcher/path",
+      "before": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+      "after": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py"
+    },
+    {
+      "field": "/programs/launcher/sha256",
+      "before": "e6ff0ab0e45fc680442bc184ecf665cdc63888bba13c673d5cb18441d9fecd84",
+      "after": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c"
+    },
+    {
+      "field": "/programs/prelaunch/path",
+      "before": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-prelaunch-v1.py",
+      "after": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py"
+    }
+  ],
+  "startup1_files_rehashed_unchanged": 27,
+  "readback_file_hashes_pinned": 4,
+  "readback_device_inode_join": "Actual v2 values unknown until deployment; root must compare captured readback identities with collected deployment receipt before execution release.",
+  "invoker_delta": "Only v1/v2 and startup1/startup2 path substitutions, FIX2/FIX3 launcher digest, candidate sidecar digest.",
+  "collector_delta": "Only v1/v2 and startup1/startup2 substitutions."
+}

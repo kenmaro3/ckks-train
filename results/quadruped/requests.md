@@ -647,3 +647,55 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-startup1-collect.{stdout,stderr,meta.json}` plus decoded byte-identical parent/child JSON and hashes.
 - **pass criterion:** exact available bytes/identities retained, distinct from startup verdict. No target process invocation/retry, package/scientific import, mutation or signals.
 - **status:** done (2026-11-07T07:29:37.018856+09:00, exit0). Both remote evidence files collected byte-for-byte and decoded locally with matching hashes; failed startup release binding and childterminal1/complete streams/empty stages confirmed. No retry or target invocation.
+
+
+## R-REB-20-STARTUP2-FILES: fixed startup2 operation
+
+- **purpose:** Deploy four fresh fixed startup2 bytes; preserve v1/startup1.
+- **commit to sync:** none; isolated frozen copies, no checkout/build/install.
+- **working dir:** `/home/kmihara/hekit-runs/task54-launch/v2`; invocation cwd `/home/kmihara/reboot`.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; exact ledger `task-54-linux-startup2-deploy.py`, SHA256 ab1c616bea7230961ffcced5c8706c0b308bf75fe38b6feadc807044e948eccf on stdin. No password/sudo/other-process signals.
+- **expected duration:** seconds after SSH; invocation child60s/cleanup5s, outer110s observation deadline. One-thread preparation only, no HE/scientific workload.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** ledger `task-54-linux-startup2-deploy.{stdout,stderr,meta.json}`; invocation creates fresh remote startup2-parent.json / startup2-child.json.
+- **pass criterion:** Fresh-only absent v2, four exact hashes/uid/mode/fsync; no target startup. Preserve partial/failed records; no retry or replacement of v1/startup1. No job/queue mutation or native-isolation claim.
+- **status:** done (2026-11-07T07:52:08.542554+09:00, exit0). Four exact files deployed exclusively under freshv2, hashes/uid/mode0600 verified; v1 unchanged. No target started.
+
+
+## R-REB-21-STARTUP2-READBACK: fixed startup2 operation
+
+- **purpose:** Independently rehash four deployed files and observe directory/evidence state.
+- **commit to sync:** none; isolated frozen copies, no checkout/build/install.
+- **working dir:** `/home/kmihara/hekit-runs/task54-launch/v2`; invocation cwd `/home/kmihara/reboot`.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; exact ledger `task-54-linux-startup2-readback.py`, SHA256 6a45c62ca7196e771f0166e3afdae1878b9671683fa861009767e259387517a2 on stdin. No password/sudo/other-process signals.
+- **expected duration:** seconds after SSH; invocation child60s/cleanup5s, outer110s observation deadline. One-thread preparation only, no HE/scientific workload.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** ledger `task-54-linux-startup2-readback.{stdout,stderr,meta.json}`; invocation creates fresh remote startup2-parent.json / startup2-child.json.
+- **pass criterion:** Four file identities must match deployment receipt; own0700 directories and absent evidence. No FULL2 poll or target start. Preserve partial/failed records; no retry or replacement of v1/startup1. No job/queue mutation or native-isolation claim.
+- **status:** done (2026-11-07T07:53:12.706105+09:00, exit0). Four complete file identity records match R20; commonparent matches R17, v2directory identity first observed66311/36309263 own0700; both evidencepaths absent. No job poll or mutation.
+
+
+## R-REB-22-STARTUP2: fixed startup2 operation
+
+- **purpose:** One FIX3 trusted-only startup observation after deployment/readback.
+- **commit to sync:** none; isolated frozen copies, no checkout/build/install.
+- **working dir:** `/home/kmihara/hekit-runs/task54-launch/v2`; invocation cwd `/home/kmihara/reboot`.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; exact ledger `task-54-linux-startup2-invoke.py`, SHA256 8c313e0716ceb221077ae03491ef9ace8a676b87ea754214b046866013cb3ffc on stdin. No password/sudo/other-process signals.
+- **expected duration:** seconds after SSH; invocation child60s/cleanup5s, outer110s observation deadline. One-thread preparation only, no HE/scientific workload.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **output path:** ledger `task-54-linux-startup2-invoke.{stdout,stderr,meta.json}`; invocation creates fresh remote startup2-parent.json / startup2-child.json.
+- **pass criterion:** Exact sidecar ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd; terminalzero, complete streams, real stage evidence. No externalappend/exporter/context/capture. Preserve partial/failed records; no retry or replacement of v1/startup1. No job/queue mutation or native-isolation claim.
+- **status:** done (2026-11-07T07:53:48.768885+09:00, childterminal0). ChildPID1963722, complete streams/cleanupempty. Parent/child release and argv match; actual startup/helpers snapshots observed, observation-only. No externalappend/exporter/context/capture. Originalstartup1failure unchanged.
+
+
+## R-REB-23-STARTUP2-EVIDENCE: fixed startup2 operation
+
+- **purpose:** Collect exact parent/child evidence without rerunning startup.
+- **commit to sync:** none; isolated frozen copies, no checkout/build/install.
+- **working dir:** `/home/kmihara/hekit-runs/task54-launch/v2`; invocation cwd `/home/kmihara/reboot`.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; exact ledger `task-54-linux-startup2-collect.py`, SHA256 e52ff869ecd2d84f395f25f8459df7d3a010e24b51dcec3c1f1f1add6909f08b on stdin. No password/sudo/other-process signals.
+- **expected duration:** seconds after SSH; invocation child60s/cleanup5s, outer110s observation deadline. One-thread preparation only, no HE/scientific workload.
+- **GPU memory need:** 0. **RAM need:** under50MiB expected.
+- **output path:** ledger `task-54-linux-startup2-collect.{stdout,stderr,meta.json}`; invocation creates fresh remote startup2-parent.json / startup2-child.json.
+- **pass criterion:** Both fixed files at most2MiB each with original bytes/hash; missing/error explicit, no startup verdict inferred from collection. Preserve partial/failed records; no retry or replacement of v1/startup1. No job/queue mutation or native-isolation claim.
+- **status:** done (exit0). Both original files collected byte-for-byte: parent2755B SHA2569d491997ed1476c98f5e1847354d30e344cb54bbb1f4ee2ecf480c16f71b5fc1; child98031B SHA256a1fbe98aa390b7305f7189dabf574c4d28b2422617bfeb010e261f2c82fd1f41. Parent childhash, terminal0/completestreams and startup-only stage membership verified. No retry.

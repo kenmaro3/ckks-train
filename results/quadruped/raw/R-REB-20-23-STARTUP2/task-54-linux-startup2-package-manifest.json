@@ -1,0 +1,62 @@
+{
+  "kind": "startup2_frozen_preparation_package_NOT_DEPLOYMENT_OR_EXECUTION_RELEASE",
+  "self_excluded_to_avoid_digest_cycle": true,
+  "source_acceptance": "FIX3 scoped rereview pending at preparation",
+  "files": [
+    {
+      "path": "task-54-linux-startup2-prelaunch-original.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0"
+    },
+    {
+      "path": "task-54-linux-startup2-launcher-original.py",
+      "bytes": 29357,
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c"
+    },
+    {
+      "path": "task-54-linux-startup2-exporter-original.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce"
+    },
+    {
+      "path": "task-54-linux-startup2-candidate-release.json",
+      "bytes": 13833,
+      "sha256": "ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd"
+    },
+    {
+      "path": "task-54-linux-startup2-deploy.py",
+      "bytes": 152920,
+      "sha256": "ab1c616bea7230961ffcced5c8706c0b308bf75fe38b6feadc807044e948eccf"
+    },
+    {
+      "path": "task-54-linux-startup2-invoke.py",
+      "bytes": 6485,
+      "sha256": "8c313e0716ceb221077ae03491ef9ace8a676b87ea754214b046866013cb3ffc"
+    },
+    {
+      "path": "task-54-linux-startup2-readback.py",
+      "bytes": 3247,
+      "sha256": "6a45c62ca7196e771f0166e3afdae1878b9671683fa861009767e259387517a2"
+    },
+    {
+      "path": "task-54-linux-startup2-collect.py",
+      "bytes": 1761,
+      "sha256": "e52ff869ecd2d84f395f25f8459df7d3a010e24b51dcec3c1f1f1add6909f08b"
+    },
+    {
+      "path": "task-54-linux-startup2-deploy-manifest.json",
+      "bytes": 6007,
+      "sha256": "3d6246af15545b4147d7da0549acebffafb73dcd0aa45d29b8d7a1019b792c07"
+    },
+    {
+      "path": "task-54-linux-startup2-static-verification.json",
+      "bytes": 2085,
+      "sha256": "9cd0b140e074ba0e315f7f7a6741fa091621a7b2222552a78b87ad129dff6c10"
+    },
+    {
+      "path": "task-54-linux-startup2-preparation.md",
+      "bytes": 12069,
+      "sha256": "23a61c60a63c9cf3c4c102c45ca249e3b4cb3de6b4cb3cb9c4c35380cb19d401"
+    }
+  ]
+}

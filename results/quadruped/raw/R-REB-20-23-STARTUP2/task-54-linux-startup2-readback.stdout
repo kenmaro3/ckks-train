@@ -1,0 +1,66 @@
+{
+  "kind": "startup_deployment_readback_not_scientific_result",
+  "observed_unix": 1794005592.7054174,
+  "nice": 10,
+  "uid": 1000,
+  "deployment_files": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309264
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py",
+      "bytes": 29357,
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309265
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/export_reboot_block_seed_inputs.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309266
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/startup2-release.json",
+      "bytes": 13833,
+      "sha256": "ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309267
+    }
+  ],
+  "deployment_directories": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch",
+      "uid": 1000,
+      "mode": 448,
+      "device": 66311,
+      "inode": 36309255
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2",
+      "uid": 1000,
+      "mode": 448,
+      "device": 66311,
+      "inode": 36309263
+    }
+  ],
+  "evidence_absent": {
+    "/home/kmihara/hekit-runs/task54-launch/v2/startup2-parent.json": true,
+    "/home/kmihara/hekit-runs/task54-launch/v2/startup2-child.json": true
+  },
+  "status": "readback_complete",
+  "finished_unix": 1794005592.7061045
+}

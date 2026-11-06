@@ -1,0 +1,111 @@
+{
+  "candidate_release_sha256": "ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd",
+  "destination": "/home/kmihara/hekit-runs/task54-launch/v2",
+  "existing_deployment_parent_observed": {
+    "device": 66311,
+    "inode": 36309255,
+    "mode": 448,
+    "path": "/home/kmihara/hekit-runs/task54-launch",
+    "source": "task-54-linux-startup1-readback.stdout",
+    "uid": 1000
+  },
+  "files": [
+    {
+      "bytes": 7044,
+      "path": "task-54-linux-startup2-prelaunch-original.py",
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0"
+    },
+    {
+      "bytes": 29357,
+      "path": "task-54-linux-startup2-launcher-original.py",
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c"
+    },
+    {
+      "bytes": 61243,
+      "path": "task-54-linux-startup2-exporter-original.py",
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce"
+    },
+    {
+      "bytes": 13833,
+      "path": "task-54-linux-startup2-candidate-release.json",
+      "sha256": "ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd"
+    },
+    {
+      "bytes": 152920,
+      "path": "task-54-linux-startup2-deploy.py",
+      "sha256": "ab1c616bea7230961ffcced5c8706c0b308bf75fe38b6feadc807044e948eccf"
+    },
+    {
+      "bytes": 6485,
+      "path": "task-54-linux-startup2-invoke.py",
+      "sha256": "8c313e0716ceb221077ae03491ef9ace8a676b87ea754214b046866013cb3ffc"
+    },
+    {
+      "bytes": 3247,
+      "path": "task-54-linux-startup2-readback.py",
+      "sha256": "6a45c62ca7196e771f0166e3afdae1878b9671683fa861009767e259387517a2"
+    },
+    {
+      "bytes": 1761,
+      "path": "task-54-linux-startup2-collect.py",
+      "sha256": "e52ff869ecd2d84f395f25f8459df7d3a010e24b51dcec3c1f1f1add6909f08b"
+    }
+  ],
+  "kind": "startup2_preparation_deployment_manifest_NOT_RELEASED",
+  "payload": [
+    {
+      "bytes": 7044,
+      "local_original": "task-54-linux-startup2-prelaunch-original.py",
+      "name": "task-54-exporter-linux-prelaunch-v1.py",
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0"
+    },
+    {
+      "bytes": 29357,
+      "local_original": "task-54-linux-startup2-launcher-original.py",
+      "name": "task-54-exporter-linux-launch-v1.py",
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c"
+    },
+    {
+      "bytes": 61243,
+      "local_original": "task-54-linux-startup2-exporter-original.py",
+      "name": "export_reboot_block_seed_inputs.py",
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce"
+    },
+    {
+      "bytes": 13833,
+      "local_original": "task-54-linux-startup2-candidate-release.json",
+      "name": "startup2-release.json",
+      "sha256": "ec4cd24694e5484ed4192470b0186229f4cd4bda2ebe4ffc30108bb678394dbd"
+    }
+  ],
+  "source_acceptance": "FIX3 scoped independent rereview pending at preparation",
+  "unchanged_startup1_inputs": {
+    "startup1-child.json": "c35c6aacb3f2c3a6fd10af7c46fe8b9720b838ef2f9adbe0f81555050a8fedea",
+    "startup1-parent.json": "119b5447185f61fb4a5f578315c347445604b25adebbdc9a6288435768ebaa9f",
+    "task-54-linux-startup1-candidate-release.json": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+    "task-54-linux-startup1-collect.meta.json": "788be245681b0d6b6331ef69b894f982532680d8b591d63f81643579ed7ea3be",
+    "task-54-linux-startup1-collect.py": "1f7668159f31d1b5df40b22da9de11f0499d13ab45f332bdb13d47d77d84b4b7",
+    "task-54-linux-startup1-collect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task-54-linux-startup1-collect.stdout": "d58e0f9954ec095130c5119a95af2ea3cc87d3371f51dcd03f5d9b556ee3d755",
+    "task-54-linux-startup1-deploy-manifest.json": "a74c527632ac4c6f03b5deba2f038e6ea05e3a13ebe89227b385adc28a499752",
+    "task-54-linux-startup1-deploy-release.md": "69e1a7865621049de25fb34e69758d0c1dec74fb253075ba174898b94681a7bb",
+    "task-54-linux-startup1-deploy-review.md": "5cb1f12bbd12b18783c585e3ef7330ac7044d2046bc9ab9fce219aa2f0335eb9",
+    "task-54-linux-startup1-deploy.meta.json": "b45833f564a6a3b748f8f2e74ec16bf92a2511ba51ca2b62ce920972e32f7d6a",
+    "task-54-linux-startup1-deploy.py": "d63de1ddda59b69fb183ad9507d0a7cdcda7ae28d4acd03d2550f3d9c0d38bca",
+    "task-54-linux-startup1-deploy.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task-54-linux-startup1-deploy.stdout": "b3412785633ee4290df0348036cc403d4ea011bb33518006c39213e46a9bd90e",
+    "task-54-linux-startup1-execution-release.md": "0d7778eecedcfa8a5c758647b60afaed8d44e04293c33e54dbc3c5f106920ce1",
+    "task-54-linux-startup1-invoke-review.md": "08553d2f3dcf9c51dc89a9734d1569608428314a5f5c4410cfc3097cc00f04d8",
+    "task-54-linux-startup1-invoke.meta.json": "3d1515c773d2393451fdcc9e2f3510368584049b98c5c3f965e4cb29cb09754d",
+    "task-54-linux-startup1-invoke.py": "94563d06cc7cfe48bfc6ed3e19a9a6f4404418917d606044e986333bb7ea0c44",
+    "task-54-linux-startup1-invoke.stderr": "4aa8f756654961f2d1180560ffdd235ba4606081c9b8656b2e2f24a5b7bbd39f",
+    "task-54-linux-startup1-invoke.stdout": "57456eaad97525ab8c83ed0fa7e27a894b21b615b40dfc42de991ad803a5be0a",
+    "task-54-linux-startup1-readback.meta.json": "856c2b17f508a18f228fd580fff3805bb2663ca4cb3e8de47c8086eb5bcca7f6",
+    "task-54-linux-startup1-readback.py": "47af9533e23db875c392979ea91ab4079001734dd15ba95fbc8e3f6d4a850426",
+    "task-54-linux-startup1-readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task-54-linux-startup1-readback.stdout": "956411f6b11a1c934c2b243ef9862ecf365fee08d9419103da207a6a7c619375",
+    "task-54-startup1-publication-manifest.json": "e1a606cbc3d44c910878c884f01cb96fe85aa3ead6dcdb1d35a7fc08f95e4a07",
+    "task-54-startup1-publication-review.md": "9802cdc6e06ed188dcace59a777a76402d3201e14b225ec357ccda215aa778ca",
+    "task-54-startup1-publication.patch": "6724ff4234c4bb0b99bc62fd29df4ad09fe9f709292f0503b18ccc67c42a2196"
+  }
+}

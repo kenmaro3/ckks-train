@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の追記: [学習用build統合と起動修正のレビュー](#latest-evidence-20261107-role-build)。
+最新の追記: [Linux startup2の実起動成功](#latest-evidence-20261107-startup2)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -274,5 +274,14 @@ Linux launcherのFIX3は固定された自分自身のファイルキーに対�
 `f1bdc3e`の[CI run42306740510](https://github.com/kenmaro3/ckks-train/actions/runs/42306740510)は全6ジョブのstepsが空で、各注記に支払い／利用上限による起動拒否がある。CI検証は未実施であり、コード試験の失敗とも成功とも扱わない。課金設定は変更していない。
 
 次の実装は、学習側の参照結果読み取りとReference専用の公開・復旧操作を分ける制御、既存target storeの読み取り専用open、入力の再検証の共通化である。実runtime、全行runner、native reference／admission／HE、Task42／M4の最終測定は引き続き未完。FULL-2の最新実観測は前節の07:25:40 JST（102/1000更新）で、新しい進捗を推定していない。全登録範囲とcampaign holdを維持する。
+
+<a id="latest-evidence-20261107-startup2"></a>
+## 2026-11-07追記: Linux startup2の実起動成功
+
+[R20〜23の原記録](../results/quadruped/raw/R-REB-20-23-STARTUP2/README.md)では新しいv2配置の4ファイルを別の読み取りで照合し、FIX3の実startup2が07:53:48.768885 JSTに子PID1963722／exit0で終了した。親子のrelease／argv／child hashが一致し、stream回収完了・cleanup errorなしを確認した。実際のstartup／helpersの2段階を記録し、固定launcherのimporter-cacheキーは両段階でnullだった。これは今回の観測であり、未記録だったstartup1の値を補完しない。
+
+実起動記録の独立レビューも合格した。合格範囲は隔離venvのidentityと標準ライブラリ準備の起動観測まで。外部package追加、exporter読込み、科学用context／capture、seed取得は未実行で、完全なhelper/native closureや数値互換性を主張しない。先行する失敗記録を保持し、新しい段階の実行条件は別途確認する。FULL-2／GPU後続キューは変更も再観測もしておらず、最新の本番進捗は07:25:40 JSTの102/1000更新のままである。
+
+学習側の読み取りと公開・復旧操作を分ける変更は限定55テスト・strict library Clippy／formatと独立sourceレビューに合格し、`2fa380f`で統合・pushした。実際のTrain contextによる読み取り／書込み拒否の統合検証はruntime実装後に残す。全行runnerと研究ゲートの未完事項、全登録範囲・campaign holdを維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
