@@ -9,7 +9,7 @@ use crate::{
     study_profile::{
         Activation, BatchPlan, Distribution, Initialization, LayerRole, Loss, Model, Optimizer,
         OrderPolicy, PlannedUpdate, PreparedDataset, PreparedInputs, ProfileError, ProfileMetadata,
-        RateUnits, ResolvedProfile, RngConvention,
+        RateUnits, ResolvedProfile, RngConvention, SharedSelector, StudySource,
     },
 };
 use ckks_train_core::sampler::Rng;
@@ -340,6 +340,8 @@ impl MaterializedIdentity {
 /// Owned immutable canonical host inputs; only [`materialize`] constructs production values.
 #[derive(Debug)]
 pub struct MaterializedProfile {
+    shared_selector: Option<SharedSelector>,
+    selected_sources: Vec<StudySource>,
     metadata: ProfileMetadata,
     graph: StageGraph,
     dataset: Dataset,
@@ -352,6 +354,13 @@ pub struct MaterializedProfile {
     reference: f64,
 }
 impl MaterializedProfile {
+    /// Canonical resolver selector; private synthetic assemblies have none.
+    pub fn shared_selector(&self) -> Option<&SharedSelector> {
+        self.shared_selector.as_ref()
+    }
+    pub(crate) fn selected_sources(&self) -> &[StudySource] {
+        &self.selected_sources
+    }
     /// Registered immutable metadata, including layer names, activation and bias roles.
     pub fn metadata(&self) -> &ProfileMetadata {
         &self.metadata
@@ -444,12 +453,15 @@ impl MaterializedProfile {
 /// arrays/order/identity. No caller-provided mutable prepared dataset is accepted.
 pub fn materialize(resolved: &ResolvedProfile) -> Result<MaterializedProfile> {
     let prepared = resolved.prepare_dataset()?;
-    assemble(
+    let mut materialized = assemble(
         resolved.metadata().clone(),
         &resolved.data_request(),
         prepared,
         true,
-    )
+    )?;
+    materialized.shared_selector = Some(resolved.shared_selector().clone());
+    materialized.selected_sources = resolved.selected_sources().to_vec();
+    Ok(materialized)
 }
 
 fn stage_graph(m: &ProfileMetadata) -> Result<StageGraph> {
@@ -1083,6 +1095,8 @@ fn assemble(
         canonical_prepared,
     )?;
     Ok(MaterializedProfile {
+        shared_selector: None,
+        selected_sources: Vec::new(),
         metadata: m,
         graph,
         dataset: prepared.dataset,
@@ -1594,6 +1608,10 @@ mod tests {
         let inputs = p.preflight(None).unwrap();
         assert!(inputs.captured.as_ref().unwrap().initialization.is_empty());
         let got = assemble(m.clone(), &q, synthetic(m, &q, inputs), false).unwrap();
+        assert!(matches!(
+            crate::study_reference::derive_identities(&got),
+            Err(crate::study_reference::ReferenceIdentityError::NonCanonical)
+        ));
         assert_eq!(got.initial().layers()[0].weights().dim(), (10, 196));
         assert!(
             got.initial()

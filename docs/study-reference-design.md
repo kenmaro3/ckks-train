@@ -208,3 +208,105 @@ Routine validation executes no full scientific profile and creates no scientific
 Recommend ratifying: the separate thin binary and privately owned session; dual shared/per-seed identity; exact binary64 reporting-threshold algorithm; strict separate synthetic/F64/quick types; atomic no-overwrite plus explicit durability failure; source/build/compiler provenance with an honest local trust boundary; and independent per-profile lock-before-start admission using binary-owned immutable per-case receipts. Root selected this ordering boundary before independent review and rejected the global cohort seal/journal alternative. The overall design has passed independent review and root ratification; the design revision/digest set and each bounded implementation assignment remain separate gates.
 
 Implementation must settle the explicit immutable selector/source-role descriptor and canonical field/tag table before coding its hashes, verify local platform publication primitives, and assign shared build/module changes. A complete source/build receipt is more work than reusing the legacy JSON helper, but omitting it would leave the requested evidence gap. Final model arrays are represented by a digest, not an exported/resumable checkpoint; adding independently replayable model export is separate scope. No hash or timestamp can replace trust in the local build/operator or prove absence of prior outside observations. None of these unresolved execution facts is repaired by this design or a synthetic fixture.
+
+## 13. D6c1a exact identity projection inventory (before implementation)
+
+This bounded package implements identity bytes only. Policy binding is the immutable
+ratified baseline `e018bd7401a6a606e306e58decad7af68cc56b84`, document SHA256
+`6cdca16097d4acbf28c0f9bf0a36cccc1fccfae2fb604b0410926c066b85a035`.
+That digest does **not** describe this subsequently appended document. The explicit
+selector version is `hekit-study-selector-v1`; contract and receipt versions are
+`hekit-study-profile-contract-v1` and `hekit-study-seed-input-receipt-v1`.
+No scientific policy, registry, portable lock, preparation recipe or arithmetic changes.
+
+Encoding is `hekit-study-reference-encoding-v1`: header strings (encoding version,
+domain), followed by the following fixed-order fields. UTF-8 has u64LE byte length;
+counts/indices have u64LE; flags/options/enum tags have one byte; floats use f64
+bits LE (f32 receipt arrays/rates use f32 bits LE). Collections have u64LE length.
+File maps sort by repository-relative UTF-8 path then explicit role; no absolute
+paths, native usize bytes, JSON/Debug serialization or heuristic seed stripping.
+
+| Shared contract field order | Exact coverage and exclusions |
+|---|---|
+| versions/policy | Contract version, selector version, immutable baseline revision/digest, input identity version, input-code algorithm name and existing code digest; permitted seeds 0 and 9. |
+| profile/data | `ProfileMetadata.id,dataset,model,classes,output_width`; actual dataset ID/profile ID/classes/train rows/train columns/test rows/test columns/label counts; existing dataset, split and preprocessing digests; registered preprocessing/split strings and actual prep/split strings. Source row indices and numeric arrays are covered by the existing independent digests. |
+| layers/stages | Every ordered `Layer.name,input,output,bias,activation,role` (including block index); every `Stage.layers` start/end, input kind/upstream layer and optional representation layer. |
+| optimizer/arithmetic | `loss,optimizer` plus momentum, `weight_decay,rate_description,rate_units`; optional constant `rate` only without schedule. F32 once-cast from canonical F64, scalar row/output/input loop accumulation, loss over logical outputs, real-class-only total_cmp/last-maximum argmax (including signed-zero ordering), zero initial velocity, NAG v'=mu*v+g then g+mu*v', no cross-stage gradient and pre-update handoff are fixed versioned policy strings. |
+| batching | `batch,logical_epochs,drop_last`; order kind, RNG, coverage and optional subset count; captured population/passes/coverage. |
+| initialization | Local recipe RNG/distribution(+sigma), full ordered recipe layers, registered draw-order string, seed-selector policy; captured family/model/export template and expected logical/source shape/orientation per named layer. `GenerationRecipe.seed`, captured filenames/digests and missing-export availability are excluded from shared identity explicitly. |
+| selector/sources | Immutable resolver-produced descriptor: selector version, relative registry/whole portable lock, shared sources, expected dataset sources; captured source family ID/model, unexpanded registered initialization/order templates and schedule pointer template. Explicit roles: registry=0, portable lock=1, shared config=2, local recipe code=3, dataset input=4, schedule container=5, selected initialization=6, selected order=7. Shared config includes registered graph/data/config/script bindings; schedule container is identified by exact bound source equality; recipe code by the two resolver-owned exact paths. Selected roles 6/7 only occur in the receipt. Every source retains relative path and digest. |
+| schedule | Absent/present; if present source relative path/digest, steps, reference batch; lookup policy floor(processed_start/reference_batch), bounded by source length, rate conversion from typed rate units. Selected pointer and realized coefficients excluded only from shared identity. |
+| full topology | `BatchPlan.processed_samples,dropped_samples`; each update `index,processed_start,valid_samples,source_schedule_index`; each checkpoint `completed_updates,processed_samples,crossed_logical_boundaries,exact_logical_boundary,interval_updates,interval_samples`. Numeric update source/mean/delta coefficients excluded here and retained in receipt. |
+
+| Seed receipt field order | Exact coverage |
+|---|---|
+| versions/linkage | Receipt version, shared contract digest, selected `ProfileMetadata.seed`, canonical flag; existing materialized digest and each component in order weights,biases,order,plan,f64_inputs,f32_inputs,dataset,split,preprocessing,code. |
+| sources/selector | All existing selected `SourceDigest.path,expected_sha256,actual_sha256` sorted by path; immutable selector bytes; selected captured initializer paths/hashes and captured order path/hash as explicit role records (shapes/orientation are retained by the shared contract link); selected schedule pointer. |
+| full plan | Full topology as above plus each numeric source/mean/delta coefficient; own reference kernel rates F64/F32 and rates source/mean/delta/kernel in both dtypes. |
+| selected values | Full materialized order rows (u64LE) and pass offsets; all named initialized layer shapes/weights/biases F64 then F32, cast tags 0/1 and dtype tags 64/32. No regeneration/preparation occurs. |
+
+Enum tags are exhaustive: Model Mlp2020/Emlp1/Emlp2/Emlp3=0/1/2/3;
+Activation Square/SquarePlusLinear/Identity=0/1/2; LayerRole
+Hidden/Output/LocalForward(+block)/LocalHead(+block)/OutputHidden=0/1/2/3/4;
+Loss MeanOutputMse/RssDelta=0/1; Optimizer Sgd/Nesterov(+momentum)=0/1;
+RateUnits Mean/SumTimesValid/SumTimesNominal=0/1/2; RNG
+LegacyIrisMasterFork/DomainSeparated=0/1; Distribution Normal(+sigma)/XavierUniform=0/1;
+Initialization Captured/Recipe=0/1 (MissingCaptured rejects materialized production
+projection; its resolver descriptor keeps the same captured family); Order
+Captured/PerEpochRecipe=0/1; Coverage FullPermutation/UniqueSubset(+count)=0/1;
+Orientation InputByOutput=0; StageInput Dataset/PreUpdateActivation(+layer)=0/1.
+Unsupported future enum variants require an explicit version decision rather than a
+wildcard fallback. Presence tags absent/present=0/1; booleans false/true=0/1.
+
+`ProfileMetadata.identity` is fully represented through registry/lock, source-role
+records, dataset bindings and split/preprocessing strings. `MaterializedIdentity`
+fields are all retained by the receipt; shared identity intentionally retains only
+seed-independent dataset/split/preprocessing/code. The canonical boolean gates
+construction, not merely serialization. Public mutable metadata is never a trusted
+constructor input. Descriptor fields are private, created only by the canonical
+resolver; materialization copies the descriptor internally after its one preparation.
+Private unit projections never construct or publish a trusted contract/receipt.
+Future artifacts, strict JSON parser, session, build/runtime provenance, writer,
+lock, target admission, CLI and actual full references remain unimplemented gates.
+
+
+### D6c1a implementation details and bounded evidence
+
+The implementation exposes only `derive_identities(&MaterializedProfile)` and immutable
+contract/receipt accessors; neither value has a public constructor/deserializer.
+`SharedSelector`, `CapturedSelector` and `StudySource` fields are private and originate
+in `StudyRegistry::resolve`. Shared file records are sorted by `(relative path, role)`;
+the encoded record is role byte, path string, expected SHA256 string. The selected
+record list uses the same format. `selector` is encoded inline: selector version,
+source list, captured option tag, then family/model/optional init template/order
+template/schedule template. The receipt retains the shared contract digest as the
+shape/orientation and policy linkage instead of duplicating those shared fields.
+
+The exact arithmetic strings bind forward and gradient traversal as row/output/input,
+separate product/add operations, division after gradient sums, zero velocity, native
+F32 operations and D1's last `total_cmp` maximum including signed zeros. This corrects
+an initial inventory wording error before encoding; the D6b arithmetic is unchanged.
+The selected constant rate option is present only when no schedule exists. Every
+plan topology field is emitted in both identities; the receipt additionally includes
+the three stored update coefficients and both dtype views' four rate coefficients.
+Domain headers contain the contract/receipt version; that version is repeated as the
+first payload string intentionally. These bytes are new identity data, not a rewrite
+of any historical input/result JSON. Existing input-code hashes change because the
+owned source files changed; existing array/order/plan recipes and version remain intact.
+
+Focused tests cover actual canonical Iris seed0/7 for all four graphs; all21 profiles
+and all10 seeds' metadata-only shared source roles; independent Python-packed minimal
+plan bytes/SHA256; every plan topology/coefficient field's scope; private metadata,
+content/code/policy/selector/source/registry/lock mutations; B48/B64/B128 preflight
+plans and 38/37-update B128 intervals; and rejection of private noncanonical assemblies.
+The current released eMLP1 seed0/7 numeric schedules are equal; a first test assumed
+they differed, failed, and was corrected to preserve the observed source equality.
+Private synthetic coefficient changes independently demonstrate that numeric receipt
+encoding changes while shared topology encoding does not. No seed differences are
+invented and no synthetic projection constructs a trusted contract.
+
+This package creates no artifact schema/parser/writer, execution session, provenance
+receipt, target, lock, admission, CLI, full reference or campaign result. Source/code
+bindings are local identity, not external attestation. Final validation commands and
+frozen owned patch/hash manifest are in the D6c1a implementation report. Independent
+review passed for this bounded identity package; integration is recorded separately.

@@ -8,4 +8,5 @@ pub mod provenance;
 pub mod study_inputs;
 pub mod study_plain;
 pub mod study_profile;
+pub mod study_reference;
 pub mod twin;

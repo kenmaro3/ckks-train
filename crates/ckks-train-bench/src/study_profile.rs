@@ -380,6 +380,207 @@ pub struct ProfileMetadata {
     pub identity: InputIdentity,
 }
 
+/// Stable resolver selector policy; changing it requires identity version review.
+pub const SELECTOR_VERSION: &str = "hekit-study-selector-v1";
+/// Explicit provenance role, independent of filename spelling.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum StudySourceRole {
+    /// Approved registry.
+    Registry,
+    /// Entire portable captured-input lock.
+    PortableLock,
+    /// Shared registered configuration, graph, manifest or script.
+    SharedConfiguration,
+    /// Resolver-owned local initialization/order source code.
+    LocalRecipeCode,
+    /// Expected dataset or fixed split source.
+    DatasetInput,
+    /// Complete containing captured schedule/export JSON.
+    ScheduleContainer,
+    /// Selected-seed initialized parameter file.
+    SelectedInitialization,
+    /// Selected-seed flattened order file.
+    SelectedOrder,
+}
+/// Resolver-created immutable repository-relative source binding.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StudySource {
+    role: StudySourceRole,
+    path: String,
+    sha256: String,
+}
+impl StudySource {
+    /// Explicit resolver role.
+    pub fn role(&self) -> StudySourceRole {
+        self.role
+    }
+    /// Portable repository-relative path.
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+    /// Expected source digest; actual verification remains preparation's duty.
+    pub fn sha256(&self) -> &str {
+        &self.sha256
+    }
+}
+/// Captured family selection rules, even when a particular export is unavailable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CapturedSelector {
+    family: String,
+    model: String,
+    initialization_template: Option<String>,
+    order_template: String,
+    schedule_template: String,
+}
+impl CapturedSelector {
+    /// Registry source reference selecting the containing export family.
+    pub fn family(&self) -> &str {
+        &self.family
+    }
+    /// Captured graph model (adapted2020 explicitly borrows emlp1 order/schedule).
+    pub fn model(&self) -> &str {
+        &self.model
+    }
+    /// Unexpanded registered parameter export template, if captured initialization.
+    pub fn initialization_template(&self) -> Option<&str> {
+        self.initialization_template.as_deref()
+    }
+    /// Unexpanded registered order selection template.
+    pub fn order_template(&self) -> &str {
+        &self.order_template
+    }
+    /// Unexpanded registered schedule pointer template.
+    pub fn schedule_template(&self) -> &str {
+        &self.schedule_template
+    }
+}
+/// Shared source/selector capability created only inside canonical resolution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SharedSelector {
+    sources: Vec<StudySource>,
+    captured: Option<CapturedSelector>,
+}
+impl SharedSelector {
+    /// Sorted immutable shared source-role records; no selected-seed filenames.
+    pub fn sources(&self) -> &[StudySource] {
+        &self.sources
+    }
+    /// Explicit captured selector, absent for local-only profiles.
+    pub fn captured(&self) -> Option<&CapturedSelector> {
+        self.captured.as_ref()
+    }
+}
+fn descriptor_source(root: &Path, file: &LockedFile, role: StudySourceRole) -> Result<StudySource> {
+    let relative = file
+        .path
+        .strip_prefix(root)
+        .map_err(|_| conflict("descriptor source outside root"))?;
+    if relative
+        .components()
+        .any(|c| !matches!(c, std::path::Component::Normal(_)))
+    {
+        return Err(conflict(
+            "descriptor source is not a portable relative path",
+        ));
+    }
+    let path = relative
+        .to_str()
+        .ok_or_else(|| malformed("descriptor path encoding"))?
+        .to_owned();
+    if file.sha256.len() != 64 || !file.sha256.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return Err(malformed("descriptor source digest"));
+    }
+    Ok(StudySource {
+        role,
+        path,
+        sha256: file.sha256.to_lowercase(),
+    })
+}
+fn source_descriptors(
+    root: &Path,
+    m: &ProfileMetadata,
+    p: &Value,
+    model: &str,
+) -> Result<(SharedSelector, Vec<StudySource>)> {
+    let mut sources = vec![
+        descriptor_source(root, &m.identity.registry, StudySourceRole::Registry)?,
+        descriptor_source(
+            root,
+            &m.identity.integrity_lock,
+            StudySourceRole::PortableLock,
+        )?,
+    ];
+    for f in &m.identity.sources {
+        let role = if m.schedule.as_ref().is_some_and(|s| s.source.path == f.path) {
+            StudySourceRole::ScheduleContainer
+        } else if [
+            "crates/ckks-train-bench/src/twin.rs",
+            "crates/ckks-train-core/src/sampler.rs",
+        ]
+        .iter()
+        .any(|path| root.join(path) == f.path)
+        {
+            StudySourceRole::LocalRecipeCode
+        } else {
+            StudySourceRole::SharedConfiguration
+        };
+        sources.push(descriptor_source(root, f, role)?);
+    }
+    for f in &m.identity.dataset_files {
+        sources.push(descriptor_source(root, f, StudySourceRole::DatasetInput)?);
+    }
+    let captured = match m.order {
+        OrderPolicy::Captured => Some(CapturedSelector {
+            family: string(&p["schedule"], "source_ref")?.into(),
+            model: if matches!(m.model, Model::Mlp2020 | Model::Emlp1) {
+                "emlp1"
+            } else {
+                model
+            }
+            .into(),
+            initialization_template: match &m.initialization {
+                Initialization::Captured(_) | Initialization::MissingCaptured => {
+                    Some(string(&p["initialization"], "path_template")?.into())
+                }
+                Initialization::Recipe(_) => None,
+            },
+            order_template: string(&p["order"], "path_template")?.into(),
+            schedule_template: string(&p["schedule"], "json_pointer")?.into(),
+        }),
+        OrderPolicy::PerEpochRecipe { .. } => None,
+    };
+    let mut selected = Vec::new();
+    match &m.initialization {
+        Initialization::Captured(arrays) => {
+            for a in arrays {
+                selected.push(descriptor_source(
+                    root,
+                    &a.file,
+                    StudySourceRole::SelectedInitialization,
+                )?);
+            }
+        }
+        Initialization::Recipe(_) | Initialization::MissingCaptured => {}
+    }
+    if let Some(order) = &m.captured_order {
+        if let Some(sha256) = &order.sha256 {
+            selected.push(descriptor_source(
+                root,
+                &LockedFile {
+                    path: order.path.clone(),
+                    sha256: sha256.clone(),
+                },
+                StudySourceRole::SelectedOrder,
+            )?);
+        }
+    }
+    for files in [&mut sources, &mut selected] {
+        files.sort_by(|a, b| (&a.path, a.role).cmp(&(&b.path, b.role)));
+        files.dedup();
+    }
+    Ok((SharedSelector { sources, captured }, selected))
+}
+
 /// Loaded approved registry plus portable captured-file lock; no execution state.
 pub struct StudyRegistry {
     root: PathBuf,
@@ -818,7 +1019,11 @@ impl StudyRegistry {
                 dataset_files,
             },
         };
+        let (shared_selector, selected_sources) =
+            source_descriptors(&self.root, &metadata, p, model_id)?;
         Ok(ResolvedProfile {
+            shared_selector,
+            selected_sources,
             metadata,
             data_request,
             seed_files,
@@ -1238,11 +1443,20 @@ fn check_source_graph(
 
 /// Immutable resolved binding; callers cannot replace its selected class/model/seed mapping.
 pub struct ResolvedProfile {
+    shared_selector: SharedSelector,
+    selected_sources: Vec<StudySource>,
     metadata: ProfileMetadata,
     data_request: DataRequest,
     seed_files: Option<SeedFiles>,
 }
 impl ResolvedProfile {
+    /// Immutable seed-independent selector and explicit source-role bindings.
+    pub fn shared_selector(&self) -> &SharedSelector {
+        &self.shared_selector
+    }
+    pub(crate) fn selected_sources(&self) -> &[StudySource] {
+        &self.selected_sources
+    }
     /// Typed immutable learning and provenance metadata.
     pub fn metadata(&self) -> &ProfileMetadata {
         &self.metadata
@@ -1646,6 +1860,72 @@ mod tests {
     fn root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
     }
+    // Private synthetic descriptors only reach a raw-byte test bridge; they never create
+    // MaterializedProfile, StudyProfileContractV1 or a scientific input capability.
+    #[test]
+    fn shared_source_registry_lock_and_selector_mutations_cannot_alias() {
+        use crate::study_reference::synthetic_source_projection;
+        let registry = StudyRegistry::load(root()).unwrap();
+        let resolved = registry.resolve("iris__emlp1", 0).unwrap();
+        let profile = crate::study_inputs::materialize(&resolved).unwrap();
+        let baseline = synthetic_source_projection(&profile, &resolved.shared_selector).unwrap();
+        let mut reordered = resolved.shared_selector.clone();
+        reordered.sources.reverse();
+        assert_eq!(
+            baseline,
+            synthetic_source_projection(&profile, &reordered).unwrap()
+        );
+        for role in [
+            StudySourceRole::Registry,
+            StudySourceRole::PortableLock,
+            StudySourceRole::SharedConfiguration,
+            StudySourceRole::LocalRecipeCode,
+            StudySourceRole::DatasetInput,
+        ] {
+            for field in 0..3 {
+                let mut changed = resolved.shared_selector.clone();
+                let file = changed.sources.iter_mut().find(|s| s.role == role).unwrap();
+                match field {
+                    0 => file.path.push('x'),
+                    1 => file.sha256.replace_range(0..1, "z"),
+                    2 => file.role = StudySourceRole::SelectedOrder,
+                    _ => unreachable!(),
+                }
+                assert_ne!(
+                    baseline,
+                    synthetic_source_projection(&profile, &changed).unwrap(),
+                    "{role:?}/{field}"
+                );
+            }
+        }
+        let captured = registry.resolve("mnist_released__emlp1", 0).unwrap();
+        let baseline = synthetic_source_projection(&profile, &captured.shared_selector).unwrap();
+        for field in 0..6 {
+            let mut changed = captured.shared_selector.clone();
+            let c = changed.captured.as_mut().unwrap();
+            match field {
+                0 => c.family.push('x'),
+                1 => c.model.push('x'),
+                2 => c.initialization_template.as_mut().unwrap().push('x'),
+                3 => c.order_template.push('x'),
+                4 => c.schedule_template.push('x'),
+                5 => changed
+                    .sources
+                    .iter_mut()
+                    .find(|s| s.role == StudySourceRole::ScheduleContainer)
+                    .unwrap()
+                    .sha256
+                    .push('x'),
+                _ => unreachable!(),
+            }
+            assert_ne!(
+                baseline,
+                synthetic_source_projection(&profile, &changed).unwrap(),
+                "captured selector field {field}"
+            );
+        }
+    }
+
     #[test]
     fn conflicting_source_bias_activation_shape_and_stage_barriers_fail_closed() {
         static NEXT: AtomicUsize = AtomicUsize::new(0);
