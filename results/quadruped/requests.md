@@ -530,3 +530,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-create-empty-venv-attempt1.{stdout,stderr,meta.json}`; created destination retained even on failure.
 - **pass criterion:** all fresh preflight and exact child exit/stream/15-entry static layout/config/link/empty-site checks; independently inspect any warning. New interpreter startup/context/native/scientific compatibility are explicitly not tested. No retry or automatic partial cleanup, no other process/queue mutation.
 - **status:** done (2026-11-07T06:08:36.727462+09:00–2026-11-07T06:08:36.810504+09:00, wrapper/child exit0). Exact fresh preflight and15-entry static postchecks passed, empty own site and pinned-base interpreter links retained; config396bytes SHA2564af48d1b0d9fea3094d3c725918c55e52670536de714c30660f3fb37ec13c643. Child stdout/stderr empty, terminal status and complete streams observed. Creator-only; new environment interpreter was not started and no context/capture/scientific compatibility was tested.
+
+
+## R-REB-12-LAUNCH-HELPERS: fixed Linux stdlib helper source facts
+
+- **purpose:** observe the actual pinned Linux CPython helper source identities and import atoms named by the reviewed launcher API, before any new-venv startup/context/capture.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** read-only exact base `/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu` and fixed34 sources under its `lib/python3.11`.
+- **command:** key-only SSH `nice -n 10 python3 -`; original fixed-list observer through stdin, SHA256 9ee70f1169b9bf02390c0777ac164ee6fb48bfc95f00531325d301ff8f5693a9; ledger `task-54-linux-helper-static-20261107.py`. No target interpreter or source is executed.
+- **expected duration:** seconds after SSH; one observer process/thread, fixed34 source paths, per-source512KiB and aggregate4MiB caps, one pinned base executable hash. Lightweight read-only untimed preparation may overlap FULL-2.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** controller ledger `task-54-linux-helper-static-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual file/hash/import observations and explicit remaining helper-closure/startup limitations. No transitive-closure, startup-cache or runtime claim; no scientific imports/full native or package hashing/context/capture/job or queue mutation.
+- **status:** done (2026-11-07T06:33:04.897637+09:00–2026-11-07T06:33:05.009331+09:00, exit0; controller14.689s including SSH). All34 fixed files observed,656069source bytes; base executable pin matched. Raw operational evidence is archived in `raw/R-REB-12-LAUNCH-HELPERS/`. This is an import-atom/source-identity observation only, not complete helper closure or target startup/context/capture approval.

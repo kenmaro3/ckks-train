@@ -1,0 +1,2455 @@
+{
+  "kind": "read_only_fixed_stdlib_source_observation_not_scientific_result",
+  "started_unix": 1794000784.8976371,
+  "nice": 10,
+  "uid": 1000,
+  "files": [
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/__init__.py",
+      "bytes": 31109,
+      "sha256": "bc6d98cd94459ad3b6ea5cb75cde38383647655054f065b897176f7635d2d8bc",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "abc"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "csv"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "pathlib"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "zipfile"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "operator"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "textwrap"
+          ]
+        },
+        {
+          "line": 11,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        },
+        {
+          "line": 13,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "itertools"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "posixpath"
+          ]
+        },
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "collections"
+          ]
+        },
+        {
+          "line": 17,
+          "scope": [],
+          "kind": "from",
+          "module": null,
+          "level": 1,
+          "names": [
+            "_adapters",
+            "_meta"
+          ]
+        },
+        {
+          "line": 18,
+          "scope": [],
+          "kind": "from",
+          "module": "_collections",
+          "level": 1,
+          "names": [
+            "FreezableDefaultDict",
+            "Pair"
+          ]
+        },
+        {
+          "line": 19,
+          "scope": [],
+          "kind": "from",
+          "module": "_functools",
+          "level": 1,
+          "names": [
+            "method_cache",
+            "pass_none"
+          ]
+        },
+        {
+          "line": 20,
+          "scope": [],
+          "kind": "from",
+          "module": "_itertools",
+          "level": 1,
+          "names": [
+            "always_iterable",
+            "unique_everseen"
+          ]
+        },
+        {
+          "line": 21,
+          "scope": [],
+          "kind": "from",
+          "module": "_meta",
+          "level": 1,
+          "names": [
+            "PackageMetadata",
+            "SimplePath"
+          ]
+        },
+        {
+          "line": 23,
+          "scope": [],
+          "kind": "from",
+          "module": "contextlib",
+          "level": 0,
+          "names": [
+            "suppress"
+          ]
+        },
+        {
+          "line": 24,
+          "scope": [],
+          "kind": "from",
+          "module": "importlib",
+          "level": 0,
+          "names": [
+            "import_module"
+          ]
+        },
+        {
+          "line": 25,
+          "scope": [],
+          "kind": "from",
+          "module": "importlib.abc",
+          "level": 0,
+          "names": [
+            "MetaPathFinder"
+          ]
+        },
+        {
+          "line": 26,
+          "scope": [],
+          "kind": "from",
+          "module": "itertools",
+          "level": 0,
+          "names": [
+            "starmap"
+          ]
+        },
+        {
+          "line": 27,
+          "scope": [],
+          "kind": "from",
+          "module": "typing",
+          "level": 0,
+          "names": [
+            "List",
+            "Mapping",
+            "Optional",
+            "Union"
+          ]
+        }
+      ],
+      "dynamic_import_sites": [
+        {
+          "line": 202,
+          "scope": [
+            "EntryPoint",
+            "load"
+          ],
+          "call_name": "import_module"
+        }
+      ]
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_adapters.py",
+      "bytes": 1862,
+      "sha256": "07a7c28b9fbc98b543154663de4ac8e67028fa62a9d5d1ffa886afc88c85ac9b",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "textwrap"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email.message"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "kind": "from",
+          "module": "_text",
+          "level": 1,
+          "names": [
+            "FoldedCase"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_collections.py",
+      "bytes": 743,
+      "sha256": "089d0e4c21c88d6034648552e2fa0e440b27d91e11d9c40112d3ec6442690126",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "collections"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_functools.py",
+      "bytes": 2895,
+      "sha256": "3ec636fb8aeb297e1155e442d681a9d65075a660bd78a37cf3f7fe6c3f6e3a80",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "types"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_itertools.py",
+      "bytes": 2068,
+      "sha256": "72faffdaff0145bc5c225e71e6575fa9d1e3848f188bcb3cca4e741bf9e6ea34",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "from",
+          "module": "itertools",
+          "level": 0,
+          "names": [
+            "filterfalse"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_meta.py",
+      "bytes": 1134,
+      "sha256": "c920f8096b01e6a23a15375520bf3de6b418504df58d6e506f2fb203395d4512",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "from",
+          "module": "typing",
+          "level": 0,
+          "names": [
+            "Any",
+            "Dict",
+            "Iterator",
+            "List",
+            "Protocol",
+            "TypeVar",
+            "Union"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_text.py",
+      "bytes": 2166,
+      "sha256": "1c2b0592c66924b7933f734493f9e0ac079755146d4ebb7287d78e001a113f80",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "kind": "from",
+          "module": "_functools",
+          "level": 1,
+          "names": [
+            "method_cache"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/__init__.py",
+      "bytes": 1764,
+      "sha256": "e4f46e3414c4602c9abb8b404a45e84412fc49dbe38a3d163f9575132dc7c93e",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 36,
+          "scope": [
+            "message_from_string"
+          ],
+          "kind": "from",
+          "module": "email.parser",
+          "level": 0,
+          "names": [
+            "Parser"
+          ]
+        },
+        {
+          "line": 44,
+          "scope": [
+            "message_from_bytes"
+          ],
+          "kind": "from",
+          "module": "email.parser",
+          "level": 0,
+          "names": [
+            "BytesParser"
+          ]
+        },
+        {
+          "line": 52,
+          "scope": [
+            "message_from_file"
+          ],
+          "kind": "from",
+          "module": "email.parser",
+          "level": 0,
+          "names": [
+            "Parser"
+          ]
+        },
+        {
+          "line": 60,
+          "scope": [
+            "message_from_binary_file"
+          ],
+          "kind": "from",
+          "module": "email.parser",
+          "level": 0,
+          "names": [
+            "BytesParser"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/parser.py",
+      "bytes": 5038,
+      "sha256": "7a665bc106e9d4f6f8f2c8de53b2c1d5b97f5105cc7da638b82d731f6f9e354e",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 10,
+          "scope": [],
+          "kind": "from",
+          "module": "io",
+          "level": 0,
+          "names": [
+            "StringIO",
+            "TextIOWrapper"
+          ]
+        },
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "from",
+          "module": "email.feedparser",
+          "level": 0,
+          "names": [
+            "FeedParser",
+            "BytesFeedParser"
+          ]
+        },
+        {
+          "line": 13,
+          "scope": [],
+          "kind": "from",
+          "module": "email._policybase",
+          "level": 0,
+          "names": [
+            "compat32"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/feedparser.py",
+      "bytes": 22802,
+      "sha256": "ca333e0462c96505d8c510f260192256306fa889c011c6f2eaa8d50c70503cce",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 24,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 26,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "errors"
+          ]
+        },
+        {
+          "line": 27,
+          "scope": [],
+          "kind": "from",
+          "module": "email._policybase",
+          "level": 0,
+          "names": [
+            "compat32"
+          ]
+        },
+        {
+          "line": 28,
+          "scope": [],
+          "kind": "from",
+          "module": "collections",
+          "level": 0,
+          "names": [
+            "deque"
+          ]
+        },
+        {
+          "line": 29,
+          "scope": [],
+          "kind": "from",
+          "module": "io",
+          "level": 0,
+          "names": [
+            "StringIO"
+          ]
+        },
+        {
+          "line": 149,
+          "scope": [
+            "FeedParser",
+            "__init__"
+          ],
+          "kind": "from",
+          "module": "email.message",
+          "level": 0,
+          "names": [
+            "Message"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/policy.py",
+      "bytes": 10519,
+      "sha256": "56a2a90d973c06668f6f113d67f26cf348af10b33eece2a6b812e34da45258d8",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 5,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "kind": "from",
+          "module": "email._policybase",
+          "level": 0,
+          "names": [
+            "Policy",
+            "Compat32",
+            "compat32",
+            "_extend_docstrings"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "kind": "from",
+          "module": "email.utils",
+          "level": 0,
+          "names": [
+            "_has_surrogates"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "from",
+          "module": "email.headerregistry",
+          "level": 0,
+          "names": [
+            "HeaderRegistry"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "kind": "from",
+          "module": "email.contentmanager",
+          "level": 0,
+          "names": [
+            "raw_data_manager"
+          ]
+        },
+        {
+          "line": 11,
+          "scope": [],
+          "kind": "from",
+          "module": "email.message",
+          "level": 0,
+          "names": [
+            "EmailMessage"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/_policybase.py",
+      "bytes": 15534,
+      "sha256": "3db4bf3be5bdba13ab9a78ce30784c330d6dbc657b4e9142210dc8b264cfd424",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 6,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "abc"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "header"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "charset"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "from",
+          "module": "email.utils",
+          "level": 0,
+          "names": [
+            "_has_surrogates"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/message.py",
+      "bytes": 48210,
+      "sha256": "275f2d0a31e1331cd90014039c4c150fe5822c3e981638cc31d4973ee0fb27eb",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "binascii"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 11,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "quopri"
+          ]
+        },
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "from",
+          "module": "io",
+          "level": 0,
+          "names": [
+            "BytesIO",
+            "StringIO"
+          ]
+        },
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "utils"
+          ]
+        },
+        {
+          "line": 16,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "errors"
+          ]
+        },
+        {
+          "line": 17,
+          "scope": [],
+          "kind": "from",
+          "module": "email._policybase",
+          "level": 0,
+          "names": [
+            "Policy",
+            "compat32"
+          ]
+        },
+        {
+          "line": 18,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "charset"
+          ]
+        },
+        {
+          "line": 19,
+          "scope": [],
+          "kind": "from",
+          "module": "email._encoded_words",
+          "level": 0,
+          "names": [
+            "decode_b"
+          ]
+        },
+        {
+          "line": 187,
+          "scope": [
+            "Message",
+            "as_string"
+          ],
+          "kind": "from",
+          "module": "email.generator",
+          "level": 0,
+          "names": [
+            "Generator"
+          ]
+        },
+        {
+          "line": 210,
+          "scope": [
+            "Message",
+            "as_bytes"
+          ],
+          "kind": "from",
+          "module": "email.generator",
+          "level": 0,
+          "names": [
+            "BytesGenerator"
+          ]
+        },
+        {
+          "line": 976,
+          "scope": [
+            "Message"
+          ],
+          "kind": "from",
+          "module": "email.iterators",
+          "level": 0,
+          "names": [
+            "walk"
+          ]
+        },
+        {
+          "line": 983,
+          "scope": [
+            "MIMEPart",
+            "__init__"
+          ],
+          "kind": "from",
+          "module": "email.policy",
+          "level": 0,
+          "names": [
+            "default"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/utils.py",
+      "bytes": 17222,
+      "sha256": "014848ca9a7f3a747e0ae8e0814f5c5734301bea880d73618ea0fd61e53b0342",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 25,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 26,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 27,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "time"
+          ]
+        },
+        {
+          "line": 28,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "random"
+          ]
+        },
+        {
+          "line": 29,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "socket"
+          ]
+        },
+        {
+          "line": 30,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "datetime"
+          ]
+        },
+        {
+          "line": 31,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "urllib.parse"
+          ]
+        },
+        {
+          "line": 33,
+          "scope": [],
+          "kind": "from",
+          "module": "email._parseaddr",
+          "level": 0,
+          "names": [
+            "quote"
+          ]
+        },
+        {
+          "line": 34,
+          "scope": [],
+          "kind": "from",
+          "module": "email._parseaddr",
+          "level": 0,
+          "names": [
+            "AddressList"
+          ]
+        },
+        {
+          "line": 35,
+          "scope": [],
+          "kind": "from",
+          "module": "email._parseaddr",
+          "level": 0,
+          "names": [
+            "mktime_tz"
+          ]
+        },
+        {
+          "line": 37,
+          "scope": [],
+          "kind": "from",
+          "module": "email._parseaddr",
+          "level": 0,
+          "names": [
+            "parsedate",
+            "parsedate_tz",
+            "_parsedate_tz"
+          ]
+        },
+        {
+          "line": 40,
+          "scope": [],
+          "kind": "from",
+          "module": "email.charset",
+          "level": 0,
+          "names": [
+            "Charset"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/header.py",
+      "bytes": 24092,
+      "sha256": "4d9baa908ad5288dd8fad8cf20b3802ffac77ba1642727804a633b201c56e5ca",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 13,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "binascii"
+          ]
+        },
+        {
+          "line": 16,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email.quoprimime"
+          ]
+        },
+        {
+          "line": 17,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email.base64mime"
+          ]
+        },
+        {
+          "line": 19,
+          "scope": [],
+          "kind": "from",
+          "module": "email.errors",
+          "level": 0,
+          "names": [
+            "HeaderParseError"
+          ]
+        },
+        {
+          "line": 20,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "charset"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/charset.py",
+      "bytes": 17118,
+      "sha256": "3ccb2e860390656664d271f08da8c0bae9a4297cc7e90be664d7c82d364e442f",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "from",
+          "module": "functools",
+          "level": 0,
+          "names": [
+            "partial"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email.base64mime"
+          ]
+        },
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "email.quoprimime"
+          ]
+        },
+        {
+          "line": 17,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "errors"
+          ]
+        },
+        {
+          "line": 18,
+          "scope": [],
+          "kind": "from",
+          "module": "email.encoders",
+          "level": 0,
+          "names": [
+            "encode_7or8bit"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/encoders.py",
+      "bytes": 1778,
+      "sha256": "690b275529788cc48e8f541a2aef321dc31e92f75764ac7924896db72d8a9555",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "from",
+          "module": "base64",
+          "level": 0,
+          "names": [
+            "encodebytes"
+          ]
+        },
+        {
+          "line": 16,
+          "scope": [],
+          "kind": "from",
+          "module": "quopri",
+          "level": 0,
+          "names": [
+            "encodestring"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/errors.py",
+      "bytes": 3814,
+      "sha256": "dbfb4bbfc85e9d556d3385dc6356518846d8a122bc643b171ea61b6e8dc42c8b",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/_encoded_words.py",
+      "bytes": 8541,
+      "sha256": "4178321600c0a19ca04cfe8542ce44487f339d15d89a473b58cea63c0b230217",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 42,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 43,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "base64"
+          ]
+        },
+        {
+          "line": 44,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "binascii"
+          ]
+        },
+        {
+          "line": 45,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        },
+        {
+          "line": 46,
+          "scope": [],
+          "kind": "from",
+          "module": "string",
+          "level": 0,
+          "names": [
+            "ascii_letters",
+            "digits"
+          ]
+        },
+        {
+          "line": 47,
+          "scope": [],
+          "kind": "from",
+          "module": "email",
+          "level": 0,
+          "names": [
+            "errors"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/iterators.py",
+      "bytes": 2129,
+      "sha256": "1080a2d03779176d6d45f6ecd976dbe69f5579f7e4e83b75224c3f92fd258102",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "from",
+          "module": "io",
+          "level": 0,
+          "names": [
+            "StringIO"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/base64mime.py",
+      "bytes": 3551,
+      "sha256": "e2b4b87a5f42a8c5780e343f675513bbcc6abdd23fa14f8f1a7d4f7d72304770",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 37,
+          "scope": [],
+          "kind": "from",
+          "module": "base64",
+          "level": 0,
+          "names": [
+            "b64encode"
+          ]
+        },
+        {
+          "line": 38,
+          "scope": [],
+          "kind": "from",
+          "module": "binascii",
+          "level": 0,
+          "names": [
+            "b2a_base64",
+            "a2b_base64"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/quoprimime.py",
+      "bytes": 9864,
+      "sha256": "77b454bd3ba3b5e3776be28ae3a0fd8de5d1e50d5b8ee10dd539c37c2bd68082",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 42,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 44,
+          "scope": [],
+          "kind": "from",
+          "module": "string",
+          "level": 0,
+          "names": [
+            "ascii_letters",
+            "digits",
+            "hexdigits"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/csv.py",
+      "bytes": 16776,
+      "sha256": "05c688620a98076289b09943788f840175cac8d299956e33fe9b4502a6526525",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 6,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "kind": "from",
+          "module": "_csv",
+          "level": 0,
+          "names": [
+            "Error",
+            "__version__",
+            "writer",
+            "reader",
+            "register_dialect",
+            "unregister_dialect",
+            "get_dialect",
+            "list_dialects",
+            "field_size_limit",
+            "QUOTE_MINIMAL",
+            "QUOTE_ALL",
+            "QUOTE_NONNUMERIC",
+            "QUOTE_NONE",
+            "__doc__"
+          ]
+        },
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "from",
+          "module": "_csv",
+          "level": 0,
+          "names": [
+            "Dialect"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "from",
+          "module": "io",
+          "level": 0,
+          "names": [
+            "StringIO"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/platform.py",
+      "bytes": 42273,
+      "sha256": "4a3cc68ba7354f8d5cc28c55315a7d77b77dcdbbaa3a092572a636b5fb5b6938",
+      "uid": 1000,
+      "mode": 509,
+      "imports": [
+        {
+          "line": 115,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "collections"
+          ]
+        },
+        {
+          "line": 116,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 117,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 118,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 119,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        },
+        {
+          "line": 120,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "itertools"
+          ]
+        },
+        {
+          "line": 281,
+          "scope": [
+            "_syscmd_ver"
+          ],
+          "kind": "import",
+          "names": [
+            "subprocess"
+          ]
+        },
+        {
+          "line": 348,
+          "scope": [
+            "win32_edition"
+          ],
+          "kind": "import",
+          "names": [
+            "winreg"
+          ]
+        },
+        {
+          "line": 350,
+          "scope": [
+            "win32_edition"
+          ],
+          "kind": "import",
+          "names": [
+            "_winreg"
+          ]
+        },
+        {
+          "line": 365,
+          "scope": [
+            "win32_ver"
+          ],
+          "kind": "from",
+          "module": "sys",
+          "level": 0,
+          "names": [
+            "getwindowsversion"
+          ]
+        },
+        {
+          "line": 398,
+          "scope": [
+            "win32_ver"
+          ],
+          "kind": "import",
+          "names": [
+            "winreg"
+          ]
+        },
+        {
+          "line": 400,
+          "scope": [
+            "win32_ver"
+          ],
+          "kind": "import",
+          "names": [
+            "_winreg"
+          ]
+        },
+        {
+          "line": 420,
+          "scope": [
+            "_mac_ver_xml"
+          ],
+          "kind": "import",
+          "names": [
+            "plistlib"
+          ]
+        },
+        {
+          "line": 457,
+          "scope": [
+            "_java_getprop"
+          ],
+          "kind": "from",
+          "module": "java.lang",
+          "level": 0,
+          "names": [
+            "System"
+          ]
+        },
+        {
+          "line": 480,
+          "scope": [
+            "java_ver"
+          ],
+          "kind": "import",
+          "names": [
+            "java.lang"
+          ]
+        },
+        {
+          "line": 580,
+          "scope": [
+            "_node"
+          ],
+          "kind": "import",
+          "names": [
+            "socket"
+          ]
+        },
+        {
+          "line": 616,
+          "scope": [
+            "_syscmd_file"
+          ],
+          "kind": "import",
+          "names": [
+            "subprocess"
+          ]
+        },
+        {
+          "line": 670,
+          "scope": [
+            "architecture"
+          ],
+          "kind": "import",
+          "names": [
+            "struct"
+          ]
+        },
+        {
+          "line": 746,
+          "scope": [
+            "_Processor",
+            "get_OpenVMS"
+          ],
+          "kind": "import",
+          "names": [
+            "vms_lib"
+          ]
+        },
+        {
+          "line": 758,
+          "scope": [
+            "_Processor",
+            "from_subprocess"
+          ],
+          "kind": "import",
+          "names": [
+            "subprocess"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/subprocess.py",
+      "bytes": 88725,
+      "sha256": "baa9f9138d8d20df6284f67e7d2e790f847f65e2c5370de322d54cccd737f2d9",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 43,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "builtins"
+          ]
+        },
+        {
+          "line": 44,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "errno"
+          ]
+        },
+        {
+          "line": 45,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "io"
+          ]
+        },
+        {
+          "line": 46,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "locale"
+          ]
+        },
+        {
+          "line": 47,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 48,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "time"
+          ]
+        },
+        {
+          "line": 49,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "signal"
+          ]
+        },
+        {
+          "line": 50,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 51,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "threading"
+          ]
+        },
+        {
+          "line": 52,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 53,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "contextlib"
+          ]
+        },
+        {
+          "line": 54,
+          "scope": [],
+          "kind": "from",
+          "module": "time",
+          "level": 0,
+          "names": [
+            "monotonic"
+          ]
+        },
+        {
+          "line": 55,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "types"
+          ]
+        },
+        {
+          "line": 58,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "fcntl"
+          ]
+        },
+        {
+          "line": 71,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "msvcrt"
+          ]
+        },
+        {
+          "line": 81,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "_winapi"
+          ]
+        },
+        {
+          "line": 82,
+          "scope": [],
+          "kind": "from",
+          "module": "_winapi",
+          "level": 0,
+          "names": [
+            "CREATE_NEW_CONSOLE",
+            "CREATE_NEW_PROCESS_GROUP",
+            "STD_INPUT_HANDLE",
+            "STD_OUTPUT_HANDLE",
+            "STD_ERROR_HANDLE",
+            "SW_HIDE",
+            "STARTF_USESTDHANDLES",
+            "STARTF_USESHOWWINDOW",
+            "ABOVE_NORMAL_PRIORITY_CLASS",
+            "BELOW_NORMAL_PRIORITY_CLASS",
+            "HIGH_PRIORITY_CLASS",
+            "IDLE_PRIORITY_CLASS",
+            "NORMAL_PRIORITY_CLASS",
+            "REALTIME_PRIORITY_CLASS",
+            "CREATE_NO_WINDOW",
+            "DETACHED_PROCESS",
+            "CREATE_DEFAULT_ERROR_MODE",
+            "CREATE_BREAKAWAY_FROM_JOB"
+          ]
+        },
+        {
+          "line": 104,
+          "scope": [],
+          "kind": "from",
+          "module": "_posixsubprocess",
+          "level": 0,
+          "names": [
+            "fork_exec"
+          ]
+        },
+        {
+          "line": 118,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "select"
+          ]
+        },
+        {
+          "line": 119,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "selectors"
+          ]
+        },
+        {
+          "line": 906,
+          "scope": [
+            "Popen",
+            "__init__"
+          ],
+          "kind": "import",
+          "names": [
+            "grp"
+          ]
+        },
+        {
+          "line": 934,
+          "scope": [
+            "Popen",
+            "__init__"
+          ],
+          "kind": "import",
+          "names": [
+            "grp"
+          ]
+        },
+        {
+          "line": 962,
+          "scope": [
+            "Popen",
+            "__init__"
+          ],
+          "kind": "import",
+          "names": [
+            "pwd"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/argparse.py",
+      "bytes": 100283,
+      "sha256": "e878677e158d0bc0fb5119e0df74d94236f3653777bc9f2ea3fee49c167fe001",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 88,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 89,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 90,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 92,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 94,
+          "scope": [],
+          "kind": "from",
+          "module": "gettext",
+          "level": 0,
+          "names": [
+            "gettext",
+            "ngettext"
+          ]
+        },
+        {
+          "line": 148,
+          "scope": [
+            "_copy_items"
+          ],
+          "kind": "import",
+          "names": [
+            "copy"
+          ]
+        },
+        {
+          "line": 172,
+          "scope": [
+            "HelpFormatter",
+            "__init__"
+          ],
+          "kind": "import",
+          "names": [
+            "shutil"
+          ]
+        },
+        {
+          "line": 659,
+          "scope": [
+            "HelpFormatter",
+            "_split_lines"
+          ],
+          "kind": "import",
+          "names": [
+            "textwrap"
+          ]
+        },
+        {
+          "line": 664,
+          "scope": [
+            "HelpFormatter",
+            "_fill_text"
+          ],
+          "kind": "import",
+          "names": [
+            "textwrap"
+          ]
+        },
+        {
+          "line": 2442,
+          "scope": [
+            "ArgumentParser",
+            "parse_known_intermixed_args"
+          ],
+          "kind": "from",
+          "module": "warnings",
+          "level": 0,
+          "names": [
+            "warn"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/gettext.py",
+      "bytes": 21320,
+      "sha256": "a5c249a522b6b8e3aa6f1b12a8bcc09508b99ad612b58d2fc973db27ea3b7cc3",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 49,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "operator"
+          ]
+        },
+        {
+          "line": 50,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 51,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 52,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 175,
+          "scope": [
+            "_as_int"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 225,
+          "scope": [
+            "_expand_lang"
+          ],
+          "kind": "import",
+          "names": [
+            "locale"
+          ]
+        },
+        {
+          "line": 316,
+          "scope": [
+            "NullTranslations",
+            "install"
+          ],
+          "kind": "import",
+          "names": [
+            "builtins"
+          ]
+        },
+        {
+          "line": 344,
+          "scope": [
+            "GNUTranslations",
+            "_parse"
+          ],
+          "kind": "from",
+          "module": "struct",
+          "level": 0,
+          "names": [
+            "unpack"
+          ]
+        },
+        {
+          "line": 527,
+          "scope": [
+            "translation"
+          ],
+          "kind": "from",
+          "module": "errno",
+          "level": 0,
+          "names": [
+            "ENOENT"
+          ]
+        },
+        {
+          "line": 544,
+          "scope": [
+            "translation"
+          ],
+          "kind": "import",
+          "names": [
+            "copy"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/locale.py",
+      "bytes": 79095,
+      "sha256": "ac828df41b2fac93ba3e66a2735216c98c0e1853b8dfb9b859e301fe64153feb",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 13,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "encodings"
+          ]
+        },
+        {
+          "line": 15,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "encodings.aliases"
+          ]
+        },
+        {
+          "line": 16,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 17,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "_collections_abc"
+          ]
+        },
+        {
+          "line": 18,
+          "scope": [],
+          "kind": "from",
+          "module": "builtins",
+          "level": 0,
+          "names": [
+            "str"
+          ]
+        },
+        {
+          "line": 19,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        },
+        {
+          "line": 47,
+          "scope": [],
+          "kind": "from",
+          "module": "_locale",
+          "level": 0,
+          "names": [
+            "*"
+          ]
+        },
+        {
+          "line": 252,
+          "scope": [
+            "format"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 558,
+          "scope": [
+            "getdefaultlocale"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 567,
+          "scope": [
+            "getdefaultlocale"
+          ],
+          "kind": "import",
+          "names": [
+            "_locale"
+          ]
+        },
+        {
+          "line": 581,
+          "scope": [
+            "getdefaultlocale"
+          ],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 637,
+          "scope": [
+            "resetlocale"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 651,
+          "scope": [],
+          "kind": "from",
+          "module": "_locale",
+          "level": 0,
+          "names": [
+            "getencoding"
+          ]
+        },
+        {
+          "line": 670,
+          "scope": [
+            "getpreferredencoding"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 684,
+          "scope": [
+            "getpreferredencoding"
+          ],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/pathlib.py",
+      "bytes": 48566,
+      "sha256": "3b21ac188fd9ac20bacc8ccd976fabd5d8ccf5000f8e157d3dfff005b228fb3d",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 1,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "fnmatch"
+          ]
+        },
+        {
+          "line": 2,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "functools"
+          ]
+        },
+        {
+          "line": 3,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "io"
+          ]
+        },
+        {
+          "line": 4,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "ntpath"
+          ]
+        },
+        {
+          "line": 5,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "os"
+          ]
+        },
+        {
+          "line": 6,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "posixpath"
+          ]
+        },
+        {
+          "line": 7,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "re"
+          ]
+        },
+        {
+          "line": 8,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "warnings"
+          ]
+        },
+        {
+          "line": 10,
+          "scope": [],
+          "kind": "from",
+          "module": "_collections_abc",
+          "level": 0,
+          "names": [
+            "Sequence"
+          ]
+        },
+        {
+          "line": 11,
+          "scope": [],
+          "kind": "from",
+          "module": "errno",
+          "level": 0,
+          "names": [
+            "ENOENT",
+            "ENOTDIR",
+            "EBADF",
+            "ELOOP"
+          ]
+        },
+        {
+          "line": 12,
+          "scope": [],
+          "kind": "from",
+          "module": "operator",
+          "level": 0,
+          "names": [
+            "attrgetter"
+          ]
+        },
+        {
+          "line": 13,
+          "scope": [],
+          "kind": "from",
+          "module": "stat",
+          "level": 0,
+          "names": [
+            "S_ISDIR",
+            "S_ISLNK",
+            "S_ISREG",
+            "S_ISSOCK",
+            "S_ISBLK",
+            "S_ISCHR",
+            "S_ISFIFO"
+          ]
+        },
+        {
+          "line": 14,
+          "scope": [],
+          "kind": "from",
+          "module": "urllib.parse",
+          "level": 0,
+          "names": [
+            "quote_from_bytes"
+          ]
+        },
+        {
+          "line": 1020,
+          "scope": [
+            "Path",
+            "owner"
+          ],
+          "kind": "import",
+          "names": [
+            "pwd"
+          ]
+        },
+        {
+          "line": 1031,
+          "scope": [
+            "Path",
+            "group"
+          ],
+          "kind": "import",
+          "names": [
+            "grp"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/__init__.py",
+      "bytes": 5884,
+      "sha256": "78c4744d407690f321565488710b5aaf6486b5afa8d185637aa1e7633ab59cd8",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 31,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "codecs"
+          ]
+        },
+        {
+          "line": 32,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "sys"
+          ]
+        },
+        {
+          "line": 33,
+          "scope": [],
+          "kind": "from",
+          "module": null,
+          "level": 1,
+          "names": [
+            "aliases"
+          ]
+        },
+        {
+          "line": 165,
+          "scope": [
+            "_alias_mbcs"
+          ],
+          "kind": "import",
+          "names": [
+            "_winapi"
+          ]
+        },
+        {
+          "line": 168,
+          "scope": [
+            "_alias_mbcs"
+          ],
+          "kind": "import",
+          "names": [
+            "encodings.mbcs"
+          ]
+        }
+      ],
+      "dynamic_import_sites": [
+        {
+          "line": 99,
+          "scope": [
+            "search_function"
+          ],
+          "call_name": "__import__"
+        }
+      ]
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/aliases.py",
+      "bytes": 15677,
+      "sha256": "6fdcc49ba23a0203ae6cf28e608f8e6297d7c4d77d52e651db3cb49b9564c6d2",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/ascii.py",
+      "bytes": 1248,
+      "sha256": "578aa1173f7cc60dad2895071287fe6182bd14787b3fbf47a6c7983dfe3675e3",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "codecs"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/utf_8.py",
+      "bytes": 1005,
+      "sha256": "ba0cac060269583523ca9506473a755203037c57d466a11aa89a30a5f6756f3d",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "codecs"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/latin_1.py",
+      "bytes": 1264,
+      "sha256": "b75503e532a27c636477396c855209ff5f3036536d2a4bede0a576c89382b60c",
+      "uid": 1000,
+      "mode": 436,
+      "imports": [
+        {
+          "line": 9,
+          "scope": [],
+          "kind": "import",
+          "names": [
+            "codecs"
+          ]
+        }
+      ],
+      "dynamic_import_sites": []
+    }
+  ],
+  "limits": {
+    "files": 34,
+    "per_source_bytes": 524288,
+    "total_source_bytes": 4194304
+  },
+  "scope": "Static identity/import atoms only; no transitive closure claim, target startup, package/native inventory, scientific import, context, capture or process mutation.",
+  "base_executable_sha256": "2874a0b9344d06b7767aebb1e6e25a759ffcbdb544e99400ecc74dc6092d1174",
+  "total_source_bytes": 656069,
+  "status": "fixed_source_observation_complete_no_target_startup",
+  "finished_unix": 1794000785.0093315
+}
