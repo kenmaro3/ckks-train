@@ -732,8 +732,11 @@ print(scenario+' rejected')
             pass
         events = []
         paths, context = {'baseline': '/synthetic/baseline'}, {'approved': 'context'}
-        def process(p): events.append(('process', p))
-        def source(p, c): events.append(('source', p, c))
+        denial = object()
+        def process(p):
+            events.append(('process', p))
+            return denial
+        def source(p, c, state): events.append(('source', p, c, state))
         def imported(name):
             events.append(('import', name))
             raise StopBeforeDependency()
@@ -743,7 +746,231 @@ print(scenario+' rejected')
              mock.patch.object(ex.sys, 'path', list(ex.sys.path)):
             with self.assertRaises(StopBeforeDependency):
                 ex.ActualBackend(paths, context)
-        self.assertEqual(events, [('process', paths), ('source', paths, context), ('import', 'numpy')])
+        self.assertEqual(events, [('process', paths), ('source', paths, context, denial), ('import', 'numpy')])
+
+
+# Fictional fixture: an audit emitter with arguments and optional exception handling.
+# It contains no NumPy implementation or copied third-party source.
+OPTIONAL_QUERY_FIXTURE = b"""import sys
+EXECUTIONS = globals().get('EXECUTIONS', 0) + 1
+def check_support_sve(event, arguments, catch=False):
+    if catch:
+        try:
+            sys.audit(event, *arguments)
+        except OSError:
+            return False
+        raise AssertionError('audit unexpectedly returned')
+    sys.audit(event, *arguments)
+def different_caller(event, arguments):
+    sys.audit(event, *arguments)
+"""
+
+
+class OptionalHostQueryTests(unittest.TestCase):
+    def test_runtime_policy_identity_rejects_old_context_before_backend(self):
+        # Break caught: omitting new denial semantics from approval identity.
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            (root / 'fictional.py').write_text('# fictional metadata-only fixture\n')
+            names = ('numpy', 'torch', 'torchvision', 'pybind11', 'pyyaml', 'scikit-learn',
+                     'imbalanced-learn', 'ucimlrepo', 'wandb', 'pandas', 'matplotlib', 'seaborn')
+            distributions = [SimpleNamespace(metadata={'Name': name}, version='fictional',
+                files=['fictional.py'], locate_file=lambda rel: root / rel) for name in names]
+            with mock.patch.object(ex.importlib.metadata, 'distributions', return_value=distributions), \
+                 mock.patch.object(ex, 'file_hash', return_value='a' * 64), \
+                 mock.patch.object(ex.platform, 'platform', return_value='fictional'), \
+                 mock.patch.object(ex.platform, 'machine', return_value='fictional'), \
+                 mock.patch.dict(ex.os.environ, {'PATH': '/usr/bin:/bin'}):
+                runtime = ex.runtime_identity()
+            self.assertIn('optional_host_query_denial_policy', runtime)
+            policy = runtime['optional_host_query_denial_policy']
+            self.assertEqual(policy['source_sha256'], '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40')
+            self.assertEqual(policy['exception'], 'PermissionError(EPERM)')
+            self.assertEqual(runtime['environment']['PATH'], '/usr/bin:/bin')
+            old = copy.deepcopy(runtime)
+            del old['optional_host_query_denial_policy']
+            paths = {key: '/fictional/input' for key in
+                     ('baseline', 'data', 'archive', 'canonical', 'openfhe', 'openfhe_python')}
+            approval = {'paths': paths, 'authorized_mode': 'compatibility', 'expected_context': old}
+            backend = mock.Mock()
+            with self.assertRaisesRegex(ex.ExportError, 'unapproved/missing/changed context'):
+                ex.run_export(approval, root / 'output', 'compatibility',
+                              backend_factory=backend, observer=lambda paths: runtime)
+            backend.assert_not_called()
+            self.assertFalse((root / 'output').exists())
+
+    def run_child(self, scenario):
+        import subprocess
+        import sys
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            baseline, packages = root / 'baseline', root / 'packages'
+            baseline.mkdir(); packages.mkdir()
+            relative = 'numpy/testing/_private/utils.py'
+            source = packages / relative
+            source.parent.mkdir(parents=True)
+            source.write_bytes(OPTIONAL_QUERY_FIXTURE)
+            paths = {key: str(baseline) for key in ('baseline', 'openfhe', 'openfhe_python')}
+            paths['git'] = {'executable': '/fictional/git', 'sha256': 'a' * 64}
+            context = {'baseline': {'files': {}}, 'runtime': {'packages': {
+                'numpy': {'root': str(packages), 'files': {relative: ex.digest(OPTIONAL_QUERY_FIXTURE)}}}}}
+            program = r'''import errno,importlib.util,json,os,sys,types
+from pathlib import Path
+from unittest import mock
+sys.path.insert(0,sys.argv[1])
+import export_reboot_block_seed_inputs as ex
+paths=json.loads(sys.argv[2]); context=json.loads(sys.argv[3]); scenario=sys.argv[4]
+relative='numpy/testing/_private/utils.py'
+source=Path(context['runtime']['packages']['numpy']['root'])/relative
+fixture=source.read_bytes()
+# Test-only substitution of the fixed hash for completely fictional source.
+# Production has no CLI/context override of its reviewed pin.
+ex.NUMPY_UTILS_SHA256=ex.digest(fixture)
+if hasattr(ex,'optional_host_query_policy'):
+    context['runtime']['optional_host_query_denial_policy']=ex.optional_host_query_policy()
+if scenario=='old_context':
+    context['runtime'].pop('optional_host_query_denial_policy',None)
+if scenario=='wrong_pin':
+    ex.NUMPY_UTILS_SHA256='f'*64
+name='numpy.testing._private.utils'
+spec=importlib.util.spec_from_file_location(name,source)
+module=importlib.util.module_from_spec(spec)
+if scenario=='preloaded':
+    sys.modules[name]=module
+state=ex.install_process_guards(paths)
+try:
+    if state is None:  # Also reproduces the original strict-denial bug for RED.
+        ex.install_source_loading_guard(paths,context)
+    else:
+        ex.install_source_loading_guard(paths,context,state)
+except ex.ExportError:
+    assert scenario=='preloaded'
+    print('preloaded rejected');sys.exit(0)
+assert scenario!='preloaded', 'preloaded source accepted'
+if scenario in ('changed_source','unlisted_source'):
+    if scenario=='changed_source':
+        source.write_bytes(fixture+b'CHANGED=True\n'.replace(b'\\n',b'\n'))
+    else:
+        source=source.with_name('unlisted.py');source.write_bytes(fixture)
+        spec=importlib.util.spec_from_file_location(name,source)
+    try:
+        spec.loader.get_code(name)
+    except ex.ExportError:
+        print(scenario+' rejected');sys.exit(0)
+    raise AssertionError('unapproved source accepted')
+sys.modules[name]=module
+code=spec.loader.get_code(name)
+exec(code,module.__dict__)
+assert module.EXECUTIONS==1
+# Exact audit event only; no Popen or command invocation occurs in this child.
+event='subprocess.Popen'; arguments=['lscpu',['lscpu'],None,None]
+original=module.check_support_sve
+call=original
+if scenario=='extra_argument': arguments[1].append('--parse=core')
+if scenario=='absolute_executable': arguments[0]='/usr/bin/lscpu'
+if scenario=='absolute_argv': arguments[1]=['/usr/bin/lscpu']
+if scenario=='string_argv': arguments[1]='lscpu'
+if scenario=='bytes_executable': arguments[0]=b'lscpu'
+if scenario=='cwd': arguments[2]='/tmp'
+if scenario=='env': arguments[3]={'PATH':'/usr/bin:/bin'}
+if scenario=='other_command': arguments[:2]=['uname',['uname']]
+if scenario.startswith('operation:'): event=scenario.split(':',1)[1];arguments=[]
+if scenario=='other_caller': call=module.different_caller
+if scenario in ('dynamic_code','equal_code'):
+    other={**module.__dict__}
+    exec(compile(fixture,str(source),'exec'),other)
+    call=other['check_support_sve']
+    if scenario=='equal_code':
+        assert call.__code__==original.__code__ and call.__code__ is not original.__code__
+        # Keep every namespace/origin predicate true so this case tests only
+        # object identity, not a coincidentally rejected globals dictionary.
+        call=types.FunctionType(call.__code__,module.__dict__,argdefs=original.__defaults__)
+if scenario=='spoofed_filename':
+    other={'__name__':name,'__file__':str(source)}
+    exec(compile(fixture,str(source),'exec'),other)
+    call=other['check_support_sve']
+if scenario=='spoofed_module':
+    call=types.FunctionType(original.__code__,{**module.__dict__},argdefs=original.__defaults__)
+if scenario=='wrong_module_name': module.__dict__['__name__']='fictional.other'
+if scenario=='wrong_module_origin': module.__dict__['__file__']=str(source.with_name('other.py'))
+if scenario=='intervening_caller':
+    def extra(event,*arguments):
+        return real_audit(event,*arguments)
+    real_audit=sys.audit
+    sys.audit=extra
+# Only host predicates are mocked; loader, compiled identity, module namespace,
+# audit registration/dispatch, exception handling, and diagnostics are real.
+platform_value='linux' if scenario=='platform' else 'darwin'
+path_value='/usr/local/bin:/usr/bin:/bin' if scenario=='path' else '/usr/bin:/bin'
+real_lexists=os.path.lexists
+present={'/usr/bin/lscpu'} if scenario=='present_usr_bin' else {'/bin/lscpu'} if scenario=='present_bin' else set()
+def candidate_exists(path):
+    if str(path) in ('/usr/bin/lscpu','/bin/lscpu'): return str(path) in present
+    return real_lexists(path)
+with mock.patch.object(sys,'platform',platform_value), mock.patch.dict(os.environ,{'PATH':path_value}), mock.patch.object(os.path,'lexists',side_effect=candidate_exists):
+    if scenario=='fallback':
+        assert call(event,arguments,True) is False
+    elif scenario in ('exact','tuple_argv'):
+        if scenario=='tuple_argv': arguments[1]=('lscpu',)
+        try:
+            call(event,arguments)
+        except PermissionError as error:
+            assert error.errno==errno.EPERM
+        else:
+            raise AssertionError('optional query not denied')
+    else:
+        try:
+            call(event,arguments)
+        except ex.ExportError:
+            pass
+        else:
+            raise AssertionError('strict denial missing for '+scenario)
+assert 'numpy' not in sys.modules and 'torch' not in sys.modules and 'openfhe' not in sys.modules
+print(scenario+' passed; fictional source only; no command invoked')
+'''
+            result = subprocess.run([sys.executable, '-I', '-B', '-c', program,
+                str(Path(ex.__file__).resolve().parent), json.dumps(paths), json.dumps(context), scenario],
+                capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return result
+
+    def test_source_bound_optional_query_raises_eperm_and_ordinary_oserror_fallback(self):
+        # Break caught: retaining ExportError (the original import-time defect),
+        # returning instead of raising, or losing the inspectable denial record.
+        for scenario in ('fallback', 'exact', 'tuple_argv'):
+            with self.subTest(scenario=scenario):
+                result = self.run_child(scenario)
+                records = [json.loads(line) for line in result.stderr.splitlines()]
+                self.assertEqual(len(records), 1)
+                self.assertEqual(records[0]['event'], 'subprocess.Popen')
+                self.assertEqual(records[0]['errno'], 1)
+                self.assertEqual(records[0]['decision'], 'denied_optional_host_query')
+                self.assertEqual(records[0]['caller'], 'numpy.testing._private.utils.check_support_sve')
+
+    def test_each_query_context_and_caller_constraint_remains_strict(self):
+        # Break caught: dropping any conjunct, accepting equal/recompiled code,
+        # a filename/name spoof, a namespace clone, or an intervening caller.
+        for scenario in ('extra_argument', 'absolute_executable', 'absolute_argv',
+                         'string_argv', 'bytes_executable', 'cwd', 'env', 'other_command',
+                         'platform', 'path', 'present_usr_bin', 'present_bin',
+                         'other_caller', 'dynamic_code', 'equal_code', 'spoofed_filename',
+                         'spoofed_module', 'wrong_module_name', 'wrong_module_origin',
+                         'intervening_caller', 'old_context', 'wrong_pin'):
+            with self.subTest(scenario=scenario):
+                result = self.run_child(scenario)
+                self.assertEqual(result.stderr, '')
+
+    def test_optional_caller_never_softens_other_operations_or_source_checks(self):
+        # Break caught: softening other process/network operations or registering
+        # changed, unlisted, or preloaded code as an approved optional caller.
+        for scenario in ('operation:socket.__new__', 'operation:socket.connect',
+                         'operation:os.system', 'operation:os.fork', 'operation:os.forkpty',
+                         'operation:os.posix_spawn', 'operation:os.exec',
+                         'changed_source', 'unlisted_source', 'preloaded'):
+            with self.subTest(scenario=scenario):
+                result = self.run_child(scenario)
+                self.assertEqual(result.stderr, '')
 
 
 if __name__ == '__main__':

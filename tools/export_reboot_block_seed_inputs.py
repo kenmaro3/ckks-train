@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import ast
 from datetime import datetime, timezone
+import errno
 import hashlib
 import importlib
 import importlib.abc
@@ -35,6 +36,8 @@ class ExportError(RuntimeError):
 
 
 PYTHON_SOURCE_POLICY = 'validated-source-no-bytecode-v1'
+NUMPY_UTILS_SHA256 = '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40'
+OPTIONAL_HOST_QUERY_POLICY = 'numpy-sve-darwin-source-bound-denial-eperm-v1'
 MODELS = ('emlp2', 'emlp3')
 SHAPES = {
     'emlp2': {'linear_fwd_00': (196, 64), 'linear_lrn_00': (64, 16),
@@ -339,6 +342,16 @@ def inventory(root, paths):
     return {str(p.relative_to(root)): file_hash(p) for p in sorted(set(paths))}
 
 
+def optional_host_query_policy():
+    return {'policy': OPTIONAL_HOST_QUERY_POLICY,
+            'source_sha256': NUMPY_UTILS_SHA256,
+            'caller': 'numpy.testing._private.utils.check_support_sve',
+            'event': 'subprocess.Popen', 'executable': 'lscpu', 'argv': ['lscpu'],
+            'cwd': None, 'env': None, 'platform': 'darwin', 'PATH': '/usr/bin:/bin',
+            'absent_paths': ['/usr/bin/lscpu', '/bin/lscpu'],
+            'exception': 'PermissionError(EPERM)'}
+
+
 def runtime_identity():
     """Hash actual installed distribution files, not merely RECORD's claimed hashes."""
     packages = {}
@@ -362,9 +375,10 @@ def runtime_identity():
             'platform': platform.platform(), 'machine': platform.machine(), 'byteorder': sys.byteorder,
             'isolated': sys.flags.isolated, 'dont_write_bytecode': sys.dont_write_bytecode,
             'python_source_loading_policy': PYTHON_SOURCE_POLICY,
+            'optional_host_query_denial_policy': optional_host_query_policy(),
             'environment': {k: os.environ.get(k) for k in
                             ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS',
-                             'PYTHONHASHSEED', 'REBOOT_DATA', 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH')},
+                             'PYTHONHASHSEED', 'REBOOT_DATA', 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH', 'PATH')},
             'packages': packages}
 
 
@@ -585,7 +599,7 @@ def run_export(approval, out, mode, *, backend_factory=None, observer=observe_co
         raise
 
 
-def install_source_loading_guard(paths, approved_context):
+def install_source_loading_guard(paths, approved_context, optional_host_query=None):
     """Compile exact approved source bytes, ignoring every existing bytecode cache.
 
 Install only in the exporter child, after matching approved context and before
@@ -614,6 +628,12 @@ boundary. Previously imported governed code cannot be validated retroactively.
         roots.add(root)
         add_sources(root, package['files'])
     require(source_hashes, 'missing approved Python source inventory')
+    numpy = approved_context['runtime']['packages'].get('numpy')
+    optional_origin = (Path(numpy['root']) / 'numpy/testing/_private/utils.py').resolve() if numpy else None
+    optional_approved = (optional_host_query is not None and optional_origin is not None and
+                         source_hashes.get(optional_origin) == NUMPY_UTILS_SHA256 and
+                         exact_json(approved_context['runtime'].get('optional_host_query_denial_policy'),
+                                    optional_host_query_policy()))
 
     def governed(path):
         absolute = Path(path).absolute()
@@ -636,7 +656,16 @@ boundary. Previously imported governed code cannot be validated retroactively.
         if governed(filename):
             require(canonical in source_hashes and digest(source) == source_hashes[canonical],
                     'unapproved/changed governed Python source: ' + str(canonical))
-        return compile(source, filename, 'exec', dont_inherit=True, optimize=-1)
+        code = compile(source, filename, 'exec', dont_inherit=True, optimize=-1)
+        if (optional_approved and canonical == optional_origin and
+                fullname == 'numpy.testing._private.utils'):
+            # Retain the actual compiled object, never a filename/name assertion
+            # or code-object equality (freshly compiled code can compare equal).
+            candidates = [c for c in code.co_consts if isinstance(c, type(code)) and
+                          c.co_name == 'check_support_sve']
+            require(len(candidates) == 1, 'optional host-query source function identity missing')
+            optional_host_query.bind_validated_code(candidates[0], canonical)
+        return code
 
     def deny_bytecode(event, args):
         if event in ('marshal.load', 'marshal.loads'):
@@ -655,6 +684,49 @@ class ForbiddenTrainingImports(importlib.abc.MetaPathFinder):
         return None
 
 
+class OptionalHostQueryDenial:
+    """Only source-loader-bound code may receive the optional EPERM denial."""
+    def __init__(self):
+        self._bindings = []
+        # Trust the already-loaded stdlib, as with the source guard bootstrap.
+        # A foreign frame anywhere in the call chain keeps strict ExportError.
+        self._subprocess_codes = (subprocess.run.__code__, subprocess.Popen.__init__.__code__,
+                                  subprocess.Popen._execute_child.__code__)
+
+    def bind_validated_code(self, code, origin):
+        self._bindings.append((code, origin))
+
+    def deny_if_exact(self, args):
+        executable, command, cwd, env = args
+        if not (self._bindings and type(executable) is str and executable == 'lscpu' and
+                type(command) in (list, tuple) and len(command) == 1 and
+                type(command[0]) is str and command[0] == 'lscpu' and
+                cwd is None and env is None and sys.platform == 'darwin' and
+                os.environ.get('PATH') == '/usr/bin:/bin' and
+                not any(os.path.lexists(p) for p in ('/usr/bin/lscpu', '/bin/lscpu'))):
+            return
+        frame = sys._getframe(2)  # skip this method and the exporter audit hook
+        try:
+            while frame is not None and any(frame.f_code is c for c in self._subprocess_codes):
+                frame = frame.f_back
+            module = sys.modules.get('numpy.testing._private.utils')
+            for code, origin in self._bindings:
+                if (frame is not None and frame.f_code is code and module is not None and
+                        frame.f_globals is module.__dict__ and
+                        frame.f_globals.get('__name__') == 'numpy.testing._private.utils' and
+                        frame.f_globals.get('__file__') is not None and
+                        Path(frame.f_globals['__file__']).resolve() == origin):
+                    print(json.dumps({'decision': 'denied_optional_host_query',
+                                      'policy': OPTIONAL_HOST_QUERY_POLICY,
+                                      'source': str(origin), 'source_sha256': NUMPY_UTILS_SHA256,
+                                      'caller': 'numpy.testing._private.utils.check_support_sve',
+                                      'event': 'subprocess.Popen', 'argv': ['lscpu'],
+                                      'errno': errno.EPERM}, sort_keys=True), file=sys.stderr, flush=True)
+                    raise PermissionError(errno.EPERM, 'policy denied optional NumPy host query: lscpu')
+        finally:
+            del frame
+
+
 def install_process_guards(paths):
     """Permanent only in this standalone exporter process; no parent state changes.
 
@@ -665,10 +737,12 @@ native source/binaries and host isolation remain part of root's runtime review.
     require(sys.flags.isolated and sys.dont_write_bytecode, 'actual capture requires python -I -B')
     require('lib.utils.train' not in sys.modules, 'training module already imported')
     sys.meta_path.insert(0, ForbiddenTrainingImports())
-    sys.addaudithook(process_audit_guard(paths))
+    optional_host_query = OptionalHostQueryDenial()
+    sys.addaudithook(process_audit_guard(paths, optional_host_query))
+    return optional_host_query
 
 
-def process_audit_guard(paths):
+def process_audit_guard(paths, optional_host_query=None):
     allowed = []
     for key in ('baseline', 'openfhe', 'openfhe_python'):
         allowed.extend(git_commands(paths[key], paths['git']))
@@ -677,6 +751,8 @@ def process_audit_guard(paths):
         if event.startswith('socket.') or event in ('os.system', 'os.fork', 'os.forkpty', 'os.posix_spawn') or event.startswith('os.exec'):
             raise ExportError('network/process operation prohibited: ' + event)
         if event == 'subprocess.Popen':
+            if optional_host_query is not None:
+                optional_host_query.deny_if_exact(args)
             executable, command, cwd, env = args
             require(executable == paths['git']['executable'] and isinstance(command, (list, tuple)) and
                     list(command) in allowed and cwd is None and env == GIT_ENV,
@@ -732,8 +808,8 @@ def verify_loaded_native(native, loaded):
 class ActualBackend:
     """Thin API adapter. No baseline algorithm implementation or training methods."""
     def __init__(self, paths, approved_context):
-        install_process_guards(paths)
-        install_source_loading_guard(paths, approved_context)
+        optional_host_query = install_process_guards(paths)
+        install_source_loading_guard(paths, approved_context, optional_host_query)
         self.paths = paths
         self.baseline = Path(paths['baseline'])
         require(not any(n == 'lib' or n.startswith('lib.') for n in sys.modules), 'foreign baseline already imported')
