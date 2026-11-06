@@ -1,0 +1,2645 @@
+{
+  "schema_version": 1,
+  "artifact_type": "design_registration",
+  "status": "design_reviewed_root_ratified_execution_not_authorized",
+  "execution_authorized": false,
+  "snapshot_commit": "09202cf5650aa76b9b30dd79a68dd615c75a91ae",
+  "sources": {
+    "spec": {
+      "path": "../plans/2026-11-04-he-training-research-plan.md",
+      "section": "4.3.1-4.4"
+    },
+    "task54": {
+      "path": "../plans/2026-11-04-he-training-implementation-plan-m3-m5.md",
+      "lines": [
+        284,
+        292
+      ]
+    },
+    "block_execution": {
+      "path": "../plans/2026-11-04-he-training-implementation-plan-m3-m5.md",
+      "line": 277
+    },
+    "iris": {
+      "path": "crates/ckks-train-bench/src/bin/iris.rs",
+      "lines": [
+        128,
+        146
+      ],
+      "also": "module docs lines 1-28: 4-10-3, Square/Square, mean-output MSE, lr_eff=lr*2/3"
+    },
+    "fmnist": {
+      "path": "crates/ckks-train-bench/configs/fmnist_emlp1.json",
+      "json_pointers": [
+        "/dataset",
+        "/classes",
+        "/model",
+        "/train",
+        "/seeds"
+      ]
+    },
+    "bc": {
+      "path": "crates/ckks-train-bench/configs/bc_mlp.json",
+      "json_pointers": [
+        "/dataset",
+        "/classes",
+        "/model",
+        "/train",
+        "/seeds"
+      ]
+    },
+    "mnist_paper": {
+      "path": "crates/ckks-train-bench/configs/mnist_emlp1_paper.json",
+      "json_pointers": [
+        "/dataset",
+        "/model",
+        "/train"
+      ]
+    },
+    "emlp1": {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp1_faithful.json",
+      "json_pointers": [
+        "/layers",
+        "/init",
+        "/lr_sum",
+        "/lr_conversion",
+        "/momentum",
+        "/weight_decay"
+      ]
+    },
+    "emlp2": {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp2.json",
+      "json_pointers": [
+        "/blocks",
+        "/output_stack",
+        "/lr_sum",
+        "/lr_schedule",
+        "/epochs"
+      ]
+    },
+    "emlp3": {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp3.json",
+      "json_pointers": [
+        "/blocks",
+        "/output_stack",
+        "/lr_sum",
+        "/lr_schedule",
+        "/epochs"
+      ]
+    },
+    "mnist_released": {
+      "path": "results/quadruped/raw/reboot_emlp1_full/config_values.json",
+      "json_pointers": [
+        "/config_values",
+        "/per_seed/{seed}/init_weights",
+        "/per_seed/{seed}/indices_file",
+        "/per_seed/{seed}/lr_per_step"
+      ]
+    },
+    "blocks_released": {
+      "path": "results/quadruped/raw/reboot_emlp23_full/config_values.json",
+      "json_pointers": [
+        "/models/{model}/structure",
+        "/models/{model}/config",
+        "/models/{model}/per_seed/{seed}"
+      ]
+    },
+    "aa_accessor": {
+      "path": "crates/ckks-train-nn/src/trainer_ni.rs",
+      "lines": [
+        1722,
+        1750
+      ],
+      "contract": "last_activation_bootstraps()[micro][0] is post-boot Delta; returned hidden is pre-boot"
+    },
+    "weighted_existing": {
+      "path": "crates/ckks-train-nn/src/trainer_ni.rs",
+      "lines": [
+        1758,
+        1818
+      ],
+      "contract": "sum(n_valid), per-micro valid masks and mixed-dz level alignment already exist"
+    },
+    "security": {
+      "path": "docs/security.md",
+      "sections": [
+        "n16_boot main and SSE keys",
+        "ReBoot configuration comparison"
+      ]
+    },
+    "rq1": {
+      "path": "docs/m3-report.md",
+      "also": "original research plan and adopted M3 rulings are authority; docs/rq1-finalization.md is pending Task42 verification procedure/proposal, not superseding authority"
+    },
+    "gpu_policy": {
+      "path": "docs/m4-report.md",
+      "sections": [
+        "2.2",
+        "2.3",
+        "4.3"
+      ]
+    },
+    "historical_micro": {
+      "path": "docs/m3-report.md",
+      "sections": [
+        "1.1 B48 formula",
+        "R-M3-4"
+      ]
+    },
+    "sample_aligned_schedule": {
+      "path": "crates/ckks-train-bench/src/bin/mnist.rs",
+      "lines": [
+        1064,
+        1108
+      ],
+      "contract": "sample-aligned B0 schedule lookup at the first sample of each actual update"
+    },
+    "mnist_released_data": {
+      "path": "results/quadruped/data/reboot_emlp1_full/data_manifest.json",
+      "json_pointers": [
+        "/pipeline",
+        "/row_order",
+        "/scaling",
+        "/files"
+      ],
+      "corroborated_by": "results/quadruped/raw/reboot_emlp1_full/config_values.json /data/pipeline and /data/row_order"
+    }
+  },
+  "scope": {
+    "dataset_ids": [
+      "iris",
+      "breast_cancer",
+      "mnist_released",
+      "fashion_mnist"
+    ],
+    "model_ids": [
+      "mlp2020",
+      "emlp1",
+      "emlp2",
+      "emlp3"
+    ],
+    "main_backends": [
+      "cpu",
+      "cuda"
+    ],
+    "main_modes": [
+      "interactive",
+      "noninteractive"
+    ],
+    "full_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "quick_seeds": [
+      0
+    ],
+    "definition": "families expand declaratively; no executor is implemented by this file; no valid main-method combination is removed by readiness status"
+  },
+  "datasets": {
+    "iris": {
+      "features": 4,
+      "classes": 3,
+      "train_samples": 120,
+      "test_samples": 30,
+      "data_path": "crates/ckks-train-bench/data/iris.csv",
+      "split_path": "crates/ckks-train-bench/data/iris_split_seed2020.txt",
+      "split_policy": "fixed existing 2020 split for every study seed",
+      "preprocessing": "z-score from training mean/population std only",
+      "primary_batch": 20,
+      "logical_epochs": 400,
+      "drop_last": false,
+      "source_refs": [
+        "iris"
+      ],
+      "adaptation": "eMLP profiles use the existing Iris split/epoch count with ReBoot-style graph and explicitly borrowed constant lr_sum=0.0005. Not claimed to be official ReBoot Iris parameters."
+    },
+    "breast_cancer": {
+      "features": 30,
+      "classes": 2,
+      "train_samples": 455,
+      "test_samples": 114,
+      "data_path": "crates/ckks-train-bench/data/breast_cancer.csv",
+      "split_policy": "existing fixed stratified split seed0; do not redraw by study seed",
+      "preprocessing": "per-column min-max using training ranges; preserve z-score divergence as separate historical evidence",
+      "primary_batch": 16,
+      "logical_epochs": 100,
+      "drop_last": true,
+      "source_refs": [
+        "bc"
+      ],
+      "adaptation": "Existing eMLP1 config is not verified official preprocessing/epoch policy. Deeper and mlp2020 profiles are new structural adaptations using this fixed data/training policy."
+    },
+    "mnist_released": {
+      "features": 196,
+      "classes": 10,
+      "train_samples": 4800,
+      "test_samples": 10000,
+      "data_path": "results/quadruped/data/reboot_emlp1_full",
+      "split_policy": "first4800 training IDX rows with unchanged row identity/order; all10000 test IDX rows unchanged; separately apply exact captured per-model/per-seed training-order indices, with no preprocessing permutation",
+      "preprocessing": "captured bicubic14x14 float32 resize, then min-max from resized first4800 training rows only; test uses those same training min/max; consume captured arrays unchanged and verify their source-manifest hashes",
+      "primary_batch": 48,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "mnist_released_data"
+      ],
+      "adaptation": "eMLP1/2/3 use captured released profiles. mlp2020 is a new graph/SGD/loss adaptation on the same data/order/schedule, not a 2020 or official ReBoot reproduction.",
+      "input_identity": "source data_manifest records NPY-file/raw-array hashes; preserve exact captured order files, record and verify each order-file hash in the locked run input manifest; no permutation before captured indices"
+    },
+    "fashion_mnist": {
+      "features": 196,
+      "classes": 10,
+      "train_samples": 60000,
+      "test_samples": 10000,
+      "data_path": "data/fashion_mnist",
+      "split_policy": "published IDX train/test split; per-epoch study-seed order",
+      "preprocessing": "existing Task51 resize14 antialiased bicubic and min-max from all training samples",
+      "primary_batch": 48,
+      "logical_epochs": 50,
+      "drop_last": true,
+      "source_refs": [
+        "fmnist"
+      ],
+      "adaptation": "Preprocessing is an explicit MNIST-pipeline assumption; epochs50 were fixed before prior Task51 runs, not stated as an official paper value. Deeper/mlp2020 graphs are new adaptations."
+    }
+  },
+  "models": {
+    "mlp2020": {
+      "graph": {
+        "hidden_widths": [
+          10
+        ],
+        "hidden_activation": "square",
+        "output_activation": "square",
+        "local_heads": false
+      },
+      "bias": true,
+      "output_width_rule": "classes",
+      "loss_id": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "initialization": {
+        "kind": "normal",
+        "sigma": 0.2,
+        "source_ref": "iris"
+      },
+      "source_refs": [
+        "iris"
+      ],
+      "claim": "Exact model at Iris; adapted input/output and training profiles elsewhere, not an upstream reproduction."
+    },
+    "emlp1": {
+      "graph": {
+        "hidden_widths": [
+          32
+        ],
+        "hidden_activation": "z2_plus_z",
+        "output_activation": "identity",
+        "local_heads": false
+      },
+      "bias": false,
+      "output_width_rule": "next_power_of_two(classes)",
+      "loss_id": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "initialization": {
+        "kind": "xavier_uniform",
+        "bound": "sqrt(1/(fan_in+fan_out))",
+        "source_ref": "emlp1"
+      },
+      "source_refs": [
+        "emlp1"
+      ],
+      "claim": "ReBoot graph; non-MNIST profiles are explicitly registered adaptations unless upstream values are verified."
+    },
+    "emlp2": {
+      "graph": {
+        "local_block_widths": [
+          64
+        ],
+        "local_head_width": "output_width",
+        "output_stack_hidden_width": 32,
+        "hidden_activation": "z2_plus_z",
+        "head_and_output_activation": "identity",
+        "propagate_below_local_block": false,
+        "train_losses": "independent per-stage, not summed",
+        "evaluation_output": "separate output stack"
+      },
+      "bias": false,
+      "output_width_rule": "next_power_of_two(classes)",
+      "loss_id": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "initialization": {
+        "kind": "xavier_uniform",
+        "bound": "sqrt(1/(fan_in+fan_out))",
+        "source_ref": "emlp2"
+      },
+      "source_refs": [
+        "emlp2",
+        "blocks_released"
+      ],
+      "claim": "Captured MNIST graph; other datasets change input/class dimensions explicitly."
+    },
+    "emlp3": {
+      "graph": {
+        "local_block_widths": [
+          128,
+          64
+        ],
+        "local_head_width": "output_width",
+        "output_stack_hidden_width": 32,
+        "hidden_activation": "z2_plus_z",
+        "head_and_output_activation": "identity",
+        "propagate_below_local_block": false,
+        "train_losses": "independent per-stage, not summed",
+        "evaluation_output": "separate output stack"
+      },
+      "bias": false,
+      "output_width_rule": "next_power_of_two(classes)",
+      "loss_id": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "initialization": {
+        "kind": "xavier_uniform",
+        "bound": "sqrt(1/(fan_in+fan_out))",
+        "source_ref": "emlp3"
+      },
+      "source_refs": [
+        "emlp3",
+        "blocks_released"
+      ],
+      "claim": "Captured MNIST graph; other datasets change input/class dimensions explicitly."
+    }
+  },
+  "profiles": [
+    {
+      "id": "iris__mlp2020",
+      "dataset": "iris",
+      "model": "mlp2020",
+      "classes": 3,
+      "output_width": 3,
+      "batch": 20,
+      "logical_epochs": 400,
+      "drop_last": false,
+      "loss": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "bias": true,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "mean-over-samples MSE learning rate",
+        "value": 0.1,
+        "kernel_delta_multiplier": "2/classes",
+        "source_refs": [
+          "iris"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "normal",
+          "sigma": 0.2,
+          "source_ref": "iris"
+        },
+        "existing_iris_rng_compatibility": true
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "exact Iris model/data policy with independent study seeds",
+      "source_refs": [
+        "iris",
+        "iris"
+      ]
+    },
+    {
+      "id": "iris__emlp1",
+      "dataset": "iris",
+      "model": "emlp1",
+      "classes": 3,
+      "output_width": 4,
+      "batch": 20,
+      "logical_epochs": 400,
+      "drop_last": false,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "emlp1",
+          "iris"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp1"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "iris",
+        "emlp1"
+      ]
+    },
+    {
+      "id": "iris__emlp2",
+      "dataset": "iris",
+      "model": "emlp2",
+      "classes": 3,
+      "output_width": 4,
+      "batch": 20,
+      "logical_epochs": 400,
+      "drop_last": false,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "emlp1",
+          "iris"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp2"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "iris",
+        "emlp2",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "iris__emlp3",
+      "dataset": "iris",
+      "model": "emlp3",
+      "classes": 3,
+      "output_width": 4,
+      "batch": 20,
+      "logical_epochs": 400,
+      "drop_last": false,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "emlp1",
+          "iris"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp3"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "iris",
+        "emlp3",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "breast_cancer__mlp2020",
+      "dataset": "breast_cancer",
+      "model": "mlp2020",
+      "classes": 2,
+      "output_width": 2,
+      "batch": 16,
+      "logical_epochs": 100,
+      "drop_last": true,
+      "loss": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "bias": true,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "new adaptation: borrowed batch-sum step magnitude converted to mean-MSE units",
+        "value": 0.005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "2/classes",
+        "source_refs": [
+          "bc"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "normal",
+          "sigma": 0.2,
+          "source_ref": "iris"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "bc",
+        "iris"
+      ]
+    },
+    {
+      "id": "breast_cancer__emlp1",
+      "dataset": "breast_cancer",
+      "model": "emlp1",
+      "classes": 2,
+      "output_width": 2,
+      "batch": 16,
+      "logical_epochs": 100,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "bc"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp1"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "bc",
+        "emlp1"
+      ]
+    },
+    {
+      "id": "breast_cancer__emlp2",
+      "dataset": "breast_cancer",
+      "model": "emlp2",
+      "classes": 2,
+      "output_width": 2,
+      "batch": 16,
+      "logical_epochs": 100,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "bc"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp2"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "bc",
+        "emlp2",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "breast_cancer__emlp3",
+      "dataset": "breast_cancer",
+      "model": "emlp3",
+      "classes": 2,
+      "output_width": 2,
+      "batch": 16,
+      "logical_epochs": 100,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "bc"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp3"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "bc",
+        "emlp3",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "mnist_released__mlp2020",
+      "dataset": "mnist_released",
+      "model": "mlp2020",
+      "classes": 10,
+      "output_width": 10,
+      "batch": 48,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "bias": true,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "new adaptation: borrowed batch-sum step magnitude converted to mean-MSE units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "2/classes",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_per_update",
+        "source_ref": "mnist_released",
+        "json_pointer": "/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "normal",
+          "sigma": 0.2,
+          "source_ref": "iris"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/{indices_name}",
+        "indices_name_rule": "train_indices.txt for seed0, train_indices_seed{seed}.txt otherwise",
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "iris"
+      ]
+    },
+    {
+      "id": "mnist_released__emlp1",
+      "dataset": "mnist_released",
+      "model": "emlp1",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_per_update",
+        "source_ref": "mnist_released",
+        "json_pointer": "/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/init_weights_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/{indices_name}",
+        "indices_name_rule": "train_indices.txt for seed0, train_indices_seed{seed}.txt otherwise",
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "captured released profile",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp1"
+      ]
+    },
+    {
+      "id": "mnist_released__emlp2",
+      "dataset": "mnist_released",
+      "model": "emlp2",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_per_update",
+        "source_ref": "blocks_released",
+        "json_pointer": "/models/emlp2/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/init_weights_emlp2_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp2_seed{seed}.txt",
+        "indices_name_rule": null,
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [
+        "captured emlp2 weights/order/schedule exports for seeds3..9"
+      ],
+      "profile_provenance": "captured released profile",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp2",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "mnist_released__emlp3",
+      "dataset": "mnist_released",
+      "model": "emlp3",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_per_update",
+        "source_ref": "blocks_released",
+        "json_pointer": "/models/emlp3/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/init_weights_emlp3_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp3_seed{seed}.txt",
+        "indices_name_rule": null,
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [
+        "captured emlp3 weights/order/schedule exports for seeds3..9"
+      ],
+      "profile_provenance": "captured released profile",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp3",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "fashion_mnist__mlp2020",
+      "dataset": "fashion_mnist",
+      "model": "mlp2020",
+      "classes": 10,
+      "output_width": 10,
+      "batch": 48,
+      "logical_epochs": 50,
+      "drop_last": true,
+      "loss": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "bias": true,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "new adaptation: borrowed batch-sum step magnitude converted to mean-MSE units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "2/classes",
+        "source_refs": [
+          "fmnist"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "normal",
+          "sigma": 0.2,
+          "source_ref": "iris"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "fmnist",
+        "iris"
+      ]
+    },
+    {
+      "id": "fashion_mnist__emlp1",
+      "dataset": "fashion_mnist",
+      "model": "emlp1",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 50,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "fmnist"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp1"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "fmnist",
+        "emlp1"
+      ]
+    },
+    {
+      "id": "fashion_mnist__emlp2",
+      "dataset": "fashion_mnist",
+      "model": "emlp2",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 50,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "fmnist"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp2"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "fmnist",
+        "emlp2",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "fashion_mnist__emlp3",
+      "dataset": "fashion_mnist",
+      "model": "emlp3",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 48,
+      "logical_epochs": 50,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "value * logical_valid_batch_size for exact summed-gradient profiles; for adapted mlp2020 use nominal primary_batch as the fixed scale",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "fmnist"
+        ]
+      },
+      "schedule": {
+        "kind": "constant"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "xavier_uniform",
+          "bound": "sqrt(1/(fan_in+fan_out))",
+          "source_ref": "emlp3"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "local_per_epoch",
+        "study_seed": "{seed}",
+        "domain": "shuffle"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "explicit study adaptation; not an official upstream configuration",
+      "source_refs": [
+        "fmnist",
+        "emlp3",
+        "blocks_released"
+      ]
+    },
+    {
+      "id": "mnist_released__mlp2020__b64",
+      "dataset": "mnist_released",
+      "model": "mlp2020",
+      "classes": 10,
+      "output_width": 10,
+      "batch": 64,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "mse_mean_outputs",
+      "optimizer": "sgd",
+      "momentum": null,
+      "bias": true,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "new adaptation: borrowed batch-sum step magnitude converted to mean-MSE units",
+        "value": 0.0005,
+        "mean_gradient_lr": "source schedule value * 64 (fixed nominal B64); delta remains 2/classes. This is the explicit new SGD/MSE adaptation, not upstream SGD.",
+        "kernel_delta_multiplier": "2/classes",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_sample_aligned",
+        "source_ref": "mnist_released",
+        "json_pointer": "/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true,
+        "reference_batch": 48,
+        "lookup": "per logical epoch, source[epoch_base + floor(first_sample_of_actual_update / 48)]; preserve source lr_sum units; 75 B64 updates per 4800-sample epoch, 750 total",
+        "source_ref_resampling": "sample_aligned_schedule"
+      },
+      "initialization": {
+        "kind": "local",
+        "study_seed": "{seed}",
+        "domain": "init",
+        "distribution": {
+          "kind": "normal",
+          "sigma": 0.2,
+          "source_ref": "iris"
+        },
+        "existing_iris_rng_compatibility": false
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/{indices_name}",
+        "indices_name_rule": "train_indices.txt for seed0, train_indices_seed{seed}.txt otherwise",
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "new matched B64 study derived from captured B48 data/initialization/order; not official released B64 result and not a FULL-control alias",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "iris"
+      ],
+      "comparison_parent": "mnist_released__mlp2020",
+      "paired_fp32": "own B64 FP32 run, never reuse B48 crossing target or final accuracy"
+    },
+    {
+      "id": "mnist_released__emlp1__b64",
+      "dataset": "mnist_released",
+      "model": "emlp1",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 64,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "source schedule value * actual valid logical batch size (64 here); no factor2 or output-width division",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_sample_aligned",
+        "source_ref": "mnist_released",
+        "json_pointer": "/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true,
+        "reference_batch": 48,
+        "lookup": "per logical epoch, source[epoch_base + floor(first_sample_of_actual_update / 48)]; preserve source lr_sum units; 75 B64 updates per 4800-sample epoch, 750 total",
+        "source_ref_resampling": "sample_aligned_schedule"
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/init_weights_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/{indices_name}",
+        "indices_name_rule": "train_indices.txt for seed0, train_indices_seed{seed}.txt otherwise",
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "new matched B64 study derived from captured B48 data/initialization/order; not official released B64 result and not a FULL-control alias",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp1"
+      ],
+      "comparison_parent": "mnist_released__emlp1",
+      "paired_fp32": "own B64 FP32 run, never reuse B48 crossing target or final accuracy"
+    },
+    {
+      "id": "mnist_released__emlp2__b64",
+      "dataset": "mnist_released",
+      "model": "emlp2",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 64,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "source schedule value * actual valid logical batch size (64 here); no factor2 or output-width division",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_sample_aligned",
+        "source_ref": "blocks_released",
+        "json_pointer": "/models/emlp2/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true,
+        "reference_batch": 48,
+        "lookup": "per logical epoch, source[epoch_base + floor(first_sample_of_actual_update / 48)]; preserve source lr_sum units; 75 B64 updates per 4800-sample epoch, 750 total",
+        "source_ref_resampling": "sample_aligned_schedule"
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/init_weights_emlp2_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp2_seed{seed}.txt",
+        "indices_name_rule": null,
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [
+        "captured emlp2 weights/order/schedule exports for seeds3..9"
+      ],
+      "profile_provenance": "new matched B64 study derived from captured B48 data/initialization/order; not official released B64 result and not a FULL-control alias",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp2",
+        "blocks_released"
+      ],
+      "comparison_parent": "mnist_released__emlp2",
+      "paired_fp32": "own B64 FP32 run, never reuse B48 crossing target or final accuracy"
+    },
+    {
+      "id": "mnist_released__emlp3__b64",
+      "dataset": "mnist_released",
+      "model": "emlp3",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 64,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "source schedule value * actual valid logical batch size (64 here); no factor2 or output-width division",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_sample_aligned",
+        "source_ref": "blocks_released",
+        "json_pointer": "/models/emlp3/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true,
+        "reference_batch": 48,
+        "lookup": "per logical epoch, source[epoch_base + floor(first_sample_of_actual_update / 48)]; preserve source lr_sum units; 75 B64 updates per 4800-sample epoch, 750 total",
+        "source_ref_resampling": "sample_aligned_schedule"
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/init_weights_emlp3_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "blocks_released",
+        "path_template": "results/quadruped/raw/reboot_emlp23_full/train_indices_emlp3_seed{seed}.txt",
+        "indices_name_rule": null,
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [
+        "captured emlp3 weights/order/schedule exports for seeds3..9"
+      ],
+      "profile_provenance": "new matched B64 study derived from captured B48 data/initialization/order; not official released B64 result and not a FULL-control alias",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp3",
+        "blocks_released"
+      ],
+      "comparison_parent": "mnist_released__emlp3",
+      "paired_fp32": "own B64 FP32 run, never reuse B48 crossing target or final accuracy"
+    },
+    {
+      "id": "mnist_released__emlp1__b128_candidate",
+      "dataset": "mnist_released",
+      "model": "emlp1",
+      "classes": 10,
+      "output_width": 16,
+      "batch": 128,
+      "logical_epochs": 10,
+      "drop_last": true,
+      "loss": "rss_delta_without_factor_two",
+      "optimizer": "nag",
+      "momentum": 0.9,
+      "bias": false,
+      "weight_decay": 0.0,
+      "learning_rate": {
+        "units": "batch-summed RSS step units",
+        "value": 0.0005,
+        "mean_gradient_lr": "source schedule value * valid logical batch size128; RSS delta has no factor2/output divisor",
+        "kernel_delta_multiplier": "1",
+        "source_refs": [
+          "mnist_released"
+        ]
+      },
+      "schedule": {
+        "kind": "captured_sample_aligned",
+        "source_ref": "mnist_released",
+        "json_pointer": "/per_seed/{seed}/lr_per_step",
+        "logical_epochs": 10,
+        "legacy_binary_epochs": 1,
+        "legacy_flattened_samples": 48000,
+        "never_repeat_flattened_order_ten_times": true,
+        "reference_batch": 48,
+        "lookup": "flat order start index s uses source[floor(s/48)], preserving captured source arrays; 375 actual updates for 48000 samples; do not reset or split at4800-pass boundaries",
+        "source_ref_resampling": "sample_aligned_schedule"
+      },
+      "initialization": {
+        "kind": "captured_weights",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/init_weights_seed{seed}",
+        "shape_manifest_required": true,
+        "available_export_seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "order": {
+        "kind": "captured_flattened_10_pass",
+        "source_ref": "mnist_released",
+        "path_template": "results/quadruped/raw/reboot_emlp1_full/{indices_name}",
+        "indices_name_rule": "train_indices.txt for seed0, train_indices_seed{seed}.txt otherwise",
+        "model_note": "mlp2020 borrows eMLP1 order explicitly; eMLP2/3 MUST use their own orders"
+      },
+      "missing_inputs": [],
+      "profile_provenance": "prospective source-backed input-slot-fill candidate, not measured or admitted for all stages; no FULL-control alias",
+      "source_refs": [
+        "mnist_released",
+        "blocks_released",
+        "emlp1"
+      ],
+      "comparison_parent": "mnist_released__emlp1",
+      "slot_candidate": {
+        "source_ref": "emlp1",
+        "json_pointer": "/input_note",
+        "scope": "196 inputs pad256, up to128 fit input ciphertext; per-stage/level/layout admission remains missing validation, not a maximum proof for other graphs",
+        "logical_samples": 48000,
+        "actual_updates": 375,
+        "pass_size": 4800,
+        "pass_boundaries": "4800*k, k1..10",
+        "checkpoint_rule": "first actual update boundary at/after each logical pass boundary; binary records cumulative completed_update_count, processed_sample_count, KS/bootstrap counters and each time component plus crossed boundary IDs; observation time is an upper bound on the logical boundary time, never an accuracy bound; use metrics.interval_accounting with actual endpoints, no interpolation/proration/splitting/dropping",
+        "tail_rule": "preserve flattened order/drop-last semantics;48000 is divisible128 so no global tail; splitting at each pass or dropping64 per pass defines a different profile",
+        "interval_contract": "observed update-boundary intervals; checkpoint updates38,75,113,150,188,225,263,300,338,375; alternating4864/4736 sample intervals (38/37 updates), each complete update attributed exactly once via cumulative deltas, never blind divide4800"
+      },
+      "paired_fp32": "own B128 flattened-order/update-boundary FP32 reference, never reuse B48/B64 target"
+    }
+  ],
+  "losses": {
+    "mse_mean_outputs": {
+      "reported_loss": "mean over real output classes and samples",
+      "gradient": "2*(prediction-target)/classes, then batch mean",
+      "source_ref": "iris",
+      "padded_outputs": "mlp2020 has exactly classes outputs; no added output padding changes loss normalization"
+    },
+    "rss_delta_without_factor_two": {
+      "reported_loss": "sum over logical outputs per sample, averaged over samples",
+      "gradient": "prediction-target (no factor2 and no output-width division); batch mean paired with lr_sum*B",
+      "local_head_losses": "independent own losses; never sum heads into main loss",
+      "source_ref": "emlp1",
+      "padded_outputs": "All declared padded output channels participate in the RSS/delta with zero targets, matching captured padded training; accuracy argmax uses real classes only. Do not mask away trained padded-channel errors."
+    }
+  },
+  "seed_policy": {
+    "statistical_unit": "independent model initialization/order seed, not encryption-only repetition",
+    "local_new_profile_streams": {
+      "algorithm": "existing ChaCha20 bench RNG domain convention; explicit new profile adapter",
+      "roles": {
+        "keys": 1,
+        "init": 2,
+        "shuffle": 3,
+        "encryption": 4,
+        "refresh": 5
+      }
+    },
+    "legacy_iris": "preserve existing master-fork sequence for exact Iris controls",
+    "captured_profiles": "loaded weights/order for seed S are authoritative; --seed alone cannot replace them",
+    "pairing": "main / packed-c / matched row-diag / actual FP32 reference share exact initialized arrays, order, preprocessing, optimizer and loss within a profile+seed",
+    "full_expectation": 10,
+    "missing_seed_policy": "retain expected denominator; no SD=0 for n1; do not substitute another seed"
+  },
+  "crypto": {
+    "main_interactive": "n16_train",
+    "main_noninteractive": "n16_boot",
+    "packed_c_interactive": "n16_train",
+    "packed_c_noninteractive": "n16_boot",
+    "baseline_a_matched": "n16_train",
+    "baseline_a_exact_iris": "seal_2020",
+    "official_b": "captured upstream context; no claim of equal security",
+    "reduced_level": "supplement only; exact top-level in comparison key, never substitute for primary NI",
+    "bootstrap_engine": "HostBootstrapper is declared M4a default on CUDA; GPU CudaBootstrapper is a separate unmeasured profile/gate",
+    "source_refs": [
+      "security",
+      "gpu_policy"
+    ]
+  },
+  "families": [
+    {
+      "id": "main_i",
+      "role": "main",
+      "profile_ids": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal"
+    },
+    {
+      "id": "main_ni",
+      "role": "main",
+      "profile_ids": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal"
+    },
+    {
+      "id": "a_matched",
+      "role": "baseline_a",
+      "profile_ids": [
+        "iris__mlp2020",
+        "breast_cancer__mlp2020",
+        "mnist_released__mlp2020",
+        "fashion_mnist__mlp2020"
+      ],
+      "backends": [
+        "cpu"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "packing_variants": [
+        "row_2020",
+        "diagonal_2020"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "crypto_override": "n16_train",
+      "claim": "CPU2020 packing comparison at matched main N; non-Iris profiles are adapted, not paper reproductions"
+    },
+    {
+      "id": "c_i",
+      "role": "baseline_c",
+      "profile_ids": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column"
+    },
+    {
+      "id": "c_ni",
+      "role": "baseline_c",
+      "profile_ids": [
+        "iris__mlp2020",
+        "iris__emlp1",
+        "iris__emlp2",
+        "iris__emlp3",
+        "breast_cancer__mlp2020",
+        "breast_cancer__emlp1",
+        "breast_cancer__emlp2",
+        "breast_cancer__emlp3",
+        "mnist_released__mlp2020",
+        "mnist_released__emlp1",
+        "mnist_released__emlp2",
+        "mnist_released__emlp3",
+        "fashion_mnist__mlp2020",
+        "fashion_mnist__emlp1",
+        "fashion_mnist__emlp2",
+        "fashion_mnist__emlp3"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column"
+    },
+    {
+      "id": "b_external",
+      "role": "baseline_b",
+      "profile_ids": [
+        "iris__emlp1",
+        "breast_cancer__emlp1",
+        "mnist_released__emlp1",
+        "fashion_mnist__emlp1"
+      ],
+      "backends": [
+        "external_cpu"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "upstream_verified"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "official_upstream",
+      "requested_configuration": "match referenced profile; upstream compatibility and actual values must be exported/verified, never inferred",
+      "verified_upstream_profile_by_dataset": {
+        "mnist_released": "mnist_released",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "upstream_dataset_key_by_dataset": {
+        "mnist_released": "MNIST",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "unresolved_values_status": "missing-input, not guessed official defaults"
+    },
+    {
+      "id": "main_i_mnist_b64",
+      "role": "main",
+      "profile_ids": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls"
+    },
+    {
+      "id": "main_ni_mnist_b64",
+      "role": "main",
+      "profile_ids": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls"
+    },
+    {
+      "id": "a_matched_mnist_b64",
+      "role": "baseline_a",
+      "profile_ids": [
+        "mnist_released__mlp2020__b64"
+      ],
+      "backends": [
+        "cpu"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "packing_variants": [
+        "row_2020",
+        "diagonal_2020"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "crypto_override": "n16_train",
+      "claim": "CPU2020 packing comparison at matched main N; non-Iris profiles are adapted, not paper reproductions",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls"
+    },
+    {
+      "id": "c_i_mnist_b64",
+      "role": "baseline_c",
+      "profile_ids": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls"
+    },
+    {
+      "id": "c_ni_mnist_b64",
+      "role": "baseline_c",
+      "profile_ids": [
+        "mnist_released__mlp2020__b64",
+        "mnist_released__emlp1__b64",
+        "mnist_released__emlp2__b64",
+        "mnist_released__emlp3__b64"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls"
+    },
+    {
+      "id": "b_external_mnist_b64",
+      "role": "baseline_b",
+      "profile_ids": [
+        "mnist_released__emlp1__b64"
+      ],
+      "backends": [
+        "external_cpu"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "upstream_verified"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "official_upstream",
+      "requested_configuration": "explicit B64 override of released B48 profile; require verified upstream override, exact sample-aligned schedule/order/weights and runtime provenance; not an official default",
+      "verified_upstream_profile_by_dataset": {
+        "mnist_released": "mnist_released",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "upstream_dataset_key_by_dataset": {
+        "mnist_released": "MNIST",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "unresolved_values_status": "missing-input, not guessed official defaults",
+      "study": "new matched B64; all full_seeds0..9; distinct from FULL controls",
+      "override_readiness": "missing-code/input verification until upstream B64 adapter is proved; never silently fall back to B48"
+    },
+    {
+      "id": "main_i_mnist_b128_candidate",
+      "role": "main",
+      "profile_ids": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal",
+      "study": "prospective input-slot-fill candidate only; all full_seeds0..9, quick seed0; stage/layout admission unproved; never restart FULL"
+    },
+    {
+      "id": "main_ni_mnist_b128_candidate",
+      "role": "main",
+      "profile_ids": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "batched_diagonal",
+      "study": "prospective input-slot-fill candidate only; all full_seeds0..9, quick seed0; stage/layout admission unproved; never restart FULL"
+    },
+    {
+      "id": "c_i_mnist_b128_candidate",
+      "role": "baseline_c",
+      "profile_ids": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "placements": [
+        "client_refresh"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column",
+      "study": "prospective input-slot-fill candidate only; all full_seeds0..9, quick seed0; stage/layout admission unproved; never restart FULL"
+    },
+    {
+      "id": "c_ni_mnist_b128_candidate",
+      "role": "baseline_c",
+      "profile_ids": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "backends": [
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "alternating_reboot_row_column",
+      "study": "prospective input-slot-fill candidate only; all full_seeds0..9, quick seed0; stage/layout admission unproved; never restart FULL"
+    },
+    {
+      "id": "b_external_mnist_b128_candidate",
+      "role": "baseline_b",
+      "profile_ids": [
+        "mnist_released__emlp1__b128_candidate"
+      ],
+      "backends": [
+        "external_cpu"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "upstream_verified"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "packing": "official_upstream",
+      "requested_configuration": "explicit verified B128 override study of released B48 official eMLP1; exact flattened order/sample-aligned schedule and exported weights required; not an official default",
+      "verified_upstream_profile_by_dataset": {
+        "mnist_released": "mnist_released",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "upstream_dataset_key_by_dataset": {
+        "mnist_released": "MNIST",
+        "iris": null,
+        "breast_cancer": null,
+        "fashion_mnist": null
+      },
+      "unresolved_values_status": "missing-input, not guessed official defaults",
+      "study": "prospective input-slot-fill candidate only; all full_seeds0..9, quick seed0; stage/layout admission unproved; never restart FULL",
+      "override_readiness": "missing-input/verified-override support pending; unsupported launcher requires code, never silently fall back to B48"
+    }
+  ],
+  "role_applicability": {
+    "baseline_a": "CPU interactive2020 model only; main-method GPU/NI versions remain in main families",
+    "baseline_b": "official CPU NI eMLP1; official encrypted eMLP2/3 excluded by specification RAM181/214GB on128GB host; mlp2020 is not an official ReBoot graph",
+    "baseline_c": "GPU I and NI for every main profile; CPU legacy reference is not the required GPU baseline",
+    "plaintext": "actual FP32 reference and f64 parity are reference paths, not CUDA encrypted experiment rows"
+  },
+  "spec_exclusions": [
+    {
+      "role": "baseline_b",
+      "models": [
+        "emlp2",
+        "emlp3"
+      ],
+      "datasets": [
+        "iris",
+        "breast_cancer",
+        "mnist_released",
+        "fashion_mnist"
+      ],
+      "reason": "original hardware scope excludes official encrypted eMLP2/3 (reported setting181/214GB on approximately128GB host); not a new measured lower bound for every adapted dataset",
+      "source_ref": "spec"
+    }
+  ],
+  "readiness": {
+    "state_dimensions": [
+      "code_readiness",
+      "input_readiness",
+      "execution_authorization",
+      "resource_observation",
+      "measurement_status"
+    ],
+    "default_measurement_status": "unmeasured",
+    "default_execution_authorization": "root dispatch required; no overlap with running FULL",
+    "actual_resource_skip_status": "only after device preflight logs need/free with exit3; never assign skipped from this design",
+    "missing_code_is_not_resource_skip": true,
+    "missing_inputs_is_not_role_na": true,
+    "full_encrypted_blocks": {
+      "selector": {
+        "models": [
+          "emlp2",
+          "emlp3"
+        ],
+        "roles": [
+          "main",
+          "baseline_c"
+        ],
+        "campaign": "full"
+      },
+      "status": "awaiting_user_full_block_decision",
+      "code_preparation_allowed": true,
+      "quick_subset_does_not_release_full_gate": true,
+      "source_ref": "block_execution"
+    },
+    "known_code_dependencies": [
+      "shared class-aware/profile loader and matching preprocessing",
+      "faithful no-bias/schedule interactive bridge",
+      "interactive/CUDA block bench bridge",
+      "2020 row packing CPU implementation",
+      "GPU packed trainer with encrypted labels, weight/optimizer state and NI bootstrap",
+      "binary-owned checkpoints and defined GPU high-water metrics",
+      "actual FP32 reference path",
+      "manifest ten-seed orchestration and aggregation",
+      "external full-profile/dataset adapter"
+    ],
+    "known_input_dependencies": [
+      "eMLP2/3 captured MNIST seeds3..9 weights/orders/schedules",
+      "official external Iris/BC/Fashion profile/dataset/weight/order exports and upstream compatibility evidence",
+      "actual locked FP32 reference artifacts before full HE campaign"
+    ]
+  },
+  "block_aa_handoff": {
+    "decision": "reuse stage post-bootstrap activation, no extra handoff bootstrap",
+    "select": "stage.last_activation_bootstraps()[micro_batch][0]",
+    "must_not_select": "returned hidden from train_step_valid_with_hidden, which is pre-boot",
+    "preserve_existing_returned_hidden_api": true,
+    "alignment": "canonical Delta; mod-switch only if needed to the registered next-stage input level, no decrypt/repack or second bootstrap",
+    "non_aa": "existing explicit handoff bootstrap remains counted",
+    "final_output_stack": "has no downstream handoff",
+    "validation_required": [
+      "same stage/handoff output versus reference",
+      "no duplicate bootstrap; exact closed-form counters",
+      "Delta/level/layout compatibility",
+      "activation range/error checks unchanged"
+    ],
+    "source_ref": "aa_accessor",
+    "alternative_rejected": "run stage AA then bootstrap returned pre-boot hidden again; changes cost and intended placement"
+  },
+  "partial_microbatch_extension": {
+    "id": "weighted_partial_v1",
+    "decision": "admit partial micro-batches with normalization by total valid samples, including32+16 logical B48; padding contributes zero",
+    "existing_math": "trainer already sums n_valid, masks partial lanes and aligns mixed dz levels; do not duplicate or replace that math without a demonstrated defect",
+    "implementation_needed": [
+      "CLI admission",
+      "planner and prediction for valid-lane tails",
+      "input/level/mask validation",
+      "regression32+16 versus48-sample weighted-mean update and exact counts"
+    ],
+    "source_ref": "weighted_existing",
+    "historical_rule": "R-M3-4 exclusions/formula-only rows remain historical and unchanged; new results have extension ID and new profile IDs",
+    "alternative_rejected": "silently relabel old B48 formula as measured or silently change B48 to B64"
+  },
+  "baseline_c_contract": {
+    "labels_encrypted": true,
+    "weights_encrypted": true,
+    "optimizer_state_encrypted": true,
+    "client_secret_on_server": false,
+    "interactive": "explicit client refresh; transfers/refresh timed separately",
+    "noninteractive": "persistent encrypted state and homomorphic level/refresh/bootstrap; no client gradient update",
+    "legacy_exclusion": "existing CPU plaintext-label/client-updated Task33 path remains a bounded historical reference, never a primary NI row",
+    "packing_semantics": "implement paper row/column operations in generic HeOps; use identical registered graph/loss/optimizer; do not copy GPL code"
+  },
+  "metrics": {
+    "fp32_reference": {
+      "kind": "actual f32 computation with same initialized arrays, class mask, order, optimizer/loss and dtype provenance",
+      "status": "missing-code/artifact until produced; f64 parity twin is not FP32",
+      "reference_seed_policy": "same seed per accuracy comparison; seed0 full-profile final artifact fixes one common crossing target for seeds0..9 of that concrete profile before NEW matrix HE campaign results are examined"
+    },
+    "f64_parity": {
+      "kind": "existing deterministic f64 twin",
+      "claim": "numerical parity diagnostic only, never relabeled FP32"
+    },
+    "checkpoints": {
+      "full": "after each logical epoch boundary and at final tail, observing actual update boundaries only; if crossed within an update, first following checkpoint time is an upper bound on boundary time, not an accuracy bound; retain cumulative records and use interval_accounting",
+      "flat_released_mnist": "one48000-index file represents ten4800-sample passes; never run that file ten times",
+      "quick": "end of each of at most two logical updates and final subset; pipeline only",
+      "time_accounting": "cumulative synchronized server update, host bootstrap, client refresh/transfer, evaluation diagnostics, setup and end-to-end times separate",
+      "general_actual_boundary": "binary-owned cumulative completed updates, processed samples, KS/bootstrap counters and each time component at actual update boundary; record crossed logical boundary IDs; observation/crossing-time bound only, no bound on unobserved accuracy or invented exact-epoch observation",
+      "b128_candidate": "375 actual updates across flattened48000 order; logical4800-pass boundaries can lie inside an update; cumulative delta intervals have4864/4736 samples and38/37 updates, not observed4800-sample epochs; never split, prorate, double-count or drop updates"
+    },
+    "time_to_target": {
+      "definition": "first declared checkpoint whose accuracy over real classes >= max(0, locked seed0 actual FP32 final-reference accuracy - 0.005)",
+      "tolerance": 0.005,
+      "tolerance_origin": "new explicit cross-profile time-to-target convention borrowed from registered RQ1 half-percentage-point tolerance; not a new acceptance gate",
+      "numeric_target": "missing-input until finite actual FP32 seed0 final artifact, numeric target and hashes are locked before examining ANY NEW paired matrix HE campaign results for that profile; record lock time and registration revision",
+      "not_reached": "right-censored at final training time; not zero, infinity-as-finite or best-epoch substitution",
+      "between_checkpoints": "checkpoint detection/crossing-time upper bound only, no interpolation; accuracy is measured at actual processed_sample_count and is not bounded at an unobserved logical boundary",
+      "statistics": "report target definition and reached/expected counts; do not average censored rows as successful crossing times",
+      "temporal_scope": "NEW matrix HE campaign only; existing historical/subset and FULL-1/FULL-2 results/registered runs are excluded from prospective time-to-target evidence. Design is informed by those already-known results.",
+      "controls": "No retroactive target attachment or changed gate for FULL-1/FULL-2; no retroactive crossing inference from sparse historical final accuracies.",
+      "batch_specific": "separate locked target per concrete profile including B48 versus B64, graph, optimizer and preprocessing"
+    },
+    "gpu_memory": {
+      "required": "measured scope/phase/source/reset boundaries",
+      "separate": [
+        "estimated need",
+        "pool used high-water",
+        "pool reserved high-water",
+        "sampled process VRAM peak"
+      ],
+      "forbidden": "checkpoint maxima or estimates labeled total-process peak"
+    },
+    "aggregation": {
+      "expected_full_seeds": 10,
+      "sample_std_ddof": 1,
+      "n1_std": "unmeasured, not zero",
+      "group_key": [
+        "role",
+        "dataset/preprocessing/split",
+        "graph/classes/output_width",
+        "parameter_and_secret_distribution",
+        "mode/placement/batch/microbatch_extension",
+        "optimizer/lr/loss/order_schedule",
+        "backend/host/threads",
+        "target_definition"
+      ],
+      "report_counts": [
+        "expected",
+        "measured",
+        "missing-input",
+        "missing-code",
+        "resource-skipped",
+        "failed",
+        "awaiting-user-decision"
+      ],
+      "timing_comparisons": "same physical CPU host and thread count; paired seed subsets; never pool Mac/server or SGD/NAG fallback values"
+    },
+    "interval_accounting": {
+      "owner": "binary-owned cumulative records; D6 emits endpoints and D8 validates/conserves them before aggregation",
+      "checkpoint_fields": [
+        "completed_update_count",
+        "processed_sample_count",
+        "crossed_logical_pass_boundary_ids",
+        "cumulative_ks",
+        "cumulative_bootstrap_count",
+        "cumulative_time_by_component",
+        "accuracy_at_processed_sample_count"
+      ],
+      "origin": "record update0/sample0 counters and time baselines explicitly; no learning operations before origin; setup has its own declared pre-training baseline/record, not silently charged twice",
+      "interval_definition": "for consecutive actual-update checkpoints i-1,i, record endpoint IDs and delta_updates, delta_samples, delta_KS, delta_bootstraps and each delta_time_component by cumulative subtraction; these are disjoint observed update-boundary intervals",
+      "conservation": "every complete update and its operations/time enter exactly one adjacent interval; each additive metric telescopes: sum(interval deltas)=final cumulative-origin cumulative. Never split/prorate a crossing update, count it twice, or add overlapping timer categories as if disjoint.",
+      "denominator": "interval per-sample metrics divide by actual delta_samples, and per-update metrics by actual delta_updates; require positive valid denominators. Do not blindly divide a crossing interval by4800.",
+      "b128_static_example": {
+        "checkpoint_updates": [
+          38,
+          75,
+          113,
+          150,
+          188,
+          225,
+          263,
+          300,
+          338,
+          375
+        ],
+        "checkpoint_samples": [
+          4864,
+          9600,
+          14464,
+          19200,
+          24064,
+          28800,
+          33664,
+          38400,
+          43264,
+          48000
+        ],
+        "interval_updates": [
+          38,
+          37,
+          38,
+          37,
+          38,
+          37,
+          38,
+          37,
+          38,
+          37
+        ],
+        "interval_samples": [
+          4864,
+          4736,
+          4864,
+          4736,
+          4864,
+          4736,
+          4864,
+          4736,
+          4864,
+          4736
+        ],
+        "classification": "design arithmetic only, not observed measurement"
+      },
+      "epoch_label": "crossing intervals are observed update-boundary intervals; exact4800-sample epoch KS/bootstrap/time and accuracy observations are unavailable when a complete update crosses the boundary",
+      "amortized_average": "whole-campaign totals/10 may be reported only as an explicitly amortized logical-pass average; not ten measured epoch records, not an empirical per-epoch SD, and not interpolated epoch observations",
+      "accuracy": "accuracy belongs to its actual processed_sample_count; a post-boundary accuracy is not an upper/lower bound on accuracy at the unobserved boundary",
+      "time_to_target": "retain declared checkpoint detection/crossing-time upper-bound interpretation and no interpolation; no accuracy bound is implied",
+      "preserved_controls": "FULL1/2 identities/gates/schedules and exact-boundary semantics unchanged; do not retrofit this design into their raw records"
+    }
+  },
+  "quick_policy": {
+    "seeds": [
+      0
+    ],
+    "profiles": "ALL applicable executable family cases and active supplements, one seed0; preserve explicit missing-code/input, resource skips and user holds. Deferred Task53 stretch is not silently treated as quick coverage.",
+    "subset": "first two logical batches from the registered seed0 training order; train-side preprocessing statistics from the FULL profile remain fixed",
+    "updates": 2,
+    "preserve": [
+      "graph",
+      "class/output padding",
+      "secure N/chain preset",
+      "logical batch",
+      "loss/optimizer",
+      "placement",
+      "all baseline roles"
+    ],
+    "target_seconds": 7200,
+    "duration_status": "unmeasured target, not certified by this registration",
+    "resource_skips": "same mandatory actual preflight; skips remain unmeasured",
+    "isolation": "no quick rows in full tables or FULL validator",
+    "setup_reuse_proposal": "optional same-preset/seed key/context reuse with reset learning state, explicit shared/cold setup accounting and no cross-case state leakage; release own caches before external ReBoot phases",
+    "if_target_missed": "record miss; optimize startup/reuse under review, do not drop valid cases or silently swap in insecure small presets",
+    "control_protection": "preserved_controls are archival/current registered jobs, never launched/restarted by quick. Equivalent quick projections require distinct quick case/output IDs and only two updates; no FULL control ID/path or FULL validator."
+  },
+  "preserved_controls": [
+    {
+      "id": "FULL-1",
+      "path": "results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json",
+      "model": "emlp1",
+      "dataset": "mnist_released",
+      "backend": "cpu",
+      "mode": "noninteractive",
+      "placement": "when_needed",
+      "batch": 64,
+      "initial_weight_seed": 0,
+      "preset": "n16_boot",
+      "schedule_reference_batch": 48,
+      "logical_samples": 48000,
+      "logical_epochs": 10,
+      "legacy_binary_epochs": 1,
+      "status": "existing registered run; values/gates unchanged; no restart/relabel"
+    },
+    {
+      "id": "FULL-2",
+      "path": "results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json",
+      "model": "emlp1",
+      "dataset": "mnist_released",
+      "backend": "cpu",
+      "mode": "noninteractive",
+      "placement": "when_needed",
+      "batch": 48,
+      "lanes": 64,
+      "initial_weight_seed": 0,
+      "preset": "n16_boot",
+      "logical_samples": 48000,
+      "logical_epochs": 10,
+      "legacy_binary_epochs": 1,
+      "accuracy_gate": "abs(acc - captured ReBoot seed0 twin acc) <=0.005",
+      "status": "existing registered run; values/gates unchanged; no restart/relabel"
+    }
+  ],
+  "supplements": [
+    {
+      "id": "iris_2020_exact_crypto",
+      "profile": "iris__mlp2020",
+      "role": "baseline_a",
+      "backends": [
+        "cpu"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "packing_variants": [
+        "row_2020",
+        "diagonal_2020"
+      ],
+      "preset": "seal_2020",
+      "seeds": "full_seeds or quick_seeds",
+      "historical_seed2020_anchor": "retain separately; do not count it as seeds0..9",
+      "comparison": "RQ4 continuity; not same-N algorithm-only ratio against main N16"
+    },
+    {
+      "id": "mnist_b64_registered",
+      "control": "FULL-1",
+      "seeds": [
+        0
+      ],
+      "scope": "historical/current FULL-1 preservation only; never dispatch via quick; ten-seed B64 study is the separately named __b64 profiles and *_mnist_b64 families"
+    },
+    {
+      "id": "mnist_784_emlp1_b48_weighted_partial",
+      "role": "main",
+      "dataset": "MNIST784 official subset profile",
+      "model": "emlp1",
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "noninteractive"
+      ],
+      "placements": [
+        "when_needed",
+        "after_update",
+        "after_activation"
+      ],
+      "batch": 48,
+      "physical_micro_batches": [
+        32,
+        16
+      ],
+      "extension": "weighted_partial_v1",
+      "seeds": "full_seeds or quick_seeds",
+      "profile_source": "configs/reboot_emlp1_faithful.json and existing R-REB1 subset exports",
+      "input_status": "seed0 captured; seeds1..9 need matched export before full runs",
+      "historical_B48_formula_rows": "unchanged"
+    },
+    {
+      "id": "reduced_level_matched_training",
+      "roles": [
+        "main"
+      ],
+      "model": "emlp1",
+      "dataset": "MNIST784 existing supplemental profile",
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "modes": [
+        "interactive"
+      ],
+      "primary_batch": 32,
+      "top_level": 7,
+      "partial_batch_top_level": 8,
+      "source_ref": "gpu_policy",
+      "seeds": "full_seeds or quick_seeds",
+      "claim": "supplement; unlike levels never pooled"
+    },
+    {
+      "id": "rq3_all8",
+      "role": "main_ablation",
+      "models": [
+        "emlp1"
+      ],
+      "dataset": "MNIST784 existing ablation profile",
+      "backends_levels": [
+        "cpu:L31",
+        "cpu:L7",
+        "cuda:L7"
+      ],
+      "configs": "all eight hoist/bsgs/lazy_relin tuples; four caveats unchanged",
+      "optimizer_policy": "NAG first; only capacity exit3 allows explicit SGD profile and matched CPU SGD row; device OOM is failure",
+      "seeds": "full_seeds or quick_seeds",
+      "repetitions_are_not_seeds": true,
+      "source_ref": "gpu_policy",
+      "caveats": [
+        "bsgs=false retains pre-rotated weights/same Galois keys; only baby rotations hoist and zero-shift block sums lazily; strongest textbook diagonal layout is not implemented",
+        "BSGS gain versus this bsgs=false baseline is an upper bound against strongest textbook naive baseline; marginal hoist/lazy gains inside bsgs=false are lower bounds",
+        "hoist changes no OpCounter value; time-only effect, no KS-count claim",
+        "bsgs does not change gradient outer-product rotations; lazy_relin does not change interactive gradient individual diagonal products; hoist may change execution"
+      ]
+    },
+    {
+      "id": "task51_plain_references",
+      "role": "plaintext_reference",
+      "source_configs": [
+        "mnist_paper",
+        "fmnist",
+        "bc"
+      ],
+      "seeds": "full_seeds or quick_seeds",
+      "status": "existing fixed-epoch evidence retained; not a substitute for encrypted matrix"
+    },
+    {
+      "id": "task53_degree4_emlp1",
+      "role": "activation_experiment",
+      "source": "../plans/2026-11-04-he-training-implementation-plan-m3-m5.md Task53",
+      "status": "deferred stretch (scope-cut #3); separate future profile/design/gate, not required D0 completion and not implemented",
+      "target": "degree4 ReLU least-squares approximation on [-4,4] versus PolyRelu2 in eMLP1 NI CPU or GPU; coefficients/profile/range validation pending separate ruling; actual extra levels/bootstrap counts and accuracy remain unmeasured"
+    }
+  ],
+  "fixed_gates": {
+    "rq1_ks_ratio_max": 0.7,
+    "rq1_accuracy_tolerance_pt": 0.5,
+    "rq1_accuracy_control": "FULL-2 seed0, captured reference not ten-seed mean replacement",
+    "rq1_security": "known comparability condition remains unmet; no automatic pass",
+    "bootstrap_precision_bits_min": 16,
+    "gpu_bootstrap_latency_target_ms_max": 220,
+    "heongpu_operation_comparison_goal_ratio_max": 2.0,
+    "targets_never_relaxed": true,
+    "source_refs": [
+      "rq1",
+      "gpu_policy",
+      "security"
+    ]
+  },
+  "execution_policy": {
+    "default": "design only; no launch",
+    "before_root_dispatch": "code and scientific review, input hashes, data/seed/parameter preflight",
+    "server": "finish/recover current FULL first, no parallel CPU load or running-checkout changes",
+    "threads": 12,
+    "max_threads": 24,
+    "nice": 10,
+    "schedule": "strict serial; follow explicitly dispatched post-FULL requests",
+    "official_b_location": "external ReBoot/OpenFHE environment; no GPL source vendoring",
+    "resource_states": "exit3+need/free=unmeasured skip; device OOM=failed; unknown availability is not a predeclared skip"
+  },
+  "registration_scope": {
+    "phase": "design/profile registration; root directions ratified pending independent scientific review; no executor or dispatch authorization",
+    "temporal_scope": "Prospective only for NEW matrix HE campaign outputs after this design is approved and per-profile FP32 target artifacts are hash-locked. Historical/subset and existing FULL-1/FULL-2 runs are already known or registered and are not prospective evidence under this registration.",
+    "existing_evidence": "Existing reports, subset results and ongoing/registered FULL runs informed these design choices. No claim that this design predates those observations.",
+    "control_rule": "Never attach new time-to-target gates to historical/subset/FULL controls or alter their original values, success gates, identity or raw JSON."
+  },
+  "batch_policy": {
+    "primary": "source-derived dataset batches: Iris20, BC16, MNIST48, Fashion48; these are logical training batches, not assertions of maximal physical slot occupancy",
+    "mnist_alternate": "four separately named MNIST196 B64 profiles, seeds0..9; retain B48 released profiles side by side; B64 is the existing registered alternate, not a certified maximal-slot formula",
+    "admission": "actual per-stage Layout/level/mask/planner validation is required, including padded input/output widths and micro-batch validity; d*B <= N/2 alone is not a maximum/admission proof",
+    "slot_utilization_requirement": "spec4.3.3: B128 eMLP1 is registered as an input-slot-fill candidate beside B48 and B64, subject to per-stage admission. Other model/dataset slot-oriented batches remain explicit planner/profile-readiness items, never equate B64 to maximum. Derive from actual padded stage layouts/parameter slots and validated masks/levels, retain source sample/order/drop-last/epoch semantics, register distinct candidate profile before new observations; no guessed numerical capacity or silent batch changes.",
+    "non_mnist": "Iris20 and BC16 source profiles retained even though not power-of-two; Fashion48 source profile retained. Non-power-of-two lane handling is a code dependency, not a scientific exclusion or reason to change the logical batch.",
+    "mnist_slot_candidate": "separately named mnist_released__emlp1__b128_candidate and role-specific families, seeds0..9/full or0/quick; source emlp1/input_note supports input fit only; per-stage admission remains mandatory"
+  },
+  "root_design_rulings": [
+    {
+      "choice": "primary released MNIST4800x10 and separate paper60000 reference",
+      "status": "ratified by root pending independent scientific review",
+      "reason": "released exports fix exact initialization/order/schedule and existing FULL controls; paper-setting reference has different epochs/lr/weight decay",
+      "alternative": "replace released profile with paper60000 settings",
+      "cost_if_wrong": "would break existing controls and mix distinct experimental populations"
+    },
+    {
+      "choice": "exact2020 Iris crypto supplement plus matched-N CPU row/diagonal baseline",
+      "status": "ratified by root pending independent scientific review",
+      "reason": "preserves historical continuity and an algorithm comparison at main N separately",
+      "alternative": "one mixed-crypto ratio",
+      "cost_if_wrong": "confounds crypto/packing and obscures RQ4"
+    },
+    {
+      "choice": "explicit Iris eMLP output4/lr_sum0.0005 and fixed cross-dataset graph/SGD adaptations",
+      "status": "ratified by root pending independent scientific review",
+      "reason": "preserves valid dataset/model combinations with fixed source-derived policies; no invented official configs",
+      "alternative": "drop unsupported combinations or guess upstream hyperparameters",
+      "cost_if_wrong": "adapted training may fail or underperform; record failure, no hidden tuning or upstream claim"
+    },
+    {
+      "choice": "AA post-bootstrap accessor reuse and weighted-partial CLI/planner extension",
+      "status": "ratified by root pending independent scientific review and focused implementation proofs",
+      "reason": "avoid duplicate AA boot while retaining existing sum(n_valid)/mask/alignment math",
+      "alternative": "boot pre-boot hidden again or silently use B64 instead of B48",
+      "cost_if_wrong": "wrong scales/levels or gradient weighting could invalidate numerical/cost evidence; require parity and exact-count tests"
+    },
+    {
+      "choice": "FP32 final-minus0.005 checkpoint crossing convention",
+      "status": "ratified by root pending independent scientific review, only prospectively for NEW matrix HE campaign",
+      "reason": "fixed per-profile target before NEW paired HE observations, with actual FP32 evidence rather than f64 relabeling",
+      "alternative": "choose a threshold after HE results or reuse historical final-only results",
+      "cost_if_wrong": "target can be unattainable or insensitive; keep censored rows and target counts, never tune after observations or alter FULL gates"
+    },
+    {
+      "choice": "new ten-seed matched MNIST196 B64 profiles beside B48, FULL controls separate",
+      "status": "requested by root; scientific review open",
+      "reason": "spec4.3.3 batch comparison cannot be supplied by one archival/current seed0 control",
+      "alternative": "count FULL-1 as ten-seed batch evidence",
+      "cost_if_wrong": "extra valid runs and FP32/input/admission work; do not restart FULL or claim B64 is maximum slot occupancy"
+    },
+    {
+      "choice": "Task53 deferred stretch, full encrypted blocks await user decision",
+      "status": "existing separate scope/authorization gates preserved",
+      "reason": "design preparation is authorized; these execution/activation gates remain independent",
+      "alternative": "treat preparation/subset as full execution authorization",
+      "cost_if_wrong": "unapproved resource-heavy execution or misleading completion claim"
+    },
+    {
+      "choice": "prospective MNIST196 eMLP1 B128 input-slot-fill candidate, ten full seeds and one quick seed, main CPU/GPU I/NI plus packed-c and verified-override external-b",
+      "status": "ratified by root pending independent scientific review and per-stage admission",
+      "reason": "spec4.3.3 slot-oriented comparison; existing faithful config input_note supports input fit; B48/B64 alone leave that design gap",
+      "alternative": "retain only B48/B64 or declare a maximum from one dimension",
+      "cost_if_wrong": "additional runs/storage/time and possible measured resource skips; preserve375 flattened updates and actual-boundary checkpoints; other graph/dataset capacities remain unproved"
+    }
+  ],
+  "remaining_gates": [
+    "per-stage admission for B128 candidate and general slot-oriented profile readiness for other graphs/datasets before new HE campaign",
+    "implementation and focused tests for listed code gaps",
+    "missing captured/exported inputs and verified official external overrides",
+    "actual FP32 targets hash-locked before NEW paired HE campaign observations",
+    "user full encrypted-block decision; root dispatch after existing FULL",
+    "Task53 remains deferred stretch; separate future decision"
+  ],
+  "design_review_and_ratification": {
+    "status": "independently_reviewed_and_root_ratified_for_D0_design_registration",
+    "date": "2026-11-06",
+    "independent_review": "task-54-d0-rereview1.md: Approved for D0 design registration; both Important findings addressed; status-only stamp explicitly approved without another review",
+    "root_ratification": "root explicitly ratified all current documented design directions, reasons and alternatives after the approved scoped re-review",
+    "reviewed_content_sha256": {
+      "docs/experiment-matrix.md": "cb788823cfda92d29d83acc3a1bc26b7577fe1daf8fa036bcc31cb9dd256ddc4",
+      "experiment_matrix.json": "f7e7bba66a2439932ac36df58cc0fabee34307b4b0013640021eb8c7ff04ccee"
+    },
+    "completed_gate": "independent scientific review and root ratification of the current D0 design",
+    "historical_draft_status_fields": [
+      "registration_scope.phase",
+      "root_design_rulings[*].status"
+    ],
+    "historical_status_interpretation": "Pending-review/requested-direction wording in these unchanged fields records the drafting history. This metadata supersedes only their D0 design-review/root-ratification status. Attached focused implementation proofs, per-stage admission, prospective-only scope and separate authorization gates remain intact.",
+    "limits": "Design approval only; execution_authorized remains false. All profiles, families, numeric values, source semantics, targets/counters, FULL protections, missing-input/code/resource states, physical validation and full encrypted-block user hold remain unchanged."
+  }
+}
