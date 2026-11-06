@@ -765,14 +765,26 @@ impl<'a, E: HeOps> Trainer<'a, E> {
     /// or unsupported custom optimizers leave the entire rate set unchanged. NAG reference
     /// maxima must be configured on each optimizer before constructing the trainer.
     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        self.validate_lr(lr)?;
+        self.apply_validated_lr(lr);
+        Ok(())
+    }
+
+    /// Read-only validation of a rate against every layer. No evaluator work or mutation.
+    /// Used by block composition to validate all stages before committing any rate.
+    pub fn validate_lr(&self, lr: f64) -> Result<()> {
         check_lr(lr)?;
         for opt in &self.optims {
             opt.validate_lr(lr)?;
         }
+        Ok(())
+    }
+
+    /// Caller must first validate this rate against every participating trainer.
+    pub(crate) fn apply_validated_lr(&mut self, lr: f64) {
         for opt in &mut self.optims {
             opt.apply_lr(lr);
         }
-        Ok(())
     }
 
     /// Keeps the initialized bias values by folding a zero coefficient into their gradient.

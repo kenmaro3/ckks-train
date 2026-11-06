@@ -90,9 +90,9 @@ use crate::trainer_ni::{
     predict_update_with,
 };
 
-/// One micro-batch of a non-interactive block update: the input `x`, one label ciphertext per
-/// stage (`ys[s]` at stage `s`'s [`NonInteractiveTrainer::batch_spec`]) and the valid sample
-/// count.
+/// One micro-batch of a block update: input `x`, one label ciphertext per stage, and
+/// the valid sample count. Each label uses its stage's batch-spec level and exact scale
+/// ([`Mlp::batch_spec`] for interactive, [`NonInteractiveTrainer::batch_spec`] for NI).
 pub type BlockMicroBatch<'b, C> = (&'b C, &'b [&'b C], usize);
 
 // ---------------------------------------------------------------------------------------------
@@ -429,18 +429,28 @@ impl<'a, E: HeOps> BlockTrainer<'a, E> {
         &self.layout
     }
 
-    /// Hand-offs refreshed so far (one per stage boundary per step).
+    /// Sets the rate of all stages, validating every layer before committing any change.
+    /// Rejects malformed rates, NAG ceilings and unsupported custom optimizers atomically.
+    /// Configure interactive NAG reference maxima before assembling the stage trainers.
+    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        for stage in &self.stages {
+            stage.validate_lr(lr)?;
+        }
+        for stage in &mut self.stages {
+            stage.apply_validated_lr(lr);
+        }
+        Ok(())
+    }
+
+    /// Hand-offs refreshed so far (one per stage boundary per micro-batch).
     pub fn handoffs(&self) -> usize {
         self.handoffs
     }
 
-    /// One step (see the [module docs](self)): every stage, in forward order, trains on its
-    /// input and `ys[s]` with `n_valid` samples ([`Trainer::train_batch_valid_with_hidden`]),
-    /// and hands its first layer's activation (from the old weights) to the next stage.
+    /// One logical update on a single micro-batch: the exact singleton wrapper of
+    /// [`BlockTrainer::train_step_valid`]. Each label uses its stage's batch spec.
     ///
-    /// Errors: `InvalidParams` before any work if `net` does not have one stage per trainer or
-    /// `ys` one ciphertext per stage; then the stage trainers' errors (a stage's error leaves
-    /// that stage unchanged, but the stages before it are already updated) and the hand-off's.
+    /// Errors and partial-training-update limits are those of that method.
     pub fn train_batch_valid(
         &mut self,
         net: &mut BlockMlp<E>,
@@ -448,18 +458,59 @@ impl<'a, E: HeOps> BlockTrainer<'a, E> {
         ys: &[&E::Ct],
         n_valid: usize,
     ) -> Result<()> {
+        self.train_step_valid(net, &[(x, ys, n_valid)])
+    }
+
+    /// One logical update over all micro-batches, weighted by their valid sample counts.
+    /// Each stage calls [`Trainer::train_step_valid_with_hidden`] once for all parts,
+    /// then hands each part's first hidden activation (from old weights) to the next
+    /// stage after conversion to Delta and one hand-off refresh. No gradient crosses
+    /// a stage boundary; the final output is never handed off.
+    ///
+    /// Errors: `InvalidParams` before any evaluator work for empty batches, invalid or
+    /// overflowing valid counts, mismatched stage/trainer counts, or any part's target
+    /// count. Subsequent errors retain [`Trainer`]'s optimizer/refresh limitations;
+    /// earlier stages may already be updated when a later stage or hand-off fails.
+    /// This is not a whole-model training transaction.
+    pub fn train_step_valid(
+        &mut self,
+        net: &mut BlockMlp<E>,
+        batches: &[BlockMicroBatch<'_, E::Ct>],
+    ) -> Result<()> {
         let n = net.num_stages();
-        check_counts(n, self.stages.len(), ys.len())?;
-        let mut input = x.clone();
+        if batches.is_empty() {
+            return Err(HekitError::InvalidParams("no micro-batches".into()));
+        }
+        batches.iter().try_fold(0usize, |sum, &(_, ys, count)| {
+            check_counts(n, self.stages.len(), ys.len())?;
+            if count == 0 || count > self.layout.batch {
+                return Err(HekitError::InvalidParams(format!(
+                    "{count} valid samples for a batch of {}",
+                    self.layout.batch
+                )));
+            }
+            sum.checked_add(count).ok_or_else(|| {
+                HekitError::InvalidParams("total valid sample count overflows usize".into())
+            })
+        })?;
+        let mut inputs: Vec<E::Ct> = batches.iter().map(|b| b.0.clone()).collect();
         for (s, trainer) in self.stages.iter_mut().enumerate() {
-            let hidden =
-                trainer.train_batch_valid_with_hidden(net.stage_mut(s), &input, ys[s], n_valid)?;
+            let parts: Vec<_> = inputs
+                .iter()
+                .zip(batches)
+                .map(|(x, b)| (x, b.1[s], b.2))
+                .collect();
+            let hidden = trainer.train_step_valid_with_hidden(net.stage_mut(s), &parts)?;
             if s + 1 < n {
-                let a = hidden.first().ok_or_else(|| {
-                    HekitError::InvalidParams("a block needs a hidden activation".into())
-                })?;
-                input = self.handoff.refresh(&to_delta(self.ev, a)?)?;
-                self.handoffs += 1;
+                let mut next = Vec::with_capacity(hidden.len());
+                for part in &hidden {
+                    let a = part.first().ok_or_else(|| {
+                        HekitError::InvalidParams("a block needs a hidden activation".into())
+                    })?;
+                    next.push(self.handoff.refresh(&to_delta(self.ev, a)?)?);
+                    self.handoffs += 1;
+                }
+                inputs = next;
             }
         }
         Ok(())
@@ -567,18 +618,28 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
 
     /// [`NonInteractiveTrainer::set_lr`] on every stage (ReBoot: one lr for every layer).
     ///
-    /// Errors: the first stage's error (the stages before it keep the new lr).
+    /// Errors: the first validation error; every stage remains unchanged.
     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
-        self.stages.iter_mut().try_for_each(|t| t.set_lr(lr))
+        for stage in &self.stages {
+            stage.validate_lr(lr)?;
+        }
+        for stage in &mut self.stages {
+            stage.apply_validated_lr(lr);
+        }
+        Ok(())
     }
 
     /// [`NonInteractiveTrainer::set_lr_reference`] on every stage.
     ///
-    /// Errors: the first stage's error.
+    /// Errors: the first validation error; every stage remains unchanged.
     pub fn set_lr_reference(&mut self, lr_ref: f64) -> Result<()> {
-        self.stages
-            .iter_mut()
-            .try_for_each(|t| t.set_lr_reference(lr_ref))
+        for stage in &self.stages {
+            stage.validate_lr_reference(lr_ref)?;
+        }
+        for stage in &mut self.stages {
+            stage.apply_validated_lr_reference(lr_ref);
+        }
+        Ok(())
     }
 
     /// [`NonInteractiveTrainer::set_next_batch_full`] on every stage.

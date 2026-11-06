@@ -1058,3 +1058,111 @@ fn ni_block0_ignores_output_stack_labels() {
     }
     assert!(max_err(&a[1..], &b[1..]) > 1e-3);
 }
+
+// D3b configuration regression: a later rejection must not mutate an earlier stage.
+// Each test forks the evaluator so parallel tests cannot affect its no-work assertion.
+fn ni_config_setup(ev: &Evaluator, optimizers: [NiOptimizer; 2]) -> (BlockMlp, BlockNiTrainer<'_>) {
+    let m = mini_fx();
+    let mut r = rng(87);
+    let init = init_stages(&NI_STAGES, &mut r, 0.2);
+    let (net, states) = BlockNiTrainer::encrypt_network(
+        ev,
+        &m.bs,
+        &init,
+        (0..init.len()).map(|_| acts()).collect(),
+        &m.layout,
+        BootPlacement::WhenNeeded,
+        &m.enc,
+        &m.encoder,
+        &mut r,
+    )
+    .unwrap();
+    let stages = states
+        .into_iter()
+        .zip(optimizers)
+        .enumerate()
+        .map(|(s, (state, optimizer))| {
+            NonInteractiveTrainer::new(
+                ev,
+                &m.bs,
+                optimizer,
+                m.layout,
+                BootPlacement::WhenNeeded,
+                net.stage(s),
+                state,
+            )
+            .unwrap()
+        })
+        .collect();
+    (net, BlockNiTrainer::new(ev, &m.bs, stages).unwrap())
+}
+
+#[test]
+fn ni_block_rate_setters_validate_all_stages_before_mutation() {
+    let m = mini_fx();
+    let ev = m.ev.fork();
+    // SGD accepts any positive lr, whereas the later NAG has reference LR.
+    let (_, mut t) = ni_config_setup(
+        &ev,
+        [
+            NiOptimizer::Sgd { lr: LR },
+            NiOptimizer::Nag {
+                lr: LR,
+                momentum: MU,
+            },
+        ],
+    );
+    let before = ev.counter();
+    assert!(t.set_lr(2.0 * LR).is_err());
+    assert_eq!(
+        t.stages()[0].optimizer().lr(),
+        LR,
+        "early SGD must not change"
+    );
+    assert_eq!(t.stages()[1].optimizer().lr(), LR);
+    assert_eq!(ev.counter(), before);
+    assert_eq!(t.handoff_bootstraps(), 0);
+    assert!(
+        t.stages()
+            .iter()
+            .all(|s| s.state().velocity.iter().all(Option::is_none)
+                && s.trace().is_empty()
+                && s.weight_bootstraps() == 0
+                && s.activation_bootstraps() == 0)
+    );
+    t.set_lr(0.5 * LR).unwrap();
+    assert!(t.stages().iter().all(|s| s.optimizer().lr() == 0.5 * LR));
+}
+
+#[test]
+fn ni_block_reference_setter_later_rejection_leaves_earlier_reference() {
+    let m = mini_fx();
+    let ev = m.ev.fork();
+    let (_, mut t) = ni_config_setup(
+        &ev,
+        [NiOptimizer::Nag {
+            lr: LR,
+            momentum: MU,
+        }; 2],
+    );
+    t.stages_mut()[0].set_lr(0.25 * LR).unwrap();
+    let before = ev.counter();
+    assert!(t.set_lr_reference(0.5 * LR).is_err());
+    assert!(
+        t.stages().iter().all(|s| s.lr_reference() == LR),
+        "earlier reference changed"
+    );
+    assert_eq!(t.stages()[0].optimizer().lr(), 0.25 * LR);
+    assert_eq!(t.stages()[1].optimizer().lr(), LR);
+    assert_eq!(ev.counter(), before);
+    assert!(
+        t.stages()
+            .iter()
+            .all(|s| s.state().velocity.iter().all(Option::is_none)
+                && s.trace().is_empty()
+                && s.weight_bootstraps() == 0
+                && s.activation_bootstraps() == 0)
+    );
+    t.set_lr_reference(2.0 * LR).unwrap();
+    assert!(t.stages().iter().all(|s| s.lr_reference() == 2.0 * LR));
+}

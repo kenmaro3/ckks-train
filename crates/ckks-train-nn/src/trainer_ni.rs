@@ -1358,6 +1358,13 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     ///
     /// Errors (`InvalidParams`): `lr` not finite and positive, or (NAG) above the reference lr.
     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+        self.validate_lr(lr)?;
+        self.apply_validated_lr(lr);
+        Ok(())
+    }
+
+    /// Read-only checks of [`NonInteractiveTrainer::set_lr`], for atomic block settings.
+    pub fn validate_lr(&self, lr: f64) -> Result<()> {
         if !(lr.is_finite() && lr > 0.0) {
             return Err(HekitError::InvalidParams(format!(
                 "learning rate {lr} must be finite and positive"
@@ -1370,8 +1377,12 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 self.lr_ref
             )));
         }
-        self.optim = self.optim.with_lr(lr);
         Ok(())
+    }
+
+    /// Caller must validate every participating trainer before any commit.
+    pub(crate) fn apply_validated_lr(&mut self, lr: f64) {
+        self.optim = self.optim.with_lr(lr);
     }
 
     /// Sets the reference lr of the stored velocity (e.g. the schedule's maximum), before the
@@ -1380,6 +1391,13 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
     /// Errors (`InvalidParams`): `lr_ref` not finite and positive, below the current lr, or a
     /// velocity already exists.
     pub fn set_lr_reference(&mut self, lr_ref: f64) -> Result<()> {
+        self.validate_lr_reference(lr_ref)?;
+        self.apply_validated_lr_reference(lr_ref);
+        Ok(())
+    }
+
+    /// Read-only checks of [`NonInteractiveTrainer::set_lr_reference`].
+    pub fn validate_lr_reference(&self, lr_ref: f64) -> Result<()> {
         if !(lr_ref.is_finite() && lr_ref > 0.0) || lr_ref < self.optim.lr() {
             return Err(HekitError::InvalidParams(format!(
                 "reference lr {lr_ref} must be finite, positive and at least the lr {}",
@@ -1391,8 +1409,12 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 "the reference lr can only be set before the first update".into(),
             ));
         }
-        self.lr_ref = lr_ref;
         Ok(())
+    }
+
+    /// Caller must validate every participating trainer before any commit.
+    pub(crate) fn apply_validated_lr_reference(&mut self, lr_ref: f64) {
+        self.lr_ref = lr_ref;
     }
 
     /// The velocity's reference lr.
