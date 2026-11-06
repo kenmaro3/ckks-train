@@ -314,3 +314,103 @@ reuse, runtime/memory, GPU, production security and adoption remain separate,
 unestablished gates. No Linux metadata-proof support is inferred from this local
 Mac result. The original negative-result retention and separately reviewed rerun
 rules continue to apply.
+
+
+## 10. c2 NI program construction registration (before source edits)
+
+The main test is `packed_ni_primary_12_cases_max_228_calls` in
+`tests/packed_training_ni.rs`. It is compiled only until fresh independent review
+and root release. Selection must use that exact test name and harness1. No whole
+integration-target invocation is permitted during construction. The already passed
+primary calibration is immutable and is not selected or rerun.
+
+The program uses the exact §§2–6 arrays, masks, rates, reference, seed153, initial
+seeds200–203 and per-record seeds160+8*u+2*r+role. Construction order is params,
+KeyGenerator, Encoder, Bootstrapper, sorted lattice-key union, evaluator relin key,
+public key, diagnostic secret clone. Diagnostic material never enters the NI object.
+Before key construction, the small-context metadata/Encoder program freezes each
+carried schedule and identifies unsupported histories. P1b remains conditional and
+this does not claim full bootstrap encoding/internal-EvalMod admission.
+
+All local commands set CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8.
+Selected pure/control tests use harness8; real main remains UNRUN. Independent
+literal full traces/counters and four-update scalar/reference diagnostics are separate
+from planner-versus-runner equality. A test double can establish control/metadata
+failure behavior only. Complete commands, absent-API and behavioral RED history,
+raw predicted schedule, source patch and SHA manifests will be frozen in the c2 ledger.
+
+Root clarified the diagnostic timing before writing the primary program: all secret
+operations stay outside the synchronous NI runner. The driver checks returned event
+snapshots after `prepare_update`, in event order, before committing its candidate or
+starting the next update. First **detected** failure stops the primary and discards that
+candidate. Later bootstrap calls within the same prepared update may already have
+completed; attempted/completed counts and all produced event snapshots retain that
+fact. This is not immediate per-call range enforcement. A secret callback hidden behind
+a capability was rejected; a resumable externally inspected executor is outside c2.
+The standalone calibration's per-call protocol and immutable84-call result are unchanged.
+All encrypted diagnostic snapshot retention is real memory, without a production fit claim.
+
+One separately selected host control is registered: existing CKKS miniature N1024,
+Q `[54,42,42,34x4,58x7,56x4]`, P `[60,60]`, scale42,dnum9,log_slots9,
+output2,seed47. `control_host_adapter_merges_exactly_once_miniature` executes exactly
+ONE genuine bootstrap through a separate host evaluator fork and checks all seven
+counts. It is not the full-chain main, seed153, calibration, CUDA or numerical admission.
+
+## 11. c2 program freeze: conditional graph checks, main UNRUN
+
+The registered no-key/public-Encoder schedule passes all12 cases ×4 updates at the
+unchanged actual N1024/full-chain parameter values. This is evaluator-free host mask
+and factor feasibility, not the Encoder-free P1 proof or complete bootstrap admission.
+The exact forecast is212 calls: AU/WN `[4,4,4,4]`; Square AA `[7,5,6,7]`;
+Poly AA `[3,5,2,7]`, for each ordinal. AA hidden counts remain `[3,1,2,3]`.
+All full traces, actual q-derived scale bits, candidate role histories and seven-field
+counts are retained in the c2 ledger's `task-54-d4c2-ni-predicted-schedule.log`.
+The primary program preserves the exact fixture and remains UNRUN.
+
+Root approved an execution guard before this freeze: the new main test is ignored
+by ordinary Cargo/CI selection, to prevent an unreviewed HE launch. The separately
+reviewed root release must select it explicitly with the following command:
+
+```sh
+CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8 cargo test -p ckks-train-nn --test packed_training_ni packed_ni_primary_12_cases_max_228_calls -- --ignored --exact --nocapture --test-threads=1
+```
+
+This new-main-only `--ignored` gate does not change the standalone calibration's
+protocol, selection command, source or retained84/84 result. No main attempt, automatic
+retry, secure-size HE, CUDA, remote run or broad workspace test was performed for c2.
+One independently registered miniature output2 Host control executed one actual call;
+its matching host/target counts establish one merge in that context, not main precision.
+The final implementation report separates that earlier control executable from the
+final compile-only primary executable and records all remaining proof boundaries.
+
+### D4c2 F1/F2 fix-round validation boundary (2026-11-07, before GREEN)
+
+Retain the original freeze/report/raw evidence in its separate archive and record
+this round separately. Add foreign-Delta, longer-chain and same-shape foreign-Arc
+metadata negatives, Known-next zero-current-work rejection, and bounded real CPU
+key construction/preflight controls for foreign relin and foreign rotation bases.
+The metadata DAG tests construct a public Encoder and no keys/evaluator; they are
+not the unresolved Encoder-free shared pre-key proof. Actual evaluator key controls
+construct keys but perform no bootstrap. An explicit local binder implementation
+also checks the future bridge's trait usability without CKKS/CUDA source changes.
+
+Run the unchanged 12-case/48-history schedule to check its exact 212 forecast and
+compare all emitted trace/count/history lines to original evidence. Recheck only
+affected metadata/freshness/preflight controls, focused Clippy and formatting. The
+main stays compiled, ignored and UNRUN; its release command remains exactly the
+previous explicit `--ignored --exact` command. The single prior real miniature
+Host run is historical evidence and will not be repeated or attributed to the new
+executable. There is no tolerance/rate/seed/fixture change to the scientific program.
+
+Fix-round result: five new binding negatives/controls and four selected existing
+metadata/freshness controls passed, plus the unchanged registered schedule (ten
+unique tests). Known-next foreign Delta/long-chain/context negatives cover all
+AU/WN/AA policies with zero target counters and zero metadata-double calls. CPU
+Host preflight rejects both foreign relin and foreign rotation bases despite all
+required keys being present; the CPU default and downstream-local binder paths
+both check actual structures. All host/target counters remain zero. No adapter
+bootstrap dispatch is executed in this round. The 2,496 schedule/trace lines match
+the original frozen evidence exactly: 12 cases, 48 histories, 212 predicted calls.
+The original 46-check report and once-only Host log remain historical artifacts;
+this round does not rerun or replace them. Full command/RED/setup/Clippy history and
+new identities are retained in the separate fix1 report and artifacts.

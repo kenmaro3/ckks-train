@@ -282,3 +282,172 @@ Persistent U is never reset or converted to another reference unit. There is no
 real bootstrap, NI/AA admission, full schedule/profile proof, GPU/memory/transport
 measurement, dataset run or scientific-performance claim. Complete run commands,
 RED logs and frozen full patch hashes are in the Task54 c1 implementation report.
+
+
+## 10. c2 concrete implementation contract (2026-11-06, before source edits)
+
+Root assigned c2 after the reviewed c1/P1/parser/Linux-candidate dependencies.
+The following freezes the bounded API choices; it does not release main HE execution.
+
+* `PackedStageMeta` is immutable public metadata: parameter Arc, two exact layer
+  geometries, config/classes, per-role `CtMeta`, and both completed-update indices.
+  `new` constructs hypothetical metadata with no generation authority. Extraction
+  from a checked `PackedStage` retains private existing layer generation Arcs.
+  Every derived candidate/refreshed metadata value drops executable authority.
+* `PackedRecordMeta` holds original record index and exact input/target histories;
+  `PackedBatchMeta` binds the ordered unique valid indices, vector specs and update
+  index. The runtime adapter uses original positions, including holes. Invalid
+  records contribute nothing. `PackedUpdateMeta` fixes rate, GradRelin and the
+  evaluator lazy flag. The pure kernel reads parameters and public Encoder only.
+* `PackedDagPlan` privately retains the full primitive trace, all seven counts and
+  candidate W/U/bias histories. The enclosing `PackedNiPlan` retains complete stage
+  input and batch/update metadata.
+  `plan_stage_dag` handles no refresh or one fixed hidden bootstrap contract.
+  It shares the old stage recurrence, actual q casts and F64 expression order;
+  it performs actual public mask encodings. It is neither allocation-free nor
+  a proof that evaluation keys exist. Legacy no-AA calls remain wrappers.
+* `PackedNiPlan` binds placement (AU/WN/AA), current DAG, next request and immutable
+  bootstrap contract; `PackedNextStep` is Known(batch,update), Unknown or Terminal.
+  Known must have index current+1. All current state keeps projection reserve.
+  WN/AA first try carried candidate; only `NoLevelsLeft` may request repair, and
+  the complete refreshed next DAG must pass before any current HE. AU also checks
+  known next metadata against its refreshed state. Unknown/Terminal conservatively
+  refresh and explicitly retain unknown/terminal future status.
+* `PackedBootstrapContract::from_metadata(params, receipt)` consumes reviewed P1b
+  conditional structural identity, level/Delta and complete cost; no invented
+  per-boot constant. `PlannedBootstrap<E>: BootstrapOps<E>` supplies a checked
+  contract and runtime binding. CPU Bootstrapper validates constructed cost,
+  output and key support against P1b. `PackedHostBootstrap` delegates exclusively
+  to existing HostBootstrapper; it NEVER adds or merges bootstrap counts itself.
+  Runtime outer evaluator delta is inclusive; event deltas are nested observations.
+  Generic implementors remain trusted and cannot be attested secret-free by a trait.
+* `PackedNiTrainer` borrows evaluator, public Encoder and planned bootstrap only.
+  `plan_update` extracts and binds current generations; `prepare_planned` rechecks
+  them, actual encrypted records, evaluator configuration and capability before
+  work. Hypothetical plans and plans from earlier refreshed/updated generations
+  cannot execute. `prepare_update` composes those operations. No SecretKey,
+  Decryptor, plaintext arrays, materializer or client-refresh callback is stored.
+* The sole seam is after canonical first hidden, before second affine. It retains
+  pre, lowers without another mask, calls bootstrap once, validates actual context,
+  two components, exact level/scale, and retains post. That exact post vector is
+  borrowed by affine2, later outer1 and receipt.hidden; derivative1 keeps old z1.
+  `StageForwardSnapshot` exposes valid IDs, pre/post and output. Structural reuse
+  is explicit in this data flow, beyond approximate numerical diagnostics.
+* Receipt retains pre-refresh updated state, old-forward snapshots, per-event
+  encrypted before/projection/input/output snapshots and inclusive counts. Candidate
+  owns the complete final stage; failure exposes phase/role/completed events and
+  optional observed count delta, never commits any stage subset. Completed HE and
+  bootstrap side effects are not rolled back. Main diagnostics decrypt only outside
+  NI, after returned observations, and stop on the first failed gate.
+
+Root approved a narrow optimizer.rs ownership extension before editing: expose
+existing `PackedOptimizer::coefficients` module-privately without changing its math,
+guards or expression order, and a module-private read-only accessor to the existing
+private generation Arc. This avoids duplicated policy validation or a second freshness
+system. No public token, setter, serialization or arbitrary optimizer-state constructor
+is introduced. Stage uses it for metadata binding; hypothetical metadata never carries it.
+
+Returned graph-level/scale admission is conditional on P1b successful bootstrap
+execution. EncodingQOverTwoFeasibility/internal EvalMod, encrypted RangeContractUnverified,
+PrecisionUnmeasured, actual secret/key provenance, security, MemoryUnadmitted and backend
+admission remain separate. This package has no Ready result, production graph/session
+admission, c3 block trainer, dataset/profile binding, GPU or benchmark claim.
+
+Concrete signature refinement before capability use: `PackedBootstrapContract::new(
+Arc<CkksParams>, &BootParams, &DftSupportProof)` constructs P1b itself. The sketched
+`from_metadata(params,receipt)` cannot independently bind every parameter/BootParams
+field because P1b intentionally exposes no unchecked identity parser; recomputing the
+checked receipt avoids duplicating canonical serialization. CPU binding compares the
+constructed cost/output/key support; arbitrary third-party capabilities remain trusted.
+No new CKKS-owned API is needed. The no-state-bootstrap branch retains its updated
+snapshot and constructs the consumable candidate from identical encrypted parts via
+c1's checked reconstruction (fresh generation, same policy/index), without HE or refresh.
+
+### c2 bounded implementation disposition
+
+The extracted graph kernel is evaluator-free but **uses Encoder** to check actual
+mask/activation encodings. Its stage inputs include exact per-role CtMeta and original
+valid record positions. Executable NI plans bind the original private layer generation
+Arcs; all derived future states drop that authority. CPU capability binding checks
+actual relin/Galois/conjugation/SSE key basis identity, level, digits and NTT form using
+public evaluation-key accessors. This checks structure, not matching unknown secret
+coefficients or provenance; the generic capability still has an explicit trust limit.
+
+The fixed AA runtime consumes the same selected post ciphertext in affine2, outer1
+and receipt.hidden. A separate test backend observes matching **all RNS coefficient
+prefixes** at the actual two multiplication boundaries, beyond approximate plaintext
+parity. Original valid IDs0/2 remain0/2. State projections retain their actual pre-lowering
+ciphertexts for diagnostics; canonical hidden has no redundant projection. Failure
+retains a complete pre-refresh candidate when one exists, completed events, phase/role
+and optional inclusive target-evaluator count. A Host failure may leave additional
+unmerged host work; the caller owns the host evaluator and must inspect it separately.
+No target-only receipt claims that host work was rolled back.
+
+Focused construction checks cover13 metadata/scalar tests,9 non-main control/diagnostic tests,
+one separately run miniature Host test, and23 existing packed learning/refresh/optimizer
+regressions. These are program/control/metadata evidence, not main encrypted training
+parity. The public NI plan retains named unvalidated requirements and no Ready result:
+bootstrap encoding/internal EvalMod, range, precision, actual secret/key provenance,
+security, memory, backend and full profile schedule remain separate gates. Retaining old,
+candidate, post-bootstrap and diagnostic snapshots is not a production memory-fit claim.
+
+### D4c2 review fix round 1: pre-code binding contract (2026-11-07)
+
+The independent c2 review found two structural binding defects (F1/F2); no main,
+calibration or additional real Host bootstrap run is released by this fix. The
+original 13-file freeze, report, complete patch, raw evidence and both executables
+are preserved in the separate `task-54-d4c2-ni-original-freeze-archive` ledger
+folder before these edits.
+
+F1 changes the new, uncommitted metadata constructor to
+`PackedBatchMeta::new(params: Arc<CkksParams>, index: u64, input: VectorSpec,
+target: VectorSpec, records: Vec<PackedRecordMeta>) -> Result<Self>`.
+The immutable batch retains that Arc. Its equality uses Arc pointer identity plus
+all existing fields, rather than numerical parameter equivalence. At shared DAG
+entry, compare that identity to the stage and revalidate every actual input/target
+CtMeta against the consuming parameters (level bounds and exact Delta bits).
+Scalar-only revalidation would leave same-shape foreign-context ambiguity. Known
+next batches use this same gate before any current arithmetic. No declared scale
+is silently normalized. Encoder remains required by the subsequent factor/mask
+checks; this is not complete pure pre-key admission.
+
+F2 proposed NN-local API, before production edit:
+`pub trait PackedTargetKeyBinding: HeOps {
+fn validate_packed_target_keys(&self, params: &Arc<CkksParams>) -> Result<()>; }`.
+The CPU implementation checks parameter identity and actual relin plus every
+available Galois key's Q/P basis Arc, levels, digits and NTT form. The stage's gate
+still requires the complete stage rotation set. Host implementations of
+`BootstrapOps<E>` and `PlannedBootstrap<E>` require `E: PackedTargetKeyBinding`;
+they check the target on every binding preflight and direct bootstrap entry.
+Existing HostBootstrapper remains the single count-merge owner. No shared
+CKKS/HeOps/CUDA edits, secret callbacks or secret-provenance claim are proposed.
+Other backends are unsupported for this adapter until they provide this explicit
+checked binding; this preserves the future GPU implementation requirement rather
+than waiving target structural checks. Third-party trait implementations remain a
+stated trust boundary.
+
+Root's pre-edit F2 API refinement replaces the proposed target supertrait above
+with a separate binder object to avoid orphan-rule pressure in the later
+bench/CUDA bridge (both an NN trait and CudaEvaluator would be foreign there):
+
+```rust,ignore
+pub trait PackedTargetKeyBinding<E: HeOps> {
+    fn validate_packed_target_keys(&self, ev: &E, params: &Arc<CkksParams>) -> Result<()>;
+}
+pub struct PackedCpuTargetKeyBinding;
+pub struct PackedHostBootstrap<'a, E = Evaluator, V = PackedCpuTargetKeyBinding> { /* private */ }
+// CPU default:
+PackedHostBootstrap::new(bs: &'a Bootstrapper, host: &'a Evaluator) -> Result<Self>
+// Explicit backend binder, V: PackedTargetKeyBinding<E>:
+PackedHostBootstrap::with_target_binding(bs: &'a Bootstrapper, host: &'a Evaluator,
+    binding: V) -> Result<Self>
+```
+
+The adapter retains the binder and an evaluator type marker, with no target borrow
+until preflight or execution. CPU default delegates to the CPU binder; the generic
+constructor validates host material and stores the explicit binder. A future local
+backend binder can implement the NN trait without a CUDA-to-NN production
+dependency or full HeOps newtype. Such external binders are explicitly trusted to
+perform read-only public key validation; their existence cannot mint Ready or
+prove secret-key identity. No backend other than CPU receives an implementation
+in this fix. Preflight/direct dispatch both validate the actual target each time.

@@ -35,7 +35,7 @@ impl PackedOptimizer {
         Ok(policy)
     }
 
-    fn coefficients(self, rate: f64, samples: usize) -> Result<(Vec<f64>, Option<f64>)> {
+    pub(super) fn coefficients(self, rate: f64, samples: usize) -> Result<(Vec<f64>, Option<f64>)> {
         usable(rate)?;
         if samples == 0 {
             return invalid("packed update needs a positive actual sample count");
@@ -117,6 +117,10 @@ impl<C: HeCiphertext + Clone> PackedLayerState<C> {
             generation: Arc::new(()),
         })
     }
+    pub(super) fn generation(&self) -> Arc<()> {
+        self.generation.clone()
+    }
+
     /// Current encrypted weights.
     pub fn weights(&self) -> &PackedWeights<C> {
         &self.weights

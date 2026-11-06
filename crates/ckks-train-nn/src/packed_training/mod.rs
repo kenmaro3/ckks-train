@@ -1,7 +1,7 @@
 //! Checked whole-graph geometry and encrypted masked primitives for one sample per ciphertext.
 //!
 //! Includes immutable encrypted stage preparation, typed client refresh and state projection.
-//! Memory, range and NI admission remain separate.
+//! NI graph checks are conditional; memory, range, precision and production admission remain separate.
 //! Structural metadata is checked; encrypted slot contents cannot be verified without a secret.
 //! Ingestion must supply the declared representation. Primitive outputs project structural padding.
 mod ops;
@@ -37,4 +37,23 @@ pub(crate) fn invalid<T>(message: &str) -> ckks_train_core::error::Result<T> {
 pub use stage::{
     PackedRecord, PackedStage, PackedStageCandidate, PackedStageConfig, PackedStepPlan,
     PackedStepReceipt, PackedStepResult, PackedTraceEntry,
+};
+
+mod dag;
+pub use dag::{
+    PackedBatchMeta, PackedDagPlan, PackedRecordMeta, PackedStageMeta, PackedUpdateMeta,
+    plan_stage_dag,
+};
+
+pub use refresh::{
+    PackedBootstrapContract, PackedCpuTargetKeyBinding, PackedHostBootstrap,
+    PackedTargetKeyBinding, PlannedBootstrap,
+};
+mod trainer;
+pub use trainer::{PackedNextStep, PackedNiPlacement, PackedNiPlan};
+
+pub use stage::StageForwardSnapshot;
+pub use trainer::{
+    PackedBootstrapEvent, PackedNiCandidate, PackedNiFailure, PackedNiPhase, PackedNiReceipt,
+    PackedNiResult, PackedNiTrainer,
 };

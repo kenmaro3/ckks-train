@@ -1,4 +1,4 @@
-//! Typed client refresh and NI input projection. No bootstrap, NI session or secret key.
+//! Typed client refresh, NI input projection and public planned-bootstrap capabilities.
 //! Packet identity is process-local, not a cryptographically authenticated transport.
 use super::ops::mask_plain;
 use super::types::check_ct;
@@ -536,7 +536,7 @@ impl<'a, E: HeOps> PackedInteractiveStage<'a, E> {
         ))
     }
 }
-fn counter_delta(a: &OpCounter, b: &OpCounter) -> Option<OpCounter> {
+pub(super) fn counter_delta(a: &OpCounter, b: &OpCounter) -> Option<OpCounter> {
     Some(OpCounter {
         rotations: a.rotations.checked_sub(b.rotations)?,
         relins: a.relins.checked_sub(b.relins)?,
@@ -551,6 +551,7 @@ fn counter_delta(a: &OpCounter, b: &OpCounter) -> Option<OpCounter> {
 #[derive(Debug)]
 pub struct PackedBootInput<C> {
     ct: C,
+    projected: Option<C>,
     role: PackedRefreshRole,
     shape: PackedRefreshShape,
 }
@@ -558,6 +559,10 @@ impl<C> PackedBootInput<C> {
     /// Projected state or already canonical hidden, at level zero.
     pub fn ciphertext(&self) -> &C {
         &self.ct
+    }
+    /// State after support projection and before lowering; absent for canonical hidden.
+    pub fn projected(&self) -> Option<&C> {
+        self.projected.as_ref()
     }
     /// Role defining the numerical obligation.
     pub fn role(&self) -> PackedRefreshRole {
@@ -603,6 +608,7 @@ pub fn project_state<E: HeOps>(
     if ct.level() + 1 != request.ct.level() {
         return Err(HekitError::LevelMismatch);
     }
+    let projected = Some(ct.clone());
     let ct = ev.mod_switch_to_level(&ct, 0)?;
     check_exact(ev, &ct, &request.shape)?;
     if ct.level() != 0 {
@@ -610,6 +616,7 @@ pub fn project_state<E: HeOps>(
     }
     Ok(PackedBootInput {
         ct,
+        projected,
         role: request.role,
         shape: request.shape.clone(),
     })
@@ -671,8 +678,287 @@ impl<C: HeCiphertext + Clone> CanonicalHidden<C> {
         }
         Ok(PackedBootInput {
             ct,
+            projected: None,
             role: self.role,
             shape,
         })
     }
+}
+
+/// Immutable conditional structural bootstrap receipt; never a numerical admission.
+#[derive(Clone, Debug)]
+pub struct PackedBootstrapContract {
+    params: Arc<CkksParams>,
+    metadata: Arc<ckks_train_ckks::bootstrap::metadata::BootstrapMetadata>,
+}
+impl PackedBootstrapContract {
+    /// Derives metadata with the reviewed current-process support proof, without keys/HE.
+    pub fn new(
+        params: Arc<CkksParams>,
+        bp: &ckks_train_ckks::bootstrap::BootParams,
+        proof: &ckks_train_ckks::bootstrap::metadata::DftSupportProof,
+    ) -> Result<Self> {
+        let metadata =
+            ckks_train_ckks::bootstrap::metadata::BootstrapMetadata::new_with_verified_support(
+                &params, bp, proof,
+            )
+            .map_err(|e| {
+                HekitError::InvalidParams(format!("packed bootstrap structural metadata: {e}"))
+            })?;
+        Ok(Self {
+            params,
+            metadata: Arc::new(metadata),
+        })
+    }
+    /// Structural output, conditional on successful runtime bootstrap.
+    pub fn output(&self) -> ckks_train_ckks::metadata::CtMeta {
+        self.metadata.output()
+    }
+    /// Complete conditional successful-execution cost.
+    pub fn cost_per_boot(&self) -> &OpCounter {
+        self.metadata.cost_per_boot()
+    }
+    /// Full receipt including named unvalidated encoding/range/security requirements.
+    pub fn metadata(&self) -> &ckks_train_ckks::bootstrap::metadata::BootstrapMetadata {
+        &self.metadata
+    }
+    /// Exact parameter object required at runtime.
+    pub fn params(&self) -> &Arc<CkksParams> {
+        &self.params
+    }
+    pub(super) fn validate_params(&self, p: &Arc<CkksParams>) -> Result<()> {
+        if !Arc::ptr_eq(p, &self.params) {
+            return invalid("packed bootstrap contract parameter identity mismatch");
+        }
+        Ok(())
+    }
+}
+/// A public-evaluation-material capability. Third-party implementors are trusted;
+/// a Rust trait cannot attest the absence of a hidden secret-bearing implementation.
+pub trait PlannedBootstrap<E: HeOps>: ckks_train_ckks::BootstrapOps<E> {
+    /// Immutable identity/cost/output contract, conditional on successful execution.
+    fn contract(&self) -> Result<PackedBootstrapContract>;
+    /// Rechecks actual evaluator context and available evaluation capability before work.
+    fn validate_binding(&self, ev: &E, contract: &PackedBootstrapContract) -> Result<()> {
+        contract.validate_params(ev.params())?;
+        if !ev.has_relin_key() || self.output_level() != contract.output().level() {
+            return invalid("packed bootstrap binding output/relin mismatch");
+        }
+        let current = self.contract()?;
+        if current.metadata.descriptor_identity_bytes()
+            != contract.metadata.descriptor_identity_bytes()
+        {
+            return invalid("packed bootstrap capability changed");
+        }
+        Ok(())
+    }
+}
+impl PlannedBootstrap<ckks_train_ckks::Evaluator> for ckks_train_ckks::bootstrap::Bootstrapper {
+    fn validate_binding(
+        &self,
+        ev: &ckks_train_ckks::Evaluator,
+        contract: &PackedBootstrapContract,
+    ) -> Result<()> {
+        contract.validate_params(ev.params())?;
+        if !Arc::ptr_eq(ev.params(), self.params()) {
+            return invalid("packed CPU bootstrap evaluator context mismatch");
+        }
+        let current = self.contract()?;
+        if current.metadata().descriptor_identity_bytes()
+            != contract.metadata().descriptor_identity_bytes()
+        {
+            return invalid("packed CPU bootstrap descriptor mismatch");
+        }
+        let relin = ev.relin_key().ok_or_else(|| {
+            HekitError::InvalidParams("packed CPU bootstrap missing relin key".into())
+        })?;
+        check_key_shape(
+            self.params(),
+            relin.key(),
+            self.params().max_level(),
+            self.params().dnum(),
+        )?;
+        for key in self.keys().galois().iter() {
+            check_key_shape(
+                self.params(),
+                key.key(),
+                self.params().max_level(),
+                self.params().dnum(),
+            )?;
+        }
+        if self
+            .keys()
+            .galois()
+            .get_elt(ckks_train_ckks::keys::conjugation_elt(self.params().n()))
+            .is_none()
+        {
+            return invalid("packed bootstrap missing conjugation key");
+        }
+        if let Some(keys) = ev.galois_keys() {
+            for key in keys.iter() {
+                check_key_shape(
+                    self.params(),
+                    key.key(),
+                    self.params().max_level(),
+                    self.params().dnum(),
+                )?;
+            }
+        }
+        if let Some(sse) = self.keys().sse() {
+            check_key_shape(self.params(), sse.to_sparse(), 0, 1)?;
+            check_key_shape(
+                self.params(),
+                sse.to_dense(),
+                self.params().max_level(),
+                self.params().dnum(),
+            )?;
+            if Some(sse.hamming_weight()) != self.boot_params().ephemeral_hw {
+                return invalid("packed bootstrap SSE declaration mismatch");
+            }
+        }
+        Ok(())
+    }
+    fn contract(&self) -> Result<PackedBootstrapContract> {
+        let proof = ckks_train_ckks::bootstrap::metadata::DftSupportProof::verify_current()
+            .map_err(|e| HekitError::InvalidParams(format!("packed support proof: {e}")))?;
+        let c = PackedBootstrapContract::new(self.params().clone(), self.boot_params(), &proof)?;
+        if c.cost_per_boot() != &self.cost_per_boot()
+            || c.output().level() != self.output_level()
+            || c.metadata.generated_keys().rotation_steps() != self.keys().rotation_steps()
+            || c.metadata.generated_keys().sse_to_sparse().is_some() != self.keys().sse().is_some()
+        {
+            return invalid("constructed bootstrap differs from structural contract");
+        }
+        Ok(c)
+    }
+}
+/// Explicit public-key validation for a target backend. External binders are trusted
+/// to inspect actual key structure without secret access or evaluator work. This
+/// capability does not prove secret provenance or production admission.
+pub trait PackedTargetKeyBinding<E: HeOps> {
+    /// Checks target parameter identity and actual relin/available rotation key
+    /// basis, levels, digits and form. Stage preflight separately requires its steps.
+    fn validate_packed_target_keys(&self, ev: &E, params: &Arc<CkksParams>) -> Result<()>;
+}
+/// CPU target validation using the evaluator's actual public evaluation-key getters.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PackedCpuTargetKeyBinding;
+impl PackedTargetKeyBinding<ckks_train_ckks::Evaluator> for PackedCpuTargetKeyBinding {
+    fn validate_packed_target_keys(
+        &self,
+        ev: &ckks_train_ckks::Evaluator,
+        params: &Arc<CkksParams>,
+    ) -> Result<()> {
+        if !Arc::ptr_eq(ev.params(), params) {
+            return invalid("packed target evaluator parameter identity mismatch");
+        }
+        let relin = ev.relin_key().ok_or_else(|| {
+            HekitError::InvalidParams("packed target evaluator missing relin key".into())
+        })?;
+        check_key_shape(params, relin.key(), params.max_level(), params.dnum())?;
+        if let Some(keys) = ev.galois_keys() {
+            for key in keys.iter() {
+                check_key_shape(params, key.key(), params.max_level(), params.dnum())?;
+            }
+        }
+        Ok(())
+    }
+}
+/// Explicit host adapter. Existing HostBootstrapper owns the single count merge.
+/// Other target backends require an explicit checked binder; only CPU is supplied.
+pub struct PackedHostBootstrap<
+    'a,
+    E: HeOps = ckks_train_ckks::Evaluator,
+    V = PackedCpuTargetKeyBinding,
+> {
+    bs: &'a ckks_train_ckks::bootstrap::Bootstrapper,
+    host: &'a ckks_train_ckks::Evaluator,
+    contract: PackedBootstrapContract,
+    binding: V,
+    target: std::marker::PhantomData<fn(&E)>,
+}
+impl<'a> PackedHostBootstrap<'a> {
+    /// Uses checked CPU target binding; host must be a separate evaluator.
+    pub fn new(
+        bs: &'a ckks_train_ckks::bootstrap::Bootstrapper,
+        host: &'a ckks_train_ckks::Evaluator,
+    ) -> Result<Self> {
+        Self::with_target_binding(bs, host, PackedCpuTargetKeyBinding)
+    }
+}
+impl<'a, E: HeOps, V: PackedTargetKeyBinding<E>> PackedHostBootstrap<'a, E, V> {
+    /// Validates host material and retains an explicit target binder. Target keys
+    /// are checked on the actual evaluator at every preflight/direct bootstrap.
+    pub fn with_target_binding(
+        bs: &'a ckks_train_ckks::bootstrap::Bootstrapper,
+        host: &'a ckks_train_ckks::Evaluator,
+        binding: V,
+    ) -> Result<Self> {
+        let contract = bs.contract()?;
+        bs.validate_binding(host, &contract)?;
+        Ok(Self {
+            bs,
+            host,
+            contract,
+            binding,
+            target: std::marker::PhantomData,
+        })
+    }
+}
+impl<E: HeOps, V: PackedTargetKeyBinding<E>> ckks_train_ckks::BootstrapOps<E>
+    for PackedHostBootstrap<'_, E, V>
+{
+    fn bootstrap(&self, ev: &E, ct: &E::Ct) -> Result<E::Ct> {
+        self.validate_binding(ev, &self.contract)?;
+        ckks_train_ckks::BootstrapOps::bootstrap(
+            &ckks_train_ckks::HostBootstrapper::new(self.bs, self.host),
+            ev,
+            ct,
+        )
+    }
+    fn output_level(&self) -> usize {
+        self.contract.output().level()
+    }
+}
+impl<E: HeOps, V: PackedTargetKeyBinding<E>> PlannedBootstrap<E> for PackedHostBootstrap<'_, E, V> {
+    fn contract(&self) -> Result<PackedBootstrapContract> {
+        Ok(self.contract.clone())
+    }
+    fn validate_binding(&self, ev: &E, contract: &PackedBootstrapContract) -> Result<()> {
+        contract.validate_params(ev.params())?;
+        if std::ptr::eq(
+            ev as *const E as *const u8,
+            self.host as *const ckks_train_ckks::Evaluator as *const u8,
+        ) {
+            return invalid("packed host evaluator must be distinct");
+        }
+        self.binding
+            .validate_packed_target_keys(ev, contract.params())?;
+        self.bs.validate_binding(self.host, contract)
+    }
+}
+
+fn check_key_shape(
+    params: &CkksParams,
+    key: &ckks_train_ckks::KskKey,
+    level: usize,
+    digits: usize,
+) -> Result<()> {
+    if key.dnum() != digits {
+        return invalid("packed evaluation key digit mismatch");
+    }
+    for (b, a) in key.parts() {
+        for part in [b, a] {
+            if !Arc::ptr_eq(part.q().basis(), params.basis_q())
+                || !Arc::ptr_eq(part.p().basis(), params.basis_p())
+                || part.q().level() != level
+                || part.p().level() + 1 != params.p().len()
+                || !part.q().is_ntt_form()
+                || !part.p().is_ntt_form()
+            {
+                return invalid("packed evaluation key basis/level/form mismatch");
+            }
+        }
+    }
+    Ok(())
 }
