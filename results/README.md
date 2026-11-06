@@ -68,7 +68,7 @@ all dataset × model × backend × interaction × seed combinations.
 
 | Scope | Implemented entry / remaining coverage |
 |---|---|
-| MNIST 196, eMLP-1 NI | FULL-1/2 commands; one released weight seed. Actual full results remain pending. These commands repeat the registered long runs; do not launch them to regenerate draft tables. |
+| MNIST 196, eMLP-1 NI | FULL-1/2 commands; one released weight seed. FULL-1 raw output and runner exit0 are archived at `quadruped/raw/R-41-FULL-1/`; FULL-2 remains pending. These commands repeat the registered long runs; do not launch them to regenerate draft tables. |
 | MNIST 784, eMLP-1 NI | WN/AU at B32/64 and AA at B32, supplementary subset rows. No complete placement × batch matrix or ten encrypted seeds. |
 | Interactive eMLP-1 | CPU and CUDA level7 / same-level CPU pair. GPU execution is unmeasured; full-key GPU rows remain memory-constrained. |
 | RQ3 | NAG-only CUDA L7, CPU L7 and CPU L31. Conditional SGD fallback and optimizer propagation from R48 are **not implemented in this runner**. Use the registered R48 blocks for that policy; a CUDA memory SKIP stays unmeasured here. Table generation rejects unlike CPU/GPU conditions. |

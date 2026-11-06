@@ -1,0 +1,757 @@
+mnist: noninteractive when_needed on n16_boot (N = 2^16, 32768 slots), dims [196, 32, 16], d = 256, 64 lanes x 1 micro-batches, transpose reuse: 35 training Galois keys + relin (10.9 GB) + bootstrap keys
+mnist: bootstrapper 25.6 s, all keys 48.6 s; 111 KS per bootstrap; bootstrap keys 10.27 GB
+mnist: --init-weights: no results/quadruped/raw/reboot_emlp1_full/init_weights_seed0/b1.npy; layer 1 keeps its zero biases
+mnist: --init-weights: no results/quadruped/raw/reboot_emlp1_full/init_weights_seed0/b2.npy; layer 2 keeps its zero biases
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 925 KS + 2.00 bootstraps = 18.272 KS/sample; cost model 20.547 KS/sample; corrections NiTerms { babies: 14, split: -2, transpose: 12, bias: 30, boots: -222 }
+mnist: epoch 0 update 0 (64 samples, 1 cts): 68.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 124 s, load 1.51 0.69 0.30 1/1403 1702095
+mnist: epoch 0 update 1 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 244 s, load 3.86 1.91 0.81 1/1401 1702427
+mnist: epoch 0 update 2 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 313 s, load 2.60 1.94 0.89 1/1400 1702608
+mnist: epoch 0 update 3 (64 samples, 1 cts): 120.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 433 s, load 3.11 2.35 1.18 1/1401 1702990
+mnist: epoch 0 update 4 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 502 s, load 2.01 2.21 1.21 1/1400 1703182
+mnist: epoch 0 update 5 (64 samples, 1 cts): 121.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 623 s, load 2.53 2.47 1.44 1/1402 1703589
+mnist: epoch 0 update 6 (64 samples, 1 cts): 67.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 691 s, load 1.74 2.26 1.44 1/1401 1703762
+mnist: epoch 0 update 7 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 811 s, load 2.79 2.56 1.65 1/1405 1704213
+mnist: epoch 0 update 8 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 879 s, load 2.07 2.45 1.69 1/1404 1704406
+mnist: epoch 0 update 9 (64 samples, 1 cts): 119.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 999 s, load 2.69 2.62 1.84 1/1406 1704784
+mnist: epoch 0 update 10 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 1067 s, load 1.75 2.36 1.81 1/1400 1705041
+mnist: epoch 0 update 11 (64 samples, 1 cts): 119.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 1187 s, load 3.44 2.81 2.04 1/1402 1705457
+mnist: epoch 0 update 12 (64 samples, 1 cts): 70.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 1258 s, load 3.35 2.85 2.11 4/1418 1705925
+mnist: epoch 0 update 13 (64 samples, 1 cts): 126.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 1384 s, load 5.08 3.99 2.64 2/1417 1706761
+mnist: epoch 0 update 14 (64 samples, 1 cts): 69.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 1454 s, load 3.71 3.80 2.67 2/1418 1706956
+mnist: epoch 0 update 15 (64 samples, 1 cts): 125.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 1580 s, load 3.95 3.91 2.86 2/1415 1707368
+mnist: epoch 0 update 16 (64 samples, 1 cts): 72.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 1652 s, load 3.31 3.74 2.88 2/1416 1707604
+mnist: epoch 0 update 17 (64 samples, 1 cts): 123.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 1776 s, load 4.26 3.98 3.08 2/1415 1707966
+mnist: epoch 0 update 18 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 1845 s, load 3.32 3.74 3.06 2/1415 1708198
+mnist: epoch 0 update 19 (64 samples, 1 cts): 123.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 1969 s, load 3.85 3.94 3.23 2/1420 1708564
+mnist: epoch 0 update 20 (64 samples, 1 cts): 71.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 2041 s, load 3.02 3.65 3.18 2/1419 1708787
+mnist: epoch 0 update 21 (64 samples, 1 cts): 124.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 2166 s, load 3.52 3.75 3.28 2/1420 1709193
+mnist: epoch 0 update 22 (64 samples, 1 cts): 72.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 2238 s, load 3.37 3.64 3.27 3/1422 1709434
+mnist: epoch 0 update 23 (64 samples, 1 cts): 130.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 2369 s, load 7.37 5.11 3.87 2/1417 1709848
+mnist: epoch 0 update 24 (64 samples, 1 cts): 75.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 2444 s, load 6.63 5.31 4.03 2/1419 1710043
+mnist: epoch 0 update 25 (64 samples, 1 cts): 126.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 2571 s, load 4.55 5.26 4.19 2/1422 1710509
+mnist: epoch 0 update 26 (64 samples, 1 cts): 70.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 2642 s, load 3.22 4.72 4.08 2/1420 1710710
+mnist: epoch 0 update 27 (64 samples, 1 cts): 124.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 2767 s, load 4.16 4.68 4.15 9/1421 1711081
+mnist: epoch 0 update 28 (64 samples, 1 cts): 72.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 2840 s, load 3.74 4.61 4.18 2/1419 1711313
+mnist: epoch 0 update 29 (64 samples, 1 cts): 124.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 2964 s, load 4.17 4.65 4.26 2/1417 1711679
+mnist: epoch 0 update 30 (64 samples, 1 cts): 70.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 3035 s, load 3.42 4.33 4.17 2/1418 1711915
+mnist: epoch 0 update 31 (64 samples, 1 cts): 125.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3161 s, load 4.48 4.44 4.23 2/1418 1712325
+mnist: epoch 0 update 32 (64 samples, 1 cts): 72.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 3234 s, load 5.04 4.50 4.26 2/1418 1712540
+mnist: epoch 0 update 33 (64 samples, 1 cts): 124.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3359 s, load 4.56 4.68 4.36 2/1418 1712876
+mnist: epoch 0 update 34 (64 samples, 1 cts): 71.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 3431 s, load 3.07 4.24 4.24 2/1418 1713077
+mnist: epoch 0 update 35 (64 samples, 1 cts): 124.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3555 s, load 3.65 4.30 4.27 2/1421 1713467
+mnist: epoch 0 update 36 (64 samples, 1 cts): 70.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 3626 s, load 4.69 4.35 4.29 9/1421 1713669
+mnist: epoch 0 update 37 (64 samples, 1 cts): 127.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3754 s, load 5.18 4.61 4.39 2/1401 1714064
+mnist: epoch 0 update 38 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 3822 s, load 2.91 4.09 4.22 1/1402 1714250
+mnist: epoch 0 update 39 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3943 s, load 3.41 4.03 4.19 1/1400 1714583
+mnist: epoch 0 update 40 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4012 s, load 2.19 3.55 4.01 1/1401 1714764
+mnist: epoch 0 update 41 (64 samples, 1 cts): 121.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4133 s, load 3.72 3.74 4.02 1/1401 1715116
+mnist: epoch 0 update 42 (64 samples, 1 cts): 69.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4203 s, load 2.86 3.52 3.92 1/1399 1715313
+mnist: epoch 0 update 43 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4324 s, load 2.66 3.42 3.85 1/1403 1715655
+mnist: epoch 0 update 44 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4393 s, load 2.08 3.08 3.70 1/1402 1715840
+mnist: epoch 0 update 45 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4514 s, load 2.47 3.03 3.61 1/1403 1716178
+mnist: epoch 0 update 46 (64 samples, 1 cts): 69.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4583 s, load 2.03 2.79 3.48 1/1401 1716361
+mnist: epoch 0 update 47 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4703 s, load 3.60 3.14 3.53 1/1399 1716693
+mnist: epoch 0 update 48 (64 samples, 1 cts): 67.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4771 s, load 2.23 2.83 3.39 1/1399 1716893
+mnist: epoch 0 update 49 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4891 s, load 3.19 3.16 3.45 1/1398 1717225
+mnist: epoch 0 update 50 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 4961 s, load 2.01 2.83 3.32 1/1399 1717433
+mnist: epoch 0 update 51 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5082 s, load 2.67 2.84 3.26 1/1400 1717765
+mnist: epoch 0 update 52 (64 samples, 1 cts): 67.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 5149 s, load 1.88 2.57 3.13 1/1400 1717931
+mnist: epoch 0 update 53 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5270 s, load 2.51 2.65 3.09 1/1399 1718262
+mnist: epoch 0 update 54 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 5340 s, load 1.64 2.36 2.96 1/1398 1718465
+mnist: epoch 0 update 55 (64 samples, 1 cts): 121.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5461 s, load 2.62 2.47 2.92 1/1398 1718794
+mnist: epoch 0 update 56 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 5529 s, load 1.80 2.25 2.81 1/1401 1719000
+mnist: epoch 0 update 57 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5649 s, load 2.21 2.50 2.85 1/1401 1719331
+mnist: epoch 0 update 58 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 5718 s, load 1.85 2.34 2.77 1/1401 1719509
+mnist: epoch 0 update 59 (64 samples, 1 cts): 121.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 5840 s, load 2.51 2.50 2.78 1/1399 1719837
+mnist: epoch 0 update 60 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 5909 s, load 2.15 2.41 2.73 1/1398 1720038
+mnist: epoch 0 update 61 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6030 s, load 1.77 2.36 2.68 1/1398 1720369
+mnist: epoch 0 update 62 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 6098 s, load 1.93 2.27 2.63 1/1398 1720570
+mnist: epoch 0 update 63 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6219 s, load 3.14 2.64 2.72 1/1405 1721525
+mnist: epoch 0 update 64 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 6287 s, load 2.33 2.53 2.68 1/1405 1721706
+mnist: epoch 0 update 65 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6408 s, load 3.03 2.91 2.81 2/1405 1722037
+mnist: epoch 0 update 66 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 6477 s, load 2.11 2.64 2.72 1/1399 1722227
+mnist: epoch 0 update 67 (64 samples, 1 cts): 121.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6599 s, load 3.00 3.03 2.86 1/1399 1722573
+mnist: epoch 0 update 68 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 6668 s, load 2.81 3.04 2.88 1/1399 1722760
+mnist: epoch 0 update 69 (64 samples, 1 cts): 120.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6788 s, load 2.53 2.95 2.87 1/1398 1723108
+mnist: epoch 0 update 70 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 6856 s, load 1.78 2.64 2.77 1/1398 1723277
+mnist: epoch 0 update 71 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 6976 s, load 2.22 2.69 2.78 1/1398 1723606
+mnist: epoch 0 update 72 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7043 s, load 1.86 2.50 2.71 1/1398 1723789
+mnist: epoch 0 update 73 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 7163 s, load 2.85 2.71 2.76 1/1399 1724124
+mnist: epoch 0 update 74 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7233 s, load 2.35 2.59 2.72 1/1399 1724325
+mnist: epoch 0 update 75 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 7353 s, load 2.50 2.72 2.76 1/1402 1724663
+mnist: epoch 0 update 76 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7421 s, load 2.40 2.71 2.76 1/1402 1724862
+mnist: epoch 0 update 77 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 7542 s, load 3.89 3.16 2.91 1/1402 1725207
+mnist: epoch 0 update 78 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7612 s, load 2.33 2.85 2.82 2/1401 1725384
+mnist: epoch 0 update 79 (64 samples, 1 cts): 121.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 7733 s, load 2.56 2.86 2.84 1/1399 1725720
+mnist: epoch 0 update 80 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7802 s, load 2.15 2.66 2.77 1/1399 1725941
+mnist: epoch 0 update 81 (64 samples, 1 cts): 121.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 7924 s, load 2.36 2.76 2.80 1/1401 1726275
+mnist: epoch 0 update 82 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 7993 s, load 1.73 2.53 2.72 3/1400 1726466
+mnist: epoch 0 update 83 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 8113 s, load 2.41 2.63 2.74 1/1401 1726798
+mnist: epoch 0 update 84 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 8180 s, load 2.28 2.55 2.70 1/1401 1726977
+mnist: epoch 0 update 85 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 8301 s, load 3.04 2.92 2.83 1/1400 1727310
+mnist: epoch 0 update 86 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 8370 s, load 1.84 2.58 2.71 1/1400 1727513
+mnist: epoch 0 update 87 (64 samples, 1 cts): 119.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 8490 s, load 2.99 2.98 2.86 1/1399 1727845
+mnist: epoch 0 update 88 (64 samples, 1 cts): 68.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 8558 s, load 2.19 2.72 2.77 1/1401 1728034
+mnist: epoch 0 update 89 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 8679 s, load 3.17 3.10 2.92 1/1400 1728365
+mnist: epoch 0 update 90 (64 samples, 1 cts): 69.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 8749 s, load 2.41 2.96 2.88 1/1401 1728564
+mnist: epoch 0 update 91 (64 samples, 1 cts): 121.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 8871 s, load 2.97 3.19 2.99 1/1400 1728900
+mnist: epoch 0 update 92 (64 samples, 1 cts): 70.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 8941 s, load 2.16 2.94 2.92 1/1400 1729104
+mnist: epoch 0 update 93 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 9061 s, load 2.09 2.71 2.84 1/1399 1729439
+mnist: epoch 0 update 94 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 9130 s, load 2.87 2.75 2.84 2/1402 1729628
+mnist: epoch 0 update 95 (64 samples, 1 cts): 119.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 9249 s, load 2.63 2.74 2.83 1/1400 1729960
+mnist: epoch 0 update 96 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 9317 s, load 2.58 2.65 2.79 2/1400 1730147
+mnist: epoch 0 update 97 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 9438 s, load 2.68 2.80 2.83 1/1401 1730480
+mnist: epoch 0 update 98 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 9507 s, load 1.78 2.51 2.72 1/1399 1730661
+mnist: epoch 0 update 99 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 9628 s, load 3.40 2.91 2.85 1/1399 1730992
+mnist: epoch 0 update 100 (64 samples, 1 cts): 68.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 9697 s, load 2.27 2.70 2.78 1/1399 1731192
+mnist: epoch 0 update 101 (64 samples, 1 cts): 121.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 9818 s, load 2.61 2.76 2.79 1/1401 1731529
+mnist: epoch 0 update 102 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 9888 s, load 1.96 2.54 2.71 1/1401 1731729
+mnist: epoch 0 update 103 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10008 s, load 3.26 2.85 2.81 1/1400 1732059
+mnist: epoch 0 update 104 (64 samples, 1 cts): 67.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 10076 s, load 2.52 2.72 2.76 1/1400 1732241
+mnist: epoch 0 update 105 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10197 s, load 2.85 2.93 2.84 1/1398 1732572
+mnist: epoch 0 update 106 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 10266 s, load 2.10 2.69 2.76 1/1398 1732772
+mnist: epoch 0 update 107 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10386 s, load 3.29 2.88 2.82 1/1399 1733109
+mnist: epoch 0 update 108 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 10455 s, load 2.03 2.59 2.73 1/1399 1733291
+mnist: epoch 0 update 109 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10576 s, load 2.11 2.58 2.72 1/1400 1733632
+mnist: epoch 0 update 110 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 10645 s, load 1.91 2.41 2.65 2/1400 1733832
+mnist: epoch 0 update 111 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10765 s, load 2.80 2.60 2.69 1/1399 1734168
+mnist: epoch 0 update 112 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 10835 s, load 1.75 2.33 2.59 1/1399 1734368
+mnist: epoch 0 update 113 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 10956 s, load 2.28 2.46 2.61 1/1400 1734709
+mnist: epoch 0 update 114 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11025 s, load 1.81 2.29 2.54 1/1411 1735026
+mnist: epoch 0 update 115 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 11146 s, load 2.76 2.73 2.68 1/1405 1735404
+mnist: epoch 0 update 116 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11214 s, load 2.31 2.67 2.67 1/1405 1735603
+mnist: epoch 0 update 117 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 11335 s, load 2.43 2.69 2.68 1/1400 1735943
+mnist: epoch 0 update 118 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11404 s, load 2.09 2.53 2.63 2/1400 1736144
+mnist: epoch 0 update 119 (64 samples, 1 cts): 118.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 11523 s, load 2.69 2.83 2.74 1/1402 1736516
+mnist: epoch 0 update 120 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11590 s, load 1.95 2.58 2.66 1/1401 1736712
+mnist: epoch 0 update 121 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 11710 s, load 1.90 2.39 2.58 1/1402 1737044
+mnist: epoch 0 update 122 (64 samples, 1 cts): 66.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11777 s, load 2.03 2.36 2.56 1/1402 1737212
+mnist: epoch 0 update 123 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 11897 s, load 3.06 2.90 2.75 1/1400 1737546
+mnist: epoch 0 update 124 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 11965 s, load 2.06 2.65 2.67 1/1400 1737745
+mnist: epoch 0 update 125 (64 samples, 1 cts): 118.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 12084 s, load 2.54 2.80 2.73 1/1398 1738076
+mnist: epoch 0 update 126 (64 samples, 1 cts): 67.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 12152 s, load 2.22 2.72 2.71 1/1399 1738266
+mnist: epoch 0 update 127 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 12272 s, load 2.28 2.77 2.74 1/1400 1738598
+mnist: epoch 0 update 128 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 12340 s, load 1.74 2.51 2.65 1/1400 1738787
+mnist: epoch 0 update 129 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 12460 s, load 2.60 2.74 2.72 1/1399 1739120
+mnist: epoch 0 update 130 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 12529 s, load 2.03 2.57 2.67 1/1401 1739301
+mnist: epoch 0 update 131 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 12650 s, load 2.42 2.60 2.67 1/1402 1739671
+mnist: epoch 0 update 132 (64 samples, 1 cts): 67.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 12718 s, load 2.20 2.50 2.63 2/1401 1739875
+mnist: epoch 0 update 133 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 12838 s, load 2.47 2.46 2.59 1/1405 1740216
+mnist: epoch 0 update 134 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 12906 s, load 1.88 2.29 2.52 2/1405 1740416
+mnist: epoch 0 update 135 (64 samples, 1 cts): 119.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13026 s, load 3.63 2.82 2.69 1/1405 1740746
+mnist: epoch 0 update 136 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 13096 s, load 2.72 2.74 2.67 1/1401 1740927
+mnist: epoch 0 update 137 (64 samples, 1 cts): 121.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13217 s, load 3.82 2.88 2.71 1/1403 1741298
+mnist: epoch 0 update 138 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 13285 s, load 2.01 2.53 2.60 1/1403 1741498
+mnist: epoch 0 update 139 (64 samples, 1 cts): 119.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13404 s, load 3.27 2.79 2.69 1/1403 1741825
+mnist: epoch 0 update 140 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 13473 s, load 2.35 2.61 2.63 1/1403 1742009
+mnist: epoch 0 update 141 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13594 s, load 2.81 2.83 2.71 1/1401 1742361
+mnist: epoch 0 update 142 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 13662 s, load 2.50 2.74 2.69 1/1400 1742547
+mnist: epoch 0 update 143 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13783 s, load 2.69 2.70 2.68 1/1400 1742880
+mnist: epoch 0 update 144 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 13851 s, load 1.72 2.41 2.58 1/1402 1743057
+mnist: epoch 0 update 145 (64 samples, 1 cts): 121.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13973 s, load 3.37 3.09 2.82 1/1404 1743433
+mnist: epoch 0 update 146 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14042 s, load 2.29 2.85 2.76 1/1404 1743637
+mnist: epoch 0 update 147 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14162 s, load 3.04 3.19 2.91 1/1404 1743969
+mnist: epoch 0 update 148 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14231 s, load 2.25 2.93 2.84 1/1403 1744167
+mnist: epoch 0 update 149 (64 samples, 1 cts): 121.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14353 s, load 2.63 3.05 2.90 1/1402 1744503
+mnist: epoch 0 update 150 (64 samples, 1 cts): 69.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14422 s, load 1.69 2.68 2.78 1/1402 1744682
+mnist: epoch 0 update 151 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14543 s, load 3.88 3.47 3.07 1/1402 1745022
+mnist: epoch 0 update 152 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14611 s, load 2.54 3.18 3.00 1/1402 1745225
+mnist: epoch 0 update 153 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14733 s, load 3.73 3.50 3.14 1/1402 1745559
+mnist: epoch 0 update 154 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14801 s, load 2.07 3.04 3.01 1/1401 1745757
+mnist: epoch 0 update 155 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14921 s, load 2.23 2.89 2.97 2/1401 1746082
+mnist: epoch 0 update 156 (64 samples, 1 cts): 69.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 14991 s, load 1.79 2.69 2.89 1/1399 1746253
+mnist: epoch 0 update 157 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 15112 s, load 2.59 2.81 2.92 1/1399 1746596
+mnist: epoch 0 update 158 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 15181 s, load 1.60 2.47 2.79 1/1401 1746798
+mnist: epoch 0 update 159 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 15302 s, load 3.06 2.97 2.95 1/1401 1747130
+mnist: epoch 0 update 160 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 15370 s, load 2.25 2.77 2.88 1/1402 1747329
+mnist: epoch 0 update 161 (64 samples, 1 cts): 119.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 15490 s, load 2.14 2.68 2.84 1/1400 1747660
+mnist: epoch 0 update 162 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 15558 s, load 1.71 2.45 2.75 1/1400 1747841
+mnist: epoch 0 update 163 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 15677 s, load 2.45 2.59 2.77 2/1400 1748172
+mnist: epoch 0 update 164 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 15746 s, load 2.09 2.47 2.72 2/1402 1748363
+mnist: epoch 0 update 165 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 15867 s, load 2.33 2.51 2.70 1/1402 1748705
+mnist: epoch 0 update 166 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 15936 s, load 2.23 2.43 2.66 2/1402 1748906
+mnist: epoch 0 update 167 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 16057 s, load 2.59 2.54 2.68 1/1400 1749257
+mnist: epoch 0 update 168 (64 samples, 1 cts): 69.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 16127 s, load 1.78 2.30 2.58 1/1399 1749438
+mnist: epoch 0 update 169 (64 samples, 1 cts): 118.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 16246 s, load 2.47 2.61 2.67 1/1400 1749758
+mnist: epoch 0 update 170 (64 samples, 1 cts): 69.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 16316 s, load 2.74 2.79 2.73 1/1400 1749936
+mnist: epoch 0 update 171 (64 samples, 1 cts): 119.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 16436 s, load 2.84 2.99 2.82 1/1402 1750275
+mnist: epoch 0 update 172 (64 samples, 1 cts): 68.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 16504 s, load 2.54 2.94 2.82 1/1401 1750477
+mnist: epoch 0 update 173 (64 samples, 1 cts): 119.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 16624 s, load 2.90 3.07 2.89 1/1399 1750809
+mnist: epoch 0 update 174 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 16692 s, load 2.11 2.81 2.82 1/1398 1751007
+mnist: epoch 0 update 175 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 16812 s, load 3.23 3.13 2.94 1/1398 1751338
+mnist: epoch 0 update 176 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 16880 s, load 2.64 3.00 2.91 1/1398 1751515
+mnist: epoch 0 update 177 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17000 s, load 2.56 2.90 2.88 1/1405 1752476
+mnist: epoch 0 update 178 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 17069 s, load 2.18 2.72 2.82 1/1405 1752725
+mnist: epoch 0 update 179 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17190 s, load 3.26 3.00 2.91 1/1405 1753055
+mnist: epoch 0 update 180 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 17259 s, load 2.30 2.75 2.83 1/1402 1753274
+mnist: epoch 0 update 181 (64 samples, 1 cts): 119.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17379 s, load 2.51 2.84 2.87 1/1400 1753606
+mnist: epoch 0 update 182 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 17448 s, load 2.44 2.69 2.81 1/1400 1753788
+mnist: epoch 0 update 183 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17567 s, load 2.89 2.90 2.88 1/1402 1754127
+mnist: epoch 0 update 184 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 17635 s, load 1.82 2.60 2.77 1/1402 1754303
+mnist: epoch 0 update 185 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17756 s, load 3.32 2.94 2.88 1/1402 1754633
+mnist: epoch 0 update 186 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 17824 s, load 2.01 2.63 2.78 1/1401 1754818
+mnist: epoch 0 update 187 (64 samples, 1 cts): 119.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 17944 s, load 2.59 2.64 2.76 1/1401 1755153
+mnist: epoch 0 update 188 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18013 s, load 1.99 2.44 2.68 1/1401 1755366
+mnist: epoch 0 update 189 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 18133 s, load 1.75 2.35 2.63 1/1404 1755705
+mnist: epoch 0 update 190 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18201 s, load 2.30 2.41 2.63 1/1403 1755885
+mnist: epoch 0 update 191 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 18322 s, load 3.36 2.79 2.74 1/1404 1756218
+mnist: epoch 0 update 192 (64 samples, 1 cts): 67.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18390 s, load 1.97 2.48 2.64 1/1404 1756399
+mnist: epoch 0 update 193 (64 samples, 1 cts): 118.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 18509 s, load 2.56 2.66 2.69 1/1401 1756727
+mnist: epoch 0 update 194 (64 samples, 1 cts): 68.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18578 s, load 2.26 2.56 2.65 1/1400 1756929
+mnist: epoch 0 update 195 (64 samples, 1 cts): 119.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 18697 s, load 4.12 3.17 2.87 1/1401 1757261
+mnist: epoch 0 update 196 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18765 s, load 2.75 3.00 2.83 1/1402 1757456
+mnist: epoch 0 update 197 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 18886 s, load 3.39 3.28 2.96 1/1403 1757789
+mnist: epoch 0 update 198 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 18955 s, load 2.20 2.92 2.86 1/1402 1757965
+mnist: epoch 0 update 199 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 19075 s, load 2.25 2.86 2.85 1/1402 1758298
+mnist: epoch 0 update 200 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 19144 s, load 2.01 2.62 2.76 1/1402 1758482
+mnist: epoch 0 update 201 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 19264 s, load 3.81 3.14 2.94 1/1401 1758815
+mnist: epoch 0 update 202 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 19333 s, load 2.27 2.83 2.84 2/1403 1759044
+mnist: epoch 0 update 203 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 19454 s, load 2.54 2.79 2.83 1/1403 1759378
+mnist: epoch 0 update 204 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 19522 s, load 1.74 2.49 2.72 1/1403 1759556
+mnist: epoch 0 update 205 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 19643 s, load 2.59 2.64 2.75 1/1401 1759889
+mnist: epoch 0 update 206 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 19711 s, load 2.09 2.51 2.69 1/1401 1760068
+mnist: epoch 0 update 207 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 19831 s, load 3.40 2.87 2.80 1/1401 1760400
+mnist: epoch 0 update 208 (64 samples, 1 cts): 69.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 19901 s, load 2.06 2.58 2.71 1/1401 1760620
+mnist: epoch 0 update 209 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20022 s, load 3.11 2.90 2.82 2/1403 1760956
+mnist: epoch 0 update 210 (64 samples, 1 cts): 69.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 20092 s, load 2.08 2.66 2.74 1/1403 1761137
+mnist: epoch 0 update 211 (64 samples, 1 cts): 118.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20211 s, load 2.58 2.81 2.79 1/1403 1761468
+mnist: epoch 0 update 212 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 20279 s, load 1.99 2.59 2.71 1/1400 1761648
+mnist: epoch 0 update 213 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20398 s, load 2.49 2.70 2.74 1/1402 1762019
+mnist: epoch 0 update 214 (64 samples, 1 cts): 68.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 20467 s, load 1.72 2.44 2.65 1/1403 1762201
+mnist: epoch 0 update 215 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20587 s, load 2.65 2.66 2.71 1/1405 1762540
+mnist: epoch 0 update 216 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 20656 s, load 2.38 2.60 2.69 1/1405 1762758
+mnist: epoch 0 update 217 (64 samples, 1 cts): 120.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20776 s, load 3.32 3.00 2.83 1/1405 1763089
+mnist: epoch 0 update 218 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 20845 s, load 2.30 2.76 2.76 1/1405 1763255
+mnist: epoch 0 update 219 (64 samples, 1 cts): 120.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 20966 s, load 3.08 2.97 2.84 2/1403 1763597
+mnist: epoch 0 update 220 (64 samples, 1 cts): 67.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21034 s, load 1.89 2.63 2.73 1/1403 1763774
+mnist: epoch 0 update 221 (64 samples, 1 cts): 120.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 21154 s, load 3.19 2.99 2.85 1/1404 1764112
+mnist: epoch 0 update 222 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21223 s, load 2.61 2.88 2.82 1/1403 1764313
+mnist: epoch 0 update 223 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 21342 s, load 2.81 2.94 2.86 1/1401 1764643
+mnist: epoch 0 update 224 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21411 s, load 2.06 2.70 2.78 1/1401 1764843
+mnist: epoch 0 update 225 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 21532 s, load 2.50 2.70 2.77 1/1400 1765175
+mnist: epoch 0 update 226 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21601 s, load 2.00 2.53 2.71 1/1400 1765361
+mnist: epoch 0 update 227 (64 samples, 1 cts): 119.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 21720 s, load 2.64 2.69 2.74 1/1402 1765695
+mnist: epoch 0 update 228 (64 samples, 1 cts): 66.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21788 s, load 1.91 2.46 2.66 1/1402 1765868
+mnist: epoch 0 update 229 (64 samples, 1 cts): 118.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 21907 s, load 3.73 2.96 2.82 1/1402 1766199
+mnist: epoch 0 update 230 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 21974 s, load 2.36 2.72 2.75 1/1401 1766398
+mnist: epoch 0 update 231 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 22094 s, load 2.60 2.78 2.77 1/1401 1766740
+mnist: epoch 0 update 232 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 22163 s, load 2.10 2.62 2.72 1/1401 1766936
+mnist: epoch 0 update 233 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 22283 s, load 3.63 3.21 2.93 1/1401 1767267
+mnist: epoch 0 update 234 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 22351 s, load 2.15 2.87 2.83 1/1403 1767447
+mnist: epoch 0 update 235 (64 samples, 1 cts): 121.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 22473 s, load 2.46 2.79 2.81 1/1404 1767797
+mnist: epoch 0 update 236 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 22540 s, load 2.20 2.70 2.78 1/1404 1767965
+mnist: epoch 0 update 237 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 22660 s, load 2.62 2.88 2.85 1/1403 1768302
+mnist: epoch 0 update 238 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 22729 s, load 1.96 2.65 2.77 1/1403 1768520
+mnist: epoch 0 update 239 (64 samples, 1 cts): 119.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 22849 s, load 2.75 2.93 2.87 1/1402 1768851
+mnist: epoch 0 update 240 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 22917 s, load 2.00 2.69 2.79 1/1400 1769033
+mnist: epoch 0 update 241 (64 samples, 1 cts): 119.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23037 s, load 2.68 2.70 2.78 1/1401 1769370
+mnist: epoch 0 update 242 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 23105 s, load 1.89 2.48 2.69 2/1401 1769554
+mnist: epoch 0 update 243 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23226 s, load 2.20 2.52 2.69 2/1401 1769883
+mnist: epoch 0 update 244 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 23295 s, load 2.22 2.51 2.67 1/1400 1770072
+mnist: epoch 0 update 245 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23415 s, load 2.79 2.80 2.77 1/1409 1770815
+mnist: epoch 0 update 246 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 23484 s, load 2.29 2.71 2.75 2/1409 1771013
+mnist: epoch 0 update 247 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23604 s, load 2.57 2.74 2.75 1/1411 1771354
+mnist: epoch 0 update 248 (64 samples, 1 cts): 68.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 23673 s, load 1.76 2.46 2.65 1/1410 1771539
+mnist: epoch 0 update 249 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23793 s, load 2.58 2.65 2.71 1/1405 1771870
+mnist: epoch 0 update 250 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 23861 s, load 1.99 2.48 2.64 1/1403 1772049
+mnist: epoch 0 update 251 (64 samples, 1 cts): 121.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 23982 s, load 2.21 2.52 2.64 1/1402 1772382
+mnist: epoch 0 update 252 (64 samples, 1 cts): 67.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24050 s, load 2.22 2.47 2.62 1/1401 1772602
+mnist: epoch 0 update 253 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 24171 s, load 3.71 2.90 2.75 1/1404 1772940
+mnist: epoch 0 update 254 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24239 s, load 2.53 2.80 2.73 1/1404 1773122
+mnist: epoch 0 update 255 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 24360 s, load 3.31 3.17 2.89 1/1401 1773453
+mnist: epoch 0 update 256 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24428 s, load 2.49 3.04 2.86 1/1400 1773619
+mnist: epoch 0 update 257 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 24549 s, load 3.37 3.25 2.96 1/1399 1773961
+mnist: epoch 0 update 258 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24617 s, load 2.77 3.10 2.93 1/1399 1774163
+mnist: epoch 0 update 259 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 24738 s, load 2.34 2.96 2.91 1/1402 1774503
+mnist: epoch 0 update 260 (64 samples, 1 cts): 67.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24806 s, load 1.93 2.71 2.83 1/1403 1774700
+mnist: epoch 0 update 261 (64 samples, 1 cts): 120.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 24927 s, load 2.69 2.88 2.89 1/1403 1775034
+mnist: epoch 0 update 262 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 24996 s, load 1.89 2.59 2.78 1/1402 1775217
+mnist: epoch 0 update 263 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 25116 s, load 3.91 3.13 2.95 1/1398 1775549
+mnist: epoch 0 update 264 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 25184 s, load 2.41 2.83 2.86 1/1399 1775731
+mnist: epoch 0 update 265 (64 samples, 1 cts): 120.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 25305 s, load 3.42 3.14 2.98 1/1399 1776068
+mnist: epoch 0 update 266 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 25374 s, load 2.13 2.81 2.87 1/1400 1776278
+mnist: epoch 0 update 267 (64 samples, 1 cts): 118.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 25493 s, load 2.81 2.88 2.89 1/1399 1776592
+mnist: epoch 0 update 268 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 25561 s, load 1.83 2.57 2.79 1/1399 1776794
+mnist: epoch 0 update 269 (64 samples, 1 cts): 121.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 25682 s, load 2.11 2.55 2.76 1/1400 1777165
+mnist: epoch 0 update 270 (64 samples, 1 cts): 69.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 25752 s, load 1.99 2.47 2.71 1/1400 1777347
+mnist: epoch 0 update 271 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 25873 s, load 2.43 2.64 2.76 1/1400 1777678
+mnist: epoch 0 update 272 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 25941 s, load 2.23 2.61 2.74 1/1401 1777885
+mnist: epoch 0 update 273 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 26061 s, load 3.50 2.87 2.82 1/1403 1778220
+mnist: epoch 0 update 274 (64 samples, 1 cts): 67.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 26129 s, load 1.91 2.51 2.69 1/1403 1778416
+mnist: epoch 0 update 275 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 26250 s, load 3.34 3.00 2.86 1/1403 1778748
+mnist: epoch 0 update 276 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 26319 s, load 2.39 2.80 2.80 1/1399 1778934
+mnist: epoch 0 update 277 (64 samples, 1 cts): 121.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 26441 s, load 2.64 2.69 2.75 1/1398 1779264
+mnist: epoch 0 update 278 (64 samples, 1 cts): 67.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 26509 s, load 1.98 2.51 2.68 1/1399 1779456
+mnist: epoch 0 update 279 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 26629 s, load 2.70 2.72 2.75 1/1401 1779797
+mnist: epoch 0 update 280 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 26697 s, load 2.18 2.59 2.70 1/1401 1779993
+mnist: epoch 0 update 281 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 26817 s, load 2.15 2.42 2.62 1/1400 1780304
+mnist: epoch 0 update 282 (64 samples, 1 cts): 68.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 26886 s, load 2.96 2.66 2.70 1/1398 1780506
+mnist: epoch 0 update 283 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27006 s, load 3.72 2.99 2.80 1/1398 1780837
+mnist: epoch 0 update 284 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 27074 s, load 1.94 2.60 2.68 1/1398 1781016
+mnist: epoch 0 update 285 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27195 s, load 2.79 2.92 2.80 1/1399 1781444
+mnist: epoch 0 update 286 (64 samples, 1 cts): 69.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 27265 s, load 1.76 2.59 2.70 1/1400 1781684
+mnist: epoch 0 update 287 (64 samples, 1 cts): 119.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27385 s, load 2.37 2.69 2.73 1/1400 1782057
+mnist: epoch 0 update 288 (64 samples, 1 cts): 68.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 27454 s, load 1.94 2.52 2.67 1/1399 1782262
+mnist: epoch 0 update 289 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27574 s, load 2.77 2.85 2.78 1/1398 1782595
+mnist: epoch 0 update 290 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 27643 s, load 2.58 2.77 2.76 1/1398 1782762
+mnist: epoch 0 update 291 (64 samples, 1 cts): 119.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27763 s, load 2.80 2.95 2.83 1/1406 1783721
+mnist: epoch 0 update 292 (64 samples, 1 cts): 67.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 27831 s, load 2.14 2.76 2.78 1/1406 1783923
+mnist: epoch 0 update 293 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 27952 s, load 3.48 3.06 2.88 1/1407 1784266
+mnist: epoch 0 update 294 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28021 s, load 2.17 2.74 2.78 1/1407 1784467
+mnist: epoch 0 update 295 (64 samples, 1 cts): 121.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 28143 s, load 2.62 2.83 2.81 1/1399 1784799
+mnist: epoch 0 update 296 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28210 s, load 2.06 2.61 2.74 1/1398 1784980
+mnist: epoch 0 update 297 (64 samples, 1 cts): 121.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 28332 s, load 2.58 2.59 2.71 1/1400 1785316
+mnist: epoch 0 update 298 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28401 s, load 2.10 2.49 2.67 1/1400 1785515
+mnist: epoch 0 update 299 (64 samples, 1 cts): 121.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 28523 s, load 2.46 2.60 2.69 1/1400 1785847
+mnist: epoch 0 update 300 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28592 s, load 2.88 2.77 2.75 1/1400 1786048
+mnist: epoch 0 update 301 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 28712 s, load 2.33 2.70 2.73 1/1400 1786380
+mnist: epoch 0 update 302 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28780 s, load 1.97 2.53 2.67 1/1400 1786565
+mnist: epoch 0 update 303 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 28900 s, load 2.84 2.80 2.76 1/1400 1786898
+mnist: epoch 0 update 304 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 28968 s, load 2.01 2.58 2.69 1/1401 1787074
+mnist: epoch 0 update 305 (64 samples, 1 cts): 120.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 29088 s, load 3.73 3.02 2.83 1/1399 1787407
+mnist: epoch 0 update 306 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 29157 s, load 2.45 2.82 2.78 1/1400 1787603
+mnist: epoch 0 update 307 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 29277 s, load 2.28 2.68 2.73 1/1398 1787934
+mnist: epoch 0 update 308 (64 samples, 1 cts): 67.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 29344 s, load 1.90 2.54 2.68 1/1398 1788138
+mnist: epoch 0 update 309 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 29465 s, load 2.88 2.85 2.78 1/1398 1788471
+mnist: epoch 0 update 310 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 29534 s, load 2.16 2.63 2.71 1/1400 1788657
+mnist: epoch 0 update 311 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 29655 s, load 2.52 2.70 2.73 2/1401 1788989
+mnist: epoch 0 update 312 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 29723 s, load 1.83 2.46 2.64 1/1401 1789189
+mnist: epoch 0 update 313 (64 samples, 1 cts): 121.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 29845 s, load 2.12 2.53 2.66 1/1400 1789522
+mnist: epoch 0 update 314 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 29914 s, load 1.57 2.29 2.56 1/1399 1789706
+mnist: epoch 0 update 315 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30034 s, load 2.68 2.68 2.68 1/1399 1790042
+mnist: epoch 0 update 316 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 30103 s, load 1.84 2.49 2.62 1/1399 1790230
+mnist: epoch 0 update 317 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30223 s, load 3.35 2.94 2.77 2/1401 1790570
+mnist: epoch 0 update 318 (64 samples, 1 cts): 67.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 30291 s, load 2.53 2.80 2.74 1/1401 1790754
+mnist: epoch 0 update 319 (64 samples, 1 cts): 120.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30411 s, load 2.24 2.62 2.68 1/1401 1791085
+mnist: epoch 0 update 320 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 30479 s, load 2.05 2.51 2.64 1/1399 1791283
+mnist: epoch 0 update 321 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30599 s, load 2.86 2.79 2.73 1/1398 1791617
+mnist: epoch 0 update 322 (64 samples, 1 cts): 68.8 s, 925 KS (0 bootstraps), matches prediction true; elapsed 30668 s, load 2.59 2.77 2.73 1/1398 1791819
+mnist: epoch 0 update 323 (64 samples, 1 cts): 121.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30790 s, load 2.72 3.01 2.84 1/1400 1792156
+mnist: epoch 0 update 324 (64 samples, 1 cts): 69.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 30859 s, load 2.57 3.01 2.85 1/1400 1792338
+mnist: epoch 0 update 325 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 30980 s, load 2.66 2.76 2.77 1/1400 1792670
+mnist: epoch 0 update 326 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31049 s, load 1.86 2.51 2.68 1/1398 1792866
+mnist: epoch 0 update 327 (64 samples, 1 cts): 119.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 31169 s, load 2.86 2.73 2.74 1/1398 1793199
+mnist: epoch 0 update 328 (64 samples, 1 cts): 67.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31237 s, load 1.74 2.44 2.64 1/1398 1793370
+mnist: epoch 0 update 329 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 31358 s, load 2.07 2.51 2.65 1/1400 1793707
+mnist: epoch 0 update 330 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31426 s, load 1.38 2.20 2.53 1/1400 1793904
+mnist: epoch 0 update 331 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 31545 s, load 2.34 2.41 2.57 1/1400 1794237
+mnist: epoch 0 update 332 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31614 s, load 1.69 2.19 2.49 1/1400 1794437
+mnist: epoch 0 update 333 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 31735 s, load 3.60 2.93 2.73 1/1398 1794768
+mnist: epoch 0 update 334 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31804 s, load 1.99 2.59 2.63 1/1398 1794953
+mnist: epoch 0 update 335 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 31925 s, load 2.59 2.72 2.67 1/1401 1795292
+mnist: epoch 0 update 336 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 31993 s, load 2.38 2.64 2.65 1/1400 1795490
+mnist: epoch 0 update 337 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 32114 s, load 2.12 2.63 2.65 1/1400 1795822
+mnist: epoch 0 update 338 (64 samples, 1 cts): 69.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 32184 s, load 2.71 2.69 2.67 1/1400 1796023
+mnist: epoch 0 update 339 (64 samples, 1 cts): 120.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 32304 s, load 2.95 2.90 2.75 1/1398 1796356
+mnist: epoch 0 update 340 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 32373 s, load 2.32 2.75 2.71 1/1398 1796531
+mnist: epoch 0 update 341 (64 samples, 1 cts): 120.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 32493 s, load 3.14 3.03 2.82 1/1398 1796864
+mnist: epoch 0 update 342 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 32561 s, load 2.40 2.89 2.79 2/1401 1797053
+mnist: epoch 0 update 343 (64 samples, 1 cts): 119.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 32680 s, load 2.52 2.83 2.79 2/1401 1797383
+mnist: epoch 0 update 344 (64 samples, 1 cts): 67.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 32748 s, load 2.41 2.74 2.76 1/1401 1797582
+mnist: epoch 0 update 345 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 32869 s, load 4.28 3.31 2.96 1/1398 1797913
+mnist: epoch 0 update 346 (64 samples, 1 cts): 69.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 32938 s, load 2.43 2.96 2.87 1/1398 1798110
+mnist: epoch 0 update 347 (64 samples, 1 cts): 120.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 33059 s, load 2.25 2.77 2.81 1/1398 1798442
+mnist: epoch 0 update 348 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 33128 s, load 1.76 2.53 2.72 1/1401 1798637
+mnist: epoch 0 update 349 (64 samples, 1 cts): 122.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 33250 s, load 2.36 2.56 2.71 1/1402 1798971
+mnist: epoch 0 update 350 (64 samples, 1 cts): 68.0 s, 925 KS (0 bootstraps), matches prediction true; elapsed 33318 s, load 1.86 2.38 2.64 1/1402 1799170
+mnist: epoch 0 update 351 (64 samples, 1 cts): 118.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 33437 s, load 2.63 2.60 2.69 1/1400 1799488
+mnist: epoch 0 update 352 (64 samples, 1 cts): 68.4 s, 925 KS (0 bootstraps), matches prediction true; elapsed 33506 s, load 1.79 2.35 2.60 1/1398 1799687
+mnist: epoch 0 update 353 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 33627 s, load 2.84 2.67 2.69 1/1401 1800023
+mnist: epoch 0 update 354 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 33696 s, load 2.13 2.48 2.62 1/1399 1800209
+mnist: epoch 0 update 355 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 33817 s, load 3.80 2.79 2.71 1/1399 1800548
+mnist: epoch 0 update 356 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 33885 s, load 2.78 2.75 2.70 1/1398 1800745
+mnist: epoch 0 update 357 (64 samples, 1 cts): 119.5 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34005 s, load 3.68 3.10 2.83 2/1401 1801079
+mnist: epoch 0 update 358 (64 samples, 1 cts): 67.2 s, 925 KS (0 bootstraps), matches prediction true; elapsed 34072 s, load 2.55 2.88 2.78 1/1399 1801259
+mnist: epoch 0 update 359 (64 samples, 1 cts): 121.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34193 s, load 2.90 3.06 2.86 1/1400 1801600
+mnist: epoch 0 update 360 (64 samples, 1 cts): 70.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 34264 s, load 2.09 2.79 2.78 1/1399 1801800
+mnist: epoch 0 update 361 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34385 s, load 2.98 3.06 2.89 2/1400 1802140
+mnist: epoch 0 update 362 (64 samples, 1 cts): 70.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 34455 s, load 2.12 2.75 2.79 1/1399 1802320
+mnist: epoch 0 update 363 (64 samples, 1 cts): 120.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34576 s, load 2.53 2.77 2.80 1/1400 1802672
+mnist: epoch 0 update 364 (64 samples, 1 cts): 67.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 34645 s, load 2.39 2.66 2.76 1/1399 1802852
+mnist: epoch 0 update 365 (64 samples, 1 cts): 121.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34766 s, load 2.72 2.77 2.79 1/1399 1803185
+mnist: epoch 0 update 366 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 34835 s, load 2.00 2.58 2.72 1/1399 1803389
+mnist: epoch 0 update 367 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 34955 s, load 2.68 2.76 2.78 1/1401 1803725
+mnist: epoch 0 update 368 (64 samples, 1 cts): 69.9 s, 925 KS (0 bootstraps), matches prediction true; elapsed 35025 s, load 2.19 2.56 2.71 1/1401 1803903
+mnist: epoch 0 update 369 (64 samples, 1 cts): 121.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 35147 s, load 2.94 2.83 2.79 1/1401 1804233
+mnist: epoch 0 update 370 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 35215 s, load 2.66 2.81 2.79 1/1401 1804432
+mnist: epoch 0 update 371 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 35335 s, load 2.43 2.80 2.80 1/1398 1804762
+mnist: epoch 0 update 372 (64 samples, 1 cts): 68.5 s, 925 KS (0 bootstraps), matches prediction true; elapsed 35404 s, load 1.76 2.55 2.71 1/1398 1804951
+mnist: epoch 0 update 373 (64 samples, 1 cts): 120.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 35525 s, load 2.58 2.61 2.72 1/1401 1805294
+mnist: epoch 0 update 374 (64 samples, 1 cts): 68.7 s, 925 KS (0 bootstraps), matches prediction true; elapsed 35594 s, load 2.26 2.52 2.68 2/1401 1805473
+mnist: epoch 0 update 375 (64 samples, 1 cts): 120.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 35714 s, load 2.89 2.60 2.68 1/1401 1805806
+mnist: epoch 0 update 376 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 35787 s, load 2.12 2.48 2.64 1/1401 1806018
+mnist: epoch 0 update 377 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 35910 s, load 2.96 2.75 2.72 1/1399 1806370
+mnist: epoch 0 update 378 (64 samples, 1 cts): 74.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 35984 s, load 1.95 2.48 2.63 1/1399 1806558
+mnist: epoch 0 update 379 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 36106 s, load 2.93 2.74 2.71 1/1399 1806888
+mnist: epoch 0 update 380 (64 samples, 1 cts): 74.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 36181 s, load 2.89 2.86 2.76 1/1399 1807125
+mnist: epoch 0 update 381 (64 samples, 1 cts): 120.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 36301 s, load 2.53 2.90 2.79 2/1401 1807468
+mnist: epoch 0 update 382 (64 samples, 1 cts): 73.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 36375 s, load 1.60 2.54 2.68 1/1401 1807652
+mnist: epoch 0 update 383 (64 samples, 1 cts): 122.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 36498 s, load 2.20 2.55 2.67 1/1400 1807985
+mnist: epoch 0 update 384 (64 samples, 1 cts): 71.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 36570 s, load 2.08 2.40 2.60 1/1399 1808217
+mnist: epoch 0 update 385 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 36692 s, load 2.69 2.75 2.72 1/1399 1808551
+mnist: epoch 0 update 386 (64 samples, 1 cts): 71.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 36764 s, load 1.95 2.49 2.63 1/1401 1808746
+mnist: epoch 0 update 387 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 36885 s, load 2.78 2.72 2.70 1/1401 1809078
+mnist: epoch 0 update 388 (64 samples, 1 cts): 71.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 36957 s, load 1.65 2.39 2.59 1/1400 1809277
+mnist: epoch 0 update 389 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 37079 s, load 2.65 2.55 2.62 1/1399 1809631
+mnist: epoch 0 update 390 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 37151 s, load 2.08 2.44 2.58 1/1399 1809815
+mnist: epoch 0 update 391 (64 samples, 1 cts): 122.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 37275 s, load 3.10 2.81 2.71 1/1400 1810159
+mnist: epoch 0 update 392 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 37348 s, load 1.67 2.43 2.58 1/1401 1810369
+mnist: epoch 0 update 393 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 37470 s, load 2.07 2.43 2.57 1/1402 1810720
+mnist: epoch 0 update 394 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 37542 s, load 1.80 2.26 2.50 1/1402 1810903
+mnist: epoch 0 update 395 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 37665 s, load 2.51 2.48 2.55 1/1399 1811247
+mnist: epoch 0 update 396 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 37738 s, load 2.10 2.43 2.53 1/1400 1811452
+mnist: epoch 0 update 397 (64 samples, 1 cts): 120.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 37859 s, load 2.77 2.64 2.60 1/1399 1811783
+mnist: epoch 0 update 398 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 37932 s, load 2.28 2.59 2.59 1/1401 1811993
+mnist: epoch 0 update 399 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 38053 s, load 2.57 2.65 2.61 1/1400 1812325
+mnist: epoch 0 update 400 (64 samples, 1 cts): 74.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 38127 s, load 1.83 2.40 2.53 1/1400 1812536
+mnist: epoch 0 update 401 (64 samples, 1 cts): 120.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 38248 s, load 2.49 2.55 2.57 1/1399 1812868
+mnist: epoch 0 update 402 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 38321 s, load 1.91 2.34 2.49 1/1398 1813070
+mnist: epoch 0 update 403 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 38443 s, load 3.90 2.95 2.70 1/1398 1813401
+mnist: epoch 0 update 404 (64 samples, 1 cts): 71.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 38515 s, load 2.26 2.65 2.61 1/1398 1813583
+mnist: epoch 0 update 405 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 38637 s, load 2.30 2.56 2.58 1/1405 1814568
+mnist: epoch 0 update 406 (64 samples, 1 cts): 71.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 38708 s, load 1.54 2.28 2.49 1/1405 1814771
+mnist: epoch 0 update 407 (64 samples, 1 cts): 120.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 38829 s, load 2.98 2.62 2.58 1/1405 1815113
+mnist: epoch 0 update 408 (64 samples, 1 cts): 73.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 38903 s, load 2.12 2.45 2.53 1/1398 1815295
+mnist: epoch 0 update 409 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39025 s, load 2.31 2.43 2.51 1/1398 1815627
+mnist: epoch 0 update 410 (64 samples, 1 cts): 72.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 39098 s, load 1.73 2.25 2.45 1/1398 1815849
+mnist: epoch 0 update 411 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39220 s, load 2.37 2.37 2.47 1/1401 1816200
+mnist: epoch 0 update 412 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 39292 s, load 1.70 2.17 2.39 1/1401 1816392
+mnist: epoch 0 update 413 (64 samples, 1 cts): 119.4 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39412 s, load 2.79 2.40 2.44 2/1401 1816724
+mnist: epoch 0 update 414 (64 samples, 1 cts): 72.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 39484 s, load 2.25 2.32 2.41 1/1399 1816940
+mnist: epoch 0 update 415 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39606 s, load 3.32 2.83 2.59 1/1398 1817280
+mnist: epoch 0 update 416 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 39679 s, load 2.88 2.84 2.62 1/1398 1817458
+mnist: epoch 0 update 417 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39800 s, load 2.02 2.62 2.57 1/1401 1817800
+mnist: epoch 0 update 418 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 39873 s, load 1.73 2.46 2.52 1/1401 1818016
+mnist: epoch 0 update 419 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 39996 s, load 2.85 2.75 2.62 1/1402 1818364
+mnist: epoch 0 update 420 (64 samples, 1 cts): 73.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 40069 s, load 2.27 2.69 2.62 1/1398 1818542
+mnist: epoch 0 update 421 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 40191 s, load 2.03 2.45 2.54 1/1398 1818876
+mnist: epoch 0 update 422 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 40263 s, load 2.20 2.41 2.52 1/1398 1819093
+mnist: epoch 0 update 423 (64 samples, 1 cts): 120.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 40384 s, load 2.91 2.69 2.61 1/1401 1819436
+mnist: epoch 0 update 424 (64 samples, 1 cts): 71.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 40456 s, load 1.98 2.44 2.53 1/1402 1819634
+mnist: epoch 0 update 425 (64 samples, 1 cts): 120.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 40577 s, load 3.12 2.66 2.59 1/1402 1819967
+mnist: epoch 0 update 426 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 40650 s, load 2.63 2.68 2.61 1/1400 1820150
+mnist: epoch 0 update 427 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 40772 s, load 2.46 2.75 2.65 1/1399 1820503
+mnist: epoch 0 update 428 (64 samples, 1 cts): 73.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 40845 s, load 2.21 2.64 2.62 1/1399 1820709
+mnist: epoch 0 update 429 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 40967 s, load 3.02 2.86 2.71 1/1401 1821052
+mnist: epoch 0 update 430 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 41039 s, load 2.12 2.66 2.65 1/1401 1821244
+mnist: epoch 0 update 431 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 41160 s, load 2.77 2.79 2.70 3/1401 1821575
+mnist: epoch 0 update 432 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 41233 s, load 1.98 2.55 2.62 1/1399 1821796
+mnist: epoch 0 update 433 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 41355 s, load 2.58 2.73 2.69 1/1399 1822130
+mnist: epoch 0 update 434 (64 samples, 1 cts): 72.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 41428 s, load 1.97 2.52 2.62 1/1398 1822311
+mnist: epoch 0 update 435 (64 samples, 1 cts): 122.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 41551 s, load 2.54 2.67 2.67 1/1401 1822663
+mnist: epoch 0 update 436 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 41624 s, load 1.79 2.47 2.60 1/1401 1822885
+mnist: epoch 0 update 437 (64 samples, 1 cts): 120.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 41745 s, load 2.38 2.53 2.61 1/1401 1823215
+mnist: epoch 0 update 438 (64 samples, 1 cts): 71.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 41817 s, load 1.88 2.36 2.54 1/1400 1823397
+mnist: epoch 0 update 439 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 41938 s, load 2.72 2.66 2.64 1/1398 1823728
+mnist: epoch 0 update 440 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 42011 s, load 1.95 2.47 2.57 1/1398 1823950
+mnist: epoch 0 update 441 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 42132 s, load 2.32 2.57 2.61 1/1400 1824287
+mnist: epoch 0 update 442 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 42206 s, load 1.97 2.40 2.54 1/1399 1824480
+mnist: epoch 0 update 443 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 42327 s, load 3.11 2.90 2.72 2/1399 1824811
+mnist: epoch 0 update 444 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 42400 s, load 2.49 2.79 2.70 1/1399 1825032
+mnist: epoch 0 update 445 (64 samples, 1 cts): 122.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 42522 s, load 2.71 2.94 2.78 1/1400 1825371
+mnist: epoch 0 update 446 (64 samples, 1 cts): 71.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 42594 s, load 2.17 2.76 2.73 1/1400 1825553
+mnist: epoch 0 update 447 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 42716 s, load 2.36 2.78 2.74 1/1400 1825898
+mnist: epoch 0 update 448 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 42789 s, load 2.07 2.63 2.70 2/1401 1826126
+mnist: epoch 0 update 449 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 42911 s, load 4.12 3.24 2.91 1/1400 1826458
+mnist: epoch 0 update 450 (64 samples, 1 cts): 67.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 42979 s, load 2.42 2.90 2.82 1/1400 1826634
+mnist: epoch 0 update 451 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 43100 s, load 2.81 2.88 2.82 1/1399 1826964
+mnist: epoch 0 update 452 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 43172 s, load 2.21 2.75 2.78 1/1398 1827150
+mnist: epoch 0 update 453 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 43295 s, load 2.56 2.78 2.79 1/1399 1827483
+mnist: epoch 0 update 454 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 43367 s, load 1.80 2.50 2.69 1/1401 1827713
+mnist: epoch 0 update 455 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 43488 s, load 2.68 2.74 2.76 1/1401 1828047
+mnist: epoch 0 update 456 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 43561 s, load 2.46 2.72 2.76 1/1401 1828240
+mnist: epoch 0 update 457 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 43683 s, load 2.71 2.68 2.73 1/1399 1828571
+mnist: epoch 0 update 458 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 43755 s, load 1.89 2.44 2.65 1/1399 1828793
+mnist: epoch 0 update 459 (64 samples, 1 cts): 123.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 43879 s, load 2.73 2.72 2.73 1/1399 1829127
+mnist: epoch 0 update 460 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 43952 s, load 1.90 2.49 2.65 4/1400 1829330
+mnist: epoch 0 update 461 (64 samples, 1 cts): 120.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 44072 s, load 2.36 2.72 2.73 1/1401 1829662
+mnist: epoch 0 update 462 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 44146 s, load 1.61 2.43 2.63 1/1401 1829884
+mnist: epoch 0 update 463 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 44267 s, load 2.79 2.87 2.78 1/1398 1830219
+mnist: epoch 0 update 464 (64 samples, 1 cts): 73.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 44341 s, load 2.11 2.68 2.72 1/1398 1830401
+mnist: epoch 0 update 465 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 44464 s, load 2.87 2.97 2.83 2/1398 1830744
+mnist: epoch 0 update 466 (64 samples, 1 cts): 73.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 44538 s, load 2.38 2.82 2.79 1/1400 1830976
+mnist: epoch 0 update 467 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 44660 s, load 3.12 3.00 2.86 1/1401 1831310
+mnist: epoch 0 update 468 (64 samples, 1 cts): 71.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 44731 s, load 2.10 2.71 2.77 1/1401 1831491
+mnist: epoch 0 update 469 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 44853 s, load 2.82 2.96 2.86 1/1399 1831824
+mnist: epoch 0 update 470 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 44927 s, load 2.06 2.70 2.78 1/1398 1832056
+mnist: epoch 0 update 471 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 45048 s, load 2.45 2.70 2.77 1/1398 1832388
+mnist: epoch 0 update 472 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 45121 s, load 1.71 2.45 2.68 1/1399 1832566
+mnist: epoch 0 update 473 (64 samples, 1 cts): 122.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 45244 s, load 2.85 2.74 2.76 1/1402 1832904
+mnist: epoch 0 update 474 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 45316 s, load 1.97 2.52 2.68 1/1402 1833139
+mnist: epoch 0 update 475 (64 samples, 1 cts): 122.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 45440 s, load 2.74 2.64 2.70 1/1402 1833470
+mnist: epoch 0 update 476 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 45512 s, load 1.59 2.33 2.59 1/1398 1833651
+mnist: epoch 0 update 477 (64 samples, 1 cts): 122.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 45635 s, load 2.15 2.39 2.59 1/1398 1833982
+mnist: epoch 0 update 478 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 45707 s, load 1.54 2.16 2.49 1/1398 1834216
+mnist: epoch 0 update 479 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 45829 s, load 2.94 2.64 2.63 2/1400 1834555
+mnist: epoch 0 update 480 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 45901 s, load 2.13 2.46 2.57 1/1400 1834736
+mnist: epoch 0 update 481 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46022 s, load 2.15 2.32 2.50 1/1401 1835067
+mnist: epoch 0 update 482 (64 samples, 1 cts): 71.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 46094 s, load 1.99 2.28 2.48 1/1399 1835271
+mnist: epoch 0 update 483 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46216 s, load 2.58 2.42 2.50 1/1399 1835620
+mnist: epoch 0 update 484 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 46290 s, load 1.73 2.22 2.42 1/1398 1835813
+mnist: epoch 0 update 485 (64 samples, 1 cts): 122.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46413 s, load 3.21 2.59 2.54 1/1400 1836151
+mnist: epoch 0 update 486 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 46486 s, load 2.36 2.49 2.51 1/1400 1836373
+mnist: epoch 0 update 487 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46607 s, load 2.50 2.60 2.55 1/1400 1836704
+mnist: epoch 0 update 488 (64 samples, 1 cts): 68.3 s, 925 KS (0 bootstraps), matches prediction true; elapsed 46676 s, load 1.97 2.43 2.49 3/1398 1836886
+mnist: epoch 0 update 489 (64 samples, 1 cts): 122.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46798 s, load 2.46 2.56 2.54 1/1400 1837221
+mnist: epoch 0 update 490 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 46872 s, load 1.99 2.37 2.47 1/1400 1837436
+mnist: epoch 0 update 491 (64 samples, 1 cts): 122.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 46995 s, load 2.24 2.46 2.50 1/1401 1837775
+mnist: epoch 0 update 492 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 47068 s, load 2.45 2.47 2.50 1/1400 1837974
+mnist: epoch 0 update 493 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 47190 s, load 3.68 2.95 2.67 1/1399 1838314
+mnist: epoch 0 update 494 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 47263 s, load 2.15 2.66 2.59 2/1400 1838521
+mnist: epoch 0 update 495 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 47385 s, load 3.00 2.96 2.71 1/1398 1838862
+mnist: epoch 0 update 496 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 47458 s, load 2.03 2.68 2.64 1/1398 1839061
+mnist: epoch 0 update 497 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 47580 s, load 2.37 2.80 2.70 1/1400 1839404
+mnist: epoch 0 update 498 (64 samples, 1 cts): 71.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 47652 s, load 1.81 2.56 2.62 1/1400 1839606
+mnist: epoch 0 update 499 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 47775 s, load 4.08 3.39 2.93 1/1400 1839938
+mnist: epoch 0 update 500 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 47847 s, load 2.86 3.12 2.87 1/1400 1840151
+mnist: epoch 0 update 501 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 47968 s, load 3.05 3.26 2.96 1/1399 1840482
+mnist: epoch 0 update 502 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 48041 s, load 1.92 2.89 2.85 1/1399 1840686
+mnist: epoch 0 update 503 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 48163 s, load 2.98 3.08 2.93 1/1401 1841027
+mnist: epoch 0 update 504 (64 samples, 1 cts): 71.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 48234 s, load 1.83 2.71 2.81 1/1401 1841225
+mnist: epoch 0 update 505 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 48357 s, load 2.75 2.83 2.84 1/1400 1841556
+mnist: epoch 0 update 506 (64 samples, 1 cts): 71.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 48429 s, load 2.26 2.69 2.80 1/1400 1841754
+mnist: epoch 0 update 507 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 48550 s, load 3.38 3.01 2.90 1/1399 1842085
+mnist: epoch 0 update 508 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 48623 s, load 2.55 2.90 2.88 1/1399 1842300
+mnist: epoch 0 update 509 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 48745 s, load 1.76 2.48 2.72 1/1400 1842641
+mnist: epoch 0 update 510 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 48818 s, load 1.56 2.25 2.62 1/1401 1842827
+mnist: epoch 0 update 511 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 48940 s, load 3.60 2.98 2.86 1/1401 1843158
+mnist: epoch 0 update 512 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49013 s, load 2.46 2.75 2.78 1/1401 1843387
+mnist: epoch 0 update 513 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 49135 s, load 2.76 2.84 2.82 1/1398 1843724
+mnist: epoch 0 update 514 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49207 s, load 2.92 2.83 2.81 1/1398 1843906
+mnist: epoch 0 update 515 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 49329 s, load 2.77 2.80 2.81 1/1401 1844472
+mnist: epoch 0 update 516 (64 samples, 1 cts): 71.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49400 s, load 2.85 2.79 2.80 1/1404 1845073
+mnist: epoch 0 update 517 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 49523 s, load 3.12 2.95 2.86 1/1404 1845406
+mnist: epoch 0 update 518 (64 samples, 1 cts): 71.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49594 s, load 2.79 2.92 2.86 1/1404 1845618
+mnist: epoch 0 update 519 (64 samples, 1 cts): 120.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 49715 s, load 2.58 2.87 2.85 1/1399 1845949
+mnist: epoch 0 update 520 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49789 s, load 2.05 2.64 2.77 1/1399 1846149
+mnist: epoch 0 update 521 (64 samples, 1 cts): 123.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 49912 s, load 2.67 2.82 2.83 1/1398 1846478
+mnist: epoch 0 update 522 (64 samples, 1 cts): 74.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 49987 s, load 2.20 2.65 2.77 1/1400 1846697
+mnist: epoch 0 update 523 (64 samples, 1 cts): 120.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 50107 s, load 2.38 2.71 2.78 1/1400 1847028
+mnist: epoch 0 update 524 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 50180 s, load 3.03 2.82 2.81 1/1400 1847230
+mnist: epoch 0 update 525 (64 samples, 1 cts): 120.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 50301 s, load 3.64 3.35 3.02 1/1399 1847565
+mnist: epoch 0 update 526 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 50374 s, load 2.45 3.10 2.96 1/1399 1847770
+mnist: epoch 0 update 527 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 50496 s, load 2.93 3.04 2.95 1/1399 1848100
+mnist: epoch 0 update 528 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 50570 s, load 1.73 2.64 2.82 1/1398 1848319
+mnist: epoch 0 update 529 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 50691 s, load 2.67 2.80 2.86 1/1398 1848654
+mnist: epoch 0 update 530 (64 samples, 1 cts): 73.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 50765 s, load 2.46 2.78 2.86 1/1398 1848854
+mnist: epoch 0 update 531 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 50886 s, load 2.37 2.65 2.80 1/1398 1849184
+mnist: epoch 0 update 532 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 50959 s, load 2.69 2.70 2.80 1/1398 1849400
+mnist: epoch 0 update 533 (64 samples, 1 cts): 122.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 51082 s, load 2.95 2.93 2.88 1/1398 1849730
+mnist: epoch 0 update 534 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 51155 s, load 2.00 2.70 2.81 1/1400 1849940
+mnist: epoch 0 update 535 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 51277 s, load 2.68 2.83 2.85 1/1400 1850271
+mnist: epoch 0 update 536 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 51349 s, load 2.43 2.74 2.81 1/1401 1850476
+mnist: epoch 0 update 537 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 51471 s, load 3.41 3.16 2.96 1/1400 1850805
+mnist: epoch 0 update 538 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 51544 s, load 2.29 2.84 2.87 1/1399 1851016
+mnist: epoch 0 update 539 (64 samples, 1 cts): 122.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 51667 s, load 3.23 3.08 2.95 2/1398 1851348
+mnist: epoch 0 update 540 (64 samples, 1 cts): 71.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 51738 s, load 2.01 2.74 2.84 1/1400 1851559
+mnist: epoch 0 update 541 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 51859 s, load 2.75 2.89 2.89 1/1401 1851889
+mnist: epoch 0 update 542 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 51932 s, load 2.05 2.62 2.79 1/1403 1852091
+mnist: epoch 0 update 543 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 52054 s, load 2.47 2.54 2.74 1/1401 1852516
+mnist: epoch 0 update 544 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 52127 s, load 1.99 2.37 2.66 1/1401 1852718
+mnist: epoch 0 update 545 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 52249 s, load 2.72 2.74 2.77 1/1401 1853048
+mnist: epoch 0 update 546 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 52322 s, load 2.29 2.67 2.75 1/1402 1853247
+mnist: epoch 0 update 547 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 52444 s, load 2.66 2.61 2.71 1/1402 1853583
+mnist: epoch 0 update 548 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 52518 s, load 1.95 2.41 2.63 2/1402 1853800
+mnist: epoch 0 update 549 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 52639 s, load 3.31 2.85 2.77 1/1400 1854130
+mnist: epoch 0 update 550 (64 samples, 1 cts): 73.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 52713 s, load 3.01 2.83 2.77 1/1399 1854331
+mnist: epoch 0 update 551 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 52835 s, load 2.79 2.88 2.80 1/1407 1854673
+mnist: epoch 0 update 552 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 52909 s, load 1.66 2.54 2.68 1/1400 1854893
+mnist: epoch 0 update 553 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 53031 s, load 3.05 2.76 2.74 1/1401 1855231
+mnist: epoch 0 update 554 (64 samples, 1 cts): 73.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 53105 s, load 2.21 2.54 2.66 1/1401 1855431
+mnist: epoch 0 update 555 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 53227 s, load 3.00 2.78 2.74 1/1400 1855759
+mnist: epoch 0 update 556 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 53301 s, load 1.93 2.49 2.64 1/1398 1855972
+mnist: epoch 0 update 557 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 53423 s, load 2.18 2.45 2.60 1/1398 1856303
+mnist: epoch 0 update 558 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 53496 s, load 1.47 2.15 2.49 1/1398 1856503
+mnist: epoch 0 update 559 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 53618 s, load 3.11 2.61 2.62 1/1400 1856842
+mnist: epoch 0 update 560 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 53691 s, load 2.12 2.40 2.54 1/1400 1857058
+mnist: epoch 0 update 561 (64 samples, 1 cts): 120.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 53811 s, load 3.02 2.82 2.69 1/1401 1857390
+mnist: epoch 0 update 562 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 53885 s, load 2.30 2.66 2.64 1/1399 1857589
+mnist: epoch 0 update 563 (64 samples, 1 cts): 120.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54005 s, load 2.92 2.84 2.72 1/1398 1857926
+mnist: epoch 0 update 564 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 54077 s, load 2.24 2.67 2.67 1/1398 1858110
+mnist: epoch 0 update 565 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54199 s, load 2.35 2.72 2.69 1/1399 1858466
+mnist: epoch 0 update 566 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 54272 s, load 1.77 2.52 2.63 2/1399 1858660
+mnist: epoch 0 update 567 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54394 s, load 2.70 2.65 2.66 1/1399 1858990
+mnist: epoch 0 update 568 (64 samples, 1 cts): 73.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 54468 s, load 2.51 2.66 2.66 1/1398 1859192
+mnist: epoch 0 update 569 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54589 s, load 3.53 3.11 2.84 1/1399 1859544
+mnist: epoch 0 update 570 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 54662 s, load 2.55 2.96 2.81 1/1399 1859725
+mnist: epoch 0 update 571 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54784 s, load 4.31 3.62 3.08 1/1402 1860069
+mnist: epoch 0 update 572 (64 samples, 1 cts): 71.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 54855 s, load 2.61 3.30 3.01 1/1402 1860284
+mnist: epoch 0 update 573 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 54977 s, load 2.95 3.36 3.08 1/1401 1860616
+mnist: epoch 0 update 574 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 55049 s, load 2.35 3.12 3.01 1/1401 1860816
+mnist: epoch 0 update 575 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 55171 s, load 2.66 3.12 3.03 1/1398 1861148
+mnist: epoch 0 update 576 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 55244 s, load 2.42 2.90 2.96 1/1398 1861351
+mnist: epoch 0 update 577 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 55366 s, load 2.92 3.07 3.02 1/1402 1861731
+mnist: epoch 0 update 578 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 55438 s, load 2.44 2.88 2.96 1/1402 1861942
+mnist: epoch 0 update 579 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 55560 s, load 2.66 2.95 2.98 1/1404 1862283
+mnist: epoch 0 update 580 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 55633 s, load 2.15 2.73 2.90 1/1402 1862487
+mnist: epoch 0 update 581 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 55755 s, load 3.09 2.90 2.94 1/1401 1862819
+mnist: epoch 0 update 582 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 55828 s, load 2.86 2.92 2.95 1/1402 1863019
+mnist: epoch 0 update 583 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 55949 s, load 2.53 2.91 2.95 1/1401 1863357
+mnist: epoch 0 update 584 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56022 s, load 2.00 2.69 2.87 2/1401 1863573
+mnist: epoch 0 update 585 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 56142 s, load 3.12 2.94 2.94 1/1401 1863907
+mnist: epoch 0 update 586 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56215 s, load 1.94 2.60 2.82 1/1401 1864107
+mnist: epoch 0 update 587 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 56336 s, load 2.46 2.62 2.80 1/1399 1864443
+mnist: epoch 0 update 588 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56409 s, load 2.43 2.56 2.77 1/1399 1864622
+mnist: epoch 0 update 589 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 56531 s, load 2.66 2.66 2.78 1/1401 1864983
+mnist: epoch 0 update 590 (64 samples, 1 cts): 73.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56604 s, load 1.63 2.36 2.67 1/1400 1865196
+mnist: epoch 0 update 591 (64 samples, 1 cts): 122.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 56727 s, load 2.57 2.56 2.70 1/1401 1865530
+mnist: epoch 0 update 592 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56799 s, load 1.49 2.23 2.57 2/1401 1865713
+mnist: epoch 0 update 593 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 56921 s, load 2.13 2.37 2.59 2/1399 1866042
+mnist: epoch 0 update 594 (64 samples, 1 cts): 71.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 56993 s, load 1.99 2.30 2.55 1/1399 1866261
+mnist: epoch 0 update 595 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 57115 s, load 2.37 2.37 2.55 1/1398 1866603
+mnist: epoch 0 update 596 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 57188 s, load 2.00 2.32 2.52 1/1400 1866791
+mnist: epoch 0 update 597 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 57310 s, load 2.04 2.36 2.51 1/1400 1867127
+mnist: epoch 0 update 598 (64 samples, 1 cts): 73.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 57384 s, load 1.78 2.22 2.45 1/1400 1867346
+mnist: epoch 0 update 599 (64 samples, 1 cts): 122.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 57507 s, load 2.05 2.32 2.47 2/1398 1867694
+mnist: epoch 0 update 600 (64 samples, 1 cts): 68.6 s, 925 KS (0 bootstraps), matches prediction true; elapsed 57576 s, load 1.61 2.12 2.39 1/1398 1867876
+mnist: epoch 0 update 601 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 57697 s, load 3.05 2.60 2.54 1/1398 1868206
+mnist: epoch 0 update 602 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 57771 s, load 2.26 2.44 2.48 1/1400 1868415
+mnist: epoch 0 update 603 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 57891 s, load 3.13 2.87 2.64 1/1402 1868825
+mnist: epoch 0 update 604 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 57964 s, load 3.13 2.89 2.66 1/1402 1869023
+mnist: epoch 0 update 605 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 58085 s, load 3.62 3.23 2.82 1/1400 1869355
+mnist: epoch 0 update 606 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 58157 s, load 2.05 2.84 2.71 1/1400 1869559
+mnist: epoch 0 update 607 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 58279 s, load 3.15 3.33 2.93 1/1400 1869903
+mnist: epoch 0 update 608 (64 samples, 1 cts): 73.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 58352 s, load 2.30 3.00 2.84 1/1402 1870112
+mnist: epoch 0 update 609 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 58474 s, load 2.91 2.93 2.83 1/1403 1870448
+mnist: epoch 0 update 610 (64 samples, 1 cts): 74.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 58549 s, load 2.70 2.94 2.85 1/1403 1870651
+mnist: epoch 0 update 611 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 58670 s, load 2.76 3.06 2.91 1/1400 1870997
+mnist: epoch 0 update 612 (64 samples, 1 cts): 74.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 58744 s, load 2.40 2.88 2.86 1/1399 1871196
+mnist: epoch 0 update 613 (64 samples, 1 cts): 120.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 58865 s, load 2.76 3.10 2.96 1/1399 1871529
+mnist: epoch 0 update 614 (64 samples, 1 cts): 71.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 58937 s, load 2.31 2.96 2.92 1/1401 1871740
+mnist: epoch 0 update 615 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 59059 s, load 2.55 2.99 2.95 1/1401 1872067
+mnist: epoch 0 update 616 (64 samples, 1 cts): 73.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 59132 s, load 2.65 2.90 2.91 1/1402 1872287
+mnist: epoch 0 update 617 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 59255 s, load 2.65 3.02 2.97 1/1400 1872619
+mnist: epoch 0 update 618 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 59328 s, load 1.99 2.71 2.86 1/1399 1872822
+mnist: epoch 0 update 619 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 59450 s, load 2.98 2.94 2.93 1/1398 1873153
+mnist: epoch 0 update 620 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 59522 s, load 1.91 2.64 2.83 1/1399 1873355
+mnist: epoch 0 update 621 (64 samples, 1 cts): 120.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 59643 s, load 3.75 3.10 2.97 1/1400 1873694
+mnist: epoch 0 update 622 (64 samples, 1 cts): 74.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 59718 s, load 2.38 2.87 2.91 1/1400 1873890
+mnist: epoch 0 update 623 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 59839 s, load 2.80 2.97 2.95 1/1400 1874242
+mnist: epoch 0 update 624 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 59911 s, load 1.76 2.62 2.82 1/1399 1874538
+mnist: epoch 0 update 625 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 60033 s, load 2.31 2.69 2.83 1/1400 1874871
+mnist: epoch 0 update 626 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 60106 s, load 1.82 2.43 2.73 2/1402 1875061
+mnist: epoch 0 update 627 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 60228 s, load 3.35 2.97 2.90 1/1407 1876124
+mnist: epoch 0 update 628 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 60301 s, load 2.07 2.68 2.80 1/1408 1876381
+mnist: epoch 0 update 629 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 60422 s, load 2.84 2.98 2.91 1/1408 1876709
+mnist: epoch 0 update 630 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 60495 s, load 1.98 2.70 2.82 1/1402 1876892
+mnist: epoch 0 update 631 (64 samples, 1 cts): 122.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 60618 s, load 2.52 2.79 2.84 1/1402 1877240
+mnist: epoch 0 update 632 (64 samples, 1 cts): 73.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 60691 s, load 2.61 2.71 2.81 1/1402 1877471
+mnist: epoch 0 update 633 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 60813 s, load 3.06 3.04 2.93 1/1405 1877816
+mnist: epoch 0 update 634 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 60885 s, load 1.91 2.71 2.82 1/1403 1878002
+mnist: epoch 0 update 635 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61007 s, load 3.02 2.94 2.90 1/1402 1878334
+mnist: epoch 0 update 636 (64 samples, 1 cts): 73.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 61081 s, load 2.24 2.69 2.81 1/1399 1878564
+mnist: epoch 0 update 637 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61203 s, load 2.18 2.54 2.74 1/1398 1878897
+mnist: epoch 0 update 638 (64 samples, 1 cts): 68.1 s, 925 KS (0 bootstraps), matches prediction true; elapsed 61271 s, load 1.77 2.32 2.65 1/1398 1879078
+mnist: epoch 0 update 639 (64 samples, 1 cts): 120.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61392 s, load 3.15 2.71 2.75 1/1401 1879417
+mnist: epoch 0 update 640 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 61465 s, load 1.85 2.41 2.64 2/1407 1879642
+mnist: epoch 0 update 641 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61586 s, load 2.64 2.66 2.71 1/1407 1879992
+mnist: epoch 0 update 642 (64 samples, 1 cts): 71.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 61658 s, load 1.99 2.45 2.63 1/1405 1880174
+mnist: epoch 0 update 643 (64 samples, 1 cts): 122.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61781 s, load 2.78 2.78 2.75 1/1398 1880506
+mnist: epoch 0 update 644 (64 samples, 1 cts): 74.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 61855 s, load 1.70 2.44 2.63 1/1398 1880717
+mnist: epoch 0 update 645 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 61977 s, load 3.41 3.01 2.82 1/1401 1881077
+mnist: epoch 0 update 646 (64 samples, 1 cts): 74.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 62051 s, load 1.97 2.68 2.72 1/1401 1881262
+mnist: epoch 0 update 647 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 62173 s, load 2.40 2.64 2.70 1/1402 1881595
+mnist: epoch 0 update 648 (64 samples, 1 cts): 73.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 62246 s, load 1.59 2.34 2.59 1/1399 1881807
+mnist: epoch 0 update 649 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 62369 s, load 3.29 2.87 2.76 1/1399 1882156
+mnist: epoch 0 update 650 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 62442 s, load 2.43 2.71 2.71 1/1399 1882339
+mnist: epoch 0 update 651 (64 samples, 1 cts): 122.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 62564 s, load 2.29 2.73 2.73 1/1401 1882684
+mnist: epoch 0 update 652 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 62637 s, load 1.56 2.42 2.62 1/1401 1882895
+mnist: epoch 0 update 653 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 62759 s, load 2.86 2.75 2.72 2/1401 1883248
+mnist: epoch 0 update 654 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 62833 s, load 2.45 2.76 2.73 1/1401 1883428
+mnist: epoch 0 update 655 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 62955 s, load 3.81 3.09 2.85 1/1398 1883763
+mnist: epoch 0 update 656 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 63027 s, load 2.73 2.83 2.77 2/1398 1883961
+mnist: epoch 0 update 657 (64 samples, 1 cts): 121.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 63149 s, load 2.63 2.81 2.77 1/1401 1884332
+mnist: epoch 0 update 658 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 63222 s, load 1.84 2.51 2.67 1/1401 1884516
+mnist: epoch 0 update 659 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 63343 s, load 2.30 2.58 2.68 1/1401 1884849
+mnist: epoch 0 update 660 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 63417 s, load 1.53 2.28 2.56 2/1401 1885030
+mnist: epoch 0 update 661 (64 samples, 1 cts): 120.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 63538 s, load 3.38 2.79 2.71 1/1399 1885379
+mnist: epoch 0 update 662 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 63610 s, load 2.92 2.72 2.69 1/1399 1885593
+mnist: epoch 0 update 663 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 63733 s, load 3.28 3.13 2.86 1/1404 1886015
+mnist: epoch 0 update 664 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 63806 s, load 2.71 3.00 2.84 1/1403 1886196
+mnist: epoch 0 update 665 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 63928 s, load 2.89 2.98 2.85 1/1402 1886527
+mnist: epoch 0 update 666 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64002 s, load 2.31 2.77 2.78 2/1402 1886748
+mnist: epoch 0 update 667 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 64123 s, load 2.70 2.85 2.82 1/1401 1887093
+mnist: epoch 0 update 668 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64196 s, load 2.19 2.64 2.75 1/1401 1887274
+mnist: epoch 0 update 669 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 64317 s, load 2.54 2.67 2.75 1/1399 1887611
+mnist: epoch 0 update 670 (64 samples, 1 cts): 74.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64391 s, load 1.59 2.35 2.63 1/1401 1887841
+mnist: epoch 0 update 671 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 64513 s, load 3.09 2.81 2.77 1/1401 1888170
+mnist: epoch 0 update 672 (64 samples, 1 cts): 72.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64585 s, load 2.21 2.60 2.70 1/1400 1888365
+mnist: epoch 0 update 673 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 64707 s, load 2.69 2.75 2.75 1/1398 1888696
+mnist: epoch 0 update 674 (64 samples, 1 cts): 71.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64778 s, load 1.73 2.46 2.65 1/1399 1888921
+mnist: epoch 0 update 675 (64 samples, 1 cts): 119.8 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 64898 s, load 2.66 2.72 2.73 1/1399 1889251
+mnist: epoch 0 update 676 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 64971 s, load 2.13 2.54 2.66 1/1401 1889440
+mnist: epoch 0 update 677 (64 samples, 1 cts): 122.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 65094 s, load 2.63 2.65 2.69 1/1400 1889772
+mnist: epoch 0 update 678 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 65168 s, load 2.27 2.61 2.68 1/1400 1890002
+mnist: epoch 0 update 679 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 65290 s, load 2.34 2.56 2.65 1/1398 1890335
+mnist: epoch 0 update 680 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 65363 s, load 1.61 2.30 2.55 1/1399 1890528
+mnist: epoch 0 update 681 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 65484 s, load 2.50 2.45 2.58 1/1399 1890858
+mnist: epoch 0 update 682 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 65557 s, load 2.65 2.46 2.57 1/1401 1891084
+mnist: epoch 0 update 683 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 65679 s, load 3.50 2.87 2.70 2/1400 1891427
+mnist: epoch 0 update 684 (64 samples, 1 cts): 71.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 65751 s, load 2.06 2.58 2.61 1/1400 1891613
+mnist: epoch 0 update 685 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 65873 s, load 2.85 2.73 2.66 1/1398 1891943
+mnist: epoch 0 update 686 (64 samples, 1 cts): 74.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 65948 s, load 1.58 2.36 2.54 1/1398 1892163
+mnist: epoch 0 update 687 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 66070 s, load 3.35 2.84 2.69 1/1398 1892496
+mnist: epoch 0 update 688 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 66143 s, load 3.06 2.80 2.68 1/1399 1892699
+mnist: epoch 0 update 689 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 66265 s, load 3.63 3.23 2.86 1/1399 1893032
+mnist: epoch 0 update 690 (64 samples, 1 cts): 74.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 66339 s, load 2.98 3.08 2.84 2/1399 1893251
+mnist: epoch 0 update 691 (64 samples, 1 cts): 121.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 66461 s, load 2.56 2.95 2.83 1/1398 1893587
+mnist: epoch 0 update 692 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 66534 s, load 1.65 2.61 2.72 1/1398 1893781
+mnist: epoch 0 update 693 (64 samples, 1 cts): 120.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 66655 s, load 3.06 2.90 2.81 2/1398 1894113
+mnist: epoch 0 update 694 (64 samples, 1 cts): 73.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 66729 s, load 1.79 2.57 2.70 1/1401 1894339
+mnist: epoch 0 update 695 (64 samples, 1 cts): 121.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 66851 s, load 2.90 2.76 2.76 1/1401 1894676
+mnist: epoch 0 update 696 (64 samples, 1 cts): 72.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 66924 s, load 2.13 2.58 2.70 1/1401 1894870
+mnist: epoch 0 update 697 (64 samples, 1 cts): 122.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 67047 s, load 3.32 3.11 2.89 1/1401 1895202
+mnist: epoch 0 update 698 (64 samples, 1 cts): 72.8 s, 971 KS (0 bootstraps), matches prediction true; elapsed 67120 s, load 2.08 2.79 2.79 1/1398 1895420
+mnist: epoch 0 update 699 (64 samples, 1 cts): 121.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 67242 s, load 3.27 3.12 2.92 1/1399 1895756
+mnist: epoch 0 update 700 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 67316 s, load 2.19 2.85 2.84 1/1399 1895948
+mnist: epoch 0 update 701 (64 samples, 1 cts): 121.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 67437 s, load 3.04 3.04 2.92 1/1401 1896288
+mnist: epoch 0 update 702 (64 samples, 1 cts): 74.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 67511 s, load 2.09 2.76 2.83 1/1400 1896511
+mnist: epoch 0 update 703 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 67633 s, load 3.36 3.18 2.98 1/1400 1896844
+mnist: epoch 0 update 704 (64 samples, 1 cts): 72.1 s, 971 KS (0 bootstraps), matches prediction true; elapsed 67705 s, load 2.43 2.94 2.91 1/1401 1897029
+mnist: epoch 0 update 705 (64 samples, 1 cts): 122.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 67827 s, load 3.03 3.07 2.97 1/1401 1897453
+mnist: epoch 0 update 706 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 67900 s, load 1.98 2.75 2.87 1/1401 1897673
+mnist: epoch 0 update 707 (64 samples, 1 cts): 122.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68023 s, load 3.22 3.17 3.01 1/1402 1898015
+mnist: epoch 0 update 708 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 68097 s, load 1.95 2.76 2.88 1/1401 1898197
+mnist: epoch 0 update 709 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68218 s, load 2.95 3.07 2.99 2/1402 1898537
+mnist: epoch 0 update 710 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 68290 s, load 1.83 2.71 2.87 1/1401 1898767
+mnist: epoch 0 update 711 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68412 s, load 2.39 2.83 2.90 1/1401 1899105
+mnist: epoch 0 update 712 (64 samples, 1 cts): 72.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 68485 s, load 2.48 2.72 2.86 1/1400 1899288
+mnist: epoch 0 update 713 (64 samples, 1 cts): 119.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68604 s, load 3.01 2.95 2.93 1/1401 1899625
+mnist: epoch 0 update 714 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 68678 s, load 2.30 2.74 2.85 1/1400 1899824
+mnist: epoch 0 update 715 (64 samples, 1 cts): 122.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68801 s, load 2.70 2.84 2.88 1/1400 1900175
+mnist: epoch 0 update 716 (64 samples, 1 cts): 73.5 s, 971 KS (0 bootstraps), matches prediction true; elapsed 68875 s, load 1.68 2.50 2.76 2/1399 1900371
+mnist: epoch 0 update 717 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 68996 s, load 2.31 2.60 2.77 1/1398 1900703
+mnist: epoch 0 update 718 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 69069 s, load 1.88 2.43 2.70 1/1398 1900901
+mnist: epoch 0 update 719 (64 samples, 1 cts): 121.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 69190 s, load 2.98 2.74 2.78 1/1400 1901240
+mnist: epoch 0 update 720 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 69263 s, load 2.42 2.66 2.75 1/1400 1901443
+mnist: epoch 0 update 721 (64 samples, 1 cts): 122.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 69386 s, load 2.18 2.59 2.72 1/1401 1901789
+mnist: epoch 0 update 722 (64 samples, 1 cts): 72.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 69459 s, load 1.90 2.42 2.65 1/1398 1901991
+mnist: epoch 0 update 723 (64 samples, 1 cts): 121.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 69580 s, load 3.22 2.65 2.70 1/1398 1902323
+mnist: epoch 0 update 724 (64 samples, 1 cts): 72.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 69653 s, load 3.01 2.66 2.70 1/1398 1902525
+mnist: epoch 0 update 725 (64 samples, 1 cts): 122.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 69775 s, load 3.23 2.90 2.78 1/1401 1902868
+mnist: epoch 0 update 726 (64 samples, 1 cts): 72.6 s, 971 KS (0 bootstraps), matches prediction true; elapsed 69848 s, load 2.16 2.71 2.73 1/1401 1903080
+mnist: epoch 0 update 727 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 69969 s, load 2.33 2.72 2.73 1/1401 1903411
+mnist: epoch 0 update 728 (64 samples, 1 cts): 71.9 s, 971 KS (0 bootstraps), matches prediction true; elapsed 70041 s, load 2.08 2.55 2.67 2/1399 1903611
+mnist: epoch 0 update 729 (64 samples, 1 cts): 123.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 70165 s, load 2.01 2.44 2.62 1/1400 1903968
+mnist: epoch 0 update 730 (64 samples, 1 cts): 72.0 s, 971 KS (0 bootstraps), matches prediction true; elapsed 70237 s, load 2.01 2.36 2.58 2/1402 1904171
+mnist: epoch 0 update 731 (64 samples, 1 cts): 120.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 70358 s, load 3.25 2.71 2.68 1/1402 1904519
+mnist: epoch 0 update 732 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 70431 s, load 2.23 2.53 2.61 1/1400 1904723
+mnist: epoch 0 update 733 (64 samples, 1 cts): 122.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 70553 s, load 2.68 2.75 2.69 1/1400 1905053
+mnist: epoch 0 update 734 (64 samples, 1 cts): 72.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 70626 s, load 2.53 2.64 2.66 1/1400 1905235
+mnist: epoch 0 update 735 (64 samples, 1 cts): 121.0 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 70747 s, load 2.60 2.77 2.71 2/1398 1905583
+mnist: epoch 0 update 736 (64 samples, 1 cts): 73.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 70820 s, load 2.00 2.58 2.65 1/1398 1905799
+mnist: epoch 0 update 737 (64 samples, 1 cts): 121.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 70942 s, load 2.44 2.70 2.69 1/1402 1906357
+mnist: epoch 0 update 738 (64 samples, 1 cts): 71.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71013 s, load 1.94 2.52 2.63 1/1406 1906977
+mnist: epoch 0 update 739 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 71134 s, load 2.72 2.81 2.73 1/1406 1907307
+mnist: epoch 0 update 740 (64 samples, 1 cts): 71.3 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71206 s, load 2.20 2.63 2.68 1/1406 1907507
+mnist: epoch 0 update 741 (64 samples, 1 cts): 122.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 71329 s, load 2.06 2.57 2.66 1/1400 1907862
+mnist: epoch 0 update 742 (64 samples, 1 cts): 73.4 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71402 s, load 1.48 2.29 2.55 1/1400 1908055
+mnist: epoch 0 update 743 (64 samples, 1 cts): 120.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 71523 s, load 1.75 2.24 2.50 1/1401 1908386
+mnist: epoch 0 update 744 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71597 s, load 1.70 2.12 2.44 1/1401 1908596
+mnist: epoch 0 update 745 (64 samples, 1 cts): 121.6 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 71719 s, load 2.56 2.36 2.49 2/1402 1908950
+mnist: epoch 0 update 746 (64 samples, 1 cts): 72.7 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71791 s, load 1.75 2.19 2.42 1/1402 1909128
+mnist: epoch 0 update 747 (64 samples, 1 cts): 120.9 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 71913 s, load 2.36 2.36 2.46 1/1399 1909464
+mnist: epoch 0 update 748 (64 samples, 1 cts): 73.2 s, 971 KS (0 bootstraps), matches prediction true; elapsed 71986 s, load 2.17 2.35 2.45 1/1398 1909681
+mnist: epoch 0 update 749 (64 samples, 1 cts): 120.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 72107 s, load 2.41 2.51 2.50 1/1400 1910013
+mnist: 750 updates, 48000 samples in 72050.8 s; 877040 KS = 18.272/sample incl. 1500 bootstraps (predicted 18.272, model 20.547); matches true; max |W_he - W_twin| = 6.826572783266538e-3
+mnist: wrote results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json

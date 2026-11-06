@@ -747,7 +747,7 @@ def render_md(t, origin):
 
 TEX_MAP = {'§': r'\S{}', '≈': r'$\approx$', '·': r'$\cdot$', 'ℓ': r'$\ell$', "'": "'",'\\': r'\textbackslash{}', '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#', '_': r'\_',
            '{': r'\{', '}': r'\}', '~': r'\textasciitilde{}', '^': r'\textasciicircum{}',
-           '±': r'$\pm$', '≤': r'$\leq$', '≥': r'$\geq$', 'Δ': r'$\Delta$', '→': r'$\to$', '—': '---',
+           '±': r'$\pm$', '≠': r'$\neq$', '≤': r'$\leq$', '≥': r'$\geq$', 'Δ': r'$\Delta$', '→': r'$\to$', '—': '---',
            '–': '--', '×': r'$\times$', '`': '', '\n': ' '}
 
 

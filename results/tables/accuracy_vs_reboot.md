@@ -8,7 +8,7 @@
 | ReBoot released code, plaintext (recomputed twin) | full | 10 | 90.65 ± 0.27 (n = 10) | — | — | — | reference |
 | hekit plaintext twin (ReBoot weights, order, lr) | full | 10 | 90.65 ± 0.27 (n = 10) | — | 90.65 ± 0.27 (n = 10) | +0.00 | twin check |
 | hekit encrypted, B = 48 in 64 lanes, WN | full | 1 (seed 0) | pending (R-41-FULL-2) | pending (R-41-FULL-2) | 90.41 |  | pending |
-| hekit encrypted, B = 64, WN | full | 1 (seed 0) | pending (R-41-FULL-1) | pending (R-41-FULL-1) | 90.41 |  | reported separately |
+| hekit encrypted, B = 64, WN | full | 1 (seed 0) | 90.36 | 90.37 | 90.41 (seed 0) | -0.05 | not the gate (B ≠ 48) |
 | **eMLP-2 / eMLP-3 block MLPs, full setting, seed 0** | | | | | | | |
 | hekit plaintext twin emlp2 (blocks 64) | full | 1 (seed 0) | 91.56 | — | 91.56 (ReBoot twin) | +0.00 | twin check |
 | hekit plaintext twin emlp3 (blocks 128,64) | full | 1 (seed 0) | 91.75 | — | 91.75 (ReBoot twin) | +0.00 | twin check |

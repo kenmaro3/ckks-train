@@ -5,7 +5,7 @@
 | Run | Input | B | Samples | Train s | s/sample | vs ReBoot | Boot s/sample | Non-boot s/sample | Threads |
 |---|---|---|---|---|---|---|---|---|---|
 | **196 inputs, full setting (headline)** | | | | | | | | | |
-| FULL-1 | 196 | 64 | 48000 | pending (R-41-FULL-1) |  | ReBoot 196 full: not measured |  |  |  |
+| FULL-1 | 196 | 64 | 48000 | 72050.8 | 1.501 | not measured | 0.435 | 1.066 | rayon 12 |
 | FULL-2 | 196 | 48 in 64 | 48000 | pending (R-41-FULL-2) |  | ReBoot 196 full: not measured |  |  |  |
 | **784 inputs, ReBoot encrypted-script subset** | | | | | | | | | |
 | ReBoot official (OpenFHE) | 784 | 48 | 1008 | 3599.9 | 3.571 | 1 | 2.585 | 0.986 | OpenMP 12 |

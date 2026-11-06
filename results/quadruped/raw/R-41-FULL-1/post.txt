@@ -1,0 +1,15 @@
+date: 2026-11-07T03:19:51+09:00
+uptime:  03:19:51 up 54 days, 17:50,  4 users,  load average: 2.19, 2.46, 2.49
+--- df -h ~
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  915G  843G   26G  98% /
+--- free -b
+               total        used        free      shared  buff/cache   available
+Mem:     132479885312  8044908544 69582639104    48422912 55760588800 124434976768
+Swap:     8589930496   652693504  7937236992
+--- nvidia-smi query
+name, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]
+NVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %
+pid, process_name, used_gpu_memory [MiB]
+2791212, VLLM::EngineCore, 20660 MiB
+JOB_DONE rc=0

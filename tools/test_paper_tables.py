@@ -79,6 +79,21 @@ class PaperTablesTests(unittest.TestCase):
         self.assertEqual(next(r for r in wall if r[0] == 'FULL-2')[2], '48 in 64')
         self.assertEqual(next(r for r in wall if r[0] == 'FULL-1')[6], 'not measured')
 
+    def test_present_full1_accuracy_renders_pdftex_safe_non_gate(self):
+        # Break caught: populated B64 accuracy emits unsupported raw U+2260 to pdfLaTeX.
+        put_full(self.root)
+        with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()) as output:
+            rc = tables.main(['--root', str(self.root)])
+        self.assertEqual(rc, 0, output.getvalue())
+        tex = (self.root / 'paper/tables/accuracy_vs_reboot.tex').read_text()
+        row = next(line for line in tex.splitlines()
+                   if line.startswith('hekit encrypted, B = 64, WN &'))
+        self.assertIn('& 89.00 &', row)
+        self.assertIn(r'not the gate (B $\neq$ 48)', row)
+        self.assertNotIn('≠', tex)
+        md = (self.root / 'results/tables/accuracy_vs_reboot.md').read_text()
+        self.assertIn('not the gate (B ≠ 48)', md)
+
     def test_each_consumer_rejects_malformed_full(self):
         # Break caught: wall-clock accepting truncated/invalid FULL despite RQ1 validation.
         put_full(self.root, mutate=lambda d: d['training'].update(samples=1))

@@ -1,0 +1,5 @@
+commit ff2c2eb
+full ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f
+dirty_files 0 (plus the gitignored R-REB-2 .npy arrays copied in, sha256 checked against data_manifest.json)
+source git bundle of the Mac HEAD (committed state only), cloned to ~/hekit-r41full
+synced_at 2026-11-06T07:17:36+09:00

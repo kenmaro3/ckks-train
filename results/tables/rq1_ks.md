@@ -5,7 +5,7 @@
 | Run | Input | Placement | B | Config | Samples | hekit KS/sample | Boots | ReBoot non-boot | (a) | (b) | (c) | (d) | Ways ≤ 0.70 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | **196 inputs, ReBoot full setting, 4800 samples x 10 epochs, seed 0 (headline)** | | | | | | | | | | | | | |
-| FULL-1 | 196 | WN | 64 |  |  | pending (R-41-FULL-1) |  | 37 (model) | pending | pending | pending | pending |  |
+| FULL-1 | 196 | WN | 64 | faithful | 48000 | 18.272 | 1500 | 37 (model) | 0.232 | 0.387 | 0.395 | 0.400 | abcd |
 | FULL-2 | 196 | WN | 48 in 64 |  |  | pending (R-41-FULL-2) |  | 37 (model) | pending | pending | pending | pending |  |
 | **784 inputs, ReBoot encrypted-script subset, 1 epoch (supplementary)** | | | | | | | | | | | | | |
 | F1 | 784 | WN | 32 | faithful | 1008 | 33.488 | 68 | 35.0625 (Lazy, measured) | 0.435 | 0.779 | 0.756 | 0.742 | a |
