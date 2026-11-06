@@ -973,5 +973,140 @@ print(scenario+' passed; fictional source only; no command invoked')
                 self.assertEqual(result.stderr, '')
 
 
+class NamespaceOriginTests(unittest.TestCase):
+    def run_namespace_child(self, scenario):
+        import subprocess
+        import sys
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            baseline, outside = root / 'baseline', root / 'outside'
+            (baseline / 'lib/nested').mkdir(parents=True)
+            (baseline / 'lib/regular').mkdir()
+            outside.mkdir()
+            # Entirely fictional modules, not upstream snippets or scientific APIs.
+            source = b"MARKER = 'fictional-approved-source'\n"
+            files = ('lib/child.py', 'lib/regular/__init__.py')
+            for name in files:
+                (baseline / name).write_bytes(source)
+            context = {'baseline': {'files': {name: ex.digest(source) for name in files}},
+                       'runtime': {'packages': {}}}
+            program = r'''import ast,copy,importlib,json,sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+import export_reboot_block_seed_inputs as ex
+baseline=Path(sys.argv[2]);outside=Path(sys.argv[3]);context=json.loads(sys.argv[4]);scenario=sys.argv[5]
+assert 'lib' not in sys.modules
+ex.install_source_loading_guard({'baseline':str(baseline)},context)
+sys.path.insert(0,str(baseline))
+lib=importlib.import_module('lib')
+child=importlib.import_module('lib.child')
+nested=importlib.import_module('lib.nested')
+regular=importlib.import_module('lib.regular')
+assert lib.__file__ is None and nested.__file__ is None
+assert isinstance(lib.__loader__,importlib.machinery.NamespaceLoader)
+assert list(lib.__path__)==list(lib.__spec__.submodule_search_locations)==[str(baseline/'lib')]
+assert child.MARKER==regular.MARKER=='fictional-approved-source'
+verify=getattr(ex,'verify_baseline_module_origin',None)
+if verify is None:
+    # RED control executes the exact original production loop AST, not a copied
+    # test implementation of it. No actual backend/scientific import is invoked.
+    tree=ast.parse(Path(ex.__file__).read_text())
+    backend=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='ActualBackend')
+    init=next(n for n in backend.body if isinstance(n,ast.FunctionDef) and n.name=='__init__')
+    loop=next(n for n in init.body if isinstance(n,ast.For))
+    scope=dict(ex.__dict__)
+    scope['self']=type('FictionalBackendScope',(),{'baseline':baseline})()
+    compiled=compile(ast.fix_missing_locations(ast.Module(body=[loop],type_ignores=[])),ex.__file__,'exec')
+    def verify(name,module,root): exec(compiled,scope)
+if scenario=='gold':
+    for name,module in [('lib',lib),('lib.child',child),('lib.nested',nested),('lib.regular',regular)]:
+        verify(name,module,baseline)
+    assert not (baseline/'lib/__init__.py').exists()
+    print('namespace and source-loaded regular modules verified');sys.exit(0)
+name='lib';module=lib;expected_condition='namespace'
+if scenario=='missing_spec': module.__spec__=None;expected_condition='spec'
+if scenario=='bad_spec': module.__spec__=object();expected_condition='spec'
+if scenario=='spec_name': module.__spec__.name='lib.impostor';expected_condition='name'
+if scenario=='module_name': module.__name__='lib.impostor';expected_condition='name'
+if scenario=='live_module': sys.modules['lib']=child;expected_condition='registration'
+if scenario=='spec_origin': module.__spec__.origin=str(baseline/'lib/child.py');expected_condition='origin'
+if scenario=='has_location': module.__spec__.has_location=True;expected_condition='location'
+if scenario=='loader': module.__spec__.loader=object();module.__loader__=module.__spec__.loader;expected_condition='loader'
+if scenario=='loader_mismatch': module.__loader__=object();expected_condition='loader'
+if scenario=='package_name': module.__package__='other';expected_condition='package'
+if scenario=='missing_path': del module.__path__;expected_condition='path'
+if scenario=='empty_path': module.__path__=[];expected_condition='path'
+if scenario=='multiple_path': module.__path__=[str(baseline/'lib')]*2;expected_condition='path'
+if scenario=='mixed_path': module.__path__=[str(baseline/'lib'),str(outside)];expected_condition='path'
+if scenario=='outside_path': module.__path__=[str(outside)];expected_condition='path'
+if scenario=='relative_path': module.__path__=['lib'];expected_condition='path'
+if scenario=='string_path': module.__path__=str(baseline/'lib');expected_condition='path'
+if scenario=='empty_spec_path': module.__spec__.submodule_search_locations=[];expected_condition='search'
+if scenario=='missing_spec_path': module.__spec__.submodule_search_locations=None;expected_condition='search'
+if scenario=='multiple_spec_path': module.__spec__.submodule_search_locations=[str(baseline/'lib')]*2;expected_condition='search'
+if scenario=='outside_spec_path': module.__spec__.submodule_search_locations=[str(outside)];expected_condition='search'
+if scenario=='mismatched_spec_path': module.__spec__.submodule_search_locations=[str(baseline/'lib/nested')];expected_condition='search'
+if scenario=='nonexistent':
+    name='lib.nested';module=nested;(baseline/'lib/nested').rmdir();expected_condition='directory'
+if scenario=='symlink_escape':
+    name='lib.nested';module=nested;(baseline/'lib/nested').rmdir();(baseline/'lib/nested').symlink_to(outside,target_is_directory=True);expected_condition='directory'
+if scenario=='symlink_alias_path':
+    alias=baseline/'alias';alias.symlink_to(baseline/'lib',target_is_directory=True)
+    module.__path__=[str(alias)];module.__spec__.submodule_search_locations=[str(alias)];expected_condition='path'
+if scenario=='namespace_with_file': module.__file__=str(baseline/'lib/child.py');expected_condition='loader'
+if scenario.startswith('regular_'):
+    name='lib.child';module=child
+    if scenario=='regular_foreign':
+        f=outside/'child.py';f.write_text('MARKER=1\n');module.__file__=str(f);module.__spec__.origin=str(f);expected_condition='source'
+    if scenario=='regular_unavailable': module.__file__=None;expected_condition='loader'
+    if scenario=='regular_missing': (baseline/'lib/child.py').unlink();expected_condition='source'
+    if scenario=='regular_spec_origin': module.__spec__.origin=str(outside/'child.py');expected_condition='origin'
+try:
+    verify(name,module,baseline)
+except ex.ExportError as error:
+    assert name in str(error),str(error)
+    assert expected_condition in str(error),str(error)
+else:
+    raise AssertionError('origin accepted invalid '+scenario)
+assert not any(n in sys.modules for n in ('numpy','torch','openfhe'))
+print(scenario+' rejected by production verifier')
+'''
+            result = subprocess.run([sys.executable, '-I', '-B', '-c', program,
+                str(Path(ex.__file__).resolve().parent), str(baseline), str(outside),
+                json.dumps(context), scenario], capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return result.stdout
+
+    def test_real_namespace_and_approved_regular_source_share_production_verifier(self):
+        # Break caught: the original blanket __file__ requirement, or source
+        # loading incorrectly bypassed to make the namespace import succeed.
+        self.assertIn('source-loaded regular modules verified', self.run_namespace_child('gold'))
+
+    def test_namespace_requires_live_matching_spec_loader_and_package_metadata(self):
+        # Break caught: accepting __file__ None without genuine matched metadata.
+        for scenario in ('missing_spec', 'bad_spec', 'spec_name', 'module_name',
+                         'live_module', 'spec_origin', 'has_location', 'loader',
+                         'loader_mismatch', 'package_name', 'namespace_with_file'):
+            with self.subTest(scenario=scenario):
+                self.run_namespace_child(scenario)
+
+    def test_namespace_requires_single_exact_canonical_existing_directory(self):
+        # Break caught: accepting additional/outside/empty/mismatched search
+        # locations, nonexistent origins, or a canonicalizing symlink escape.
+        for scenario in ('missing_path', 'empty_path', 'multiple_path', 'mixed_path',
+                         'outside_path', 'relative_path', 'string_path', 'empty_spec_path',
+                         'missing_spec_path', 'multiple_spec_path', 'outside_spec_path',
+                         'mismatched_spec_path', 'nonexistent', 'symlink_escape', 'symlink_alias_path'):
+            with self.subTest(scenario=scenario):
+                self.run_namespace_child(scenario)
+
+    def test_regular_module_foreign_unavailable_and_mismatched_origins_stay_rejected(self):
+        # Break caught: weakening the prior canonical in-baseline regular-file
+        # restriction while introducing namespace handling.
+        for scenario in ('regular_foreign', 'regular_unavailable', 'regular_missing', 'regular_spec_origin'):
+            with self.subTest(scenario=scenario):
+                self.run_namespace_child(scenario)
+
+
 if __name__ == '__main__':
     unittest.main()

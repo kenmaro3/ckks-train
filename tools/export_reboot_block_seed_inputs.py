@@ -805,6 +805,54 @@ def verify_loaded_native(native, loaded):
     return {p: file_hash(p) for p in sorted(observed)}
 
 
+def verify_baseline_module_origin(name, module, baseline):
+    """Verify live origins after guarded source loading, including PEP420 parents.
+
+Namespace directories execute no source buffer. Their exact singleton search
+locations must correspond to the module's dotted name under the approved root.
+Regular Python source hashes remain enforced by install_source_loading_guard.
+"""
+    prefix = f'baseline module {name}: '
+    require(isinstance(name, str) and name.split('.')[0] == 'lib' and
+            all(part.isidentifier() for part in name.split('.')), prefix + 'invalid name')
+    require(sys.modules.get(name) is module, prefix + 'live registration mismatch')
+    spec = getattr(module, '__spec__', None)
+    require(isinstance(spec, importlib.machinery.ModuleSpec), prefix + 'missing/invalid spec')
+    require(spec.name == name and getattr(module, '__name__', None) == name,
+            prefix + 'module/spec name mismatch')
+    baseline = Path(baseline).resolve()
+    source = getattr(module, '__file__', None)
+    if source is not None:
+        require(not isinstance(spec.loader, importlib.machinery.NamespaceLoader),
+                prefix + 'regular source has namespace loader')
+        require(isinstance(source, str) and Path(source).is_file() and
+                Path(source).resolve().is_relative_to(baseline), prefix + 'foreign/unavailable source')
+        require(isinstance(spec.origin, str) and Path(spec.origin).resolve() == Path(source).resolve(),
+                prefix + 'source/spec origin mismatch')
+        return
+
+    require(isinstance(spec.loader, importlib.machinery.NamespaceLoader) and
+            getattr(module, '__loader__', None) is spec.loader, prefix + 'namespace loader mismatch')
+    require(spec.origin is None, prefix + 'namespace spec origin must be absent')
+    require(not spec.has_location, prefix + 'namespace spec has file location')
+    require(getattr(module, '__package__', None) == name, prefix + 'namespace package name mismatch')
+    expected = baseline.joinpath(*name.split('.'))
+    require(expected.is_dir() and expected.resolve() == expected and
+            expected.is_relative_to(baseline), prefix + 'namespace directory unavailable/noncanonical')
+    for label, locations in (('namespace path', getattr(module, '__path__', None)),
+                             ('namespace spec search locations', spec.submodule_search_locations)):
+        require(locations is not None and not isinstance(locations, (str, bytes)),
+                prefix + label + ' missing/invalid')
+        try:
+            entries = list(locations)
+        except (TypeError, ValueError) as error:
+            raise ExportError(prefix + label + ' not iterable') from error
+        require(len(entries) == 1 and isinstance(entries[0], str), prefix + label + ' must be singleton')
+        actual = Path(entries[0])
+        require(actual.is_absolute() and actual == expected and actual.resolve() == expected,
+                prefix + label + ' differs from exact canonical directory')
+
+
 class ActualBackend:
     """Thin API adapter. No baseline algorithm implementation or training methods."""
     def __init__(self, paths, approved_context):
@@ -836,8 +884,7 @@ class ActualBackend:
         self.parser = importlib.import_module('lib.parser').get_parser_args
         for name, module in tuple(sys.modules.items()):
             if name == 'lib' or name.startswith('lib.'):
-                source = getattr(module, '__file__', None)
-                require(source is not None and Path(source).resolve().is_relative_to(self.baseline), 'foreign baseline module origin')
+                verify_baseline_module_origin(name, module, self.baseline)
         require(Path(importlib.import_module('reboot_cpp').__file__).resolve() == Path(paths['native']['reboot']),
                 'foreign reboot native loaded')
         openfhe = importlib.import_module('openfhe')
