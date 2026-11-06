@@ -1,0 +1,62 @@
+[
+  {
+    "correct": 0,
+    "test_count": 1,
+    "accuracy_hex": "000000000000000001000000000000000000000000000000",
+    "target_hex": "0000000000000000"
+  },
+  {
+    "correct": 1,
+    "test_count": 201,
+    "accuracy_hex": "0100000000000000c9000000000000009acff5c7cb60743f",
+    "target_hex": "0000000000000000"
+  },
+  {
+    "correct": 1,
+    "test_count": 200,
+    "accuracy_hex": "0100000000000000c8000000000000007b14ae47e17a743f",
+    "target_hex": "0000000000000000"
+  },
+  {
+    "correct": 1,
+    "test_count": 199,
+    "accuracy_hex": "0100000000000000c70000000000000067d0b2e33995743f",
+    "target_hex": "00ecbb049c58fa3e"
+  },
+  {
+    "correct": 1,
+    "test_count": 3,
+    "accuracy_hex": "01000000000000000300000000000000555555555555d53f",
+    "target_hex": "039d36d06903d53f"
+  },
+  {
+    "correct": 199,
+    "test_count": 200,
+    "accuracy_hex": "c700000000000000c800000000000000d7a3703d0ad7ef3f",
+    "target_hex": "ae47e17a14aeef3f"
+  },
+  {
+    "correct": 45035996273704,
+    "test_count": 9007199254740992,
+    "accuracy_hex": "285c8fc2f528000000000000000020000014ae47e17a743f",
+    "target_hex": "0000000000000000"
+  },
+  {
+    "correct": 45035996273705,
+    "test_count": 9007199254740992,
+    "accuracy_hex": "295c8fc2f528000000000000000020008014ae47e17a743f",
+    "target_hex": "000000000000543c"
+  },
+  {
+    "correct": 9007199254740991,
+    "test_count": 9007199254740992,
+    "accuracy_hex": "ffffffffffff1f000000000000002000ffffffffffffef3f",
+    "target_hex": "d6a3703d0ad7ef3f"
+  },
+  {
+    "correct": 9007199254740992,
+    "test_count": 9007199254740992,
+    "accuracy_hex": "00000000000020000000000000002000000000000000f03f",
+    "target_hex": "d7a3703d0ad7ef3f"
+  }
+]

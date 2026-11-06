@@ -7,20 +7,28 @@ mod digests;
 mod document;
 mod publication;
 mod session;
-pub use document::VerifiedReference;
+mod target;
 pub use document::{
     ClaimedAccuracy, ClaimedIdentity, ClaimedIdentityBytes, DocumentError, DocumentErrorCode,
     ParsedDiagnosticDocument, ParsedFailureDocument, ParsedReferenceDocument,
     parse_diagnostic_document, parse_failure_document, parse_reference_document,
 };
+pub use document::{
+    ReferenceCompletionView, ReferenceEndpointView, ReferenceTimeView, VerifiedReference,
+};
 pub use publication::{
     PublicationError, PublishedNonReference, PublishedReference, ReferenceStore,
+    VerifiedReferenceSnapshot,
 };
 pub use session::{
     CapturedDiagnostic, CapturedF64Diagnostic, CompletedFp32Reference, DiagnosticContext,
     F64DiagnosticSession, Fp32Session, LocalQuickDiagnostic, LocalQuickF64Diagnostic,
     QuickFp32DiagnosticSession, QuickFp64DiagnosticSession, SessionError, SessionFailure,
     SessionProgress,
+};
+pub use target::{
+    CampaignId, NewProfileTargetStore, ProfileTargetStore, PublishedTargetLock, TargetError,
+    VerifiedTargetForSeed, lock_target,
 };
 
 use crate::{

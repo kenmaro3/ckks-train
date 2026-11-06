@@ -476,6 +476,9 @@ impl VerifiedStudyContext {
     pub fn source_manifest_sha256(&self) -> &str {
         &self.approval.source
     }
+    pub(crate) fn approved_design_documents(&self) -> &[(String, String)] {
+        &self.approval.designs
+    }
     pub(crate) fn root(&self) -> &Path {
         &self.request.root
     }

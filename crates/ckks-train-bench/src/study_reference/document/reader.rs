@@ -27,6 +27,34 @@ pub struct VerifiedReference {
     capsule: String,
 }
 impl VerifiedReference {
+    pub(super) fn parsed(&self) -> &ParsedReferenceDocument {
+        &self.parsed
+    }
+    /// Validated reference run selector.
+    pub fn run_id(&self) -> &str {
+        &self.parsed.common.run_id.0
+    }
+    /// Verified canonical profile identifier.
+    pub fn profile_id(&self) -> &str {
+        &self.parsed.body.identity.profile_id.0
+    }
+    /// Immutable verified timing claims, not replay evidence.
+    pub fn verified_time(&self) -> ReferenceTimeView<'_> {
+        ReferenceTimeView(&self.parsed.body.timing)
+    }
+    /// Complete immutable final completion claims.
+    pub fn verified_completion(&self) -> ReferenceCompletionView<'_> {
+        ReferenceCompletionView {
+            completion: &self.parsed.body.completion,
+            endpoint: self
+                .parsed
+                .body
+                .endpoints
+                .0
+                .last()
+                .expect("verified final endpoint"),
+        }
+    }
     #[doc = "SHA256 of the exact immutable file bytes."]
     pub fn file_sha256(&self) -> &str {
         self.parsed.file_sha256()
@@ -62,6 +90,177 @@ impl VerifiedReference {
     #[doc = "Session-origin state digest claim; not independently replayed model content."]
     pub fn final_state_sha256_claim(&self) -> &str {
         &self.parsed.body.completion.final_state_sha256.0
+    }
+}
+/// Immutable timing already checked by the approved reference reader.
+pub struct ReferenceTimeView<'a>(&'a Timing);
+impl ReferenceTimeView<'_> {
+    /// Start Unix nanoseconds.
+    pub fn start_unix_ns(&self) -> u64 {
+        self.0.start_unix_ns
+    }
+    /// Completion Unix nanoseconds.
+    pub fn completion_unix_ns(&self) -> u64 {
+        self.0.end_unix_ns
+    }
+    /// Fixed verified wall clock source.
+    pub fn wall_source(&self) -> &str {
+        "unix_system_time"
+    }
+    /// Fixed verified monotonic clock source.
+    pub fn monotonic_source(&self) -> &str {
+        "std_instant"
+    }
+    /// Complete measured operation duration.
+    pub fn end_to_end_ns(&self) -> u64 {
+        self.0.end_to_end_ns
+    }
+    /// Verified available setup_ns timing.
+    pub fn setup_ns(&self) -> u64 {
+        *self
+            .0
+            .setup_ns
+            .available()
+            .expect("verified available timing")
+    }
+    /// Verified available update_ns timing.
+    pub fn update_ns(&self) -> u64 {
+        *self
+            .0
+            .update_ns
+            .available()
+            .expect("verified available timing")
+    }
+    /// Verified available evaluation_ns timing.
+    pub fn evaluation_ns(&self) -> u64 {
+        *self
+            .0
+            .evaluation_ns
+            .available()
+            .expect("verified available timing")
+    }
+    /// Verified available finalization_ns timing.
+    pub fn finalization_ns(&self) -> u64 {
+        *self
+            .0
+            .finalization_ns
+            .available()
+            .expect("verified available timing")
+    }
+}
+/// Immutable complete endpoint, including actual boundary and interval observations.
+pub struct ReferenceEndpointView<'a>(&'a Endpoint);
+impl ReferenceEndpointView<'_> {
+    /// Verified completed_updates.
+    pub fn completed_updates(&self) -> u64 {
+        self.0.completed_updates
+    }
+    /// Verified processed_samples.
+    pub fn processed_samples(&self) -> u64 {
+        self.0.processed_samples
+    }
+    /// Verified interval_updates.
+    pub fn interval_updates(&self) -> u64 {
+        self.0.interval_updates
+    }
+    /// Verified interval_samples.
+    pub fn interval_samples(&self) -> u64 {
+        self.0.interval_samples
+    }
+    /// Exact crossed logical boundary IDs.
+    pub fn crossed_logical_boundaries(&self) -> &[u64] {
+        &self.0.crossed_logical_boundaries.0
+    }
+    /// Whether this actual endpoint is an exact logical boundary.
+    pub fn exact_logical_boundary(&self) -> bool {
+        self.0.exact_logical_boundary
+    }
+    /// Approved final correct count claim.
+    pub fn correct(&self) -> u64 {
+        self.0.observation.correct
+    }
+    /// Verified actual held-out count.
+    pub fn test_count(&self) -> u64 {
+        self.0.observation.test_count
+    }
+    /// Exact binary64 reporting observation bits.
+    pub fn accuracy_bits(&self) -> u64 {
+        self.0.observation.bits
+    }
+    /// Available cumulative update duration.
+    pub fn update_elapsed_ns(&self) -> u64 {
+        *self
+            .0
+            .update_elapsed_ns
+            .available()
+            .expect("verified timing")
+    }
+    /// Available cumulative evaluation duration.
+    pub fn evaluation_elapsed_ns(&self) -> u64 {
+        *self
+            .0
+            .evaluation_elapsed_ns
+            .available()
+            .expect("verified timing")
+    }
+}
+/// Complete reader-verified completion projection, with no replacement or constructor.
+pub struct ReferenceCompletionView<'a> {
+    completion: &'a Completion,
+    endpoint: &'a Endpoint,
+}
+impl ReferenceCompletionView<'_> {
+    /// Verified origin_completed_updates.
+    pub fn origin_completed_updates(&self) -> u64 {
+        self.completion.origin_completed_updates
+    }
+    /// Verified origin_processed_samples.
+    pub fn origin_processed_samples(&self) -> u64 {
+        self.completion.origin_processed_samples
+    }
+    /// Verified planned_updates.
+    pub fn planned_updates(&self) -> u64 {
+        self.completion.planned_updates
+    }
+    /// Verified actual_updates.
+    pub fn actual_updates(&self) -> u64 {
+        self.completion.actual_updates
+    }
+    /// Verified planned_samples.
+    pub fn planned_samples(&self) -> u64 {
+        self.completion.planned_samples
+    }
+    /// Verified actual_samples.
+    pub fn actual_samples(&self) -> u64 {
+        self.completion.actual_samples
+    }
+    /// Verified planned_dropped_samples.
+    pub fn planned_dropped_samples(&self) -> u64 {
+        self.completion.planned_dropped_samples
+    }
+    /// Verified actual_dropped_samples.
+    pub fn actual_dropped_samples(&self) -> u64 {
+        self.completion.actual_dropped_samples
+    }
+    /// Verified final_endpoint_index.
+    pub fn final_endpoint_index(&self) -> u64 {
+        self.completion.final_endpoint_index
+    }
+    /// Verified full_plan_sha256 claim; final model is not replayed.
+    pub fn full_plan_sha256(&self) -> &str {
+        &self.completion.full_plan_sha256.0
+    }
+    /// Verified consumed_plan_sha256 claim; final model is not replayed.
+    pub fn consumed_plan_sha256(&self) -> &str {
+        &self.completion.consumed_plan_sha256.0
+    }
+    /// Verified final_state_sha256 claim; final model is not replayed.
+    pub fn final_state_sha256(&self) -> &str {
+        &self.completion.final_state_sha256.0
+    }
+    /// Complete actual final checkpoint.
+    pub fn final_endpoint(&self) -> ReferenceEndpointView<'_> {
+        ReferenceEndpointView(self.endpoint)
     }
 }
 fn check(ok: bool, field: &str) -> Result<()> {
@@ -196,6 +395,7 @@ fn required_policy(c: &Common, t: &Timing) -> Result<()> {
 }
 fn canonical_encoded(v: &impl Encode) -> Result<Vec<u8>> {
     let mut e = Encoder {
+        layout: DocumentLayout::Reference,
         bytes: vec![],
         outer: 0,
     };
@@ -209,7 +409,13 @@ fn approved_build_matches(actual: &Build, expected: &Build) -> Result<()> {
     )
 }
 fn approved_provenance(c: &Common, context: &VerifiedStudyContext) -> Result<String> {
-    let ProvenanceClaim::Captured(p) = &c.provenance else {
+    approved_provenance_claim(&c.provenance, context)
+}
+pub(super) fn approved_provenance_claim(
+    claim: &ProvenanceClaim,
+    context: &VerifiedStudyContext,
+) -> Result<String> {
+    let ProvenanceClaim::Captured(p) = claim else {
         return Err(err(
             DocumentErrorCode::CrossLinkMismatch,
             "provenance.required",

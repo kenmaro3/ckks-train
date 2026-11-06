@@ -97,6 +97,7 @@ fn bounded_counters_reject_overflow_without_large_buffers() {
     assert!(hex_len(R_MAX * 2 + 2, R_MAX, "x").is_err());
     assert!(hex_len(usize::MAX, C_MAX, "x").is_err());
     let mut e = Encoder {
+        layout: DocumentLayout::Reference,
         bytes: Vec::new(),
         outer: A_MAX,
     };

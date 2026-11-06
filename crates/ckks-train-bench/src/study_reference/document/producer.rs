@@ -52,7 +52,7 @@ fn time(t: &TimingFact) -> Value {
 pub(super) fn build(f: &BuildFacts<'_>) -> Value {
     json!({"compiler_vv":f.compiler_vv(),"target":f.target(),"host":f.host(),"profile":f.profile(),"opt_level":f.opt_level(),"debug":f.debug(),"features":f.features(),"package_version":f.package_version(),"cargo_lock_sha256":f.cargo_lock_sha256(),"source_manifest_sha256":f.source_manifest_sha256(),"config_manifest_sha256":f.config_manifest_sha256(),"build_environment_sha256":f.build_environment_sha256(),"recipe_version":f.recipe_version(),"receipt_file_sha256":f.receipt_file_sha256()})
 }
-fn captured(v: &CaptureFact<'_>) -> Result<Value> {
+pub(super) fn captured(v: &CaptureFact<'_>) -> Result<Value> {
     let c = v.context;
     let start = &v.start;
     let end = &v.end;

@@ -1,0 +1,308 @@
+{
+  "writer": {
+    "api_version": "hekit-study-target-api-v1",
+    "algorithm_revision": "hekit-study-target-protocol-v1"
+  },
+  "synthetic": true,
+  "campaign_id": "FICTIONAL-CAMPAIGN",
+  "profile_id": "FICTIONAL-PROFILE",
+  "lock_id": "bc1c2add0a5e7deac620b2fe9606f1288d1db80d165bd85700b3864142d06aea",
+  "policy": {
+    "scientific_revision": "e018bd7401a6a606e306e58decad7af68cc56b84",
+    "scientific_sha256": "6cdca16097d4acbf28c0f9bf0a36cccc1fccfae2fb604b0410926c066b85a035",
+    "registry_sha256": "8d84a79da4dac7fdc8fbeb7d38d9a6772aa375a24d50166938d5d1b9ac0169f3",
+    "portable_lock_sha256": "a3f0e2833d0886d8876d3e8d47869cffcc3eb4af1487aa233caa1bff5c120484",
+    "design_documents": [
+      {
+        "path": "docs/experiment-matrix.md",
+        "sha256": "9ed27dfa3d63b1c7622c44ac16b251cb513e9b8970169f31a5830277790726dc"
+      },
+      {
+        "path": "docs/study-reference-design.md",
+        "sha256": "7286e3e96100a851e4a2fe11bf1368e858096fb6ae0b3a3fe5e7e1285e937cb3"
+      },
+      {
+        "path": "docs/study-reference-document-design.md",
+        "sha256": "0de84d0c3c1b35695e6f2f17609389e0108b560d8fa3ad3881f88d4a7c9f11b5"
+      },
+      {
+        "path": "docs/study-reference-session-design.md",
+        "sha256": "c6cbc2ee8890444a48bbe6499f22534e5a20815b9ffaca954fe99ce4db062714"
+      },
+      {
+        "path": "docs/study-training-design.md",
+        "sha256": "7e7b0ac566353ab739737bb5300070fb8c8733031db37438726c8f8f8230fc58"
+      }
+    ],
+    "approval_sha256": "393d0d8dc8aed747778103d969904d7420c7dce01088a8fc7c4d6dfde660f7e4"
+  },
+  "status": "complete",
+  "integrity": {
+    "encoding": "hekit-study-reference-encoding-v1",
+    "hash": "sha256",
+    "payload_sha256": "04eb92307e3c8cac4d8f4ab48ee116e7b4a71b61a8e7bcf96de59a3637a6b22f"
+  },
+  "schema": "hekit-test-he-admission-v1",
+  "kind": "he_admission",
+  "lock": {
+    "file_sha256": "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7",
+    "payload_sha256": "62dabb2e01360ed99e79590b869ca38616fee2bbb8ed7572c240257688c87812"
+  },
+  "reference": {
+    "file_sha256": "3f1dfecb374523d1236a441e36e4dbe99ad648313aa811b8e3b2c57edaf5a768",
+    "payload_sha256": "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d"
+  },
+  "contract": {
+    "schema": "hekit-study-profile-contract-v1",
+    "encoding": "hekit-study-reference-encoding-v1",
+    "canonical_bytes": "46494354494f4e414c2d434f4e545241435400ff",
+    "sha256": "26489a64c936652ebc20ecc81b8cc2bba312b9aa9edef8ff101ceb12051a0491"
+  },
+  "selected_input": {
+    "seed": 7,
+    "materialized_sha256": "e0c616777032f10d3dd117994d4f600d4b02089f1962d54a311ceae139076725",
+    "seed_receipt": {
+      "schema": "hekit-study-seed-input-receipt-v1",
+      "encoding": "hekit-study-reference-encoding-v1",
+      "canonical_bytes": "46494354494f4e414c2d524543454950542d534545443700fd",
+      "sha256": "84800902753cd8e657a4abe3b8523bf1ae2cf80a9c6460c9b4092ceeef60aa49"
+    }
+  },
+  "case": {
+    "registry_sha256": "8d84a79da4dac7fdc8fbeb7d38d9a6772aa375a24d50166938d5d1b9ac0169f3",
+    "origin": "family",
+    "registration_id": "FICTIONAL-REGISTRATION",
+    "profile_id": "FICTIONAL-PROFILE",
+    "seed": 7,
+    "scope": "full",
+    "role": "main",
+    "backend": "cpu",
+    "mode": "interactive",
+    "placement": "client_refresh",
+    "packing": "batched_diagonal",
+    "security_policy": "n16_train",
+    "logical_batch": 2,
+    "eval_config": null
+  },
+  "case_id": "f79c5fb597e559253ad0496f7290536d7de8104b71c4e3de240d94a11bfeac2d",
+  "execution": {
+    "implementation": "main_diagonal",
+    "implementation_revision": "FICTIONAL-IMPL",
+    "implementation_manifest_sha256": "2371bad0939efe205e7866ffc893357e8c60f07160322e5519604e92c61bc6af",
+    "parameter_identity_sha256": "9f2a572908507275e9e6cf84daf6d813427cce2cab7e2d99b281cacbd0115fbb",
+    "bootstrap_descriptor_sha256": null,
+    "layout_plan_sha256": "c61f3ae1079f9fca7a27efa65612075ff30c3e0966154f464b9fb349414ef53e",
+    "trainer_plan_sha256": "9b69f216d9d4b171cadaa863b9e9044b8ec686fe2f9346e85c6c401ae4109f45",
+    "eval_config": {
+      "hoist": false,
+      "bsgs": false,
+      "lazy_relin": false
+    },
+    "bootstrap_engine": "none",
+    "key_policy_sha256": "5a121465729e74c972a196a62cb3c094f4e69e7216b2c247c34cd6790c1ce1e2",
+    "security_policy_sha256": "ae485a7c5ec4f4e51eba6e16531815432dc14f477613dd614e1c3906400321e5",
+    "physical_binding_sha256": "c261f5cd17ccc5dd43bc51309dddfc266791b18e6f784cd9e32d3c5d5caa1d46",
+    "runtime_policy_sha256": "7a9671ad9533fee7e6ee5cc114c3133ec81fd7d1aee4583bfbe89578faeed447"
+  },
+  "execution_binding_sha256": "98dd121b811e04404f97656e7242368223e82fd3c58b778ec8f36f4f1c0d1d87",
+  "attempt_id": "FICTIONAL-RETRY-NO-START",
+  "predecessor": {
+    "attempt_id": "FICTIONAL-INITIAL",
+    "admission": {
+      "file_sha256": "d2aabaaadcce564370f807c78793a31cff3843478613c4d689742c94a1874e6a",
+      "payload_sha256": "02e756839cd6c4a5cc3663e5cdc8bc8be01e7eddb8ec00ee302c535475fa9e62"
+    },
+    "start": null
+  },
+  "gates": {
+    "inputs": {
+      "policy_revision": "FICTIONAL-NOT-A-GATE-inputs",
+      "evidence_sha256": "ed34649118aed3b6e59d357d991250e4332656be383ff871cdfb693a79736806"
+    },
+    "implementation": {
+      "policy_revision": "FICTIONAL-NOT-A-GATE-implementation",
+      "evidence_sha256": "df439c999ef6d9f1645f354b62506c756c52378d17dcb08998e656609eb0a25c"
+    },
+    "layout": {
+      "policy_revision": "FICTIONAL-NOT-A-GATE-layout",
+      "evidence_sha256": "e681008c8669808338aeee9d875b4bafd6acc3a9c4ee96fe7751c9756ea93b52"
+    },
+    "resource": {
+      "policy_revision": "FICTIONAL-NOT-A-GATE-resource",
+      "evidence_sha256": "9bb1a985d11340bbc71f90c0b113beb425e3e05fa67f202d842a13da2bb650e2"
+    },
+    "user": {
+      "policy_revision": "FICTIONAL-NOT-A-GATE-user",
+      "evidence_sha256": "905dd279995576c9849fe16f66fe4ec82be251e361291f688b51d97a2bc5dea0"
+    }
+  },
+  "gates_sha256": "84ca757b13e3db1a6db4b6ed2943570c20777349369f528e6053fa2938226a2f",
+  "admitted": {
+    "wall_source": "unix_system_time",
+    "unix_ns": 45,
+    "monotonic_source": "std_instant",
+    "elapsed_since_operation_start_ns": 1
+  },
+  "provenance": {
+    "status": "captured",
+    "value": {
+      "schema": "hekit-study-case-provenance-v1",
+      "build": {
+        "compiler_vv": "FICTIONAL compiler\nhost: fictional\n",
+        "target": "fictional-target",
+        "host": "fictional-host",
+        "profile": "fictional",
+        "opt_level": "0",
+        "debug": false,
+        "features": [
+          "a-fictional",
+          "é-fictional"
+        ],
+        "package_version": "0.0.0-fictional",
+        "cargo_lock_sha256": "a252a98f669999f11558672e5a352907cbd9f1062ab5260938f5f09417c08cb2",
+        "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+        "config_manifest_sha256": "17f65fe46b8d1cfb9cc7b6c36717a675875b1c8f8101cca707d0d728bd02ea2f",
+        "build_environment_sha256": "53b769e53704b07717b8f8c72a4dc055e16263238f7ebd37bf4f6c3c0d5b72ce",
+        "recipe_version": "FICTIONAL-NOT-APPROVED",
+        "receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+      },
+      "source": {
+        "root": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c2fff"
+        },
+        "commit": {
+          "status": "available",
+          "value": "1111111111111111111111111111111111111111"
+        },
+        "tracked": "clean",
+        "untracked": "clean",
+        "manifest": [
+          {
+            "path": "fictional/a.rs",
+            "sha256": "01fc11ef519a8bf4cd46fb6e37e3f1d45ac5f191f323ed88f5904d39f3642da4"
+          },
+          {
+            "path": "fictional/é.rs",
+            "sha256": "d569ee2450c979d997b9f836895097160cdc9b9575b1e4920ffddce0e1a38079"
+          }
+        ]
+      },
+      "executable": {
+        "path": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c2f657865"
+        },
+        "start_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71",
+        "end_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71"
+      },
+      "invocation": {
+        "argv": [
+          {
+            "encoding": "unix_bytes",
+            "bytes": "2f66696374696f6e616c2f657865"
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": ""
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": "ff00"
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": "c3a9"
+          }
+        ],
+        "cwd": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c"
+        }
+      },
+      "host": {
+        "cpu_model": {
+          "status": "available",
+          "value": "fictional-cpu"
+        },
+        "os": {
+          "status": "available",
+          "value": "fictional-os"
+        },
+        "hostname": {
+          "status": "available",
+          "value": "fictional-host"
+        },
+        "available_cpus": {
+          "status": "available",
+          "value": 2
+        },
+        "process_id": {
+          "status": "available",
+          "value": 42
+        },
+        "observed_threads": {
+          "status": "available",
+          "value": 1
+        },
+        "execution_threads": 2
+      },
+      "thread_environment": [
+        {
+          "key": "BLIS_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "MKL_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "NUMEXPR_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "OMP_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "OPENBLAS_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "RAYON_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "VECLIB_MAXIMUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        }
+      ],
+      "recheck": {
+        "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+        "build_receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+      },
+      "role": "study_train"
+    }
+  }
+}

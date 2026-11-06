@@ -245,3 +245,88 @@ impl<'c> ReferenceStore<'c> {
         })
     }
 }
+
+/// Exact single-read verified snapshot borrowing its originating store.
+/// It cannot be attached to a different store or built from a bare verification.
+/// ```compile_fail
+/// use ckks_train_bench::study_reference::{VerifiedReference,VerifiedReferenceSnapshot};
+/// fn forge(v: VerifiedReference) -> VerifiedReferenceSnapshot<'static,'static> { v.into() }
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_reference::VerifiedReferenceSnapshot;
+/// fn duplicate(s: VerifiedReferenceSnapshot<'_,'_>) { let _ = s.clone(); }
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_reference::VerifiedReferenceSnapshot;
+/// let _: VerifiedReferenceSnapshot<'static,'static> = serde_json::from_str("{}").unwrap();
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_reference::ReferenceStore;
+/// fn lifetime(store: ReferenceStore<'_>) {
+///     let snapshot = store.read_reference_snapshot("reference").unwrap();
+///     drop(store); drop(snapshot);
+/// }
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_reference::VerifiedReferenceSnapshot;
+/// fn construct() { let _ = VerifiedReferenceSnapshot { origin: todo!(), bytes: todo!(), verified: todo!(), stamp: todo!() }; }
+/// ```
+pub struct VerifiedReferenceSnapshot<'r, 'c: 'r> {
+    origin: &'r ReferenceStore<'c>,
+    bytes: Box<[u8]>,
+    verified: VerifiedReference,
+    stamp: crate::study_provenance::publication::ReadStamp,
+}
+impl<'c> ReferenceStore<'c> {
+    /// Read exactly once through the held origin, verify normally and retain inode/namespace stamps.
+    pub fn read_reference_snapshot<'r>(
+        &'r self,
+        id: &str,
+    ) -> Result<VerifiedReferenceSnapshot<'r, 'c>, PublicationError> {
+        let (bytes, stamp) = self
+            .inner
+            .read_stamped(id, CAP)
+            .map_err(|_| PublicationError::Validation)?;
+        let verified = document::verify_reference(&bytes, self.context, id)?;
+        if verified.receipt().seed() != 0 {
+            return Err(PublicationError::Validation);
+        }
+        Ok(VerifiedReferenceSnapshot {
+            origin: self,
+            bytes: bytes.into_boxed_slice(),
+            verified,
+            stamp,
+        })
+    }
+    pub(super) fn context(&self) -> &'c VerifiedStudyContext {
+        self.context
+    }
+}
+impl VerifiedReferenceSnapshot<'_, '_> {
+    pub(super) fn recheck(&self) -> Result<(), PublicationError> {
+        let (bytes, stamp) = self
+            .origin
+            .inner
+            .read_stamped(self.verified.run_id(), CAP)
+            .map_err(|_| PublicationError::Validation)?;
+        if bytes.as_slice() != self.bytes.as_ref() || stamp != self.stamp {
+            return Err(PublicationError::Validation);
+        }
+        self.origin
+            .context
+            .recheck()
+            .map_err(|_| PublicationError::Validation)
+    }
+    pub(super) fn context(&self) -> &VerifiedStudyContext {
+        self.origin.context
+    }
+    pub(super) fn reference(&self) -> &VerifiedReference {
+        &self.verified
+    }
+    pub(super) fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+    pub(super) fn into_owned(self) -> (Box<[u8]>, VerifiedReference) {
+        (self.bytes, self.verified)
+    }
+}

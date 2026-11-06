@@ -1,0 +1,233 @@
+[
+  {
+    "id": "duplicate-escaped-key",
+    "base": "lock",
+    "mutation": "replace_bytes",
+    "old": "\"campaign_id\": \"FICTIONAL-CAMPAIGN\"",
+    "new": "\"campaign_id\": \"FICTIONAL-CAMPAIGN\", \"\\u0063ampaign_id\": \"FICTIONAL-CAMPAIGN\"",
+    "expected_layer": "lexical/typed decode",
+    "reason": "duplicate decoded key despite escaped alias",
+    "expected_category": "DuplicateField",
+    "file_sha256": "b0faf34e1077d9c57ea4cb2ab4355db315dda0442c4aee812ef8ba36cd055dc1",
+    "executed_against_production": false
+  },
+  {
+    "id": "unknown-field",
+    "base": "lock",
+    "mutation": "replace_bytes",
+    "old": "\"synthetic\": true",
+    "new": "\"synthetic\": true, \"approved\": true",
+    "expected_layer": "typed decode",
+    "reason": "unknown field never grants approval",
+    "expected_category": "UnknownField",
+    "file_sha256": "e972099a4d0c9fa639d9dfdfe82d08b1d2c3dd1d3feef1275d3bcf92c920cd24",
+    "executed_against_production": false
+  },
+  {
+    "id": "unsupported-domain",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "schema"
+    ],
+    "value": "hekit-test-target-lock-v999",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "schema",
+    "reason": "unsupported domain even after rehash",
+    "expected_category": "UnsupportedSchema",
+    "file_sha256": "841da27e3f0b1b4bd6d93741cc6d4712056b94c06f94980dfe7866100b5994da",
+    "executed_against_production": false
+  },
+  {
+    "id": "wrong-payload-hash",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "integrity",
+      "payload_sha256"
+    ],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "expected_layer": "integrity",
+    "reason": "payload mismatch",
+    "expected_category": "DigestMismatch",
+    "file_sha256": "051ccbcc1ae42aa65044202cc7369d082c0848b1a7a632f5beb90aa01cb8c684",
+    "executed_against_production": false
+  },
+  {
+    "id": "wrong-identity-hash",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "contract",
+      "sha256"
+    ],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "identity transport",
+    "reason": "blob SHA mismatch despite recomputed envelope SHA",
+    "expected_category": "DigestMismatch",
+    "file_sha256": "4d0671fffebd45af360abcdcf53c468de28a6b3b4eb3f97204dd800db7a62a8e",
+    "executed_against_production": false
+  },
+  {
+    "id": "wrong-reference-link",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "reference",
+      "link",
+      "file_sha256"
+    ],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "linked synthetic fixture validation or future context",
+    "reason": "exact linked reference file bytes differ",
+    "expected_category": "ByteOrPayloadMismatch",
+    "file_sha256": "832f42980846a2f1ee6a174d55f7247897fbd7b6a5c8b98ba0795e751f37c3c6",
+    "executed_against_production": false
+  },
+  {
+    "id": "mismatched-source-schema",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "reference",
+      "schema"
+    ],
+    "value": "hekit-study-reference-v1",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "synthetic linked schema (semantic negative)",
+    "reason": "production schema label differs from linked private source schema",
+    "expected_category": "CaseMismatch",
+    "file_sha256": "1d6910f0c975e9036ab5590dca1d2ca4adfccc90bc0e029576f0c4d6ef8794d7",
+    "executed_against_production": false
+  },
+  {
+    "id": "bits-value-disagree",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "target",
+      "bits"
+    ],
+    "value": "3fd50369d0369d04",
+    "expected_layer": "exact float validation",
+    "reason": "JSON value unchanged; bits one ULP altered",
+    "expected_category": "ObservationMismatch",
+    "file_sha256": "380a8fc14c08c47005adb1ddbd7cb840bd559693c932b707404f4ad51869a3b3",
+    "executed_against_production": false
+  },
+  {
+    "id": "target-one-ulp-up",
+    "base": "lock",
+    "mutation": "replace_bytes",
+    "old": "\"value\": 0.3283333333333333,\n    \"bits\": \"3fd50369d0369d03\"",
+    "new": "\"value\": 0.32833333333333337,\n    \"bits\": \"3fd50369d0369d04\"",
+    "expected_layer": "target recomputation",
+    "reason": "value/bits agree but differ from exact subtraction",
+    "expected_category": "ObservationMismatch",
+    "rehash": true,
+    "kind": "lock",
+    "file_sha256": "9fffb9b56668bebb40ef277162fa22926e52b374f66c5201f7a1de19ce332c32",
+    "executed_against_production": false
+  },
+  {
+    "id": "production-header-true",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "schema"
+    ],
+    "value": "hekit-study-target-lock-v1",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "production schema eligibility (semantic negative)",
+    "reason": "synthetic true forbidden in production; all claims fictional",
+    "expected_category": "UnsupportedPolicy",
+    "file_sha256": "a5b724a83d443555867a93b7eae80dc80b09967115589135264a2f7fd12a3513",
+    "executed_against_production": false
+  },
+  {
+    "id": "test-header-false",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "synthetic"
+    ],
+    "value": false,
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "production namespace eligibility (semantic negative)",
+    "reason": "test domain rejected irrespective of false marker; false does not create authority",
+    "expected_category": "UnsupportedSchema",
+    "file_sha256": "2d061319a6fd3e3b5b0a920663dce8d24cb8dbe05f061ea2c57fc03d51727448",
+    "executed_against_production": false
+  },
+  {
+    "id": "prior-start-link-mismatch",
+    "base": "retry-with-start",
+    "mutation": "set",
+    "path": [
+      "predecessor",
+      "start",
+      "payload_sha256"
+    ],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "kind": "admission",
+    "rehash": true,
+    "expected_layer": "predecessor context (semantic negative)",
+    "reason": "observed prior start digest differs",
+    "expected_category": "InvalidRetryLink",
+    "file_sha256": "39de46af4a30c4250d1509e30407ece45a1f3c14b155555315e9c87f67b356d2",
+    "executed_against_production": false
+  },
+  {
+    "id": "escaped-large-hex",
+    "base": "lock",
+    "mutation": "replace_bytes",
+    "old": "\"canonical_bytes\": \"46494354494f4e414c2d434f4e545241435400ff\"",
+    "new": "\"canonical_bytes\": \"\\u00346494354494f4e414c2d434f4e545241435400ff\"",
+    "expected_layer": "lexical preflight",
+    "reason": "escape forbidden even though decoded contract hex identical",
+    "expected_category": "BadHex",
+    "file_sha256": "a63a0d19f1296d1f39dcfa855012cf7e844b0e46179d373170677be3e84863dd",
+    "executed_against_production": false
+  },
+  {
+    "id": "production-header-false",
+    "base": "production-header-true.negative",
+    "mutation": "set",
+    "path": [
+      "synthetic"
+    ],
+    "value": false,
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "production nested schema (multi-defect semantic negative)",
+    "reason": "retained private reference.schema is forbidden by production lock schema; fictional claims are additionally unapproved; no approved-context reachability or isolated error-precedence claim",
+    "expected_category": "UnsupportedSchema",
+    "file_sha256": "0ae3bdc527c6ebc495c1e6341192746c27064ef2081032ab827eb690bc1e4d75",
+    "executed_against_production": false
+  },
+  {
+    "id": "unsupported-hash",
+    "base": "lock",
+    "mutation": "set",
+    "path": [
+      "integrity",
+      "hash"
+    ],
+    "value": "sha512",
+    "kind": "lock",
+    "rehash": true,
+    "expected_layer": "integrity algorithm schema",
+    "reason": "unsupported hash spelling despite recomputed SHA256 payload",
+    "expected_category": "UnsupportedTag",
+    "file_sha256": "e03eb63d6167aa05c3af65eaaa850f9478b1b8d671ee6d616cea3cba1a2902ed",
+    "executed_against_production": false
+  }
+]

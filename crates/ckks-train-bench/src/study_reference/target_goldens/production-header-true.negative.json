@@ -1,0 +1,285 @@
+{
+  "writer": {
+    "api_version": "hekit-study-target-api-v1",
+    "algorithm_revision": "hekit-study-target-protocol-v1"
+  },
+  "synthetic": true,
+  "campaign_id": "FICTIONAL-CAMPAIGN",
+  "profile_id": "FICTIONAL-PROFILE",
+  "lock_id": "bc1c2add0a5e7deac620b2fe9606f1288d1db80d165bd85700b3864142d06aea",
+  "policy": {
+    "scientific_revision": "e018bd7401a6a606e306e58decad7af68cc56b84",
+    "scientific_sha256": "6cdca16097d4acbf28c0f9bf0a36cccc1fccfae2fb604b0410926c066b85a035",
+    "registry_sha256": "8d84a79da4dac7fdc8fbeb7d38d9a6772aa375a24d50166938d5d1b9ac0169f3",
+    "portable_lock_sha256": "a3f0e2833d0886d8876d3e8d47869cffcc3eb4af1487aa233caa1bff5c120484",
+    "design_documents": [
+      {
+        "path": "docs/experiment-matrix.md",
+        "sha256": "9ed27dfa3d63b1c7622c44ac16b251cb513e9b8970169f31a5830277790726dc"
+      },
+      {
+        "path": "docs/study-reference-design.md",
+        "sha256": "7286e3e96100a851e4a2fe11bf1368e858096fb6ae0b3a3fe5e7e1285e937cb3"
+      },
+      {
+        "path": "docs/study-reference-document-design.md",
+        "sha256": "0de84d0c3c1b35695e6f2f17609389e0108b560d8fa3ad3881f88d4a7c9f11b5"
+      },
+      {
+        "path": "docs/study-reference-session-design.md",
+        "sha256": "c6cbc2ee8890444a48bbe6499f22534e5a20815b9ffaca954fe99ce4db062714"
+      },
+      {
+        "path": "docs/study-training-design.md",
+        "sha256": "7e7b0ac566353ab739737bb5300070fb8c8733031db37438726c8f8f8230fc58"
+      }
+    ],
+    "approval_sha256": "393d0d8dc8aed747778103d969904d7420c7dce01088a8fc7c4d6dfde660f7e4"
+  },
+  "status": "complete",
+  "integrity": {
+    "encoding": "hekit-study-reference-encoding-v1",
+    "hash": "sha256",
+    "payload_sha256": "037d5a53ac32df4a6010f23414f5029feb89116ea91382ff132a3adbdd01bab3"
+  },
+  "schema": "hekit-study-target-lock-v1",
+  "kind": "target_lock",
+  "contract": {
+    "schema": "hekit-study-profile-contract-v1",
+    "encoding": "hekit-study-reference-encoding-v1",
+    "canonical_bytes": "46494354494f4e414c2d434f4e545241435400ff",
+    "sha256": "26489a64c936652ebc20ecc81b8cc2bba312b9aa9edef8ff101ceb12051a0491"
+  },
+  "reference": {
+    "run_id": "FICTIONAL-REFERENCE",
+    "schema": "hekit-test-reference-document-v1",
+    "kind": "full_fp32_final",
+    "link": {
+      "file_sha256": "3f1dfecb374523d1236a441e36e4dbe99ad648313aa811b8e3b2c57edaf5a768",
+      "payload_sha256": "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d"
+    },
+    "seed": 0,
+    "seed_receipt_sha256": "b7a9fa15fa05b2e48b50ad04917fa0d76abd9c2cb2e7c3cdc46d10b371f0e7f4",
+    "materialized_sha256": "e54be8623d29c79c3d374252a6202a55dea92d9b132789760b9efeb54d3514bf",
+    "writer_capsule_sha256": "5f592e4f72425d38e4b8368bfafc08796bffe9af689280a186b00c8cefcf0ebe",
+    "start_unix_ns": 10,
+    "completion_unix_ns": 20,
+    "completion": {
+      "origin_completed_updates": 0,
+      "origin_processed_samples": 0,
+      "planned_updates": 2,
+      "actual_updates": 2,
+      "planned_samples": 4,
+      "actual_samples": 4,
+      "planned_dropped_samples": 0,
+      "actual_dropped_samples": 0,
+      "full_plan_sha256": "42d768883278c27a8292632f372ddced77de67b52ce9a21bb9e0e66cdbb895c6",
+      "consumed_plan_sha256": "42d768883278c27a8292632f372ddced77de67b52ce9a21bb9e0e66cdbb895c6",
+      "final_endpoint_index": 0,
+      "final_state_sha256": "c5c158a5ada8c47f538b5bce21a7f1ae76c4899d9bbef7040fd8d52af73ba0be",
+      "final_endpoint": {
+        "completed_updates": 2,
+        "processed_samples": 4,
+        "crossed_logical_boundaries": [
+          1,
+          2
+        ],
+        "exact_logical_boundary": true,
+        "interval_updates": 2,
+        "interval_samples": 4,
+        "observation": {
+          "correct": 1,
+          "test_count": 3,
+          "value": 0.3333333333333333,
+          "bits": "3fd5555555555555"
+        },
+        "update_elapsed_ns": {
+          "status": "available",
+          "value": 4
+        },
+        "evaluation_elapsed_ns": {
+          "status": "available",
+          "value": 2
+        }
+      }
+    },
+    "final_observation": {
+      "correct": 1,
+      "test_count": 3,
+      "value": 0.3333333333333333,
+      "bits": "3fd5555555555555"
+    }
+  },
+  "algorithm": "seed0-final-minus-half-percentage-point-f64-v1",
+  "target": {
+    "value": 0.3283333333333333,
+    "bits": "3fd50369d0369d03"
+  },
+  "created": {
+    "wall_source": "unix_system_time",
+    "unix_ns": 30,
+    "monotonic_source": "std_instant",
+    "elapsed_since_operation_start_ns": 1
+  },
+  "provenance": {
+    "status": "captured",
+    "value": {
+      "schema": "hekit-study-provenance-v1",
+      "build": {
+        "compiler_vv": "FICTIONAL compiler\nhost: fictional\n",
+        "target": "fictional-target",
+        "host": "fictional-host",
+        "profile": "fictional",
+        "opt_level": "0",
+        "debug": false,
+        "features": [
+          "a-fictional",
+          "é-fictional"
+        ],
+        "package_version": "0.0.0-fictional",
+        "cargo_lock_sha256": "a252a98f669999f11558672e5a352907cbd9f1062ab5260938f5f09417c08cb2",
+        "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+        "config_manifest_sha256": "17f65fe46b8d1cfb9cc7b6c36717a675875b1c8f8101cca707d0d728bd02ea2f",
+        "build_environment_sha256": "53b769e53704b07717b8f8c72a4dc055e16263238f7ebd37bf4f6c3c0d5b72ce",
+        "recipe_version": "FICTIONAL-NOT-APPROVED",
+        "receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+      },
+      "source": {
+        "root": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c2fff"
+        },
+        "commit": {
+          "status": "available",
+          "value": "1111111111111111111111111111111111111111"
+        },
+        "tracked": "clean",
+        "untracked": "clean",
+        "manifest": [
+          {
+            "path": "fictional/a.rs",
+            "sha256": "01fc11ef519a8bf4cd46fb6e37e3f1d45ac5f191f323ed88f5904d39f3642da4"
+          },
+          {
+            "path": "fictional/é.rs",
+            "sha256": "d569ee2450c979d997b9f836895097160cdc9b9575b1e4920ffddce0e1a38079"
+          }
+        ]
+      },
+      "executable": {
+        "path": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c2f657865"
+        },
+        "start_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71",
+        "end_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71"
+      },
+      "invocation": {
+        "argv": [
+          {
+            "encoding": "unix_bytes",
+            "bytes": "2f66696374696f6e616c2f657865"
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": ""
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": "ff00"
+          },
+          {
+            "encoding": "unix_bytes",
+            "bytes": "c3a9"
+          }
+        ],
+        "cwd": {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c"
+        }
+      },
+      "host": {
+        "cpu_model": {
+          "status": "available",
+          "value": "fictional-cpu"
+        },
+        "os": {
+          "status": "available",
+          "value": "fictional-os"
+        },
+        "hostname": {
+          "status": "available",
+          "value": "fictional-host"
+        },
+        "available_cpus": {
+          "status": "available",
+          "value": 2
+        },
+        "process_id": {
+          "status": "available",
+          "value": 42
+        },
+        "observed_threads": {
+          "status": "available",
+          "value": 1
+        },
+        "execution_threads": 1
+      },
+      "thread_environment": [
+        {
+          "key": "BLIS_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "MKL_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "NUMEXPR_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "OMP_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "OPENBLAS_NUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        },
+        {
+          "key": "RAYON_NUM_THREADS",
+          "value": {
+            "status": "unavailable",
+            "reason": "fictional unavailable observation"
+          }
+        },
+        {
+          "key": "VECLIB_MAXIMUM_THREADS",
+          "value": {
+            "status": "available",
+            "value": "1"
+          }
+        }
+      ],
+      "recheck": {
+        "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+        "build_receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+      }
+    }
+  }
+}

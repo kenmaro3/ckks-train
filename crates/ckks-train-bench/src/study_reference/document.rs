@@ -13,8 +13,10 @@ pub(in crate::study_reference) use producer::{
     serialize_diagnostic, serialize_failure, serialize_local_quick, serialize_local_quick_f64,
     serialize_reference,
 };
-pub use reader::VerifiedReference;
 pub(in crate::study_reference) use reader::verify_reference;
+pub use reader::{
+    ReferenceCompletionView, ReferenceEndpointView, ReferenceTimeView, VerifiedReference,
+};
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::value::RawValue;
 use std::{fmt, marker::PhantomData};
@@ -139,7 +141,27 @@ enum PathComponent {
     Key(String),
     ArrayElement,
 }
+#[derive(Clone, Copy)]
+enum DocumentLayout {
+    Reference,
+    TargetLock,
+}
+impl DocumentLayout {
+    fn file_cap(self) -> usize {
+        match self {
+            Self::Reference => J_MAX,
+            Self::TargetLock => 7_324_204,
+        }
+    }
+    fn canonical_cap(self) -> usize {
+        match self {
+            Self::Reference => ENVELOPE_MAX,
+            Self::TargetLock => 4_710_678,
+        }
+    }
+}
 struct Scan<'a> {
+    layout: DocumentLayout,
     s: &'a [u8],
     i: usize,
     excluded: usize,
@@ -183,10 +205,18 @@ impl Scan<'_> {
         let mut escaped = false;
         let blob = if key {
             None
-        } else if self.at_keys(&["identity", "contract", "canonical_bytes"]) {
+        } else if matches!(self.layout, DocumentLayout::Reference)
+            && self.at_keys(&["identity", "contract", "canonical_bytes"])
+        {
             Some(C_MAX)
-        } else if self.at_keys(&["identity", "seed_receipt", "canonical_bytes"]) {
+        } else if matches!(self.layout, DocumentLayout::Reference)
+            && self.at_keys(&["identity", "seed_receipt", "canonical_bytes"])
+        {
             Some(R_MAX)
+        } else if matches!(self.layout, DocumentLayout::TargetLock)
+            && self.at_keys(&["contract", "canonical_bytes"])
+        {
+            Some(C_MAX)
         } else {
             None
         };
@@ -316,9 +346,17 @@ impl Scan<'_> {
     }
 }
 fn preflight(s: &[u8]) -> Result<()> {
-    ensure(s.len() <= J_MAX, DocumentErrorCode::TooLarge, "")?;
+    preflight_layout(s, DocumentLayout::Reference)
+}
+fn preflight_layout(s: &[u8], layout: DocumentLayout) -> Result<()> {
+    ensure(
+        s.len() <= layout.file_cap(),
+        DocumentErrorCode::TooLarge,
+        "",
+    )?;
     std::str::from_utf8(s).map_err(|_| err(DocumentErrorCode::BadJson, ""))?;
     let mut scan = Scan {
+        layout,
         s,
         i: 0,
         excluded: 0,
@@ -409,12 +447,25 @@ fn bounded_add(current: usize, extra: usize, limit: usize, p: &str) -> Result<us
         .ok_or_else(|| err(DocumentErrorCode::TooLarge, p))
 }
 struct Encoder {
+    layout: DocumentLayout,
     bytes: Vec<u8>,
     outer: usize,
 }
 impl Encoder {
+    fn new(layout: DocumentLayout) -> Self {
+        Self {
+            layout,
+            bytes: Vec::new(),
+            outer: 0,
+        }
+    }
     fn append(&mut self, b: &[u8], blob: bool) -> Result<()> {
-        bounded_add(self.bytes.len(), b.len(), ENVELOPE_MAX, "canonical")?;
+        bounded_add(
+            self.bytes.len(),
+            b.len(),
+            self.layout.canonical_cap(),
+            "canonical",
+        )?;
         if !blob {
             self.outer = bounded_add(self.outer, b.len(), A_MAX, "canonical")?;
         }
@@ -1337,6 +1388,7 @@ fn prepare(bytes: &[u8]) -> Result<(String, &RawValue)> {
 }
 fn start_encoding(c: &Common) -> Result<Encoder> {
     let mut e = Encoder {
+        layout: DocumentLayout::Reference,
         bytes: Vec::new(),
         outer: 0,
     };
@@ -1496,7 +1548,10 @@ fn unique_by<T, F: Fn(&T) -> &str>(v: &mut [T], key: F, p: &str) -> Result<()> {
     )
 }
 fn provenance(c: &mut Common, complete: bool) -> Result<()> {
-    let ProvenanceClaim::Captured(p) = &mut c.provenance else {
+    validate_provenance(&mut c.provenance, complete)
+}
+fn validate_provenance(claim: &mut ProvenanceClaim, complete: bool) -> Result<()> {
+    let ProvenanceClaim::Captured(p) = claim else {
         return Ok(());
     };
     ensure(
@@ -1844,3 +1899,9 @@ pub fn parse_failure_document(bytes: &[u8]) -> Result<ParsedFailureDocument> {
 #[cfg(test)]
 #[path = "document_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "document/target_tests.rs"]
+mod target_tests;
+
+pub(super) mod target;
