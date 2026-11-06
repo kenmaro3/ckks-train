@@ -753,14 +753,17 @@ print(scenario+' rejected')
 # It contains no NumPy implementation or copied third-party source.
 OPTIONAL_QUERY_FIXTURE = b"""import sys
 EXECUTIONS = globals().get('EXECUTIONS', 0) + 1
+LAUNCHES = []
 def check_support_sve(event, arguments, catch=False):
     if catch:
         try:
             sys.audit(event, *arguments)
+            LAUNCHES.append('launch after audit')
         except OSError:
             return False
         raise AssertionError('audit unexpectedly returned')
     sys.audit(event, *arguments)
+    LAUNCHES.append('launch after audit')
 def different_caller(event, arguments):
     sys.audit(event, *arguments)
 """
@@ -783,24 +786,60 @@ class OptionalHostQueryTests(unittest.TestCase):
                  mock.patch.object(ex.platform, 'machine', return_value='fictional'), \
                  mock.patch.dict(ex.os.environ, {'PATH': '/usr/bin:/bin'}):
                 runtime = ex.runtime_identity()
-            self.assertIn('optional_host_query_denial_policy', runtime)
+            self.assertEqual(runtime['sys_platform'], ex.sys.platform)
             policy = runtime['optional_host_query_denial_policy']
-            self.assertEqual(policy['source_sha256'], '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40')
-            self.assertEqual(policy['exception'], 'PermissionError(EPERM)')
+            expected = {
+                'policy': 'numpy-sve-source-bound-denial-eperm-v2',
+                'source_sha256': '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40',
+                'caller': 'numpy.testing._private.utils.check_support_sve',
+                'event': 'subprocess.Popen', 'executable': 'lscpu', 'argv': ['lscpu'],
+                'cwd': None, 'env': None, 'PATH': '/usr/bin:/bin',
+                'platform_rules': [
+                    {'sys_platform': 'darwin', 'absent_paths': ['/usr/bin/lscpu', '/bin/lscpu']},
+                    {'sys_platform': 'linux', 'machine': 'x86_64',
+                     'candidate_presence': 'irrelevant_to_denial'}],
+                'exception': 'PermissionError(EPERM)'}
+            self.assertEqual(policy, expected)
             self.assertEqual(runtime['environment']['PATH'], '/usr/bin:/bin')
-            old = copy.deepcopy(runtime)
-            del old['optional_host_query_denial_policy']
+            prior_policy = {
+                'policy': 'numpy-sve-darwin-source-bound-denial-eperm-v1',
+                'source_sha256': '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40',
+                'caller': 'numpy.testing._private.utils.check_support_sve',
+                'event': 'subprocess.Popen', 'executable': 'lscpu', 'argv': ['lscpu'],
+                'cwd': None, 'env': None, 'platform': 'darwin', 'PATH': '/usr/bin:/bin',
+                'absent_paths': ['/usr/bin/lscpu', '/bin/lscpu'],
+                'exception': 'PermissionError(EPERM)'}
+            # Exercise the real run_export full-context equality gate. Only its
+            # explicit observer injection supplies fictional, nonscientific input.
+            observed = {'runtime': runtime, 'exporter': {'source_sha256': ex.file_hash(ex.__file__)}}
             paths = {key: '/fictional/input' for key in
                      ('baseline', 'data', 'archive', 'canonical', 'openfhe', 'openfhe_python')}
-            approval = {'paths': paths, 'authorized_mode': 'compatibility', 'expected_context': old}
-            backend = mock.Mock()
-            with self.assertRaisesRegex(ex.ExportError, 'unapproved/missing/changed context'):
-                ex.run_export(approval, root / 'output', 'compatibility',
-                              backend_factory=backend, observer=lambda paths: runtime)
-            backend.assert_not_called()
-            self.assertFalse((root / 'output').exists())
+            for change in ('v1', 'missing_policy', 'wrong_v2', 'stale_exporter',
+                           'missing_platform', 'wrong_platform', 'wrong_machine'):
+                old = copy.deepcopy(observed)
+                if change == 'v1': old['runtime']['optional_host_query_denial_policy'] = prior_policy
+                if change == 'missing_policy': del old['runtime']['optional_host_query_denial_policy']
+                if change == 'wrong_v2': old['runtime']['optional_host_query_denial_policy']['PATH'] = '/wrong'
+                if change == 'stale_exporter': old['exporter']['source_sha256'] = '5cb7296fa43c88ba1f5d503f8b73d2aae39b2fb0dc1e4c3510d9b5e96fd15c60'
+                if change == 'missing_platform': del old['runtime']['sys_platform']
+                if change == 'wrong_platform': old['runtime']['sys_platform'] = 'other'
+                if change == 'wrong_machine': old['runtime']['machine'] = 'other'
+                approval = {'paths': paths, 'authorized_mode': 'compatibility', 'expected_context': old}
+                backend = mock.Mock()
+                with self.subTest(change=change), \
+                     mock.patch.object(ex, 'ActualBackend') as actual_backend, \
+                     mock.patch.object(Path, 'mkdir') as create_output, \
+                     mock.patch.object(ex.sys, 'stderr') as diagnostics:
+                    with self.assertRaisesRegex(ex.ExportError, 'unapproved/missing/changed context'):
+                        ex.run_export(approval, root / 'output', 'compatibility',
+                                      backend_factory=backend, observer=lambda paths: observed)
+                    backend.assert_not_called()
+                    actual_backend.assert_not_called()
+                    create_output.assert_not_called()
+                    diagnostics.write.assert_not_called()
+                    self.assertFalse((root / 'output').exists())
 
-    def run_child(self, scenario):
+    def run_child(self, scenario, host='darwin', machine='arm64', candidates=None, tuple_argv=False):
         import subprocess
         import sys
         with tempfile.TemporaryDirectory() as temp:
@@ -821,6 +860,15 @@ from unittest import mock
 sys.path.insert(0,sys.argv[1])
 import export_reboot_block_seed_inputs as ex
 paths=json.loads(sys.argv[2]); context=json.loads(sys.argv[3]); scenario=sys.argv[4]
+options=json.loads(sys.argv[5])
+host=options['host']; machine=options['machine']
+mock.patch.object(sys,'platform',host).start()
+mock.patch.object(ex.platform,'machine',return_value=machine).start()
+context['runtime'].update(sys_platform=host,machine=machine)
+if scenario=='reviewed_platform_mismatch': context['runtime']['sys_platform']='other'
+if scenario=='reviewed_machine_mismatch': context['runtime']['machine']='other'
+if scenario=='missing_platform': context['runtime'].pop('sys_platform')
+if scenario=='missing_machine': context['runtime'].pop('machine')
 relative='numpy/testing/_private/utils.py'
 source=Path(context['runtime']['packages']['numpy']['root'])/relative
 fixture=source.read_bytes()
@@ -829,6 +877,16 @@ fixture=source.read_bytes()
 ex.NUMPY_UTILS_SHA256=ex.digest(fixture)
 if hasattr(ex,'optional_host_query_policy'):
     context['runtime']['optional_host_query_denial_policy']=ex.optional_host_query_policy()
+if scenario=='v1_context':
+    context['runtime']['optional_host_query_denial_policy']={
+        'policy':'numpy-sve-darwin-source-bound-denial-eperm-v1',
+        'source_sha256':ex.NUMPY_UTILS_SHA256,
+        'caller':'numpy.testing._private.utils.check_support_sve',
+        'event':'subprocess.Popen','executable':'lscpu','argv':['lscpu'],
+        'cwd':None,'env':None,'platform':'darwin','PATH':'/usr/bin:/bin',
+        'absent_paths':['/usr/bin/lscpu','/bin/lscpu'],'exception':'PermissionError(EPERM)'}
+if scenario=='wrong_policy':
+    context['runtime']['optional_host_query_denial_policy']['PATH']='/wrong'
 if scenario=='old_context':
     context['runtime'].pop('optional_host_query_denial_policy',None)
 if scenario=='wrong_pin':
@@ -860,7 +918,14 @@ if scenario in ('changed_source','unlisted_source'):
         print(scenario+' rejected');sys.exit(0)
     raise AssertionError('unapproved source accepted')
 sys.modules[name]=module
-code=spec.loader.get_code(name)
+if scenario=='binding_platform_mismatch':
+    with mock.patch.object(sys,'platform','other'):
+        code=spec.loader.get_code(name)
+elif scenario=='binding_machine_mismatch':
+    with mock.patch.object(ex.platform,'machine',return_value='other'):
+        code=spec.loader.get_code(name)
+else:
+    code=spec.loader.get_code(name)
 exec(code,module.__dict__)
 assert module.EXECUTIONS==1
 # Exact audit event only; no Popen or command invocation occurs in this child.
@@ -872,11 +937,14 @@ if scenario=='absolute_executable': arguments[0]='/usr/bin/lscpu'
 if scenario=='absolute_argv': arguments[1]=['/usr/bin/lscpu']
 if scenario=='string_argv': arguments[1]='lscpu'
 if scenario=='bytes_executable': arguments[0]=b'lscpu'
+if scenario=='bytes_argv': arguments[1]=[b'lscpu']
+if options['tuple_argv']: arguments[1]=tuple(arguments[1])
 if scenario=='cwd': arguments[2]='/tmp'
 if scenario=='env': arguments[3]={'PATH':'/usr/bin:/bin'}
 if scenario=='other_command': arguments[:2]=['uname',['uname']]
 if scenario.startswith('operation:'): event=scenario.split(':',1)[1];arguments=[]
 if scenario=='other_caller': call=module.different_caller
+if scenario=='unbound': state._bindings.clear()
 if scenario in ('dynamic_code','equal_code'):
     other={**module.__dict__}
     exec(compile(fixture,str(source),'exec'),other)
@@ -901,38 +969,58 @@ if scenario=='intervening_caller':
     sys.audit=extra
 # Only host predicates are mocked; loader, compiled identity, module namespace,
 # audit registration/dispatch, exception handling, and diagnostics are real.
-platform_value='linux' if scenario=='platform' else 'darwin'
+platform_value='other' if scenario=='platform' else host
+if scenario=='live_platform_mismatch': platform_value='darwin' if host=='linux' else 'linux'
+if scenario=='live_machine_mismatch': machine='changed-after-binding'
 path_value='/usr/local/bin:/usr/bin:/bin' if scenario=='path' else '/usr/bin:/bin'
 real_lexists=os.path.lexists
-present={'/usr/bin/lscpu'} if scenario=='present_usr_bin' else {'/bin/lscpu'} if scenario=='present_bin' else set()
+candidate_root=source.parent/'candidate-fixture'
+candidate_root.mkdir()
+candidate_paths={}
+for index, location in enumerate(('/usr/bin/lscpu','/bin/lscpu')):
+    candidate=candidate_root/str(index)
+    status=options['candidates'].get(location,'absent')
+    if status=='present': candidate.write_text('fictional never-executed candidate')
+    if status=='dangling': candidate.symlink_to(candidate_root/'missing-target')
+    candidate_paths[location]=candidate
+candidate_calls=[]
 def candidate_exists(path):
-    if str(path) in ('/usr/bin/lscpu','/bin/lscpu'): return str(path) in present
+    if str(path) in candidate_paths:
+        candidate_calls.append(str(path))
+        return real_lexists(candidate_paths[str(path)])
     return real_lexists(path)
-with mock.patch.object(sys,'platform',platform_value), mock.patch.dict(os.environ,{'PATH':path_value}), mock.patch.object(os.path,'lexists',side_effect=candidate_exists):
-    if scenario=='fallback':
-        assert call(event,arguments,True) is False
-    elif scenario in ('exact','tuple_argv'):
-        if scenario=='tuple_argv': arguments[1]=('lscpu',)
-        try:
-            call(event,arguments)
-        except PermissionError as error:
-            assert error.errno==errno.EPERM
+with mock.patch.object(sys,'platform',platform_value), mock.patch.object(ex.platform,'machine',return_value=machine), mock.patch.dict(os.environ,{'PATH':path_value}), mock.patch.object(os.path,'lexists',side_effect=candidate_exists):
+    try:
+        if scenario=='fallback':
+            assert call(event,arguments,True) is False
+        elif scenario in ('exact','tuple_argv'):
+            if scenario=='tuple_argv': arguments[1]=('lscpu',)
+            try:
+                call(event,arguments)
+            except PermissionError as error:
+                assert error.errno==errno.EPERM
+            else:
+                raise AssertionError('optional query not denied')
         else:
-            raise AssertionError('optional query not denied')
-    else:
-        try:
-            call(event,arguments)
-        except ex.ExportError:
-            pass
-        else:
-            raise AssertionError('strict denial missing for '+scenario)
+            try:
+                call(event,arguments)
+            except ex.ExportError:
+                pass
+            else:
+                raise AssertionError('strict denial missing for '+scenario)
+    finally:
+        assert module.LAUNCHES==[], module.LAUNCHES
+        if platform_value=='linux': assert candidate_calls==[], candidate_calls
+        print('launch sentinel untouched; candidate probes='+str(len(candidate_calls)))
 assert 'numpy' not in sys.modules and 'torch' not in sys.modules and 'openfhe' not in sys.modules
 print(scenario+' passed; fictional source only; no command invoked')
 '''
             result = subprocess.run([sys.executable, '-I', '-B', '-c', program,
-                str(Path(ex.__file__).resolve().parent), json.dumps(paths), json.dumps(context), scenario],
+                str(Path(ex.__file__).resolve().parent), json.dumps(paths), json.dumps(context), scenario,
+                json.dumps({'host': host, 'machine': machine, 'tuple_argv': tuple_argv,
+                            'candidates': candidates or {}})],
                 capture_output=True, text=True, timeout=30)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             return result
 
     def test_source_bound_optional_query_raises_eperm_and_ordinary_oserror_fallback(self):
@@ -948,18 +1036,65 @@ print(scenario+' passed; fictional source only; no command invoked')
                 self.assertEqual(records[0]['decision'], 'denied_optional_host_query')
                 self.assertEqual(records[0]['caller'], 'numpy.testing._private.utils.check_support_sve')
 
+    def test_linux_exact_query_denial_and_fallback_without_launch(self):
+        for scenario in ('exact', 'fallback'):
+            with self.subTest(scenario=scenario):
+                result = self.run_child(scenario, host='linux', machine='x86_64')
+                records = [json.loads(line) for line in result.stderr.splitlines()]
+                self.assertEqual(len(records), 1)
+                self.assertEqual(records[0]['sys_platform'], 'linux')
+                self.assertEqual(records[0]['machine'], 'x86_64')
+                self.assertEqual(records[0]['arm'], 'linux_x86_64_denied')
+                self.assertIs(records[0]['no_launch'], True)
+                self.assertIn('launch sentinel untouched; candidate probes=0', result.stdout)
+
+    def test_platform_candidate_and_argv_matrix(self):
+        from itertools import product
+        for statuses in product(('absent', 'present', 'dangling'), repeat=2):
+            candidates = dict(zip(('/usr/bin/lscpu', '/bin/lscpu'), statuses))
+            for tuple_argv in (False, True):
+                with self.subTest(host='linux', candidates=candidates, tuple_argv=tuple_argv):
+                    result = self.run_child('exact', host='linux', machine='x86_64',
+                                            candidates=candidates, tuple_argv=tuple_argv)
+                    record, = [json.loads(line) for line in result.stderr.splitlines()]
+                    self.assertEqual(record['arm'], 'linux_x86_64_denied')
+                    self.assertTrue(record['no_launch'])
+                    self.assertIn('candidate probes=0', result.stdout)
+            with self.subTest(host='darwin', candidates=candidates):
+                qualifies = statuses == ('absent', 'absent')
+                result = self.run_child('exact' if qualifies else 'candidate_present',
+                                        candidates=candidates)
+                if qualifies:
+                    record, = [json.loads(line) for line in result.stderr.splitlines()]
+                    self.assertEqual(record['arm'], 'darwin_absent')
+                    self.assertEqual(record['machine'], 'arm64')
+                else:
+                    self.assertEqual(result.stderr, '')
+        for machine in ('aarch64', '', 'unknown'):
+            with self.subTest(machine=machine):
+                self.assertEqual(self.run_child('nonmatching_machine', host='linux',
+                                                machine=machine).stderr, '')
+        self.assertEqual(self.run_child('other_os', host='freebsd', machine='x86_64').stderr, '')
+        # Darwin has no architecture restriction, but still binds reviewed values.
+        self.assertIn('darwin_absent', self.run_child('exact', machine='unknown').stderr)
+
     def test_each_query_context_and_caller_constraint_remains_strict(self):
         # Break caught: dropping any conjunct, accepting equal/recompiled code,
         # a filename/name spoof, a namespace clone, or an intervening caller.
         for scenario in ('extra_argument', 'absolute_executable', 'absolute_argv',
                          'string_argv', 'bytes_executable', 'cwd', 'env', 'other_command',
-                         'platform', 'path', 'present_usr_bin', 'present_bin',
+                         'platform', 'path', 'bytes_argv', 'unbound',
+                         'reviewed_platform_mismatch', 'reviewed_machine_mismatch',
+                         'live_platform_mismatch', 'live_machine_mismatch',
+                         'binding_platform_mismatch', 'binding_machine_mismatch',
+                         'missing_platform', 'missing_machine',
                          'other_caller', 'dynamic_code', 'equal_code', 'spoofed_filename',
                          'spoofed_module', 'wrong_module_name', 'wrong_module_origin',
-                         'intervening_caller', 'old_context', 'wrong_pin'):
-            with self.subTest(scenario=scenario):
-                result = self.run_child(scenario)
-                self.assertEqual(result.stderr, '')
+                         'intervening_caller', 'old_context', 'v1_context', 'wrong_policy', 'wrong_pin'):
+            for host, machine in (('darwin', 'arm64'), ('linux', 'x86_64')):
+                with self.subTest(scenario=scenario, host=host):
+                    result = self.run_child(scenario, host=host, machine=machine)
+                    self.assertEqual(result.stderr, '')
 
     def test_optional_caller_never_softens_other_operations_or_source_checks(self):
         # Break caught: softening other process/network operations or registering
@@ -968,9 +1103,10 @@ print(scenario+' passed; fictional source only; no command invoked')
                          'operation:os.system', 'operation:os.fork', 'operation:os.forkpty',
                          'operation:os.posix_spawn', 'operation:os.exec',
                          'changed_source', 'unlisted_source', 'preloaded'):
-            with self.subTest(scenario=scenario):
-                result = self.run_child(scenario)
-                self.assertEqual(result.stderr, '')
+            for host, machine in (('darwin', 'arm64'), ('linux', 'x86_64')):
+                with self.subTest(scenario=scenario, host=host):
+                    result = self.run_child(scenario, host=host, machine=machine)
+                    self.assertEqual(result.stderr, '')
 
 
 class NamespaceOriginTests(unittest.TestCase):

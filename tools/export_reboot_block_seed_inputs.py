@@ -37,7 +37,7 @@ class ExportError(RuntimeError):
 
 PYTHON_SOURCE_POLICY = 'validated-source-no-bytecode-v1'
 NUMPY_UTILS_SHA256 = '55d1a25fe7dbe7146deb16f0827833b207b88aadad6536654b4ec7020a559e40'
-OPTIONAL_HOST_QUERY_POLICY = 'numpy-sve-darwin-source-bound-denial-eperm-v1'
+OPTIONAL_HOST_QUERY_POLICY = 'numpy-sve-source-bound-denial-eperm-v2'
 MODELS = ('emlp2', 'emlp3')
 SHAPES = {
     'emlp2': {'linear_fwd_00': (196, 64), 'linear_lrn_00': (64, 16),
@@ -347,8 +347,11 @@ def optional_host_query_policy():
             'source_sha256': NUMPY_UTILS_SHA256,
             'caller': 'numpy.testing._private.utils.check_support_sve',
             'event': 'subprocess.Popen', 'executable': 'lscpu', 'argv': ['lscpu'],
-            'cwd': None, 'env': None, 'platform': 'darwin', 'PATH': '/usr/bin:/bin',
-            'absent_paths': ['/usr/bin/lscpu', '/bin/lscpu'],
+            'cwd': None, 'env': None, 'PATH': '/usr/bin:/bin',
+            'platform_rules': [
+                {'sys_platform': 'darwin', 'absent_paths': ['/usr/bin/lscpu', '/bin/lscpu']},
+                {'sys_platform': 'linux', 'machine': 'x86_64',
+                 'candidate_presence': 'irrelevant_to_denial'}],
             'exception': 'PermissionError(EPERM)'}
 
 
@@ -372,7 +375,8 @@ def runtime_identity():
     executable = str(Path(sys.executable).resolve())
     return {'executable': executable, 'executable_sha256': file_hash(executable),
             'version': sys.version, 'prefix': sys.prefix, 'base_prefix': sys.base_prefix,
-            'platform': platform.platform(), 'machine': platform.machine(), 'byteorder': sys.byteorder,
+            'platform': platform.platform(), 'sys_platform': sys.platform,
+            'machine': platform.machine(), 'byteorder': sys.byteorder,
             'isolated': sys.flags.isolated, 'dont_write_bytecode': sys.dont_write_bytecode,
             'python_source_loading_policy': PYTHON_SOURCE_POLICY,
             'optional_host_query_denial_policy': optional_host_query_policy(),
@@ -630,8 +634,11 @@ boundary. Previously imported governed code cannot be validated retroactively.
     require(source_hashes, 'missing approved Python source inventory')
     numpy = approved_context['runtime']['packages'].get('numpy')
     optional_origin = (Path(numpy['root']) / 'numpy/testing/_private/utils.py').resolve() if numpy else None
+    optional_platform = approved_context['runtime'].get('sys_platform')
+    optional_machine = approved_context['runtime'].get('machine')
     optional_approved = (optional_host_query is not None and optional_origin is not None and
                          source_hashes.get(optional_origin) == NUMPY_UTILS_SHA256 and
+                         optional_platform == sys.platform and optional_machine == platform.machine() and
                          exact_json(approved_context['runtime'].get('optional_host_query_denial_policy'),
                                     optional_host_query_policy()))
 
@@ -658,13 +665,15 @@ boundary. Previously imported governed code cannot be validated retroactively.
                     'unapproved/changed governed Python source: ' + str(canonical))
         code = compile(source, filename, 'exec', dont_inherit=True, optimize=-1)
         if (optional_approved and canonical == optional_origin and
-                fullname == 'numpy.testing._private.utils'):
+                fullname == 'numpy.testing._private.utils' and
+                optional_platform == sys.platform and optional_machine == platform.machine()):
             # Retain the actual compiled object, never a filename/name assertion
             # or code-object equality (freshly compiled code can compare equal).
             candidates = [c for c in code.co_consts if isinstance(c, type(code)) and
                           c.co_name == 'check_support_sve']
             require(len(candidates) == 1, 'optional host-query source function identity missing')
-            optional_host_query.bind_validated_code(candidates[0], canonical)
+            optional_host_query.bind_validated_code(candidates[0], canonical,
+                                                    optional_platform, optional_machine)
         return code
 
     def deny_bytecode(event, args):
@@ -693,25 +702,34 @@ class OptionalHostQueryDenial:
         self._subprocess_codes = (subprocess.run.__code__, subprocess.Popen.__init__.__code__,
                                   subprocess.Popen._execute_child.__code__)
 
-    def bind_validated_code(self, code, origin):
-        self._bindings.append((code, origin))
+    def bind_validated_code(self, code, origin, sys_platform, machine):
+        self._bindings.append((code, origin, sys_platform, machine))
 
     def deny_if_exact(self, args):
         executable, command, cwd, env = args
         if not (self._bindings and type(executable) is str and executable == 'lscpu' and
                 type(command) in (list, tuple) and len(command) == 1 and
                 type(command[0]) is str and command[0] == 'lscpu' and
-                cwd is None and env is None and sys.platform == 'darwin' and
-                os.environ.get('PATH') == '/usr/bin:/bin' and
-                not any(os.path.lexists(p) for p in ('/usr/bin/lscpu', '/bin/lscpu'))):
+                cwd is None and env is None and os.environ.get('PATH') == '/usr/bin:/bin'):
+            return
+        sys_platform, machine = sys.platform, platform.machine()
+        if sys_platform == 'darwin':
+            if any(os.path.lexists(p) for p in ('/usr/bin/lscpu', '/bin/lscpu')):
+                return
+            arm = 'darwin_absent'
+        elif sys_platform == 'linux' and machine == 'x86_64':
+            # Presence is irrelevant: raise at the audit boundary before launch.
+            arm = 'linux_x86_64_denied'
+        else:
             return
         frame = sys._getframe(2)  # skip this method and the exporter audit hook
         try:
             while frame is not None and any(frame.f_code is c for c in self._subprocess_codes):
                 frame = frame.f_back
             module = sys.modules.get('numpy.testing._private.utils')
-            for code, origin in self._bindings:
-                if (frame is not None and frame.f_code is code and module is not None and
+            for code, origin, reviewed_platform, reviewed_machine in self._bindings:
+                if (sys_platform == reviewed_platform and machine == reviewed_machine and
+                        frame is not None and frame.f_code is code and module is not None and
                         frame.f_globals is module.__dict__ and
                         frame.f_globals.get('__name__') == 'numpy.testing._private.utils' and
                         frame.f_globals.get('__file__') is not None and
@@ -721,6 +739,8 @@ class OptionalHostQueryDenial:
                                       'source': str(origin), 'source_sha256': NUMPY_UTILS_SHA256,
                                       'caller': 'numpy.testing._private.utils.check_support_sve',
                                       'event': 'subprocess.Popen', 'argv': ['lscpu'],
+                                      'sys_platform': sys_platform, 'machine': machine,
+                                      'arm': arm, 'no_launch': True,
                                       'errno': errno.EPERM}, sort_keys=True), file=sys.stderr, flush=True)
                     raise PermissionError(errno.EPERM, 'policy denied optional NumPy host query: lscpu')
         finally:
