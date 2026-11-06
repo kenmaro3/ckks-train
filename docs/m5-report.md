@@ -284,4 +284,8 @@ Linux launcherのFIX3は固定された自分自身のファイルキーに対�
 
 学習側の読み取りと公開・復旧操作を分ける変更は限定55テスト・strict library Clippy／formatと独立sourceレビューに合格し、`2fa380f`で統合・pushした。実際のTrain contextによる読み取り／書込み拒否の統合検証はruntime実装後に残す。全行runnerと研究ゲートの未完事項、全登録範囲・campaign holdを維持する。
 
+## 2026-11-07追記: runtime実装前の具体化
+
+[Runtime設計 §11](study-runtime-design.md#11-concrete-ownership-and-bounded-module-reads-2026-11-07)に、単一core内での実行lease保持、CUDA観測adapterを先行する実装順、native moduleを1GiB上限・1MiB chunkで読む方針と代替案を記録した。自己参照や実行権限の複製を避け、既存SHA-256のprivate streaming化でファイル全体のメモリ複製を避ける。いずれも実装前の選択で、実runtime・CUDA実機・Train統合検証や研究ゲートの合格ではない。既存の科学的設定・artifact上限・全登録範囲は変更しない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
