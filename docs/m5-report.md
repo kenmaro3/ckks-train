@@ -14,9 +14,9 @@
 | 49: GPU bootstrap（stretch） | `f64a617`、独立レビュー済み | CPU 全スロット精度・計数と CUDA コンパイルを確認。GPU 実機は未実行 | **コードのみ**。220 ms 目標・GPU 精度・ビット一致・メモリは未計測 |
 | 50: M4 報告 | `docs/m4-report.md` の報告準備をレビュー済み | 測定済みと欠測を分離 | **報告あり、M4 合格未判定** |
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
-| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset は R-52-1/2 待ち。全長の暗号化学習は未実行 |
+| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset は R-52-1/2 を依頼済み・未投入。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | `962b7d2` 以降、旧レビュー指摘を Codex が引き継いで修正中 | `--dry-run` は通過。R-54-1 の実機 `--quick` は未実行 | 実験行列の未対応部分、新規出力の provenance、run_all からの表再生成入口を確認中 |
+| 54: 実験・表生成 | `962b7d2` 以降、旧レビュー指摘を Codex が引き継いで修正中 | `--dry-run` は通過。R-54-1 の実機 `--quick` は依頼済み・未投入 | 実験行列の未対応部分、新規出力の provenance、run_all からの表再生成入口を確認中 |
 | 55: v1.0 準備 | `91219e9` / `49126d4`、README・Cargo metadata・notices・rename 手順あり | ローカルのビルド・テスト・パッケージ検証あり | **準備中**。実 checkout の crate rename は未適用。公開操作は未実施 |
 | 56: 論文 | `paper/` で執筆中 | 初回の匿名版・著者仮置き版とも 9 ページで build。最終表の反映待ち | 初回 build・表示確認済み。最終表の反映後の確認と独立レビューは未完了 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の更新後に再照合 |
@@ -51,7 +51,7 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 現時点の表生成は `tools/paper_tables.py`、実験入口は `scripts/run_all.sh`。Task 54 の実装は、長い暗号化実験を 1 seed、平文を複数 seed にした縮小行列である。研究計画の全組合せ・10 seeds が完走したとは記載しない。未対応・資源不足・入力欠落・保留を coverage として残し、公式 ReBoot の実行は外部環境と requests の手順に従う。実機の `--quick` が完了するまでは「2 時間以内」は目標・見積もりである。
 
-サーバの順序は FULL-1 → FULL-2 → R-47-3 → R-48 とし、R-52 / R-54 は登録済み依頼の順序に従う。別テナントを停止せず、GPU に入らない行は未計測と記す。鍵認証、nice 10、24 スレッド以内、長時間処理のバックグラウンド化を維持する。SSH のタイムアウトはジョブの完了・失敗を意味しない。新たなクラウド GPU は使わない。
+サーバでは chain10 の FULL-1 → FULL-2 だけが投入済み。旧 runner の停止記録（`0c819d4`）によると、R-47-3 / R-48 / R-52 / R-54 は依頼書にあるだけで、実行キューには未投入である。FULL 終了後に R-47-3 → R-48、続いて登録済み依頼の順序で R-52 / R-54 を明示的に投入する。別テナントを停止せず、GPU に入らない行は未計測と記す。鍵認証、nice 10、24 スレッド以内、長時間処理のバックグラウンド化を維持する。SSH のタイムアウトはジョブの完了・失敗を意味しない。新たなクラウド GPU は使わない。
 
 ## 4. v1.0 の残作業
 
@@ -59,7 +59,7 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 Task 55 の報告ではローカルの workspace テスト、fmt、Clippy、rustdoc、cargo-deny が通過した。`hekit-core` の publish dry run は成功し、後続 crate の dry run は未公開の内部依存を crates.io が解決できず失敗した。ローカル directory source を使ったパッケージ連鎖のビルド確認は別に成功している。**実際の crates.io publish 成功を意味しない。** 詳細は [release.md](release.md)。
 
-GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は本報告準備時点では進行中。ローカルで CI のコマンドを実行した事実と、Linux 上の workflow 成否は分けて更新する。
+GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は fmt / clippy / cuda-check / test / deny の全5ジョブが成功した。この結果は `0daf778` の検証であり、後続の provenance 修正・表生成・crate rename を検証したものではない。最終 SHA の Linux CI は別途確認する。
 
 公開前には最終 SHA の CI、配布パッケージの内容・notices、履歴内の機密や外部コード混入、README の状態、CHANGELOG の日付を確認する。依存の一般許可リストは MIT / Apache-2.0 / BSD / ISC。`unicode-ident =1.0.27` の Unicode 文字属性表だけは、本人が 2026-11-06 に承認した Unicode-3.0 例外を設け、通知を付ける。別の crate やバージョンへの一般許可ではない。データセットのライセンスと帰属は `THIRD_PARTY_NOTICES` に別途記す。公開先を変更したり、公開化・tag/release・crates.io publish を実行したりした事実はない。
 

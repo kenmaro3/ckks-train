@@ -115,8 +115,7 @@ clippy invocations, `cargo check --workspace --all-targets --features cuda`,
 `cargo test --workspace -j 4` and `cargo deny check licenses bans`. That is not a run of the
 workflow on Linux. The private-main push did start the real
 [CI run for 0daf778](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953):
-fmt, both Clippy checks, the CUDA compile check and cargo-deny passed; the workspace
-test job was still running at the latest observation. This run does not validate
+all five jobs (fmt, clippy, cuda-check, test and deny) completed successfully. This run does not validate
 later source changes or the eventual renamed tree. Record the final SHA and completed
 workflow result before release.
 

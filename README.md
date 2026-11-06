@@ -152,9 +152,11 @@ Sources and checksums are in `crates/hekit-bench/data/README.md`.
 
 ## Status
 
-- **M0** (spikes: NTT, cost model, the 2020 SEAL reproduction): done. The spikes under
-  `spikes/` are not part of the workspace.
-- **M1** (CKKS core): done. Known-answer tests bit-exact with SEAL 4.1.2; `docs/m1-report.md`.
+- **M0** (spikes: NTT, cost model, the 2020 SEAL reproduction): feasibility work recorded.
+  Cost estimates and CPU-emulated CUDA checks are not hardware measurements. The spikes
+  under `spikes/` are not part of the workspace; `docs/m0-report.md`.
+- **M1** (CKKS core): implemented, with known-answer tests bit-exact with SEAL 4.1.2.
+  Some key-switch performance targets remain unmet; `docs/m1-report.md`.
 - **M2** (interactive encrypted training): done. Iris reproduction (test accuracy 0.967) and
   MNIST eMLP-1; `docs/m2-report.md`.
 - **M3** (bootstrapping, non-interactive training, ReBoot comparison): implemented; final RQ1
@@ -162,5 +164,5 @@ Sources and checksums are in `crates/hekit-bench/data/README.md`.
   security-comparability limitation. `docs/m3-report.md`.
 - **M4** (CUDA backend): the GPU kernels and evaluator are verified bit-exact with the CPU on an
   RTX 4090; GPU bootstrapping is implemented but its measurement on hardware is deferred.
-  `docs/m4-report.md`.
+  GPU training and matched CPU/GPU ablations remain unmeasured; `docs/m4-report.md`.
 - **M5** (block MLPs, additional datasets, release, paper): in progress.

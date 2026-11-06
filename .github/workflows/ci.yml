@@ -8,6 +8,18 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  research-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # These use archived inputs and synthetic temporary fixtures, not training runs.
+      - run: python3 -m unittest discover -s tools -p 'test_*.py'
+      - run: bash -n scripts/run_all.sh && bash -n scripts/rename.sh
+      - run: python3 tools/tables.py --check
+      - run: python3 tools/figs.py --check
   fmt:
     runs-on: ubuntu-latest
     steps:

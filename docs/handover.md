@@ -132,7 +132,7 @@ hekit/
 - 依頼の書式: `hekit/results/quadruped/requests.md` にブロック(id、目的、コマンド、作業ディレクトリ、所要時間、GPU メモリ、出力先、同期するコミット)を追記 → runner が順に実行し `status: done/skipped` と結果パスを書く。結果は `results/quadruped/`、ログは `docs/quadruped-log.md`。runner は commit しない。実装側が path 指定で commit する。
 - 同期: rsync(gitignore を考慮した file list。`tools/estimate/_ext/sage-env` などの巨大な gitignore 物を送らない)。`~/hekit/.synced-commit` に記録。
 - ReBoot のスタックは `~/reboot/`(OpenFHE v1.2.1、openfhe-python 0.8.9、ReBoot 3ac173f + build-only patch)。GPL なので `~/hekit` に入れない。ReBoot の設定値を書き出すときは**値だけ**(ソースの抜粋は commit しない)。
-- 現在のキュー(chain10): R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)→ R-47-3(Task 47 再計測 + GPU テスト全部、bd5cc49 以降。FULL の時間計測を乱さないよう FULL の後)。R-REB-4(ReBoot の暗号パラメータ)は完了。
+- 現在のキュー(chain10): R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)。R-47-3(Task 47 再計測 + GPU テスト全部、bd5cc49 以降)は依頼済みだが未投入。FULL の時間計測を乱さないよう FULL の後に投入する。R-REB-4(ReBoot の暗号パラメータ)は完了。
 - セッションは 5 時間の利用上限で止まることがある。サーバーのジョブは nohup で走り続けるので、再開後にログと done マーカーを見て回収する。待機は「ジョブ完了で exit するローカルのバックグラウンド Bash」を 1 ジョブ 1 本置く。
 - Mac(M3 Pro、36 GB)は 1 スレッドでサーバーの約 2 倍速い。**同一 CPU 比較はサーバーの行だけ**を使う。Mac の走行は KS と精度の参照用。
 
@@ -268,3 +268,11 @@ R-41-FULL-1(07:17 開始、ETA 2026-11-07 02:55 JST)→ R-41-FULL-2(約 38.6 h)�
 - 依存監査で `unicode-ident 1.0.27` の `(MIT OR Apache-2.0) AND Unicode-3.0` を確認。本人が 2026-11-06 に Unicode 文字属性表だけの例外を承認した。`deny.toml` は一般許可を MIT / Apache-2.0 / BSD / ISC に戻し、`unicode-ident =1.0.27` だけに例外を限定。旧設定の Unicode-3.0 / Zlib の一般許可は削除した。Unicode の通知を `THIRD_PARTY_NOTICES` に追加し、スコープ付きの licenses / bans 検査が合格した（未使用 BSD-3-Clause 許可の警告のみ）。
 - `results/mnist_emlp1_plain_faithful_b{32,48,64}.json` の誤上書きは、上書き後の全バイトと SHA-256 を ledger 下 `preserved-plan-side-effects-20261106/` に保存してから、引用元の HEAD のバイト列（writer commit `f195124`）へ復旧した。数値や provenance を手修正していない。`--plan --mode plain` を実行前に拒否する修正と新規出力 provenance を `d611c9d` で実装・独立レビュー・commit 済み。未追跡の `results/mnist_blocks_*_plain_b48.json` と `.vscode/` は変更していない。
 - 最新の鍵認証のみの SSH 観測は接続タイムアウト。ジョブの終了・失敗とは判定せず、再起動も追加ジョブ投入もしていない。登録済みの逐次実行を維持する。
+
+### 12.1 サーバー担当も停止済み（0c819d4 の回収手順を優先）
+
+`docs/quadruped-log.md` 冒頭に旧 runner の 09:27 JST 観測と回収手順がある。chain10（当時 PID 1700979）で FULL-1 → FULL-2 のみ投入済み。FULL-1 は当時 80/750 更新。R-47-3、R-48-1〜4、R-52-1/2、R-54-1 は **依頼書のみ・サーバー未投入**。§11.3 の矢印は希望する順序であり、後続キューが存在する意味ではない。FULL 完了後に Codex が登録済みブロックを明示的に投入する必要がある。
+
+SSH の接続に約47秒かかる記録がある。5秒の connect timeout は到達不能を判断するには短かった。鍵認証のみで待ち時間を適切に設定し、長い観測はバックグラウンドで待つ。実行中の clone を変更しない。ログは `~/hekit-runs/logs/`、runner provenance は `~/hekit-runs/out/`、DONE は `post.txt` 最終行の `JOB_DONE rc=...`。元の学習 JSON は `~/hekit-r41full/results/quadruped/` にある。
+
+Codex の 55 秒・90 秒の接続待ちでも SSH はタイムアウトした。ローカルの経路と alias の宛先は確認したが、認証成功・サーバー状態の再確認には至っていない。最後に確認された FULL の状態は旧 runner の 09:27 観測である。追加キューの投入や実行中ジョブの変更は行っていない。
