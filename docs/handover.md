@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [packed-blockの実I/NI検証と全ケースprojection](#latest-evidence-20261107-blocks)。
+最新の追記: [Linux入力取得のsource対応と空環境作成](#latest-evidence-20261107-linux-launch)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-blocks)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-linux-launch)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -471,3 +471,15 @@ MacのIは05:27:05–05:27:09 JST、2 graphs・8更新・2推論・116 client re
 登録case projectionは独立SPEC/QUALITYレビュー後に`cf3f822`で統合した。既存のhash検証済みregistryから全21 profilesの2,680 family cases、別枠20 prospective Iris、全7補足記述子を保持し、入力やexecutorが未整備でも行を削らない。独立期待値との全14項目tuple比較・19 canonical vectors・拒否／公開API境界など44件の限定検証とClippy・formatが合格。全長データをmaterializeする既存1件は明示して除外した。2,700を研究全体の分母や実行済み行数とは扱わず、quick・archival・未解決の補足行から実行権限を作らない。
 
 [R-REB-10-CREATOR-STATIC](../results/quadruped/raw/R-REB-10-CREATOR-STATIC/README.md)は05:45:00 JSTの実base interpreter／hook／site／venvの読み取り観測。base側のdistutils条件とhook identityを確認したが、target起動・新venv作成・入力取得はまだ未実行。Linux optional queryへの限定的なsource対応を次に進める。全長FP32参照、学習runtime、admission／実行handoff、baseline adapter、全行runnerと実測は未完。Task42のFULL-2ゲートとM4後続ジョブも未確定で、上記の小規模検証から合格を継承しない。
+
+
+<a id="latest-evidence-20261107-linux-launch"></a>
+## 2026-11-07追記: Linux入力取得のsource対応と空環境作成
+
+入力exporterのLinux対応は`010bb3c`で独立SPEC/QUALITYレビュー後に統合・pushした。同一の検証済みNumPy source内の任意host照会だけをLinux/x86_64でもEPERMで拒否し、childを実行させず依存自身の既存fallbackへ戻す。Darwinの不在条件は保持し、実際のsys_platform/machineとsource/code/globals/frame・argv等を結び付けたpolicy v2へ更新。古いpolicy/contextはoutput/backend作成前に拒否する。Mac上のfictional fixtureでfocused6件と全exporter43件が合格し、科学設定・seed・前処理・比較・receiptは変更していない。実Linuxのimport・互換性の合格ではない。
+
+[R-REB-11](../results/quadruped/raw/R-REB-11-CREATE-EMPTY-VENV/README.md)で06:08:36 JSTに独立した空のstdlib venvを1回作成した。実行前レビューの2指摘を修正し、子プロセス回収／固定layout検査の8テストと再レビュー後にrelease。wrapper/childはexit0、警告なし、15-entry layout・system-site無効・空のown site・pinned baseへの3 interpreter linksを静的に検査し、原記録の独立監査も合格した。新venvのinterpreter起動、package-path追加、context/native hash、科学用import/captureはまだ行っていない。既存科学環境、FULL-2、後続queueは変更していない。
+
+最新のジョブ観測は05:58:57 JST、FULL-2 update65（0始まり）=66/1000、elapsed9501s、直近6計数は予測一致。chain PID1700979/start465769819、queue PID1739838/start467041669は自UID/state Sでlive。chainの直接child1910150もliveで、その子1910153/1910154は一覧のみ確認した。正しい最終結果pathは不存在、queueはowner.jsonのみ。これは最終精度・完了の証拠ではない。一次記録はledger post-full-observation-20261107-0600.*。後続R47/R48/R52とTask42の最終判定は引き続き待機中。
+
+学習roleのbuild/approval用独立期待値と、取得用のprelaunch/launcher実装準備を進める。全長参照・実学習runtime・全行runner・実測の残項目は前節どおり。新commitのhosted CI成功は未確認で、以前の成功や請求理由で未起動だった別runを継承しない。公開release・課金設定の変更は行っていない。

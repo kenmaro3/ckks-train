@@ -250,4 +250,12 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 
 [R-REB-10](../results/quadruped/raw/R-REB-10-CREATOR-STATIC/README.md)でbase creatorの実行ファイルとhook／site／venvを静的に観測した。新環境作成や科学用importは未実行。学習role/runtime、Linux起動／context、全長参照・target、実行handoff、baseline adapter、全行runnerとTask42/M4の最終測定は残る。これらを本追記の限定合格で置き換えない。
 
+## 2026-11-07追記: Linux source対応と取得準備
+
+`010bb3c`の限定Linux optional-query対応は独立レビューと全exporter43テストに合格した。実際のsource/code/platformを結び付けたv2 EPERM拒否でchild実行を許可せず、Darwin条件・科学的値・完全一致ゲートを保持する。Macのfictional検証であり、実Linuxの依存import／数値互換性は未計測。
+
+[R-REB-11](../results/quadruped/raw/R-REB-11-CREATE-EMPTY-VENV/README.md)は06:08:36 JSTに新しい空のstdlib venvを作成して静的検査だけを行い、exit0・警告なし・15-entry layout／空のown site／pinned-base linksを確認した。異常時回収と検査順の2指摘は実行前に修正・8テスト・独立再レビュー済み。新venvの起動、context、科学用import、入力取得は未実行で、作成成功をその代替にしない。原出力と独立監査を保存した。
+
+05:58:57 JSTのFULL-2は66/1000更新、直近6計数は予測一致。chain/queueは同一PID/start/自UIDでlive、最終結果は未出力、queueはowner.jsonのみ。ジョブ変更はなく、RQ1/M4の最終判定は未確定。Task54の学習role／実行接続と全行runnerも未完である。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

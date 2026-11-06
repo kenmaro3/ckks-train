@@ -1,0 +1,224 @@
+{
+  "kind": "operational_empty_venv_creation_not_scientific_result",
+  "started_unix": 1793999316.7274623,
+  "argv": [
+    "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+    "-I",
+    "-B",
+    "-m",
+    "venv",
+    "--without-pip",
+    "--symlinks",
+    "/home/kmihara/reboot/exporter-venv-task54-v1"
+  ],
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "SETUPTOOLS_USE_DISTUTILS": "local",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "cwd": "/home/kmihara/reboot",
+  "destination": "/home/kmihara/reboot/exporter-venv-task54-v1",
+  "nice": 10,
+  "assumption": "No concurrent writer to this new owned destination.",
+  "status": "created_static_checks_passed_new_interpreter_not_started",
+  "preflight": {
+    "parent": {
+      "uid": 1000,
+      "mode": "0o775",
+      "resolved": "/home/kmihara/reboot"
+    },
+    "destination_lexists": false,
+    "pinned_files": [
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+        "bytes": 21740000,
+        "sha256": "2874a0b9344d06b7767aebb1e6e25a759ffcbdb544e99400ecc74dc6092d1174"
+      },
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/distutils-precedence.pth",
+        "bytes": 151,
+        "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224"
+      },
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/_distutils_hack/__init__.py",
+        "bytes": 6755,
+        "sha256": "df81e6bcba34ee3e3952f776551fb669143b9490fdd6c4caeb32609f97e985b4"
+      },
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site.py",
+        "bytes": 22987,
+        "sha256": "0577e4b379d8ef4aa0ecf88a264ef18c10f72ea72119afae36524d1aae77c9bf"
+      },
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/venv/__init__.py",
+        "bytes": 26323,
+        "sha256": "8671bc5810ee3e52a5ae7aa3b625764688cf12513b2f8e1b0b82aaec93f118a6"
+      },
+      {
+        "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/venv/__main__.py",
+        "bytes": 145,
+        "sha256": "722537c68c0622f8293d39bb6ab1288f3637d8dc45d6f9aae96e49af8145ca36"
+      }
+    ],
+    "absent_paths": [
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/pyvenv.cfg",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/pyvenv.cfg",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python311.zip",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/sitecustomize/__init__.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/usercustomize/__init__.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/sitecustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/sitecustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/sitecustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/sitecustomize/__init__.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/usercustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/usercustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/usercustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/lib-dynload/usercustomize/__init__.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/sitecustomize/__init__.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize.pyc",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize/__init__.py",
+      "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/usercustomize/__init__.pyc"
+    ]
+  },
+  "child_started_unix": 1793999316.7493246,
+  "child_pid": 1939496,
+  "child_proc_stat_at_launch": "1939496 (python3.11) R 1939495 1939495 1939495 0 -1 4194304 26 0 0 0 0 0 0 0 30 10 1 0 473994888 20647936 74 18446744073709551615 105742493814784 105742504579113 140733657886384 0 0 0 0 0 0 0 0 0 17 30 0 0 0 0 0 105742546829312 105742546883448 105742779891712 140733657894505 140733657894674 140733657894674 140733657894819 0\n",
+  "child_finished_unix": 1793999316.7772753,
+  "child_returncode": 0,
+  "child_terminal_observed": true,
+  "child_streams_complete": true,
+  "cleanup_errors": [],
+  "child_stdout_hex": "",
+  "child_stderr_hex": "",
+  "child_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "child_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "child_cleanup_status": "terminal_and_streams_collected",
+  "created_tree": [
+    {
+      "path": "bin",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "bin/Activate.ps1",
+      "uid": 1000,
+      "mode": "0o664",
+      "kind": "file",
+      "bytes": 9033,
+      "sha256": "3795a060dea7d621320d6d841deb37591fadf7f5592c5cb2286f9867af0e91df"
+    },
+    {
+      "path": "bin/activate",
+      "uid": 1000,
+      "mode": "0o664",
+      "kind": "file",
+      "bytes": 1753,
+      "sha256": "d3ef8bdc91605c5b60696a51ece43e1953aa801e5cfe91684ff848da53a29388"
+    },
+    {
+      "path": "bin/activate.csh",
+      "uid": 1000,
+      "mode": "0o664",
+      "kind": "file",
+      "bytes": 977,
+      "sha256": "90dd03ff95f3cc7a111fd07afbe93ee734232f72b72b4fe9be15f8c7bd1f9b0b"
+    },
+    {
+      "path": "bin/activate.fish",
+      "uid": 1000,
+      "mode": "0o664",
+      "kind": "file",
+      "bytes": 2253,
+      "sha256": "e17f09145532b3b417c3e96bacd96d83b8372bb880617b88169ac46cf9c05803"
+    },
+    {
+      "path": "bin/python",
+      "uid": 1000,
+      "mode": "0o777",
+      "kind": "symlink",
+      "target": "python3.11",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11"
+    },
+    {
+      "path": "bin/python3",
+      "uid": 1000,
+      "mode": "0o777",
+      "kind": "symlink",
+      "target": "python3.11",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11"
+    },
+    {
+      "path": "bin/python3.11",
+      "uid": 1000,
+      "mode": "0o777",
+      "kind": "symlink",
+      "target": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11"
+    },
+    {
+      "path": "include",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "include/python3.11",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "lib",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "lib/python3.11",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "lib/python3.11/site-packages",
+      "uid": 1000,
+      "mode": "0o775",
+      "kind": "directory"
+    },
+    {
+      "path": "lib64",
+      "uid": 1000,
+      "mode": "0o777",
+      "kind": "symlink",
+      "target": "lib",
+      "resolved": "/home/kmihara/reboot/exporter-venv-task54-v1/lib"
+    },
+    {
+      "path": "pyvenv.cfg",
+      "uid": 1000,
+      "mode": "0o664",
+      "kind": "file",
+      "bytes": 396,
+      "sha256": "4af48d1b0d9fea3094d3c725918c55e52670536de714c30660f3fb37ec13c643"
+    }
+  ],
+  "config_hex": "686f6d65203d202f686f6d652f6b6d69686172612f2e6c6f63616c2f73686172652f75762f707974686f6e2f63707974686f6e2d332e31312e31362d6c696e75782d7838365f36342d676e752f62696e0a696e636c7564652d73797374656d2d736974652d7061636b61676573203d2066616c73650a76657273696f6e203d20332e31312e31360a65786563757461626c65203d202f686f6d652f6b6d69686172612f2e6c6f63616c2f73686172652f75762f707974686f6e2f63707974686f6e2d332e31312e31362d6c696e75782d7838365f36342d676e752f62696e2f707974686f6e332e31310a636f6d6d616e64203d202f686f6d652f6b6d69686172612f2e6c6f63616c2f73686172652f75762f707974686f6e2f63707974686f6e2d332e31312e31362d6c696e75782d7838365f36342d676e752f62696e2f707974686f6e332e3131202d6d2076656e76202d2d776974686f75742d706970202f686f6d652f6b6d69686172612f7265626f6f742f6578706f727465722d76656e762d7461736b35342d76310a",
+  "config_sha256": "4af48d1b0d9fea3094d3c725918c55e52670536de714c30660f3fb37ec13c643",
+  "finished_unix": 1793999316.8105044
+}

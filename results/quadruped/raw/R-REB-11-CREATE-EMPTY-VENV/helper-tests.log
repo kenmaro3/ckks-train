@@ -1,0 +1,14 @@
+Exact helper-source SHA256: bac07100a6c8740e6df36ec99eb0d3463bf16a77d9d809006ca39c4105ed0873
+test_configuration_symlink_rejected_before_content (__main__.LayoutTests.test_configuration_symlink_rejected_before_content) ... ok
+test_expected_shallow_layout_hashes_only_five_files (__main__.LayoutTests.test_expected_shallow_layout_hashes_only_five_files) ... ok
+test_oversized_expected_file_rejected_before_any_content (__main__.LayoutTests.test_oversized_expected_file_rejected_before_any_content) ... ok
+test_unknown_directory_rejected_without_descent_or_content (__main__.LayoutTests.test_unknown_directory_rejected_without_descent_or_content) ... ok
+test_controller_error_kills_only_owned_child_and_preserves_error (__main__.LifecycleTests.test_controller_error_kills_only_owned_child_and_preserves_error) ... ok
+test_proc_sample_permission_error_still_waits_and_collects (__main__.LifecycleTests.test_proc_sample_permission_error_still_waits_and_collects) ... ok
+test_timeout_terminates_and_collects_owned_child (__main__.LifecycleTests.test_timeout_terminates_and_collects_owned_child) ... ok
+test_unresolved_cleanup_is_explicit_failure_with_partial_output (__main__.LifecycleTests.test_unresolved_cleanup_is_explicit_failure_with_partial_output) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.092s
+
+OK

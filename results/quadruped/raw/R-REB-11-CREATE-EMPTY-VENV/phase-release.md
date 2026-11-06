@@ -1,0 +1,7 @@
+# Root creator-only release
+
+2026-11-07T06:08:28.812940+09:00. Root read creator-phase review2b346e3f..., original wrapper review62fe1535... and complete FIX1 re-review2eaa90c33aac7edb3d61de065399272b8d21d1a870248cd36ce9038058ea0bb9; F1/F2 addressed, SPEC/QUALITY PASS. All five FIX1 manifest hashes verified. Local eight isolated helper tests passed; no remote creation has run.
+
+Release exactly one execution of task-54-linux-create-empty-venv-20261107.py SHAbac07100a6c8740e6df36ec99eb0d3463bf16a77d9d809006ca39c4105ed0873 through key-only SSH nice10 system Python, as R-REB-11-CREATE-EMPTY-VENV. Its fresh file/path/owner/absence preflight gates the one exact base -I -B -m venv --without-pip --symlinks child; replacement environment and cwd are frozen in the source. Expected lightweight duration is seconds, child cap90s plus bounded5s collection, no GPU, no worker fanout. Retain exact stdout/stderr/controller metadata and inspect warnings/terminal/config/tree evidence. Any failure preserves partial destination; no retry, reuse, fallback or cleanup.
+
+The new environment is only created and inspected statically; never start its interpreter or append old packages in this phase. No scientific import, full package/native hash, new context, compatibility or capture. FULL2 and its queue remain untouched. This reversible isolated prerequisite is within existing user authorization; no new permission is required. Normal creator bootstrap remains trusted and is not claimed to use the exporter's source guard or prove all cache bytes.

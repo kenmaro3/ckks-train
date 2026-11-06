@@ -517,3 +517,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** controller ledger `task-54-linux-creator-static-20261107.{stdout,stderr,meta.json}`.
 - **pass criterion:** actual base identities/conditions and explicit remaining startup/runtime limitations. No target-interpreter startup, environment creation, package-wide/native hashing, scientific imports, capture or job/queue mutation. Lightweight read-only untimed prerequisite observation may overlap FULL-2.
 - **status:** done (2026-11-07T05:45:00.614568+09:00, exit0; controller54.011s including SSH). Actual base executable/hook/site/venv identities recorded; default-local distutils condition and shim insertion observed statically. Fixed customization/zip candidates and proposed destination absent. No target startup or creation; base pyvenv.cfg candidates and fresh precreation checks remain prerequisites.
+
+
+## R-REB-11-CREATE-EMPTY-VENV: isolated empty creator-only phase
+
+- **purpose:** create a separate stdlib venv using the observed original base interpreter, retaining the original scientific environment unchanged; static postcheck only.
+- **commit to sync:** none; no repository sync/build/package install.
+- **working dir:** creator `/home/kmihara/reboot`; new absent destination `/home/kmihara/reboot/exporter-venv-task54-v1` only.
+- **command:** key-only SSH `nice -n 10 python3 -`, reviewed operational wrapper through stdin, SHA256 bac07100a6c8740e6df36ec99eb0d3463bf16a77d9d809006ca39c4105ed0873. Wrapper gates exact base Python `-I -B -m venv --without-pip --symlinks` with frozen replacement environment, all six input hashes, prefix/customization/.pth/owner/destination prechecks. Source/phase release and independent FIX1 review retained in controller ledger.
+- **expected duration:** seconds, one creator process/thread; child timeout90s plus bounded5s cleanup/collection. No pip, ensurepip, upgrades or scientific work. The waiting controller is not another computational workload; lightweight preparation may overlap FULL-2.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** ledger `task-54-linux-create-empty-venv-attempt1.{stdout,stderr,meta.json}`; created destination retained even on failure.
+- **pass criterion:** all fresh preflight and exact child exit/stream/15-entry static layout/config/link/empty-site checks; independently inspect any warning. New interpreter startup/context/native/scientific compatibility are explicitly not tested. No retry or automatic partial cleanup, no other process/queue mutation.
+- **status:** done (2026-11-07T06:08:36.727462+09:00–2026-11-07T06:08:36.810504+09:00, wrapper/child exit0). Exact fresh preflight and15-entry static postchecks passed, empty own site and pinned-base interpreter links retained; config396bytes SHA2564af48d1b0d9fea3094d3c725918c55e52670536de714c30660f3fb37ec13c643. Child stdout/stderr empty, terminal status and complete streams observed. Creator-only; new environment interpreter was not started and no context/capture/scientific compatibility was tested.
