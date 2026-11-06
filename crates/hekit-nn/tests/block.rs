@@ -21,7 +21,9 @@ use std::sync::{Arc, OnceLock};
 
 use hekit_ckks::bootstrap::{BootParams, Bootstrapper};
 use hekit_ckks::keys::SecretKey;
-use hekit_ckks::{CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, KeyGenerator};
+use hekit_ckks::{
+    CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, HeOps, KeyGenerator,
+};
 use hekit_core::error::HekitError;
 use hekit_core::sampler::Rng;
 use hekit_nn::activation::{Activation, Identity, PolyRelu2};
@@ -34,7 +36,9 @@ use hekit_nn::layout::{Layout, pack_activations, unpack_activations};
 use hekit_nn::optim::Nag;
 use hekit_nn::refresh::ClientRefresher;
 use hekit_nn::trainer::{LayerOptimizer, Mlp, Trainer};
-use hekit_nn::trainer_ni::{ActCost, BootPlacement, NiOptimizer, NonInteractiveTrainer};
+use hekit_nn::trainer_ni::{
+    ActCost, BootPlacement, NiOptimizer, NonInteractiveTrainer, boot_schedule,
+};
 use ndarray::Array2;
 
 /// The brief's gate.
@@ -498,11 +502,13 @@ fn mini_fx() -> &'static Mini {
 #[test]
 fn ni_block_updates_match_twin_and_closed_form() {
     let m = mini_fx();
+    // A fork of the shared evaluator (same keys, own counter): other tests run in parallel.
+    let ev = m.ev.fork();
     let mut r = rng(4);
     let init = init_stages(&NI_STAGES, &mut r, 0.2);
     let placement = BootPlacement::WhenNeeded;
     let (mut net, states) = BlockNiTrainer::encrypt_network(
-        &m.ev,
+        &ev,
         &m.bs,
         &init,
         (0..init.len()).map(|_| acts()).collect(),
@@ -523,12 +529,12 @@ fn ni_block_updates_match_twin_and_closed_form() {
         .into_iter()
         .enumerate()
         .map(|(s, st)| {
-            NonInteractiveTrainer::new(&m.ev, &m.bs, optim, m.layout, placement, net.stage(s), st)
+            NonInteractiveTrainer::new(&ev, &m.bs, optim, m.layout, placement, net.stage(s), st)
                 .unwrap()
                 .with_transpose_keys(keys[s].clone())
         })
         .collect();
-    let mut t = BlockNiTrainer::new(&m.ev, &m.bs, stages).unwrap();
+    let mut t = BlockNiTrainer::new(&ev, &m.bs, stages).unwrap();
     let specs: Vec<_> = (0..net.num_stages())
         .map(|s| t.stages()[s].batch_spec(net.stage(s)).unwrap())
         .collect();
@@ -537,6 +543,26 @@ fn ni_block_updates_match_twin_and_closed_form() {
     let act_costs: Vec<Vec<ActCost>> = dims
         .iter()
         .map(|_| vec![ActCost::QUADRATIC, ActCost::IDENTITY])
+        .collect();
+    // The a-priori schedule of every stage (review M-4: the counter is checked against it, not
+    // only against the observed decisions).
+    let start = t.stages()[0].start_level();
+    let relu_id: [&dyn Activation; 2] = [&PolyRelu2, &Identity];
+    let planned: Vec<Vec<bool>> = dims
+        .iter()
+        .map(|d| {
+            boot_schedule(
+                d,
+                &relu_id,
+                &m.layout,
+                placement,
+                true,
+                start,
+                start + 1,
+                &[true; 3],
+            )
+            .unwrap()
+        })
         .collect();
     let mut want = init.clone();
     let mut vels = zero_vels(&want);
@@ -559,11 +585,17 @@ fn ni_block_updates_match_twin_and_closed_form() {
             .collect();
         let yr: Vec<_> = ycs.iter().collect();
         t.set_next_batch_full(Some(true));
-        let before = m.ev.counter();
+        let before = ev.counter();
         net.train_step_ni(&mut t, &[(&xc, &yr[..], 32)]).unwrap();
-        let c = &m.ev.counter() - &before;
+        let c = &ev.counter() - &before;
         let booted: Vec<bool> = t.stages().iter().map(|s| s.last_update_booted()).collect();
         booted_any |= booted.iter().any(|&b| b);
+        // The last update's next step is undeclared in the a-priori schedule (planned as
+        // partial); here it was declared full, so compare the first two only.
+        if k < 2 {
+            let want_b: Vec<bool> = planned.iter().map(|p| p[k]).collect();
+            assert_eq!(booted, want_b, "update {k}: a-priori schedule");
+        }
         let p = predict_block_update_with(
             &dims,
             &act_costs,
@@ -641,4 +673,157 @@ fn ni_block_trainer_refuses_after_activation() {
         BlockNiTrainer::new(&m.ev, &m.bs, stages),
         Err(HekitError::InvalidParams(_))
     ));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Non-interactive: the hand-off outside |m| <= 1, and stage independence.
+// ---------------------------------------------------------------------------------------------
+
+/// The block trainer on `mini` with WhenNeeded and NAG, for `init`.
+fn ni_setup(init: &[Stage], r: &mut Rng) -> (BlockMlp, BlockNiTrainer<'static>) {
+    let m = mini_fx();
+    let placement = BootPlacement::WhenNeeded;
+    let (net, states) = BlockNiTrainer::encrypt_network(
+        &m.ev,
+        &m.bs,
+        init,
+        (0..init.len()).map(|_| acts()).collect(),
+        &m.layout,
+        placement,
+        &m.enc,
+        &m.encoder,
+        r,
+    )
+    .unwrap();
+    let optim = NiOptimizer::Nag {
+        lr: LR,
+        momentum: MU,
+    };
+    let stages = states
+        .into_iter()
+        .enumerate()
+        .map(|(s, st)| {
+            NonInteractiveTrainer::new(&m.ev, &m.bs, optim, m.layout, placement, net.stage(s), st)
+                .unwrap()
+        })
+        .collect();
+    (net, BlockNiTrainer::new(&m.ev, &m.bs, stages).unwrap())
+}
+
+/// One update on `x` with labels `ys[s]` per stage.
+fn ni_update(
+    net: &mut BlockMlp,
+    t: &mut BlockNiTrainer<'static>,
+    x: &Array2<f64>,
+    ys: &[&Array2<f64>],
+    r: &mut Rng,
+) {
+    let m = mini_fx();
+    let specs: Vec<_> = (0..net.num_stages())
+        .map(|s| t.stages()[s].batch_spec(net.stage(s)).unwrap())
+        .collect();
+    let enc_at = |a: &Array2<f64>, scale: f64, level: usize, r: &mut Rng| {
+        m.enc.encrypt(
+            &m.encoder
+                .encode(&pack_activations(a, &m.layout), scale, level)
+                .unwrap(),
+            r,
+        )
+    };
+    let xc = enc_at(x, specs[0].x_scale, specs[0].x_level, r);
+    let ycs: Vec<_> = specs
+        .iter()
+        .zip(ys)
+        .map(|(sp, y)| enc_at(y, sp.y_scale, sp.y_level, r))
+        .collect();
+    let yr: Vec<_> = ycs.iter().collect();
+    t.set_next_batch_full(Some(true));
+    net.train_step_ni(t, &[(&xc, &yr[..], x.nrows())]).unwrap();
+}
+
+/// The max |hand-off - twin activation| of the last update (block 0, 16 wide, `n` rows).
+fn handoff_err(t: &BlockNiTrainer<'static>, want: &Array2<f64>) -> f64 {
+    let m = mini_fx();
+    let dec = Decryptor::new(Arc::clone(&m.params), m.sk.clone());
+    let h = &t.last_handoff_bootstraps()[0][0];
+    assert_eq!(h.scale(), m.params.scale(), "the hand-off is at Delta");
+    let got = unpack_activations(&m.encoder.decode(&dec.decrypt(h)), &m.layout, want.ncols());
+    want.iter()
+        .zip(got.iter())
+        .map(|(p, q)| (p - q).abs())
+        .fold(0.0, f64::max)
+}
+
+/// Review I-1: a hand-off whose input exceeds the bootstrap's `|m| <= 1` precondition (here
+/// `max |a|` in [2, 4], as eMLP-2/3's 2.0-2.3) goes through a real bootstrap with a bounded
+/// error. Bound: `2^-17`, i.e. no worse than Task 38's n16_boot measurement at `|m| = 4`
+/// (17.38 bits absolute, `docs/bootstrap.md` §11.4); `mini` (N = 2^10) is more precise than
+/// n16_boot, so this leaves margin while still catching an EvalMod range failure (which gives
+/// O(1) errors). The in-range hand-off of the same network is printed for comparison.
+#[test]
+fn ni_handoff_above_one_is_bounded() {
+    let mut r = rng(11);
+    let mut init = init_stages(&NI_STAGES, &mut r, 0.2);
+    let x = Array2::from_shape_fn((32, 16), |_| uni(&mut r));
+    let y = one_hot(32, 4, &mut r);
+    // Scale block 0's weights so that max z = 1.5 on x: max (z^2 + z) = 3.75.
+    let z = affine(&x, &init[0][0].0, &init[0][0].1);
+    let zmax = z.iter().copied().fold(f64::MIN, f64::max);
+    let c = 1.5 / zmax;
+    init[0][0].0.mapv_inplace(|w| w * c);
+    init[0][0].1.iter_mut().for_each(|b| *b *= c);
+    let mut errs = Vec::new();
+    for (case, scale) in [("in range", 0.25), ("above 1", 1.0)] {
+        let mut st = init.clone();
+        st[0][0].0.mapv_inplace(|w| w * scale);
+        st[0][0].1.iter_mut().for_each(|b| *b *= scale);
+        let want = stage_hidden(&st[0], &x);
+        let amax = want.iter().map(|v| v.abs()).fold(0.0, f64::max);
+        let (mut net, mut t) = ni_setup(&st, &mut r);
+        ni_update(&mut net, &mut t, &x, &[&y, &y], &mut r);
+        let e = handoff_err(&t, &want);
+        eprintln!(
+            "hand-off {case}: max |a| = {amax:.3}, max |boot(a) - a| = 2^{:.2}",
+            e.log2()
+        );
+        if case == "above 1" {
+            assert!((2.0..=4.0).contains(&amax), "max |a| = {amax}");
+        } else {
+            assert!(amax <= 1.0, "max |a| = {amax}");
+        }
+        errs.push(e);
+    }
+    assert!(
+        errs[1] < 2f64.powi(-17),
+        "above-range hand-off 2^{}",
+        errs[1].log2()
+    );
+    assert!(errs[0] < 2f64.powi(-17));
+}
+
+/// Review M-4: the non-interactive stages are independent too: the output stack's labels do
+/// not reach block 0 (bit for bit), but do reach the output stack.
+#[test]
+fn ni_block0_ignores_output_stack_labels() {
+    let mut r0 = rng(12);
+    let init = init_stages(&NI_STAGES, &mut r0, 0.2);
+    let x = Array2::from_shape_fn((32, 16), |_| 0.5 * uni(&mut r0));
+    let y = one_hot(32, 4, &mut r0);
+    let y_other = one_hot(32, 4, &mut r0);
+    assert_ne!(y, y_other);
+    let m = mini_fx();
+    let dec = Decryptor::new(Arc::clone(&m.params), m.sk.clone());
+    let run = |yo: &Array2<f64>| {
+        let mut r = rng(13);
+        let (mut net, mut t) = ni_setup(&init, &mut r);
+        ni_update(&mut net, &mut t, &x, &[&y, yo], &mut r);
+        decrypt_all(&net, &dec, &m.encoder, &m.layout)
+    };
+    let a = run(&y);
+    let b = run(&y_other);
+    for ((wa, ba), (wb, bb)) in a[0].iter().zip(&b[0]) {
+        assert_eq!(wa, wb);
+        assert_eq!(ba, bb);
+    }
+    assert!(max_err(&a[1..], &b[1..]) > 1e-3);
 }

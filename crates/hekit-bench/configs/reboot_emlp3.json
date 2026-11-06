@@ -67,6 +67,7 @@
   "weight_decay": 0.0,
   "batch": 48,
   "epochs": 10,
+  "epochs_note": "ReBoot's 10 epochs of 100 steps. hekit replays them from one index file holding all 1000 steps in ReBoot's order (train_indices_<model>_seed<S>.txt), so mnist_flags says --epochs 1: one pass over that file is ReBoot's 10 epochs. Do not change it to --epochs 10.",
   "subsample": 4800,
   "reboot_command": "precision_analysis.py MNIST --subsample 4800 --num-layers 4 --num-hidden 128 64 32 --batch-size 48 --num-epochs 10 --seed S",
   "seed0_twin_test_acc": 0.9175,

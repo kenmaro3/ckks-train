@@ -129,6 +129,10 @@ fn mnist_blocks_plain_and_noninteractive() {
         let json = fs::read_to_string(&out).unwrap();
         eprintln!("{json}");
         assert!(json.contains("\"every_update_equals_prediction\": true"));
+        assert!(json.contains("\"all_checks_pass\": true"));
+        // Review I-1: the hand-off bootstraps were decrypted and compared, every update.
+        assert_eq!(number(&json, "slots_compared"), 2.0 * 8.0 * 16.0);
+        assert!(number(&json, "log2_max_abs_err_vs_twin") < -10.0);
         assert_eq!(number(&json, "updates"), 2.0);
         assert_eq!(number(&json, "handoff_bootstraps"), 2.0);
         let ratio = number(&json, "measured_over_predicted");

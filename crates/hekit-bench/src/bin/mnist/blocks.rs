@@ -31,7 +31,46 @@ use hekit_ckks::Ciphertext;
 use hekit_nn::block::{
     BlockMicroBatch, BlockNiTrainer, ni_block_rotation_steps, predict_block_update_with,
 };
+use hekit_nn::layout::pack_activations;
 use hekit_nn::trainer_ni::levels_per_iter_of;
+
+/// The pass rule of a non-interactive block run (review I-2; the binary exits non-zero when it
+/// fails, after writing its JSON): every update's counter equals the closed form with the
+/// a-priori schedule; the decrypted weights are within `2^TWIN_LOG2_MAX` of the plaintext twin;
+/// the test accuracies of the encrypted-trained network and of the twin differ by at most
+/// `TEST_ACC_MAX_DIFF`; every hand-off bootstrap is within `2^HANDOFF_LOG2_MAX` of the twin's
+/// block activation.
+const TWIN_LOG2_MAX: f64 = -10.0;
+/// See [`TWIN_LOG2_MAX`]: 0.005 = 50 of 10 000 test images.
+const TEST_ACC_MAX_DIFF: f64 = 0.005;
+/// See [`TWIN_LOG2_MAX`].
+const HANDOFF_LOG2_MAX: f64 = -10.0;
+
+/// The client-side diagnostics of one stage boundary's hand-off bootstraps (review I-1).
+#[derive(Debug, Clone, Default)]
+struct HandoffDiag {
+    /// Slots compared (valid samples x block width, every update).
+    slots: usize,
+    /// The largest |a| of the twin (the bootstrap's input).
+    max_in: f64,
+    /// Inputs above 1 (the bootstrap's `|m| <= 1` precondition; not clipped).
+    above_1: usize,
+    /// max |boot(a) - a_twin|.
+    err: f64,
+}
+
+impl HandoffDiag {
+    fn json(&self) -> J {
+        obj(vec![
+            ("slots_compared", J::I(self.slots as i64)),
+            ("max_abs_input_twin", J::N(self.max_in)),
+            ("inputs_above_1", J::I(self.above_1 as i64)),
+            ("precondition_hit", J::B(self.above_1 > 0)),
+            ("max_abs_err_vs_twin", J::N(self.err)),
+            ("log2_max_abs_err_vs_twin", J::N(self.err.log2())),
+        ])
+    }
+}
 
 /// The stages' dimensions: blocks `[in, W_i, out]`, then the output stack
 /// `[W_last, hidden, out]`.
@@ -103,14 +142,15 @@ fn initial_stages(
         let m = parse_npy_f64(&bytes).map_err(|e| format!("{}: {e}", path.display()))?;
         let (d_out, d_in) = layer.w.dim();
         layer.w = if d_out == d_in {
-            let at = meta.find(&format!("{name}.npy")).ok_or_else(|| {
-                format!("{name} is square: its orientation must be in the manifest")
-            })?;
-            let tail = &meta[at..meta.len().min(at + 400)];
-            if tail.contains("in x out") || tail.contains("in_out") {
-                m.t().to_owned()
-            } else {
-                return Err(format!("{name} is square and not listed as in x out"));
+            match manifest_orientation(&meta, &format!("{dir_name}/{name}.npy")).as_deref() {
+                Some("in x out" | "in_out") => m.t().to_owned(),
+                Some("out x in" | "out_in") => m,
+                o => {
+                    return Err(format!(
+                        "{name} is square: the manifest gives no orientation for \
+                         {dir_name}/{name}.npy ({o:?})"
+                    ));
+                }
             }
         } else if m.dim() == (d_in, d_out) {
             m.t().to_owned()
@@ -124,6 +164,27 @@ fn initial_stages(
         };
     }
     Ok(stages)
+}
+
+/// The `"orientation"` of the manifest entry whose `"file"` is `file` (R-REB-5's
+/// `init_weights` entries), from the parsed JSON (review M-3: not a text scan).
+fn manifest_orientation(meta: &str, file: &str) -> Option<String> {
+    fn find(v: &serde_json::Value, file: &str) -> Option<String> {
+        match v {
+            serde_json::Value::Object(o) => {
+                if o.get("file").and_then(|f| f.as_str()) == Some(file) {
+                    return o
+                        .get("orientation")
+                        .and_then(|x| x.as_str())
+                        .map(String::from);
+                }
+                o.values().find_map(|x| find(x, file))
+            }
+            serde_json::Value::Array(a) => a.iter().find_map(|x| find(x, file)),
+            _ => None,
+        }
+    }
+    find(&serde_json::from_str(meta).ok()?, file)
 }
 
 /// ReBoot's per-step twin log: `(lr, batch_loss, batch_acc)` per step (`#` lines and the
@@ -766,6 +827,22 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
         .map(|s| trainer.stages()[s].batch_spec(net.stage(s)))
         .collect::<hekit_core::error::Result<Vec<_>>>()
         .map_err(e2s)?;
+    // The distinct label encodings: stage s uses `label_specs[label_of[s]]`.
+    let mut label_specs: Vec<(usize, f64)> = Vec::new();
+    let label_of: Vec<usize> = specs
+        .iter()
+        .map(|sp| {
+            let key = (sp.y_level, sp.y_scale);
+            label_specs
+                .iter()
+                .position(|k| *k == key)
+                .unwrap_or_else(|| {
+                    label_specs.push(key);
+                    label_specs.len() - 1
+                })
+        })
+        .collect();
+    let diag_dec = Decryptor::new(Arc::clone(&params), sk.clone());
     // The run's own plan with the real bootstrap count.
     let lrs_run: Vec<Option<f64>> = lrs.clone();
     let pl = plan(
@@ -799,6 +876,7 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
     let mut update_s = Vec::new();
     let mut per_update = Vec::new();
     let mut handoff_abs = vec![0.0f64; args.blocks.len()];
+    let mut handoff_diag = vec![HandoffDiag::default(); args.blocks.len()];
     let mut samples = 0usize;
     let mut u = 0usize;
     let t_train = Instant::now();
@@ -811,26 +889,29 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
             if lr_sched.is_some() {
                 trainer.set_lr(lr).map_err(e2s)?;
             }
-            // Client: one x per micro-batch (stage 0's spec), its labels at every stage's spec.
+            // Client: one x per micro-batch (stage 0's spec), and its labels once per distinct
+            // (level, scale) of the stages' outputs (review M-2; all stages share one here).
             let mut cts = Vec::new();
             for sub in (st0..end).step_by(lanes) {
                 let se = (sub + lanes).min(end);
                 let x = train.images.select(Axis(0), &order[sub..se]);
                 let y = y_train.select(Axis(0), &order[sub..se]);
-                let (xc, _) = specs[0]
-                    .encrypt(&enc, &encoder, &layout, &x, &y, &mut r)
-                    .map_err(e2s)?;
-                let ys = specs
-                    .iter()
-                    .map(|sp| {
-                        sp.encrypt(&enc, &encoder, &layout, &x, &y, &mut r)
-                            .map(|c| c.1)
-                    })
-                    .collect::<hekit_core::error::Result<Vec<_>>>()
-                    .map_err(e2s)?;
+                let encode = |a: &Array2<f64>, scale: f64, level: usize, r: &mut Rng| {
+                    encoder
+                        .encode(&pack_activations(a, &layout), scale, level)
+                        .map(|pt| enc.encrypt(&pt, r))
+                };
+                let xc = encode(&x, specs[0].x_scale, specs[0].x_level, &mut r).map_err(e2s)?;
+                let mut ys: Vec<Ciphertext> = Vec::new();
+                for &(level, scale) in &label_specs {
+                    ys.push(encode(&y, scale, level, &mut r).map_err(e2s)?);
+                }
                 cts.push((xc, ys, se - sub));
             }
-            let yrefs: Vec<Vec<&Ciphertext>> = cts.iter().map(|c| c.1.iter().collect()).collect();
+            let yrefs: Vec<Vec<&Ciphertext>> = cts
+                .iter()
+                .map(|c| label_of.iter().map(|&i| &c.1[i]).collect())
+                .collect();
             let mbs: Vec<BlockMicroBatch<'_, Ciphertext>> = cts
                 .iter()
                 .zip(&yrefs)
@@ -847,6 +928,28 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
             let y = y_train.select(Axis(0), &order[st0..end]);
             for (m, v) in handoff_abs.iter_mut().zip(handoff_max(&twin, &x)) {
                 *m = m.max(v);
+            }
+            // Review I-1: the client decrypts every hand-off bootstrap of this update (outside
+            // the trainer, which holds no key, and outside the timed step) and compares it with
+            // the twin's block activation from the same pre-update weights.
+            let mut a_twin = x.clone();
+            for (bi, diag) in handoff_diag.iter_mut().enumerate() {
+                a_twin = block_hidden(&twin[bi], &a_twin);
+                let width = args.blocks[bi];
+                for (mb, ct) in trainer.last_handoff_bootstraps()[bi].iter().enumerate() {
+                    let got =
+                        unpack_activations(&encoder.decode(&diag_dec.decrypt(ct)), &layout, width);
+                    let (sub, nv) = (mb * lanes, mbs[mb].2);
+                    for i in 0..nv {
+                        for j in 0..width {
+                            let (he, tw) = (got[[i, j]], a_twin[[sub + i, j]]);
+                            diag.err = diag.err.max((he - tw).abs());
+                            diag.max_in = diag.max_in.max(tw.abs());
+                            diag.slots += 1;
+                            diag.above_1 += usize::from(tw.abs() > 1.0);
+                        }
+                    }
+                }
             }
             let ys = vec![&y; stages_n];
             let blr = if args.no_bias { 0.0 } else { lr };
@@ -941,6 +1044,24 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
         .fold(0.0, f64::max);
     let out_he = block_forward_plain(&got, &test.images);
     let out_twin = block_forward_plain(&twin, &test.images);
+    let (acc_he, acc_twin) = (
+        accuracy(&out_he, &test.labels),
+        accuracy(&out_twin, &test.labels),
+    );
+    let handoff_worst = handoff_diag.iter().map(|d| d.err).fold(0.0, f64::max);
+    let checks = [
+        ("every_update_equals_prediction", matches),
+        ("twin_weights_within_2^-10", max_diff.log2() < TWIN_LOG2_MAX),
+        (
+            "test_acc_diff_within_0.005",
+            (acc_he - acc_twin).abs() <= TEST_ACC_MAX_DIFF,
+        ),
+        (
+            "handoff_err_within_2^-10",
+            handoff_worst.log2() < HANDOFF_LOG2_MAX,
+        ),
+    ];
+    let all_pass = checks.iter().all(|c| c.1);
     let ks = total.key_switches();
     let pred_run: u64 = pl.per_update_ks[..u].iter().sum();
     let sf = samples as f64;
@@ -953,6 +1074,16 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
     );
     let result = obj(vec![
         ("provenance", provenance(&load_start, started_unix)),
+        ("all_checks_pass", J::B(all_pass)),
+        (
+            "checks",
+            J::O(
+                checks
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), J::B(*v)))
+                    .collect(),
+            ),
+        ),
         (
             "task",
             J::S(
@@ -1030,9 +1161,16 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
                     "handoff_note",
                     J::S(
                         "the hand-off bootstraps the block activation; above 1 it violates the \
-                          bootstrap's |m| <= 1 precondition (not clipped)"
+                          bootstrap's |m| <= 1 precondition (not clipped). handoff_bootstraps: per \
+                          stage boundary, every update's bootstrap outputs decrypted by the client \
+                          after the update (outside the trainer and the timed step) against the \
+                          twin's block activation from the same pre-update weights"
                             .into(),
                     ),
+                ),
+                (
+                    "handoff_bootstraps",
+                    J::A(handoff_diag.iter().map(HandoffDiag::json).collect()),
                 ),
             ]),
         ),
@@ -1040,11 +1178,9 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
             "evaluation",
             obj(vec![
                 ("test_samples", J::I(test.len() as i64)),
-                (
-                    "test_acc_encrypted_trained",
-                    J::N(accuracy(&out_he, &test.labels)),
-                ),
-                ("test_acc_twin", J::N(accuracy(&out_twin, &test.labels))),
+                ("test_acc_encrypted_trained", J::N(acc_he)),
+                ("test_acc_twin", J::N(acc_twin)),
+                ("test_acc_diff", J::N(acc_he - acc_twin)),
             ]),
         ),
         (
@@ -1070,7 +1206,20 @@ pub(super) fn run_ni_blocks(args: &Args) -> Result<(), String> {
             args.batch
         ))
     });
-    write_out(&path, &text)
+    write_out(&path, &text)?;
+    if all_pass {
+        Ok(())
+    } else {
+        Err(format!(
+            "checks failed: {:?} (JSON written to {})",
+            checks
+                .iter()
+                .filter(|c| !c.1)
+                .map(|c| c.0)
+                .collect::<Vec<_>>(),
+            path.display()
+        ))
+    }
 }
 
 #[cfg(test)]

@@ -472,6 +472,7 @@ pub struct BlockNiTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = Bootstr
     stages: Vec<NonInteractiveTrainer<'a, E, B>>,
     handoff_boots: u64,
     handoff_seconds: f64,
+    last_handoffs: Vec<Vec<E::Ct>>,
 }
 
 impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
@@ -548,6 +549,7 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
             stages,
             handoff_boots: 0,
             handoff_seconds: 0.0,
+            last_handoffs: Vec::new(),
         })
     }
 
@@ -590,6 +592,17 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
         self.handoff_boots
     }
 
+    /// The hand-off bootstraps of the last update: `[boundary][micro-batch]` is the bootstrap
+    /// output of block `boundary`'s activation (stage `boundary + 1`'s input), at `Delta` on
+    /// the bootstrap output level, canonical with the block's width. For a client-side
+    /// diagnostic of the hand-off's precision (its input is not range-checked: the bootstrap's
+    /// `|m| <= 1` precondition is the caller's; the trainer itself never decrypts), as
+    /// [`NonInteractiveTrainer::last_activation_bootstraps`] for
+    /// [`BootPlacement::AfterActivation`]. Empty before the first update or after a failed one.
+    pub fn last_handoff_bootstraps(&self) -> &[Vec<E::Ct>] {
+        &self.last_handoffs
+    }
+
     /// Wall-clock seconds of all bootstraps so far (the stages' and the hand-offs').
     pub fn bootstrap_seconds(&self) -> f64 {
         self.handoff_seconds
@@ -623,6 +636,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
         for b in batches {
             check_counts(n, self.stages.len(), b.1.len())?;
         }
+        self.last_handoffs.clear();
+        let mut handoffs = Vec::with_capacity(n - 1);
         let mut inputs: Vec<E::Ct> = batches.iter().map(|b| b.0.clone()).collect();
         for s in 0..n {
             let mb: Vec<(&E::Ct, &E::Ct, usize)> = inputs
@@ -643,9 +658,11 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> BlockNiTrainer<'a, E, B> {
                     self.handoff_boots += 1;
                 }
                 self.handoff_seconds += t0.elapsed().as_secs_f64();
+                handoffs.push(next.clone());
                 inputs = next;
             }
         }
+        self.last_handoffs = handoffs;
         Ok(())
     }
 }
