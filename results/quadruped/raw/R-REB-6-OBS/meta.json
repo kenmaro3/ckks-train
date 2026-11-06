@@ -1,0 +1,32 @@
+{
+  "started_unix": 1793993499.663606,
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 python3 -"
+  ],
+  "remote_source_sha256": "a32f9ab9f498e6386eb53a4b167ab37adc516e1a0886f0e894cb326ed3f26e84",
+  "scope": "R-REB-6-OBS read-only current package/source inventory; no capture or job mutation",
+  "returncode": 0,
+  "finished_unix": 1793993539.776635
+}

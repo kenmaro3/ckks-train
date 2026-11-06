@@ -453,3 +453,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **pass:** exit 0 (every run `done` or `skipped-gpu-memory`). Exit 1 means a run failed or had missing inputs: list those ids with the last lines of `results/run_all/quick/logs/<id>.log`.
 - **output path:** `results/run_all/quick/` (copy back `*.json`, `logs/`, `meta/`), `results/quadruped/logs/R-54-1.log`, `results/quadruped/logs/R-54-1.plan.txt`. Record total wall-clock (from `time -v`), `df -h ~`, `nvidia-smi` and `uptime` before and after; the controller puts the duration and `df -h` into `results/README.md`.
 - **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
+
+
+## R-REB-6-OBS: current original-producer environment inventory (read-only)
+
+- **purpose:** diagnose Mac eMLP2 seed0 image parity failure without changing preprocessing, canonical data or the running FULL jobs. Current environment evidence is not retrospective attestation.
+- **commit to sync:** none; no tree sync/build/install. Exporter source under investigation: `f0216160d8a74a644a12a227fb2ec915badc46b5`.
+- **working dir:** read only `/home/kmihara/reboot` and the authoritative FULL-2 log.
+- **command:** key-only SSH, `nice -n 10 python3 -`, with original stdlib inventory source supplied through stdin. Source SHA256 `a32f9ab9f498e6386eb53a4b167ab37adc516e1a0886f0e894cb326ed3f26e84`; exact retained source `raw/R-REB-6-OBS/observer.py`. No package/native/baseline import, training, CUDA, scientific capture or network inside observer. Large native files are stat-only, not hash-attested.
+- **expected duration:** under 30 seconds; 1 process/thread, no background experiment.
+- **GPU memory need:** 0. **RAM need:** under 100 MiB expected.
+- **output path:** `results/quadruped/raw/R-REB-6-OBS/` (byte-exact inventory, observer, stderr, controller metadata, hashes and limitations); controller ledger retains originals. No accepted scientific result JSON.
+- **status:** done (2026-11-07T04:32:19.620754+09:00, exit0; controller wall 40.113s including SSH). No scientific imports or job/queue mutation. Read-only untimed observation overlapped FULL-2. Raw README explicitly excludes the guessed final-result/config paths from evidence; this is current environment inventory only, not compatibility success or historical attestation.

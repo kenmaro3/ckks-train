@@ -1,0 +1,416 @@
+{
+  "kind": "read_only_current_environment_inventory_not_historical_attestation_or_runtime_approval",
+  "observed_unix": 1793993539.6207545,
+  "observer_python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "owner_uid": 1000,
+  "packages": {
+    "torchvision": {
+      "name": "torchvision",
+      "version": "0.29.2+cpu",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/METADATA",
+          "bytes": 5679,
+          "sha256": "ae01f8957c554b0e66e3e71f72389b3a2e5f04495cd5b06b4dd150704955177a",
+          "mtime_ns": 1793843936500971316
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/RECORD",
+          "bytes": 18356,
+          "sha256": "77face89cca826f4ff44379c9aa9bc2e6b2e2fc8931a37b5eabd2cd9f22d7bdb",
+          "mtime_ns": 1793843963531294456
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision-0.29.2+cpu.dist-info/WHEEL",
+          "bytes": 101,
+          "sha256": "15c940fdf59c52e8baf80c557a82c65e485bac665fe1c64862b700f83fc9d539",
+          "mtime_ns": 1793843936500971316
+        }
+      }
+    },
+    "matplotlib": {
+      "name": "matplotlib",
+      "version": "3.11.2",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/METADATA",
+          "bytes": 80264,
+          "sha256": "e5f532226d1025af2dd15ff951df27391f66d46403b8244ea61e6b8eb3e4d806",
+          "mtime_ns": 1793843928520875916
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/RECORD",
+          "bytes": 56264,
+          "sha256": "715752ec27465e744aff409e28d977f3b89a18bf05dc44427dc0e60e55a92f9b",
+          "mtime_ns": 1793843933842939540
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/matplotlib-3.11.2.dist-info/WHEEL",
+          "bytes": 137,
+          "sha256": "eae5ee06e4c72985475f7f278cb9c38c261193567983069726dcc5aade8b44ac",
+          "mtime_ns": 1793843928520875916
+        }
+      }
+    },
+    "seaborn": {
+      "name": "seaborn",
+      "version": "0.13.2",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/METADATA",
+          "bytes": 5381,
+          "sha256": "98cfe2b7a5004466cdd5c7c8ccf016ebdcfa0337fc177ea7aad27f527c53fc96",
+          "mtime_ns": 1793843918612757467
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/RECORD",
+          "bytes": 4773,
+          "sha256": "28cc11a75b9a326c2f28947db88e83b1215702c219ca61a9470cbc7439d447cd",
+          "mtime_ns": 1793843933836939468
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/seaborn-0.13.2.dist-info/WHEEL",
+          "bytes": 81,
+          "sha256": "1196c6921ec87b83e865f450f08d19b8ff5592537f4ef719e83484e546abe33e",
+          "mtime_ns": 1793843918612757467
+        }
+      }
+    },
+    "pillow": {
+      "name": "pillow",
+      "version": "13.0.0",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/METADATA",
+          "bytes": 9118,
+          "sha256": "dba7fdfe24e302f46bae562f55d66cc367c0618abae9894a1ebec93dc8f0e511",
+          "mtime_ns": 1793843927151859550
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/RECORD",
+          "bytes": 11441,
+          "sha256": "76ec3ae6b42bb64e7fcefd7aff51bc86e145342ded7441d026d6c7979824f99f",
+          "mtime_ns": 1793843933838041986
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/pillow-13.0.0.dist-info/WHEEL",
+          "bytes": 152,
+          "sha256": "1b8b73fc43743c69ec1937814a98114f9f4e48fe1c545296313c0518c95f7978",
+          "mtime_ns": 1793843927151859550
+        }
+      }
+    },
+    "numpy": {
+      "name": "numpy",
+      "version": "2.0.0",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/METADATA",
+          "bytes": 60899,
+          "sha256": "69443e65a36f8b0ce6475cbc682061f3a1c41de2e7cf0fa8c3afe0a2d6619ec5",
+          "mtime_ns": 1793843927707866197
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/RECORD",
+          "bytes": 86082,
+          "sha256": "117d877bc54e9c7e737c876816d9f6b1e7ba16e474f8e26b70f0301a4fd50a5b",
+          "mtime_ns": 1793843933847139324
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/numpy-2.0.0.dist-info/WHEEL",
+          "bytes": 137,
+          "sha256": "eae5ee06e4c72985475f7f278cb9c38c261193567983069726dcc5aade8b44ac",
+          "mtime_ns": 1793843927722866376
+        }
+      }
+    },
+    "scipy": {
+      "name": "scipy",
+      "version": "1.17.1",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/METADATA",
+          "bytes": 62142,
+          "sha256": "7cdd5544eb610b86e000b6f0a21e86f84423faf0aacbb99990f3d41f25e1f314",
+          "mtime_ns": 1793843933788938894
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/RECORD",
+          "bytes": 136084,
+          "sha256": "7b3d4ee75e870bd25c76123f62ece04658e23b89623fe4684f4ef4bfa245f7f7",
+          "mtime_ns": 1793843933846040508
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/scipy-1.17.1.dist-info/WHEEL",
+          "bytes": 138,
+          "sha256": "d24f976e7ce522db6fa28b9356a4b98a0cc2dff8364a2301c483fed4405ccbe4",
+          "mtime_ns": 1793843933788938894
+        }
+      }
+    },
+    "torch": {
+      "name": "torch",
+      "version": "2.15.0+cpu",
+      "metadata": {
+        "METADATA": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/METADATA",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/METADATA",
+          "bytes": 35446,
+          "sha256": "8bbf94c86c3be6cf586385861d476b78cb66d19b67fef49ece4f7d68ca428cc3",
+          "mtime_ns": 1793843963352292316
+        },
+        "RECORD": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/RECORD",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/RECORD",
+          "bytes": 1326085,
+          "sha256": "e377bb81d7c90b4ddbb2b23652acdc9292150821aac08f63f0e209284828af01",
+          "mtime_ns": 1793843963600295280
+        },
+        "WHEEL": {
+          "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/WHEEL",
+          "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch-2.15.0+cpu.dist-info/WHEEL",
+          "bytes": 117,
+          "sha256": "51460b9759cc94c124678ef2b8ec798ae4942f2b7f3ec2d17cc8b54ef259dee9",
+          "mtime_ns": 1793843963352292316
+        }
+      }
+    }
+  },
+  "sources": {
+    "src/ReBoot/lib/utils/data.py": {
+      "path": "/home/kmihara/reboot/src/ReBoot/lib/utils/data.py",
+      "resolved": "/home/kmihara/reboot/src/ReBoot/lib/utils/data.py",
+      "bytes": 27800,
+      "sha256": "ceb95b4a2c324ea9e37ccade93aefae4b94a2f04f0ac5c86fdad5d6ddc6b8780",
+      "mtime_ns": 1793843914883042365
+    },
+    "src/ReBoot/experiments/4_Scalability/precision_analysis.py": {
+      "path": "/home/kmihara/reboot/src/ReBoot/experiments/4_Scalability/precision_analysis.py",
+      "exists": false
+    },
+    "reboot_full_setting.py": {
+      "path": "/home/kmihara/reboot/reboot_full_setting.py",
+      "resolved": "/home/kmihara/reboot/reboot_full_setting.py",
+      "bytes": 14998,
+      "sha256": "e3e3f2c3dd2bbe1597e9a18c65e6446b423693cbab2bd985913c57f8d4587de9",
+      "mtime_ns": 1793878491883551748
+    },
+    "reboot_emlp23.py": {
+      "path": "/home/kmihara/reboot/reboot_emlp23.py",
+      "resolved": "/home/kmihara/reboot/reboot_emlp23.py",
+      "bytes": 9636,
+      "sha256": "6ce174721a7dfb3f7f79a9b8f9a47e200fab67a0a630d12610a99c6441970bc8",
+      "mtime_ns": 1793919296422925269
+    },
+    "venv/pyvenv.cfg": {
+      "path": "/home/kmihara/reboot/venv/pyvenv.cfg",
+      "resolved": "/home/kmihara/reboot/venv/pyvenv.cfg",
+      "bytes": 172,
+      "sha256": "61b9a47f5d07cdf70e5606a8e63301a6933b6d07223d6414bc0390bb6544cbaf",
+      "mtime_ns": 1793843915054714932
+    },
+    "torchvision/transforms/transforms.py": {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/transforms.py",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/transforms.py",
+      "bytes": 85981,
+      "sha256": "673f3baacde591b3cb7224c5fbfc7ad35200dbd1f9a2147f3fa0b4226e735023",
+      "mtime_ns": 1793843936455970778
+    },
+    "torchvision/transforms/functional.py": {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/functional.py",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/functional.py",
+      "bytes": 67861,
+      "sha256": "0b2fdf8e6764f4be0113acd95b58d3b14158c13fa2374ed93fbbe1f4b8730ded",
+      "mtime_ns": 1793843936451970730
+    },
+    "torchvision/transforms/_functional_tensor.py": {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/_functional_tensor.py",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torchvision/transforms/_functional_tensor.py",
+      "bytes": 33930,
+      "sha256": "9a83d766d38a9ecaaa77770ba49c95ceffeb9ef8b652468f4af9d7867ae0037c",
+      "mtime_ns": 1793843936446970670
+    },
+    "torch/version.py": {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/version.py",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/version.py",
+      "bytes": 313,
+      "sha256": "a513ea7b2abed29b28946bdecc9053297ac41717603fa4e87827daa0a739fff3",
+      "mtime_ns": 1793843936387969965
+    }
+  },
+  "native_stat_only": [
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libaoti_custom_ops.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libaoti_custom_ops.so",
+      "bytes": 375024,
+      "mtime_ns": 1793843944058061658,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libbackend_with_compiler.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libbackend_with_compiler.so",
+      "bytes": 257272,
+      "mtime_ns": 1793843944078061898,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libc10.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libc10.so",
+      "bytes": 1571848,
+      "mtime_ns": 1793843944187063201,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libgfortran.so.5",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libgfortran.so.5",
+      "bytes": 4243353,
+      "mtime_ns": 1793843944364337973,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libgomp.so.1",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libgomp.so.1",
+      "bytes": 2115417,
+      "mtime_ns": 1793843944386065580,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libjitbackend_test.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libjitbackend_test.so",
+      "bytes": 213776,
+      "mtime_ns": 1793843944399065735,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libshm.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libshm.so",
+      "bytes": 57544,
+      "mtime_ns": 1793843944405065807,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch.so",
+      "bytes": 8032,
+      "mtime_ns": 1793843944406065819,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_cpu.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_cpu.so",
+      "bytes": 440280512,
+      "mtime_ns": 1793843957936227568,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_global_deps.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_global_deps.so",
+      "bytes": 8264,
+      "mtime_ns": 1793843957936227568,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_python.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorch_python.so",
+      "bytes": 32730248,
+      "mtime_ns": 1793843958747237264,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorchbind_test.so",
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages/torch/lib/libtorchbind_test.so",
+      "bytes": 917760,
+      "mtime_ns": 1793843958767237502,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so.1.2.1",
+      "bytes": 489248,
+      "mtime_ns": 1793844033000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so.1.2.1",
+      "bytes": 489248,
+      "mtime_ns": 1793844033000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so.1.2.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEbinfhe.so.1.2.1",
+      "bytes": 489248,
+      "mtime_ns": 1793844033000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so.1.2.1",
+      "bytes": 2455384,
+      "mtime_ns": 1793844030000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so.1.2.1",
+      "bytes": 2455384,
+      "mtime_ns": 1793844030000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so.1.2.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEcore.so.1.2.1",
+      "bytes": 2455384,
+      "mtime_ns": 1793844030000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so.1.2.1",
+      "bytes": 5221464,
+      "mtime_ns": 1793844061000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so.1.2.1",
+      "bytes": 5221464,
+      "mtime_ns": 1793844061000000000,
+      "sha256": "not_measured"
+    },
+    {
+      "path": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so.1.2.1",
+      "resolved": "/home/kmihara/reboot/install/lib/libOPENFHEpke.so.1.2.1",
+      "bytes": 5221464,
+      "mtime_ns": 1793844061000000000,
+      "sha256": "not_measured"
+    }
+  ],
+  "full2_log_tail": [
+    "mnist: epoch 0 update 25 (48 samples, 1 cts): 143.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3774 s, load 2.87 3.02 3.00 1/1401 1920685",
+    "mnist: epoch 0 update 26 (48 samples, 1 cts): 142.1 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 3916 s, load 2.77 2.89 2.96 1/1398 1921095",
+    "mnist: epoch 0 update 27 (48 samples, 1 cts): 141.3 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4058 s, load 2.61 2.86 2.94 1/1398 1921473",
+    "mnist: epoch 0 update 28 (48 samples, 1 cts): 141.2 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 4199 s, load 2.35 2.86 2.93 1/1400 1921957"
+  ],
+  "scientific_modules_loaded": [],
+  "full2_final_result_exists": false
+}
