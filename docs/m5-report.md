@@ -258,4 +258,10 @@ Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項
 
 05:58:57 JSTのFULL-2は66/1000更新、直近6計数は予測一致。chain/queueは同一PID/start/自UIDでlive、最終結果は未出力、queueはowner.jsonのみ。ジョブ変更はなく、RQ1/M4の最終判定は未確定。Task54の学習role／実行接続と全行runnerも未完である。
 
+## 2026-11-07追記: 起動準備の実測と未達
+
+[R14/R15](../results/quadruped/raw/R-REB-14-15-STARTUP-PREREQUISITES/README.md)の静的観測をレビュー・保存し、[R16〜19](../results/quadruped/raw/R-REB-16-19-STARTUP1/README.md)で固定コピーの配置と独立readbackは合格した。一方、実startup1は静的preflight後にimporter-cacheの固定launcherキーを拒否してexit1となり未達。親子の原記録・終了・完全なstream回収を保持し、helper preparation、外部package追加、科学用import/context/captureには進んでいない。失敗したLinux記録からfinderの値を補完しない。修正と別の実行releaseが必要で、環境作成やsourceレビューの合格を起動成功に置き換えない。
+
+07:25:40 JSTのFULL-2は102/1000更新、既存chain/queueは同じstart ticksでlive、最終結果なし。学習role/buildの限定Rust35・integration1・Python32 methodsとClippy/formatは通ったが、独立レビューのPython emitted-path containment指摘を修正中で未統合。native/context/runtime・全行runner・科学的matrix・Task42/M4/M5全体は未完である。既存holdと全登録範囲を保持し、公開・課金設定は変更していない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

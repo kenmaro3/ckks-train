@@ -595,3 +595,55 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-startup-command-identity-20261107.{stdout,stderr,meta.json}`.
 - **pass criterion:** actual file identities and matching known pins, with host metadata explicitly observed by system observer. Not new-venv runtime/native isolation or scientific evidence. No command execution, deployment or job/queue mutation.
 - **status:** done (2026-11-07T07:15:09.860511+09:00, exit0). Exact coreutils uname11352352bytes SHA25648893b0fb21436b54619db80486e83ef39dfccaf1aefe83dfa00c02d6146e8c0; system/base pins unchanged. System observer reports Linuxx86_64 and glibc2.43. No target startup or command execution; records archived with both R14 attempts in `raw/R-REB-14-15-STARTUP-PREREQUISITES/`.
+
+
+## R-REB-16-STARTUP-FILES: fresh four-file deployment without interpreter startup
+
+- **purpose:** deploy exact reviewed prelaunch/launcher/exporter copies and observation-only candidate sidecar into a new own directory.
+- **commit to sync:** none; no checkout/build/package/environment mutation.
+- **working dir:** fresh `/home/kmihara/hekit-runs/task54-launch/v1`; parent identity from R14 freshly checked.
+- **command:** key-only SSH `nice -n 10 python3 -`; original deployment wrapper SHA256 d63de1ddda59b69fb183ad9507d0a7cdcda7ae28d4acd03d2550f3d9c0d38bca, ledger `task-54-linux-startup1-deploy.py`. Independent bounded spec/quality review5cb1f12bbd12b18783c585e3ef7330ac7044d2046bc9ab9fce219aa2f0335eb9 accepted.
+- **expected duration:** seconds; one process,111278payload bytes, fixed4files/2newdirectories. No target process launch.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** ledger `task-54-linux-startup1-deploy.{stdout,stderr,meta.json}`, exact remote fresh files underv1.
+- **pass criterion:** fresh-only O_EXCL writes, owner/mode/hash/readback/fsync and terminal receipt; preserve partial state/no retry or cleanup on failure. This installs inert copies only, does not start the new venv, append packages, load exporter, run context/capture or mutate FULL2/queue.
+- **status:** done (2026-11-07T07:22:46.625793+09:00, exit0). Four exact files were written fresh, fsynced and hash/uid/mode0600 verified. No target process started. The existing deployment must not be recreated/retried; independent readback and separate startup invocation follow.
+
+
+## R-REB-17-STARTUP-READBACK: independent deployed-byte and live-job observation
+
+- **purpose:** fresh readback of R16's4files/2directories and absent startup evidence paths, alongside the existing read-only FULL2/queue observer before any startup release.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** exact own deployment and existing FULL2 log/result/ownedprocess/queue paths.
+- **command:** key-only SSH `nice -n 10 python3 -`; observer SHA256 47af9533e23db875c392979ea91ab4079001734dd15ba95fbc8e3f6d4a850426, ledger `task-54-linux-startup1-readback.py`. Existing job observer semantics retained; only four cap1MiB readbacks and two directory metadata checks added.
+- **expected duration:** seconds after SSH; one observer, no scientific workload.
+- **GPU memory need:** 0. **RAM need:** under100MiB expected.
+- **output path:** ledger `task-54-linux-startup1-readback.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual independent byte/hash/owner/mode/inode agreement and honest current ownedjob state. No process signaling, target startup, package scan, native/scientific imports, context/capture or mutation.
+- **status:** done (2026-11-07T07:25:40.070290+09:00, exit0). All4deployed file bytes/hash/owner/mode/inode matched and2directories are own0700; startup evidence paths absent. FULL2 update101 zero-based (102/1000 complete), result absent, own chain+queue alive with matching start ticks; queue owner.json only. No process/queue changes.
+
+
+## R-REB-18-STARTUP1: one trusted-only new-venv startup observation
+
+- **purpose:** observe actual isolated venv identity and trusted stdlib helper preparation, then stop before external package append/exporter loading.
+- **commit to sync:** none; frozen deployed copies only.
+- **working dir:** controller/child `/home/kmihara/reboot`, exact deployed sidecar `/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json`.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; original external verifier SHA25694563d06cc7cfe48bfc6ed3e19a9a6f4404418917d606044e986333bb7ea0c44 through stdin. It pins inputs then execs exact base3.11.16 `-I -B` prelaunch with external sidecar SHA256b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a. Prelaunch owns lexical new-venv `bin/python -I -B` child and the same sidecar transport.
+- **expected duration:** seconds; child60s timeout plus5s bounded collection, outer SSH observation110s. One-thread environment caps, nice10 inherited, no HE/GPU or scientific imports. Lightweight untimed setup may overlap FULL2; no context/full package-native hash/capture in this phase.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **output path:** remote exact `startup1-parent.json` / `startup1-child.json` beside sidecar, no-clobber; controller ledger `task-54-linux-startup1-invoke.{stdout,stderr,meta.json}`.
+- **pass criterion:** exact fresh static/identity/site/path/module/hook checks, matching parent/child release binding, actual terminal zero and complete streams. Pre-exec verification alone is not success. Platform warmup may execute the identified uname -p and ordinary trusted stdlib fallbacks; reachability is source inference, not a native allowlist. Direct-child timeout does not contain descendants; failure/unresolved streams are retained, no retry/guard patch or process-tree signaling.
+- **status:** failed (2026-11-07T07:27:42.013940+09:00 child terminalexit1, complete streams/no cleanup errors). Static preflight passed; child rejected importer-cache key equal to its exact pinned launcher file path before recording startup stage. ChildPID1958934, no helper preparation/external package append/exporter/context/capture reached. Preserve records; no automatic retry. The cache entry value was not recorded, so its being None is not claimed as observed.
+
+
+## R-REB-19-STARTUP1-EVIDENCE: collect exact failed-startup bytes
+
+- **purpose:** preserve exact parent/child evidence from terminal R18 without rerunning it.
+- **commit to sync:** none.
+- **working dir:** exactly two known startup1 evidence files under own deployment.
+- **command:** key-only SSH `nice -n 10 python3 -`; collector SHA2561f7668159f31d1b5df40b22da9de11f0499d13ab45f332bdb13d47d77d84b4b7, ledger `task-54-linux-startup1-collect.py`.
+- **expected duration:** seconds, one observer;2MiB cap per regular own file, missing files explicit.
+- **GPU memory need:** 0. **RAM need:** under50MiB expected.
+- **output path:** ledger `task-54-linux-startup1-collect.{stdout,stderr,meta.json}` plus decoded byte-identical parent/child JSON and hashes.
+- **pass criterion:** exact available bytes/identities retained, distinct from startup verdict. No target process invocation/retry, package/scientific import, mutation or signals.
+- **status:** done (2026-11-07T07:29:37.018856+09:00, exit0). Both remote evidence files collected byte-for-byte and decoded locally with matching hashes; failed startup release binding and childterminal1/complete streams/empty stages confirmed. No retry or target invocation.

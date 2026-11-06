@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [Linux入力取得のsource対応と空環境作成](#latest-evidence-20261107-linux-launch)。
+最新の追記: [Linux起動の失敗記録と学習role実装のレビュー](#latest-evidence-20261107-startup1)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-linux-launch)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-startup1)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -483,3 +483,17 @@ MacのIは05:27:05–05:27:09 JST、2 graphs・8更新・2推論・116 client re
 最新のジョブ観測は05:58:57 JST、FULL-2 update65（0始まり）=66/1000、elapsed9501s、直近6計数は予測一致。chain PID1700979/start465769819、queue PID1739838/start467041669は自UID/state Sでlive。chainの直接child1910150もliveで、その子1910153/1910154は一覧のみ確認した。正しい最終結果pathは不存在、queueはowner.jsonのみ。これは最終精度・完了の証拠ではない。一次記録はledger post-full-observation-20261107-0600.*。後続R47/R48/R52とTask42の最終判定は引き続き待機中。
 
 学習roleのbuild/approval用独立期待値と、取得用のprelaunch/launcher実装準備を進める。全長参照・実学習runtime・全行runner・実測の残項目は前節どおり。新commitのhosted CI成功は未確認で、以前の成功や請求理由で未起動だった別runを継承しない。公開release・課金設定の変更は行っていない。
+
+
+<a id="latest-evidence-20261107-startup1"></a>
+## 2026-11-07追記: Linux起動の失敗記録と学習role実装のレビュー
+
+[R14/R15](../results/quadruped/raw/R-REB-14-15-STARTUP-PREREQUISITES/README.md)の追加観測を独立レビュー後に`450e51f`で統合・pushした。最初のcommand-file読み取りは2MiB上限で失敗し、失敗記録と後続の限定観測を別々に保持した。system observerとbase interpreterを区別し、実際のuname実体とhashを取得した。完全なhelper/native closureや科学用importの合格ではない。
+
+[R16〜19の原記録](../results/quadruped/raw/R-REB-16-19-STARTUP1/README.md)では専用ディレクトリへ固定4ファイルを配置し、別の読み取りで全hash・所有者・mode・inodeを照合した。その後、07:27:42 JSTの**実startup1は未達**。静的preflightは通ったが、子プロセスが自分の固定launcherファイルに対応するimporter-cacheキーを拒否してexit1となった。子の終了・全stream回収は確認済み、startup stageは空、helper preparationや外部package追加・exporter/context/captureには到達していない。Linuxの当該finder値は未記録で、Noneだったとは主張しない。原失敗・sidecar・source・親子JSONを保持し、自動再試行はしていない。限定修正には新しいテスト・レビュー・固定copy/sidecar/evidence・実行releaseが必要。
+
+07:25:40 JSTのFULL-2はupdate101（0始まり）=102/1000更新、直近6計数は予測一致。chain PID1700979/start465769819とqueue PID1739838/start467041669は同じ自UIDでlive、最終結果は未出力、queueはowner.jsonのみ。既存ジョブは変更していない。この観測で07:30の定例確認を兼ね、次の定例は08:25 JST以降。Task42の精度・同一CPU timing等とM4後続キューの判定は未確定。
+
+学習role/buildの変更はRust35件・限定integration1件・Python32 methodsとstrict Clippy/formatを通したが、独立レビューでPythonの非選択emitted pathに`..`が入った場合のcontainment不足が見つかり、修正中・未統合である。Rust側は拒否するため両言語の規則を揃える。試験数は科学的case数ではなく、native build、Train current context/runtime、全行runner、HE実測の完了は主張しない。全登録行・未解決補足・campaign holdは維持する。
+
+Macの不要生成物は累計19,298,938,880 bytes（約17.97GiB）を整理済み。直近の追加対象は非稼働Rust中間objectだけで、primary binaryのhashは不変。現在の空きは別途変動し、約1.1GiBのため既存target・単一Cargo・限定検証を維持する。科学結果・データ・証跡は保持し、Sage再実行時は保存した394 pinsから再導入する。新commitのhosted CIは未確認、以前の請求理由による未起動を成功扱いせず、課金・公開設定は変更していない。

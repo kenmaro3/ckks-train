@@ -1,0 +1,60 @@
+{
+  "kind": "startup_files_deployment_not_scientific_result",
+  "started_unix": 1794003766.603166,
+  "uid": 1000,
+  "nice": 10,
+  "files": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-prelaunch-v1.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309257
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+      "bytes": 29158,
+      "sha256": "e6ff0ab0e45fc680442bc184ecf665cdc63888bba13c673d5cb18441d9fecd84",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309258
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/export_reboot_block_seed_inputs.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309259
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+      "bytes": 13833,
+      "sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309260
+    }
+  ],
+  "created_directories": [
+    "/home/kmihara/hekit-runs/task54-launch",
+    "/home/kmihara/hekit-runs/task54-launch/v1"
+  ],
+  "controller": {
+    "lexical": "/usr/bin/python3",
+    "resolved": "/usr/bin/python3.14",
+    "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "argv": [
+      "python3",
+      "-"
+    ]
+  },
+  "status": "deployed_verified_no_target_startup",
+  "finished_unix": 1794003766.625793,
+  "scope": "Four exact files only; no interpreter/command launch, package import, environment repair, clone mutation, job/queue mutation or scientific result."
+}

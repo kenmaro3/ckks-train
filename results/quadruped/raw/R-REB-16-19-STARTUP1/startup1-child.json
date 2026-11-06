@@ -1,0 +1,22 @@
+{
+  "actual_argv": [
+    "/home/kmihara/reboot/exporter-venv-task54-v1/bin/python",
+    "-I",
+    "-B",
+    "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+    "--release",
+    "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+    "--release-sha256",
+    "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a"
+  ],
+  "error": "foreign importer cache path: /home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+  "error_type": "LaunchError",
+  "kind": "task54_child_operational_evidence",
+  "purpose": "startup-only",
+  "release": {
+    "path": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+    "sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a"
+  },
+  "stages": {},
+  "status": "failed"
+}

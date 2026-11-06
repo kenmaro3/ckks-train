@@ -1,0 +1,122 @@
+{
+  "kind": "startup_deployment_readback_and_job_observation_not_scientific_result",
+  "observed_unix": 1794003940.0686097,
+  "nice": 10,
+  "uid": 1000,
+  "processes": [
+    {
+      "pid": 1700979,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "465769819",
+      "uid": 1000,
+      "expected_start_ticks": "465769819",
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/bash",
+      "children": [
+        1910150
+      ]
+    },
+    {
+      "pid": 1739838,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "467041669",
+      "uid": 1000,
+      "expected_start_ticks": "467041669",
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/python3.14",
+      "children": []
+    }
+  ],
+  "direct_children": [
+    {
+      "pid": 1910150,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "472983092",
+      "uid": 1000,
+      "expected_start_ticks": null,
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/bash",
+      "children": [
+        1910153,
+        1910154
+      ]
+    }
+  ],
+  "full2_log_path": "/home/kmihara/hekit-runs/logs/R-41-FULL-2.log",
+  "full2_log_tail": [
+    "mnist: epoch 0 update 96 (48 samples, 1 cts): 142.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 13935 s, load 4.02 3.69 3.29 1/1401 1956335",
+    "mnist: epoch 0 update 97 (48 samples, 1 cts): 142.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14077 s, load 3.30 3.66 3.34 1/1401 1956732",
+    "mnist: epoch 0 update 98 (48 samples, 1 cts): 141.9 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14219 s, load 3.16 3.56 3.35 1/1400 1957148",
+    "mnist: epoch 0 update 99 (48 samples, 1 cts): 143.0 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14362 s, load 3.05 3.48 3.35 1/1400 1957553",
+    "mnist: epoch 0 update 100 (48 samples, 1 cts): 142.6 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14505 s, load 2.69 3.29 3.30 1/1402 1957923",
+    "mnist: epoch 0 update 101 (48 samples, 1 cts): 140.7 s, 1369 KS (4 bootstraps, weights booted), matches prediction true; elapsed 14646 s, load 3.40 3.49 3.38 1/1403 1958329"
+  ],
+  "full2_result_path": "/home/kmihara/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json",
+  "full2_result_exists": false,
+  "queue_entries": [
+    "owner.json"
+  ],
+  "deployment_files": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-prelaunch-v1.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309257
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+      "bytes": 29158,
+      "sha256": "e6ff0ab0e45fc680442bc184ecf665cdc63888bba13c673d5cb18441d9fecd84",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309258
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/export_reboot_block_seed_inputs.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309259
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+      "bytes": 13833,
+      "sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309260
+    }
+  ],
+  "deployment_directories": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch",
+      "uid": 1000,
+      "mode": 448,
+      "device": 66311,
+      "inode": 36309255
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1",
+      "uid": 1000,
+      "mode": 448,
+      "device": 66311,
+      "inode": 36309256
+    }
+  ],
+  "evidence_absent": {
+    "/home/kmihara/hekit-runs/task54-launch/v1/startup1-parent.json": true,
+    "/home/kmihara/hekit-runs/task54-launch/v1/startup1-child.json": true
+  },
+  "status": "readback_complete",
+  "finished_unix": 1794003940.07029
+}

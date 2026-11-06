@@ -1,0 +1,132 @@
+{
+  "kind": "startup_only_external_verifier_before_exec",
+  "started_unix": 1794004061.900414,
+  "uid": 1000,
+  "nice": 10,
+  "pins": [
+    {
+      "path": "/usr/bin/python3.14",
+      "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+      "bytes": 7477160,
+      "uid": 0,
+      "mode": 493,
+      "device": 66311,
+      "inode": 27657381
+    },
+    {
+      "path": "/usr/lib/cargo/bin/coreutils/uname",
+      "sha256": "48893b0fb21436b54619db80486e83ef39dfccaf1aefe83dfa00c02d6146e8c0",
+      "bytes": 11352352,
+      "uid": 0,
+      "mode": 493,
+      "device": 66311,
+      "inode": 27656687
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+      "sha256": "2874a0b9344d06b7767aebb1e6e25a759ffcbdb544e99400ecc74dc6092d1174",
+      "bytes": 21740000,
+      "uid": 1000,
+      "mode": 509,
+      "device": 66311,
+      "inode": 32929000
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site.py",
+      "sha256": "0577e4b379d8ef4aa0ecf88a264ef18c10f72ea72119afae36524d1aae77c9bf",
+      "bytes": 22987,
+      "uid": 1000,
+      "mode": 436,
+      "device": 66311,
+      "inode": 32930968
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/_distutils_hack/__init__.py",
+      "sha256": "df81e6bcba34ee3e3952f776551fb669143b9490fdd6c4caeb32609f97e985b4",
+      "bytes": 6755,
+      "uid": 1000,
+      "mode": 436,
+      "device": 66311,
+      "inode": 32929905
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/site-packages/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151,
+      "uid": 1000,
+      "mode": 436,
+      "device": 66311,
+      "inode": 32929909
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-launch-v1.py",
+      "sha256": "e6ff0ab0e45fc680442bc184ecf665cdc63888bba13c673d5cb18441d9fecd84",
+      "bytes": 29158,
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309258
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-prelaunch-v1.py",
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "bytes": 7044,
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309257
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/export_reboot_block_seed_inputs.py",
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "bytes": 61243,
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309259
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+      "sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+      "bytes": 13833,
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309260
+    }
+  ],
+  "outer_interpreter": {
+    "lexical": "/usr/bin/python3.14",
+    "resolved": "/usr/bin/python3.14",
+    "argv": [
+      "/usr/bin/python3.14",
+      "-I",
+      "-B",
+      "-"
+    ]
+  },
+  "status": "verified_before_exec_not_startup_result",
+  "controller_argv": [
+    "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+    "-I",
+    "-B",
+    "/home/kmihara/hekit-runs/task54-launch/v1/task-54-exporter-linux-prelaunch-v1.py",
+    "--release",
+    "/home/kmihara/hekit-runs/task54-launch/v1/startup1-release.json",
+    "--release-sha256",
+    "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a"
+  ],
+  "environment": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PATH": "/usr/bin:/bin",
+    "RAYON_NUM_THREADS": "1",
+    "SETUPTOOLS_USE_DISTUTILS": "local"
+  },
+  "cwd": "/home/kmihara/reboot",
+  "finished_unix": 1794004061.9358041,
+  "scope": "One direct exec into pinned base prelaunch; it owns a single startup-only child with60s/5s deadlines. No context/capture or native isolation claim."
+}

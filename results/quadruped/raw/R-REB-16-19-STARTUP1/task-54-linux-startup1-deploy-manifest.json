@@ -1,0 +1,26 @@
+{
+  "task-54-linux-startup1-deploy.py": "d63de1ddda59b69fb183ad9507d0a7cdcda7ae28d4acd03d2550f3d9c0d38bca",
+  "candidate_release_sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+  "payload": [
+    {
+      "name": "task-54-exporter-linux-prelaunch-v1.py",
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "bytes": 7044
+    },
+    {
+      "name": "task-54-exporter-linux-launch-v1.py",
+      "sha256": "e6ff0ab0e45fc680442bc184ecf665cdc63888bba13c673d5cb18441d9fecd84",
+      "bytes": 29158
+    },
+    {
+      "name": "export_reboot_block_seed_inputs.py",
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "bytes": 61243
+    },
+    {
+      "name": "startup1-release.json",
+      "sha256": "b1840858ab2e95c256c094cbce0faaedf28b6e4b9daa23fe0bcad8e3060bcb3a",
+      "bytes": 13833
+    }
+  ]
+}
