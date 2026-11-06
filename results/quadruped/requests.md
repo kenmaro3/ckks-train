@@ -699,3 +699,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-startup2-collect.{stdout,stderr,meta.json}`; invocation creates fresh remote startup2-parent.json / startup2-child.json.
 - **pass criterion:** Both fixed files at most2MiB each with original bytes/hash; missing/error explicit, no startup verdict inferred from collection. Preserve partial/failed records; no retry or replacement of v1/startup1. No job/queue mutation or native-isolation claim.
 - **status:** done (exit0). Both original files collected byte-for-byte: parent2755B SHA2569d491997ed1476c98f5e1847354d30e344cb54bbb1f4ee2ecf480c16f71b5fc1; child98031B SHA256a1fbe98aa390b7305f7189dabf574c4d28b2422617bfeb010e261f2c82fd1f41. Parent childhash, terminal0/completestreams and startup-only stage membership verified. No retry.
+
+
+## R-41-FULL2-OBS-20261107-0825: hourly read-only progress observation
+
+- **purpose:** Check the existing FULL-2 chain and post-full queue without starting, stopping or changing either.
+- **commit to sync:** none.
+- **working dir:** existing own `/home/kmihara/hekit-runs`; fixed own PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged ledger `post-full-observation-20261107-0600.remote.py` SHA25617550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 supplied on stdin.
+- **expected duration:** seconds after connection; single observer, bounded8KiB log tail. Connection timeout90s; local async controller retains stdout/stderr and terminal exit.
+- **GPU memory need:** 0. **RAM need:** under50MiB expected.
+- **output path:** ignored ledger `post-full-observation-20261107-0825.{stdout,stderr,meta.json}`.
+- **pass criterion:** Actual process start/uid/state and direct-child observations plus log/result/queue state recorded. This is operational evidence, not a scientific result or final accuracy. No signals, restart, training, build, or other-user process inspection.
+- **status:** done (2026-11-07T08:25:52.000152+09:00, SSH exit0). Same owned chain/queue live; update126 means127/1000 completed, last-six predictions match. Final result absent; queue owner.json only. Exact operational records: `raw/R-41-FULL2-OBS-20261107-0825/`. No job or queue mutation.

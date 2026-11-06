@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [検証ハーネス修正とruntime実装準備](#latest-evidence-20261107-r2-runtime)。
+最新の追記: [FULL-2の定期確認と実装状況](#latest-evidence-20261107-0825)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-r2-runtime)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-0825)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -528,3 +528,10 @@ Linux launcherのFIX3は固定された自分自身のファイルキーに対�
 Macの容量低下に対し、非稼働objectと24時間超の古い重複rlib/rmetaを499ファイル、678,801,408 allocated bytes整理した。各crateの新しい2 variantと全実行ファイル・dylibを残し、primary packed-block binaryのhash不変を確認した。累計削除は19,977,740,288 bytes（約18.61GiB）。ソース・実験結果・データ・PDFは保持した。削除したcache variantが将来必要になれば再生成される。直後の空きは1,305,198,592 bytesで、以後のビルドも0.75GiB floorを都度確認する。
 
 ReBootの次段階は、既知の標準ライブラリsource・installed metadata形式・固定候補pathを調べる限定読み取りの準備中。全package/native内容hash、context／capture、学習の追加実行はまだ行っていない。標準ライブラリsource本文は監査用の非追跡入力として扱い、公開MIT配布物にコピーしない。最新のFULL-2実観測は07:25:40 JSTの102/1000更新で、既存GPUキューの状態を新たに推定しない。全登録範囲とcampaign holdは維持する。
+
+<a id="latest-evidence-20261107-0825"></a>
+## 2026-11-07 08:25 JST追記: FULL-2の定期確認と実装状況
+
+[今回の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-0825/README.md)では、08:25:52 JSTに既存chainと後続queueの同一PID／開始時刻／所有者を確認した。FULL-2は127/1000更新まで進み、末尾6更新の予測一致はtrue。最終結果JSONはまだなく、queueにはowner.jsonのみだった。処理は変更していない。これは途中経過であり、精度判定やTask42／M4の完了を意味しない。
+
+CUDA runtime観測adapterの実装を開始した。ReBoot前提確認ツールは限定テスト16件に合格したが、独立レビューで読取り失敗時の候補情報保持と未確認を区別する集計表示に修正事項が見つかり、実行前に修正する。新たなcontext／captureやGPU測定結果は得ていない。全登録範囲・campaign holdを維持する。
