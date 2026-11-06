@@ -1,0 +1,8004 @@
+{
+  "kind": "startup_prerequisite_read_only_not_scientific_result",
+  "started_unix": 1794003180.9455035,
+  "uid": 1000,
+  "nice": 10,
+  "fixed_candidates": [
+    {
+      "path": "/home/kmihara/hekit-runs",
+      "lexists": true,
+      "resolved": "/home/kmihara/hekit-runs",
+      "uid": 1000,
+      "mode": 509,
+      "bytes": 4096,
+      "device": 66311,
+      "inode": 36072090,
+      "kind": "directory"
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch",
+      "lexists": false
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v1",
+      "lexists": false
+    },
+    {
+      "path": "/home/kmihara/reboot",
+      "lexists": true,
+      "resolved": "/home/kmihara/reboot",
+      "uid": 1000,
+      "mode": 509,
+      "bytes": 4096,
+      "device": 66311,
+      "inode": 36072092,
+      "kind": "directory"
+    },
+    {
+      "path": "/home/kmihara/reboot/venv/lib/python3.11/site-packages",
+      "lexists": true,
+      "resolved": "/home/kmihara/reboot/venv/lib/python3.11/site-packages",
+      "uid": 1000,
+      "mode": 509,
+      "bytes": 4096,
+      "device": 66311,
+      "inode": 36074874,
+      "kind": "directory"
+    },
+    {
+      "path": "/nonexistent-task54-fictional",
+      "lexists": false
+    },
+    {
+      "path": "/usr/bin/uname",
+      "lexists": true,
+      "resolved": "/usr/lib/cargo/bin/coreutils/uname",
+      "uid": 0,
+      "mode": 511,
+      "bytes": 32,
+      "device": 66311,
+      "inode": 27656477,
+      "kind": "symlink",
+      "target": "../lib/cargo/bin/coreutils/uname"
+    },
+    {
+      "path": "/bin/uname",
+      "lexists": true,
+      "resolved": "/usr/lib/cargo/bin/coreutils/uname",
+      "uid": 0,
+      "mode": 511,
+      "bytes": 32,
+      "device": 66311,
+      "inode": 27656477,
+      "kind": "symlink",
+      "target": "../lib/cargo/bin/coreutils/uname"
+    }
+  ],
+  "observer_interpreter": {
+    "lexical": "/usr/bin/python3",
+    "path": "/usr/bin/python3.14",
+    "lexists": true,
+    "resolved": "/usr/bin/python3.14",
+    "uid": 0,
+    "mode": 493,
+    "bytes": 7477160,
+    "device": 66311,
+    "inode": 27657381,
+    "kind": "file",
+    "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "version": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+    "prefix": "/usr",
+    "base_prefix": "/usr",
+    "argv": [
+      "python3",
+      "-"
+    ]
+  },
+  "command_candidates": [
+    {
+      "candidate": "/usr/bin/uname",
+      "path": "/usr/lib/cargo/bin/coreutils/uname",
+      "lexists": true,
+      "resolved": "/usr/lib/cargo/bin/coreutils/uname",
+      "uid": 0,
+      "mode": 493,
+      "bytes": 11352352,
+      "device": 66311,
+      "inode": 27656687,
+      "kind": "file",
+      "executed": false,
+      "sha256": null,
+      "hash_status": "not_read_kind_or_2MiB_cap"
+    },
+    {
+      "candidate": "/bin/uname",
+      "path": "/usr/lib/cargo/bin/coreutils/uname",
+      "lexists": true,
+      "resolved": "/usr/lib/cargo/bin/coreutils/uname",
+      "uid": 0,
+      "mode": 493,
+      "bytes": 11352352,
+      "device": 66311,
+      "inode": 27656687,
+      "kind": "file",
+      "executed": false,
+      "sha256": null,
+      "hash_status": "not_read_kind_or_2MiB_cap"
+    }
+  ],
+  "platform_source": {
+    "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/platform.py",
+    "lexists": true,
+    "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/platform.py",
+    "uid": 1000,
+    "mode": 509,
+    "bytes": 42273,
+    "device": 66311,
+    "inode": 32929868,
+    "kind": "file",
+    "sha256": "4a3cc68ba7354f8d5cc28c55315a7d77b77dcdbbaa3a092572a636b5fb5b6938"
+  },
+  "platform_initial_cache_assignments": [
+    {
+      "line": 640,
+      "targets": [
+        {
+          "name": "_default_architecture"
+        }
+      ],
+      "value": {
+        "node": "Dict",
+        "keys": [
+          {
+            "literal": "win32"
+          },
+          {
+            "literal": "win16"
+          },
+          {
+            "literal": "dos"
+          }
+        ],
+        "values": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": ""
+              },
+              {
+                "literal": "WindowsPE"
+              }
+            ]
+          },
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": ""
+              },
+              {
+                "literal": "Windows"
+              }
+            ]
+          },
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": ""
+              },
+              {
+                "literal": "MSDOS"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 822,
+      "targets": [
+        {
+          "name": "_uname_cache"
+        }
+      ],
+      "value": {
+        "literal": null
+      }
+    },
+    {
+      "line": 1185,
+      "targets": [
+        {
+          "name": "_platform_cache"
+        }
+      ],
+      "value": {
+        "node": "Dict",
+        "keys": [],
+        "values": []
+      }
+    }
+  ],
+  "platform_ast_facts": [
+    {
+      "line": 161,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "executable",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "lib",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "version",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "chunksize",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "literal": null
+          },
+          {
+            "literal": ""
+          },
+          {
+            "literal": ""
+          },
+          {
+            "literal": 16384
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 176,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "executable"
+        }
+      }
+    },
+    {
+      "line": 178,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "ver"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "confstr",
+          "on": {
+            "name": "os"
+          }
+        },
+        "args": [
+          {
+            "literal": "CS_GNU_LIBC_VERSION"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 178,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "confstr",
+          "on": {
+            "name": "os"
+          }
+        },
+        "args": [
+          {
+            "literal": "CS_GNU_LIBC_VERSION"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 180,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "parts"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "split",
+          "on": {
+            "name": "ver"
+          }
+        },
+        "args": [],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "maxsplit",
+            "value": {
+              "literal": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 180,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "split",
+          "on": {
+            "name": "ver"
+          }
+        },
+        "args": [],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "maxsplit",
+            "value": {
+              "literal": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 181,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Call",
+          "func": {
+            "name": "len"
+          },
+          "args": [
+            {
+              "name": "parts"
+            }
+          ],
+          "keywords": []
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": 2
+          }
+        ]
+      }
+    },
+    {
+      "line": 181,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "parts"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 182,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "tuple"
+        },
+        "args": [
+          {
+            "name": "parts"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 182,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "tuple"
+        },
+        "args": [
+          {
+            "name": "parts"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 183,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "AttributeError"
+          },
+          {
+            "name": "ValueError"
+          },
+          {
+            "name": "OSError"
+          }
+        ]
+      }
+    },
+    {
+      "line": 187,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "executable"
+        }
+      ],
+      "value": {
+        "attribute": "executable",
+        "on": {
+          "name": "sys"
+        }
+      }
+    },
+    {
+      "line": 189,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "executable"
+        }
+      }
+    },
+    {
+      "line": 191,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "lib"
+          },
+          {
+            "name": "version"
+          }
+        ]
+      }
+    },
+    {
+      "line": 193,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "V"
+        }
+      ],
+      "value": {
+        "name": "_comparable_version"
+      }
+    },
+    {
+      "line": 197,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "executable"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "realpath",
+          "on": {
+            "attribute": "path",
+            "on": {
+              "name": "os"
+            }
+          }
+        },
+        "args": [
+          {
+            "name": "executable"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 197,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "realpath",
+          "on": {
+            "attribute": "path",
+            "on": {
+              "name": "os"
+            }
+          }
+        },
+        "args": [
+          {
+            "name": "executable"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 198,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "open"
+        },
+        "args": [
+          {
+            "name": "executable"
+          },
+          {
+            "literal": "rb"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 199,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "binary"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "read",
+          "on": {
+            "name": "f"
+          }
+        },
+        "args": [
+          {
+            "name": "chunksize"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 199,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "read",
+          "on": {
+            "name": "f"
+          }
+        },
+        "args": [
+          {
+            "name": "chunksize"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 200,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "pos"
+        }
+      ],
+      "value": {
+        "literal": 0
+      }
+    },
+    {
+      "line": 201,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "binary"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 202,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "node": "Compare",
+            "left": {
+              "bytes_hex": "6c696263"
+            },
+            "ops": [
+              {
+                "node": "In"
+              }
+            ],
+            "comparators": [
+              {
+                "name": "binary"
+              }
+            ]
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "bytes_hex": "474c494243"
+            },
+            "ops": [
+              {
+                "node": "In"
+              }
+            ],
+            "comparators": [
+              {
+                "name": "binary"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 203,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "m"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "search",
+          "on": {
+            "name": "_libc_search"
+          }
+        },
+        "args": [
+          {
+            "name": "binary"
+          },
+          {
+            "name": "pos"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 203,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "search",
+          "on": {
+            "name": "_libc_search"
+          }
+        },
+        "args": [
+          {
+            "name": "binary"
+          },
+          {
+            "name": "pos"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 205,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "m"
+        }
+      ],
+      "value": {
+        "literal": null
+      }
+    },
+    {
+      "line": 206,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "node": "UnaryOp",
+            "op": {
+              "node": "Not"
+            },
+            "operand": {
+              "name": "m"
+            }
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "node": "Call",
+              "func": {
+                "attribute": "end",
+                "on": {
+                  "name": "m"
+                }
+              },
+              "args": [],
+              "keywords": []
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "node": "Call",
+                "func": {
+                  "name": "len"
+                },
+                "args": [
+                  {
+                    "name": "binary"
+                  }
+                ],
+                "keywords": []
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 206,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "end",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 206,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "binary"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 207,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "chunk"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "read",
+          "on": {
+            "name": "f"
+          }
+        },
+        "args": [
+          {
+            "name": "chunksize"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 207,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "read",
+          "on": {
+            "name": "f"
+          }
+        },
+        "args": [
+          {
+            "name": "chunksize"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 208,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "chunk"
+      }
+    },
+    {
+      "line": 209,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "binary"
+        }
+      ],
+      "value": {
+        "node": "BinOp",
+        "left": {
+          "node": "Subscript",
+          "value": {
+            "name": "binary"
+          },
+          "slice": {
+            "node": "Slice",
+            "lower": {
+              "node": "Call",
+              "func": {
+                "name": "max"
+              },
+              "args": [
+                {
+                  "name": "pos"
+                },
+                {
+                  "node": "BinOp",
+                  "left": {
+                    "node": "Call",
+                    "func": {
+                      "name": "len"
+                    },
+                    "args": [
+                      {
+                        "name": "binary"
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "op": {
+                    "node": "Sub"
+                  },
+                  "right": {
+                    "literal": 1000
+                  }
+                }
+              ],
+              "keywords": []
+            },
+            "upper": null,
+            "step": null
+          }
+        },
+        "op": {
+          "node": "Add"
+        },
+        "right": {
+          "name": "chunk"
+        }
+      }
+    },
+    {
+      "line": 209,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "max"
+        },
+        "args": [
+          {
+            "name": "pos"
+          },
+          {
+            "node": "BinOp",
+            "left": {
+              "node": "Call",
+              "func": {
+                "name": "len"
+              },
+              "args": [
+                {
+                  "name": "binary"
+                }
+              ],
+              "keywords": []
+            },
+            "op": {
+              "node": "Sub"
+            },
+            "right": {
+              "literal": 1000
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 209,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "binary"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 210,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "pos"
+        }
+      ],
+      "value": {
+        "literal": 0
+      }
+    },
+    {
+      "line": 212,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "m"
+        }
+      }
+    },
+    {
+      "line": 214,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "libcinit"
+            },
+            {
+              "name": "glibc"
+            },
+            {
+              "name": "glibcversion"
+            },
+            {
+              "name": "so"
+            },
+            {
+              "name": "threads"
+            },
+            {
+              "name": "soversion"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "ListComp",
+        "elt": {
+          "node": "IfExp",
+          "test": {
+            "node": "Compare",
+            "left": {
+              "name": "s"
+            },
+            "ops": [
+              {
+                "node": "IsNot"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": null
+              }
+            ]
+          },
+          "body": {
+            "node": "Call",
+            "func": {
+              "attribute": "decode",
+              "on": {
+                "name": "s"
+              }
+            },
+            "args": [
+              {
+                "literal": "latin1"
+              }
+            ],
+            "keywords": []
+          },
+          "orelse": {
+            "name": "s"
+          }
+        },
+        "generators": [
+          {
+            "node": "comprehension",
+            "target": {
+              "name": "s"
+            },
+            "iter": {
+              "node": "Call",
+              "func": {
+                "attribute": "groups",
+                "on": {
+                  "name": "m"
+                }
+              },
+              "args": [],
+              "keywords": []
+            },
+            "ifs": [],
+            "is_async": 0
+          }
+        ]
+      }
+    },
+    {
+      "line": 215,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "decode",
+          "on": {
+            "name": "s"
+          }
+        },
+        "args": [
+          {
+            "literal": "latin1"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 216,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "groups",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 217,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "name": "libcinit"
+          },
+          {
+            "node": "UnaryOp",
+            "op": {
+              "node": "Not"
+            },
+            "operand": {
+              "name": "lib"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 218,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "lib"
+        }
+      ],
+      "value": {
+        "literal": "libc"
+      }
+    },
+    {
+      "line": 219,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "glibc"
+      }
+    },
+    {
+      "line": 220,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "lib"
+        },
+        "ops": [
+          {
+            "node": "NotEq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "glibc"
+          }
+        ]
+      }
+    },
+    {
+      "line": 221,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "lib"
+        }
+      ],
+      "value": {
+        "literal": "glibc"
+      }
+    },
+    {
+      "line": 222,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "name": "glibcversion"
+      }
+    },
+    {
+      "line": 223,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Call",
+          "func": {
+            "name": "V"
+          },
+          "args": [
+            {
+              "name": "glibcversion"
+            }
+          ],
+          "keywords": []
+        },
+        "ops": [
+          {
+            "node": "Gt"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "Call",
+            "func": {
+              "name": "V"
+            },
+            "args": [
+              {
+                "name": "version"
+              }
+            ],
+            "keywords": []
+          }
+        ]
+      }
+    },
+    {
+      "line": 223,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "V"
+        },
+        "args": [
+          {
+            "name": "glibcversion"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 223,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "V"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 224,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "name": "glibcversion"
+      }
+    },
+    {
+      "line": 225,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "so"
+      }
+    },
+    {
+      "line": 226,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "lib"
+        },
+        "ops": [
+          {
+            "node": "NotEq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "glibc"
+          }
+        ]
+      }
+    },
+    {
+      "line": 227,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "lib"
+        }
+      ],
+      "value": {
+        "literal": "libc"
+      }
+    },
+    {
+      "line": 228,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "name": "soversion"
+          },
+          {
+            "node": "BoolOp",
+            "op": {
+              "node": "Or"
+            },
+            "values": [
+              {
+                "node": "UnaryOp",
+                "op": {
+                  "node": "Not"
+                },
+                "operand": {
+                  "name": "version"
+                }
+              },
+              {
+                "node": "Compare",
+                "left": {
+                  "node": "Call",
+                  "func": {
+                    "name": "V"
+                  },
+                  "args": [
+                    {
+                      "name": "soversion"
+                    }
+                  ],
+                  "keywords": []
+                },
+                "ops": [
+                  {
+                    "node": "Gt"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "node": "Call",
+                    "func": {
+                      "name": "V"
+                    },
+                    "args": [
+                      {
+                        "name": "version"
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 228,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "V"
+        },
+        "args": [
+          {
+            "name": "soversion"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 228,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "V"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 229,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "name": "soversion"
+      }
+    },
+    {
+      "line": 230,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "name": "threads"
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "node": "Subscript",
+              "value": {
+                "name": "version"
+              },
+              "slice": {
+                "node": "Slice",
+                "lower": {
+                  "node": "UnaryOp",
+                  "op": {
+                    "node": "USub"
+                  },
+                  "operand": {
+                    "node": "Call",
+                    "func": {
+                      "name": "len"
+                    },
+                    "args": [
+                      {
+                        "name": "threads"
+                      }
+                    ],
+                    "keywords": []
+                  }
+                },
+                "upper": null,
+                "step": null
+              }
+            },
+            "ops": [
+              {
+                "node": "NotEq"
+              }
+            ],
+            "comparators": [
+              {
+                "name": "threads"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 230,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "threads"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 231,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "node": "BinOp",
+        "left": {
+          "name": "version"
+        },
+        "op": {
+          "node": "Add"
+        },
+        "right": {
+          "name": "threads"
+        }
+      }
+    },
+    {
+      "line": 232,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "pos"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "end",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 232,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "end",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 233,
+      "scope": [
+        "libc_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "lib"
+          },
+          {
+            "name": "version"
+          }
+        ]
+      }
+    },
+    {
+      "line": 263,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "system",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "release",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "version",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "supported_platforms",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "literal": ""
+          },
+          {
+            "literal": ""
+          },
+          {
+            "literal": ""
+          },
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": "win32"
+              },
+              {
+                "literal": "win16"
+              },
+              {
+                "literal": "dos"
+              }
+            ]
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 277,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "attribute": "platform",
+          "on": {
+            "name": "sys"
+          }
+        },
+        "ops": [
+          {
+            "node": "NotIn"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "supported_platforms"
+          }
+        ]
+      }
+    },
+    {
+      "line": 278,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ]
+      }
+    },
+    {
+      "line": 281,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "subprocess",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 284,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "info"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "check_output",
+          "on": {
+            "name": "subprocess"
+          }
+        },
+        "args": [
+          {
+            "name": "cmd"
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "stdin",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "stderr",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "text",
+            "value": {
+              "literal": true
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "encoding",
+            "value": {
+              "literal": "locale"
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "shell",
+            "value": {
+              "literal": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 284,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "check_output",
+          "on": {
+            "name": "subprocess"
+          }
+        },
+        "args": [
+          {
+            "name": "cmd"
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "stdin",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "stderr",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "text",
+            "value": {
+              "literal": true
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "encoding",
+            "value": {
+              "literal": "locale"
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "shell",
+            "value": {
+              "literal": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 290,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "OSError"
+          },
+          {
+            "attribute": "CalledProcessError",
+            "on": {
+              "name": "subprocess"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 296,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ]
+      }
+    },
+    {
+      "line": 299,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "info"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "strip",
+          "on": {
+            "name": "info"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 299,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "strip",
+          "on": {
+            "name": "info"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 300,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "m"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "match",
+          "on": {
+            "name": "_ver_output"
+          }
+        },
+        "args": [
+          {
+            "name": "info"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 300,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "match",
+          "on": {
+            "name": "_ver_output"
+          }
+        },
+        "args": [
+          {
+            "name": "info"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 301,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "m"
+        },
+        "ops": [
+          {
+            "node": "IsNot"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": null
+          }
+        ]
+      }
+    },
+    {
+      "line": 302,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "system"
+            },
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "groups",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 302,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "groups",
+          "on": {
+            "name": "m"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 304,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Subscript",
+          "value": {
+            "name": "release"
+          },
+          "slice": {
+            "node": "UnaryOp",
+            "op": {
+              "node": "USub"
+            },
+            "operand": {
+              "literal": 1
+            }
+          }
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "."
+          }
+        ]
+      }
+    },
+    {
+      "line": 305,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "node": "Subscript",
+        "value": {
+          "name": "release"
+        },
+        "slice": {
+          "node": "Slice",
+          "lower": null,
+          "upper": {
+            "node": "UnaryOp",
+            "op": {
+              "node": "USub"
+            },
+            "operand": {
+              "literal": 1
+            }
+          },
+          "step": null
+        }
+      }
+    },
+    {
+      "line": 306,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Subscript",
+          "value": {
+            "name": "version"
+          },
+          "slice": {
+            "node": "UnaryOp",
+            "op": {
+              "node": "USub"
+            },
+            "operand": {
+              "literal": 1
+            }
+          }
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "."
+          }
+        ]
+      }
+    },
+    {
+      "line": 307,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "node": "Subscript",
+        "value": {
+          "name": "version"
+        },
+        "slice": {
+          "node": "Slice",
+          "lower": null,
+          "upper": {
+            "node": "UnaryOp",
+            "op": {
+              "node": "USub"
+            },
+            "operand": {
+              "literal": 1
+            }
+          },
+          "step": null
+        }
+      }
+    },
+    {
+      "line": 310,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_norm_version"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 310,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_norm_version"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 311,
+      "scope": [
+        "_syscmd_ver"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ]
+      }
+    },
+    {
+      "line": 575,
+      "scope": [
+        "_node"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "default",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "literal": ""
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 580,
+      "scope": [
+        "_node"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "socket",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 581,
+      "scope": [
+        "_node"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "ImportError"
+      }
+    },
+    {
+      "line": 583,
+      "scope": [
+        "_node"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 585,
+      "scope": [
+        "_node"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "gethostname",
+          "on": {
+            "name": "socket"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 585,
+      "scope": [
+        "_node"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "gethostname",
+          "on": {
+            "name": "socket"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 586,
+      "scope": [
+        "_node"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "OSError"
+      }
+    },
+    {
+      "line": 588,
+      "scope": [
+        "_node"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 602,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "target",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "default",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "literal": ""
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 611,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "attribute": "platform",
+          "on": {
+            "name": "sys"
+          }
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": "dos"
+              },
+              {
+                "literal": "win32"
+              },
+              {
+                "literal": "win16"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 613,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 616,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "subprocess",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 617,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "ImportError"
+      }
+    },
+    {
+      "line": 618,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 619,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "target"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_follow_symlinks"
+        },
+        "args": [
+          {
+            "name": "target"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 619,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_follow_symlinks"
+        },
+        "args": [
+          {
+            "name": "target"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 622,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "env"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "dict"
+        },
+        "args": [
+          {
+            "attribute": "environ",
+            "on": {
+              "name": "os"
+            }
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "LC_ALL",
+            "value": {
+              "literal": "C"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 622,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "dict"
+        },
+        "args": [
+          {
+            "attribute": "environ",
+            "on": {
+              "name": "os"
+            }
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "LC_ALL",
+            "value": {
+              "literal": "C"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 625,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "output"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "check_output",
+          "on": {
+            "name": "subprocess"
+          }
+        },
+        "args": [
+          {
+            "node": "List",
+            "elts": [
+              {
+                "literal": "file"
+              },
+              {
+                "literal": "-b"
+              },
+              {
+                "name": "target"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "stderr",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "env",
+            "value": {
+              "name": "env"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 625,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "check_output",
+          "on": {
+            "name": "subprocess"
+          }
+        },
+        "args": [
+          {
+            "node": "List",
+            "elts": [
+              {
+                "literal": "file"
+              },
+              {
+                "literal": "-b"
+              },
+              {
+                "name": "target"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "stderr",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "env",
+            "value": {
+              "name": "env"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 628,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "OSError"
+          },
+          {
+            "attribute": "CalledProcessError",
+            "on": {
+              "name": "subprocess"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 629,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 630,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "output"
+        }
+      }
+    },
+    {
+      "line": 631,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "default"
+      }
+    },
+    {
+      "line": 634,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "decode",
+          "on": {
+            "name": "output"
+          }
+        },
+        "args": [
+          {
+            "literal": "latin-1"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 634,
+      "scope": [
+        "_syscmd_file"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "decode",
+          "on": {
+            "name": "output"
+          }
+        },
+        "args": [
+          {
+            "literal": "latin-1"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 646,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "executable",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "bits",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "linkage",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "attribute": "executable",
+            "on": {
+              "name": "sys"
+            }
+          },
+          {
+            "literal": ""
+          },
+          {
+            "literal": ""
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 669,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "bits"
+        }
+      }
+    },
+    {
+      "line": 670,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "struct",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 671,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "size"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "calcsize",
+          "on": {
+            "name": "struct"
+          }
+        },
+        "args": [
+          {
+            "literal": "P"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 671,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "calcsize",
+          "on": {
+            "name": "struct"
+          }
+        },
+        "args": [
+          {
+            "literal": "P"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 672,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "bits"
+        }
+      ],
+      "value": {
+        "node": "BinOp",
+        "left": {
+          "node": "Call",
+          "func": {
+            "name": "str"
+          },
+          "args": [
+            {
+              "node": "BinOp",
+              "left": {
+                "name": "size"
+              },
+              "op": {
+                "node": "Mult"
+              },
+              "right": {
+                "literal": 8
+              }
+            }
+          ],
+          "keywords": []
+        },
+        "op": {
+          "node": "Add"
+        },
+        "right": {
+          "literal": "bit"
+        }
+      }
+    },
+    {
+      "line": 672,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "str"
+        },
+        "args": [
+          {
+            "node": "BinOp",
+            "left": {
+              "name": "size"
+            },
+            "op": {
+              "node": "Mult"
+            },
+            "right": {
+              "literal": 8
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 675,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "executable"
+      }
+    },
+    {
+      "line": 676,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "fileout"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_syscmd_file"
+        },
+        "args": [
+          {
+            "name": "executable"
+          },
+          {
+            "literal": ""
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 676,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_syscmd_file"
+        },
+        "args": [
+          {
+            "name": "executable"
+          },
+          {
+            "literal": ""
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 678,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "fileout"
+        }
+      ],
+      "value": {
+        "literal": ""
+      }
+    },
+    {
+      "line": 680,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "node": "UnaryOp",
+            "op": {
+              "node": "Not"
+            },
+            "operand": {
+              "name": "fileout"
+            }
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "name": "executable"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "attribute": "executable",
+                "on": {
+                  "name": "sys"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 684,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "attribute": "platform",
+          "on": {
+            "name": "sys"
+          }
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "_default_architecture"
+          }
+        ]
+      }
+    },
+    {
+      "line": 685,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "b"
+            },
+            {
+              "name": "l"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Subscript",
+        "value": {
+          "name": "_default_architecture"
+        },
+        "slice": {
+          "attribute": "platform",
+          "on": {
+            "name": "sys"
+          }
+        }
+      }
+    },
+    {
+      "line": 686,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "b"
+      }
+    },
+    {
+      "line": 687,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "bits"
+        }
+      ],
+      "value": {
+        "name": "b"
+      }
+    },
+    {
+      "line": 688,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "l"
+      }
+    },
+    {
+      "line": 689,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "name": "l"
+      }
+    },
+    {
+      "line": 690,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "bits"
+          },
+          {
+            "name": "linkage"
+          }
+        ]
+      }
+    },
+    {
+      "line": 692,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "node": "Compare",
+            "left": {
+              "literal": "executable"
+            },
+            "ops": [
+              {
+                "node": "NotIn"
+              }
+            ],
+            "comparators": [
+              {
+                "name": "fileout"
+              }
+            ]
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "literal": "shared object"
+            },
+            "ops": [
+              {
+                "node": "NotIn"
+              }
+            ],
+            "comparators": [
+              {
+                "name": "fileout"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 694,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "bits"
+          },
+          {
+            "name": "linkage"
+          }
+        ]
+      }
+    },
+    {
+      "line": 697,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "32-bit"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 698,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "bits"
+        }
+      ],
+      "value": {
+        "literal": "32bit"
+      }
+    },
+    {
+      "line": 699,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "64-bit"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 700,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "bits"
+        }
+      ],
+      "value": {
+        "literal": "64bit"
+      }
+    },
+    {
+      "line": 703,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "ELF"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 704,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "literal": "ELF"
+      }
+    },
+    {
+      "line": 705,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "PE"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 707,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "Windows"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 708,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "literal": "WindowsPE"
+      }
+    },
+    {
+      "line": 710,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "literal": "PE"
+      }
+    },
+    {
+      "line": 711,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "COFF"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 712,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "literal": "COFF"
+      }
+    },
+    {
+      "line": 713,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "MS-DOS"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "fileout"
+          }
+        ]
+      }
+    },
+    {
+      "line": 714,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "linkage"
+        }
+      ],
+      "value": {
+        "literal": "MSDOS"
+      }
+    },
+    {
+      "line": 719,
+      "scope": [
+        "architecture"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "bits"
+          },
+          {
+            "name": "linkage"
+          }
+        ]
+      }
+    },
+    {
+      "line": 735,
+      "scope": [
+        "_Processor"
+      ],
+      "kind": "ClassDef",
+      "bases": [],
+      "decorators": []
+    },
+    {
+      "line": 737,
+      "scope": [
+        "_Processor",
+        "get"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "cls",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": [
+        {
+          "name": "classmethod"
+        }
+      ]
+    },
+    {
+      "line": 738,
+      "scope": [
+        "_Processor",
+        "get"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "func"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "getattr"
+        },
+        "args": [
+          {
+            "name": "cls"
+          },
+          {
+            "node": "JoinedStr",
+            "values": [
+              {
+                "literal": "get_"
+              },
+              {
+                "node": "FormattedValue",
+                "value": {
+                  "attribute": "platform",
+                  "on": {
+                    "name": "sys"
+                  }
+                },
+                "conversion": -1,
+                "format_spec": null
+              }
+            ]
+          },
+          {
+            "attribute": "from_subprocess",
+            "on": {
+              "name": "cls"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 738,
+      "scope": [
+        "_Processor",
+        "get"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "getattr"
+        },
+        "args": [
+          {
+            "name": "cls"
+          },
+          {
+            "node": "JoinedStr",
+            "values": [
+              {
+                "literal": "get_"
+              },
+              {
+                "node": "FormattedValue",
+                "value": {
+                  "attribute": "platform",
+                  "on": {
+                    "name": "sys"
+                  }
+                },
+                "conversion": -1,
+                "format_spec": null
+              }
+            ]
+          },
+          {
+            "attribute": "from_subprocess",
+            "on": {
+              "name": "cls"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 739,
+      "scope": [
+        "_Processor",
+        "get"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "node": "Call",
+            "func": {
+              "name": "func"
+            },
+            "args": [],
+            "keywords": []
+          },
+          {
+            "literal": ""
+          }
+        ]
+      }
+    },
+    {
+      "line": 739,
+      "scope": [
+        "_Processor",
+        "get"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "func"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 741,
+      "scope": [
+        "_Processor",
+        "get_win32"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 742,
+      "scope": [
+        "_Processor",
+        "get_win32"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "get",
+          "on": {
+            "attribute": "environ",
+            "on": {
+              "name": "os"
+            }
+          }
+        },
+        "args": [
+          {
+            "literal": "PROCESSOR_IDENTIFIER"
+          },
+          {
+            "node": "Call",
+            "func": {
+              "name": "_get_machine_win32"
+            },
+            "args": [],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 742,
+      "scope": [
+        "_Processor",
+        "get_win32"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "get",
+          "on": {
+            "attribute": "environ",
+            "on": {
+              "name": "os"
+            }
+          }
+        },
+        "args": [
+          {
+            "literal": "PROCESSOR_IDENTIFIER"
+          },
+          {
+            "node": "Call",
+            "func": {
+              "name": "_get_machine_win32"
+            },
+            "args": [],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 742,
+      "scope": [
+        "_Processor",
+        "get_win32"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_get_machine_win32"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 744,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 746,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "vms_lib",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 747,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "ImportError"
+      }
+    },
+    {
+      "line": 750,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "csid"
+            },
+            {
+              "name": "cpu_number"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "getsyi",
+          "on": {
+            "name": "vms_lib"
+          }
+        },
+        "args": [
+          {
+            "literal": "SYI$_CPU"
+          },
+          {
+            "literal": 0
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 750,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "getsyi",
+          "on": {
+            "name": "vms_lib"
+          }
+        },
+        "args": [
+          {
+            "literal": "SYI$_CPU"
+          },
+          {
+            "literal": 0
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 751,
+      "scope": [
+        "_Processor",
+        "get_OpenVMS"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "IfExp",
+        "test": {
+          "node": "Compare",
+          "left": {
+            "name": "cpu_number"
+          },
+          "ops": [
+            {
+              "node": "GtE"
+            }
+          ],
+          "comparators": [
+            {
+              "literal": 128
+            }
+          ]
+        },
+        "body": {
+          "literal": "Alpha"
+        },
+        "orelse": {
+          "literal": "VAX"
+        }
+      }
+    },
+    {
+      "line": 753,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 758,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "Import",
+      "module": null,
+      "imports": [
+        {
+          "name": "subprocess",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "line": 759,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "ImportError"
+      }
+    },
+    {
+      "line": 760,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "Return",
+      "value": {
+        "literal": null
+      }
+    },
+    {
+      "line": 762,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "strip",
+          "on": {
+            "node": "Call",
+            "func": {
+              "attribute": "check_output",
+              "on": {
+                "name": "subprocess"
+              }
+            },
+            "args": [
+              {
+                "node": "List",
+                "elts": [
+                  {
+                    "literal": "uname"
+                  },
+                  {
+                    "literal": "-p"
+                  }
+                ]
+              }
+            ],
+            "keywords": [
+              {
+                "node": "keyword",
+                "arg": "stderr",
+                "value": {
+                  "attribute": "DEVNULL",
+                  "on": {
+                    "name": "subprocess"
+                  }
+                }
+              },
+              {
+                "node": "keyword",
+                "arg": "text",
+                "value": {
+                  "literal": true
+                }
+              },
+              {
+                "node": "keyword",
+                "arg": "encoding",
+                "value": {
+                  "literal": "utf8"
+                }
+              }
+            ]
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 762,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "strip",
+          "on": {
+            "node": "Call",
+            "func": {
+              "attribute": "check_output",
+              "on": {
+                "name": "subprocess"
+              }
+            },
+            "args": [
+              {
+                "node": "List",
+                "elts": [
+                  {
+                    "literal": "uname"
+                  },
+                  {
+                    "literal": "-p"
+                  }
+                ]
+              }
+            ],
+            "keywords": [
+              {
+                "node": "keyword",
+                "arg": "stderr",
+                "value": {
+                  "attribute": "DEVNULL",
+                  "on": {
+                    "name": "subprocess"
+                  }
+                }
+              },
+              {
+                "node": "keyword",
+                "arg": "text",
+                "value": {
+                  "literal": true
+                }
+              },
+              {
+                "node": "keyword",
+                "arg": "encoding",
+                "value": {
+                  "literal": "utf8"
+                }
+              }
+            ]
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 762,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "check_output",
+          "on": {
+            "name": "subprocess"
+          }
+        },
+        "args": [
+          {
+            "node": "List",
+            "elts": [
+              {
+                "literal": "uname"
+              },
+              {
+                "literal": "-p"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          {
+            "node": "keyword",
+            "arg": "stderr",
+            "value": {
+              "attribute": "DEVNULL",
+              "on": {
+                "name": "subprocess"
+              }
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "text",
+            "value": {
+              "literal": true
+            }
+          },
+          {
+            "node": "keyword",
+            "arg": "encoding",
+            "value": {
+              "literal": "utf8"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 768,
+      "scope": [
+        "_Processor",
+        "from_subprocess"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "OSError"
+          },
+          {
+            "attribute": "CalledProcessError",
+            "on": {
+              "name": "subprocess"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 778,
+      "scope": [
+        "uname_result"
+      ],
+      "kind": "ClassDef",
+      "bases": [
+        {
+          "node": "Call",
+          "func": {
+            "attribute": "namedtuple",
+            "on": {
+              "name": "collections"
+            }
+          },
+          "args": [
+            {
+              "literal": "uname_result_base"
+            },
+            {
+              "literal": "system node release version machine"
+            }
+          ],
+          "keywords": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "line": 779,
+      "scope": [
+        "uname_result"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "namedtuple",
+          "on": {
+            "name": "collections"
+          }
+        },
+        "args": [
+          {
+            "literal": "uname_result_base"
+          },
+          {
+            "literal": "system node release version machine"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 790,
+      "scope": [
+        "uname_result"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "_fields"
+        }
+      ],
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "literal": "system"
+          },
+          {
+            "literal": "node"
+          },
+          {
+            "literal": "release"
+          },
+          {
+            "literal": "version"
+          },
+          {
+            "literal": "machine"
+          },
+          {
+            "literal": "processor"
+          }
+        ]
+      }
+    },
+    {
+      "line": 793,
+      "scope": [
+        "uname_result",
+        "processor"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "self",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": [
+        {
+          "attribute": "cached_property",
+          "on": {
+            "name": "functools"
+          }
+        }
+      ]
+    },
+    {
+      "line": 794,
+      "scope": [
+        "uname_result",
+        "processor"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_unknown_as_blank"
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "attribute": "get",
+              "on": {
+                "name": "_Processor"
+              }
+            },
+            "args": [],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 794,
+      "scope": [
+        "uname_result",
+        "processor"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_unknown_as_blank"
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "attribute": "get",
+              "on": {
+                "name": "_Processor"
+              }
+            },
+            "args": [],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 794,
+      "scope": [
+        "uname_result",
+        "processor"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "get",
+          "on": {
+            "name": "_Processor"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 796,
+      "scope": [
+        "uname_result",
+        "__iter__"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "self",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 797,
+      "scope": [
+        "uname_result",
+        "__iter__"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "chain",
+          "on": {
+            "name": "itertools"
+          }
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "attribute": "__iter__",
+              "on": {
+                "node": "Call",
+                "func": {
+                  "name": "super"
+                },
+                "args": [],
+                "keywords": []
+              }
+            },
+            "args": [],
+            "keywords": []
+          },
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "attribute": "processor",
+                "on": {
+                  "name": "self"
+                }
+              }
+            ]
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 797,
+      "scope": [
+        "uname_result",
+        "__iter__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "chain",
+          "on": {
+            "name": "itertools"
+          }
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "attribute": "__iter__",
+              "on": {
+                "node": "Call",
+                "func": {
+                  "name": "super"
+                },
+                "args": [],
+                "keywords": []
+              }
+            },
+            "args": [],
+            "keywords": []
+          },
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "attribute": "processor",
+                "on": {
+                  "name": "self"
+                }
+              }
+            ]
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 798,
+      "scope": [
+        "uname_result",
+        "__iter__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "__iter__",
+          "on": {
+            "node": "Call",
+            "func": {
+              "name": "super"
+            },
+            "args": [],
+            "keywords": []
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 798,
+      "scope": [
+        "uname_result",
+        "__iter__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "super"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 803,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "cls",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "iterable",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": [
+        {
+          "name": "classmethod"
+        }
+      ]
+    },
+    {
+      "line": 805,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "num_fields"
+        }
+      ],
+      "value": {
+        "node": "BinOp",
+        "left": {
+          "node": "Call",
+          "func": {
+            "name": "len"
+          },
+          "args": [
+            {
+              "attribute": "_fields",
+              "on": {
+                "name": "cls"
+              }
+            }
+          ],
+          "keywords": []
+        },
+        "op": {
+          "node": "Sub"
+        },
+        "right": {
+          "literal": 1
+        }
+      }
+    },
+    {
+      "line": 805,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "attribute": "_fields",
+            "on": {
+              "name": "cls"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 806,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "result"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "__new__",
+          "on": {
+            "name": "cls"
+          }
+        },
+        "args": [
+          {
+            "name": "cls"
+          },
+          {
+            "node": "Starred",
+            "value": {
+              "name": "iterable"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 806,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "__new__",
+          "on": {
+            "name": "cls"
+          }
+        },
+        "args": [
+          {
+            "name": "cls"
+          },
+          {
+            "node": "Starred",
+            "value": {
+              "name": "iterable"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 807,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Call",
+          "func": {
+            "name": "len"
+          },
+          "args": [
+            {
+              "name": "result"
+            }
+          ],
+          "keywords": []
+        },
+        "ops": [
+          {
+            "node": "NotEq"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "BinOp",
+            "left": {
+              "name": "num_fields"
+            },
+            "op": {
+              "node": "Add"
+            },
+            "right": {
+              "literal": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 807,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "result"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 808,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "msg"
+        }
+      ],
+      "value": {
+        "node": "JoinedStr",
+        "values": [
+          {
+            "literal": "Expected "
+          },
+          {
+            "node": "FormattedValue",
+            "value": {
+              "name": "num_fields"
+            },
+            "conversion": -1,
+            "format_spec": null
+          },
+          {
+            "literal": " arguments, got "
+          },
+          {
+            "node": "FormattedValue",
+            "value": {
+              "node": "Call",
+              "func": {
+                "name": "len"
+              },
+              "args": [
+                {
+                  "name": "result"
+                }
+              ],
+              "keywords": []
+            },
+            "conversion": -1,
+            "format_spec": null
+          }
+        ]
+      }
+    },
+    {
+      "line": 808,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "name": "result"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 809,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "TypeError"
+        },
+        "args": [
+          {
+            "name": "msg"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 810,
+      "scope": [
+        "uname_result",
+        "_make"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "result"
+      }
+    },
+    {
+      "line": 812,
+      "scope": [
+        "uname_result",
+        "__getitem__"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "self",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "key",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 813,
+      "scope": [
+        "uname_result",
+        "__getitem__"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Subscript",
+        "value": {
+          "node": "Call",
+          "func": {
+            "name": "tuple"
+          },
+          "args": [
+            {
+              "name": "self"
+            }
+          ],
+          "keywords": []
+        },
+        "slice": {
+          "name": "key"
+        }
+      }
+    },
+    {
+      "line": 813,
+      "scope": [
+        "uname_result",
+        "__getitem__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "tuple"
+        },
+        "args": [
+          {
+            "name": "self"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 815,
+      "scope": [
+        "uname_result",
+        "__len__"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "self",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 816,
+      "scope": [
+        "uname_result",
+        "__len__"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "name": "tuple"
+            },
+            "args": [
+              {
+                "node": "Call",
+                "func": {
+                  "name": "iter"
+                },
+                "args": [
+                  {
+                    "name": "self"
+                  }
+                ],
+                "keywords": []
+              }
+            ],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 816,
+      "scope": [
+        "uname_result",
+        "__len__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "name": "tuple"
+            },
+            "args": [
+              {
+                "node": "Call",
+                "func": {
+                  "name": "iter"
+                },
+                "args": [
+                  {
+                    "name": "self"
+                  }
+                ],
+                "keywords": []
+              }
+            ],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 816,
+      "scope": [
+        "uname_result",
+        "__len__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "tuple"
+        },
+        "args": [
+          {
+            "node": "Call",
+            "func": {
+              "name": "iter"
+            },
+            "args": [
+              {
+                "name": "self"
+              }
+            ],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 816,
+      "scope": [
+        "uname_result",
+        "__len__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "iter"
+        },
+        "args": [
+          {
+            "name": "self"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 818,
+      "scope": [
+        "uname_result",
+        "__reduce__"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "self",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 819,
+      "scope": [
+        "uname_result",
+        "__reduce__"
+      ],
+      "kind": "Return",
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "uname_result"
+          },
+          {
+            "node": "Subscript",
+            "value": {
+              "node": "Call",
+              "func": {
+                "name": "tuple"
+              },
+              "args": [
+                {
+                  "name": "self"
+                }
+              ],
+              "keywords": []
+            },
+            "slice": {
+              "node": "Slice",
+              "lower": null,
+              "upper": {
+                "node": "BinOp",
+                "left": {
+                  "node": "Call",
+                  "func": {
+                    "name": "len"
+                  },
+                  "args": [
+                    {
+                      "attribute": "_fields",
+                      "on": {
+                        "name": "self"
+                      }
+                    }
+                  ],
+                  "keywords": []
+                },
+                "op": {
+                  "node": "Sub"
+                },
+                "right": {
+                  "literal": 1
+                }
+              },
+              "step": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 819,
+      "scope": [
+        "uname_result",
+        "__reduce__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "tuple"
+        },
+        "args": [
+          {
+            "name": "self"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 819,
+      "scope": [
+        "uname_result",
+        "__reduce__"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "len"
+        },
+        "args": [
+          {
+            "attribute": "_fields",
+            "on": {
+              "name": "self"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 825,
+      "scope": [
+        "uname"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "decorators": []
+    },
+    {
+      "line": 839,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "_uname_cache"
+        },
+        "ops": [
+          {
+            "node": "IsNot"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": null
+          }
+        ]
+      }
+    },
+    {
+      "line": 840,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "_uname_cache"
+      }
+    },
+    {
+      "line": 844,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "system"
+            },
+            {
+              "name": "node"
+            },
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            },
+            {
+              "name": "machine"
+            }
+          ]
+        },
+        {
+          "name": "infos"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "uname",
+          "on": {
+            "name": "os"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 844,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "uname",
+          "on": {
+            "name": "os"
+          }
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 845,
+      "scope": [
+        "uname"
+      ],
+      "kind": "ExceptHandler",
+      "exception": {
+        "name": "AttributeError"
+      }
+    },
+    {
+      "line": 846,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "attribute": "platform",
+        "on": {
+          "name": "sys"
+        }
+      }
+    },
+    {
+      "line": 847,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "node"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_node"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 847,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_node"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 848,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        },
+        {
+          "name": "version"
+        },
+        {
+          "name": "machine"
+        }
+      ],
+      "value": {
+        "literal": ""
+      }
+    },
+    {
+      "line": 849,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "infos"
+        }
+      ],
+      "value": {
+        "node": "Tuple",
+        "elts": []
+      }
+    },
+    {
+      "line": 851,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "node": "Call",
+          "func": {
+            "name": "any"
+          },
+          "args": [
+            {
+              "name": "infos"
+            }
+          ],
+          "keywords": []
+        }
+      }
+    },
+    {
+      "line": 851,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "any"
+        },
+        "args": [
+          {
+            "name": "infos"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 855,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "win32"
+          }
+        ]
+      }
+    },
+    {
+      "line": 856,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            },
+            {
+              "name": "csd"
+            },
+            {
+              "name": "ptype"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "win32_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 856,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "win32_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 857,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "machine"
+        }
+      ],
+      "value": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "name": "machine"
+          },
+          {
+            "node": "Call",
+            "func": {
+              "name": "_get_machine_win32"
+            },
+            "args": [],
+            "keywords": []
+          }
+        ]
+      }
+    },
+    {
+      "line": 857,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_get_machine_win32"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 861,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "node": "BoolOp",
+          "op": {
+            "node": "And"
+          },
+          "values": [
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "line": 862,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "system"
+            },
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_syscmd_ver"
+        },
+        "args": [
+          {
+            "name": "system"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 862,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_syscmd_ver"
+        },
+        "args": [
+          {
+            "name": "system"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 865,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "Microsoft Windows"
+          }
+        ]
+      }
+    },
+    {
+      "line": 866,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "Windows"
+      }
+    },
+    {
+      "line": 867,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "node": "Compare",
+            "left": {
+              "name": "system"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": "Microsoft"
+              }
+            ]
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "name": "release"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": "Windows"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 872,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "Windows"
+      }
+    },
+    {
+      "line": 873,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "literal": "6.0"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "Subscript",
+            "value": {
+              "name": "version"
+            },
+            "slice": {
+              "node": "Slice",
+              "lower": null,
+              "upper": {
+                "literal": 3
+              },
+              "step": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 874,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "literal": "Vista"
+      }
+    },
+    {
+      "line": 876,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "literal": ""
+      }
+    },
+    {
+      "line": 880,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": "win32"
+              },
+              {
+                "literal": "win16"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 881,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "version"
+        }
+      }
+    },
+    {
+      "line": 882,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "win32"
+          }
+        ]
+      }
+    },
+    {
+      "line": 883,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "literal": "32bit"
+      }
+    },
+    {
+      "line": 885,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "literal": "16bit"
+      }
+    },
+    {
+      "line": 886,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "Windows"
+      }
+    },
+    {
+      "line": 888,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "node": "Subscript",
+          "value": {
+            "name": "system"
+          },
+          "slice": {
+            "node": "Slice",
+            "lower": null,
+            "upper": {
+              "literal": 4
+            },
+            "step": null
+          }
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "java"
+          }
+        ]
+      }
+    },
+    {
+      "line": 889,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "release"
+            },
+            {
+              "name": "vendor"
+            },
+            {
+              "name": "vminfo"
+            },
+            {
+              "name": "osinfo"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "java_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 889,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "java_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 890,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "Java"
+      }
+    },
+    {
+      "line": 891,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "join",
+          "on": {
+            "literal": ", "
+          }
+        },
+        "args": [
+          {
+            "name": "vminfo"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 891,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "join",
+          "on": {
+            "literal": ", "
+          }
+        },
+        "args": [
+          {
+            "name": "vminfo"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 892,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "UnaryOp",
+        "op": {
+          "node": "Not"
+        },
+        "operand": {
+          "name": "version"
+        }
+      }
+    },
+    {
+      "line": 893,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "name": "vendor"
+      }
+    },
+    {
+      "line": 896,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "OpenVMS"
+          }
+        ]
+      }
+    },
+    {
+      "line": 898,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "node": "UnaryOp",
+            "op": {
+              "node": "Not"
+            },
+            "operand": {
+              "name": "release"
+            }
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "name": "release"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 899,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "name": "version"
+      }
+    },
+    {
+      "line": 900,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "version"
+        }
+      ],
+      "value": {
+        "literal": ""
+      }
+    },
+    {
+      "line": 903,
+      "scope": [
+        "uname"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "And"
+        },
+        "values": [
+          {
+            "node": "Compare",
+            "left": {
+              "name": "system"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": "Microsoft"
+              }
+            ]
+          },
+          {
+            "node": "Compare",
+            "left": {
+              "name": "release"
+            },
+            "ops": [
+              {
+                "node": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "literal": "Windows"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 904,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "Windows"
+      }
+    },
+    {
+      "line": 905,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "literal": "Vista"
+      }
+    },
+    {
+      "line": 907,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "vals"
+        }
+      ],
+      "value": {
+        "node": "Tuple",
+        "elts": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "node"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          },
+          {
+            "name": "machine"
+          }
+        ]
+      }
+    },
+    {
+      "line": 909,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "_uname_cache"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "uname_result"
+        },
+        "args": [
+          {
+            "node": "Starred",
+            "value": {
+              "node": "Call",
+              "func": {
+                "name": "map"
+              },
+              "args": [
+                {
+                  "name": "_unknown_as_blank"
+                },
+                {
+                  "name": "vals"
+                }
+              ],
+              "keywords": []
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 909,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "uname_result"
+        },
+        "args": [
+          {
+            "node": "Starred",
+            "value": {
+              "node": "Call",
+              "func": {
+                "name": "map"
+              },
+              "args": [
+                {
+                  "name": "_unknown_as_blank"
+                },
+                {
+                  "name": "vals"
+                }
+              ],
+              "keywords": []
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 909,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "map"
+        },
+        "args": [
+          {
+            "name": "_unknown_as_blank"
+          },
+          {
+            "name": "vals"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 910,
+      "scope": [
+        "uname"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "_uname_cache"
+      }
+    },
+    {
+      "line": 1187,
+      "scope": [
+        "platform"
+      ],
+      "kind": "FunctionDef",
+      "arguments": {
+        "node": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "node": "arg",
+            "arg": "aliased",
+            "annotation": null
+          },
+          {
+            "node": "arg",
+            "arg": "terse",
+            "annotation": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": [
+          {
+            "literal": 0
+          },
+          {
+            "literal": 0
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "line": 1206,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "result"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "attribute": "get",
+          "on": {
+            "name": "_platform_cache"
+          }
+        },
+        "args": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "name": "aliased"
+              },
+              {
+                "name": "terse"
+              }
+            ]
+          },
+          {
+            "literal": null
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1206,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "attribute": "get",
+          "on": {
+            "name": "_platform_cache"
+          }
+        },
+        "args": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "name": "aliased"
+              },
+              {
+                "name": "terse"
+              }
+            ]
+          },
+          {
+            "literal": null
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1207,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "result"
+        },
+        "ops": [
+          {
+            "node": "IsNot"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": null
+          }
+        ]
+      }
+    },
+    {
+      "line": 1208,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "result"
+      }
+    },
+    {
+      "line": 1212,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "system"
+            },
+            {
+              "name": "node"
+            },
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            },
+            {
+              "name": "machine"
+            },
+            {
+              "name": "processor"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "uname"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1212,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "uname"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1213,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "machine"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "name": "processor"
+          }
+        ]
+      }
+    },
+    {
+      "line": 1214,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "processor"
+        }
+      ],
+      "value": {
+        "literal": ""
+      }
+    },
+    {
+      "line": 1215,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "aliased"
+      }
+    },
+    {
+      "line": 1216,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "system"
+            },
+            {
+              "name": "release"
+            },
+            {
+              "name": "version"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "system_alias"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1216,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "system_alias"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1218,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "line": 1220,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "macos_release"
+        }
+      ],
+      "value": {
+        "node": "Subscript",
+        "value": {
+          "node": "Call",
+          "func": {
+            "name": "mac_ver"
+          },
+          "args": [],
+          "keywords": []
+        },
+        "slice": {
+          "literal": 0
+        }
+      }
+    },
+    {
+      "line": 1220,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "mac_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1221,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "macos_release"
+      }
+    },
+    {
+      "line": 1222,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "system"
+        }
+      ],
+      "value": {
+        "literal": "macOS"
+      }
+    },
+    {
+      "line": 1223,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "release"
+        }
+      ],
+      "value": {
+        "name": "macos_release"
+      }
+    },
+    {
+      "line": 1225,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "line": 1227,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "rel"
+            },
+            {
+              "name": "vers"
+            },
+            {
+              "name": "csd"
+            },
+            {
+              "name": "ptype"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "win32_ver"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1227,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "win32_ver"
+        },
+        "args": [
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1228,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "terse"
+      }
+    },
+    {
+      "line": 1229,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1229,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1231,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          },
+          {
+            "name": "csd"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1231,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          },
+          {
+            "name": "csd"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1233,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "In"
+          }
+        ],
+        "comparators": [
+          {
+            "node": "Tuple",
+            "elts": [
+              {
+                "literal": "Linux"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "line": 1235,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "libcname"
+            },
+            {
+              "name": "libcversion"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "libc_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1235,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "libc_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1236,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "machine"
+          },
+          {
+            "name": "processor"
+          },
+          {
+            "literal": "with"
+          },
+          {
+            "node": "BinOp",
+            "left": {
+              "name": "libcname"
+            },
+            "op": {
+              "node": "Add"
+            },
+            "right": {
+              "name": "libcversion"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1236,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "machine"
+          },
+          {
+            "name": "processor"
+          },
+          {
+            "literal": "with"
+          },
+          {
+            "node": "BinOp",
+            "left": {
+              "name": "libcname"
+            },
+            "op": {
+              "node": "Add"
+            },
+            "right": {
+              "name": "libcversion"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1239,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "Compare",
+        "left": {
+          "name": "system"
+        },
+        "ops": [
+          {
+            "node": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "literal": "Java"
+          }
+        ]
+      }
+    },
+    {
+      "line": 1241,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "r"
+            },
+            {
+              "name": "v"
+            },
+            {
+              "name": "vminfo"
+            },
+            {
+              "node": "Tuple",
+              "elts": [
+                {
+                  "name": "os_name"
+                },
+                {
+                  "name": "os_version"
+                },
+                {
+                  "name": "os_arch"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "java_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1241,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "java_ver"
+        },
+        "args": [],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1242,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "node": "BoolOp",
+        "op": {
+          "node": "Or"
+        },
+        "values": [
+          {
+            "name": "terse"
+          },
+          {
+            "node": "UnaryOp",
+            "op": {
+              "node": "Not"
+            },
+            "operand": {
+              "name": "os_name"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "line": 1243,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1243,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1245,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          },
+          {
+            "literal": "on"
+          },
+          {
+            "name": "os_name"
+          },
+          {
+            "name": "os_version"
+          },
+          {
+            "name": "os_arch"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1245,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "version"
+          },
+          {
+            "literal": "on"
+          },
+          {
+            "name": "os_name"
+          },
+          {
+            "name": "os_version"
+          },
+          {
+            "name": "os_arch"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1251,
+      "scope": [
+        "platform"
+      ],
+      "kind": "If",
+      "condition": {
+        "name": "terse"
+      }
+    },
+    {
+      "line": 1252,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1252,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1254,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Tuple",
+          "elts": [
+            {
+              "name": "bits"
+            },
+            {
+              "name": "linkage"
+            }
+          ]
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "architecture"
+        },
+        "args": [
+          {
+            "attribute": "executable",
+            "on": {
+              "name": "sys"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1254,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "architecture"
+        },
+        "args": [
+          {
+            "attribute": "executable",
+            "on": {
+              "name": "sys"
+            }
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1255,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "name": "platform"
+        }
+      ],
+      "value": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "machine"
+          },
+          {
+            "name": "processor"
+          },
+          {
+            "name": "bits"
+          },
+          {
+            "name": "linkage"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1255,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Call",
+      "expression": {
+        "node": "Call",
+        "func": {
+          "name": "_platform"
+        },
+        "args": [
+          {
+            "name": "system"
+          },
+          {
+            "name": "release"
+          },
+          {
+            "name": "machine"
+          },
+          {
+            "name": "processor"
+          },
+          {
+            "name": "bits"
+          },
+          {
+            "name": "linkage"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "line": 1258,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Assign",
+      "targets": [
+        {
+          "node": "Subscript",
+          "value": {
+            "name": "_platform_cache"
+          },
+          "slice": {
+            "node": "Tuple",
+            "elts": [
+              {
+                "name": "aliased"
+              },
+              {
+                "name": "terse"
+              }
+            ]
+          }
+        }
+      ],
+      "value": {
+        "name": "platform"
+      }
+    },
+    {
+      "line": 1259,
+      "scope": [
+        "platform"
+      ],
+      "kind": "Return",
+      "value": {
+        "name": "platform"
+      }
+    }
+  ],
+  "scope": "Fixed candidate metadata/hash and selected derived platform AST facts only. No observed command execution, target startup, package scan, source execution, full helper closure, scientific import, job/queue mutation, or deployment.",
+  "status": "observation_complete",
+  "finished_unix": 1794003180.9564667
+}

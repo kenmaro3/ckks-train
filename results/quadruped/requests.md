@@ -556,3 +556,42 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ledger `task-54-linux-launch-extra-static-20261107.{stdout,stderr,meta.json}`.
 - **pass criterion:** actual root owner/mode metadata and exact typing source hash; no semantic/closure/startup/context/scientific claim or job/queue change.
 - **status:** done (2026-11-07T06:47:25.938039+09:00, exit0; controller66.311s including SSH). Actual root uid1000/mode0775 recorded; typing.py120951bytes SHA256eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203, uid1000/mode0664. This metadata/hash-only observation does not establish source semantics, helper closure, new-venv startup or later-phase readiness. Raw operational evidence: `raw/R-REB-13-LAUNCH-EXTRA-STATIC/`.
+
+
+## R-REB-14-STARTUP-PREREQUISITES: bounded startup selectors and platform effects
+
+- **purpose:** obtain fixed deployment/controller/package-root metadata and actual platform warmup call facts before selecting one startup-only release.
+- **commit to sync:** none; no build/install/sync/deployment.
+- **working dir:** read-only fixed candidates under own hekit-runs/reboot, pinned base platform.py, observer interpreter, and two explicit uname command candidates.
+- **command:** key-only SSH `nice -n 10 python3 -`; original observer SHA256 004bf8a268791c57a677ea4785c2b5f70cd5325c41d363d579b9b76e0233d613, ledger `task-54-linux-startup-prerequisite-20261107.py`. Source parsed locally; target platform source only parsed as data.
+- **expected duration:** seconds after SSH; one observer, platform source cap512KiB, observer executable cap64MiB, two candidate command files cap2MiB each, AST output cap512KiB. Untimed lightweight read-only preparation may overlap FULL-2.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **output path:** ledger `task-54-linux-startup-prerequisite-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** fixed metadata/source pin and derived call facts; unknown or absent values retained honestly. No target startup, command-candidate execution, package scan, scientific import, context/capture, deployment or job/queue mutation. Controller/bootstrap remains ordinary trusted local Python; hashes are observations, not self-issued runtime approval.
+- **status:** failed (controller exit1, 2026-11-07T07:10:45+09:00); command-candidate read rejected its existing2MiB kind/size gate. Stdout empty, traceback retained; no candidate values inferred and no target command executed. Original source/streams/controller retained; corrected read-only observation follows separately.
+
+
+## R-REB-14-FIX1: preserve bounded command candidate observations
+
+- **purpose:** repeat the fixed read-only prerequisite observation after a terminal observer error; retain metadata for an oversized/nonregular command candidate without increasing the2MiB read cap, and retain partial evidence on later error.
+- **commit to sync:** none; no install/build/sync/deployment.
+- **working dir:** same fixed candidates and pinned platform.py as R-REB-14.
+- **command:** key-only SSH `nice -n 10 python3 -`; original corrected observer SHA256 4841f1c1eaf4126919ea467037573c87da3c67380cfab5755c46b024a0abb9f7, ledger `task-54-linux-startup-prerequisite-fix1-20261107.py`; syntax parsed locally.
+- **expected duration:** seconds after SSH, one observer; all source/executable/output caps unchanged.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **output path:** ledger `task-54-linux-startup-prerequisite-fix1-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual fixed metadata/derived source facts; an unavailable candidate hash remains unavailable, not silently approved. No target startup, command execution, scientific imports, package scan, deployment or job/queue change.
+- **status:** done (2026-11-07T07:13:00.956467+09:00, exit0). Fixed deployment directories absent; own cwd/package root present; fictional warmup path absent. Actual platform AST call uses uname with -p; its candidate is an11352352byte root-owned coreutils executable exceeding the unchanged2MiB hash cap, so hash remains unmeasured. System observer interpreter identified separately. No command/target startup or deployment.
+
+
+## R-REB-15-STARTUP-COMMAND-IDENTITY: exact known executable and host observations
+
+- **purpose:** resolve R14's known11.35MB command identity with a justified16MiB bounded read; refresh known controller/base pins and ordinary host uname/libc metadata.
+- **commit to sync:** none; no install/build/sync.
+- **working dir:** exactly3 canonical executable paths from R14/R11; no directory scan.
+- **command:** key-only SSH `nice -n 10 python3 -`; observer SHA256 d4c6b428b88bf60d1899b4716fc957cd9cf6b95c3a6a80463b0840b02dfbb106, ledger `task-54-linux-startup-command-identity-20261107.py`. Reads the three fixed executable files as bytes only; executes no target command or interpreter.
+- **expected duration:** seconds after SSH, one observer;16MiB cap each for coreutils and system Python,32MiB for known21.74MB base executable. No full native/package hashing.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **output path:** ledger `task-54-linux-startup-command-identity-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual file identities and matching known pins, with host metadata explicitly observed by system observer. Not new-venv runtime/native isolation or scientific evidence. No command execution, deployment or job/queue mutation.
+- **status:** done (2026-11-07T07:15:09.860511+09:00, exit0). Exact coreutils uname11352352bytes SHA25648893b0fb21436b54619db80486e83ef39dfccaf1aefe83dfa00c02d6146e8c0; system/base pins unchanged. System observer reports Linuxx86_64 and glibc2.43. No target startup or command execution; records archived with both R14 attempts in `raw/R-REB-14-15-STARTUP-PREREQUISITES/`.

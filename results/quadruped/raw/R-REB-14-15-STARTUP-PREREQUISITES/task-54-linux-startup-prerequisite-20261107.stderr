@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 34, in <module>
+  File "<stdin>", line 17, in read
+  File "<stdin>", line 9, in need
+RuntimeError: read kind/size

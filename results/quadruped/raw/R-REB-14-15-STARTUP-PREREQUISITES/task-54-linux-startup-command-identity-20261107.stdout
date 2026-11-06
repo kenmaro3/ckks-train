@@ -1,0 +1,57 @@
+{
+  "kind": "fixed_startup_command_identity_not_scientific_result",
+  "started_unix": 1794003309.817609,
+  "uid": 1000,
+  "nice": 10,
+  "files": [
+    {
+      "path": "/usr/lib/cargo/bin/coreutils/uname",
+      "bytes": 11352352,
+      "sha256": "48893b0fb21436b54619db80486e83ef39dfccaf1aefe83dfa00c02d6146e8c0",
+      "uid": 0,
+      "mode": 493,
+      "device": 66311,
+      "inode": 27656687,
+      "mtime_ns": 1776343279000000000,
+      "expected_sha256": null,
+      "spawned_by_observer": false
+    },
+    {
+      "path": "/usr/bin/python3.14",
+      "bytes": 7477160,
+      "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+      "uid": 0,
+      "mode": 493,
+      "device": 66311,
+      "inode": 27657381,
+      "mtime_ns": 1787222518000000000,
+      "expected_sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+      "spawned_by_observer": false
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/bin/python3.11",
+      "bytes": 21740000,
+      "sha256": "2874a0b9344d06b7767aebb1e6e25a759ffcbdb544e99400ecc74dc6092d1174",
+      "uid": 1000,
+      "mode": 509,
+      "device": 66311,
+      "inode": 32929000,
+      "mtime_ns": 1787713716613905251,
+      "expected_sha256": "2874a0b9344d06b7767aebb1e6e25a759ffcbdb544e99400ecc74dc6092d1174",
+      "spawned_by_observer": false
+    }
+  ],
+  "host": {
+    "sys_platform": "linux",
+    "uname": {
+      "sysname": "Linux",
+      "nodename": "kmihara-Z790-S01",
+      "release": "7.0.0-31-generic",
+      "version": "#31-Ubuntu SMP PREEMPT_DYNAMIC Sat Aug  1 04:26:38 UTC 2026",
+      "machine": "x86_64"
+    },
+    "confstr_CSGNULIBCVERSION": "glibc 2.43"
+  },
+  "status": "observed_no_target_startup",
+  "finished_unix": 1794003309.8605113
+}
