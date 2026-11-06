@@ -1,0 +1,55 @@
+\section{Rotation-Only Transposition for Mini-Batch Training}
+\label{sec:packing}
+\subsection{A common layout for activations and weights}
+Let $B$ be a power-of-two lane count and $d$ a power-of-two feature capacity such that $dB$ divides the slot count. Slot $jB+b$ stores feature $j$ of sample $b$. Blocks repeat when $dB$ is smaller than the slot count. A layer has positive integer input and output dimensions $d_i,d_o$. Define the padded dimensions $n_i=2^{\ceil{\log_2 d_i}}$ and $n_o=2^{\ceil{\log_2 d_o}}$, and require $n_i,n_o\le d$. A vector of padded dimension $n\in\{n_i,n_o\}$ is canonical when its feature sequence is $n$-periodic in every lane; unused logical features are zero. This periodicity eliminates a separate replication step at tall layers.
+
+Zero-pad the original $d_o\times d_i$ weight matrix to $n_o\times n_i$. Let $m=\min(n_o,n_i)$ and $L=\max(n_o,n_i)$. Both divide $d$, so the $L$-periodic diagonals, rotations modulo $LB$, and integer logarithmic folds below are well-defined. Store the generalized diagonals
+\begin{equation}
+ D_c[j]=W[j\bmod n_o,(j+c)\bmod n_i],\quad 0\le c<m.
+ \label{eq:diagonal}
+\end{equation}
+Weights are shared across all lanes. With BSGS split $m=gu$ and $c=ga+b$, the stored diagonal is
+$P_c=\rot(D_c,-gaB)$. The encrypted product is
+\begin{equation}
+ y=\sum_{a<u}\rot\!\left(\sum_{b<g}P_{ga+b}\odot\rot(x,bB),gaB\right).
+ \label{eq:bsgs}
+\end{equation}
+Here a positive rotation reads slot $s+k$ into output slot $s$; $\odot$ denotes a slot-wise product. For a wide layer, $\log_2(n_i/n_o)$ rotations and additions fold partial outputs together. For a tall layer, the canonical input already has the required replication. Neither case adds a mask to the fold.
+
+\subsection{Transpose without products or masks}
+Rectangular diagonal transposition without ciphertext multiplications is inherited from Mihara et al.~\cite{mihara2020}. Their general method uses rotations and additions; their implementation also reports OpenMP batch processing. Here we compose that idea with the periodic $m$-diagonal representation, feature-major SIMD lanes, and BSGS pre-rotations.
+
+The transpose diagonal $E_i[j]=W[(j+i)\bmod n_o,j\bmod n_i]$ equals a rotation of one $D_c$. Choose $c=(-i)\bmod m$, and set $t=-c$ for a wide layer or $t=i$ for a tall layer. In stored BSGS form,
+\begin{equation}
+ Q_i=\rot(P_c,\,[t-g\floor{i/g}+g\floor{c/g}]B).
+ \label{eq:transpose}
+\end{equation}
+The rotation amount is taken modulo $LB$. Thus transposition uses neither a ciphertext product nor a mask and consumes no multiplicative level. It is \emph{not} free: each nonzero rotation requires a key switch. Dedicated keys minimize rotation count; composing existing baby/giant keys saves key memory at the expense of extra switches. Our training runs use key reuse, and the extra work is included in the counters.
+
+\subsection{Gradients, reductions, and a symbolic cost model}
+For layer gradient $\delta$ and input $a$, a pre-rotated weight-gradient diagonal is
+\begin{equation}
+ \nabla P_{ga+b}
+ =\operatorname{batchsum}\bigl(\rot(\delta,-gaB)\odot\rot(a,bB)\bigr).
+ \label{eq:gradient}
+\end{equation}
+Batch summation first reduces lanes by powers-of-two rotations. A lane-zero mask isolates the reduced value; inverse-direction rotations replicate it when replicated gradients are required. The mask has nonintegral polynomial coefficients in the CKKS embedding, so encoding it at unit scale is not an exact, zero-depth shortcut. It consumes a level. Constants for the learning rate and batch normalization are folded into a necessary plaintext multiplication at its exact target scale.
+
+\begin{table}[t]
+\centering\small
+\caption{Symbolic layer costs for the implemented layout, before any wide-layer fold. $g,u$ are the BSGS split, $m=gu$. Gradient costs show the replicated interactive form; compact non-interactive state changes the final replication.}
+\label{tab:symbolic}
+\begin{tabular}{lcc}
+\toprule
+Operation & Rotations & Relins \\
+\midrule
+BSGS encrypted matvec & $g+u-2$ & $u$ \\
+Dedicated transpose & $m-1$ & $0$ \\
+Replicated weight gradient & $g+u-2+2m\log_2 B$ & $m$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+Hoisting reuses decomposition for rotations of the same input~\cite{halevi2018}. It changes wall-clock work but not Eq.~\eqref{eq:ks}. Lazy relinearization applies within a matvec giant-step sum. It cannot remove the separate relinearizations needed before gradient-diagonal rotations. These distinctions matter when interpreting ablation results.
+
+\paragraph{Extensions relative to the interactive design.}
+The first two extensions studied here are the periodic $\min(n_o,n_i)$-diagonal representation with feature-major SIMD mini-batch lanes, and its composition with hoisting and BSGS. General rectangular transposition and batch processing themselves are inherited capabilities, not novelty claims. The remaining four extensions---bootstrap placement, polynomial activations, momentum, and loss conventions---are specified in Section~\ref{sec:noninteractive}. None removes the cost of maintaining canonical server-side state; the initial interactive cost model omitted some replication work and was therefore too optimistic.

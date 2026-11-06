@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300" viewBox="0 0 500 300">
+<title>RQ1 supplementary subset key-switch ratios</title>
+<desc>One seed per row. Four counting conventions use measured hekit counters and modeled baseline bootstrap costs; not equal-security validation.</desc>
+<rect width="500" height="300" fill="white"/>
+<g font-family="sans-serif" font-size="12" fill="#182633">
+<text x="250" y="20" text-anchor="middle">KS ratio to ReBoot (lower is better)</text>
+<text x="250" y="290" text-anchor="middle">supplementary 784-input subset; one seed per row</text>
+<line x1="55" x2="475" y1="240" y2="240" stroke="#dbe1e5"/>
+<text x="47" y="244" text-anchor="end">0</text>
+<line x1="55" x2="475" y1="200.0" y2="200.0" stroke="#dbe1e5"/>
+<text x="47" y="204.0" text-anchor="end">0.25</text>
+<line x1="55" x2="475" y1="160.0" y2="160.0" stroke="#dbe1e5"/>
+<text x="47" y="164.0" text-anchor="end">0.5</text>
+<line x1="55" x2="475" y1="120.0" y2="120.0" stroke="#dbe1e5"/>
+<text x="47" y="124.0" text-anchor="end">0.75</text>
+<line x1="55" x2="475" y1="80" y2="80" stroke="#dbe1e5"/>
+<text x="47" y="84" text-anchor="end">1</text>
+<line x1="55" x2="475" y1="128.0" y2="128.0" stroke="#182633" stroke-dasharray="5 4"/>
+<text x="475" y="121.0" text-anchor="end">threshold 0.7</text>
+<rect x="84" y="170.400" width="28" height="69.600" fill="#315C8C"/>
+<text x="98" y="164.400" text-anchor="middle">0.435</text>
+<text x="98" y="255" text-anchor="middle">(a)</text>
+<rect x="122" y="115.360" width="28" height="124.640" fill="#487F9C"/>
+<text x="136" y="109.360" text-anchor="middle">0.779</text>
+<text x="136" y="255" text-anchor="middle">(b)</text>
+<rect x="160" y="119.040" width="28" height="120.960" fill="#6C9B8B"/>
+<text x="174" y="113.040" text-anchor="middle">0.756</text>
+<text x="174" y="255" text-anchor="middle">(c)</text>
+<rect x="198" y="121.280" width="28" height="118.720" fill="#A2A76B"/>
+<text x="212" y="115.280" text-anchor="middle">0.742</text>
+<text x="212" y="255" text-anchor="middle">(d)</text>
+<text x="146" y="274" text-anchor="middle">F1: B = 32</text>
+<rect x="290" y="202.720" width="28" height="37.280" fill="#315C8C"/>
+<text x="304" y="196.720" text-anchor="middle">0.233</text>
+<text x="304" y="255" text-anchor="middle">(a)</text>
+<rect x="328" y="173.760" width="28" height="66.240" fill="#487F9C"/>
+<text x="342" y="167.760" text-anchor="middle">0.414</text>
+<text x="342" y="255" text-anchor="middle">(b)</text>
+<rect x="366" y="175.360" width="28" height="64.640" fill="#6C9B8B"/>
+<text x="380" y="169.360" text-anchor="middle">0.404</text>
+<text x="380" y="255" text-anchor="middle">(c)</text>
+<rect x="404" y="176.480" width="28" height="63.520" fill="#A2A76B"/>
+<text x="418" y="170.480" text-anchor="middle">0.397</text>
+<text x="418" y="255" text-anchor="middle">(d)</text>
+<text x="352" y="274" text-anchor="middle">F2: B = 64</text>
+</g></svg>

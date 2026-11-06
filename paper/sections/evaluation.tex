@@ -1,0 +1,50 @@
+\section{Evaluation}
+\label{sec:evaluation}
+\subsection{Protocol and evidence classes}
+We distinguish a released baseline execution, an in-library layout microbenchmark, and a cost model. The first supplies observed wall-clock and bootstrap events; the second isolates arithmetic layout counts under our evaluator; the third supplies uninstrumented baseline quantities. A counter-derived normalization is not a separate execution. Historical generated tables retain the working name \emph{hekit} for \sys{} and its crate names.
+
+The headline uses MNIST reduced to $196$ inputs and the released full training setting. Its encrypted runs are pending. The completed faithful encrypted subset uses $784$ inputs, the baseline's sample indices and initial weights, and its training conventions. Output width is padded to $16$, including the unused classes in the released loss; replacing this with a width-$10$ loss is not assumed equivalent. Earlier ``legacy'' runs use a different learning rate, bias policy, and initialization. Their counters and timing remain useful, but their accuracy is not comparable to the released baseline. The last subset batch is partial, affecting depth, refresh scheduling, and the effective sum-versus-mean learning-rate conversion.
+
+The paired server measurements use the same CPU and thread cap, with different CPU parallel runtimes. Jobs are not core-pinned, and some rows overlap unrelated shared-host load. Client work and setup scopes also differ: baseline step time includes batch encryption and prediction decryption, whereas our update time excludes those separately reported client operations; both exclude key setup. Thus even a same-host ratio is not a controlled architectural speedup. We do not pool CPU and GPU samples. Encrypted rows have a single seed unless the table states otherwise; within-run iterations and Criterion samples are not independent seeds.
+
+\subsection{RQ1: key switches and wall-clock}
+\input{tables/rq1_ks}
+\input{tables/wallclock_same_cpu}
+Let $K$ be measured total key switches, $H$ bootstrap events, and $S$ examples processed. Let $c_h$ be our measured per-bootstrap cost and $c_r$ the baseline bootstrap model; let $R$ denote the baseline non-bootstrap count per example, $r$ its refreshes per update, and $B_r$ its own batch. The four reported ratios are
+\begin{align}
+ \rho_a&=\frac{K/S}{R+rc_r/B_r},&
+ \rho_b&=\frac{(K-c_hH+c_rH)/S}{R+rc_r/B_r},\nonumber\\
+ \rho_c&=\frac{K/S}{R+rc_h/B_r},&
+ \rho_d&=\frac{(K-c_hH)/S}{R}.
+ \label{eq:ratios}
+\end{align}
+Convention (a) uses each side's own bootstrap cost. Convention (b) charges both the baseline cost; (c) charges both our cost; (d) excludes bootstrap arithmetic on both sides. The interactive comparison is separate from (d): omitting bootstrap arithmetic does not remove non-interactive compact packing and unpacking. ReBoot remains at its own batch in the denominator; a hypothetical same-batch denominator would answer a different question.
+
+The baseline's bootstrap cost remains a model because the measured OpenFHE execution does not expose key-switch counters. Its observed bootstrap frequency is used, not replaced with our schedule. The subset non-bootstrap reference is the in-library Lazy layout measurement; the full-setting reference is still a model. These boundaries are visible in Table~\ref{tab:rq1_ks}.
+
+\input{figs/rq1_ratios}
+The faithful larger-batch subset row meets the registered count threshold under every reported convention, while the smaller batch meets it only under the own-bootstrap convention. The generated figure makes that dependence visible. The corresponding larger-batch timing is also favorable on the shared CPU (Table~\ref{tab:wallclock_same_cpu}), but its subset accuracy drops relative to the baseline, including in the plaintext twin. Consequently this observation is a tradeoff, not a successful accuracy-matched RQ1 result. The unmeasured full-setting rows and the security mismatch below prevent a final verdict.
+
+\subsection{RQ2: placement and depth}
+The AU, WN, and AA subset rows in Tables~\ref{tab:rq1_ks} and~\ref{tab:wallclock_same_cpu} provide the placement comparison. For matched legacy eMLP-1 settings, WN reduces bootstrap events and total time relative to AU. AA leaves the same lazy weight-refresh frequency and adds activation refreshes, so it does not improve this shallow workload. Its benefit is a feasible depth budget for some deeper polynomial circuits, checked separately as a structural test rather than an observed training-accuracy gain.
+
+The corrected structural predictor equals the measured counters at every completed update. This validates accounting for the executed paths; it does not validate the baseline bootstrap model or a convergence claim. The initial cost model missed replication, key-reuse, bias, and schedule-related terms, and its optimistic interactive estimate is superseded by that explicit accounting. The full-setting scheduling and accumulated-error conclusions remain pending.
+
+\subsection{Accuracy, local blocks, and security}
+\input{tables/accuracy_vs_reboot}
+\input{tables/plain_datasets}
+\input{tables/security}
+Table~\ref{tab:accuracy_vs_reboot} separates the released full-setting reference, subset results, and published paper accuracy. The released defaults and paper-setting reconstruction are different protocols. We do not choose whichever reference makes the result look best. The registered tolerance is tested against the captured released full setting; the encrypted row has not completed. Matching a plaintext twin is necessary to diagnose arithmetic fidelity, but is insufficient to establish baseline-equivalent generalization.
+
+Plaintext dataset experiments (Table~\ref{tab:plain_datasets}) provide broader optimization checks. MNIST and Fashion-MNIST reproduce the stated comparison tolerance at the fixed final epoch. Breast Cancer does not: the fixed-epoch min-max result misses its target, and selecting the best test epoch is optimistic leakage from model selection. The z-score setting diverges for the polynomial activation. Fashion-MNIST and Breast Cancer results are plaintext twins, not encrypted training measurements. The local-block plaintext twins reproduce the released eMLP-2/eMLP-3 values for the recorded seed; their encrypted subset rows are pending. The block experiments do not extend the current headline claim to deeper networks.
+
+Table~\ref{tab:security} applies common estimator models to the actual exposed key moduli and secret distributions. The evaluated main and SSE instances of our preset exceed the chosen operation-count target under those models; the released ReBoot preset does not. This is an estimate over the documented attack search, not a security proof. The smallest sparse-secret values use attacks with extreme memory requirements, and even non-MITM minima have substantial or unreported memory demands. These are not practical attack demonstrations. Equal $N$ and a requested library security label do not establish equal security. Results must remain conditional until either a security-different comparison is explicitly accepted or an independently estimated and remeasured alternative baseline is available.
+
+\subsection{RQ3: device operations and ablation}
+\input{tables/gpu_vs_cpu_ops}
+\input{tables/rq3_ablation}
+Table~\ref{tab:gpu_vs_cpu_ops} contains synchronized operation latencies, including capped-level rows and memory skips. The HEonGPU relinearization reference~\cite{gpuKeys2025} is nominal: its modulus count differs. A linear-in-limb adjustment is a cost-model extrapolation, not an equal-parameter measurement. The published table value is inherited from the archived operator report; the bibliographic metadata was checked for this draft, but a fresh PDF fetch was blocked. The later pool/submission fix has not been retimed.
+
+Table~\ref{tab:rq3_ablation} deliberately leaves the server rows pending. The insecure small-parameter CPU smoke validates counts and checks only; its high-load timings are inadmissible for performance comparisons. The flag named \texttt{bsgs=false} keeps pre-rotated weights rather than implementing the strongest textbook diagonal baseline. Thus its BSGS gain would be an upper bound against that alternative, while the marginal hoisting and lazy-relinearization gains within those rows would be lower bounds. Hoisting changes no operation counter; the gradient outer product retains layout-required rotations independent of the BSGS flag. All four caveats travel with the table.
+
+CPU and GPU training comparisons require the same optimizer, level, layout, and batch. Registered SGD fallback rows are compared only with the corresponding CPU SGD row. A resource skip is unmeasured; a device OOM is a failure. Test-process success cannot stand in for an actually executed production-size parity gate. GPU bootstrap precision, latency, allocation behavior, and peak memory are still unmeasured. HEonGPU's separate bootstrap reference~\cite{heongpuBench} has a different remaining-level budget and main-secret distribution; the fixed plan target is not a normalized speed-ratio result. RQ3's epoch-time question is therefore unanswered.

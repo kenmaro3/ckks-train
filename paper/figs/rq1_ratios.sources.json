@@ -1,0 +1,78 @@
+{
+  "precision": "three decimal places, identical to generated RQ1 table cells",
+  "rows": [
+    {
+      "batch": 32,
+      "ratios": [
+        0.435,
+        0.779,
+        0.756,
+        0.742
+      ],
+      "run": "F1"
+    },
+    {
+      "batch": 64,
+      "ratios": [
+        0.233,
+        0.414,
+        0.404,
+        0.397
+      ],
+      "run": "F2"
+    }
+  ],
+  "scope": "supplementary 784-input subset; one seed per row",
+  "sources": [
+    {
+      "fields": [
+        "modes.lazy.run.measured.key_switches_per_sample"
+      ],
+      "path": "results/mnist_reboot_layout.json",
+      "sha256": "1d5ce469b42c5fee7ef58149d11dc7bb1149138bd46c035040b4be4beaeec4da"
+    },
+    {
+      "fields": [
+        "measured.total.bootstraps",
+        "measured.total.key_switches",
+        "setup.boot_ks",
+        "training.samples"
+      ],
+      "path": "results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json",
+      "sha256": "cabf75017cf9fcf0a623fbe4b834ed70d0c7cd59558b07ba146e646333b4a693"
+    },
+    {
+      "fields": [
+        "measured.total.bootstraps",
+        "measured.total.key_switches",
+        "rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks",
+        "setup.boot_ks",
+        "training.samples"
+      ],
+      "path": "results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json",
+      "sha256": "83511703e94e183f2fcf94d57f62661e0b1ad9bc7c0530a3a73ba05bf5ef69c6"
+    },
+    {
+      "fields": [
+        "bootstrap.bootstrap_array_calls",
+        "bootstrap.ciphertexts_bootstrapped"
+      ],
+      "path": "results/quadruped/raw/reboot_emlp1_official_subset/stats.json",
+      "sha256": "578d2e5ce7fa5c2d1d4964f5137189ad282f5d3c34f2900ad65eaab4dde35b97"
+    },
+    {
+      "fields": [
+        "reboot_hyperparameters.batch_size"
+      ],
+      "path": "results/quadruped/reboot_emlp1_official_subset.json",
+      "sha256": "d640483c896c082f5e6a07395ed7ff2483c79001f96c83380dcb15a770744b66"
+    }
+  ],
+  "threshold": 0.7,
+  "ways": [
+    "a",
+    "b",
+    "c",
+    "d"
+  ]
+}

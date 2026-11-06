@@ -1,0 +1,15 @@
+\section{GPU Implementation}
+\label{sec:gpu}
+\sys{} separates RNS arithmetic, CKKS evaluation, neural-network operations, CUDA execution, and benchmark orchestration. Generic \texttt{HeOps} and \texttt{BootstrapOps} interfaces let the same trainer use CPU or device ciphertexts. The evaluator checks parameter identity, levels, scales, key availability, and device ownership before work. Counters commit after success; the CUDA bootstrap also waits for final device synchronization before merging its internal counters.
+
+The CUDA backend uses device NTTs, basis conversion, pointwise arithmetic, hybrid key switching, and BSGS matvecs. Small public launch data use pinned transfer buffers. Reusing a hoisted decomposition avoids repeating the expensive preparation for related rotations. Device/CPU bit parity is meaningful only for cases actually executed; memory-skipped test functions can still report process success.
+
+\paragraph{Streams and memory.}
+Independent products may be issued to several streams, but a training step's dependent matvecs are executed sequentially. The measured pre-fix multi-stream benchmark was slower than sequential execution (Table~\ref{tab:gpu_vs_cpu_ops}). Calling-thread submission and pool handling were subsequently revised; their performance remeasurement is pending. An effective-bandwidth estimate for addition does not prove matvec occupancy or full-device saturation. That explanation remains a hypothesis until profiled.
+
+The shared device has limited available memory. Training can upload keys capped to an explicitly selected level; this preserves the computation at that level, but does not measure the top-level workload. Allocation preflight uses estimated resident/key/workspace sizes. Pool trims occur after large setup stages, at epoch boundaries, and between ablation configurations. Estimated need and pool checkpoints are not a measured memory peak, and a successful preflight does not guarantee later allocations under contention.
+
+\paragraph{Bootstrap boundary.}
+The CUDA bootstrap implementation keeps ciphertext arithmetic on the device through SSE, modulus raising, transforms, and EvalMod. A narrow shared polynomial executor preserves the CPU operation order and rounding. Public integer constants are still materialized on the host and uploaded; future device timing must include that overhead. Local CPU replay and CUDA compilation support code readiness, not physical-GPU precision, latency, or memory feasibility. Those hardware measurements are pending.
+
+The training benchmark still uses a CPU bootstrap adapter. Level operations run on the GPU; non-interactive refresh downloads to the CPU and uploads the result. A compiled device bootstrap API has not changed that benchmark. Its timing must therefore separate device work, transfers, and CPU refresh. Likewise interactive GPU training uses a client refresh. Neither path justifies an end-to-end all-GPU training claim.

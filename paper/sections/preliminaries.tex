@@ -1,0 +1,21 @@
+\section{Preliminaries and Threat Model}
+\label{sec:prelim}
+\paragraph{Arithmetic.}
+CKKS~\cite{ckks2017} encodes approximate vectors in
+$R_Q=\mathbb{Z}_Q[X]/(X^N+1)$, with up to $N/2$ complex slots. We use real slot values. A ciphertext at level $\ell$ uses $q_0,\ldots,q_\ell$ and a scale $\Delta$. Multiplication followed by rescaling consumes a modulus prime. Rotations permute slots through a Galois automorphism and a key switch. Hybrid RNS key switching uses special primes $P$ and a digit decomposition; its cost depends on the active limbs, digit sizes, and memory traffic.
+
+We count rotations (including conjugations), relinearizations, and explicit SSE switches:
+\begin{equation}
+  \KS = n_{\mathrm{rot}}+n_{\mathrm{relin}}+n_{\mathrm{SSE}}.
+  \label{eq:ks}
+\end{equation}
+A ciphertext tensor product is not automatically a key switch: lazy relinearization may combine several products before one switch. Bootstrap events are recorded separately and their constituent operations are already in Eq.~\eqref{eq:ks}; adding a bootstrap-equivalent charge again would double count. Reported counts cover the whole network and are averaged over processed examples, not over layers. A count is a workload metric, not a machine-independent latency estimate.
+
+\paragraph{Refreshes.}
+An interactive refresh decrypts and re-encrypts at the key owner. A bootstrap instead evaluates a refresh circuit using public evaluation keys. Our non-interactive path uses SSE~\cite{sse2022}, centered modulus raising, coefficient-to-slot and slot-to-coefficient transforms, and an approximate modular-reduction polynomial. Public transforms use collapsed stages and BSGS; exact scale tracking makes them composable with training.
+
+\paragraph{Protected objects and public leakage.}
+We consider a semi-honest evaluation server and a single trusted key owner, under the usual RLWE and evaluation-key assumptions of the chosen CKKS construction. No new security reduction is claimed. Training examples, labels, model weights, intermediate activations, gradients, and optimizer state are encrypted. The architecture, dimensions, batch schedule, hyperparameters, parameters, evaluation keys, and algorithmic control flow are public. The key owner initializes and encrypts the data and initial model, and decrypts the resulting model. Known initialization distributions are not themselves secret. This model does not hide dimensions, resource use, access schedules, or timing, and it does not provide malicious-server verification, differential privacy, multi-party key custody, or protection against inference from a legitimately decrypted model.
+
+\paragraph{Diagnostics are not a server capability.}
+The benchmark process can also instantiate a secret-key holder, decrypt checkpoints and predictions, compare against a plaintext twin, and report accuracy or activation ranges. Those are client-side diagnostics for a trusted experiment harness; they must not be exposed as server logs in a deployment. The generic non-interactive trainer has no secret key and makes public depth-based refresh decisions. Disabling diagnostic decryption changes neither the encrypted arithmetic nor the public schedule. The interactive path explicitly involves the client during training and is labeled separately. The in-library ReBoot-layout microbenchmark uses plaintext labels and client-side optimizer updates: it supports arithmetic/count comparisons, not the full confidentiality claim or a faithful non-interactive baseline.
