@@ -635,6 +635,42 @@ fn counter_delta(before: &OpCounter, after: &OpCounter) -> OpCounter {
     after - before
 }
 
+/// Contributions retain old exact weight/bias scales; their levels may differ by microbatch.
+struct LayerGradient<C> {
+    layer: usize,
+    dw: Diagonals<C>,
+    reference: Option<Diagonals<C>>,
+    db: C,
+}
+
+fn add_gradient_ct<E: HeOps>(ev: &E, a: &E::Ct, b: &E::Ct) -> Result<E::Ct> {
+    if a.scale() != b.scale() {
+        return Err(HekitError::ScaleMismatch);
+    }
+    let level = a.level().min(b.level());
+    ev.add(
+        &ev.mod_switch_to_level(a, level)?,
+        &ev.mod_switch_to_level(b, level)?,
+    )
+}
+
+fn add_gradient_diagonals<E: HeOps>(
+    ev: &E,
+    a: &Diagonals<E::Ct>,
+    b: &Diagonals<E::Ct>,
+) -> Result<Diagonals<E::Ct>> {
+    if a.d() != b.d() || a.stride() != b.stride() {
+        return Err(HekitError::InvalidParams("gradient shapes differ".into()));
+    }
+    let entries = a
+        .entries()
+        .iter()
+        .zip(b.entries())
+        .map(|(a, b)| add_gradient_ct(ev, a, b))
+        .collect::<Result<Vec<_>>>()?;
+    Diagonals::from_prerotated(a.d(), a.stride(), entries)
+}
+
 /// [`Dense::bias_grad_scaled`]; if the bias's scale is not reachable by a rescale from
 /// `dz`'s level (rare, see there), retried once from one level lower.
 fn bias_grad<E: HeOps>(
@@ -756,7 +792,9 @@ impl<'a, E: HeOps> Trainer<'a, E> {
     /// The levels of the last successful step **before** the refresh, labelled as
     /// [`crate::sim::SimStep::depths`] (`z{l}`, `a{l}`, `delta{L}`, `s{l}`, `dz{l}`,
     /// `delta{l-1}`, `W{l}'`, `b{l}'`; 1-based layers). On seal_2020's Task 30 network every
-    /// entry equals `max_level - depth`, and `W1'` is on level 0.
+    /// entry equals `max_level - depth`, and `W1'` is on level 0. For multiple microbatches,
+    /// forward/backward labels carry the zero-based `micro{index}/` prefix; updated weights
+    /// and biases retain their ordinary labels and show the accumulated update levels.
     pub fn trace(&self) -> &[(String, usize)] {
         &self.trace
     }
@@ -801,8 +839,7 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         y: &E::Ct,
         n_valid: usize,
     ) -> Result<()> {
-        self.train_batch_valid_with_hidden(mlp, x, y, n_valid)
-            .map(|_| ())
+        self.train_step_valid(mlp, &[(x, y, n_valid)])
     }
 
     /// [`Trainer::train_batch_valid`], returning the step's hidden activations: the outputs
@@ -819,6 +856,48 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         y: &E::Ct,
         n_valid: usize,
     ) -> Result<Vec<E::Ct>> {
+        let mut hidden = self.train_step_valid_with_hidden(mlp, &[(x, y, n_valid)])?;
+        Ok(hidden.pop().expect("one microbatch"))
+    }
+
+    /// One logical update over a nonempty ordered list of microbatches. Every `x` and `y`
+    /// follows the network's [`BatchSpec`]; the first `n_valid` lanes are samples. All passes
+    /// use the same pre-update weights. Gradients are normalized by the checked sum of valid
+    /// samples, then each optimizer is updated once and all state is refreshed once.
+    ///
+    /// Empty lists, invalid counts, count overflow and optimizer configuration errors are
+    /// rejected before forward work. Collection errors leave network/optimizer state intact
+    /// but may advance counters. Later optimizer/refresh failures have the same partial-write
+    /// contract as [`Trainer::train_batch_valid`]. No hidden activations are retained.
+    pub fn train_step_valid(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
+    ) -> Result<()> {
+        self.step_valid(mlp, batches, false).map(|_| ())
+    }
+
+    /// [`Trainer::train_step_valid`], returning owned activations `[micro][hidden layer]`
+    /// in input order, excluding the input and final output. Every activation uses the
+    /// weights **before** this logical update and keeps its forward level/scale; these are
+    /// not refreshed. The slice is borrowed only for the call; returned ciphertexts do not
+    /// borrow the inputs or trainer. A one-layer network returns an empty vector per micro.
+    ///
+    /// Errors and state guarantees are those of [`Trainer::train_step_valid`].
+    pub fn train_step_valid_with_hidden(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
+    ) -> Result<Vec<Vec<E::Ct>>> {
+        self.step_valid(mlp, batches, true)
+    }
+
+    fn step_valid(
+        &mut self,
+        mlp: &mut Mlp<E>,
+        batches: &[(&E::Ct, &E::Ct, usize)],
+        keep_hidden: bool,
+    ) -> Result<Vec<Vec<E::Ct>>> {
         let n_layers = mlp.layers.len();
         if n_layers == 0 || self.optims.len() != n_layers {
             return Err(HekitError::InvalidParams(format!(
@@ -826,12 +905,20 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 self.optims.len()
             )));
         }
-        if n_valid == 0 || n_valid > self.layout.batch {
-            return Err(HekitError::InvalidParams(format!(
-                "{n_valid} valid samples for a batch of {}",
-                self.layout.batch
-            )));
+        if batches.is_empty() {
+            return Err(HekitError::InvalidParams("no microbatches".into()));
         }
+        let total = batches.iter().try_fold(0usize, |sum, &(_, _, n)| {
+            if n == 0 || n > self.layout.batch {
+                return Err(HekitError::InvalidParams(format!(
+                    "{n} valid samples for a batch of {}",
+                    self.layout.batch
+                )));
+            }
+            sum.checked_add(n).ok_or_else(|| {
+                HekitError::InvalidParams("total valid sample count overflows usize".into())
+            })
+        })?;
         if mlp
             .layers
             .windows(2)
@@ -841,102 +928,162 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 "layer shapes do not chain".into(),
             ));
         }
-        // Validate all fixed-basis configurations before any forward work. The optional
-        // extra gradient is computed at the same level as the current-rate gradient.
-        let reference_scales = self
+        // Read-only configuration/coefficients for every layer, before any counted work.
+        let coefficients = self
             .optims
             .iter()
-            .map(|opt| opt.reference_grad_scale())
+            .map(|opt| {
+                let reference = opt.reference_grad_scale()?.map(|c| c / total as f64);
+                let current = opt.grad_scale() / total as f64;
+                let bias = if self.frozen_biases {
+                    0.0
+                } else {
+                    opt.bias_grad_scale() / total as f64
+                };
+                if !current.is_finite()
+                    || !bias.is_finite()
+                    || reference.is_some_and(|c| !c.is_finite())
+                {
+                    return Err(HekitError::InvalidParams(
+                        "nonfinite folded gradient coefficient".into(),
+                    ));
+                }
+                Ok((current, reference, bias))
+            })
             .collect::<Result<Vec<_>>>()?;
         let ev = self.ev;
         let enc = &self.encoder;
         let layout = &self.layout;
-        let mut trace: Vec<(String, usize)> = Vec::new();
-
-        // 1. Forward. acts[i] is the input of layer i.
-        let mut acts = vec![x.clone()];
-        let mut zs = Vec::with_capacity(n_layers);
-        for (i, (dense, act)) in mlp.layers.iter().enumerate() {
-            let z = dense.forward(ev, &acts[i], layout)?;
-            trace.push((format!("z{}", i + 1), z.level()));
-            let a = act.forward(ev, enc, &z)?;
-            trace.push((format!("a{}", i + 1), a.level()));
-            zs.push(z);
-            acts.push(a);
-        }
-
-        // 2. Loss gradient.
-        let mut delta = Mse.grad(ev, &acts[n_layers], y)?;
-        trace.push((format!("delta{n_layers}"), delta.level()));
-
-        // 3. Backward and gradients, top down; nothing is written yet.
-        let mask = valid_lane_mask(layout, n_valid);
-        let n = n_valid as f64;
-        let mut updates = Vec::with_capacity(n_layers);
-        for i in (0..n_layers).rev() {
-            let ln = i + 1;
-            let (dense, act) = &mlp.layers[i];
-            let dz = match act.constant_derivative() {
-                Some(k) => constant_dz(ev, enc, &delta, k, &mask, n_valid == layout.batch)?,
-                None => {
-                    let s = act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
-                    trace.push((format!("s{ln}"), s.level()));
-                    let lv = s.level().min(delta.level());
-                    ev.rescale(&ev.mul(
-                        &ev.mod_switch_to_level(&delta, lv)?,
-                        &ev.mod_switch_to_level(&s, lv)?,
-                    )?)?
+        let mut trace = Vec::new();
+        let mut updates: Vec<LayerGradient<E::Ct>> = Vec::new();
+        let mut new_biases = Vec::with_capacity(n_layers);
+        let mut hidden = Vec::new();
+        for (micro, &(x, y, n_valid)) in batches.iter().enumerate() {
+            let label = |s: String| {
+                if batches.len() == 1 {
+                    s
+                } else {
+                    format!("micro{micro}/{s}")
                 }
             };
-            trace.push((format!("dz{ln}"), dz.level()));
-            let next = if i > 0 {
-                let w = &dense.w;
-                let low = EncWeights::from_diagonals(
-                    w.diagonals().mod_switch_to_level(ev, dz.level())?,
-                    w.d_out(),
-                    w.d_in(),
-                    layout,
-                )?;
-                let wt = low.transpose_with(ev, layout, &self.transpose_keys)?;
-                let v = dense.backward_input(ev, &dz, &wt, layout)?;
-                trace.push((format!("delta{i}"), v.level()));
-                Some(v)
+            // 1. Forward. acts[i] is the input of layer i.
+            let mut acts = vec![x.clone()];
+            let mut zs = Vec::with_capacity(n_layers);
+            for (i, (dense, act)) in mlp.layers.iter().enumerate() {
+                let z = dense.forward(ev, &acts[i], layout)?;
+                trace.push((label(format!("z{}", i + 1)), z.level()));
+                let a = act.forward(ev, enc, &z)?;
+                trace.push((label(format!("a{}", i + 1)), a.level()));
+                zs.push(z);
+                acts.push(a);
+            }
+
+            // 2. Loss gradient.
+            let mut delta = Mse.grad(ev, &acts[n_layers], y)?;
+            trace.push((label(format!("delta{n_layers}")), delta.level()));
+
+            // 3. Backward and gradients, top down; nothing is written yet.
+            let mask = valid_lane_mask(layout, n_valid);
+            let mut contributions = Vec::with_capacity(n_layers);
+            for i in (0..n_layers).rev() {
+                let ln = i + 1;
+                let (dense, act) = &mlp.layers[i];
+                let dz = match act.constant_derivative() {
+                    Some(k) => constant_dz(ev, enc, &delta, k, &mask, n_valid == layout.batch)?,
+                    None => {
+                        let s =
+                            act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
+                        trace.push((label(format!("s{ln}")), s.level()));
+                        let lv = s.level().min(delta.level());
+                        ev.rescale(&ev.mul(
+                            &ev.mod_switch_to_level(&delta, lv)?,
+                            &ev.mod_switch_to_level(&s, lv)?,
+                        )?)?
+                    }
+                };
+                trace.push((label(format!("dz{ln}")), dz.level()));
+                let next = if i > 0 {
+                    let w = &dense.w;
+                    let low = EncWeights::from_diagonals(
+                        w.diagonals().mod_switch_to_level(ev, dz.level())?,
+                        w.d_out(),
+                        w.d_in(),
+                        layout,
+                    )?;
+                    let wt = low.transpose_with(ev, layout, &self.transpose_keys)?;
+                    let v = dense.backward_input(ev, &dz, &wt, layout)?;
+                    trace.push((label(format!("delta{i}")), v.level()));
+                    Some(v)
+                } else {
+                    None
+                };
+                let (c, c_ref, c_b) = coefficients[i];
+                let (dw, reference) = if let Some(c_ref) = c_ref {
+                    let mut gs =
+                        dense.weight_grad_scaled_consts(ev, &dz, &acts[i], layout, &[c, c_ref])?;
+                    let reference = gs.pop().expect("two gradient constants");
+                    (gs.pop().expect("two gradient constants"), Some(reference))
+                } else {
+                    (
+                        dense.weight_grad_scaled(ev, &dz, &acts[i], layout, c)?,
+                        None,
+                    )
+                };
+                let db = bias_grad(ev, dense, &dz, layout, c_b)?;
+                if batches.len() == 1 {
+                    // Preserve the legacy singleton primitive order, including bias subtraction.
+                    new_biases.push(ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?);
+                }
+                contributions.push(LayerGradient {
+                    layer: i,
+                    dw,
+                    reference,
+                    db,
+                });
+                if let Some(v) = next {
+                    delta = v;
+                }
+            }
+
+            if updates.is_empty() {
+                updates = contributions;
             } else {
-                None
-            };
-            let opt = &self.optims[i];
-            let (dw, reference) = if let Some(c_ref) = reference_scales[i] {
-                let mut gs = dense.weight_grad_scaled_consts(
-                    ev,
-                    &dz,
-                    &acts[i],
-                    layout,
-                    &[opt.grad_scale() / n, c_ref / n],
-                )?;
-                let reference = gs.pop().expect("two gradient constants");
-                (gs.pop().expect("two gradient constants"), Some(reference))
-            } else {
-                (
-                    dense.weight_grad_scaled(ev, &dz, &acts[i], layout, opt.grad_scale() / n)?,
-                    None,
-                )
-            };
-            let c_b = if self.frozen_biases {
-                0.0
-            } else {
-                opt.bias_grad_scale() / n
-            };
-            let db = bias_grad(ev, dense, &dz, layout, c_b)?;
-            let b_new = ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?;
-            updates.push((i, dw, reference, b_new));
-            if let Some(v) = next {
-                delta = v;
+                for (sum, part) in updates.iter_mut().zip(contributions) {
+                    sum.dw = add_gradient_diagonals(ev, &sum.dw, &part.dw)?;
+                    if let (Some(a), Some(b)) = (&sum.reference, &part.reference) {
+                        sum.reference = Some(add_gradient_diagonals(ev, a, b)?);
+                    }
+                    sum.db = add_gradient_ct(ev, &sum.db, &part.db)?;
+                }
+            }
+            if keep_hidden {
+                acts.truncate(n_layers);
+                hidden.push(acts.split_off(1));
             }
         }
 
-        // 4. Optimizer steps (on copies), then commit.
+        // Prepare every bias before optimizer writes, including fallible level alignment.
+        if batches.len() > 1 {
+            for gradient in &updates {
+                let b = &mlp.layers[gradient.layer].0.b;
+                new_biases.push(ev.sub(
+                    &ev.mod_switch_to_level(b, gradient.db.level())?,
+                    &gradient.db,
+                )?);
+            }
+        }
+        // All contributions and new biases exist before the first optimizer/state write.
         let mut new_layers = Vec::with_capacity(n_layers);
-        for (i, dw, reference, b_new) in updates {
+        for (
+            LayerGradient {
+                layer: i,
+                dw,
+                reference,
+                ..
+            },
+            b_new,
+        ) in updates.into_iter().zip(new_biases)
+        {
             let mut w = mlp.layers[i].0.w.clone();
             self.optims[i].step_with_reference_gradient(ev, &mut w, &dw, reference.as_ref())?;
             trace.push((format!("W{}'", i + 1), w.level()));
@@ -948,11 +1095,8 @@ impl<'a, E: HeOps> Trainer<'a, E> {
             mlp.layers[i].0.b = b;
         }
         self.trace = trace;
-
-        // 5. Refresh everything the next step consumes.
         self.refresh_all(mlp)?;
-        acts.truncate(n_layers);
-        Ok(acts.split_off(1))
+        Ok(hidden)
     }
 
     /// Refreshes every weight diagonal, bias and optimizer state.
