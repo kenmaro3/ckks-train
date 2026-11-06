@@ -440,3 +440,12 @@ commands and counts are preserved in before-fix1 artifacts; the corrected implem
 and fix reports disclose them. Future focused EvalMod commands explicitly include
 `--skip n16_boot_keys_eval_mod`. This is neither scientific benchmark evidence nor full
 numerical bootstrap admission. No production proof target or arithmetic was widened.
+
+### Prospective GNU/Linux validation
+
+The [reviewed Linux validation plan](bootstrap-linux-validation-plan.md) defines a
+future exact-target candidate and actual positive-test evidence gate for
+`x86_64-unknown-linux-gnu`. Current production proof support remains Apple-only.
+Ratifying this plan does not enable Linux, transfer the Mac calibration result,
+change the historical F1/F2 correction, or establish numerical/server admission.
+Source assignment and actual Linux evidence review remain separate.
