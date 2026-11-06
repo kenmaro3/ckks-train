@@ -116,3 +116,17 @@ chain10 PID1700979/start ticks465769819、待機controller PID1739838/start tick
 12:01:40 JST（Unix1793934100.240689）の鍵認証による読み取りでは、FULL-1はupdate177（0始まり）、**178/750更新完了**、elapsed17000s。直近3更新175〜177は予測演算数と一致した。FULL-1のpost終端・partialはなく、FULL-2の進捗・postもまだない。chain10 PID1700979/start465769819と待機queue PID1739838/start467041669は同一identityのまま、stateはowner.jsonのみ、後続cloneは未作成。R47/R48/R52は待機中、R54は未投入。ジョブや実行中cloneの変更はしていない。これは11:09の観測より新しい稼働記録であり、FULL完了や研究ゲート合格ではない。
 
 一次記録はledger `post-full-observation-20261106-1200.stdout`（SHA256 `eb747177089ddae13281bfcbdb782222958afcabb0559dcde89d3739323d4a4f`）と `task-54-d0-ci.json`。研究結果JSONは変更していない。Task42の四つの比とFULL-2対0.9041の±0.5pt判定、M4の実機ゲートは未確定のまま残る。
+
+## Task54 基礎コードの追加確定と観測更新（2026-11-06）
+
+最新の統合点は private main に push 済みの [`0388282`](https://github.com/kenmaro3/ckks-train/commit/03882826a43c004b5611a3d1639c754b86273ddd)。次の限定範囲は実装・ローカル検証・独立レビュー済みである。
+
+- [profile 入力・更新計画](study-profile-inputs.md): [`8f3a968`](https://github.com/kenmaro3/ckks-train/commit/8f3a9686314ce09397eb8d0a1223bd9bb40cbc61)。[不変の共通入力](study-training-design.md#10-d6a-local-implementation-evidence-independently-reviewed-after-fix1): [`da24811`](https://github.com/kenmaro3/ckks-train/commit/da248115e20c79128dafb32e1732d74972799457)。D6a は62 tests合格・外部データ依存2件ignored。Normal初期化の演算順を修正し、legacy Iris の83パラメータの全ビットと400 epoch順序を厳密照合した。
+- [重み付き I microbatch](interactive-microbatch-design.md): [`9a04fcc`](https://github.com/kenmaro3/ckks-train/commit/9a04fcccc37cfb93821639b7256403bafb57fa55)。[I block 合成・全stageのrate設定とNI reference設定の原子性](block-profile-design.md): [`cf9241e`](https://github.com/kenmaro3/ckks-train/commit/cf9241e6e410e93670ec633290856bac3e38b735)。各stageの局所lossを保持する。class-aware本体のCPU/GPU実行入口への接続完了を意味しない。
+- [packed設計](packed-training-design.md): geometry/primitives [`ef39ea2`](https://github.com/kenmaro3/ckks-train/commit/ef39ea220477026c15152ecb6eeb4d9b87b8b888)、SGD/NAG optimizer [`71de370`](https://github.com/kenmaro3/ckks-train/commit/71de3709986e1cbe511d425792539d0aea5a3921)、暗号化2層stage `0388282`。25 focused testsと共有作業ツリーのNN回帰157件が合格、重い4件ignored。暗号化数値検証は非安全な小規模CPU fixture・許容差1e-7であり、本番精度・性能の証拠ではない。
+
+**原計画Task54の全実験行列は未完。** class-aware本体のstatic admissionとCPU/GPU bridge、実際のF32基準計算・target lock、packed NI/refresh/block/GPU、baseline(a/b) adapter、全行runner・metrics・統計が残る。D6aのF32配列保存はF32計算ではなく、D6b数値engineは実装中。packedも各stageの局所lossを保つ設計で、全長暗号化blockは投入していない。
+
+サーバーの最新の保存済み観測は **2026-11-06 12:57:22.380 JST**（Unix `1793937442.380133`）。FULL-1はupdate212（0始まり）= **213/750**、elapsed20279s、直近3更新はすべて予測計数と一致。FULL-1のpost終端・partialはなく、FULL-2の進捗・postもない。chain PID1700979/ticks465769819、queue PID1739838/ticks467041669は同一identity、stateはowner.jsonのみ・clone未作成。R47/R48/R52は両FULL成功とchain終端/非稼働の検証待ち、R54は未投入。これは現在時刻の状態や完了予測ではない。一次記録はledger `post-full-observation-20261106-1300.stdout`（SHA256 `df20a3c2c8f3ae8c6d15c7659dbbaeee5484085c586b07e2887b76aec4051e0f`、stderrは空）。ジョブ変更・新しいFULL JSONはなく、Task42/M4ゲートは未確定のまま。
+
+CIはSHAごとに区別する。`ef39ea2` の [run42158920249](https://github.com/kenmaro3/ckks-train/actions/runs/42158920249) はcompleted/success。`1b340d2` の [run42159296241](https://github.com/kenmaro3/ckks-train/actions/runs/42159296241) はshallow checkoutで過去入力lockの監査に失敗した記録を維持し、`3b5022c` はresearch-toolsだけfetch-depthを0に修正した（過去pin・source・入力は不変）。保存済み [run42160446178](https://github.com/kenmaro3/ckks-train/actions/runs/42160446178) ではresearch-tools/fmt/clippy/cuda-check/denyがsuccess、testはin_progress。最新 `0388282` のCI全体成功とは扱わない。
