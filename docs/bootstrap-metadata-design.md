@@ -2,6 +2,8 @@
 
 Status: root-ratified and independently reviewed design, 2026-11-06.
 Implementation and validation remain separately gated; this document alone authorizes neither.
+
+Implementation: reviewed structural receipt package, including F1/F2 corrections, 2026-11-06. Native Mac focused validation passed; Linux production metadata, encoding feasibility and internal EvalMod feasibility remain unvalidated or unsupported as specified below.
 This refines shared P1 in `study-diagonal-admission-design.md` and
 `packed-refresh-design.md`; P1a's reviewed exact-scale helpers are already available.
 
@@ -305,3 +307,136 @@ specific proof/test gate; canonical identity bytes need no new hashing dependenc
 If any proof remains unresolved, retain its named MissingCode/Unvalidated boundary and
 specific follow-up, while keeping all registered default profiles in scope. No source
 work starts merely because this design file exists.
+
+
+## Ratified concrete API and process proof refinement (2026-11-06)
+
+Root ratified the corrected API proposal (SHA-256
+`8632764ee72887339e53f7d82c64ded086bee7e3e336f984642a47e80fc9dbd3`)
+and released the bounded source package after D6c1a `6aba8f4`. The following refines the
+no-token constructor sketched above; it does not expand the scientific proof scope.
+
+`DftSupportProof::verify_current()` returns a private-field immutable process-local token
+only after streaming the finite scalar root domain and checking the actual inverse
+complex arithmetic. `BootstrapMetadata::new_with_verified_support(params,bp,&proof)`
+and `with_limits_and_verified_support(params,bp,limits,&proof)` require that token.
+Neither constructor generates DFT roots, matrices or vectors, or invokes Encoder, HE,
+keys or RNG. There is no no-token constructor, process-global state, caller allow flag,
+trusted serialized token or external attestation system. The token is reusable locally.
+
+Narrow std-only CKKS build.rs embeds safely escaped Cargo-configured compiler `-vV` and
+TARGET/HOST diagnostics, with explicit unavailable states. These identify the configured
+compiler, not a complete build/source/executable attestation. Wrappers, arbitrary flags
+and dynamic libm are not proved by diagnostic strings. Required unavailable diagnostics
+and unsupported numerical environments return MissingCode(DftKeptSupportProof).
+Target/compiler strings alone cannot prove runtime libm behavior: the separate actual
+scalar checks, source-level ordinary binary64 error bound and per-descriptor folded
+factor checks carry the conditional proof. The process must retain ordinary IEEE binary64
+rounding/FP behavior and unchanged executable/library code after verification. No claim
+of universally correct transcendental rounding is made. Exact validated environments
+are recorded in the implementation report; this ratification itself is not a test result.
+
+For group multiplication, unique connectivity leaves only one nonzero summand. The
+ordinary complex product `(ac-bd,ad+bc)` has conservative normwise absolute rounding
+error <=8u|z||w| plus a negligible subnormal allowance, u=2^-53. Actual streamed root
+norms in [1/2,2] and inverse norms in [1/8,2] bound at most16 factors far from underflow.
+Each actual descriptor checks the shared runtime folded magnitude/phase/extra-half
+scalars, including actual powf outputs, rather than assuming monotonic or exact powf.
+CtS conj_sandwich partitions parity and optionally conjugates retained odd-row entries;
+retained magnitudes are unchanged, other entries exact zero. It never doubles them.
+Small actual matrix tests and independent connectivity/offset enumeration remain required.
+
+Public receipt structs have private fields with read-only getters. They expose full stage
+shape/stored support/main-second kept windows, per-term execution multiplicities, required
+full-shape key union/roles, actual EvalMod coefficient bits and declared-length depth,
+exact scale/factor bits, all seven counters and checked key-switch total, immutable
+configured-compiler/proof diagnostics, and resource bounds. The only proof scope is
+StructuralCostAndBoundaryScales. EncodingQOverTwoFeasibility, EvalModInternalScaleUnvalidated,
+encrypted range, approximation precision, actual secret contract, key binding, security,
+runtime memory fit and backend support remain explicit unvalidated requirements.
+
+CKKS-local BootstrapMetadataError distinguishes InvalidParams, ArithmeticOverflow,
+NonFiniteIntermediate, MetadataBudgetExceeded, AllocationFailed, contextual ScalePlanning
+(with original HekitError), and MissingCode(DftKeptSupportProof) with specific proof failure.
+No core error change or generic runtime arithmetic hardening is authorized.
+
+Default operational limits are4096 coefficients,2^24 interpolation summands,2^24 polynomial
+work units and64MiB requested peak storage. All estimates/conversions are checked before
+allocation. For c=degree+1,D=ceil(log2(c)), interpolation holds three c-scalar arrays;
+recursive counting conservatively budgets c(D+1) scalar cells and a c-byte power cache,
+with32c(D+1) work estimate and bounded runtime fuel. Persistent stages/support indices,
+rotation lists, parameter/key snapshots, coefficient bits, temporary buffers and both
+canonical byte strings are included in checked storage accounting. Every metadata heap
+allocation, including proof-diagnostic copies, is fallible; static diagnostic strings may
+be borrowed. No infallible clone/to_vec/collect can bypass that budget. These are requested
+storage/work bounds, not allocator RSS, stack ABI or runtime key-memory estimates.
+
+Version1 domain-separated typed canonical bytes bind ordered q/p and bit widths,log_n,
+Delta bits,dnum,main weight and every BootParams field. Descriptor bytes additionally bind
+ordered receipts, coefficient bits, keys/roles, all counters, scopes/issues and proof
+identity. Preserve signed-zero bits; no new hash dependency. Different sufficient limits
+do not change structural identity. No generic runtime complex-factor positivity restriction
+is introduced by shared scalar helpers; positivity checks belong to bootstrap metadata.
+
+
+Root approved one narrow ownership extension before editing: `src/linalg.rs` shares
+allocation-free BSGS step iterators with the existing public Vec helpers. The offset helper
+previously called the offset-zero Vec helper solely to validate, discarding an allocation.
+Metadata cannot reuse that allocating path under its fallible budget. Extract eager scalar
+validation and iterators, preserve public values/order and invalid-input panic ordering,
+and let public helpers collect as before. Metadata uses only the iterator after its typed
+bounded-shape preflight. Retaining duplicated formulas was considered and rejected for
+weaker drift control. Removal of the throwaway allocation is not a performance claim.
+Exact positive/negative/offset-zero/full-wrap order and existing linalg tests are required.
+
+
+### Implemented finite-support inequality and validation scope
+
+The verifier's computed squared-norm gates are deliberately tighter than the proof's
+norm bounds: root squared norm in[1/2,2], inverse squared norm in[1/32,2]. Ordinary
+binary64 rounding of two products and a positive sum leaves ample slack for actual
+mathematical norms in[1/2,2] and[1/8,2], respectively. This avoids treating a rounded
+squared-norm endpoint as an exact real-norm bound. Actual observed extrema are retained
+in the token. A separate finite residual probe uses the same complex multiplication.
+
+For a component `fl(ac-bd)`, ordinary rounding bounds its absolute error by at most
+`(2u+u^2)(|ac|+|bd|)` plus a subnormal absolute allowance; cancellation does not justify
+a relative component bound. Combining real and imaginary component bounds and
+`||( |ac|+|bd|, |ad|+|bc| )|| <= sqrt(2)|z||w|` gives the conservative8u normwise
+bound. Sixteen factors with norm at least1/8 keep the product above2^-49, including
+rounding margins; upper magnitudes remain below2^17. At most one summand per reachable
+entry is nonzero; additions of the remaining exact-zero summands do not erase it.
+Per-descriptor folded scalar magnitude is checked at least2^-66; the resulting witness
+remains above the deliberately looser2^-120 bound. Conjugation, multiplication by i
+and parity partition preserve the retained witness. Individual Cartesian components may
+underflow/cancel to zero; the complex witness norm does not. No exhaustive HE-size DFT,
+universal libm accuracy, coefficient-encoding feasibility or precision claim follows.
+
+The current source gate permits only aarch64-apple-darwin with64-bit usize and available
+configured-compiler/target/host diagnostics, plus mandatory current-process scalar checks.
+The implementation report names the actual tested compiler/profile. This is a limited
+numerical proof domain, not a general compiler attestation or a guarantee against external
+FP-state/library mutation. Other targets return the named missing-proof boundary.
+
+
+### Implementation review correction F1/F2
+
+Linux production metadata is unsupported: verify_current returns the named
+MissingCode(DftKeptSupportProof) boundary on unsupported targets (UnsupportedPointerWidth
+on non64-bit targets, UnsupportedTargetEnvironment on identified unsupported64-bit targets).
+Positive token/receipt tests are explicitly gated to the supported Apple64-bit target;
+a public-verifier rejection test covers unsupported targets. Generic error/counter/iterator,
+identity and folded-scalar checks remain active where no supported token is required.
+Passing Ubuntu CI with this selection is not Linux numerical support; that requires a
+separate finite-support proof/validation gate. Native Mac verification and host-only
+compilation of an unsupported test branch must not be reported as Linux execution.
+
+The original validation report incorrectly stated no secure-size HE/key generation occurred.
+Its unqualified EvalMod regression filter actually ran n16_boot_keys_eval_mod, which
+constructs N=2^16 parameters and generates keys including an approximately0.3GB relin key.
+The independent reviewer repeated that filter before identifying the scope violation.
+Both were unintended executions outside the authorized validation scope. Original logs,
+commands and counts are preserved in before-fix1 artifacts; the corrected implementation
+and fix reports disclose them. Future focused EvalMod commands explicitly include
+`--skip n16_boot_keys_eval_mod`. This is neither scientific benchmark evidence nor full
+numerical bootstrap admission. No production proof target or arithmetic was widened.

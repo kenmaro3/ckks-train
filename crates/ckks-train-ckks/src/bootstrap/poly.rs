@@ -51,7 +51,7 @@
 //! leading branch (the top coefficients) the bound is tight and the recursion splits down to
 //! degree 1; elsewhere there is a level of slack and the leaves have degree up to `2^s - 1`.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::f64::consts::PI;
 
 use ckks_train_core::error::{HekitError, Result};
@@ -88,22 +88,64 @@ pub fn chebyshev_coeffs(f: impl Fn(f64) -> f64, a: f64, b: f64, degree: usize) -
         "interval [{a}, {b}] must be finite with a < b"
     );
     let n = degree + 1;
-    let theta: Vec<f64> = (0..n).map(|k| PI * (k as f64 + 0.5) / n as f64).collect();
-    let fx: Vec<f64> = theta
-        .iter()
-        .map(|&t| f(0.5 * (b - a) * t.cos() + 0.5 * (a + b)))
-        .collect();
-    (0..n)
-        .map(|j| {
-            let s: f64 = theta
-                .iter()
-                .zip(&fx)
-                .map(|(&t, &v)| v * (j as f64 * t).cos())
-                .sum();
-            let c = 2.0 * s / n as f64;
-            if j == 0 { c / 2.0 } else { c }
-        })
-        .collect()
+    let mut theta = vec![0.0; n];
+    let mut fx = vec![0.0; n];
+    let mut output = vec![0.0; n];
+    interpolation_fill(f, a, b, &mut theta, &mut fx, &mut output);
+    output
+}
+
+/// Shared scalar arithmetic, preserving the original iterator sum/order exactly.
+fn interpolation_fill(
+    f: impl Fn(f64) -> f64,
+    a: f64,
+    b: f64,
+    theta: &mut [f64],
+    fx: &mut [f64],
+    output: &mut [f64],
+) {
+    let n = theta.len();
+    for (k, t) in theta.iter_mut().enumerate() {
+        *t = PI * (k as f64 + 0.5) / n as f64;
+    }
+    for (&t, v) in theta.iter().zip(fx.iter_mut()) {
+        *v = f(0.5 * (b - a) * t.cos() + 0.5 * (a + b));
+    }
+    for (j, c) in output.iter_mut().enumerate() {
+        let s: f64 = theta
+            .iter()
+            .zip(fx.iter())
+            .map(|(&t, &v)| v * (j as f64 * t).cos())
+            .sum();
+        let value = 2.0 * s / n as f64;
+        *c = if j == 0 { value / 2.0 } else { value };
+    }
+}
+
+pub(crate) fn chebyshev_coeffs_checked(
+    f: impl Fn(f64) -> f64,
+    a: f64,
+    b: f64,
+    degree: usize,
+    budget: &mut super::metadata::Budget,
+) -> super::metadata::MetaResult<Vec<f64>> {
+    let n = degree
+        .checked_add(1)
+        .ok_or_else(|| super::metadata::overflow("coefficient length"))?;
+    let mut theta = budget.zeros(n)?;
+    let mut fx = budget.zeros(n)?;
+    let mut output = budget.zeros(n)?;
+    interpolation_fill(f, a, b, &mut theta, &mut fx, &mut output);
+    for (kind, values) in [
+        ("interpolation theta", &theta),
+        ("interpolation function", &fx),
+        ("interpolation coefficient", &output),
+    ] {
+        for (i, &v) in values.iter().enumerate() {
+            super::metadata::finite(v, kind, Some(i))?;
+        }
+    }
+    Ok(output)
 }
 
 /// `sum_j coeffs[j] T_j(y)` at `y = (2x - a - b) / (b - a)` (Clenshaw's recurrence): the
@@ -156,84 +198,122 @@ pub fn optimal_split(log_degree: usize) -> usize {
 /// If `coeffs` has fewer than two entries (degree 0, which the evaluation refuses).
 pub fn chebyshev_cost(coeffs: &[f64], a: f64, b: f64) -> OpCounter {
     assert!(coeffs.len() >= 2, "chebyshev_cost needs degree >= 1");
+    let mut budget = super::metadata::Budget::new(u64::MAX, u64::MAX);
+    cost_checked(coeffs, a, b, &mut budget, false).expect("polynomial count allocation/arithmetic")
+}
+
+pub(crate) fn chebyshev_cost_checked(
+    coeffs: &[f64],
+    a: f64,
+    b: f64,
+    budget: &mut super::metadata::Budget,
+) -> super::metadata::MetaResult<OpCounter> {
+    cost_checked(coeffs, a, b, budget, true)
+}
+fn cost_checked(
+    coeffs: &[f64],
+    a: f64,
+    b: f64,
+    budget: &mut super::metadata::Budget,
+    finite_domain: bool,
+) -> super::metadata::MetaResult<OpCounter> {
+    use super::metadata::increment;
     let depth = chebyshev_depth(coeffs.len() - 1);
+    let mut powers = budget.vec(coeffs.len(), "polynomial power cache")?;
+    powers.resize(coeffs.len(), false);
+    powers[1] = true;
     let mut sim = CostSim {
         top: depth,
         baby: 1 << optimal_split(depth),
-        powers: BTreeSet::from([1]),
+        powers,
         cost: OpCounter::default(),
+        budget,
+        finite_domain,
     };
     if a != -1.0 || b != 1.0 {
-        sim.cost.ct_pt_mults += 1;
-        sim.cost.rescales += 1;
+        increment(&mut sim.cost.ct_pt_mults, 1)?;
+        increment(&mut sim.cost.rescales, 1)?;
     }
-    if sim.rec(coeffs, 1) == Some(3) {
-        sim.cost.relins += 1;
+    if sim.rec(coeffs, 1)? == Some(3) {
+        increment(&mut sim.cost.relins, 1)?;
     }
-    sim.cost.rescales += 1;
-    sim.cost
+    increment(&mut sim.cost.rescales, 1)?;
+    Ok(sim.cost)
 }
 
-/// [`Cheb`] without ciphertexts: the same recursion on degrees and levels, counting what
-/// [`Cheb`] counts. `top` is the level of `T_1` (any value works: only `top - tl` matters).
-struct CostSim {
+/// Same zero-sensitive recursion and lazy component-count decisions as Cheb.
+struct CostSim<'a> {
     top: usize,
     baby: usize,
-    powers: BTreeSet<usize>,
+    powers: Vec<bool>,
     cost: OpCounter,
+    budget: &'a mut super::metadata::Budget,
+    finite_domain: bool,
 }
-
-impl CostSim {
-    /// [`Cheb::ensure`]: one product, relinearization and rescale per new power, plus an
-    /// integer constant for `T_(a-b)` when `a != b`.
-    fn ensure(&mut self, i: usize) {
-        if self.powers.contains(&i) {
-            return;
+impl CostSim<'_> {
+    fn ensure(&mut self, i: usize) -> super::metadata::MetaResult<()> {
+        use super::metadata::increment;
+        self.budget.fuel(1)?;
+        if self.powers[i] {
+            return Ok(());
         }
         let a = 1usize << (ceil_log2(i) - 1);
         let (b, c) = (i - a, 2 * a - i);
-        self.ensure(a);
-        self.ensure(b);
+        self.ensure(a)?;
+        self.ensure(b)?;
         if c > 0 {
-            self.ensure(c);
-            self.cost.ct_pt_mults += 1;
+            self.ensure(c)?;
+            increment(&mut self.cost.ct_pt_mults, 1)?;
         }
-        self.cost.ct_ct_tensor += 1;
-        self.cost.relins += 1;
-        self.cost.rescales += 1;
-        self.powers.insert(i);
+        increment(&mut self.cost.ct_ct_tensor, 1)?;
+        increment(&mut self.cost.relins, 1)?;
+        increment(&mut self.cost.rescales, 1)?;
+        self.powers[i] = true;
+        Ok(())
     }
-
-    /// [`Cheb::rec`]: the component count of the result (2 or 3), `None` for zero.
-    fn rec(&mut self, p: &[f64], tl: usize) -> Option<usize> {
-        let m = p.iter().rposition(|&c| c != 0.0)?;
+    fn rec(&mut self, p: &[f64], tl: usize) -> super::metadata::MetaResult<Option<usize>> {
+        use super::metadata::increment;
+        self.budget.fuel(p.len())?;
+        let Some(m) = p.iter().rposition(|&c| c != 0.0) else {
+            return Ok(None);
+        };
         let p = &p[..=m];
         if m == 0 || (m < self.baby && tl + ceil_log2(m) <= self.top) {
             for (i, &c) in p.iter().enumerate().skip(1) {
                 if c != 0.0 {
-                    self.ensure(i);
-                    self.cost.ct_pt_mults += 1;
+                    self.ensure(i)?;
+                    increment(&mut self.cost.ct_pt_mults, 1)?;
                 }
             }
-            return Some(2);
+            return Ok(Some(2));
         }
         let k = 1usize << (usize::BITS - 1 - m.leading_zeros());
-        let (q, r) = split_coeffs(p, k);
-        self.ensure(k);
-        let qres = self.rec(&q, tl + 1);
-        let rres = self.rec(&r, tl);
-        let prod = qres.map(|len| {
-            if len == 3 {
-                self.cost.relins += 1;
+        self.budget.fuel(p.len())?;
+        let mut q = self.budget.zeros(m - k + 1)?;
+        let mut r = self.budget.zeros(k)?;
+        split_fill(p, k, &mut q, &mut r);
+        if self.finite_domain {
+            for (i, &v) in q.iter().chain(&r).enumerate() {
+                super::metadata::finite(v, "split coefficient", Some(i))?;
             }
-            self.cost.rescales += 1;
-            self.cost.ct_ct_tensor += 1;
-            3
-        });
-        match (prod, rres) {
+        }
+        self.ensure(k)?;
+        let qres = self.rec(&q, tl + 1)?;
+        let rres = self.rec(&r, tl)?;
+        let prod = if let Some(len) = qres {
+            if len == 3 {
+                increment(&mut self.cost.relins, 1)?;
+            }
+            increment(&mut self.cost.rescales, 1)?;
+            increment(&mut self.cost.ct_ct_tensor, 1)?;
+            Some(3)
+        } else {
+            None
+        };
+        Ok(match (prod, rres) {
             (None, r) => r,
             (Some(a), r) => Some(a.max(r.unwrap_or(0))),
-        }
+        })
     }
 }
 
@@ -243,14 +323,20 @@ impl CostSim {
 fn split_coeffs(p: &[f64], k: usize) -> (Vec<f64>, Vec<f64>) {
     let m = p.len() - 1;
     debug_assert!(k <= m && m < 2 * k, "split of degree {m} at {k}");
-    let mut r = p[..k].to_vec();
+    let mut r = vec![0.0; k];
     let mut q = vec![0.0; m - k + 1];
+    split_fill(p, k, &mut q, &mut r);
+    (q, r)
+}
+
+/// One actual split arithmetic path for HE recursion, legacy cost and metadata.
+fn split_fill(p: &[f64], k: usize, q: &mut [f64], r: &mut [f64]) {
+    r.copy_from_slice(&p[..k]);
     q[0] = p[k];
-    for i in k + 1..=m {
+    for i in k + 1..p.len() {
         q[i - k] = 2.0 * p[i];
         r[2 * k - i] -= p[i];
     }
-    (q, r)
 }
 
 /// `ceil(log2(m))` for `m >= 1`.
@@ -967,5 +1053,49 @@ mod tests {
             double_angle(&c.eval, &bad, out_scale).unwrap_err(),
             HekitError::ScaleMismatch
         );
+    }
+}
+
+#[cfg(test)]
+mod metadata_cost_tests {
+    use super::*;
+    use crate::bootstrap::metadata::{BootstrapMetadataError, Budget};
+    #[test]
+    fn zero_sensitive_split_and_declared_length_literals() {
+        for (p, expected) in [
+            (vec![1.0, 0.0, 0.0, 0.0], (0, 0, 0, 1)),
+            (vec![0.0, 1.0, 0.0, 0.0], (0, 0, 1, 1)),
+            (vec![0.0, 0.0, 1.0, 0.0], (2, 2, 0, 3)),
+            (vec![0.0, 1.0, 0.0, 1.0], (2, 2, 1, 3)),
+            (vec![0.0, 2.0, 0.0, 1.0], (2, 2, 2, 3)),
+        ] {
+            let c =
+                chebyshev_cost_checked(&p, -1.0, 1.0, &mut Budget::new(1 << 20, 1 << 20)).unwrap();
+            assert_eq!(
+                (c.ct_ct_tensor, c.relins, c.ct_pt_mults, c.rescales),
+                expected,
+                "{p:?}"
+            );
+            assert_eq!(chebyshev_depth(p.len() - 1), 2);
+        }
+        let (q, r) = split_coeffs(&[0.0, 1.0, 0.0, 1.0], 2);
+        assert_eq!(q, [0.0, 2.0]);
+        assert_eq!(r, [0.0, 0.0]);
+    }
+    #[test]
+    fn checked_split_rejects_actual_nonfinite_intermediates() {
+        let result = chebyshev_cost_checked(
+            &[0.0, 0.0, 0.0, f64::MAX],
+            -1.0,
+            1.0,
+            &mut Budget::new(1 << 20, 1 << 20),
+        );
+        assert!(matches!(
+            result,
+            Err(BootstrapMetadataError::NonFiniteIntermediate {
+                operation: "split coefficient",
+                ..
+            })
+        ));
     }
 }

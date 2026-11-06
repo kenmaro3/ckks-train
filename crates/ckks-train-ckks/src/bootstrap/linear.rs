@@ -83,10 +83,10 @@ pub struct DiagMatrix {
 /// The BSGS layout of one stage: diagonals `offset..offset + d` at slot distance `stride`
 /// (see [`crate::linalg`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Shape {
-    d: usize,
-    stride: usize,
-    offset: i64,
+pub(crate) struct Shape {
+    pub(crate) d: usize,
+    pub(crate) stride: usize,
+    pub(crate) offset: i64,
 }
 
 impl DiagMatrix {
@@ -251,39 +251,7 @@ impl DiagMatrix {
     /// that reaches diagonal 0 costs no rotation). If no window below `m` fits (the offsets
     /// wrap around), `d = m` and `offset = 0`.
     fn shape(&self) -> Shape {
-        let nonzero: Vec<usize> = self.diags.keys().copied().filter(|&o| o != 0).collect();
-        let Some(tz) = nonzero.iter().map(|o| o.trailing_zeros()).min() else {
-            return Shape {
-                d: 1,
-                stride: 1,
-                offset: 0,
-            };
-        };
-        let stride = 1usize << tz;
-        let m = (self.n / stride) as i64;
-        let ks: Vec<i64> = self
-            .diags
-            .keys()
-            .map(|&o| {
-                let k = (o / stride) as i64;
-                if k > m / 2 { k - m } else { k }
-            })
-            .collect();
-        let (kmin, kmax) = (*ks.iter().min().unwrap(), *ks.iter().max().unwrap());
-        let mut d = ((kmax - kmin + 1) as usize).next_power_of_two();
-        while (d as i64) < m {
-            let g = bsgs_split(d).0 as i64;
-            let offset = (kmin.div_euclid(g) * g).min(0);
-            if offset > -(d as i64) && offset + d as i64 > kmax {
-                return Shape { d, stride, offset };
-            }
-            d *= 2;
-        }
-        Shape {
-            d: m as usize,
-            stride,
-            offset: 0,
-        }
+        shape_from_offsets(self.n, self.diags.keys().copied())
     }
 
     /// The diagonals `offset .. offset + d` of `shape` as slot vectors (zero where not
@@ -310,14 +278,55 @@ impl DiagMatrix {
     }
 }
 
+/// Same stored-key layout used by runtime matrices and root-free metadata.
+/// Caller guarantees nonempty normalized offsets and a power-of-two slot count.
+pub(crate) fn shape_from_offsets(n: usize, offsets: impl Iterator<Item = usize> + Clone) -> Shape {
+    let Some(tz) = offsets
+        .clone()
+        .filter(|&o| o != 0)
+        .map(|o| o.trailing_zeros())
+        .min()
+    else {
+        return Shape {
+            d: 1,
+            stride: 1,
+            offset: 0,
+        };
+    };
+    let stride = 1usize << tz;
+    let m = (n / stride) as i64;
+    let mut kmin = i64::MAX;
+    let mut kmax = i64::MIN;
+    for o in offsets {
+        let k = (o / stride) as i64;
+        let k = if k > m / 2 { k - m } else { k };
+        kmin = kmin.min(k);
+        kmax = kmax.max(k);
+    }
+    let mut d = ((kmax - kmin + 1) as usize).next_power_of_two();
+    while (d as i64) < m {
+        let g = bsgs_split(d).0 as i64;
+        let offset = (kmin.div_euclid(g) * g).min(0);
+        if offset > -(d as i64) && offset + d as i64 > kmax {
+            return Shape { d, stride, offset };
+        }
+        d *= 2;
+    }
+    Shape {
+        d: m as usize,
+        stride,
+        offset: 0,
+    }
+}
+
 /// `e^(2 pi i k / m)`.
-fn root(k: usize, m: usize) -> Complex64 {
+pub(crate) fn root(k: usize, m: usize) -> Complex64 {
     let (s, c) = (2.0 * std::f64::consts::PI * k as f64 / m as f64).sin_cos();
     Complex64::new(c, s)
 }
 
 /// `b^e mod m`.
-fn pow_mod(b: usize, mut e: usize, m: usize) -> usize {
+pub(crate) fn pow_mod(b: usize, mut e: usize, m: usize) -> usize {
     let (mut base, mut acc) = (b % m, 1 % m);
     while e > 0 {
         if e & 1 == 1 {
@@ -370,10 +379,13 @@ pub fn stage_radices(log_slots: u32, levels: usize) -> Vec<u32> {
         (1..=log_slots as usize).contains(&levels),
         "levels {levels} outside 1..={log_slots}"
     );
+    stage_radices_iter(log_slots, levels).collect()
+}
+
+/// Allocation-free radix order; caller checks the same domain as stage_radices.
+pub(crate) fn stage_radices_iter(log_slots: u32, levels: usize) -> impl Iterator<Item = u32> {
     let (base, extra) = (log_slots / levels as u32, log_slots as usize % levels);
-    (0..levels)
-        .map(|k| base + u32::from(k >= levels - extra))
-        .collect()
+    (0..levels).map(move |k| base + u32::from(k >= levels - extra))
 }
 
 /// The `2^log_slots`-point special DFT `U''` (generator `-3`, bit-reversed layout; see the
@@ -506,13 +518,7 @@ fn adapt(
     if l == 0 {
         return Err(HekitError::InvalidParams("no stages".into()));
     }
-    if !(factor.re.is_finite() && factor.im.is_finite() && factor.norm() > 0.0) {
-        return Err(HekitError::InvalidParams(format!(
-            "factor {factor} must be finite and nonzero"
-        )));
-    }
-    let mag = Complex64::new(factor.norm().powf(1.0 / l as f64), 0.0);
-    let phase = factor / factor.norm();
+    let (mag, phase) = folded_factors(factor, l)?;
     // The stages that rho() must move C_o through: all but the distance-1 group.
     let others = match direction {
         Direction::CoeffToSlot => &stages[..l - 1],
@@ -549,19 +555,29 @@ fn adapt(
     })
 }
 
+/// Preserve the generic runtime complex-factor domain and exact operation order.
+pub(crate) fn folded_factors(factor: Complex64, l: usize) -> Result<(Complex64, Complex64)> {
+    if !(factor.re.is_finite() && factor.im.is_finite() && factor.norm() > 0.0) {
+        return Err(HekitError::InvalidParams(format!(
+            "factor {factor} must be finite and nonzero"
+        )));
+    }
+    let mag = Complex64::new(factor.norm().powf(1.0 / l as f64), 0.0);
+    let phase = factor / factor.norm();
+    Ok((mag, phase))
+}
+
 /// The scale targets after each of `l` stages: powers of two on the geometric path from
 /// `input` to `output`, and exactly `output` after the last.
-fn scale_path(input: f64, output: f64, l: usize) -> Vec<f64> {
+pub(crate) fn scale_path(input: f64, output: f64, l: usize) -> impl Iterator<Item = f64> {
     let (a, b) = (input.log2(), output.log2());
-    (1..=l)
-        .map(|k| {
-            if k == l {
-                output
-            } else {
-                (a + (b - a) * k as f64 / l as f64).round().exp2()
-            }
-        })
-        .collect()
+    (1..=l).map(move |k| {
+        if k == l {
+            output
+        } else {
+            (a + (b - a) * k as f64 / l as f64).round().exp2()
+        }
+    })
 }
 
 /// Adapts `stages` to hekit's slot order, folds `spec.factor` in, and encodes stage `k` at
@@ -638,10 +654,7 @@ pub fn encode_stages(
 fn diagonal_scales(eval: &Evaluator, spec: &StageSpec, l: usize) -> Result<Vec<(f64, f64)>> {
     let mut s_in = spec.input_scale;
     let mut out = Vec::with_capacity(l);
-    for (k, target) in scale_path(spec.input_scale, spec.output_scale, l)
-        .into_iter()
-        .enumerate()
-    {
+    for (k, target) in scale_path(spec.input_scale, spec.output_scale, l).enumerate() {
         let level = spec.start_level - k;
         let sp = eval.exact_product_scale(level, target)? / s_in;
         if sp < MIN_PLAIN_SCALE {
@@ -665,38 +678,80 @@ fn diagonal_scales(eval: &Evaluator, spec: &StageSpec, l: usize) -> Result<Vec<(
 /// of a bootstrap; the tests check it against the evaluator's counter.
 pub fn transforms_cost(stages: &[LinearTransform], slots: usize) -> OpCounter {
     let mut c = OpCounter::default();
-    let nontrivial = |step: i64| step.rem_euclid(slots as i64) != 0;
     for lt in stages {
-        let terms: Vec<&Diagonals<Option<Plaintext>>> =
-            std::iter::once(&lt.diags).chain(&lt.second).collect();
-        let (baby, giant) = (lt.diags.baby(), lt.diags.giant());
-        let (stride, offset) = (lt.diags.stride() as i64, lt.diags.offset());
-        let kept = |t: &Diagonals<Option<Plaintext>>, k1: usize, k2: usize| {
-            t.entries()[k1 * baby + k2].is_some()
+        let shape = Shape {
+            d: lt.diags.entries().len(),
+            stride: lt.diags.stride(),
+            offset: lt.diags.offset(),
         };
-        for t in &terms {
-            c.ct_pt_mults += t.nonzero() as u64;
-            c.rotations += (1..baby)
-                .filter(|&k2| nontrivial(k2 as i64 * stride))
-                .filter(|&k2| (0..giant).any(|k1| kept(t, k1, k2)))
-                .count() as u64;
-        }
-        c.rotations += (0..giant)
-            .filter(|&k1| nontrivial((offset + (baby * k1) as i64) * stride))
-            .filter(|&k1| terms.iter().any(|t| (0..baby).any(|k2| kept(t, k1, k2))))
-            .count() as u64;
+        let terms = 1 + usize::from(lt.second.is_some());
+        let stage = sparse_transform_cost(
+            shape,
+            slots,
+            terms,
+            |term, i| {
+                if term == 0 {
+                    lt.diags.entries()[i].is_some()
+                } else {
+                    lt.second.as_ref().expect("second term").entries()[i].is_some()
+                }
+            },
+            |_, _| {},
+        )
+        .expect("encoded transform counts fit u64");
+        crate::bootstrap::metadata::checked_merge(&mut c, &stage).expect("encoded counts fit u64");
         if lt.direction == Direction::CoeffToSlot && lt.second.is_some() {
-            c.rotations += 1;
+            crate::bootstrap::metadata::increment(&mut c.rotations, 1)
+                .expect("encoded counts fit u64");
         }
-        c.rescales += 1;
     }
     if stages
         .first()
         .is_some_and(|lt| lt.direction == Direction::CoeffToSlot)
     {
-        c.rotations += 1;
+        crate::bootstrap::metadata::increment(&mut c.rotations, 1).expect("encoded counts fit u64");
     }
     c
+}
+
+/// `Some(term)` visits a baby rotation of that term; `None` a shared giant rotation.
+/// Shape comes from validated metadata or an existing encoded Diagonals object.
+pub(crate) fn sparse_transform_cost(
+    shape: Shape,
+    slots: usize,
+    terms: usize,
+    kept: impl Fn(usize, usize) -> bool,
+    mut visit: impl FnMut(Option<usize>, i32),
+) -> crate::bootstrap::metadata::MetaResult<OpCounter> {
+    use crate::bootstrap::metadata::increment;
+    let (baby, giant) = bsgs_split(shape.d);
+    let norm = |step: i64| step.rem_euclid(slots as i64) as i32;
+    let mut c = OpCounter {
+        rescales: 1,
+        ..OpCounter::default()
+    };
+    for term in 0..terms {
+        for i in 0..shape.d {
+            if kept(term, i) {
+                increment(&mut c.ct_pt_mults, 1)?;
+            }
+        }
+        for j in 1..baby {
+            let step = norm(j as i64 * shape.stride as i64);
+            if step != 0 && (0..giant).any(|k| kept(term, k * baby + j)) {
+                increment(&mut c.rotations, 1)?;
+                visit(Some(term), step);
+            }
+        }
+    }
+    for k in 0..giant {
+        let step = norm((shape.offset + (baby * k) as i64) * shape.stride as i64);
+        if step != 0 && (0..terms).any(|term| (0..baby).any(|j| kept(term, k * baby + j))) {
+            increment(&mut c.rotations, 1)?;
+            visit(None, step);
+        }
+    }
+    Ok(c)
 }
 
 impl Evaluator {

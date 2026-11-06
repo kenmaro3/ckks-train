@@ -11,6 +11,7 @@
 pub mod bootstrapper;
 pub mod evalmod;
 pub mod linear;
+pub mod metadata;
 pub mod modraise;
 pub mod params;
 pub mod poly;

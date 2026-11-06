@@ -213,6 +213,30 @@ impl std::fmt::Debug for Bootstrapper {
     }
 }
 
+/// Pure specifications shared with checked root-free metadata; caller validates bands.
+pub(crate) fn stage_specs(params: &CkksParams, bp: &BootParams) -> (StageSpec, StageSpec) {
+    let top = params.max_level();
+    let q0 = params.q()[0] as f64;
+    let k = bp.k_intervals as f64;
+    let evalmod_scale = params.scale_at(top - bp.ctos_levels);
+    (
+        StageSpec {
+            direction: Direction::CoeffToSlot,
+            start_level: top,
+            input_scale: q0,
+            output_scale: evalmod_scale,
+            factor: Complex64::new(1.0 / k, 0.0),
+        },
+        StageSpec {
+            direction: Direction::SlotToCoeff,
+            start_level: levels_after_boot(params, bp) + bp.stoc_levels,
+            input_scale: evalmod_scale * params.scale() / q0,
+            output_scale: params.scale(),
+            factor: Complex64::new(1.0 / (2.0 * PI), 0.0),
+        },
+    )
+}
+
 impl Bootstrapper {
     /// Encodes the stages of `bp` with `encoder` and generates the [`BootstrapKeys`] with
     /// `kg`; all three must be over `params` (the same `Arc`). The bootstrap also needs the
@@ -241,33 +265,11 @@ impl Bootstrapper {
         }
         check_boot_params(&params, &bp)?;
         let (cts, stc) = stages(&bp)?;
-        let top = params.max_level();
-        let q0 = params.q()[0] as f64;
-        let k = bp.k_intervals as f64;
-        let evalmod_scale = params.scale_at(top - bp.ctos_levels);
-        let ctos = encode_stages(
-            &cts,
-            encoder,
-            &StageSpec {
-                direction: Direction::CoeffToSlot,
-                start_level: top,
-                input_scale: q0,
-                output_scale: evalmod_scale,
-                factor: Complex64::new(1.0 / k, 0.0),
-            },
-        )?;
-        let stoc_input_scale = evalmod_scale * params.scale() / q0;
-        let stoc = encode_stages(
-            &stc,
-            encoder,
-            &StageSpec {
-                direction: Direction::SlotToCoeff,
-                start_level: levels_after_boot(&params, &bp) + bp.stoc_levels,
-                input_scale: stoc_input_scale,
-                output_scale: params.scale(),
-                factor: Complex64::new(1.0 / (2.0 * PI), 0.0),
-            },
-        )?;
+        let (ctos_spec, stoc_spec) = stage_specs(&params, &bp);
+        let evalmod_scale = ctos_spec.output_scale;
+        let stoc_input_scale = stoc_spec.input_scale;
+        let ctos = encode_stages(&cts, encoder, &ctos_spec)?;
+        let stoc = encode_stages(&stc, encoder, &stoc_spec)?;
         let keys = BootstrapKeys::generate(kg, &bp)?;
         let mut cost = transforms_cost(&ctos, params.slots());
         let em = evalmod_cost(&bp);

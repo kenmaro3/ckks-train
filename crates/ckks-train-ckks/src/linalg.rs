@@ -431,18 +431,28 @@ pub fn bsgs_split(d: usize) -> (usize, usize) {
 /// # Panics
 /// If `d` is not a power of two, `stride == 0`, or `d * stride` exceeds `i32::MAX`.
 pub fn bsgs_rotation_steps(d: usize, stride: usize) -> Vec<i32> {
-    let (baby, giant) = bsgs_split(d);
+    bsgs_rotation_steps_iter(d, stride).collect()
+}
+
+// Eager validation retains the public panic order; no throwaway Vec is constructed.
+fn rotation_shape(d: usize, stride: usize) -> (usize, usize) {
+    let shape = bsgs_split(d);
     assert!(stride > 0, "stride must be positive");
     assert!(
         d.checked_mul(stride)
             .is_some_and(|n| n <= i32::MAX as usize),
         "d * stride = {d} * {stride} overflows a rotation step"
     );
+    shape
+}
+
+/// Allocation-free offset-zero steps, with the same eager validation as the public helper.
+pub(crate) fn bsgs_rotation_steps_iter(d: usize, stride: usize) -> impl Iterator<Item = i32> {
+    let (baby, giant) = rotation_shape(d, stride);
     (1..baby)
-        .map(|k2| k2 * stride)
-        .chain((1..giant).map(|k1| baby * k1 * stride))
+        .map(move |k2| k2 * stride)
+        .chain((1..giant).map(move |k1| baby * k1 * stride))
         .map(|s| s as i32)
-        .collect()
 }
 
 /// [`bsgs_rotation_steps`] for diagonals `offset..offset + d` (`-d < offset <= 0`, see the
@@ -453,23 +463,29 @@ pub fn bsgs_rotation_steps(d: usize, stride: usize) -> Vec<i32> {
 /// # Panics
 /// As [`bsgs_rotation_steps`], and unless `-d < offset <= 0`.
 pub fn bsgs_rotation_steps_with_offset(d: usize, stride: usize, offset: i64) -> Vec<i32> {
+    bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect()
+}
+
+/// Allocation-free full-shape steps. Metadata calls only after typed shape preflight.
+pub(crate) fn bsgs_rotation_steps_with_offset_iter(
+    d: usize,
+    stride: usize,
+    offset: i64,
+) -> impl Iterator<Item = i32> {
     assert!(
         check_offset(d, offset).is_ok(),
         "offset {offset} outside -d < offset <= 0 for d = {d}"
     );
-    // Validates d and stride (same panics as the offset-0 steps).
-    bsgs_rotation_steps(d, stride);
-    let (baby, giant) = bsgs_split(d);
+    let (baby, giant) = rotation_shape(d, stride);
     let s = stride as i64;
     (1..baby as i64)
-        .map(|k2| k2 * s)
+        .map(move |k2| k2 * s)
         .chain(
             (0..giant as i64)
-                .map(|k1| (offset + baby as i64 * k1) * s)
+                .map(move |k1| (offset + baby as i64 * k1) * s)
                 .filter(|&g| g != 0),
         )
         .map(|v| v as i32)
-        .collect()
 }
 
 /// The `d` generalized diagonals of the square matrix `w` laid out for `slots` slots with
@@ -1678,5 +1694,64 @@ mod tests {
             .map(|(j, g)| (g - want[j % d]).abs())
             .fold(0.0, f64::max);
         assert!(err < 2f64.powi(-15), "level-1 matvec_enc error {err:e}");
+    }
+}
+
+#[cfg(test)]
+mod bootstrap_metadata_iterator_tests {
+    use super::*;
+    #[test]
+    fn iterator_preserves_full_shape_order_and_wrap_literals() {
+        for (d, stride, offset, expected) in [
+            (16, 1, 0, vec![1, 2, 3, 4, 8, 12]),
+            (16, 2, -8, vec![2, 4, 6, -16, -8, 8]),
+            (8, 3, -4, vec![3, 6, 9, -12]),
+            (2, 1, 0, vec![1]),
+            (1, 1, 0, vec![]),
+        ] {
+            assert_eq!(
+                bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect::<Vec<_>>(),
+                expected
+            );
+            assert_eq!(bsgs_rotation_steps_with_offset(d, stride, offset), expected);
+            if offset == 0 {
+                assert_eq!(
+                    bsgs_rotation_steps_iter(d, stride).collect::<Vec<_>>(),
+                    expected
+                );
+                assert_eq!(bsgs_rotation_steps(d, stride), expected);
+            }
+        }
+        let normalized = bsgs_rotation_steps_with_offset_iter(16, 2, -8)
+            .map(|s| s.rem_euclid(32))
+            .collect::<Vec<_>>();
+        assert_eq!(normalized, [2, 4, 6, 16, 24, 8]);
+    }
+    #[test]
+    fn iterators_validate_eagerly_in_legacy_panic_order() {
+        for (d, stride, offset, expected) in [
+            (3, 0, 1, "offset"),
+            (3, 0, 0, "power of two"),
+            (4, 0, 0, "stride must be positive"),
+            (4, usize::MAX, 0, "overflows a rotation step"),
+            (4, 1, -4, "offset"),
+        ] {
+            for iterator in [false, true] {
+                let panic = std::panic::catch_unwind(|| {
+                    if iterator {
+                        let _unused = bsgs_rotation_steps_with_offset_iter(d, stride, offset);
+                    } else {
+                        bsgs_rotation_steps_with_offset(d, stride, offset);
+                    }
+                })
+                .unwrap_err();
+                let message = panic
+                    .downcast_ref::<String>()
+                    .map(String::as_str)
+                    .or_else(|| panic.downcast_ref::<&str>().copied())
+                    .unwrap();
+                assert!(message.contains(expected), "{message}");
+            }
+        }
     }
 }

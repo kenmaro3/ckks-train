@@ -49,20 +49,37 @@ pub fn evalmod_coeffs(bp: &BootParams) -> Vec<f64> {
         bp.k_intervals > 0 && bp.cheb_degree > 0,
         "k_intervals and cheb_degree must be positive"
     );
+    let mut c = chebyshev_coeffs(|y| evalmod_function(bp, y), -1.0, 1.0, bp.cheb_degree);
+    evalmod_parity(bp, &mut c);
+    c
+}
+fn evalmod_function(bp: &BootParams, y: f64) -> f64 {
     let k = bp.k_intervals as f64;
     if bp.double_angle == 0 {
-        let mut c = chebyshev_coeffs(|y| (2.0 * PI * k * y).sin(), -1.0, 1.0, bp.cheb_degree);
-        c.iter_mut().step_by(2).for_each(|v| *v = 0.0);
-        c
+        (2.0 * PI * k * y).sin()
     } else {
         let div = (1u64 << bp.double_angle) as f64;
-        chebyshev_coeffs(
-            |y| (2.0 * PI * (k * y - 0.25) / div).cos(),
-            -1.0,
-            1.0,
-            bp.cheb_degree,
-        )
+        (2.0 * PI * (k * y - 0.25) / div).cos()
     }
+}
+fn evalmod_parity(bp: &BootParams, c: &mut [f64]) {
+    if bp.double_angle == 0 {
+        c.iter_mut().step_by(2).for_each(|v| *v = 0.0);
+    }
+}
+pub(crate) fn evalmod_coeffs_checked(
+    bp: &BootParams,
+    budget: &mut super::metadata::Budget,
+) -> super::metadata::MetaResult<Vec<f64>> {
+    let mut c = super::poly::chebyshev_coeffs_checked(
+        |y| evalmod_function(bp, y),
+        -1.0,
+        1.0,
+        bp.cheb_degree,
+        budget,
+    )?;
+    evalmod_parity(bp, &mut c);
+    Ok(c)
 }
 
 /// The operations [`Evaluator::eval_mod`] performs for `bp` on one ciphertext, as counter
@@ -147,13 +164,21 @@ pub fn eval_mod<E: BootstrapArithmetic>(ev: &E, ct: &E::Ct, bp: &BootParams) -> 
     // Planned scales, backwards from the output: the double angle at level l takes
     // t_{i-1} to t_i; its square is labelled sigma_i = exact label of t_i at l.
     let r = bp.double_angle;
-    let cheb_out = ct.level() - chebyshev_depth(bp.cheb_degree);
     let mut targets = vec![ct.scale(); r + 1];
-    for i in (1..=r).rev() {
-        let level = cheb_out - (i - 1);
-        let sigma = ev.exact_product_scale(level, targets[i])?;
-        targets[i - 1] = reachable_near(ev, level + 1, (2.0 * sigma).sqrt())?;
-    }
+    plan_double_angle_targets(
+        ct.level(),
+        chebyshev_depth(bp.cheb_degree),
+        ct.scale(),
+        &mut targets,
+        |level, target| ev.exact_product_scale(level, target),
+        false,
+    )
+    .map_err(|error| match error {
+        TargetPlanError::Source(source) => source,
+        TargetPlanError::Unreachable { .. } | TargetPlanError::NonFiniteSeed { .. } => {
+            HekitError::ScaleMismatch
+        }
+    })?;
     let coeffs = evalmod_coeffs(bp);
     let mut c = eval_chebyshev_to_scale(ev, ct, &coeffs, -1.0, 1.0, targets[0])?;
     for &t in &targets[1..] {
@@ -163,15 +188,41 @@ pub fn eval_mod<E: BootstrapArithmetic>(ev: &E, ct: &E::Ct, bp: &BootParams) -> 
     Ok(c)
 }
 
-/// The f64 nearest `scale` (within 16 ulps) that a rescale from `level` reaches exactly
-/// ([`Evaluator::exact_product_scale`]), else `ScaleMismatch`.
-fn reachable_near<E: BootstrapArithmetic>(eval: &E, level: usize, scale: f64) -> Result<f64> {
-    let bits = scale.to_bits();
-    (0..=16u64)
-        .flat_map(|k| [bits + k, bits - k])
-        .map(f64::from_bits)
-        .find(|&s| eval.exact_product_scale(level, s).is_ok())
-        .ok_or(HekitError::ScaleMismatch)
+#[derive(Debug)]
+pub(crate) enum TargetPlanError<E> {
+    Source(E),
+    Unreachable { level: usize },
+    NonFiniteSeed { level: usize },
+}
+
+/// Shared backward boundary planning; target buffer is supplied by the caller.
+/// The callback owns the finite-domain guards; legacy runtime keeps its prior domain.
+pub(crate) fn plan_double_angle_targets<E>(
+    input_level: usize,
+    cheb_depth: usize,
+    scale: f64,
+    targets: &mut [f64],
+    mut exact: impl FnMut(usize, f64) -> std::result::Result<f64, E>,
+    strict_finite: bool,
+) -> std::result::Result<(), TargetPlanError<E>> {
+    let cheb_out = input_level - cheb_depth;
+    targets.fill(scale);
+    for i in (1..targets.len()).rev() {
+        let level = cheb_out - (i - 1);
+        let sigma = exact(level, targets[i]).map_err(TargetPlanError::Source)?;
+        let seed = (2.0 * sigma).sqrt();
+        if strict_finite && !seed.is_finite() {
+            return Err(TargetPlanError::NonFiniteSeed { level });
+        }
+        let bits = seed.to_bits();
+        // Same nearest-first 0,+1,-1,...,+16,-16 order (including duplicate zero).
+        targets[i - 1] = (0..=16u64)
+            .flat_map(|k| [bits + k, bits - k])
+            .map(f64::from_bits)
+            .find(|&s| exact(level + 1, s).is_ok())
+            .ok_or(TargetPlanError::Unreachable { level: level + 1 })?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -414,5 +465,68 @@ mod tests {
         let v = crate::bootstrap::poly::chebyshev_eval(&c1, -1.0, 1.0, y);
         let want = (2.0 * PI * (13.0 * y - 0.25) / 2.0).cos();
         assert!((v - want).abs() < 1e-3);
+    }
+}
+
+#[cfg(test)]
+mod metadata_target_tests {
+    use super::*;
+    #[test]
+    fn boundary_search_preserves_nearest_order_and_context() {
+        let mut targets = [0.0; 2];
+        let mut seen = Vec::new();
+        let seed = 2f64.sqrt().to_bits();
+        plan_double_angle_targets(
+            4,
+            2,
+            1.0,
+            &mut targets,
+            |level, target| {
+                if level == 2 {
+                    return Ok::<_, HekitError>(1.0);
+                }
+                seen.push(target.to_bits());
+                if target.to_bits() == seed - 16 {
+                    Ok(1.0)
+                } else {
+                    Err(HekitError::ScaleMismatch)
+                }
+            },
+            true,
+        )
+        .unwrap();
+        assert_eq!(
+            seen,
+            (0..=16u64)
+                .flat_map(|k| [seed + k, seed - k])
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(targets[0].to_bits(), seed - 16);
+        let error = plan_double_angle_targets(
+            4,
+            2,
+            1.0,
+            &mut targets,
+            |level, _| {
+                if level == 2 {
+                    Ok::<_, HekitError>(1.0)
+                } else {
+                    Err(HekitError::ScaleMismatch)
+                }
+            },
+            true,
+        )
+        .unwrap_err();
+        assert!(matches!(error, TargetPlanError::Unreachable { level: 3 }));
+        let error = plan_double_angle_targets(
+            4,
+            2,
+            1.0,
+            &mut targets,
+            |_, _| Ok::<_, HekitError>(f64::MAX),
+            true,
+        )
+        .unwrap_err();
+        assert!(matches!(error, TargetPlanError::NonFiniteSeed { level: 2 }));
     }
 }
