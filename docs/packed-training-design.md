@@ -1,6 +1,6 @@
 # Genuine encrypted ReBoot-packing training (Task54 D4)
 
-Status: root-ratified design; D4a geometry/primitives are implemented, locally validated with focused CPU tests and independently reviewed. Later stages remain gated; full training level/precision admission is unimplemented. This document creates no experiment result or dispatch authorization. The approved [experiment matrix](experiment-matrix.md), original research-plan §4.4 baseline (c), and [interactive profile design](interactive-profile-design.md) govern learning semantics. Full encrypted block runs remain held for the user's separate decision.
+Status: root-ratified design; D4a geometry/primitives are implemented, locally validated with focused CPU tests and independently reviewed. D4b1 matrix optimizer preparation is implemented, locally validated and independently reviewed. Later stages remain gated; full training level/precision admission is unimplemented. This document creates no experiment result or dispatch authorization. The approved [experiment matrix](experiment-matrix.md), original research-plan §4.4 baseline (c), and [interactive profile design](interactive-profile-design.md) govern learning semantics. Full encrypted block runs remain held for the user's separate decision.
 
 ## Decision and scope
 
@@ -210,3 +210,82 @@ After authorization, use small original synthetic encrypted CPU fixtures and an 
 - Profile bridge parity verifies bound manifests/arrays/order/rates/tails and exact selected security preset. Record code/build/hash provenance and all measurement boundaries. Full encrypted block work remains held even if small tests/subset preparation pass.
 
 No timing, speedup, precision, security-equivalence, memory-fit or campaign-coverage claim is made by this design.
+
+## D4b1 API refinement before implementation
+
+D4b is split into D4b1 matrix optimizer correctness and D4b2 the full encrypted
+stage (including biases). D4b1 uses an immutable `PackedOptimizer` policy and
+`PackedLayerState`, with a fixed momentum/reference basis from construction.
+There are no policy setters or state-removal APIs in this slice. Each state
+issues a `PackedUpdateRequest` for one rate, actual valid-sample count and update
+index. Its branch factors are checked before gradient work; `bind` checks the
+D4a gradient layer, sample count, factors and required branch count. Bound
+`PackedUpdateGradients` retain a private state-generation token. Preparation
+rejects stale or unrelated tokens before evaluator work, prepares new encrypted
+weights and fixed-reference U without modifying the old state, and returns a
+candidate whose `into_state` is infallible. A future stage prepares all matrix
+and bias candidates before assigning any of them. Device failures can leave
+operation counters advanced but cannot partially mutate the old layer.
+
+A private allocation-identity token is used in addition to the numerical update
+index: an index alone would admit gradients from a separately constructed state
+at the same layer/index. Requiring a borrowed state until commit would prevent
+useful owned stage preparation; publicly mutable IDs would allow accidental
+rebinding. Raw D4a gradients remain caller-asserted ciphertext contents: binding
+checks metadata but cannot prove when the encrypted derivative was computed,
+that it is numerically a derivative, or stop a caller deliberately binding old
+raw gradient ciphertexts anew. Already-bound gradients cannot silently pass to
+a different generation. Tokens are local runtime metadata, not cryptographic
+freshness proofs or serialized checkpoint IDs.
+
+Tests use a small explicitly insecure, sufficiently deep CKKS chain with
+decreasing gradient levels across four updates. This avoids introducing a
+production refresh setter merely for fixtures. Refresh APIs, checkpoint restore,
+bias updates, stage execution, NI and GPU remain D4b2/D4c/D4d gates. Immutable
+policy is intentionally stricter than the legacy mutable optimizer API; it
+preserves the registered learning function without adding reconfiguration
+semantics that the packed stage does not yet need.
+
+The new packed policy accepts conventional `0 <= mu < 1`, including the
+registered `mu=0.9`. Keeping the legacy broader finite algebraic domain was an
+alternative, but would add unregistered negative/expansive momentum semantics
+to a new API. D2a's legacy optimizer API and domain are unchanged. `mu=0` is a
+valid zero coefficient, not an underflow error: later updates still execute the
+two scalar products/rescales, so their declared counts are unchanged. Positive
+folded f64 factors must be normal (not zero/subnormal/overflow); at preparation,
+nonzero state scalars that would round to zero at the actual plaintext scale
+are rejected before either scalar operation. This is representability checking,
+not an accuracy/range admission claim for an eventual training stage.
+
+
+## D4b1 local implementation evidence
+
+`PackedLayerState::request` selects one folded branch for SGD/equal-rate NAG,
+or current/reference branches for scheduled NAG. `PackedUpdateRequest::bind`
+checks exact layer identity, actual sample count and public factors.
+`PackedLayerState::prepare` validates its private generation, ciphertext context,
+components, history/levels and exact Delta before preparing the complete new
+matrix state. First NAG update stores the reference branch even below reference;
+later updates use old U for both scalar terms. Weight subtraction aligns to the
+minimum participating level. No matrix is cast into diagonal optimizer storage.
+
+Six small N=1024 CPU tests pass alongside all nine D4a packed-layout tests.
+They check both nonsquare orientations and every structural slot, four rates
+`[0.04, 0.00008, 0.02, 0.08]` against an independent unscaled-V f64 recurrence,
+SGD rate increases, actual sample means, decoded W/U/V with absolute tolerance
+1e-7, exact Delta/levels and all operation-counter fields. First NAG update has
+zero optimizer scalar work; later updates have exactly two ct-pt products and
+two rescales, no tensor/relin/rotation/key-switch work, including mu=0.
+Equal rates use one D4a outer-sum branch. Invalid rates/basis configuration,
+branch factors/count/sample metadata, layer identity (including equal-shape
+other graphs), stale/unrelated generation, contexts, scale/components,
+inadequate U levels and unrepresentable nonzero scalar terms are rejected
+before optimizer counted work. Old state remains unchanged during preparation.
+
+The fixture's ten-prime chain and N=1024 are explicitly insecure development
+parameters. No bootstrap or client refresh is used. This establishes encrypted
+matrix optimizer correctness only: biases, activation/loss/backward composition,
+atomic stage assignment, full level/range/precision/memory admission, refresh,
+NI, GPU and campaign execution remain later gates. Runtime device failures
+are outside this CPU evidence and may advance counters without yielding a
+candidate; no cross-backend transaction is claimed.
