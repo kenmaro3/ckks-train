@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [Linux startup2の実起動成功](#latest-evidence-20261107-startup2)。
+最新の追記: [検証ハーネス修正とruntime実装準備](#latest-evidence-20261107-r2-runtime)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-startup2)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-r2-runtime)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -517,3 +517,14 @@ Linux launcherのFIX3は固定された自分自身のファイルキーに対�
 実起動記録の独立レビューも合格した。合格範囲は隔離venvのidentityと標準ライブラリ準備の起動観測まで。外部package追加、exporter読込み、科学用context／capture、seed取得は未実行で、完全なhelper/native closureや数値互換性を主張しない。先行する失敗記録を保持し、新しい段階の実行条件は別途確認する。FULL-2／GPU後続キューは変更も再観測もしておらず、最新の本番進捗は07:25:40 JSTの102/1000更新のままである。
 
 学習側の読み取りと公開・復旧操作を分ける変更は限定55テスト・strict library Clippy／formatと独立sourceレビューに合格し、`2fa380f`で統合・pushした。実際のTrain contextによる読み取り／書込み拒否の統合検証はruntime実装後に残す。全行runnerと研究ゲートの未完事項、全登録範囲・campaign holdを維持する。
+
+<a id="latest-evidence-20261107-r2-runtime"></a>
+## 2026-11-07追記: 検証ハーネス修正とruntime実装準備
+
+`aedb16d`でbuild-script検証のmtime選択を廃止し、現在の`build.rs`と同一のバイト列から一度だけコンパイルした実行ファイルを使うよう修正した。3件の限定テスト（4 recipe・計12 synthetic dispatchを含む）と独立再レビューが合格し、R2は今回のハーネスと実行記録について解消した。過去のmtime選択による証跡を遡って認証するものではなく、Linuxの学習用build／context／実行結果を得たという意味でもない。
+
+`4be5aa3`でruntimeの単一core内lease、CUDA観測adapterを先行する実装順、native moduleの1GiB上限・1MiB chunk読み取りと既存SHA-256のprivate streaming化を、理由・代替案とともに実装前の設計として記録した。独立設計レビュー済み。CUDA側の実関数ポインタ・実デバイス識別・共有compile optionsのAPI範囲も確認したが、実装／実機測定は未完である。
+
+Macの容量低下に対し、非稼働objectと24時間超の古い重複rlib/rmetaを499ファイル、678,801,408 allocated bytes整理した。各crateの新しい2 variantと全実行ファイル・dylibを残し、primary packed-block binaryのhash不変を確認した。累計削除は19,977,740,288 bytes（約18.61GiB）。ソース・実験結果・データ・PDFは保持した。削除したcache variantが将来必要になれば再生成される。直後の空きは1,305,198,592 bytesで、以後のビルドも0.75GiB floorを都度確認する。
+
+ReBootの次段階は、既知の標準ライブラリsource・installed metadata形式・固定候補pathを調べる限定読み取りの準備中。全package/native内容hash、context／capture、学習の追加実行はまだ行っていない。標準ライブラリsource本文は監査用の非追跡入力として扱い、公開MIT配布物にコピーしない。最新のFULL-2実観測は07:25:40 JSTの102/1000更新で、既存GPUキューの状態を新たに推定しない。全登録範囲とcampaign holdは維持する。

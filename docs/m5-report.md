@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の追記: [Linux startup2の実起動成功](#latest-evidence-20261107-startup2)。
+最新の追記: [検証ハーネス修正とruntime実装準備](#latest-evidence-20261107-r2-runtime)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -287,5 +287,16 @@ Linux launcherのFIX3は固定された自分自身のファイルキーに対�
 ## 2026-11-07追記: runtime実装前の具体化
 
 [Runtime設計 §11](study-runtime-design.md#11-concrete-ownership-and-bounded-module-reads-2026-11-07)に、単一core内での実行lease保持、CUDA観測adapterを先行する実装順、native moduleを1GiB上限・1MiB chunkで読む方針と代替案を記録した。自己参照や実行権限の複製を避け、既存SHA-256のprivate streaming化でファイル全体のメモリ複製を避ける。いずれも実装前の選択で、実runtime・CUDA実機・Train統合検証や研究ゲートの合格ではない。既存の科学的設定・artifact上限・全登録範囲は変更しない。
+
+<a id="latest-evidence-20261107-r2-runtime"></a>
+## 2026-11-07追記: 検証ハーネス修正とruntime実装準備
+
+`aedb16d`でbuild-script検証のmtime選択を廃止し、現在の`build.rs`と同一のバイト列から一度だけコンパイルした実行ファイルを使うよう修正した。3件の限定テスト（4 recipe・計12 synthetic dispatchを含む）と独立再レビューが合格し、R2は今回のハーネスと実行記録について解消した。過去のmtime選択による証跡を遡って認証するものではなく、Linuxの学習用build／context／実行結果を得たという意味でもない。
+
+`4be5aa3`でruntimeの単一core内lease、CUDA観測adapterを先行する実装順、native moduleの1GiB上限・1MiB chunk読み取りと既存SHA-256のprivate streaming化を、理由・代替案とともに実装前の設計として記録した。独立設計レビュー済み。CUDA側の実関数ポインタ・実デバイス識別・共有compile optionsのAPI範囲も確認したが、実装／実機測定は未完である。
+
+Macの容量低下に対し、非稼働objectと24時間超の古い重複rlib/rmetaを499ファイル、678,801,408 allocated bytes整理した。各crateの新しい2 variantと全実行ファイル・dylibを残し、primary packed-block binaryのhash不変を確認した。累計削除は19,977,740,288 bytes（約18.61GiB）。ソース・実験結果・データ・PDFは保持した。削除したcache variantが将来必要になれば再生成される。直後の空きは1,305,198,592 bytesで、以後のビルドも0.75GiB floorを都度確認する。
+
+ReBootの次段階は、既知の標準ライブラリsource・installed metadata形式・固定候補pathを調べる限定読み取りの準備中。全package/native内容hash、context／capture、学習の追加実行はまだ行っていない。標準ライブラリsource本文は監査用の非追跡入力として扱い、公開MIT配布物にコピーしない。最新のFULL-2実観測は07:25:40 JSTの102/1000更新で、既存GPUキューの状態を新たに推定しない。全登録範囲とcampaign holdは維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
