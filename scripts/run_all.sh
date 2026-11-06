@@ -279,8 +279,10 @@ printf '  %-16s %8.2f\n' builds "$build_h"
 printf '  %-16s %8.2f\n' TOTAL "$(awk -v a="$total" -v b="$build_h" 'BEGIN { print a + b }')"
 if [ "$DRY" = 1 ]; then
   echo
-  [ "$BUILD" = 1 ] && echo "build: cargo build --release -p hekit-bench --features parallel --bins" &&
+  if [ "$BUILD" = 1 ]; then
+    [ "$any_cpu" = 1 ] && echo "build: cargo build --release -p hekit-bench --features parallel --bins"
     [ "$need_cuda" = 1 ] && echo "build: CARGO_TARGET_DIR=$GPU_TARGET cargo build --release -p hekit-bench --features cuda --bins"
+  fi
   exit 0
 fi
 [ ${#TODO[@]} -eq 0 ] && { echo "nothing to do"; exit 0; }
