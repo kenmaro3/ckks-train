@@ -870,6 +870,18 @@ impl<'p, T: Scalar> Production<'p, T> {
         context: &'p VerifiedStudyContext,
         id: &str,
     ) -> std::result::Result<Self, SessionFailure> {
+        context.require_current_reference().map_err(|_| {
+            early_failure(
+                id,
+                T::WIDTH,
+                if T::WIDTH == 32 {
+                    "full_fp32"
+                } else {
+                    "full_f64_diagnostic"
+                },
+                SessionError("current_reference_required"),
+            )
+        })?;
         let (session, capture) = Session::start_with(p, id, false, |identity| {
             let captured = context
                 .capture(p)

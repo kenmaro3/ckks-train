@@ -286,3 +286,96 @@ fn role_expected_error(name: &str) -> &'static str {
         panic!("unmapped obligation {name}")
     }
 }
+
+#[test]
+fn reader_guard_reference_mutation_policy_rejects_all_train_recipes() {
+    for recipe in [
+        Recipe::Reference,
+        Recipe::TrainCpuSerial,
+        Recipe::TrainCpuRayon,
+        Recipe::TrainCudaHost,
+    ] {
+        assert_eq!(
+            require_reference_role(recipe.role()).is_ok(),
+            recipe == Recipe::Reference
+        );
+    }
+}
+
+#[test]
+fn reader_guard_selected_sources_reject_before_hash_or_accept_exact_file() {
+    use crate::study_inputs::SourceDigest;
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap();
+    let name = "Cargo.lock";
+    let hash = sha256_hex(&std::fs::read(root.join(name)).unwrap());
+    let source = |path: &str, expected: &str, actual: &str| SourceDigest {
+        path: path.into(),
+        expected_sha256: expected.into(),
+        actual_sha256: actual.into(),
+    };
+    for bad in [
+        source("../Cargo.lock", &hash, &hash),
+        source("/Cargo.lock", &hash, &hash),
+        source(name, &"0".repeat(64), &hash),
+    ] {
+        assert!(
+            check_input_source(&root, &bad, |_| panic!("invalid binding reached hash")).is_err()
+        );
+    }
+    check_input_source(&root, &source(name, &hash, &hash), |p| {
+        assert_eq!(p, root.join(name));
+        Ok(hash.clone())
+    })
+    .unwrap();
+    assert!(
+        check_input_source(&root, &source(name, &hash, &hash), |_| Ok("0".repeat(64))).is_err()
+    );
+    assert!(
+        check_input_source(
+            &root,
+            &source("missing-source-for-reader-guard-test", &hash, &hash),
+            |_| panic!("missing path reached hash")
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn reader_guard_materialized_checks_retain_selected_seed_and_context_binding() {
+    use crate::{study_inputs::materialize, study_profile::StudyRegistry};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let registry = StudyRegistry::load(&root).unwrap();
+    let p0 = materialize(&registry.resolve("iris__emlp1", 0).unwrap()).unwrap();
+    let p7 = materialize(&registry.resolve("iris__emlp1", 7).unwrap()).unwrap();
+    let check =
+        |p: &MaterializedProfile| checked_materialized_facts(p, "receipt", "source", |_| Ok(()));
+    let a = check(&p0).unwrap();
+    let again = check(&p0).unwrap();
+    let b = check(&p7).unwrap();
+    assert_eq!(a, again);
+    assert_eq!(a.contract_hash, b.contract_hash);
+    assert_ne!(a.input_receipt_hash, b.input_receipt_hash);
+    assert_ne!(a.materialized_hash, b.materialized_hash);
+    assert!(
+        checked_materialized_facts(&p0, "receipt", "source", |_| Err(ProvenanceError(
+            "changed selected source"
+        )))
+        .is_err()
+    );
+    assert_ne!(
+        a,
+        checked_materialized_facts(&p0, "other receipt", "source", |_| Ok(())).unwrap()
+    );
+    assert_ne!(
+        a,
+        checked_materialized_facts(&p0, "receipt", "other source", |_| Ok(())).unwrap()
+    );
+    // Plain identities exercise the exact pointer predicate; no verified context is forged.
+    let first = Box::new(7u8);
+    let second = Box::new(7u8);
+    require_same_context(&*first, &*first).unwrap();
+    assert!(require_same_context(&*first, &*second).is_err());
+}

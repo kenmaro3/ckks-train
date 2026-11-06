@@ -619,3 +619,86 @@ fn target_directory_creation_never_repairs_an_existing_unsafe_object() {
     assert!(private_child(&d.file, "file").is_err());
     assert_eq!(std::fs::read(d.path.join("file")).unwrap(), b"unknown");
 }
+
+#[test]
+fn reader_guard_open_policy_is_derived_from_the_closed_role() {
+    use super::super::role::ExecutableRole;
+    assert_eq!(
+        target_open_policy(ExecutableRole::Reference),
+        TargetOpenPolicy::CreateReference
+    );
+    assert_eq!(
+        target_open_policy(ExecutableRole::StudyTrain),
+        TargetOpenPolicy::ExistingTrain
+    );
+}
+
+#[test]
+fn reader_guard_existing_children_never_create_or_repair() {
+    use std::os::unix::fs::{PermissionsExt, symlink};
+    let d = SyntheticDirectory::new("read-existing-child");
+    for name in ["campaigns", "campaign", "profiles", "p-slot"] {
+        assert!(existing_private_child(&d.file, name).is_err());
+        assert!(!d.path.join(name).exists());
+    }
+    std::fs::create_dir(d.path.join("ready")).unwrap();
+    std::fs::set_permissions(d.path.join("ready"), std::fs::Permissions::from_mode(0o700)).unwrap();
+    let f = existing_private_child(&d.file, "ready").unwrap();
+    assert_eq!(
+        inode(&f).unwrap(),
+        inode(&File::open(d.path.join("ready")).unwrap()).unwrap()
+    );
+    symlink("ready", d.path.join("alias")).unwrap();
+    assert!(existing_private_child(&d.file, "alias").is_err());
+    std::fs::write(d.path.join("ordinary"), b"untouched").unwrap();
+    assert!(existing_private_child(&d.file, "ordinary").is_err());
+    std::fs::set_permissions(d.path.join("ready"), std::fs::Permissions::from_mode(0o755)).unwrap();
+    assert!(existing_private_child(&d.file, "ready").is_err());
+    assert_eq!(
+        std::fs::metadata(d.path.join("ready")).unwrap().mode() & 0o7777,
+        0o755
+    );
+    assert_eq!(
+        std::fs::read(d.path.join("ordinary")).unwrap(),
+        b"untouched"
+    );
+}
+
+#[test]
+fn reader_guard_existing_guard_never_creates_repairs_or_follows_links() {
+    use std::os::unix::fs::{PermissionsExt, symlink};
+    let d = SyntheticDirectory::new("read-existing-guard");
+    assert!(existing_profile_guard(&d.file).is_err());
+    assert!(std::fs::read_dir(&d.path).unwrap().next().is_none());
+    let expected = d.guard();
+    assert_eq!(
+        inode(&existing_profile_guard(&d.file).unwrap()).unwrap(),
+        expected
+    );
+    std::fs::hard_link(d.path.join(".profile-guard"), d.path.join("extra-link")).unwrap();
+    assert!(existing_profile_guard(&d.file).is_err());
+    std::fs::remove_file(d.path.join("extra-link")).unwrap();
+    std::fs::write(d.path.join(".profile-guard"), b"unknown").unwrap();
+    assert!(existing_profile_guard(&d.file).is_err());
+    assert_eq!(
+        std::fs::read(d.path.join(".profile-guard")).unwrap(),
+        b"unknown"
+    );
+    std::fs::write(d.path.join(".profile-guard"), []).unwrap();
+    std::fs::set_permissions(
+        d.path.join(".profile-guard"),
+        std::fs::Permissions::from_mode(0o644),
+    )
+    .unwrap();
+    assert!(existing_profile_guard(&d.file).is_err());
+    assert_eq!(
+        std::fs::metadata(d.path.join(".profile-guard"))
+            .unwrap()
+            .mode()
+            & 0o7777,
+        0o644
+    );
+    std::fs::rename(d.path.join(".profile-guard"), d.path.join("preserved")).unwrap();
+    symlink("preserved", d.path.join(".profile-guard")).unwrap();
+    assert!(existing_profile_guard(&d.file).is_err());
+}

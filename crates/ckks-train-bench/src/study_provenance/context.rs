@@ -2,7 +2,9 @@
 use super::role::{ExecutableRole, Recipe};
 use super::{EMBEDDED_CAPSULE, ProvenanceError, Result, codec::*, ensure, publication::read_path};
 use crate::{
-    data::sha256_hex, study_inputs::MaterializedProfile, study_reference::derive_identities,
+    data::sha256_hex,
+    study_inputs::{MaterializedProfile, SourceDigest},
+    study_reference::derive_identities,
 };
 use std::{
     ffi::{OsStr, OsString},
@@ -762,21 +764,14 @@ impl VerifiedStudyContext {
     }
     pub(crate) fn capture(&self, p: &MaterializedProfile) -> Result<RuntimeCapture> {
         self.require_current_reference()?;
-        self.recheck()?;
-        ensure(
-            p.identity().canonical_prepared(),
-            "canonical input required",
-        )?;
-        let (contract, receipt) =
-            derive_identities(p).map_err(|_| ProvenanceError("canonical identity unavailable"))?;
-        self.check_inputs(p)?;
+        let checked = self.check_materialized_input_now(p)?;
         let cwd = std::env::current_dir()?;
         canonical(&cwd)?;
         ensure(cwd == self.request.root, "runtime cwd/source root mismatch")?;
         Ok(RuntimeCapture {
-            contract_hash: contract.digest().into(),
-            input_receipt_hash: receipt.digest().into(),
-            materialized_hash: p.identity().digest().into(),
+            contract_hash: checked.facts.contract_hash,
+            input_receipt_hash: checked.facts.input_receipt_hash,
+            materialized_hash: checked.facts.materialized_hash,
             argv: argv(std::env::args_os())?,
             cwd: cwd.as_os_str().as_bytes().to_vec(),
             thread_environment: thread_environment(|k| std::env::var_os(k))?,
@@ -786,18 +781,38 @@ impl VerifiedStudyContext {
             source: self.approval.source.clone(),
         })
     }
+    /// Read-only selected-input validation, independent of Reference capture authority.
+    pub(crate) fn check_materialized_input_now(
+        &self,
+        p: &MaterializedProfile,
+    ) -> Result<CheckedMaterializedInput<'_>> {
+        self.recheck()?;
+        let facts = checked_materialized_facts(
+            p,
+            self.current_receipt_sha256(),
+            &self.approval.source,
+            |p| self.check_inputs(p),
+        )?;
+        Ok(CheckedMaterializedInput {
+            context: self,
+            facts,
+        })
+    }
+    pub(crate) fn recheck_materialized_input_now(
+        &self,
+        p: &MaterializedProfile,
+        start: &CheckedMaterializedInput<'_>,
+    ) -> Result<()> {
+        require_same_context(self, start.context)?;
+        let current = self.check_materialized_input_now(p)?;
+        ensure(
+            current.facts == start.facts,
+            "selected input binding changed",
+        )
+    }
     fn check_inputs(&self, p: &MaterializedProfile) -> Result<()> {
         for source in p.identity().sources() {
-            ensure(
-                relative(source.path.as_bytes()) && source.expected_sha256 == source.actual_sha256,
-                "input source binding",
-            )?;
-            let path = self.request.root.join(&source.path);
-            canonical(&path)?;
-            ensure(
-                self.hash_file(&path)? == source.actual_sha256,
-                "selected input source changed",
-            )?;
+            check_input_source(&self.request.root, source, |path| self.hash_file(path))?;
         }
         Ok(())
     }
@@ -807,12 +822,13 @@ impl VerifiedStudyContext {
         start: &RuntimeCapture,
     ) -> Result<RuntimeRecheck> {
         self.require_current_reference()?;
-        self.recheck()?;
-        self.check_inputs(p)?;
+        let checked = self.check_materialized_input_now(p)?;
         ensure(
-            start.materialized_hash == p.identity().digest()
-                && start.receipt_file == self.current_receipt_sha256()
-                && start.source == self.approval.source,
+            start.contract_hash == checked.facts.contract_hash
+                && start.input_receipt_hash == checked.facts.input_receipt_hash
+                && start.materialized_hash == checked.facts.materialized_hash
+                && start.receipt_file == checked.facts.receipt_file
+                && start.source == checked.facts.source,
             "capture binding changed",
         )?;
         Ok(RuntimeRecheck {
@@ -821,6 +837,68 @@ impl VerifiedStudyContext {
             executable_end: self.receipts[self.current].receipt.executable_hash.clone(),
         })
     }
+}
+// Non-authoritative inspection values: no constructor is exposed outside this module.
+#[derive(Debug, PartialEq, Eq)]
+struct MaterializedInputFacts {
+    contract_hash: String,
+    input_receipt_hash: String,
+    materialized_hash: String,
+    receipt_file: String,
+    source: String,
+}
+pub(crate) struct CheckedMaterializedInput<'a> {
+    context: &'a VerifiedStudyContext,
+    facts: MaterializedInputFacts,
+}
+fn require_same_context<T>(current: &T, previous: &T) -> Result<()> {
+    ensure(
+        std::ptr::eq(current, previous),
+        "selected input context changed",
+    )
+}
+fn checked_materialized_facts(
+    p: &MaterializedProfile,
+    receipt_file: &str,
+    source: &str,
+    check_inputs: impl FnOnce(&MaterializedProfile) -> Result<()>,
+) -> Result<MaterializedInputFacts> {
+    ensure(
+        p.identity().canonical_prepared(),
+        "canonical input required",
+    )?;
+    let (contract, receipt) =
+        derive_identities(p).map_err(|_| ProvenanceError("canonical identity unavailable"))?;
+    check_inputs(p)?;
+    Ok(MaterializedInputFacts {
+        contract_hash: contract.digest().into(),
+        input_receipt_hash: receipt.digest().into(),
+        materialized_hash: p.identity().digest().into(),
+        receipt_file: receipt_file.into(),
+        source: source.into(),
+    })
+}
+fn check_input_source(
+    root: &Path,
+    source: &SourceDigest,
+    hash_file: impl FnOnce(&Path) -> Result<String>,
+) -> Result<()> {
+    ensure(
+        relative(source.path.as_bytes()) && source.expected_sha256 == source.actual_sha256,
+        "input source binding",
+    )?;
+    let path = root.join(&source.path);
+    canonical(&path)?;
+    ensure(
+        hash_file(&path)? == source.actual_sha256,
+        "selected input source changed",
+    )
+}
+fn require_reference_role(role: ExecutableRole) -> Result<()> {
+    ensure(
+        role == ExecutableRole::Reference,
+        "current Reference required",
+    )
 }
 fn bounded_command(mut cmd: Command, cap: usize) -> Result<Vec<u8>> {
     let mut child = cmd.spawn()?;
@@ -1000,11 +1078,11 @@ pub(crate) struct BuildFacts<'a> {
     receipt: &'a FrozenReceipt,
 }
 impl VerifiedStudyContext {
-    fn require_current_reference(&self) -> Result<()> {
-        ensure(
-            reference_recipe(self.receipts[self.current].role.0),
-            "current Reference required",
-        )
+    pub(super) fn current_role(&self) -> ExecutableRole {
+        self.receipts[self.current].role.0.role()
+    }
+    pub(crate) fn require_current_reference(&self) -> Result<()> {
+        require_reference_role(self.current_role())
     }
     fn current_build_facts(&self) -> BuildFacts<'_> {
         let receipt = &self.receipts[self.current];

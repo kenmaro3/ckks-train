@@ -261,6 +261,9 @@ impl<'c> ProfileTargetStore<'c> {
     /// Lock a fresh FD and reject any existing target, cases or unsupported profile entry.
     pub fn claim_new<'s>(&'s mut self) -> Result<NewProfileTargetStore<'s, 'c>> {
         self.context
+            .require_current_reference()
+            .map_err(|_| TargetError::ContextChanged)?;
+        self.context
             .recheck()
             .map_err(|_| TargetError::ContextChanged)?;
         let guard = self
@@ -306,12 +309,12 @@ impl<'c> ProfileTargetStore<'c> {
             receipt.canonical_bytes() == supplied.canonical_bytes(),
             TargetError::CaseMismatch,
         )?;
-        let capture = self
+        let checked = self
             .context
-            .capture(&actual)
+            .check_materialized_input_now(&actual)
             .map_err(|_| TargetError::ContextChanged)?;
         self.context
-            .finish_capture(&actual, &capture)
+            .recheck_materialized_input_now(&actual, &checked)
             .map_err(|_| TargetError::ContextChanged)?;
         source.recheck().map_err(reference_error)?;
         time.sample(&mut clock)?;
@@ -332,6 +335,13 @@ impl<'c> ProfileTargetStore<'c> {
         references: &ReferenceStore<'c>,
         expected_file_sha256: &str,
     ) -> Result<PublishedTargetLock> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| TargetError::ContextChanged)?;
+        references
+            .context()
+            .require_current_reference()
+            .map_err(|_| TargetError::ContextChanged)?;
         let mut clock = NativeClock::new();
         let mut time = ClockTracker::begin(&mut clock)?;
         compatible(self.context, references.context())?;
@@ -416,6 +426,15 @@ pub fn lock_target<'r, 's, 'c: 'r + 's>(
     source: VerifiedReferenceSnapshot<'r, 'c>,
     new_store: NewProfileTargetStore<'s, 'c>,
 ) -> Result<PublishedTargetLock> {
+    source
+        .context()
+        .require_current_reference()
+        .map_err(|_| TargetError::ContextChanged)?;
+    new_store
+        .store
+        .context
+        .require_current_reference()
+        .map_err(|_| TargetError::ContextChanged)?;
     let mut clock = NativeClock::new();
     let mut time = ClockTracker::begin(&mut clock)?;
     let store = new_store.store;

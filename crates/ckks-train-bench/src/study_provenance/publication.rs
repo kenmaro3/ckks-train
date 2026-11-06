@@ -562,6 +562,14 @@ impl Anchors {
         }
         Ok(())
     }
+    fn child_existing(&mut self, name: &str) -> Result<()> {
+        self.recheck()?;
+        let child = existing_private_child(self.last(), name)?;
+        same_publication_mount(self.root_mount, mount(&child)?)?;
+        self.files.push(child);
+        self.names.push(name.into());
+        self.recheck()
+    }
     fn child(&mut self, name: &str) -> Result<()> {
         run_id(name)?;
         self.recheck()?;
@@ -626,12 +634,58 @@ pub(crate) struct TargetStore {
 pub(crate) struct ProfileGuard {
     file: File,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TargetOpenPolicy {
+    CreateReference,
+    ExistingTrain,
+}
+fn target_open_policy(role: super::role::ExecutableRole) -> TargetOpenPolicy {
+    match role {
+        super::role::ExecutableRole::Reference => TargetOpenPolicy::CreateReference,
+        super::role::ExecutableRole::StudyTrain => TargetOpenPolicy::ExistingTrain,
+    }
+}
 impl TargetStore {
     pub(crate) fn open(
         root: &Path,
         campaign: &str,
         slot: &str,
         context: &super::VerifiedStudyContext,
+    ) -> Result<Self> {
+        match target_open_policy(context.current_role()) {
+            TargetOpenPolicy::CreateReference => {
+                context.require_current_reference()?;
+                Self::open_with_policy(
+                    root,
+                    campaign,
+                    slot,
+                    context,
+                    TargetOpenPolicy::CreateReference,
+                )
+            }
+            TargetOpenPolicy::ExistingTrain => Self::open_existing(root, campaign, slot, context),
+        }
+    }
+    fn open_existing(
+        root: &Path,
+        campaign: &str,
+        slot: &str,
+        context: &super::VerifiedStudyContext,
+    ) -> Result<Self> {
+        Self::open_with_policy(
+            root,
+            campaign,
+            slot,
+            context,
+            TargetOpenPolicy::ExistingTrain,
+        )
+    }
+    fn open_with_policy(
+        root: &Path,
+        campaign: &str,
+        slot: &str,
+        context: &super::VerifiedStudyContext,
+        policy: TargetOpenPolicy,
     ) -> Result<Self> {
         ensure(
             !root.starts_with(context.root().join("results")),
@@ -647,7 +701,10 @@ impl TargetStore {
         )?;
         let mut anchors = Anchors::open(root)?;
         for name in ["campaigns", campaign, "profiles", &format!("p-{slot}")] {
-            anchors.child(name)?;
+            match policy {
+                TargetOpenPolicy::CreateReference => anchors.child(name)?,
+                TargetOpenPolicy::ExistingTrain => anchors.child_existing(name)?,
+            }
         }
         let path = root
             .join("campaigns")
@@ -655,35 +712,20 @@ impl TargetStore {
             .join("profiles")
             .join(format!("p-{slot}"));
         let parent = anchors.last();
-        let name = cstring(b".profile-guard")?;
-        let fd = unsafe {
-            libc::openat(
-                parent.as_raw_fd(),
-                name.as_ptr(),
-                libc::O_RDWR | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW | libc::O_CLOEXEC,
-                0o600,
-            )
+        let f = match policy {
+            TargetOpenPolicy::CreateReference => {
+                let f = create_or_open_profile_guard(parent)?;
+                same_publication_mount(anchors.root_mount, mount(&f)?)?;
+                f.sync_all()?;
+                parent.sync_all()?;
+                f
+            }
+            TargetOpenPolicy::ExistingTrain => {
+                let f = existing_profile_guard(parent)?;
+                same_publication_mount(anchors.root_mount, mount(&f)?)?;
+                f
+            }
         };
-        let f = if fd >= 0 {
-            let f = fd_file(fd)?;
-            ensure(unsafe { libc::fchmod(fd, 0o600) } == 0, "owned guard mode")?;
-            f
-        } else {
-            ensure(
-                std::io::Error::last_os_error().raw_os_error() == Some(libc::EEXIST),
-                "guard create",
-            )?;
-            openat(
-                parent.as_raw_fd(),
-                OsStr::new(".profile-guard"),
-                FILE_FLAGS,
-                0,
-            )?
-        };
-        validate_guard(&f)?;
-        same_publication_mount(anchors.root_mount, mount(&f)?)?;
-        f.sync_all()?;
-        parent.sync_all()?;
         let result = Self {
             anchors,
             path,
@@ -901,4 +943,50 @@ fn private_child(parent: &File, name: &str) -> Result<File> {
     // a swapped entry could belong to someone else. Restrictive umasks fail closed.
     safe_directory(&child, true)?;
     Ok(child)
+}
+
+fn existing_private_child(parent: &File, name: &str) -> Result<File> {
+    run_id(name)?;
+    let child = openat(parent.as_raw_fd(), OsStr::new(name), DIR_FLAGS, 0)?;
+    safe_directory(&child, true)?;
+    Ok(child)
+}
+fn existing_profile_guard(parent: &File) -> Result<File> {
+    let guard = openat(
+        parent.as_raw_fd(),
+        OsStr::new(".profile-guard"),
+        FILE_FLAGS,
+        0,
+    )?;
+    validate_guard(&guard)?;
+    Ok(guard)
+}
+fn create_or_open_profile_guard(parent: &File) -> Result<File> {
+    let name = cstring(b".profile-guard")?;
+    let fd = unsafe {
+        libc::openat(
+            parent.as_raw_fd(),
+            name.as_ptr(),
+            libc::O_RDWR | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW | libc::O_CLOEXEC,
+            0o600,
+        )
+    };
+    let f = if fd >= 0 {
+        let f = fd_file(fd)?;
+        ensure(unsafe { libc::fchmod(fd, 0o600) } == 0, "owned guard mode")?;
+        f
+    } else {
+        ensure(
+            std::io::Error::last_os_error().raw_os_error() == Some(libc::EEXIST),
+            "guard create",
+        )?;
+        openat(
+            parent.as_raw_fd(),
+            OsStr::new(".profile-guard"),
+            FILE_FLAGS,
+            0,
+        )?
+    };
+    validate_guard(&f)?;
+    Ok(f)
 }

@@ -123,6 +123,9 @@ impl<'c> ReferenceStore<'c> {
         &self,
         result: &CompletedFp32Reference<'_>,
     ) -> Result<PublishedReference, PublicationError> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| PublicationError::Validation)?;
         if !std::ptr::eq(self.context, result.capture().context) {
             return Err(PublicationError::Validation);
         }
@@ -148,6 +151,9 @@ impl<'c> ReferenceStore<'c> {
         &self,
         result: &CapturedDiagnostic<'_>,
     ) -> Result<PublishedNonReference, PublicationError> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| PublicationError::Validation)?;
         if !std::ptr::eq(self.context, result.capture().context) {
             return Err(PublicationError::Validation);
         }
@@ -172,6 +178,9 @@ impl<'c> ReferenceStore<'c> {
         &self,
         result: &CapturedF64Diagnostic<'_>,
     ) -> Result<PublishedNonReference, PublicationError> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| PublicationError::Validation)?;
         self.publish_diagnostic(result.inner())
     }
     #[doc = "Best-effort durable failure publication, independent of scientific completion."]
@@ -179,6 +188,9 @@ impl<'c> ReferenceStore<'c> {
         &self,
         result: &SessionFailure,
     ) -> Result<PublishedNonReference, PublicationError> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| PublicationError::Validation)?;
         let bytes = result.document_bytes()?;
         let parsed = super::parse_failure_document(&bytes)?;
         let store = Store::open(&self.root, self.context, Kind::Failure)
@@ -227,6 +239,9 @@ impl<'c> ReferenceStore<'c> {
         id: &str,
         expected_file_sha256: &str,
     ) -> Result<PublishedReference, PublicationError> {
+        self.context
+            .require_current_reference()
+            .map_err(|_| PublicationError::Validation)?;
         let mut verified = None;
         let durable = self
             .inner
