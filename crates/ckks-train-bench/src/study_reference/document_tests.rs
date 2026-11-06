@@ -487,7 +487,12 @@ fn actual_iris_seed_zero_and_seven_all_graphs_roundtrip_only_input_identities() 
         StudyRegistry::load(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
             .unwrap();
     fn hex(b: &[u8]) -> String {
-        b.iter().map(|b| format!("{b:02x}")).collect()
+        use std::fmt::Write;
+        let mut output = String::with_capacity(b.len() * 2);
+        for byte in b {
+            write!(output, "{byte:02x}").unwrap();
+        }
+        output
     }
     for model in ["mlp2020", "emlp1", "emlp2", "emlp3"] {
         let mut prior = None;
