@@ -1,0 +1,12 @@
+{
+ "note": "Published values from other papers, copied with their citation for comparison columns (Task 54). Not hekit measurements. The only hand-entered numbers under results/; each entry names its source table. Cross-reference: docs/m4-report.md section 1.2.",
+ "heongpu_rtx4090": [
+  {
+   "operation": "relinearize",
+   "value_us": 2581.8,
+   "parameters": "l = 36, I = 4",
+   "source": "Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124 (Nov 2024 version), Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l~, l) = (4, 40, 36), level 35",
+   "caveat": "not the same parameters as n16_train (36 vs 32 Q primes, 4 special primes, dnum 8 vs I = 4 digits); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed."
+  }
+ ]
+}

@@ -1,0 +1,971 @@
+table	row	column	value	file	field	formula
+rq1_ks	FULL-1	ReBoot non-boot	37 (model)	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	
+rq1_ks	FULL-2	ReBoot non-boot	37 (model)	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	
+rq1_ks	F1	B	32	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.batch	
+rq1_ks	F1	Config	faithful	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	provenance.command_line	
+rq1_ks	F1	Samples	1008	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
+rq1_ks	F1	hekit KS/sample	33.488	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	K/S
+rq1_ks	F1	hekit KS/sample	33.488	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	K/S
+rq1_ks	F1	Boots	68	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	
+rq1_ks	F1	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	F1	(a)	0.435	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(b)	0.779	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	F1	(c)	0.756	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	F1	(d)	0.742	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	F1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	F2	B	64	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.batch	
+rq1_ks	F2	Config	faithful	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	provenance.command_line	
+rq1_ks	F2	Samples	1008	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	
+rq1_ks	F2	hekit KS/sample	17.885	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	K/S
+rq1_ks	F2	hekit KS/sample	17.885	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	K/S
+rq1_ks	F2	Boots	36	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	
+rq1_ks	F2	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	F2	(a)	0.233	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(b)	0.414	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	F2	(c)	0.404	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	F2	(d)	0.397	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	F2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-3	B	32	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.batch	
+rq1_ks	R-41-3	Config	legacy (R-M3-12)	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	provenance.command_line	
+rq1_ks	R-41-3	Samples	1024	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	
+rq1_ks	R-41-3	hekit KS/sample	32.531	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	K/S
+rq1_ks	R-41-3	hekit KS/sample	32.531	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	K/S
+rq1_ks	R-41-3	Boots	64	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	
+rq1_ks	R-41-3	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(a)	0.423	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(b)	0.741	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(c)	0.734	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	R-41-3	(d)	0.730	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	R-41-3	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-4	B	64	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.batch	
+rq1_ks	R-41-4	Config	legacy (R-M3-12)	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	provenance.command_line	
+rq1_ks	R-41-4	Samples	1024	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	
+rq1_ks	R-41-4	hekit KS/sample	17.172	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	K/S
+rq1_ks	R-41-4	hekit KS/sample	17.172	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	K/S
+rq1_ks	R-41-4	Boots	32	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	
+rq1_ks	R-41-4	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(a)	0.223	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(b)	0.382	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(c)	0.388	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	R-41-4	(d)	0.391	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	R-41-4	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-1	B	32	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.batch	
+rq1_ks	R-41-1	Config	legacy (R-M3-12)	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	provenance.command_line	
+rq1_ks	R-41-1	Samples	1024	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	
+rq1_ks	R-41-1	hekit KS/sample	39.469	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	K/S
+rq1_ks	R-41-1	hekit KS/sample	39.469	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	K/S
+rq1_ks	R-41-1	Boots	128	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	
+rq1_ks	R-41-1	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(a)	0.513	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(b)	1.149	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(c)	0.891	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	R-41-1	(d)	0.730	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	R-41-1	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-2	B	64	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.batch	
+rq1_ks	R-41-2	Config	legacy (R-M3-12)	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	provenance.command_line	
+rq1_ks	R-41-2	Samples	1024	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	
+rq1_ks	R-41-2	hekit KS/sample	20.641	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	K/S
+rq1_ks	R-41-2	hekit KS/sample	20.641	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	K/S
+rq1_ks	R-41-2	Boots	64	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	
+rq1_ks	R-41-2	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(a)	0.268	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(b)	0.586	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(c)	0.466	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	R-41-2	(d)	0.391	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	R-41-2	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-5	B	32	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.batch	
+rq1_ks	R-41-5	Config	legacy (R-M3-12)	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	provenance.command_line	
+rq1_ks	R-41-5	Samples	1024	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	
+rq1_ks	R-41-5	hekit KS/sample	36.000	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	K/S
+rq1_ks	R-41-5	hekit KS/sample	36.000	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	K/S
+rq1_ks	R-41-5	Boots	96	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	
+rq1_ks	R-41-5	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(a)	0.468	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(b)	0.945	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(c)	0.812	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	R-41-5	(d)	0.730	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	R-41-5	Ways ≤ 0.70	a	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	interactive	B	32	results/quadruped/raw/mnist_interactive_b32/mnist.json	training.samples	
+rq1_ks	interactive	B	32	results/quadruped/raw/mnist_interactive_b32/mnist.json	training.batches	
+rq1_ks	interactive	Samples	1024	results/quadruped/raw/mnist_interactive_b32/mnist.json	training.samples	
+rq1_ks	interactive	hekit KS/sample	19.781	results/quadruped/raw/mnist_interactive_b32/mnist.json	measured.per_sample.key_switches_per_sample	
+rq1_ks	interactive	ReBoot non-boot	35.0625 (Lazy, measured)	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	interactive	(d)	0.564	results/quadruped/raw/mnist_interactive_b32/mnist.json	measured.per_sample.key_switches_per_sample	hekit interactive KS/sample / ReBoot Lazy KS/sample
+rq1_ks	interactive	(d)	0.564	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	hekit interactive KS/sample / ReBoot Lazy KS/sample
+rq1_ks	interactive	Ways ≤ 0.70	d	results/quadruped/raw/mnist_interactive_b32/mnist.json	measured.per_sample.key_switches_per_sample	
+rq1_ks	interactive	Ways ≤ 0.70	d	results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+rq1_ks	note 1			results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	
+rq1_ks	note 1			results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	
+rq1_ks	note 1			results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	
+rq1_ks	note 1			results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	
+rq1_ks	note 1			results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	
+rq1_ks	note 3			results/mnist_reboot_layout.json	modes.lazy.run.measured.key_switches_per_sample	
+wallclock_same_cpu	ReBoot official (OpenFHE)	B	48	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Samples	1008	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Train s	3599.9	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	sum of step_time
+wallclock_same_cpu	ReBoot official (OpenFHE)	s/sample	3.571	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	
+wallclock_same_cpu	ReBoot official (OpenFHE)	s/sample	3.571	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Boot s/sample	2.585	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.seconds_per_call[*]	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Boot s/sample	2.585	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Non-boot s/sample	0.986	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Non-boot s/sample	0.986	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.seconds_per_call[*]	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Non-boot s/sample	0.986	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	
+wallclock_same_cpu	ReBoot official (OpenFHE)	Threads	OpenMP 12	results/quadruped/reboot_emlp1_official_subset.json	setting.omp_num_threads	
+wallclock_same_cpu	F1	B	32	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.batch	
+wallclock_same_cpu	F1	Samples	1008	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
+wallclock_same_cpu	F1	Train s	3016.7	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.train_total	
+wallclock_same_cpu	F1	s/sample	2.993	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.train_total	
+wallclock_same_cpu	F1	s/sample	2.993	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
+wallclock_same_cpu	F1	vs ReBoot	0.838	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F1	vs ReBoot	0.838	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F1	vs ReBoot	0.838	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F1	vs ReBoot	0.838	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F1	Boot s/sample	0.989	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	F1	Boot s/sample	0.989	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
+wallclock_same_cpu	F1	Non-boot s/sample	2.003	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.train_total	
+wallclock_same_cpu	F1	Non-boot s/sample	2.003	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	F1	Non-boot s/sample	2.003	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
+wallclock_same_cpu	F1	Threads	rayon 12	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	provenance.threads	
+wallclock_same_cpu	F1	Threads	rayon 12	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	provenance.machine.host	
+wallclock_same_cpu	F1	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	F2	B	64	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	setup.batch	
+wallclock_same_cpu	F2	Samples	1008	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	
+wallclock_same_cpu	F2	Train s	1607.9	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.train_total	
+wallclock_same_cpu	F2	s/sample	1.595	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.train_total	
+wallclock_same_cpu	F2	s/sample	1.595	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	
+wallclock_same_cpu	F2	vs ReBoot	0.447	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F2	vs ReBoot	0.447	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F2	vs ReBoot	0.447	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F2	vs ReBoot	0.447	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	F2	Boot s/sample	0.522	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	F2	Boot s/sample	0.522	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	
+wallclock_same_cpu	F2	Non-boot s/sample	1.073	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.train_total	
+wallclock_same_cpu	F2	Non-boot s/sample	1.073	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	F2	Non-boot s/sample	1.073	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	training.samples	
+wallclock_same_cpu	F2	Threads	rayon 12	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	provenance.threads	
+wallclock_same_cpu	F2	Threads	rayon 12	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	provenance.machine.host	
+wallclock_same_cpu	F2	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	R-41-3	B	32	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	setup.batch	
+wallclock_same_cpu	R-41-3	Samples	1024	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	
+wallclock_same_cpu	R-41-3	Train s	2773.6	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-3	s/sample	2.709	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-3	s/sample	2.709	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	
+wallclock_same_cpu	R-41-3	vs ReBoot	0.758	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-3	vs ReBoot	0.758	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-3	vs ReBoot	0.758	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-3	vs ReBoot	0.758	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-3	Boot s/sample	0.871	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-3	Boot s/sample	0.871	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	
+wallclock_same_cpu	R-41-3	Non-boot s/sample	1.838	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-3	Non-boot s/sample	1.838	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-3	Non-boot s/sample	1.838	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	training.samples	
+wallclock_same_cpu	R-41-3	Threads	rayon 12	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	provenance.threads	
+wallclock_same_cpu	R-41-3	Threads	rayon 12	results/quadruped/raw/R-41-3/mnist_emlp1_ni_when_needed_b32.json	provenance.machine.host	
+wallclock_same_cpu	R-41-3	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	R-41-4	B	64	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	setup.batch	
+wallclock_same_cpu	R-41-4	Samples	1024	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	
+wallclock_same_cpu	R-41-4	Train s	1434.8	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-4	s/sample	1.401	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-4	s/sample	1.401	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	
+wallclock_same_cpu	R-41-4	vs ReBoot	0.392	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-4	vs ReBoot	0.392	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-4	vs ReBoot	0.392	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-4	vs ReBoot	0.392	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-4	Boot s/sample	0.435	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-4	Boot s/sample	0.435	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	
+wallclock_same_cpu	R-41-4	Non-boot s/sample	0.967	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-4	Non-boot s/sample	0.967	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-4	Non-boot s/sample	0.967	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	training.samples	
+wallclock_same_cpu	R-41-4	Threads	rayon 12	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	provenance.threads	
+wallclock_same_cpu	R-41-4	Threads	rayon 12	results/quadruped/raw/R-41-4/mnist_emlp1_ni_when_needed_b64.json	provenance.machine.host	
+wallclock_same_cpu	R-41-4	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	R-41-1	B	32	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	setup.batch	
+wallclock_same_cpu	R-41-1	Samples	1024	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	
+wallclock_same_cpu	R-41-1	Train s	4339.1	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-1	s/sample	4.237	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-1	s/sample	4.237	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	
+wallclock_same_cpu	R-41-1	vs ReBoot	1.187	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-1	vs ReBoot	1.187	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-1	vs ReBoot	1.187	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-1	vs ReBoot	1.187	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-1	Boot s/sample	1.736	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-1	Boot s/sample	1.736	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	
+wallclock_same_cpu	R-41-1	Non-boot s/sample	2.501	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-1	Non-boot s/sample	2.501	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-1	Non-boot s/sample	2.501	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	training.samples	
+wallclock_same_cpu	R-41-1	Threads	rayon 12	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	provenance.threads	
+wallclock_same_cpu	R-41-1	Threads	rayon 12	results/quadruped/raw/R-41-1/mnist_emlp1_ni_after_update_b32.json	provenance.machine.host	
+wallclock_same_cpu	R-41-1	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	R-41-2	B	64	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	setup.batch	
+wallclock_same_cpu	R-41-2	Samples	1024	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	
+wallclock_same_cpu	R-41-2	Train s	2228.9	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-2	s/sample	2.177	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-2	s/sample	2.177	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	
+wallclock_same_cpu	R-41-2	vs ReBoot	0.609	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-2	vs ReBoot	0.609	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-2	vs ReBoot	0.609	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-2	vs ReBoot	0.609	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-2	Boot s/sample	0.867	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-2	Boot s/sample	0.867	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	
+wallclock_same_cpu	R-41-2	Non-boot s/sample	1.310	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.train_total	
+wallclock_same_cpu	R-41-2	Non-boot s/sample	1.310	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-2	Non-boot s/sample	1.310	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	training.samples	
+wallclock_same_cpu	R-41-2	Threads	rayon 12	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	provenance.threads	
+wallclock_same_cpu	R-41-2	Threads	rayon 12	results/quadruped/raw/R-41-2/mnist_emlp1_ni_after_update_b64.json	provenance.machine.host	
+wallclock_same_cpu	R-41-2	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	R-41-5	B	32	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	setup.batch	
+wallclock_same_cpu	R-41-5	Samples	1024	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	
+wallclock_same_cpu	R-41-5	Train s	3606.6	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-5	s/sample	3.522	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-5	s/sample	3.522	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	
+wallclock_same_cpu	R-41-5	vs ReBoot	0.986	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.train_total	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-5	vs ReBoot	0.986	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-5	vs ReBoot	0.986	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-5	vs ReBoot	0.986	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	hekit s/sample / ReBoot s/sample
+wallclock_same_cpu	R-41-5	Boot s/sample	1.316	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-5	Boot s/sample	1.316	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	
+wallclock_same_cpu	R-41-5	Non-boot s/sample	2.206	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.train_total	
+wallclock_same_cpu	R-41-5	Non-boot s/sample	2.206	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	R-41-5	Non-boot s/sample	2.206	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	training.samples	
+wallclock_same_cpu	R-41-5	Threads	rayon 12	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	provenance.threads	
+wallclock_same_cpu	R-41-5	Threads	rayon 12	results/quadruped/raw/R-41-5/mnist_emlp1_ni_after_activation_b32.json	provenance.machine.host	
+wallclock_same_cpu	R-41-5	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	note 1			results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.1.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.2.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.3.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.4.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.5.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.6.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.7.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.8.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	ReBoot released code, plaintext (recomputed twin)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.9.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed0.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed1.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed2.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed3.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed4.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed5.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed6.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed7.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed8.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Test acc (%)	90.65 ± 0.27 (n = 10)	results/mnist196_plain_faithful_seed9.json	epochs[-1].test_acc	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.1.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.2.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.3.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.4.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.5.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.6.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.7.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.8.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Reference (%)	90.65 ± 0.27 (n = 10)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.9.twin.test_acc_argmax10	mean ± sample standard deviation over seeds
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed0.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed1.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed2.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed3.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed4.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed5.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed6.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed7.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed8.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/mnist196_plain_faithful_seed9.json	epochs[-1].test_acc	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.1.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.2.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.3.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.4.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.5.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.6.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.7.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.8.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.9.twin.test_acc_argmax10	difference of means
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Reference (%)	90.41	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit encrypted, B = 64, WN	Reference (%)	90.41	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit plaintext twin emlp2 (blocks 64)	Test acc (%)	91.56	results/mnist196_plain_emlp2_seed0.json	test_acc	
+accuracy_vs_reboot	hekit plaintext twin emlp2 (blocks 64)	Reference (%)	91.56 (ReBoot twin)	results/quadruped/raw/reboot_emlp23_full/config_values.json	models.emlp2.per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit plaintext twin emlp2 (blocks 64)	Δ (pt)	+0.00	results/mnist196_plain_emlp2_seed0.json	test_acc	
+accuracy_vs_reboot	hekit plaintext twin emlp2 (blocks 64)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp23_full/config_values.json	models.emlp2.per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit plaintext twin emlp3 (blocks 128,64)	Test acc (%)	91.75	results/mnist196_plain_emlp3_seed0.json	test_acc	
+accuracy_vs_reboot	hekit plaintext twin emlp3 (blocks 128,64)	Reference (%)	91.75 (ReBoot twin)	results/quadruped/raw/reboot_emlp23_full/config_values.json	models.emlp3.per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit plaintext twin emlp3 (blocks 128,64)	Δ (pt)	+0.00	results/mnist196_plain_emlp3_seed0.json	test_acc	
+accuracy_vs_reboot	hekit plaintext twin emlp3 (blocks 128,64)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp23_full/config_values.json	models.emlp3.per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	ReBoot official encrypted (OpenFHE)	Test acc (%)	75.06	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	evaluation.test_acc_encrypted_trained_argmax10	
+accuracy_vs_reboot	hekit encrypted WN, B = 32	Test acc (%)	75.77	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted WN, B = 32	Twin (%)	75.77	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	evaluation.test_acc_twin	
+accuracy_vs_reboot	hekit encrypted WN, B = 32	Reference (%)	75.06	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	evaluation.test_acc_encrypted_trained_argmax10	
+accuracy_vs_reboot	hekit encrypted WN, B = 32	Δ (pt)	+0.71	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted WN, B = 32	Δ (pt)	+0.71	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	evaluation.test_acc_encrypted_trained_argmax10	
+accuracy_vs_reboot	hekit encrypted WN, B = 64	Test acc (%)	73.58	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted WN, B = 64	Twin (%)	73.59	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	evaluation.test_acc_twin	
+accuracy_vs_reboot	hekit encrypted WN, B = 64	Reference (%)	75.06	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	evaluation.test_acc_encrypted_trained_argmax10	
+accuracy_vs_reboot	hekit encrypted WN, B = 64	Δ (pt)	-1.48	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted WN, B = 64	Δ (pt)	-1.48	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	evaluation.test_acc_encrypted_trained_argmax10	
+accuracy_vs_reboot	ReBoot paper, Table 4 (plaintext)	Seeds	10 (paper)	results/plain_mnist_emlp1_paper.json	target.source	
+accuracy_vs_reboot	ReBoot paper, Table 4 (plaintext)	Test acc (%)	94.61 ± 0.27	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot paper, Table 4 (plaintext)	Test acc (%)	94.61 ± 0.27	results/plain_mnist_emlp1_paper.json	target.test_acc_std	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Seeds	10	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	seeds	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Test acc (%)	95.15 ± 0.19 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.at_epoch.50.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Test acc (%)	95.15 ± 0.19 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.at_epoch.50.std_sample	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Δ (pt)	+0.54	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.at_epoch.50.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, epoch 50	Δ (pt)	+0.54	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Seeds	10	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	seeds	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Test acc (%)	95.35 ± 0.10 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.best_epoch_test_acc.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Test acc (%)	95.35 ± 0.10 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.best_epoch_test_acc.std_sample	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Δ (pt)	+0.74	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.const.best_epoch_test_acc.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, constant lr, best epoch (test-selected)	Δ (pt)	+0.74	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Seeds	10	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	seeds	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Test acc (%)	95.25 ± 0.08 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.at_epoch.50.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Test acc (%)	95.25 ± 0.08 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.at_epoch.50.std_sample	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Δ (pt)	+0.64	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.at_epoch.50.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, epoch 50	Δ (pt)	+0.64	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Seeds	10	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	seeds	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Test acc (%)	95.46 ± 0.09 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Test acc (%)	95.46 ± 0.09 (n = 10)	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.std_sample	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.mean	
+accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	1 1 1	results/ablation_cpu_smoke_small.json	configs[0].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	171	results/ablation_cpu_smoke_small.json	configs[0].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	62	results/ablation_cpu_smoke_small.json	configs[0].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	233	results/ablation_cpu_smoke_small.json	configs[0].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[0].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[0].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[0].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	0	results/ablation_cpu_smoke_small.json	configs[0].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	1 1 0	results/ablation_cpu_smoke_small.json	configs[1].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	171	results/ablation_cpu_smoke_small.json	configs[1].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	114	results/ablation_cpu_smoke_small.json	configs[1].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	285	results/ablation_cpu_smoke_small.json	configs[1].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[1].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[1].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[1].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	7.83e-09	results/ablation_cpu_smoke_small.json	configs[1].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	1 0 1	results/ablation_cpu_smoke_small.json	configs[2].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	210	results/ablation_cpu_smoke_small.json	configs[2].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	101	results/ablation_cpu_smoke_small.json	configs[2].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	311	results/ablation_cpu_smoke_small.json	configs[2].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[2].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[2].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[2].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	6.90e-09	results/ablation_cpu_smoke_small.json	configs[2].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	1 0 0	results/ablation_cpu_smoke_small.json	configs[3].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	210	results/ablation_cpu_smoke_small.json	configs[3].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	114	results/ablation_cpu_smoke_small.json	configs[3].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	324	results/ablation_cpu_smoke_small.json	configs[3].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[3].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[3].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[3].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	7.39e-09	results/ablation_cpu_smoke_small.json	configs[3].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	0 1 1	results/ablation_cpu_smoke_small.json	configs[4].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	171	results/ablation_cpu_smoke_small.json	configs[4].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	62	results/ablation_cpu_smoke_small.json	configs[4].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	233	results/ablation_cpu_smoke_small.json	configs[4].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[4].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[4].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[4].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	0	results/ablation_cpu_smoke_small.json	configs[4].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	0 1 0	results/ablation_cpu_smoke_small.json	configs[5].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	171	results/ablation_cpu_smoke_small.json	configs[5].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	114	results/ablation_cpu_smoke_small.json	configs[5].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	285	results/ablation_cpu_smoke_small.json	configs[5].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[5].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[5].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[5].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	7.83e-09	results/ablation_cpu_smoke_small.json	configs[5].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	0 0 1	results/ablation_cpu_smoke_small.json	configs[6].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	210	results/ablation_cpu_smoke_small.json	configs[6].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	101	results/ablation_cpu_smoke_small.json	configs[6].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	311	results/ablation_cpu_smoke_small.json	configs[6].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[6].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[6].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[6].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	6.90e-09	results/ablation_cpu_smoke_small.json	configs[6].max_abs_weight_diff_vs_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	hoist bsgs lazy	0 0 0	results/ablation_cpu_smoke_small.json	configs[7].config	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Rotations	210	results/ablation_cpu_smoke_small.json	configs[7].counter_per_iteration.rotations	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Relins	114	results/ablation_cpu_smoke_small.json	configs[7].counter_per_iteration.relins	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	KS/iter	324	results/ablation_cpu_smoke_small.json	configs[7].counter_per_iteration.key_switches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Closed form	match	results/ablation_cpu_smoke_small.json	configs[7].closed_form_matches	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step median (s)	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[7].step_s_median	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Step / default	n/a (smoke)	results/ablation_cpu_smoke_small.json	configs[7].step_time_over_default	
+rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Max |ΔW| vs default	7.39e-09	results/ablation_cpu_smoke_small.json	configs[7].max_abs_weight_diff_vs_default	
+rq3_ablation	note 1			results/ablation_cpu_smoke_small.json	caveats[0]	
+rq3_ablation	note 2			results/ablation_cpu_smoke_small.json	caveats[1]	
+rq3_ablation	note 3			results/ablation_cpu_smoke_small.json	caveats[2]	
+rq3_ablation	note 4			results/ablation_cpu_smoke_small.json	caveats[3]	
+gpu_vs_cpu_ops	add	hekit GPU	0.111	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	add	CPU 1 thr	15.674	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	add	CPU 12 thr	14.611	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	add	GPU speed-up (1 / 12 thr)	141x / 132x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	add	GPU speed-up (1 / 12 thr)	141x / 132x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	add	GPU speed-up (1 / 12 thr)	141x / 132x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_add/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	hekit GPU	4.671	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	CPU 1 thr	639.639	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	CPU 12 thr	240.070	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	GPU speed-up (1 / 12 thr)	137x / 51x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	GPU speed-up (1 / 12 thr)	137x / 51x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	GPU speed-up (1 / 12 thr)	137x / 51x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	HEonGPU (RTX 4090)	2.582 (l = 36, I = 4)	results/reference/literature.json	heongpu_rtx4090[0].value_us	
+gpu_vs_cpu_ops	relinearize	HEonGPU (RTX 4090)	2.582 (l = 36, I = 4)	results/reference/literature.json	heongpu_rtx4090[0].parameters	
+gpu_vs_cpu_ops	relinearize	GPU / HEonGPU	1.81x (nominal)	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_relinearize/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	relinearize	GPU / HEonGPU	1.81x (nominal)	results/reference/literature.json	heongpu_rtx4090[0].value_us	
+gpu_vs_cpu_ops	mul + relin + rescale	hekit GPU	5.823	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	mul + relin + rescale	CPU 1 thr	725.209	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	mul + relin + rescale	CPU 12 thr	337.731	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	mul + relin + rescale	GPU speed-up (1 / 12 thr)	125x / 58x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	mul + relin + rescale	GPU speed-up (1 / 12 thr)	125x / 58x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	mul + relin + rescale	GPU speed-up (1 / 12 thr)	125x / 58x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_mul_relin_rescale/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	hekit GPU	3.990	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	CPU 1 thr	622.046	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	CPU 12 thr	223.880	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	GPU speed-up (1 / 12 thr)	156x / 56x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	GPU speed-up (1 / 12 thr)	156x / 56x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	rotate(1)	GPU speed-up (1 / 12 thr)	156x / 56x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_rotate1/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16	hekit GPU	skipped: needs 5580 MiB (2377 MiB free)	results/quadruped/cuda_ops_r47.log	line 34	
+gpu_vs_cpu_ops	hoisted rotate x16	CPU 1 thr	3765.068	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_hoisted_rotate_16/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16	CPU 12 thr	689.471	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_hoisted_rotate_16/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	hekit GPU	4.984	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	CPU 1 thr	1005.331	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	CPU 12 thr	172.870	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	GPU speed-up (1 / 12 thr)	202x / 35x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	GPU speed-up (1 / 12 thr)	202x / 35x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	hoisted rotate x16 (capped keys)	GPU speed-up (1 / 12 thr)	202x / 35x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_hoisted_rotate_16_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64	hekit GPU	skipped: needs 7276 MiB (1929 MiB free)	results/quadruped/cuda_ops_r47.log	line 42	
+gpu_vs_cpu_ops	matvec_enc d = 64	CPU 1 thr	12938.440	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_matvec_enc_d64/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64	CPU 12 thr	2325.173	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	hekit GPU	16.120	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	CPU 1 thr	2523.223	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	CPU 12 thr	547.762	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	157x / 34x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	157x / 34x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	157x / 34x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64_L9/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	hekit GPU	9.509	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	CPU 1 thr	1391.064	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	CPU 12 thr	314.649	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	146x / 33x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	146x / 33x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_1t_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	146x / 33x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc x4, 1 stream (sequential)	hekit GPU	34.994	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_x4_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	matvec_enc x4, 4 streams (untuned R-47-2)	hekit GPU	41.673	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_batch4_L5/new/estimates.json	median.point_estimate	
+gpu_vs_cpu_ops	note 1			results/reference/literature.json	heongpu_rtx4090[0].source	
+gpu_vs_cpu_ops	note 1			results/reference/literature.json	heongpu_rtx4090[0].caveat	
+security	hekit (a): n16_boot main key	N	2^16	docs/security.md	line 281	
+security	hekit (a): n16_boot main key	log PQ	1732 (1731.998)	docs/security.md	line 281	
+security	hekit (a): n16_boot main key	Secret	dense ternary (P(±1) = 1/4 each, h ≈ N/2)	docs/security.md	line 281	
+security	hekit (a): n16_boot main key	BDGL16	131.5	docs/security.md	line 281	
+security	hekit (a): n16_boot main key	MATZOV	129.3	docs/security.md	line 281	
+security	hekit (a): n16_boot main key	>= 128 (both)	yes	docs/security.md	line 281	
+security	hekit (b): SSE key s -> s' (h' = 32)	N	2^16	docs/security.md	line 282	
+security	hekit (b): SSE key s -> s' (h' = 32)	log PQ	294 (q_0·P)	docs/security.md	line 282	
+security	hekit (b): SSE key s -> s' (h' = 32)	Secret	sparse ternary, h' = 32	docs/security.md	line 282	
+security	hekit (b): SSE key s -> s' (h' = 32)	BDGL16	133.8	docs/security.md	line 282	
+security	hekit (b): SSE key s -> s' (h' = 32)	MATZOV	134.2	docs/security.md	line 282	
+security	hekit (b): SSE key s -> s' (h' = 32)	>= 128 (both)	yes	docs/security.md	line 282	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	N	2^16	docs/security.md	line 283	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	log PQ	1730 (1729.585)	docs/security.md	line 283	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	Secret	sparse ternary, h = 192 (97 / 95)	docs/security.md	line 283	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	BDGL16	121.8	docs/security.md	line 283	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	MATZOV	121.5	docs/security.md	line 283	
+security	ReBoot main key (R-REB-4: OpenFHE's own chain)	>= 128 (both)	no	docs/security.md	line 283	
+security	note 1			docs/security.md	line 286	
+plain_datasets	MNIST 14x14	Epochs	50	results/plain_mnist_emlp1_paper.json	effective.epochs	
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Fixed final epoch (%)	95.00 ± 0.18 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	Best epoch, test-selected (%)	95.33 ± 0.15 (n = 10)	results/plain_mnist_emlp1_paper.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	MNIST 14x14	ReBoot Table 4 (%)	94.61 ± 0.27	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+plain_datasets	MNIST 14x14	ReBoot Table 4 (%)	94.61 ± 0.27	results/plain_mnist_emlp1_paper.json	target.test_acc_std	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[0].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[1].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[2].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[3].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[4].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[5].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[6].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[7].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[8].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	runs[9].test_acc	
+plain_datasets	MNIST 14x14	Δ fixed (pt)	+0.39	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[0].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[1].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[2].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[3].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[4].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[5].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[6].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[7].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[8].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	runs[9].test_acc	
+plain_datasets	MNIST 14x14	Within 1 pt	yes	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+plain_datasets	Fashion-MNIST 14x14	Epochs	50	results/plain_fmnist_emlp1.json	effective.epochs	
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Fixed final epoch (%)	85.22 ± 0.17 (n = 10)	results/plain_fmnist_emlp1.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	Best epoch, test-selected (%)	85.53 ± 0.12 (n = 10)	results/plain_fmnist_emlp1.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Fashion-MNIST 14x14	ReBoot Table 4 (%)	85.12 ± 0.20	results/plain_fmnist_emlp1.json	target.test_acc_mean	
+plain_datasets	Fashion-MNIST 14x14	ReBoot Table 4 (%)	85.12 ± 0.20	results/plain_fmnist_emlp1.json	target.test_acc_std	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[0].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[1].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[2].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[3].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[4].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[5].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[6].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[7].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[8].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	runs[9].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Δ fixed (pt)	+0.10	results/plain_fmnist_emlp1.json	target.test_acc_mean	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[0].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[1].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[2].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[3].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[4].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[5].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[6].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[7].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[8].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	runs[9].test_acc	
+plain_datasets	Fashion-MNIST 14x14	Within 1 pt	yes	results/plain_fmnist_emlp1.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	Epochs	100	results/plain_bc_mlp.json	effective.epochs	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	96.40 ± 1.27 (n = 10)	results/plain_bc_mlp.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	99.30 ± 0.37 (n = 10)	results/plain_bc_mlp.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp.json	target.test_acc_std	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[0].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[1].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[2].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[3].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[4].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[5].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[6].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[7].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[8].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	runs[9].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-2.63	results/plain_bc_mlp.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[0].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[1].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[2].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[3].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[4].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[5].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[6].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[7].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[8].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	runs[9].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	Epochs	100	results/plain_bc_mlp_split_per_run.json	effective.epochs	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Fixed final epoch (%)	95.26 ± 1.61 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[0].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[1].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[2].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[3].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[4].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[5].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[6].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[7].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[8].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	Best epoch, test-selected (%)	97.89 ± 0.94 (n = 10)	results/plain_bc_mlp_split_per_run.json	runs[9].test_acc	mean ± sample standard deviation over seeds
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp_split_per_run.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp_split_per_run.json	target.test_acc_std	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[0].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[1].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[2].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[3].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[4].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[5].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[6].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[7].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[8].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	runs[9].test_acc	
+plain_datasets	Breast Cancer	Δ fixed (pt)	-3.77	results/plain_bc_mlp_split_per_run.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[0].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[1].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[2].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[3].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[4].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[5].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[6].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[7].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[8].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	runs[9].test_acc	
+plain_datasets	Breast Cancer	Within 1 pt	no	results/plain_bc_mlp_split_per_run.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	Epochs	100	results/plain_bc_mlp_standardize.json	effective.epochs	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[0].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[1].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[2].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[3].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[4].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[5].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[6].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[7].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[8].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	Fixed final epoch (%)	diverged (10/10 seeds)	results/plain_bc_mlp_standardize.json	runs[9].nonfinite_from_epoch	
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp_standardize.json	target.test_acc_mean	
+plain_datasets	Breast Cancer	ReBoot Table 4 (%)	99.03 ± 1.78	results/plain_bc_mlp_standardize.json	target.test_acc_std	
