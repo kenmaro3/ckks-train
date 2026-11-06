@@ -1,0 +1,11 @@
+# R-REB-13-LAUNCH-EXTRA-STATIC
+
+Read-only operational prerequisite observation, not a scientific result or launch approval. At2026-11-07T06:47:25.938 JST, the original observer recorded the actual new-venv root metadata and the hash of one fixed base-interpreter stdlib file. It exited0 with empty stderr under nice10. The new interpreter and inspected source were not executed; no package/scientific import, mode change, build, install, context, capture or job/queue mutation was performed.
+
+Observed `/home/kmihara/reboot/exporter-venv-task54-v1`: uid1000, mode509 decimal (0775), device66311 and inode36309239. Observed base `lib/python3.11/typing.py`:120951bytes, SHA256eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203, uid1000, mode436 decimal (0664). The exact root path and source path are retained in observation.json. A future launch must explicitly bind and freshly recheck its reviewed mode; this observed value is not a code default or a live-state guarantee.
+
+The observer reads one canonical regular source with a512KiB cap and checks descriptor identity around reading. The root observation is metadata only. Observer elapsed time is approximately0.0074s and controller/SSH wall time66.311s; both are operational provenance, not performance measurements or continuous resource observations.
+
+Four files (observer, observation.json, stderr.txt and controller.json) are byte-exact copies of retained ledger originals. README and SHA256SUMS are publication metadata. JSON is operational output, not a binary-emitted training result; no number or original byte was normalized. No source implementation body is included in the observation.
+
+The typing source hash does not establish its semantic behavior, bootstrap cache identity, alias runtime representation or an expanded lazy-helper closure. The source-only launcher tests remain Mac fixtures; actual Linux path/module/finder state and helper subprocess behavior still need their own evidence. This observation does not release startup/context/capture, prove native isolation or package identity, replace the scientific exact-compatibility gate, or establish the current FULL-2 state. Source and filesystem checks are point-in-time observations under the stated no-concurrent-writer assumption.

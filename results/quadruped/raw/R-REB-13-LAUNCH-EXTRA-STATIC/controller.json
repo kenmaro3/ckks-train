@@ -1,0 +1,32 @@
+{
+  "kind": "operational_read_only_observer_controller",
+  "started_unix": 1794001587.264173,
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 python3 -"
+  ],
+  "source_sha256": "cc9eb2a387cd40a33ba9f3ce72093d942d5c4beb0d7773726b7ba9c3efff2f18",
+  "returncode": 0,
+  "finished_unix": 1794001653.574788
+}

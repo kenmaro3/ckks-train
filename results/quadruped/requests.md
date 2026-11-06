@@ -543,3 +543,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** controller ledger `task-54-linux-helper-static-20261107.{stdout,stderr,meta.json}`.
 - **pass criterion:** actual file/hash/import observations and explicit remaining helper-closure/startup limitations. No transitive-closure, startup-cache or runtime claim; no scientific imports/full native or package hashing/context/capture/job or queue mutation.
 - **status:** done (2026-11-07T06:33:04.897637+09:00–2026-11-07T06:33:05.009331+09:00, exit0; controller14.689s including SSH). All34 fixed files observed,656069source bytes; base executable pin matched. Raw operational evidence is archived in `raw/R-REB-12-LAUNCH-HELPERS/`. This is an import-atom/source-identity observation only, not complete helper closure or target startup/context/capture approval.
+
+
+## R-REB-13-LAUNCH-EXTRA-STATIC: venv root mode and typing source identity
+
+- **purpose:** observe missing root-mode and typing.py identity prerequisites identified by bounded launcher review; no mode change or target startup.
+- **commit to sync:** none; no build/install/sync.
+- **working dir:** read-only exact new-venv root metadata and original base stdlib typing.py.
+- **command:** key-only SSH `nice -n 10 python3 -`; fixed original observer SHA256 cc9eb2a387cd40a33ba9f3ce72093d942d5c4beb0d7773726b7ba9c3efff2f18, ledger `task-54-linux-launch-extra-static-20261107.py`; source syntax parsed locally only.
+- **expected duration:** seconds; one observer process/thread, one source file cap512KiB. Lightweight read-only untimed preparation may overlap FULL-2.
+- **GPU memory need:** 0. **RAM need:** under50MiB expected.
+- **output path:** ledger `task-54-linux-launch-extra-static-20261107.{stdout,stderr,meta.json}`.
+- **pass criterion:** actual root owner/mode metadata and exact typing source hash; no semantic/closure/startup/context/scientific claim or job/queue change.
+- **status:** done (2026-11-07T06:47:25.938039+09:00, exit0; controller66.311s including SSH). Actual root uid1000/mode0775 recorded; typing.py120951bytes SHA256eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203, uid1000/mode0664. This metadata/hash-only observation does not establish source semantics, helper closure, new-venv startup or later-phase readiness. Raw operational evidence: `raw/R-REB-13-LAUNCH-EXTRA-STATIC/`.

@@ -1,0 +1,22 @@
+{
+  "kind": "read_only_launch_prerequisite_observation_not_scientific_result",
+  "started_unix": 1794001645.9306004,
+  "nice": 10,
+  "uid": 1000,
+  "venv_root": {
+    "path": "/home/kmihara/reboot/exporter-venv-task54-v1",
+    "uid": 1000,
+    "mode": 509,
+    "device": 66311,
+    "inode": 36309239
+  },
+  "typing_source": {
+    "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/typing.py",
+    "bytes": 120951,
+    "sha256": "eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203",
+    "uid": 1000,
+    "mode": 436
+  },
+  "scope": "Metadata and source hash only; no target startup, source execution, semantic or expanded helper-closure review, context, capture, scientific import, or job/queue change.",
+  "finished_unix": 1794001645.938039
+}
