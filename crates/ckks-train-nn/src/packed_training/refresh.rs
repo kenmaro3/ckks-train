@@ -129,7 +129,7 @@ impl<C: HeCiphertext + Clone> PackedRefreshRequest<C> {
     pub fn output_contract(&self) -> &PackedRefreshContract {
         &self.contract
     }
-    fn validate_response<E: HeOps<Ct = C>>(
+    pub(super) fn validate_response<E: HeOps<Ct = C>>(
         &self,
         ev: &E,
         response: &PackedRefreshResponse<C>,

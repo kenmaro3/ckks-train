@@ -57,3 +57,12 @@ pub use trainer::{
     PackedBootstrapEvent, PackedNiCandidate, PackedNiFailure, PackedNiPhase, PackedNiReceipt,
     PackedNiResult, PackedNiTrainer,
 };
+
+mod block;
+pub use block::*;
+pub use stage::{
+    PackedForwardFailure, PackedForwardOutput, PackedForwardPart, PackedForwardPlan,
+    PackedForwardReceipt, PackedForwardRecord, PackedForwardResult,
+};
+
+pub use stage::PackedForwardObservation;

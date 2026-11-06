@@ -740,3 +740,561 @@ impl<E: HeOps> Runner<'_, E> {
         PackedVector::new(self.ev, z.spec(), ct)
     }
 }
+
+/// Input-only encrypted record; no target or learning rate can enter inference.
+#[derive(Clone, Debug)]
+pub struct PackedForwardRecord<C> {
+    pub(super) id: usize,
+    pub(super) input: PackedVector<C>,
+    pub(super) valid: bool,
+}
+impl<C> PackedForwardRecord<C> {
+    /// Declares a physical record; checked at planning/preparation.
+    pub fn new(id: usize, input: PackedVector<C>, valid: bool) -> Self {
+        Self { id, input, valid }
+    }
+    /// Original physical identity.
+    pub fn id(&self) -> usize {
+        self.id
+    }
+    /// Input ciphertext in its declared representation.
+    pub fn input(&self) -> &PackedVector<C> {
+        &self.input
+    }
+    /// Public validity flag.
+    pub fn valid(&self) -> bool {
+        self.valid
+    }
+}
+/// Precisely which used layers belong to an inference stage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PackedForwardPart {
+    /// Backbone only; never inspects local head or any velocity.
+    Backbone,
+    /// Final backbone plus final classifier and configured output activation.
+    OutputStack,
+}
+/// Immutable generation-bound forward plan, with no training DAG.
+#[derive(Clone, Debug)]
+pub struct PackedForwardPlan {
+    part: PackedForwardPart,
+    generations: Vec<Arc<()>>,
+    inputs: Vec<(usize, ckks_train_ckks::metadata::CtMeta)>,
+    outputs: Vec<ckks_train_ckks::metadata::CtMeta>,
+    trace: Vec<PackedTraceEntry>,
+    counts: OpCounter,
+    hidden: Option<super::PackedBootstrapContract>,
+}
+impl PackedForwardPlan {
+    /// Selected path, excluding unused local heads.
+    pub fn part(&self) -> PackedForwardPart {
+        self.part
+    }
+    /// Complete operation prediction, including explicit hidden refresh.
+    pub fn predicted_counts(&self) -> &OpCounter {
+        &self.counts
+    }
+    /// Exact planned primitive boundaries.
+    pub fn trace(&self) -> &[PackedTraceEntry] {
+        &self.trace
+    }
+    /// Selected path outputs in valid-record order.
+    pub fn output_histories(&self) -> &[ckks_train_ckks::metadata::CtMeta] {
+        &self.outputs
+    }
+}
+/// Encrypted path results, without any state candidate.
+#[derive(Debug)]
+pub struct PackedForwardOutput<C> {
+    pub(super) ids: Vec<usize>,
+    pub(super) values: Vec<PackedVector<C>>,
+}
+impl<C> PackedForwardOutput<C> {
+    /// Original valid physical IDs.
+    pub fn valid_ids(&self) -> &[usize] {
+        &self.ids
+    }
+    /// Final selected path values.
+    pub fn values(&self) -> &[PackedVector<C>] {
+        &self.values
+    }
+}
+/// Available encrypted results for one started physical inference record, including partial failure.
+#[derive(Debug)]
+pub struct PackedForwardObservation<C> {
+    id: usize,
+    input: PackedVector<C>,
+    affine: Option<PackedVector<C>>,
+    preactivation: Option<PackedVector<C>>,
+    hidden_pre: Option<PackedVector<C>>,
+    hidden_post: Option<PackedVector<C>>,
+    head_affine: Option<PackedVector<C>>,
+    head_preactivation: Option<PackedVector<C>>,
+    output: Option<PackedVector<C>>,
+    bootstrap: Option<super::PackedBootstrapAttempt<C>>,
+    counts: Option<OpCounter>,
+}
+impl<C> PackedForwardObservation<C> {
+    /// Original physical ID, preserving invalid holes.
+    pub fn id(&self) -> usize {
+        self.id
+    }
+    /// Actual selected input, retained before the first primitive.
+    pub fn input(&self) -> &PackedVector<C> {
+        &self.input
+    }
+    /// Completed backbone affine, before optional bias.
+    pub fn affine(&self) -> Option<&PackedVector<C>> {
+        self.affine.as_ref()
+    }
+    /// Completed backbone affine plus optional bias.
+    pub fn preactivation(&self) -> Option<&PackedVector<C>> {
+        self.preactivation.as_ref()
+    }
+    /// Completed hidden before optional bootstrap.
+    pub fn hidden_pre(&self) -> Option<&PackedVector<C>> {
+        self.hidden_pre.as_ref()
+    }
+    /// Checked post-bootstrap hidden, absent when its raw output failed validation.
+    pub fn hidden_post(&self) -> Option<&PackedVector<C>> {
+        self.hidden_post.as_ref()
+    }
+    /// Completed final-head affine, absent on backbone-only paths.
+    pub fn head_affine(&self) -> Option<&PackedVector<C>> {
+        self.head_affine.as_ref()
+    }
+    /// Completed final-head affine plus bias.
+    pub fn head_preactivation(&self) -> Option<&PackedVector<C>> {
+        self.head_preactivation.as_ref()
+    }
+    /// Completed selected path output; no placeholder is manufactured on failure.
+    pub fn output(&self) -> Option<&PackedVector<C>> {
+        self.output.as_ref()
+    }
+    /// Raw encrypted attempted hidden refresh, including rejected returned ciphertexts.
+    pub fn bootstrap_attempt(&self) -> Option<&super::PackedBootstrapAttempt<C>> {
+        self.bootstrap.as_ref()
+    }
+    /// Inclusive interval for this started record, including partial failed work.
+    pub fn counter_delta(&self) -> Option<&OpCounter> {
+        self.counts.as_ref()
+    }
+}
+/// Forward-only old-state observations and separately counted explicit refresh.
+#[derive(Debug)]
+pub struct PackedForwardReceipt<C> {
+    observations: Vec<PackedForwardObservation<C>>,
+    plan: PackedForwardPlan,
+    trace: Vec<PackedTraceEntry>,
+    inputs: Vec<PackedVector<C>>,
+    preactivations: Vec<PackedVector<C>>,
+    outputs: Vec<PackedVector<C>>,
+    hidden_pre: Vec<PackedVector<C>>,
+    hidden_post: Option<Vec<PackedVector<C>>>,
+    events: Vec<super::PackedBootstrapEvent<C>>,
+    counts: OpCounter,
+}
+impl<C> PackedForwardReceipt<C> {
+    /// Every started physical record and its available encrypted primitive results.
+    pub fn observations(&self) -> &[PackedForwardObservation<C>] {
+        &self.observations
+    }
+    /// Actual selected inputs, including restored old-hidden boundaries.
+    pub fn inputs(&self) -> &[PackedVector<C>] {
+        &self.inputs
+    }
+    /// Backbone affine plus bias, before its activation.
+    pub fn preactivations(&self) -> &[PackedVector<C>] {
+        &self.preactivations
+    }
+    /// Actual selected path outputs, including the final head only in OutputStack.
+    pub fn outputs(&self) -> &[PackedVector<C>] {
+        &self.outputs
+    }
+
+    /// Immutable pre-execution plan.
+    pub fn plan(&self) -> &PackedForwardPlan {
+        &self.plan
+    }
+    /// Observed primitive boundaries.
+    pub fn trace(&self) -> &[PackedTraceEntry] {
+        &self.trace
+    }
+    /// Old hidden before the optional fixed refresh.
+    pub fn hidden_pre(&self) -> &[PackedVector<C>] {
+        &self.hidden_pre
+    }
+    /// Exact refreshed hidden selected by the final head or returned backbone.
+    pub fn hidden_post(&self) -> Option<&[PackedVector<C>]> {
+        self.hidden_post.as_deref()
+    }
+    /// Only explicitly planned hidden bootstrap events.
+    pub fn events(&self) -> &[super::PackedBootstrapEvent<C>] {
+        &self.events
+    }
+    /// Single inclusive observed stage interval.
+    pub fn actual_counts(&self) -> &OpCounter {
+        &self.counts
+    }
+}
+/// Partial inference evidence; no state commit exists.
+#[derive(Debug)]
+pub struct PackedForwardFailure<C> {
+    observations: Box<[PackedForwardObservation<C>]>,
+    error: Box<HekitError>,
+    role: Option<super::PackedRefreshRole>,
+    trace: Vec<PackedTraceEntry>,
+    events: Vec<super::PackedBootstrapEvent<C>>,
+    counts: Option<Box<OpCounter>>,
+}
+impl<C> PackedForwardFailure<C> {
+    /// Completed and partial started records; invalid holes have no observations.
+    pub fn observations(&self) -> &[PackedForwardObservation<C>] {
+        &self.observations
+    }
+    /// Original failure.
+    pub fn error(&self) -> &HekitError {
+        &self.error
+    }
+    /// Current refresh role, if any.
+    pub fn role(&self) -> Option<super::PackedRefreshRole> {
+        self.role
+    }
+    /// Partial actual primitive trace.
+    pub fn trace(&self) -> &[PackedTraceEntry] {
+        &self.trace
+    }
+    /// Completed validated refreshes.
+    pub fn events(&self) -> &[super::PackedBootstrapEvent<C>] {
+        &self.events
+    }
+    /// Inclusive attempted interval.
+    pub fn counter_delta(&self) -> Option<&OpCounter> {
+        self.counts.as_deref()
+    }
+}
+/// Forward-only result, with no optimizer or graph candidate.
+pub type PackedForwardResult<C> =
+    std::result::Result<(PackedForwardOutput<C>, PackedForwardReceipt<C>), PackedForwardFailure<C>>;
+impl<C: HeCiphertext + Clone> PackedStage<C> {
+    fn forward_inputs<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        records: &[PackedForwardRecord<C>],
+    ) -> Result<Vec<(usize, ckks_train_ckks::metadata::CtMeta)>> {
+        let mut out = vec![];
+        for (id, r) in records.iter().enumerate() {
+            if id != r.id {
+                return invalid("packed forward physical ID mismatch");
+            }
+            validate_vector(ev, &r.input, self.layers[0].weights().layer().input(), true)?;
+            if r.valid {
+                out.push((
+                    id,
+                    ckks_train_ckks::metadata::CtMeta::new(
+                        ev.params(),
+                        r.input.ciphertext().level(),
+                        r.input.ciphertext().scale(),
+                    )?,
+                ));
+            }
+        }
+        if out.is_empty() {
+            return invalid("packed forward needs valid records");
+        }
+        Ok(out)
+    }
+    /// Plans exactly the selected path using real q/Encoder recurrences; no training metadata.
+    pub fn plan_forward<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        enc: &Encoder,
+        records: &[PackedForwardRecord<C>],
+        part: PackedForwardPart,
+        hidden: Option<&super::PackedBootstrapContract>,
+    ) -> Result<PackedForwardPlan> {
+        self.plan_forward_histories(ev, enc, self.forward_inputs(ev, records)?, part, hidden)
+    }
+    pub(super) fn plan_forward_histories<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        enc: &Encoder,
+        inputs: Vec<(usize, ckks_train_ckks::metadata::CtMeta)>,
+        part: PackedForwardPart,
+        hidden: Option<&super::PackedBootstrapContract>,
+    ) -> Result<PackedForwardPlan> {
+        if !Arc::ptr_eq(ev.params(), enc.params())
+            || !ev.has_relin_key()
+            || inputs.is_empty()
+            || inputs.windows(2).any(|w| w[0].0 >= w[1].0)
+        {
+            return invalid("packed forward context, key or IDs mismatch");
+        }
+        if let Some(b) = hidden {
+            b.validate_params(ev.params())?;
+        }
+        let used = if part == PackedForwardPart::Backbone {
+            1
+        } else {
+            2
+        };
+        let mut weights = vec![];
+        let mut biases = vec![];
+        let mut generations = vec![];
+        for k in 0..used {
+            let w = self.layers[k].weights();
+            check_ct(ev, w.ciphertext(), w.layer().layout().slots())?;
+            if w.ciphertext().scale() != ev.params().scale() {
+                return Err(HekitError::ScaleMismatch);
+            }
+            if w.layer()
+                .layout()
+                .galois_steps()
+                .iter()
+                .any(|&s| !ev.has_galois_key(s))
+            {
+                return invalid("packed forward missing used layer keys");
+            }
+            weights.push(History::of(w.ciphertext()));
+            generations.push(self.layers[k].generation());
+            let b = if let Some(b) = &self.biases {
+                validate_vector(ev, &b[k], w.layer().output(), true)?;
+                Some(History::of(b[k].ciphertext()))
+            } else {
+                None
+            };
+            biases.push(b);
+        }
+        let mut planner = super::dag::ForwardPlanner::new(ev.params(), enc);
+        let mut outputs = vec![];
+        let mut extra = OpCounter::default();
+        for &(id, input) in &inputs {
+            ckks_train_ckks::metadata::CtMeta::new(ev.params(), input.level(), input.scale())?;
+            if input.scale_bits() != ev.params().scale().to_bits() {
+                return Err(HekitError::ScaleMismatch);
+            }
+            planner.set_sample(Some(id));
+            let z = planner.affine(
+                "affine1",
+                input.into(),
+                weights[0],
+                self.layers[0].weights().layer(),
+                false,
+            )?;
+            let z = planner.bias("z1", z, biases[0])?;
+            let mut h = planner.activation(
+                "hidden",
+                z,
+                self.layers[0].weights().layer().output(),
+                !self.config.square(),
+            )?;
+            if let Some(b) = hidden {
+                planner.record("hidden.pre_boot", h);
+                h = planner.record("hidden.post_boot", b.output().into());
+                extra = super::dag::checked_counts(&extra, b.cost_per_boot())?;
+            }
+            let y = if part == PackedForwardPart::OutputStack {
+                let z = planner.affine(
+                    "affine2",
+                    h,
+                    weights[1],
+                    self.layers[1].weights().layer(),
+                    false,
+                )?;
+                let z = planner.bias("z2", z, biases[1])?;
+                if self.config.square() {
+                    planner.activation(
+                        "output",
+                        z,
+                        self.layers[1].weights().layer().output(),
+                        false,
+                    )?
+                } else {
+                    planner.record("output", z)
+                }
+            } else {
+                h
+            };
+            outputs.push(ckks_train_ckks::metadata::CtMeta::new(
+                ev.params(),
+                y.level,
+                y.scale,
+            )?);
+        }
+        let (trace, counts) = planner.finish();
+        let counts = super::dag::checked_counts(&counts, &extra)?;
+        Ok(PackedForwardPlan {
+            part,
+            generations,
+            inputs,
+            outputs,
+            trace,
+            counts,
+            hidden: hidden.cloned(),
+        })
+    }
+    /// Executes only affine/bias/activation and the explicit hidden seam. Never updates state.
+    pub fn prepare_forward<E: HeOps<Ct = C>>(
+        &self,
+        ev: &E,
+        enc: &Encoder,
+        records: &[PackedForwardRecord<C>],
+        plan: &PackedForwardPlan,
+        bootstrap: Option<&dyn super::PlannedBootstrap<E>>,
+    ) -> PackedForwardResult<C> {
+        let before = ev.counter();
+        let mut trace = vec![];
+        let mut events = vec![];
+        let mut role = None;
+        let mut observations: Vec<PackedForwardObservation<C>> = vec![];
+        let mut record_before = None;
+        let result = (|| -> Result<PackedForwardOutput<C>> {
+            let actual = self.plan_forward(ev, enc, records, plan.part, plan.hidden.as_ref())?;
+            if actual.inputs != plan.inputs
+                || actual.trace != plan.trace
+                || actual.counts != plan.counts
+                || actual.generations.len() != plan.generations.len()
+                || actual
+                    .generations
+                    .iter()
+                    .zip(&plan.generations)
+                    .any(|(a, b)| !Arc::ptr_eq(a, b))
+            {
+                return invalid("packed forward stale plan or input histories");
+            }
+            match (bootstrap, plan.hidden.as_ref()) {
+                (Some(b), Some(c)) => b.validate_binding(ev, c)?,
+                (None, None) => {}
+                _ => return invalid("packed forward hidden capability mismatch"),
+            }
+            let mut values = vec![];
+            for r in records.iter().filter(|r| r.valid) {
+                record_before = Some(ev.counter());
+                observations.push(PackedForwardObservation {
+                    id: r.id,
+                    input: r.input.clone(),
+                    affine: None,
+                    preactivation: None,
+                    hidden_pre: None,
+                    hidden_post: None,
+                    head_affine: None,
+                    head_preactivation: None,
+                    output: None,
+                    bootstrap: None,
+                    counts: None,
+                });
+                let observed = observations.last_mut().unwrap();
+                let mut run = Runner {
+                    ev,
+                    enc,
+                    trace: &mut trace,
+                    sample: Some(r.id),
+                };
+                let z = run.affine("affine1", self.layers[0].weights(), &r.input, false)?;
+                observed.affine = Some(z.clone());
+                let z = run.bias("z1", z, self.biases.as_ref().map(|b| &b[0]))?;
+                observed.preactivation = Some(z.clone());
+                let h = run.activation("hidden", &z, !self.config.square())?;
+                observed.hidden_pre = Some(h.clone());
+                let h = if let (Some(b), Some(c)) = (bootstrap, plan.hidden.as_ref()) {
+                    run.record("hidden.pre_boot", &h);
+                    let capture = super::block::BootstrapCapture::new(
+                        b,
+                        super::PackedRefreshRole::Hidden {
+                            stage: self.layers[0].weights().layer().ordinal() / 2,
+                            record: r.id as u64,
+                        },
+                    );
+                    let result = super::trainer::bootstrap_hidden(
+                        ev,
+                        self.layers[0].weights().layer(),
+                        r.id,
+                        &h,
+                        &capture,
+                        c,
+                        &mut events,
+                        &mut role,
+                    );
+                    observed.bootstrap = capture.finish(result.is_ok());
+                    let h = result?;
+                    run.record("hidden.post_boot", &h);
+                    observed.hidden_post = Some(h.clone());
+                    h
+                } else {
+                    h
+                };
+                let y = if plan.part == PackedForwardPart::OutputStack {
+                    let z = run.affine("affine2", self.layers[1].weights(), &h, false)?;
+                    observed.head_affine = Some(z.clone());
+                    let z = run.bias("z2", z, self.biases.as_ref().map(|b| &b[1]))?;
+                    observed.head_preactivation = Some(z.clone());
+                    if self.config.square() {
+                        run.activation("output", &z, false)?
+                    } else {
+                        run.record("output", &z);
+                        z
+                    }
+                } else {
+                    h
+                };
+                observed.output = Some(y.clone());
+                observed.counts =
+                    super::refresh::counter_delta(&ev.counter(), record_before.as_ref().unwrap());
+                values.push(y);
+            }
+            if trace != plan.trace
+                || super::refresh::counter_delta(&ev.counter(), &before).as_ref()
+                    != Some(&plan.counts)
+            {
+                return invalid("packed forward observed trace/count mismatch");
+            }
+            Ok(PackedForwardOutput {
+                ids: plan.inputs.iter().map(|x| x.0).collect(),
+                values,
+            })
+        })();
+        if let (Some(observed), Some(start)) = (observations.last_mut(), record_before.as_ref()) {
+            if observed.counts.is_none() {
+                observed.counts = super::refresh::counter_delta(&ev.counter(), start);
+            }
+        }
+        let counts = super::refresh::counter_delta(&ev.counter(), &before);
+        match result {
+            Ok(out) => {
+                let outputs = out.values.clone();
+                let receipt = PackedForwardReceipt {
+                    plan: plan.clone(),
+                    trace,
+                    inputs: observations.iter().map(|o| o.input.clone()).collect(),
+                    preactivations: observations
+                        .iter()
+                        .map(|o| o.preactivation.as_ref().unwrap().clone())
+                        .collect(),
+                    outputs,
+                    hidden_pre: observations
+                        .iter()
+                        .map(|o| o.hidden_pre.as_ref().unwrap().clone())
+                        .collect(),
+                    hidden_post: plan.hidden.is_some().then(|| {
+                        observations
+                            .iter()
+                            .map(|o| o.hidden_post.as_ref().unwrap().clone())
+                            .collect()
+                    }),
+                    observations,
+                    events,
+                    counts: counts.unwrap(),
+                };
+                Ok((out, receipt))
+            }
+            Err(error) => Err(PackedForwardFailure {
+                error: Box::new(error),
+                role,
+                trace,
+                events,
+                observations: observations.into_boxed_slice(),
+                counts: counts.map(Box::new),
+            }),
+        }
+    }
+}

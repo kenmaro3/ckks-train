@@ -646,3 +646,48 @@ pub(super) fn checked_counts(a: &OpCounter, b: &OpCounter) -> Result<OpCounter> 
             .ok_or_else(|| HekitError::InvalidParams("packed count overflow".into()))?,
     })
 }
+
+// Forward-only adapter: all recurrence bodies remain in the existing Planner.
+pub(super) struct ForwardPlanner<'p>(Planner<'p>);
+impl<'p> ForwardPlanner<'p> {
+    pub(super) fn new(params: &'p CkksParams, enc: &'p Encoder) -> Self {
+        Self(Planner {
+            params,
+            enc,
+            trace: vec![],
+            counts: OpCounter::default(),
+            sample: None,
+        })
+    }
+    pub(super) fn set_sample(&mut self, sample: Option<usize>) {
+        self.0.sample = sample;
+    }
+    pub(super) fn record(&mut self, name: &str, h: History) -> History {
+        self.0.record(name, h)
+    }
+    pub(super) fn affine(
+        &mut self,
+        name: &str,
+        x: History,
+        w: History,
+        l: &LayerGeometry,
+        reverse: bool,
+    ) -> Result<History> {
+        self.0.affine(name, x, w, l, reverse)
+    }
+    pub(super) fn bias(&mut self, name: &str, z: History, b: Option<History>) -> Result<History> {
+        self.0.bias(name, z, b)
+    }
+    pub(super) fn activation(
+        &mut self,
+        name: &str,
+        z: History,
+        spec: VectorSpec,
+        poly: bool,
+    ) -> Result<History> {
+        self.0.activation(name, z, spec, poly)
+    }
+    pub(super) fn finish(self) -> (Vec<PackedTraceEntry>, OpCounter) {
+        (self.0.trace, self.0.counts)
+    }
+}
