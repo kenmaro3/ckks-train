@@ -9,6 +9,7 @@ pub mod layout;
 pub mod layout_reboot;
 pub mod loss;
 pub mod optim;
+pub mod packed_training;
 pub mod refresh;
 pub mod sim;
 pub mod trainer;

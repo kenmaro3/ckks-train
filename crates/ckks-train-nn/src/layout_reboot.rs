@@ -330,6 +330,57 @@ impl RebootLayout {
         self.expand_unchecked(ev, enc, m.clone(), mask_value, target_scale, ps)
     }
 
+    /// Opt-in eq. 5 with only the first `valid_rows` retained before replication.
+    /// The valid-row mask and `factor` share the existing one ct-pt/rescale, so depth and
+    /// rotation counts equal `expand_to_scale`. Legacy wrappers retain their all-row behavior.
+    /// Context, keys, rows, levels, factor and encoding are checked before counted work.
+    pub fn expand_valid_to_scale<E: HeOps>(
+        &self,
+        ev: &E,
+        enc: &Encoder,
+        m: &E::Ct,
+        valid_rows: usize,
+        factor: f64,
+        target_scale: f64,
+    ) -> Result<E::Ct> {
+        self.check(ev, &self.expand_steps(), m.level(), 1)?;
+        if valid_rows == 0
+            || valid_rows > self.r
+            || !factor.is_finite()
+            || !std::sync::Arc::ptr_eq(enc.params(), ev.params())
+            || !ev.owns(m)
+            || m.slots() != self.slots()
+            || ckks_train_ckks::HeCiphertext::size(m) != 2
+            || !m.scale().is_finite()
+            || m.scale() <= 0.0
+        {
+            return invalid("invalid masked-expand rows, factor or ciphertext context".into());
+        }
+        let ps = ev.target_plain_scale(m, target_scale)?;
+        if !ps.is_finite() || ps <= 0.0 {
+            return invalid("invalid masked-expand plaintext scale".into());
+        }
+        let mask: Vec<f64> = (0..self.slots())
+            .map(|s| {
+                if s % self.c == 0 && s / self.c < valid_rows {
+                    factor
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+        let pt = ev.upload_pt_owned(enc.encode(&mask, ps, m.level())?)?;
+        let mut u = m.clone();
+        for e in (0..log2(self.c)).rev() {
+            u = ev.add(&u, &ev.rotate(&u, 1 << e)?)?;
+        }
+        let mut out = ev.rescale(&ev.mul_plain_to_scale(&u, &pt, target_scale)?)?;
+        for e in 0..log2(self.c) {
+            out = ev.add(&out, &ev.rotate(&out, -(1 << e))?)?;
+        }
+        Ok(out)
+    }
+
     /// RE-Matmul (§4.2.1): `z_rep = row_sum(x_exp (.) w_row)`, the **repeated** `x W` for `x`
     /// expanded and `W` row-encoded (or, in the backward pass, `W g` for `g` expanded and
     /// `W` column-encoded). 1 ct-ct mult (1 relin), 1 rescale, `log2 r` rotations: depth 1.
