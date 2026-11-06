@@ -1,9 +1,12 @@
 """Frozen independent transport and private predicates; no approved contexts."""
 
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import types
 import unittest
@@ -17,6 +20,145 @@ FIX = (
 )
 LITERALS = json.loads((FIX / "literals.json").read_text())
 INDEX = json.loads((FIX / "index.json").read_text())
+
+
+def compile_build_script(source, compiler, directory):
+    """Test-only host compile; synthetic study compiler facts come later."""
+    source_bytes = source.read_bytes()
+    source_hash = hashlib.sha256(source_bytes).hexdigest()
+    copied = directory / "build.rs"
+    output = directory / "build-script-build"
+    assert not output.exists(), "fresh compiler output required"
+    copied.write_bytes(source_bytes)
+    assert copied.read_bytes() == source_bytes, "compiler input byte mismatch"
+    env = dict(os.environ, RUSTUP_AUTO_INSTALL="0")
+    for key in (
+        "RUSTFLAGS",
+        "CARGO_ENCODED_RUSTFLAGS",
+        "RUSTC_WRAPPER",
+        "RUSTC_WORKSPACE_WRAPPER",
+        "RUSTC_BOOTSTRAP",
+    ):
+        env.pop(key, None)
+    version = subprocess.run(
+        [str(compiler), "-vV"], capture_output=True, timeout=10, env=env
+    )
+    assert version.returncode == 0, "selected rustc version unavailable"
+    command = [
+        str(compiler),
+        "--edition=2024",
+        "--crate-name",
+        "study_build_harness",
+        "--crate-type",
+        "bin",
+        "-C",
+        "debuginfo=0",
+        str(copied),
+        "-o",
+        str(output),
+    ]
+    identity = {
+        "source": str(source),
+        "source_sha256": source_hash,
+        "source_bytes": len(source_bytes),
+        "copied_source": str(copied),
+        "compiler": str(compiler),
+        "compiler_sha256": hashlib.sha256(compiler.read_bytes()).hexdigest(),
+        "compiler_version": version.stdout.decode(errors="replace"),
+        "command": command,
+    }
+    print("BUILD_SCRIPT_COMPILE " + json.dumps(identity), flush=True)
+    try:
+        result = subprocess.run(
+            command, cwd=directory, env=env, capture_output=True, timeout=60
+        )
+    except (subprocess.TimeoutExpired, OSError) as error:
+        raise AssertionError(
+            f"compile failed: source_sha256={source_hash} command={command!r} "
+            f"{str(error)[:4096]}"
+        ) from error
+    assert result.returncode == 0, (
+        f"compile failed: source_sha256={source_hash} command={command!r} "
+        f"exit={result.returncode} {result.stderr[:4096].decode(errors='replace')}"
+    )
+    assert copied.read_bytes() == source_bytes, "compiled copy changed"
+    assert source.read_bytes() == source_bytes, "reviewed source changed"
+    assert output.is_file() and os.access(output, os.X_OK), "compiler output missing"
+    print(
+        "BUILD_SCRIPT_OUTPUT "
+        + json.dumps(
+            {
+                "path": str(output),
+                "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+                "source_copy_byte_equal": True,
+                "source_unchanged": True,
+            }
+        ),
+        flush=True,
+    )
+    return output
+
+
+class BuildScriptOwnershipTests(unittest.TestCase):
+    def test_exact_source_and_owned_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source, compiler = root / "original.rs", root / "rustc"
+            content = b"fn main() {}\n// exact bytes\n"
+            source.write_bytes(content)
+            compiler.write_bytes(b"MOCK compiler identity only")
+            output = root / "build-script-build"
+
+            def run(argv, **kwargs):
+                if argv[1:] == ["-vV"]:
+                    return subprocess.CompletedProcess(argv, 0, b"MOCK version", b"")
+                self.assertEqual(Path(argv[-3]).read_bytes(), content)
+                self.assertEqual(Path(argv[-1]), output)
+                self.assertEqual(kwargs["cwd"], root)
+                self.assertEqual(kwargs["timeout"], 60)
+                self.assertFalse(output.exists())
+                output.write_bytes(b"MOCK executable ownership only")
+                output.chmod(0o700)
+                return subprocess.CompletedProcess(argv, 0, b"", b"")
+
+            with mock.patch.object(subprocess, "run", side_effect=run), mock.patch(
+                "builtins.print"
+            ):
+                self.assertEqual(compile_build_script(source, compiler, root), output)
+            self.assertEqual(source.read_bytes(), content)
+            with mock.patch.object(subprocess, "run") as run, self.assertRaisesRegex(
+                AssertionError, "fresh compiler output required"
+            ):
+                compile_build_script(source, compiler, root)
+            run.assert_not_called()
+
+    def test_compile_failure_and_timeout_have_no_artifact_fallback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source, compiler = root / "original.rs", root / "rustc"
+            source.write_bytes(b"fn main() {}\n")
+            compiler.write_bytes(b"MOCK compiler identity only")
+            for failure in (
+                subprocess.CompletedProcess([], 7, b"", b"failure" * 2000),
+                subprocess.TimeoutExpired(["MOCK compiler"], 60),
+            ):
+                with self.subTest(failure=type(failure).__name__), mock.patch.object(
+                    subprocess,
+                    "run",
+                    side_effect=[
+                        subprocess.CompletedProcess([], 0, b"MOCK version", b""),
+                        failure,
+                    ],
+                ), mock.patch("builtins.print"), self.assertRaises(
+                    AssertionError
+                ) as caught:
+                    compile_build_script(source, compiler, root)
+                message = str(caught.exception)
+                self.assertIn(hashlib.sha256(source.read_bytes()).hexdigest(), message)
+                self.assertIn(str(compiler), message)
+                self.assertIn("compile failed", message)
+                self.assertLess(len(message), 5500)
+                self.assertFalse((root / "build-script-build").exists())
 
 
 def literal(name):
@@ -347,88 +489,128 @@ class BuildFactsTests(unittest.TestCase):
         import subprocess, sys
 
         root_dir = Path(__file__).resolve().parent.parent
-        scripts = list(
-            (root_dir / "target/debug/build").glob(
-                "ckks-train-bench-*/build-script-build"
+        selected = os.environ.get("RUSTC")
+        if selected is None:
+            rustup = shutil.which("rustup")
+            self.assertIsNotNone(rustup, "installed rustup or absolute RUSTC required")
+            selection = subprocess.run(
+                [rustup, "which", "rustc"],
+                cwd=root_dir,
+                env=dict(os.environ, RUSTUP_AUTO_INSTALL="0"),
+                capture_output=True,
+                timeout=10,
             )
+            self.assertEqual(selection.returncode, 0, selection.stderr)
+            selected = os.fsdecode(selection.stdout.strip())
+        host_compiler = Path(selected)
+        self.assertTrue(
+            host_compiler.is_absolute()
+            and host_compiler.is_file()
+            and os.access(host_compiler, os.X_OK),
+            "selected installed absolute rustc required; no artifact fallback",
         )
-        self.assertTrue(scripts)
-        script = max(scripts, key=lambda p: p.stat().st_mtime)
-        for name in ("reference", "cpu_serial", "cpu_rayon", "cuda_host"):
-            with tempfile.TemporaryDirectory() as temp:
-                root = Path(temp).resolve()
-                compiler = root / "rustc"
-                compiler.write_text(
-                    "#!"
-                    + str(Path(sys.executable).resolve())
-                    + "\nprint("
-                    + repr("SYNTHETIC compiler\nhost: " + s.TARGET + "\n")
-                    + ",end='')\n"
-                )
-                compiler.chmod(0o700)
-                opts = {
-                    k: str(root / k)
-                    for k in (
-                        "root",
-                        "cargo",
-                        "git",
-                        "linker",
-                        "cargo_home",
-                        "target",
-                        "home",
-                        "tmp",
-                        "request",
+        source = root_dir / "crates/ckks-train-bench/build.rs"
+        with tempfile.TemporaryDirectory() as compilation, mock.patch.object(
+            Path,
+            "glob",
+            side_effect=AssertionError("stale target-artifact discovery forbidden"),
+        ):
+            compile_dir = Path(compilation).resolve()
+            before = shutil.disk_usage(compile_dir).free
+            self.assertGreaterEqual(before, 805306368, "0.75 GiB compile floor")
+            print("BUILD_SCRIPT_DISK_BEFORE " + str(before), flush=True)
+            script = compile_build_script(source, host_compiler, compile_dir)
+            after = shutil.disk_usage(compile_dir).free
+            print("BUILD_SCRIPT_DISK_AFTER " + str(after), flush=True)
+            self.assertGreaterEqual(after, 805306368, "0.75 GiB compile floor")
+            for name in ("reference", "cpu_serial", "cpu_rayon", "cuda_host"):
+                with tempfile.TemporaryDirectory() as temp:
+                    root = Path(temp).resolve()
+                    compiler = root / "rustc"
+                    compiler.write_text(
+                        "#!"
+                        + str(Path(sys.executable).resolve())
+                        + "\nprint("
+                        + repr("SYNTHETIC compiler\nhost: " + s.TARGET + "\n")
+                        + ",end='')\n"
                     )
-                }
-                opts.update(
-                    rustc=str(compiler),
-                    python=str(Path(sys.executable).resolve()),
-                    jobs=1,
-                )
-                env = s.build_environment(opts)
-                c = decoded(name + "_capsule")
-                environment = s.environment(
-                    [(k, os.fsencode(v)) for k, v in env.items()]
-                )
-                c.update(
-                    compiler="SYNTHETIC compiler\nhost: " + s.TARGET + "\n",
-                    environment=s.sha(environment),
-                )
-                Path(opts["request"]).write_bytes(build.encode_request(c, env, []))
-                base = dict(
-                    env,
-                    TARGET=s.TARGET,
-                    HOST=s.TARGET,
-                    PROFILE="release",
-                    OPT_LEVEL="3",
-                    DEBUG="false",
-                    CARGO_PKG_VERSION=c["version"],
-                    CARGO_MANIFEST_DIR=str(root_dir / "crates/ckks-train-bench"),
-                )
-                actual = {"CARGO_FEATURE_" + f.upper(): "1" for f in c["features"]}
-                for number, features in enumerate(
-                    (
-                        actual,
-                        {**actual, "CARGO_FEATURE_UNKNOWN": "1"},
-                        {"CARGO_FEATURE_CUDA": "1"},
-                    )
-                ):
-                    out = root / str(number)
-                    out.mkdir()
-                    result = subprocess.run(
-                        [str(script)],
-                        env=dict(base, OUT_DIR=str(out), **features),
-                        capture_output=True,
-                    )
-                    if number == 0:
-                        self.assertEqual(result.returncode, 0, result.stderr)
-                        self.assertEqual(
-                            (out / "study_capsule.bin").read_bytes(), s.capsule(c)
+                    compiler.chmod(0o700)
+                    opts = {
+                        k: str(root / k)
+                        for k in (
+                            "root",
+                            "cargo",
+                            "git",
+                            "linker",
+                            "cargo_home",
+                            "target",
+                            "home",
+                            "tmp",
+                            "request",
                         )
-                    else:
-                        self.assertNotEqual(result.returncode, 0)
-                        self.assertFalse((out / "study_capsule.bin").exists())
-                        self.assertFalse((out / "study_capsule.rs").exists())
+                    }
+                    opts.update(
+                        rustc=str(compiler),
+                        python=str(Path(sys.executable).resolve()),
+                        jobs=1,
+                    )
+                    env = s.build_environment(opts)
+                    c = decoded(name + "_capsule")
+                    environment = s.environment(
+                        [(k, os.fsencode(v)) for k, v in env.items()]
+                    )
+                    c.update(
+                        compiler="SYNTHETIC compiler\nhost: " + s.TARGET + "\n",
+                        environment=s.sha(environment),
+                    )
+                    Path(opts["request"]).write_bytes(build.encode_request(c, env, []))
+                    base = dict(
+                        env,
+                        TARGET=s.TARGET,
+                        HOST=s.TARGET,
+                        PROFILE="release",
+                        OPT_LEVEL="3",
+                        DEBUG="false",
+                        CARGO_PKG_VERSION=c["version"],
+                        CARGO_MANIFEST_DIR=str(root_dir / "crates/ckks-train-bench"),
+                    )
+                    actual = {"CARGO_FEATURE_" + f.upper(): "1" for f in c["features"]}
+                    for number, features in enumerate(
+                        (
+                            actual,
+                            {**actual, "CARGO_FEATURE_UNKNOWN": "1"},
+                            {"CARGO_FEATURE_CUDA": "1"},
+                        )
+                    ):
+                        out = root / str(number)
+                        out.mkdir()
+                        result = subprocess.run(
+                            [str(script)],
+                            env=dict(base, OUT_DIR=str(out), **features),
+                            capture_output=True,
+                            timeout=10,
+                        )
+                        print(
+                            "BUILD_SCRIPT_SYNTHETIC_CASE "
+                            + json.dumps(
+                                dict(
+                                    recipe=name,
+                                    case=number,
+                                    script=str(script),
+                                    returncode=result.returncode,
+                                )
+                            ),
+                            flush=True,
+                        )
+                        if number == 0:
+                            self.assertEqual(result.returncode, 0, result.stderr)
+                            self.assertEqual(
+                                (out / "study_capsule.bin").read_bytes(), s.capsule(c)
+                            )
+                        else:
+                            self.assertNotEqual(result.returncode, 0)
+                            self.assertFalse((out / "study_capsule.bin").exists())
+                            self.assertFalse((out / "study_capsule.rs").exists())
 
     def test_closed_options_and_cuda_overrides(self):
         import subprocess, sys
