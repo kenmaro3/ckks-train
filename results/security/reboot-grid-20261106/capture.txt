@@ -1,0 +1,53 @@
+ReBoot follow-up grid output snapshot (not training measurements).
+Captured UTC: 2026-11-06T00:12:50.213626+00:00
+The three logs are copied byte-for-byte; no measured values were edited.
+Task39 report/source commit: 0330f20
+Task39 follow-up review remains pending at capture time.
+Lattice estimator commit: ae45d740ceb138af87a4f92edc592a0ab0d4f43f
+Input model: q=2^1730, m=N=65536, ND.SparseTernary(97,95,N), sigma=3.19.
+The sign split was observed on one generated ReBoot key; it is not a statement about every key.
+Numerical-grid BDGL16/MATZOV minima: 121.84 / 121.45 log2 rop; report rounds to 121.8 / 121.5.
+Analytical-grid ADPS16: 90.27 log2 rop, shown as 90.3; Core-SVP is not the adoption gate.
+These are minima within the reported searches and models, not a global proof of security.
+
+d328f5c39e3971b0cda6dd3f9feed07981b6b4a184197ed35893fe0d19086ce1  t39r_scan_num_bdgl16.log
+END   t39r_scan_num_bdgl16.log 2026-11-06 08:49:40 rc=0
+16535641b04a7e17348568e91a662db819aacc4eecf838b8223a13b7cf3c2b3d  t39r_scan_num_matzov.log
+END   t39r_scan_num_matzov.log 2026-11-06 09:03:46 rc=0
+638441d24d2fdceb03a4f9b2d385fcad9d4e35cf4fe625d445d577d74812ebdd  t39r_scan_ana_adps16.log
+END   t39r_scan_ana_adps16.log 2026-11-06 09:08:13 rc=0
+
+Input/tool hashes at capture (use committed source at 0330f20 and the unchanged scan script):
+9ecd18a791ac0c2147fc63f18afd2bcf91eeaab9cc9199f12a84bff0eed61d9b  tools/estimate/reboot_params.json
+5d88b797250589373ec9cdceac1851f21c0b8a793813c7bb8b98d03b456b0a72  tools/estimate/estimate.py
+20600a2f6c6950feb64034d76fd9fd5918df19009a67eb27e32894264e5e90ef  tools/estimate/dual_mitm_scan.py
+84ca4f3497272fc9c87af1681b6e16b5440ae47abc994976276e581635141790  results/quadruped/raw/reboot_crypto_params/params.json
+
+Original completion stream:
+START t39r_full_bdgl16.log 2026-11-06 07:33:21
+END   t39r_full_bdgl16.log 2026-11-06 07:41:55 rc=0
+START t39r_full_matzov.log 2026-11-06 07:41:55
+END   t39r_full_matzov.log 2026-11-06 07:52:23 rc=0
+START t39r_full_adps16.log 2026-11-06 07:52:23
+END   t39r_full_adps16.log 2026-11-06 08:00:34 rc=0
+START t39r_primal_zeta_bdgl16.log 2026-11-06 08:00:34
+END   t39r_primal_zeta_bdgl16.log 2026-11-06 08:12:00 rc=0
+START t39r_primal_zeta_matzov.log 2026-11-06 08:12:00
+END   t39r_primal_zeta_matzov.log 2026-11-06 08:23:37 rc=0
+START t39r_scan_ana_bdgl16.log 2026-11-06 08:23:37
+END   t39r_scan_ana_bdgl16.log 2026-11-06 08:27:40 rc=0
+START t39r_scan_ana_matzov.log 2026-11-06 08:27:40
+END   t39r_scan_ana_matzov.log 2026-11-06 08:32:49 rc=0
+START t39r_scan_exh_bdgl16.log 2026-11-06 08:32:49
+END   t39r_scan_exh_bdgl16.log 2026-11-06 08:34:06 rc=0
+START t39r_scan_exh_matzov.log 2026-11-06 08:34:06
+END   t39r_scan_exh_matzov.log 2026-11-06 08:35:57 rc=0
+ALL DONE REBOOT1 2026-11-06 08:35:57
+START t39r_scan_num_bdgl16.log 2026-11-06 08:36:02
+END   t39r_scan_num_bdgl16.log 2026-11-06 08:49:40 rc=0
+START t39r_scan_num_matzov.log 2026-11-06 08:49:40
+END   t39r_scan_num_matzov.log 2026-11-06 09:03:46 rc=0
+ALL DONE REBOOT2 2026-11-06 09:03:46
+START t39r_scan_ana_adps16.log 2026-11-06 09:04:01
+END   t39r_scan_ana_adps16.log 2026-11-06 09:08:13 rc=0
+ALL DONE REBOOT3 2026-11-06 09:08:13

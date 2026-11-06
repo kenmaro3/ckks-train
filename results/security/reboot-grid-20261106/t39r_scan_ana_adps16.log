@@ -1,0 +1,43 @@
+=== reboot_main: n=65536 log2(q)=1730 secret=[97, 95] cost=adps16 solver=mitm/analytical zeta grid 2000..16000 step 1000
+zeta   2000: log2 rop   96.10  beta 313  h1 5  d 127157
+zeta   3000: log2 rop   94.35  beta 306  h1 8  d 125204
+zeta   4000: log2 rop   92.48  beta 299  h1 11  d 123248
+zeta   5000: log2 rop   91.08  beta 292  h1 12  d 121287
+zeta   6000: log2 rop   90.43  beta 286  h1 12  d 119461
+zeta   7000: log2 rop   90.61  beta 280  h1 12  d 117631
+zeta   8000: log2 rop   91.34  beta 272  h1 11  d 115520
+zeta   9000: log2 rop   92.55  beta 265  h1 11  d 113544
+zeta  10000: log2 rop   94.39  beta 257  h1 10  d 111423
+zeta  11000: log2 rop   96.47  beta 251  h1 10  d 109577
+zeta  12000: log2 rop   99.33  beta 243  h1 9  d 107445
+zeta  13000: log2 rop  101.72  beta 236  h1 9  d 105450
+zeta  14000: log2 rop  105.02  beta 230  h1 9  d 103591
+zeta  15000: log2 rop  108.30  beta 222  h1 8  d 101443
+zeta  16000: log2 rop  111.57  beta 215  h1 8  d 99431
+--- refine around 6000 in [5000, 7000] step 250
+zeta   5250: log2 rop   90.85  beta 291  h1 12  d 120899
+zeta   5500: log2 rop   90.59  beta 289  h1 12  d 120374
+zeta   5750: log2 rop   90.42  beta 287  h1 12  d 119849
+zeta   6250: log2 rop   90.27  beta 284  h1 12  d 118934
+zeta   6500: log2 rop   90.34  beta 282  h1 12  d 118408
+zeta   6750: log2 rop   90.38  beta 281  h1 12  d 118019
+MIN zeta 6250: log2 rop 90.27 (247 s)
+rop: ≈2^90.3, mem: ≈2^74.4, m: ≈2^15.9, k: ≈2^11.6, ↻: ≈2^12.7, β: 284, d: 118934, ζ: ≈2^12.6, h1: 12
+      252.25 real       238.98 user         2.78 sys
+           474759168  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              175494  page reclaims
+                 976  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5579  voluntary context switches
+              322260  involuntary context switches
+       3249983494299  instructions retired
+        858239811237  cycles elapsed
+           481248576  peak memory footprint
