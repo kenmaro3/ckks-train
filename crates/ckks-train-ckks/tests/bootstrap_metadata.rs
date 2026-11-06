@@ -1,16 +1,34 @@
 use ckks_train_ckks::CkksParams;
 use ckks_train_ckks::bootstrap::metadata::DftSupportProof;
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use ckks_train_ckks::bootstrap::metadata::{BootstrapMetadata, MetadataLimits};
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn default_n16_structural_receipt_without_he() {
@@ -67,44 +85,98 @@ fn default_n16_structural_receipt_without_he() {
 }
 
 use ckks_train_ckks::Encoder;
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use ckks_train_ckks::KeyGenerator;
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use ckks_train_ckks::bootstrap::metadata::{
     BootstrapMetadataError, MetadataResource, UnvalidatedRequirement,
 };
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use ckks_train_ckks::bootstrap::{BootParams, Bootstrapper, Direction, dft_stages};
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use ckks_train_core::sampler::Rng;
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 fn small(
     log_slots: u32,
@@ -136,10 +208,19 @@ fn small(
 
 /// Independent connectivity oracle: visit row-to-column bit choices explicitly. Also
 /// independently form stored offsets by Minkowski addition of each butterfly's keys.
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn every_small_group_matches_connectivity_minkowski_and_actual_dft() {
@@ -234,10 +315,19 @@ fn every_small_group_matches_connectivity_minkowski_and_actual_dft() {
     }
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn small_runtime_receipts_match_encoding_scales_keys_and_all_counters() {
@@ -324,10 +414,19 @@ fn small_runtime_receipts_match_encoding_scales_keys_and_all_counters() {
     }
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn malformed_sizes_weights_packing_and_budgets_fail_without_panics() {
@@ -504,10 +603,19 @@ fn malformed_sizes_weights_packing_and_budgets_fail_without_panics() {
     );
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn identities_bind_contents_not_arc_or_presets() {
@@ -584,10 +692,19 @@ fn nonzero_unencoded_diagonal_remains_some_when_plaintext_rounds_to_zero() {
     assert!(diags.entries()[1].is_none());
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn small_observed_bootstrap_counter_equals_structural_receipt() {
@@ -614,10 +731,19 @@ fn small_observed_bootstrap_counter_equals_structural_receipt() {
     assert_eq!(output.scale().to_bits(), m.output().scale_bits());
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn stage_cost_places_final_ctos_conjugation_only_in_direction_total() {
@@ -636,10 +762,19 @@ fn stage_cost_places_final_ctos_conjugation_only_in_direction_total() {
     assert_eq!(m.ctos_cost().rotations, stage_rotations + 1);
 }
 
-#[cfg(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 ))]
 #[test]
 fn key_requirements_carry_parameter_binding_and_max_scalar_budget_is_operational() {
@@ -680,10 +815,19 @@ fn key_requirements_carry_parameter_binding_and_max_scalar_budget_is_operational
 }
 
 // Unsupported environments must retain the public named boundary, not mint a token.
-#[cfg(not(all(
-    target_arch = "aarch64",
-    target_os = "macos",
-    target_pointer_width = "64"
+#[cfg(not(any(
+    all(
+        target_arch = "aarch64",
+        target_os = "macos",
+        target_pointer_width = "64"
+    ),
+    all(
+        target_arch = "x86_64",
+        target_vendor = "unknown",
+        target_os = "linux",
+        target_env = "gnu",
+        target_pointer_width = "64"
+    )
 )))]
 #[test]
 fn unsupported_target_returns_named_dft_kept_support_boundary() {

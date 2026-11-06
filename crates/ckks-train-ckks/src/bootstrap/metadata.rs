@@ -300,7 +300,8 @@ pub struct DftSupportProof {
 }
 impl DftSupportProof {
     /// Streams all 65,535 scalar roots through the actual runtime root/inverse arithmetic.
-    /// Initially source-validated only for aarch64-apple-darwin, binary64, 64-bit usize.
+    /// Exact Apple64 and GNU x86_64 Linux64 candidates; Linux validation is pending.
+    /// Target eligibility alone is not tested support; actual scalar checks are mandatory.
     /// Requires unchanged ordinary FP environment thereafter. No DFT vectors or HE.
     pub fn verify_current() -> MetaResult<Self> {
         check_proof_environment(
@@ -411,7 +412,10 @@ fn check_proof_environment(
             DftProofFailure::ConfiguredCompilerDiagnosticsUnavailable,
         ));
     }
-    if target != Some("aarch64-apple-darwin") {
+    if !matches!(
+        target,
+        Some("aarch64-apple-darwin" | "x86_64-unknown-linux-gnu")
+    ) {
         return Err(missing(DftProofFailure::UnsupportedTargetEnvironment));
     }
     Ok(())
@@ -1730,16 +1734,44 @@ mod tests {
             })
         ));
     }
-    #[cfg(all(
-        target_arch = "aarch64",
-        target_os = "macos",
-        target_pointer_width = "64"
+    #[cfg(any(
+        all(
+            target_arch = "aarch64",
+            target_os = "macos",
+            target_pointer_width = "64"
+        ),
+        all(
+            target_arch = "x86_64",
+            target_vendor = "unknown",
+            target_os = "linux",
+            target_env = "gnu",
+            target_pointer_width = "64"
+        )
     ))]
     #[test]
     fn finite_scalar_proof_on_supported_target() {
         let proof = DftSupportProof::verify_current().unwrap();
         assert_eq!(proof.root_count(), 65535);
         assert!(proof.configured_compiler().unwrap().contains("rustc "));
+        let expected_target = if cfg!(all(
+            target_arch = "aarch64",
+            target_os = "macos",
+            target_pointer_width = "64"
+        )) {
+            "aarch64-apple-darwin"
+        } else {
+            "x86_64-unknown-linux-gnu"
+        };
+        assert_eq!(proof.target(), Some(expected_target));
+        eprintln!(
+            "current-process DFT support proof: TARGET={:?}, HOST(build)={:?}, roots={}, root_squared_norm={:?}, inverse_squared_norm={:?}\nconfigured compiler -vV:\n{}",
+            proof.target(),
+            proof.host(),
+            proof.root_count(),
+            proof.root_squared_norm_bounds(),
+            proof.inverse_squared_norm_bounds(),
+            proof.configured_compiler().unwrap()
+        );
     }
     #[test]
     fn folded_extremes_and_complex_support_operations() {
@@ -1821,47 +1853,77 @@ mod tests {
 #[cfg(test)]
 mod proof_failure_tests {
     use super::*;
+    // These tables exercise eligibility policy only; no proof token is constructed.
     #[test]
-    fn unknown_environment_never_mints_a_proof() {
-        for (bits, target, compiler, host, expected) in [
+    fn exact_targets_are_eligible_for_current_process_verification() {
+        for target in ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"] {
+            assert!(
+                check_proof_environment(64, Some(target), Some("rustc test"), Some("host")).is_ok(),
+                "exact target must be eligible: {target}"
+            );
+        }
+    }
+    #[test]
+    fn ineligible_diagnostics_return_exact_missing_requirement_and_reason() {
+        let good = Some("aarch64-apple-darwin");
+        let compiler = Some("rustc test");
+        let host = Some("host");
+        let mut cases = vec![
             (
                 32,
-                Some("aarch64-apple-darwin"),
-                Some("rustc test"),
-                Some("host"),
+                good,
+                compiler,
+                host,
                 DftProofFailure::UnsupportedPointerWidth,
             ),
+            // Pointer-width rejection must precede missing diagnostic rejection.
             (
-                64,
-                Some("unverified-target"),
-                Some("rustc test"),
-                Some("host"),
-                DftProofFailure::UnsupportedTargetEnvironment,
-            ),
-            (
-                64,
+                32,
                 None,
-                Some("rustc test"),
-                Some("host"),
-                DftProofFailure::ConfiguredCompilerDiagnosticsUnavailable,
-            ),
-            (
-                64,
-                Some("aarch64-apple-darwin"),
                 None,
-                Some("host"),
-                DftProofFailure::ConfiguredCompilerDiagnosticsUnavailable,
-            ),
-            (
-                64,
-                Some("aarch64-apple-darwin"),
-                Some("rustc test"),
                 None,
-                DftProofFailure::ConfiguredCompilerDiagnosticsUnavailable,
+                DftProofFailure::UnsupportedPointerWidth,
             ),
+        ];
+        for target in [
+            "x86_64-unknown-linux-musl",
+            "aarch64-unknown-linux-gnu",
+            "x86_64-pc-windows-gnu",
+            "unverified-target",
         ] {
+            cases.push((
+                64,
+                Some(target),
+                compiler,
+                host,
+                DftProofFailure::UnsupportedTargetEnvironment,
+            ));
+        }
+        for absent in [None, Some("")] {
+            for (target, compiler, host) in [
+                (absent, compiler, host),
+                (good, absent, host),
+                (good, compiler, absent),
+            ] {
+                cases.push((
+                    64,
+                    target,
+                    compiler,
+                    host,
+                    DftProofFailure::ConfiguredCompilerDiagnosticsUnavailable,
+                ));
+            }
+        }
+        for (bits, target, compiler, host, expected) in cases {
             assert!(
-                matches!(check_proof_environment(bits,target,compiler,host),Err(BootstrapMetadataError::MissingCode{reason,..}) if reason==expected)
+                matches!(
+                    check_proof_environment(bits, target, compiler, host),
+                    Err(BootstrapMetadataError::MissingCode {
+                        requirement: MissingRequirement::DftKeptSupportProof,
+                        reason,
+                    }) if reason == expected
+                ),
+                "bits={bits}, target={target:?}, compiler={compiler:?}, host={host:?}, expected={expected:?}"
             );
         }
     }

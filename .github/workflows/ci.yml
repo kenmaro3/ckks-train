@@ -54,6 +54,110 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.85
+      - name: Bootstrap metadata Linux evidence diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bootstrap-linux-evidence
+          {
+            git rev-parse HEAD
+            git status --short
+            sha256sum crates/ckks-train-ckks/src/bootstrap/metadata.rs crates/ckks-train-ckks/tests/bootstrap_metadata.rs .github/workflows/ci.yml docs/bootstrap-metadata-design.md docs/bootstrap-linux-validation-plan.md
+            rustc -vV
+            cargo --version
+            uname -a
+            uname -m
+            if [[ -r /etc/os-release ]]; then cat /etc/os-release; else echo 'os-release: unavailable'; fi
+            if ! getconf GNU_LIBC_VERSION; then echo 'glibc diagnostic: unavailable'; fi
+            python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          # Explicit diagnostic allowlist only; never dump the environment.
+          names = [
+              "ImageOS", "ImageVersion", "RUNNER_OS", "RUNNER_ARCH",
+              "RUSTC", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER",
+              "RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "RUSTDOCFLAGS",
+              "CARGO_BUILD_TARGET", "CARGO_BUILD_RUSTFLAGS", "CARGO_BUILD_RUSTC",
+              "CARGO_BUILD_RUSTC_WRAPPER", "CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER",
+              "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS",
+              "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER",
+          ]
+          for profile in ["TEST", "RELEASE"]:
+              names += [f"CARGO_PROFILE_{profile}_{key}" for key in [
+                  "OPT_LEVEL", "DEBUG_ASSERTIONS", "OVERFLOW_CHECKS", "LTO", "CODEGEN_UNITS"
+              ]]
+          for name in names:
+              print(f"{name}=" + json.dumps(os.environ.get(name, "<unset>")))
+          print("focused env: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 RAYON_NUM_THREADS=2; harness threads=1")
+          print("repository profiles: test opt-level=3, debug-assertions/overflow-checks default=true; release Cargo defaults; overrides recorded above/below")
+          try:
+              import tomllib
+          except ImportError:
+              tomllib = None
+          # Report only relevant compiler/target/profile overrides from possible Cargo configs.
+          configs = [Path.home() / ".cargo", Path(os.environ.get("CARGO_HOME", str(Path.home() / ".cargo")))]
+          configs += [parent / ".cargo" for parent in [Path.cwd(), *Path.cwd().parents]]
+          for directory in dict.fromkeys(configs):
+              for filename in ["config", "config.toml"]:
+                  path = directory / filename
+                  if not path.is_file():
+                      print(f"Cargo config {path}: absent")
+                      continue
+                  if tomllib is None:
+                      print(f"Cargo config {path}: present, parser unavailable")
+                      continue
+                  try:
+                      config = tomllib.loads(path.read_text())
+                  except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+                      print(f"Cargo config {path}: unavailable ({type(error).__name__})")
+                      continue
+                  selected = {}
+                  for section in ["build", "target", "profile"]:
+                      table = config.get(section, {})
+                      if section == "build":
+                          selected[section] = {k: v for k, v in table.items() if k in ["target", "rustflags", "rustc", "rustc-wrapper", "rustc-workspace-wrapper"]}
+                      elif section == "target":
+                          selected[section] = {k: {n: v for n, v in t.items() if n in ["rustflags", "linker", "runner"]} for k, t in table.items() if isinstance(t, dict)}
+                      else:
+                          selected[section] = {k: {n: v for n, v in t.items() if n in ["opt-level", "debug-assertions", "overflow-checks", "lto", "codegen-units"]} for k, t in table.items() if k in ["test", "release"] and isinstance(t, dict)}
+                  selected["env"] = {k: v for k, v in config.get("env", {}).items() if k in names}
+                  print(f"Cargo config {path}: " + json.dumps(selected, sort_keys=True))
+          PY
+          } 2>&1 | tee bootstrap-linux-evidence/diagnostics.log
+      - name: Bootstrap metadata Linux focused test profile
+        timeout-minutes: 15
+        shell: bash
+        env:
+          CARGO_INCREMENTAL: '0'
+          CARGO_BUILD_JOBS: '2'
+          RAYON_NUM_THREADS: '2'
+        run: |
+          set -euo pipefail
+          echo 'cargo test --locked -p ckks-train-ckks --lib metadata -- --test-threads=1 --nocapture'
+          cargo test --locked -p ckks-train-ckks --lib metadata -- --test-threads=1 --nocapture 2>&1 | tee bootstrap-linux-evidence/test-library.log
+          echo 'cargo test --locked -p ckks-train-ckks --test bootstrap_metadata -- --test-threads=1 --nocapture'
+          cargo test --locked -p ckks-train-ckks --test bootstrap_metadata -- --test-threads=1 --nocapture 2>&1 | tee bootstrap-linux-evidence/test-integration.log
+      - name: Bootstrap metadata Linux focused release profile
+        timeout-minutes: 15
+        shell: bash
+        env:
+          CARGO_INCREMENTAL: '0'
+          CARGO_BUILD_JOBS: '2'
+          RAYON_NUM_THREADS: '2'
+        run: |
+          set -euo pipefail
+          echo 'cargo test --locked --release -p ckks-train-ckks --lib metadata -- --test-threads=1 --nocapture'
+          cargo test --locked --release -p ckks-train-ckks --lib metadata -- --test-threads=1 --nocapture 2>&1 | tee bootstrap-linux-evidence/release-library.log
+          echo 'cargo test --locked --release -p ckks-train-ckks --test bootstrap_metadata -- --test-threads=1 --nocapture'
+          cargo test --locked --release -p ckks-train-ckks --test bootstrap_metadata -- --test-threads=1 --nocapture 2>&1 | tee bootstrap-linux-evidence/release-integration.log
+      - name: Preserve bootstrap metadata Linux focused evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-linux-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: bootstrap-linux-evidence/
+          if-no-files-found: error
+          retention-days: 14
       - run: cargo test --workspace
   deny:
     runs-on: ubuntu-latest

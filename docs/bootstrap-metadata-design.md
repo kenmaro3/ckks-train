@@ -449,3 +449,38 @@ future exact-target candidate and actual positive-test evidence gate for
 Ratifying this plan does not enable Linux, transfer the Mac calibration result,
 change the historical F1/F2 correction, or establish numerical/server admission.
 Source assignment and actual Linux evidence review remain separate.
+
+
+### GNU/Linux source candidate choices (2026-11-06; validation pending)
+
+Root assigned the reviewed GNU/Linux extension after design ratification at
+`edeffa7`. Before production editing, the concrete choices are: add only exact
+`x86_64-unknown-linux-gnu` to the existing Apple target guard, after the unchanged
+64-bit and nonempty TARGET/compiler/HOST checks; extend every supported test/import/
+helper cfg to Apple64 OR x86_64/unknown/linux/gnu/64, retaining the exact complement
+rejection test. Eligibility-only tables exercise both exact targets and named rejection
+cases without constructing a token. Native Mac must first show the Linux eligibility
+expectation RED against the Apple-only guard, then GREEN after this one policy change.
+
+The real supported-target verifier test will assert its configured TARGET and print
+actual compiler/TARGET/HOST, 65,535-root count and squared-norm extrema. HOST remains
+build-host information, distinct from runtime host. The existing Ubuntu test job gains
+separate focused test and release steps, each bounded to 15 minutes, with
+`CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 RAYON_NUM_THREADS=2`, harness threads=1,
+inspectable diagnostics and logs retained even on failure; test failures propagate.
+Native focused checks use jobs/Rayon=8 and incremental=0. No numerical gate, folded
+check, source-proof premise, private-token contract or canonical schema changes.
+
+This is a Linux-validation-pending candidate, not tested Linux support. Actual positive
+library tests and all nine integration positives must execute on the frozen candidate
+in each claimed Linux profile, followed by independent evidence review. The historical
+F1/F2 correction remains valid for its original Apple-only scope. Every future executable
+still verifies its own process; encoding, internal EvalMod, precision/range, secrets/keys,
+security, runtime memory/backend and full matrix/server admission remain separate gates.
+
+Native Mac candidate checks completed with Rust/Cargo 1.85.1 on aarch64-apple-darwin:
+eligibility RED exit 101 then GREEN exit 0, metadata library 13/13 and integration 9/9,
+narrow clippy and rustfmt exit 0. This is native test-profile regression/policy evidence
+only. Actual Linux test/release execution and independent evidence review are pending;
+workflow source and shell checks do not close that gate. Requested storage/work output
+is metadata payload accounting, not RSS.

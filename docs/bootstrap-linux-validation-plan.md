@@ -186,3 +186,22 @@ and the specified actual Linux execution/evidence review remain separate future 
 ## Publication identity
 
 Reviewed proposal SHA256: `43d3d9da2f520eb1c18a0747a7b11575d606d77e654dfc46608be8b4d5a30cbc`. Independent design review SHA256: `40407b8c5b8d6c3a08c7edf7db768ec8f85a6f04b8af4c98333c66ff2b86d05d`. The public copy changes only status/ownership/handoff language and adds this identity record. No normative guard, test, resource, evidence or failure rule is changed.
+
+
+## Assigned candidate implementation choices (2026-11-06)
+
+Root has now assigned the bounded source candidate described above. The historical
+design-only and Apple-only statements record the pre-candidate state. The dated
+[candidate appendix](bootstrap-metadata-design.md#gnulinux-source-candidate-choices-2026-11-06-validation-pending)
+records concrete choices before production editing: exact two-target eligibility union,
+exact complementary rejection cfg, pure eligibility RED/GREEN, real verifier diagnostics,
+and existing Ubuntu job evidence in separate test/release profiles (15 minutes each,
+jobs/Rayon=2, incremental=0, harness=1). Errors propagate and diagnostics/log artifacts
+remain inspectable. Current status is **Linux validation pending**; no actual Linux
+execution, tested-support claim, server release or full-matrix admission follows here.
+
+Native candidate evidence is now recorded: pure Linux eligibility RED exit 101 before
+the production change, GREEN exit 0 after it; native Apple metadata library 13/13 and
+integration 9/9, focused clippy/rustfmt exit 0. Workflow YAML/bash syntax and controlled
+failure-propagation checks passed locally. No actual Linux execution or release-profile
+run was performed here, so both Linux profile evidence gates remain open.
