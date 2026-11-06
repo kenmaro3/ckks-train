@@ -561,7 +561,19 @@ fn jstr(s: &str) -> String {
     format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
-fn write_json(path: &str, body: &str) {
+fn write_json(path: &str, body: &str, load_start: &str, started_unix: f64) {
+    // Every result path, including intermediate checkpoints, passes here. Retain the
+    // existing result body verbatim and let serde encode only the shared provenance.
+    let provenance = hekit_bench::provenance::provenance(
+        "the iris binary (raw output, not assembled)",
+        load_start,
+        started_unix,
+    );
+    let body = format!(
+        "{{\"provenance\": {},{}",
+        provenance,
+        body.strip_prefix('{').expect("result is a JSON object")
+    );
     if let Some(dir) = std::path::Path::new(path).parent() {
         std::fs::create_dir_all(dir).expect("create output dir");
     }
@@ -705,6 +717,7 @@ fn main() {
 
 /// The interactive run (Task 31) on the chosen backend (Task 48).
 fn run_interactive(o: &Opts, data: &Data) -> Result<()> {
+    let started_unix = hekit_bench::provenance::unix_now();
     let mut seed = [0u8; 32];
     seed[..8].copy_from_slice(&o.seed.to_le_bytes());
     let mut master = Rng::from_seed(seed);
@@ -731,7 +744,17 @@ fn run_interactive(o: &Opts, data: &Data) -> Result<()> {
                 o.be.config,
             );
             let refresher = client_refresher(&s, refresh_rng)?;
-            interactive(o, data, &s, &ev, refresher, &CpuHooks, rngs, load_start)
+            interactive(
+                o,
+                data,
+                &s,
+                &ev,
+                refresher,
+                &CpuHooks,
+                rngs,
+                load_start,
+                started_unix,
+            )
         }
         Backend::Cuda => {
             #[cfg(feature = "cuda")]
@@ -755,7 +778,17 @@ fn run_interactive(o: &Opts, data: &Data) -> Result<()> {
                 hooks.trim("key upload").map_err(dev_err)?;
                 let refresher =
                     hekit_nn::refresh::HostRefresher::new(&ev, client_refresher(&s, refresh_rng)?);
-                interactive(o, data, &s, &ev, refresher, &hooks, rngs, load_start)
+                interactive(
+                    o,
+                    data,
+                    &s,
+                    &ev,
+                    refresher,
+                    &hooks,
+                    rngs,
+                    load_start,
+                    started_unix,
+                )
             }
             #[cfg(not(feature = "cuda"))]
             {
@@ -794,6 +827,7 @@ fn interactive<'e, E: HeOps + 'e, R: Refresher<E> + 'e>(
     hooks: &'e dyn DeviceHooks,
     mut rngs: Rngs,
     load_start: String,
+    started_unix: f64,
 ) -> Result<()> {
     let c = &s.client;
     let lr_eff = o.lr * 2.0 / CLASSES as f64;
@@ -957,6 +991,8 @@ fn interactive<'e, E: HeOps + 'e, R: Refresher<E> + 'e>(
                 write_json(
                     &out,
                     &train_json(o, s, lr_eff, data, &summary, &trainer, &epochs_json, hooks),
+                    &load_start,
+                    started_unix,
                 );
             }
             if diverged {
@@ -964,7 +1000,7 @@ fn interactive<'e, E: HeOps + 'e, R: Refresher<E> + 'e>(
             }
         }
         let body = train_json(o, s, lr_eff, data, &summary, &trainer, &epochs_json, hooks);
-        write_json(&out, &body);
+        write_json(&out, &body, &load_start, started_unix);
         eprintln!("# wrote {out}; wall {:.0} s", wall.elapsed().as_secs_f64());
         return Ok(());
     };
@@ -980,7 +1016,7 @@ fn interactive<'e, E: HeOps + 'e, R: Refresher<E> + 'e>(
         jstr(&load_avg()),
         trace_json(&trainer)
     );
-    write_json(&out, &full);
+    write_json(&out, &full, &load_start, started_unix);
     eprintln!("# wrote {out}");
     Ok(())
 }
@@ -1147,6 +1183,7 @@ struct NiSetup {
     shuffle_rng: Rng,
     enc_rng: Rng,
     load_start: String,
+    started_unix: f64,
 }
 
 /// The training run of `main` without a client: [`NonInteractiveTrainer`] with a
@@ -1160,6 +1197,7 @@ struct NiSetup {
 /// into the GPU evaluator's). The GPU memory is checked after key generation (iris's keys are
 /// generated before the need is known).
 fn run_ni(o: &Opts, data: &Data) -> Result<()> {
+    let started_unix = hekit_bench::provenance::unix_now();
     let pl = placement(&o.placement).expect("checked");
     let mut seed = [0u8; 32];
     seed[..8].copy_from_slice(&o.seed.to_le_bytes());
@@ -1214,6 +1252,7 @@ fn run_ni(o: &Opts, data: &Data) -> Result<()> {
         shuffle_rng,
         enc_rng,
         load_start,
+        started_unix,
     };
     match o.be.backend {
         Backend::Cpu => {
@@ -1284,6 +1323,7 @@ fn ni_body<E: HeOps, B: BootstrapOps<E>>(
         mut shuffle_rng,
         mut enc_rng,
         load_start,
+        started_unix,
     } = ns;
     let lr_eff = o.lr * 2.0 / CLASSES as f64;
     let optim = if o.optimizer == "nag" {
@@ -1456,6 +1496,8 @@ fn ni_body<E: HeOps, B: BootstrapOps<E>>(
             hooks.memory_json(),
             epochs_json.join(",\n  ")
         ),
+        &load_start,
+        started_unix,
     );
     eprintln!("# wrote {out}");
     Ok(())

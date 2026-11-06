@@ -36,11 +36,11 @@
 
 use std::fmt::Write as _;
 use std::path::PathBuf;
-use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
 use hekit_bench::data::{Split, load_mnist, one_hot};
+use hekit_bench::provenance::{loadavg, provenance, unix_now};
 use hekit_ckks::{
     Ciphertext, CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter,
 };
@@ -216,7 +216,7 @@ fn max_abs(a: impl IntoIterator<Item = f64>) -> f64 {
 }
 
 // ---------------------------------------------------------------------------------------------
-// JSON output (minimal, no dependency).
+// JSON output (existing fields plus shared serde-encoded provenance).
 // ---------------------------------------------------------------------------------------------
 
 enum J {
@@ -226,12 +226,15 @@ enum J {
     B(bool),
     A(Vec<J>),
     O(Vec<(String, J)>),
+    /// JSON already encoded by serde (shared provenance).
+    R(String),
 }
 
 impl J {
     fn write(&self, out: &mut String, ind: usize) {
         let pad = |n: usize| "  ".repeat(n);
         match self {
+            J::R(json) => out.push_str(json),
             J::N(v) if v.is_finite() => write!(out, "{v}").unwrap(),
             J::N(_) => out.push_str("null"),
             J::I(v) => write!(out, "{v}").unwrap(),
@@ -265,16 +268,6 @@ fn obj(kv: Vec<(&str, J)>) -> J {
     J::O(kv.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
 }
 
-fn loadavg() -> String {
-    Command::new("sysctl")
-        .args(["-n", "vm.loadavg"])
-        .output()
-        .ok()
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| s.trim().to_string())
-        .unwrap_or_else(|| "unknown".into())
-}
-
 fn counter_json(c: &OpCounter) -> J {
     obj(vec![
         ("rotations", J::I(c.rotations as i64)),
@@ -302,6 +295,7 @@ fn main() {
 }
 
 fn run(args: &Args) -> Result<(), String> {
+    let started_unix = unix_now();
     let e = |x: hekit_core::error::HekitError| x.to_string();
     let load_start = loadavg();
     let t_all = Instant::now();
@@ -482,7 +476,13 @@ fn run(args: &Args) -> Result<(), String> {
         total.key_switches() as f64 / sf
     );
     let mean = |v: &[f64]| v.iter().sum::<f64>() / v.len().max(1) as f64;
+    let provenance = provenance(
+        "the mnist_reboot_layout binary (raw output, not assembled)",
+        &load_start,
+        started_unix,
+    );
     let result = obj(vec![
+        ("provenance", J::R(provenance.to_string())),
         ("mode", J::S(args.mode_name.clone())),
         (
             "network",
@@ -584,10 +584,7 @@ fn run(args: &Args) -> Result<(), String> {
             obj(vec![
                 ("load_start", J::S(load_start)),
                 ("load_end", J::S(loadavg())),
-                (
-                    "threads",
-                    J::S("single (the library is single-threaded)".into()),
-                ),
+                ("threads", J::R(provenance["threads"].to_string())),
             ]),
         ),
     ]);

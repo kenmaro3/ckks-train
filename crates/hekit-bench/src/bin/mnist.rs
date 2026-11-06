@@ -113,7 +113,8 @@
 //! [--plan] [--backend cpu|cuda] [--no-hoist] [--no-bsgs] [--no-lazy-relin]
 //! [--matvec sequential] [--gpu-pool default|after-keys] [--top-level L] [--dump-weights]`.
 //! `--plan` prints the layout, key count, predicted counts and GPU need without generating
-//! keys.
+//! keys. It is supported only for encrypted modes; `--plan --mode plain` is rejected
+//! before data loading or output writes because no plaintext count plan is defined.
 
 use std::fmt::Write as _;
 use std::path::PathBuf;
@@ -422,6 +423,11 @@ fn parse_args_from(argv: &[String]) -> Result<Args, String> {
             ));
         }
     };
+    if a.plan && a.mode == "plain" {
+        return Err(
+            "--plan is supported only in encrypted modes; --mode plain would run training".into(),
+        );
+    }
     if a.lr_schedule.is_some() && a.mode == "interactive" {
         return Err("--lr-schedule is supported in --mode noninteractive and plain".into());
     }
@@ -1255,6 +1261,7 @@ fn check_schedule_inputs(
 }
 
 fn run(args: &Args) -> Result<(), String> {
+    let started_unix = unix_now();
     let load_start = loadavg();
     let t_all = Instant::now();
     // `--plan` does not need the data: without the files it plans for 28 x 28 images.
@@ -1454,6 +1461,7 @@ fn run(args: &Args) -> Result<(), String> {
         keygen_s,
         t_all,
         load_start,
+        started_unix,
     };
     match args.be.backend {
         Backend::Cpu => {
@@ -1501,6 +1509,7 @@ struct Interactive<'a> {
     keygen_s: f64,
     t_all: Instant,
     load_start: String,
+    started_unix: f64,
 }
 
 /// The interactive run on the GPU: uploads the relinearization key and the step's Galois keys
@@ -1589,6 +1598,7 @@ fn train_interactive<'e, E: HeOps, R: Refresher<E> + 'e>(
         keygen_s,
         t_all,
         load_start,
+        started_unix,
     } = ctx;
     let e2s = |e: hekit_core::error::HekitError| e.to_string();
 
@@ -1755,6 +1765,7 @@ fn train_interactive<'e, E: HeOps, R: Refresher<E> + 'e>(
     ];
     backend.extend(backend_facts);
     let mut fields = vec![
+        ("provenance", provenance(&load_start, started_unix)),
         (
             "task",
             J::S(
