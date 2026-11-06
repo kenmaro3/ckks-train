@@ -128,3 +128,18 @@ Root ratified the exact FIX1 contract after independent review closed F1–F5 an
 - `task-54-d6c2-session-fix1-rereview.md`: SHA256 `d35f32f43ce3fe9693e0e815651897ed4e673fb9ce87606fd0a594558ad9f121`.
 
 D6c2a precedes D6c2b. Each package retains independent literal goldens, RED tests before implementation, focused validation, complete owned diff/hash evidence and independent review before integration. Neither source owner is assigned by this publication; the current independent NN production assignment remains unaffected. D6c4 remains the production binary dependency. Source/capture/session/API implementation and actual scientific execution remain separate work, under the existing authorization and recorded execution holds; no additional human-permission requirement is introduced.
+
+### 2026-11-07 D6c2b exact outer arithmetic field binding
+
+Root ruling: producer and approved-context reader bind F32 `arithmetic.reduction`
+to the exact existing D6c1a `ARITHMETIC` composite string and
+`arithmetic.classification` to the exact existing `CLASSIFICATION` string.
+F64 diagnostics use the identical ordered composite tokens with only
+`actual-f32` replaced by `actual-f64` and `round-f64-to-f32-once` replaced by
+`canonical-f64`; classification is identical, with the existing F64 dtype,
+accumulation and cast wire tags. Implement these as fixed supported bytes,
+not artifact-driven substitutions or accepted aliases. Literal assertions cover
+both strings independently. This binds the full supported policy without
+inventing a shorter duplicate label; retaining F32 wording for F64 would
+misdescribe its arithmetic. No inner identity bytes, scientific arithmetic,
+version strings, transport grammar or execution authorization change.

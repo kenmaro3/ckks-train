@@ -5,8 +5,16 @@
 //! byte arrays exactly (not only hashes), and verify every completion/checkpoint,
 //! denominator, arithmetic and digest claim against the trusted full plan/data.
 //! Source/build/session/prefix/state/publication policies remain separate gates.
+mod producer;
+mod reader;
 use super::{CONTRACT_VERSION, ENCODING_VERSION, RECEIPT_VERSION};
 use crate::data::sha256_hex;
+pub(in crate::study_reference) use producer::{
+    serialize_diagnostic, serialize_failure, serialize_local_quick, serialize_local_quick_f64,
+    serialize_reference,
+};
+pub use reader::VerifiedReference;
+pub(in crate::study_reference) use reader::verify_reference;
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::value::RawValue;
 use std::{fmt, marker::PhantomData};

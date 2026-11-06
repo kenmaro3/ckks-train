@@ -3,11 +3,24 @@
 //! These identities contain no training observations, reference completion, target,
 //! build attestation or serialization/publication capability. Only canonical immutable
 //! materializations can construct the private-field public values.
+mod digests;
 mod document;
+mod publication;
+mod session;
+pub use document::VerifiedReference;
 pub use document::{
     ClaimedAccuracy, ClaimedIdentity, ClaimedIdentityBytes, DocumentError, DocumentErrorCode,
     ParsedDiagnosticDocument, ParsedFailureDocument, ParsedReferenceDocument,
     parse_diagnostic_document, parse_failure_document, parse_reference_document,
+};
+pub use publication::{
+    PublicationError, PublishedNonReference, PublishedReference, ReferenceStore,
+};
+pub use session::{
+    CapturedDiagnostic, CapturedF64Diagnostic, CompletedFp32Reference, DiagnosticContext,
+    F64DiagnosticSession, Fp32Session, LocalQuickDiagnostic, LocalQuickF64Diagnostic,
+    QuickFp32DiagnosticSession, QuickFp64DiagnosticSession, SessionError, SessionFailure,
+    SessionProgress,
 };
 
 use crate::{
