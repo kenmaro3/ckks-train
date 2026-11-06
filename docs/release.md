@@ -47,7 +47,7 @@ allowance warning). All **49 Python tests** passed, both shell scripts parsed, a
 `run_all.sh --tables-only` reproduced the existing tables. Table/figure freshness and
 all 755 historical-file hashes still match. The paper sources and generated artifacts
 were unchanged by the migration, so their reviewed 9-page PDF builds remain applicable.
-The final renamed commit still needs its own Linux CI result before publication.
+The renamed commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` has its own successful [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484), all six jobs. This result applies only to that SHA; later queue commit `4b1c499` has run42145577051 pending at the deployment observation below.
 
 ## 3. Publishing to GitHub (owner's decision)
 
@@ -143,7 +143,7 @@ workflow on Linux. The private-main push did start the real
 [CI run for 0daf778](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953):
 all five jobs (fmt, clippy, cuda-check, test and deny) completed successfully. This run does not validate
 later source changes or the eventual renamed tree. Record the final SHA and completed
-workflow result before release.
+workflow result before release. The later observation below updates the renamed SHA only.
 
 ## 6. Dependency policy audit (2026-11-06)
 
@@ -162,3 +162,12 @@ an unused BSD-3-Clause allowance warning. No GPL-family or BSD-3-Clause-Clear
 exception was introduced. Dataset attribution is separate from code dependencies;
 Iris/WDBC credits and separately downloaded MNIST/Fashion-MNIST sources are recorded
 in the notices and data README.
+
+
+## 7. Waiting measurement queue deployment (2026-11-06 10:49:44 JST)
+
+The approved root controller uploaded and hash-verified the independently reviewed queue from source commit `4b1c49943533bb9ff79493daee33a27b8237a18c`, then observed PID1739838 / start ticks467041669 in **waiting** state, owner.json only and clones_created=false. No new build, training or measurement had started. The bundle HEAD is `09202cf5650aa76b9b30dd79a68dd615c75a91ae`; after both FULL successes and chain10 terminal/inactive identity validate, separate fresh clones use exact historical commits bd5cc49 / 0e07561 / 9305d2e for R47/R48/R52, sequentially. R52 is 21-update subsets only. R54 is not queued; Task54's original full matrix remains implementation-incomplete while its extension is designed.
+
+The [operations record](post-full-queue.md) contains exact paths, full commits, config/script/bundle/source-record SHA256 and recovery rules. Canonical raw results remain unchanged. Waiting deployment is distinct from successful measurement and from publication. No public release, tag, crates.io publish or arXiv submission occurred.
+
+The renamed SHA09202cf has Linux CI run42143028484 **success** for all six jobs (fmt, clippy, cuda-check, test, deny, research-tools), captured in task-55-rename-ci.json. Queue SHA4b1c499's [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) is pending at this observation; the prior CI success does not apply to it. Neither CI result proves GPU execution or a research gate.

@@ -1,5 +1,7 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-06 時点)
 
+最新の運用・CI状態は **§12.3** を優先する。§5、§11、§12.1〜12.2は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
 ## 0. 30 秒で分かる現在地
@@ -287,3 +289,16 @@ Codex の 55 秒・90 秒の接続待ち、その後の60秒の読み取り専�
 - Task58（PyO3）は計画の削減枠として今回は削減する。Rust API と再現手順、未完の研究ゲートを優先し、binding 提供済みとはしない。理由と後日の代替案は M5 報告に記載した。
 
 改名時の例外: CUDA kernel のコメント置換がソース固定ハッシュ検査に掛かったため、4 kernel は旧版と同一バイトを保持した。`tools/reboot_layout/assemble.py` も過去コミットの provenance を記述するため同一バイトを保持し、両者を rename.sh の対象外にした。ハッシュの付け替えや過去の結果の書換えは行っていない。
+
+
+### 12.3 post-full 待機コントローラ投入と CI 更新（2026-11-06 10:49:44 JST）
+
+2026-11-06 10:49:44 JST の起動後観測で、post-full コントローラは **waiting**、PID `1739838` / start ticks `467041669`、state ディレクトリは `owner.json` のみ、`clones_created=false` だった。これは待機コントローラの投入であり、R-47 / R-48 / R-52 のビルド・学習・測定開始ではない。R-54 は投入していない。
+
+FULL の最後の実進捗観測は **2026-11-06 10:21:08 JST、FULL-1 update 113（0 始まり）、114/750 更新完了**、elapsed 10956 s。10:30 の gate identity と 10:49 の待機起動観測から後続更新数を推定しない。FULL-1/2 の完了・研究合格は未確認である。
+
+10:30 のidentity照合で chain10 PID1700979 / start ticks465769819、FULL clone `ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f` を確認した。レビュー済み queue source `4b1c499` はprivate mainへpush済みで、root controllerが4ファイルのSHA256を照合して待機起動した。R47 `bd5cc49` → R48 `0e07561` → R52 `9305d2e`（各21更新subset）を両FULL成功+chain terminal/非稼働ゲート後にだけ新規cloneで逐次実行する。既存FULL cloneには触らない。実PID・完全commit・config/script/bundle/source-record SHA256と回復手順は [post-full-queue.md](post-full-queue.md) を参照する。§11.3のR54までの矢印は投入済みキューを意味しない。
+
+R54は未投入のまま。Task54の縮小版入口・表生成はレビュー済みだが、研究計画の全実験行列の実装は未完で、拡張設計中。eMLP-2/3全長も投入していない。待機コントローラの存在をFULL完了、GPU実測、研究合格と呼ばない。
+
+改名commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` の [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484) は fmt/clippy/cuda-check/test/deny/research-tools **全6ジョブsuccess**（ledger `task-55-rename-ci.json`）。この成功は当該SHAのみ。後続queue commit `4b1c499` の [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) はこの記録時点でpendingであり、成功を継承させない。ローカル公開準備・private push・CI・待機投入は、公開release/crates.io/arXivやGPU研究測定とは別である。

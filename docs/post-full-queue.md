@@ -1,6 +1,60 @@
 # Post-FULL queue operation
 
-Scope: prepare one background queue, locally. No server work, SSH, research runs, source-tree mutation, staging, commit, or deployment is performed by this implementation task. R-54 is excluded. Historical package names intentionally remain `hekit-*` at the three request versions.
+## 2026-11-06 10:49:44 JST: deployed waiting controller
+
+2026-11-06 10:49:44 JST の起動後観測で、post-full コントローラは **waiting**、PID `1739838` / start ticks `467041669`、state ディレクトリは `owner.json` のみ、`clones_created=false` だった。これは待機コントローラの投入であり、R-47 / R-48 / R-52 のビルド・学習・測定開始ではない。R-54 は投入していない。
+
+ユーザー承認に基づき、独立レビュー後の source commit `4b1c49943533bb9ff79493daee33a27b8237a18c` のスクリプトを root controller がアップロードし、4 ファイルの SHA256 照合後にバックグラウンド起動した。source bundle の HEAD は `09202cf5650aa76b9b30dd79a68dd615c75a91ae`（5076076 bytes）で、スクリプトの source commit とは区別する。
+
+| 項目 | 観測値 / 固定値 |
+|---|---|
+| 起動観測 Unix time | `1793929784.6580677` |
+| owner 開始 Unix time | `1793929784.594468` |
+| controller | `/home/kmihara/hekit-runs/post_full_queue.py --config /home/kmihara/hekit-runs/post-full-config.json` |
+| state / log | `/home/kmihara/hekit-runs/post-full-v1` / `/home/kmihara/hekit-runs/post-full-v1.log` |
+| FULL clone | `/home/kmihara/hekit-r41full`, commit `ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f` |
+| chain10 identity | PID `1700979`, start ticks `465769819`, chain start Unix `1793917065.19` |
+| chain terminal log | `/home/kmihara/hekit-runs/logs/chain10.log` |
+
+FULL の最後の実進捗観測は **2026-11-06 10:21:08 JST、FULL-1 update 113（0 始まり）、114/750 更新完了**、elapsed 10956 s。10:30 の gate identity と 10:49 の待機起動観測から後続更新数を推定しない。FULL-1/2 の完了・研究合格は未確認である。
+
+重い処理は、両 FULL の新鮮で一致する成功 post/meta（partial・watchdog なし）と `CHAIN10_DONE`、確認済み chain identity の非稼働をすべて検証するまで開始しない。PID 消失だけでは開始しない。実行中の FULL clone を変更しない。鍵認証のみ、sudo・新規クラウド・他テナントのプロセス操作なし、各ジョブ nice 10 / 12 threads、全体24 threads以下、逐次実行を維持する。2分を超える処理はバックグラウンドで実行する。
+
+ゲート解放後の固定順序と新規 clone（この観測時点ではいずれも未作成）:
+
+| 順 | 依頼 | 完全固定 commit | 新規 clone |
+|---|---|---|---|
+| 1 | R-47-3 example / optional nsys / original GPU tests | `bd5cc493db166a282d26b05b1e069f2a0ee629ef` | `/home/kmihara/hekit-post-full-clones/hekit-post-full-r47` |
+| 2 | R-48-1 → 2 → 条件付きSGD → 3 → 4 | `0e075618ab6e28b0cf260f98feb7f80ee1ccf1f3` | `/home/kmihara/hekit-post-full-clones/hekit-post-full-r48` |
+| 3 | R-52-1 → 2、各21更新の subset | `9305d2e1f4f9999296cd4b4aaf55ea631fbca78e` | `/home/kmihara/hekit-post-full-clones/hekit-post-full-r52` |
+
+これらは改名前の `hekit-*` バイナリと依頼を再現する。R-54 と eMLP-2/3 全長は対象外。Task54 の縮小入口はレビュー済みだが、計画の全実験行列は実装未完で、拡張設計中である。データは完了した FULL clone からだけ読み、新規 clone で manifest SHA256 を検証する。GPU SKIP・OOM・partial・出力 provenance 不整合を測定合格に変換しない。raw JSON と canonical `~/hekit-runs/out/J` / `logs/J.log` を保存し、既存結果を編集しない。
+
+アップロード・起動観測の SHA256:
+
+| ファイル | SHA256 |
+|---|---|
+| `post_full_queue.sh` | `e104bb557a8bcf0795874f236f7d041711af7a95be1edbaebd964549d85046de` |
+| `post_full_queue.py` | `1a5f780070e004ec826f21b7dcc187d9e9a65d44e694f2cd5e2f1831589a78f9` |
+| `post-full-config.json` | `6cb87837324ddcf42c709a33fadb86c8ac6e73302b90dbe8835783adbd13e377` |
+| `post-full-09202cf.bundle` | `bf6d2a5c5414fd7ba9f0aaacf2223addf56691483b10de7022fc734e88bdf91d` |
+
+一次記録（gitignored ledger、値だけを公開文書へ転記）と SHA256:
+
+| 記録 | SHA256 |
+|---|---|
+| `post-full-launch.stdout` | `af8b15748685c281b2733b51aedd8bcd5840ab47bf04f96f1ed64bc1456fab2f` |
+| `post-full-config.json` | `6cb87837324ddcf42c709a33fadb86c8ac6e73302b90dbe8835783adbd13e377` |
+| `post-full-bundle.json` | `0af531dc13953599610af4480ff1a0e943186dc7521afffc4820658693a67546` |
+| `task-post-full-remote-gates.json` | `6cc6be87ab73aa2d40b1f8ad4c0e21949ee5ada0e3bde39a7909f20f720f1ac4` |
+| `task-42-transport-readback.log` | `c0e77d321be654792cc53c9765d2cc2eda29bf082b5bb1b18cf7a91545fdeab7` |
+| `task-55-rename-ci.json` | `c37cd1b6292beb6a5b636f4f5f6f2f77cff12dd8cd27035e71e832eae9c57864` |
+
+起動後観測の一次記録は上記 ledger ディレクトリ `.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/` に保持する。この状態は観測時点の値であり、その後の完了や性能を意味しない。
+
+## Controller behavior and configuration
+
+The controller was prepared and independently reviewed locally; the observed deployment state is recorded above. The implementation fixtures did not run research jobs. R-54 is excluded. Historical package names intentionally remain `hekit-*` at the three request versions.
 
 Order: wait -> R47 clone/build/example/optional nsys/original GPU tests -> R48 clone/data/build/tests/NAG GPU/(conditional SGD GPU)/matched CPU L7/CPU L31 -> R52 clone/build/data/eMLP2 subset/eMLP3 subset. Only one `run_job.sh` child exists at a time. It applies nice 10, all five thread caps = 12, GPU snapshots and the existing 90 GiB own-tree RSS watchdog. Clone/checkouts also use nice 10. There are no remote calls or broad process controls.
 
@@ -42,7 +96,7 @@ Root-only eventual command, after review, commit, validated config, verified bun
 nohup bash "$HOME/hekit-runs/post_full_queue.sh" --config "$HOME/hekit-runs/post-full-config.json" > "$HOME/hekit-runs/post-full-v1.log" 2>&1 < /dev/null &
 ```
 
-Keep `post_full_queue.py` adjacent to the shell entry. Copy the unchanged existing `run_job.sh` to the configured runs directory if needed. Record the background PID, config/script/bundle SHA256 and state directory; confirm it waits without starting any build. This command is documented, not executed by this task.
+The command above is a template; do not run a second copy of the deployed controller. Keep `post_full_queue.py` adjacent to the shell entry. Copy the unchanged existing `run_job.sh` to the configured runs directory if needed. Record the background PID, config/script/bundle SHA256 and state directory; confirm it waits without starting any build. The actual root-controller launch is recorded in the deployed-state section; no duplicate launch is needed.
 
 
 ## Failure and recovery states

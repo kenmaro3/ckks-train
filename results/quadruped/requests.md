@@ -302,8 +302,8 @@ block will state its GPU memory need, and the tests skip with a message when the
 ## R-47-3: Task 47 batch vs sequential re-measurement (after the fix round), plus all GPU tests at 37e80a9
 
 - **purpose:** first, re-time the 4-product batch at n16_train L5 on 1, 2 and 4 streams after the fix (pool release threshold set, no per-call reserve, no threads); bit-identity is checked inside the example. Second, re-run all hekit-cuda GPU tests at the fix commit.
-- **commit to sync:** bd5cc49 or later (clean clone; the example now times both pool thresholds, `[default]` 256 MiB and `[max]`)
-- **working dir:** clean clone, e.g. `~/hekit-r45` re-synced
+- **commit to sync:** exactly bd5cc493db166a282d26b05b1e069f2a0ee629ef in the post-full queue (fresh clone; the example times both pool thresholds, `[default]` 256 MiB and `[max]`)
+- **working dir:** fresh `/home/kmihara/hekit-post-full-clones/hekit-post-full-r47`; no existing clone is re-synced
 - **command:**
   ```
   export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:${LD_LIBRARY_PATH}
@@ -317,7 +317,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most about 2.8 GiB (the sequence test), about 1 GiB for the example. **RAM need:** about 10 GB
 - **timing:** this block is timed (example) and CPU-heavy (key generation in the tests). Run it after R-41-FULL-1 and R-41-FULL-2, or in a gap between them if the gap is longer than 15 min. Never run it during a FULL run.
 - **output path:** `results/quadruped/batch_streams_r47_3.log`, `results/quadruped/hekit_cuda_task47_fix1_tests.txt`, `results/quadruped/raw/R-47-3/`
-- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
+- **status:** queued, waiting (2026-11-06 10:49:44 JST; post-full-v1 controller PID1739838 / start ticks467041669). No clone/build/run started at this observation. Both successful FULL terminals plus chain10 terminal/inactive identity must validate before release. Exact pinned fresh clones and source/config/script/bundle hashes: `docs/post-full-queue.md`. This supersedes the 09:30 not-queued handover snapshot; it is not a measured result.
 
 ## R-REB-5: ReBoot eMLP-2 / eMLP-3 block structure and training values, as data (for Task 52)
 
@@ -338,6 +338,8 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **status:** done (2026-11-06T07:55–07:55 JST, exit 0, 1 thread, nice 19, wall 3.8 s, peak RSS 0.90 GB; ran during R-41-FULL-1's timed updates, negligible). Output: `results/quadruped/raw/reboot_emlp23_full/` (config_values.json with `structure` read from the built models and `structure_summary`; train_indices_emlp{2,3}_seed{0,1,2}.txt; init_weights_emlp{2,3}_seed{0,1,2}/<layer>.npy with sha256; twin_steps_emlp{2,3}_seed0.tsv). Full setting = precision_analysis.py, 196 inputs, 4800 samples, 1000 steps, lr 5e-4 then ReBoot's cosine schedule, decay 0. eMLP-2 = local block 196→64 (head 64→16) + output stack 64→32→16; eMLP-3 = blocks 196→128 (head 128→16), 128→64 (head 64→16) + output stack 64→32→16; no gradient between blocks; test uses the output stack. Recomputed seed-0 twin test accuracy: eMLP-2 0.9156, eMLP-3 0.9175. Per-step indices differ from eMLP-1's for every seed (different number of init draws before the epoch shuffles), so they are given per model.
 
 ## R-48-1..4: Task 48 GPU training checks and RQ3 ablation (pinned to 0e07561; replaces the 626160e text)
+
+Deployed post-full queue: fresh `/home/kmihara/hekit-post-full-clones/hekit-post-full-r48` at exactly `0e075618ab6e28b0cf260f98feb7f80ee1ccf1f3`; original `hekit-*` names remain correct. Its runner records actual child post/meta status, and SGD fallback requires both exit 3 and a SKIP line. The manual setup below describes the request; the deployed controller performs clean bundle checkout and checked data copy after its FULL/chain gates.
 
 Run these blocks **after R-41-FULL-2 and R-47-3**, in the order R-48-1 → R-48-2 → R-48-3 → R-48-4, each one alone, and never during a FULL run.
 
@@ -400,12 +402,13 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 ```
 - **Pass:** exit 0 and `all_checks_pass: true`.
 - **Threads:** 12. **RAM:** ~25 GB. **Duration:** ~60–90 min (estimate).
-- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
+- **status:** queued, waiting (2026-11-06 10:49:44 JST; post-full-v1 controller PID1739838 / start ticks467041669). No clone/build/run started at this observation. Both successful FULL terminals plus chain10 terminal/inactive identity must validate before release. Exact pinned fresh clones and source/config/script/bundle hashes: `docs/post-full-queue.md`. This supersedes the 09:30 not-queued handover snapshot; it is not a measured result.
 
 ## R-52-1 / R-52-2: Task 52 encrypted block-MLP subset runs (eMLP-2, eMLP-3), ReBoot's first 21 steps (1008 samples), seed 0, B=48
 
 - **purpose:** check the encrypted block MLP's KS against its closed form (every update) and its accuracy against the twin, on ReBoot's own subset. Full-length runs are not queued; they are on the user's decision list.
-- **commit to sync:** 9305d2e or later (clean clone). This needs the R-REB-2 data arrays in `results/quadruped/data/reboot_emlp1_full/`, as for FULL-1/2.
+- **working dir:** fresh `/home/kmihara/hekit-post-full-clones/hekit-post-full-r52`; source bundle checkout is immutable before run outputs.
+- **commit to sync:** exactly 9305d2e1f4f9999296cd4b4aaf55ea631fbca78e (fresh post-full clone). This needs the R-REB-2 data arrays in `results/quadruped/data/reboot_emlp1_full/`, as for FULL-1/2.
 - **build:** `cargo build --release -p hekit-bench --features parallel --bins`
 - **R-52-1 (eMLP-2):**
   ```
@@ -424,9 +427,11 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 - **GPU memory need:** 0
 - **timing:** timed CPU runs. Run them alone, after R-41-FULL-2 and before R-47-3 / R-48, or after those; nothing of ours may overlap. Partial rule: after 5 updates, log the projected total; if it is more than 2× the estimate, stop and mark `partial`.
 - **output path:** as given in `--out`, plus `results/quadruped/logs/R-52-{1,2}.log`
-- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
+- **status:** queued, waiting (2026-11-06 10:49:44 JST; post-full-v1 controller PID1739838 / start ticks467041669). No clone/build/run started at this observation. Both successful FULL terminals plus chain10 terminal/inactive identity must validate before release. Exact pinned fresh clones and source/config/script/bundle hashes: `docs/post-full-queue.md`. This supersedes the 09:30 not-queued handover snapshot; it is not a measured result.
 
 ## R-54-1: Task 54 one-shot runner, `scripts/run_all.sh --quick` (pipeline check, <= 2 h target)
+
+Current scope: **not queued** and excluded from post-full-v1. The reviewed subset entry does not complete Task54's original full experiment matrix; that implementation remains incomplete while its extension design is prepared.
 
 - **purpose:** run every group of the paper's experiment matrix once on subsets (1-4 updates, 1 seed): NI eMLP-1 at 196 and 784 inputs (WN / AU / AA, B = 32 / 48 / 64), interactive CPU, GPU and CPU at level 7, the RQ3 ablation (GPU L7, CPU L7 default config, CPU insecure `small` smoke), eMLP-2/3 NI, plaintext twins, Task 51 datasets, Iris (baseline a), ReBoot layout in hekit (baseline c). It checks that every row runs end to end with provenance and measures the real quick duration. Quick numbers are not paper numbers. Official ReBoot (baseline b) is not part of it.
 - **commit to sync:** 962b7d2 or later (clean clone, e.g. `~/hekit-r54`; `git status --porcelain --untracked-files=no` must print nothing, the script refuses a dirty tree)

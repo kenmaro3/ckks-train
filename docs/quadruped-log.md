@@ -1,5 +1,17 @@
 # quadruped-gpu run log
 
+## 現在の待機キュー（2026-11-06 10:49:44 JST 起動観測）
+
+この節は下の09:30引継ぎスナップショットの「未投入」を更新する。過去の観測値・回収手順はそのまま残す。
+
+2026-11-06 10:49:44 JST の起動後観測で、post-full コントローラは **waiting**、PID `1739838` / start ticks `467041669`、state ディレクトリは `owner.json` のみ、`clones_created=false` だった。これは待機コントローラの投入であり、R-47 / R-48 / R-52 のビルド・学習・測定開始ではない。R-54 は投入していない。
+
+FULL の最後の実進捗観測は **2026-11-06 10:21:08 JST、FULL-1 update 113（0 始まり）、114/750 更新完了**、elapsed 10956 s。10:30 の gate identity と 10:49 の待機起動観測から後続更新数を推定しない。FULL-1/2 の完了・研究合格は未確認である。
+
+chain10 は PID1700979 / start ticks465769819、開始Unix1793917065.19、stdout `/home/kmihara/hekit-runs/logs/chain10.log`（10:30のidentity観測）。待機キュー source `4b1c49943533bb9ff79493daee33a27b8237a18c`、bundle HEAD `09202cf5650aa76b9b30dd79a68dd615c75a91ae`。ゲート解放後だけ新規 clone で R47 `bd5cc49` → R48 `0e07561` → R52 `9305d2e` を逐次実行し、R52は各21更新のみ。両FULL成功 terminal、chain terminal と非稼働identityの照合前には clone/build/train を開始しない。FULL cloneは変更しない。
+
+config・スクリプト・bundle・観測記録の完全SHA256、cloneパス、失敗/回復手順は [post-full-queue.md](post-full-queue.md) の運用記録を参照。R54は **not queued**。Task54の全実験行列は実装未完・拡張設計中。投入・待機は研究ゲート合格ではない。鍵認証、nice10、各12 threads/合計24以下、長時間バックグラウンド、他テナント非操作を継続する。
+
 ## 引き継ぎ: 回収手順 (handover, 2026-11-06 09:30 JST)
 
 The remote-runner session stopped here. Nothing on the server was killed. This section is for someone with only
