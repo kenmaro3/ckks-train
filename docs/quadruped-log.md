@@ -1,5 +1,73 @@
 # quadruped-gpu run log
 
+## 引き継ぎ: 回収手順 (handover, 2026-11-06 09:30 JST)
+
+The remote-runner session stopped here. Nothing on the server was killed. This section is for someone with only
+`ssh quadruped-gpu` (key auth; never a password).
+
+**Queue state at 09:27 JST 2026-11-06**
+- Running: `~/hekit-runs/chain10.sh` (pid 1700979) → R-41-FULL-1, at update 80 of 750 after 7733 s (about 96.6 s per
+  update; partial check passed with a projection of 70596 s). Expected end about 03:20 JST 2026-11-07. Output:
+  `~/hekit-r41full/results/quadruped/mnist196_ni_when_needed_b64_full_seed0.json`, log
+  `~/hekit-runs/logs/R-41-FULL-1.log`, provenance `~/hekit-runs/out/R-41-FULL-1/`.
+- Then, in the same chain: R-41-FULL-2 (1000 updates, B = 48). Partial rule: after 10 updates it projects the total
+  and stops at once if the projection exceeds 55 h. Expected about 38.6 h, so it should end around 18:00 JST
+  2026-11-08. Output: `~/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json`, log
+  `logs/R-41-FULL-2.log`, `out/R-41-FULL-2/`.
+- **Not queued on the server:** R-47-3, R-48-1..4, R-52-1/2 and R-54-1 are in `results/quadruped/requests.md` but
+  were never started; no chain exists for them. They need to be queued after chain10, or with a hold file.
+- Finished on the server but not yet copied back: none (as of 09:27, every finished job is in `results/quadruped/`).
+
+**Layout on the server**
+- `~/hekit-runs/run_job.sh NAME WORKDIR THREADS GPU(0|1) -- CMD...`: runs CMD under `nice -n 10 /usr/bin/time -v`,
+  sets OMP/RAYON/CARGO thread caps to THREADS, samples the RSS of its own process tree every 10 s and kills only that
+  tree above 90 GiB. Env `SYNCED_COMMIT_FILE` picks the tree's `.synced-commit` (default `~/hekit/.synced-commit`).
+- `~/hekit-runs/r41.sh ID OUT_JSON NUM_UPDATES -- mnist-args`: an `mnist` run through run_job, with the partial-run
+  watcher (env `HEKIT_DIR`, `PARTIAL_AFTER`, `PARTIAL_STOP_AT`, `PARTIAL_LIMIT_S`). It waits while
+  `~/hekit-runs/hold/ID` exists.
+- `~/hekit-runs/chainN.sh` and `hekit_chain.sh`: the queues used so far (only chain10 is alive). Copies of every script
+  are in `results/quadruped/scripts/`.
+- `~/hekit-runs/logs/<job>.log` is the program output. `~/hekit-runs/out/<job>/` holds `cmd.txt`, `workdir.txt`,
+  `synced-commit.txt`, `pre.txt`/`post.txt` (date, uptime, df, free, nvidia-smi), `time.txt` (time -v), `rss.tsv`,
+  `meta.json`, plus `projection.txt`/`partial.txt` for r41 jobs.
+- **Done marker:** the last line of `out/<job>/post.txt` is `JOB_DONE rc=<exit>`. If `time.txt` exists but
+  `post.txt` does not, the runner died (see the Iris incident below): rebuild `meta.json` from `pre.txt`, `time.txt`
+  and `rss.tsv`, and mark it recovered.
+- Trees: `~/hekit` is 43f219f plus 6 dirty files (old R-41-1..5). `~/hekit-r44` is 3e0e99c (F1/F2). `~/hekit-r45` is
+  ce4730a (hekit-cuda tests and bench). `~/hekit-r41full` is ff2c2eb plus the R-REB-2 .npy arrays, sha-checked (FULL
+  runs). Each tree has `.synced-commit`. Do not modify a tree a running job uses.
+- ReBoot stack (GPL-3.0, stays in `~/reboot`, never in a hekit tree): `~/reboot/install` (OpenFHE 1.2.1),
+  `~/reboot/venv` (Python 3.11), `~/reboot/src/ReBoot` (3ac173f plus the build-only patch), and my wrappers
+  `~/reboot/*.py`. Outputs may contain data only, never ReBoot source.
+
+**Collecting a job** (from the Mac, in `hekit/`)
+1. Pull one tar stream (ssh connect takes about 47 s, so use one call or a ControlMaster):
+   `ssh quadruped-gpu 'cd ~/hekit-runs && t=$(mktemp -d) && mkdir $t/J && cp -r out/J/. $t/J/ && cp logs/J.log $t/J/program.log && tar -C $t -czf - . && rm -rf $t' | tar -C results/quadruped/raw -xzf -`
+   (with J = the job name). For mnist jobs, also copy the binary's JSON from the tree:
+   `ssh quadruped-gpu 'cat ~/hekit-r41full/results/quadruped/<name>.json' > results/quadruped/raw/J/<name>.json`, and
+   copy `raw/J/program.log` to `results/quadruped/logs/J.log`.
+2. Compose with `python3 results/quadruped/scripts/compose.py`:
+   - `program_json JOB BINARY_JSON_IN_RAW OUT_NAME "note" "threads note"` copies the binary's JSON and adds a
+     `quadruped` block (provenance from `meta.json`). Example:
+     `compose.py program_json R-41-FULL-1 mnist196_ni_when_needed_b64_full_seed0.json mnist196_ni_when_needed_b64_full_seed0.json "requests.md R-41-FULL-1, clean clone ~/hekit-r41full at ff2c2eb" "12: rayon (--features parallel, RAYON_NUM_THREADS=12)"`
+   - Other modes: `cuda`, `reboot JOB OUT`, `bootstrap`.
+   - Never type a number in by hand.
+3. Mark the block in `requests.md` (`status: done`, with result path, times, exit status, load, and SLAM presence from
+   `pre.txt`/`post.txt`), and add an entry to this log.
+
+**Syncing code** never uses a plain rsync of the tree: the gitignored `_ext/` directories are many GB. Use the file
+list from `git ls-files -co --exclude-standard` (`results/quadruped/scripts/sync_hekit.sh`). For a new commit, prefer
+`git bundle create x.bundle HEAD`, then on the server a fresh `git clone` (or `git fetch` + checkout in an idle clean
+clone), and write `.synced-commit`.
+
+**Shared-tenant rules:** run jobs at `nice -n 10`, with at most 24 threads in total (12 per job of ours), RAM under
+90 GB, and `nvidia-smi` checked before any GPU job (record free memory; do not wait for memory). Never touch the
+other agent's `persistent_ster*` SLAM processes or vLLM (pid 2791212, about 20.7 GB of GPU memory). Do not overlap a
+timed run with our own CPU work; record SLAM load when it appears. Never stop a chain's bash while a job runs under
+it (that lost Iris's done marker). To change a running queue, use a hold file or an atomic `mv` of the script.
+Delete build objects that are no longer needed; disk had 25 GB free on 2026-11-06.
+
+
 Runs on the Linux server `quadruped-gpu` (the remote runner session). Results live in `results/quadruped/`,
 the scripts that produced them in `results/quadruped/scripts/` (copies of what runs on the server).
 Server facts: Ubuntu 26.04, 32 cores, 123 GB RAM, RTX 4090 24 GB (driver 595.91, CUDA 13.1), shared with

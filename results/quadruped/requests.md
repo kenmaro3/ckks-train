@@ -317,6 +317,7 @@ block will state its GPU memory need, and the tests skip with a message when the
 - **GPU memory need:** at most about 2.8 GiB (the sequence test), about 1 GiB for the example. **RAM need:** about 10 GB
 - **timing:** this block is timed (example) and CPU-heavy (key generation in the tests). Run it after R-41-FULL-1 and R-41-FULL-2, or in a gap between them if the gap is longer than 15 min. Never run it during a FULL run.
 - **output path:** `results/quadruped/batch_streams_r47_3.log`, `results/quadruped/hekit_cuda_task47_fix1_tests.txt`, `results/quadruped/raw/R-47-3/`
+- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
 
 ## R-REB-5: ReBoot eMLP-2 / eMLP-3 block structure and training values, as data (for Task 52)
 
@@ -399,6 +400,7 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 ```
 - **Pass:** exit 0 and `all_checks_pass: true`.
 - **Threads:** 12. **RAM:** ~25 GB. **Duration:** ~60–90 min (estimate).
+- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
 
 ## R-52-1 / R-52-2: Task 52 encrypted block-MLP subset runs (eMLP-2, eMLP-3), ReBoot's first 21 steps (1008 samples), seed 0, B=48
 
@@ -422,6 +424,7 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 - **GPU memory need:** 0
 - **timing:** timed CPU runs. Run them alone, after R-41-FULL-2 and before R-47-3 / R-48, or after those; nothing of ours may overlap. Partial rule: after 5 updates, log the projected total; if it is more than 2× the estimate, stop and mark `partial`.
 - **output path:** as given in `--out`, plus `results/quadruped/logs/R-52-{1,2}.log`
+- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
 
 ## R-54-1: Task 54 one-shot runner, `scripts/run_all.sh --quick` (pipeline check, <= 2 h target)
 
@@ -444,3 +447,4 @@ echo "R-48-4 exit=${PIPESTATUS[0]}" | tee -a results/quadruped/logs/R-48-4.log
 - **timing:** timed CPU and GPU jobs. Run it alone, after R-41-FULL-2 and the R-48 blocks; never during a FULL run.
 - **pass:** exit 0 (every run `done` or `skipped-gpu-memory`). Exit 1 means a run failed or had missing inputs: list those ids with the last lines of `results/run_all/quick/logs/<id>.log`.
 - **output path:** `results/run_all/quick/` (copy back `*.json`, `logs/`, `meta/`), `results/quadruped/logs/R-54-1.log`, `results/quadruped/logs/R-54-1.plan.txt`. Record total wall-clock (from `time -v`), `df -h ~`, `nvidia-smi` and `uptime` before and after; the controller puts the duration and `df -h` into `results/README.md`.
+- **status:** not queued. The remote-runner session stopped on 2026-11-06 (handover) without starting this block; no chain exists for it on the server. See docs/quadruped-log.md, "引き継ぎ: 回収手順".
