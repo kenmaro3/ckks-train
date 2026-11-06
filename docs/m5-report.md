@@ -216,4 +216,14 @@ FULL-1は03:19:51 JSTにrunner exit0で終了し、元JSON・ログ・終了記�
 
 Task54の[具体target/admission契約](study-target-design.md)は33f08aeでレビュー後に確定し、独立した期待値も数値拒否例の修正・再レビュー後に受理した。target lockのコードは実装中で、実際の全長参照・lock・admission・HE開始は未検証。[入力取得用exporter](../tools/export_reboot_block_seed_inputs.py)は2b09ca7で独立再レビュー後に統合し、33件の限定テストが合格。Pythonの既存キャッシュが承認済みsourceと異なるコードを実行する問題を修正した。Macでの実compatibility取得はライブラリ検索パスと依存ライブラリの起動処理で停止しており、seed0–2の完全一致・seed3–9取得・入力version移行はまだ未達。失敗記録を保持し、閾値や既存入力を変更していない。
 
+## 2026-11-07追記: 実行主体の契約と取得時の不一致
+
+[StudyTrainの実行・build契約](study-runtime-design.md)を独立レビュー後に確定した。Referenceのscalar1・既存形式を保持し、学習実行のbuildと参照artifactのbuildを別々に検証する。CPU直列、専用Rayon pool、CUDA＋host poolの固定recipe、approval-v2、読み取り／生成権限、実際のworker数の取得方法を定めた。理由・代替案・費用は同報告に記載。実装、独立期待値、実runtime、D7のdescriptor／gateは未完であり、この設計は実行許可やTask54の合格ではない。
+
+Target lockのコードは`66a4b36`で統合済みで、そのcommitのCI全6項目の成功を確認した。これは実際の承認済みLinux context・全長FP32参照・保存／復旧の実運用検証を代替しない。Packed blockの更新・forward-only APIは実装中で、今回の実HE主検証は未実行。
+
+入力exporterは`f021616`までの修正を独立レビュー後に統合した。Macの実compatibility検証はeMLP2 seed0の画像payloadが保存済みcanonical dataと一致せず停止した。同seedの重みと順序はbyte一致、ラベル・設定・scheduleに不一致は報告されていないが、他seed／eMLP3の比較まで到達していない。許容誤差で通さず、失敗・別診断出力を保持する。Seed3–9取得、入力version移行とMissingInput解消は未達。
+
+[R-REB-6-OBS](../results/quadruped/raw/R-REB-6-OBS/README.md)で元のLinux環境を読み取り専用で観測した。現在の前処理Python source hashはMac側と一致し、Torch／torchvisionはLinux用buildだった。過去のnative実体や不一致原因を証明する観測ではない。04:32:19 JSTのFULL-2ログはupdate28（0始まり）=29/1000更新完了、直近4更新の計数は予測と一致。誤った推測pathの2項目はrawを変更せずREADMEで証拠から除外した。最終精度・現在のprocess liveness・終了はこの観測から主張しない。既存FULL／post-full queueを変更せず、追加したのは記録済みの軽量・未計時の読み取り観測のみ。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
