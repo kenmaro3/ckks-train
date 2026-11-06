@@ -1,0 +1,18 @@
+kind: runner metadata only; scientific diagnostics are unmodified program stdout
+host_scope: local Mac, not quadruped-gpu
+started_local: 2026-11-06T22:14:36.459316+09:00
+started_unix: 1793970876.4593558
+cwd: /Users/marconi/Documents/research/hekit
+commit: 9610822f0ccbf254138b5ec1aef049240583ce0f
+git_status_before: '?? .vscode/\n?? results/mnist_blocks_128-64_plain_b48.json\n?? results/mnist_blocks_64_plain_b48.json\n'
+command: ['cargo', 'test', '-p', 'ckks-train-nn', '--test', 'packed_ni_calibration', 'packed_ni_calibration_primary_84_calls', '--', '--exact', '--nocapture', '--test-threads=1']
+explicit_environment: {'CARGO_INCREMENTAL': '0', 'CARGO_BUILD_JOBS': '8', 'RAYON_NUM_THREADS': '8'}
+source_before_sha256: 6fe5d2a2807088a7f574d06e30a747f2920923d57c644daabdf231058045787e
+executable_before_sha256: 053b589717a78488f19621f583dda97668612494ee503091ddf3a62fc65ee3ee
+runner_child_pid: 73644
+returncode: 0
+finished_unix: 1793970905.4531379
+finished_local: 2026-11-06T22:15:05.453173+09:00
+source_after_sha256: 6fe5d2a2807088a7f574d06e30a747f2920923d57c644daabdf231058045787e
+executable_after_sha256: 053b589717a78488f19621f583dda97668612494ee503091ddf3a62fc65ee3ee
+identities_unchanged: True

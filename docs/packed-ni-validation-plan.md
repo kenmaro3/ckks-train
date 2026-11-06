@@ -239,3 +239,78 @@ complete patch, hashes, test executable identity and construction logs in
 Independent review and root release precede the single primary local attempt. A pass
 would describe this finite corpus/context only; main integration event precision,
 exact-scale schedule, runtime/memory, GPU and production security remain separate.
+
+## 9. D4c2 primary local calibration result (2026-11-06)
+
+**Primary attempt1 PASS:84 attempted,84 completed,84 validated bootstrap calls.**
+This dated result supersedes the calibration-unrun disposition for this primary
+attempt only. Sections1–8, including the program-freeze **UNRUN** statements, remain
+unchanged as the prospective registration and historical implementation record.
+No main packed-NI integration or training case was executed by this calibration.
+
+Root ran the exact §8 command once after independent program review and commit
+`9610822f0ccbf254138b5ec1aef049240583ce0f`. The runner records local Mac execution on
+2026-11-06,22:14:36–22:15:05 JST and exit0. These timestamps identify the attempt;
+they are not a performance benchmark. Program stdout identifies aarch64/macOS and
+reports the fixed N1024/full n16_boot Q/P chain, scale2^42, dnum8, log_slots9/default
+BootParams and observed output16. Key seeds151/152 cover all21 vectors, each with
+one fresh level0 encryption and two consecutive bootstraps; seed153 remains held out.
+The reviewed program evaluates all512 complex slots for each diagnostic, including
+padding and replicas. The retained log contains their maxima/worst-slot observations,
+not all decoded slot arrays; the independent outcome audit checked those recorded
+observations and gates, without re-running HE or claiming an independent decode replay.
+
+The following maxima are over42 vector/key pairs. Vector indices and slot indices
+are zero-based; all listed nonzero maxima occur under key seed152.
+
+| diagnostic | observed maximum | vector | worst slot |
+|---|---:|---|---:|
+| e0 = norm(x0−m) | 2.98188830861341869e−10 | 6: impulse at511 | 272 |
+| e1 = norm(y1−x0) | 5.89256584387443703e−8 | 1: constant+0.5 | 406 |
+| e2 = norm(y2−x1) | 5.74890812194912527e−8 | 1: constant+0.5 | 188 |
+| a1 = norm(x1−m) | 5.90800803092303838e−8 | 1: constant+0.5 | 406 |
+| final = norm(y2−m) | 1.12729116925929818e−7 | 1: constant+0.5 | 406 |
+| lowering drift = norm(x1−y1) | 0, for all42 pairs | all | tied |
+| norm(x0) | 0.500000000200980010 | 1: constant+0.5 | 500 |
+| norm(x1) | 0.500000003759776379 | 13: hidden envelope, expanded | 2 |
+
+Every pair passed the registered **e0,e1,e2≤2^-20**, **a1≤its e0+2^-20** and
+**final≤its e0+2×2^-20** gates. Each recorded input norm passed its relative bound,
+hard ceiling and universal≤1 bound. These checks used each pair's own e0/a1, not
+cross-pair maxima or an averaged error. Zero observed lowering drift is a result
+for this attempt, not a universal exactness claim.
+
+All84 actual input/output metadata records report two NTT components in the expected
+shared Q-basis context, exact scale bits4796333603149578240, input level0 and output
+level16. Every observed complete counter delta equals the constructed Bootstrapper's
+cost: `(rotations,relins,ct_ct_tensor,ct_pt_mults,rescales,sse_switches,bootstraps)` =
+**`(37,40,46,207,56,2,1)`**. Thus inclusive key switches are **79 per call** for this
+N1024 configuration; this is distinct from the separate N2^16 value111. The counter
+already includes bootstrap work, so no additional planned cost is added. Each key's
+inclusive counter reports42 bootstraps. The independent audit found42 full metric
+rows,42 matching partial rows,420 finite worst-slot metric records,84 ordered call/
+input/output records, and one PASS84/84/84 completion record, with no failure or
+missing-coverage record.
+
+Retained public evidence is copied byte-for-byte from the primary runner ledger:
+[program stdout](../results/calibration/packed-ni-n1024-20261106/stdout.txt),
+[stderr](../results/calibration/packed-ni-n1024-20261106/stderr.txt),
+[runner metadata](../results/calibration/packed-ni-n1024-20261106/runner.txt), and
+[SHA256SUMS](../results/calibration/packed-ni-n1024-20261106/SHA256SUMS).
+Runner annotations remain separate from program observations. The manifest verifies
+all three text files; the copied manifest itself has SHA256
+`8b371b12cad047242ccd3db7cdfc8d3fe921cf4148cde0424e0836b61d6970d0`.
+Source SHA256 `6fe5d2a2807088a7f574d06e30a747f2920923d57c644daabdf231058045787e`
+and executable SHA256
+`053b589717a78488f19621f583dda97668612494ee503091ddf3a62fc65ee3ee`
+match before/after the attempt and the program freeze. No new research-result JSON
+was synthesized, no threshold was changed and no rerun was performed for this
+outcome documentation.
+
+This passes the registered finite same-context bootstrap calibration for these
+21 vectors and two deterministic keys. Actual main-stage event precision and range,
+full exact-scale schedule admission, end-to-end packed training parity, AA object
+reuse, runtime/memory, GPU, production security and adoption remain separate,
+unestablished gates. No Linux metadata-proof support is inferred from this local
+Mac result. The original negative-result retention and separately reviewed rerun
+rules continue to apply.
