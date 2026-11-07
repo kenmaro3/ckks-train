@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [FULL-2の09:47確認と残る実装](#latest-evidence-20261107-0947)。
+最新の追記: [metadata停止箇所の特定](#latest-evidence-20261107-r25)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-0947)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-r25)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -553,3 +553,10 @@ R24はinstalled metadataのlogical header上限8192 bytesで止まり、exit1／
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-0950/README.md)では、09:47:06 JSTに同一所有者・開始時刻のchain／queueが稼働中であることを確認した。FULL-2は162/1000更新、末尾6更新の予測一致はtrue。最終JSONはなく、後続queueはowner.jsonのみ。パスの0950は識別用ラベルで、実観測時刻ではない。最終精度・Task42／M4の合格は未確定で、ジョブは変更していない。
 
 CUDA観測APIに続くTrain runtime／contextの実装を開始した。serial CPU・専用Rayon pool・CUDA hostの3構成、process識別、保持したnative moduleの照合を対象とする。全行runnerと実機通し試験は引き続き未完了。R24の失敗情報を保持する限定修正はローカル6テストと既存6テストに合格し、独立レビュー中で、metadata専用remote確認はまだ実行していない。全登録範囲とcampaign holdを維持する。
+
+<a id="latest-evidence-20261107-r25"></a>
+## 2026-11-07 09:50 JST追記: metadata停止箇所の特定
+
+限定修正FIX2は独立sourceレビューに合格した。[R25の元運用記録](../results/quadruped/observations/R-REB-25/README.md)では、09:50:13 JSTのmetadata専用確認がexit1／未完了となり、停止候補を保持できた。対象はmatplotlib-3.11.2のMETADATA（80264 bytes、元記録に実hashあり）で、Licenseフィールドが物理171行目で累積8219 bytesとなり、据え置いた8192 bytes上限を超えた。8219は停止時の長さであり、License全体の長さではない。本文・値は出力していない。
+
+metadataの読取りは550058 bytes、source／smallは0。失敗前の部分inventoryと原因を保存し、context／captureや後続collectorには進んでいない。R24の欠落情報を過去にさかのぼって補完せず、今回の観測と分ける。上限の自動変更や成功扱いはせず、実際の形式に基づく次の扱いを理由・代替案とともに検討する。FULL-2の最新実観測は09:47:06 JSTの162/1000更新のままで、GPU計測待ち・全登録範囲・campaign holdを維持する。

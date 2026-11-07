@@ -739,3 +739,17 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261107-0950.{stdout,stderr,meta.json}`.
 - **pass criterion:** preserve actual own process identity/state, final-result existence, log and queue listing; no signals, job/queue change, build or training. Operational only, not scientific result.
 - **status:** done (2026-11-07T09:47:06.073254+09:00, SSH exit0). Same own chain/queue live;162/1000 updates, finalJSON absent, queue owner.json only. Exact records raw/R-41-FULL2-OBS-20261107-0950/. No job mutation.
+
+
+## R-REB-25-METADATA-DIAGNOSTIC: fixed bounded read-only attribution
+
+- **purpose:** Identify the metadata candidate/header that refused R24 at the unchanged8192byte logical-header cap. Preserve failure; no prerequisite or context acceptance.
+- **commit to sync:** none; exact frozen observer on stdin, no checkout/deployment.
+- **working dir:** fixed existing package root/metadata children in observer, no target import.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; ledger `task-54-linux-metadata-prerequisite-observer-v1.py` SHA2563b771411fb4051ac0c65a0a0db95dd21f7f61cb142828204f4b297ab6acb6e62. Source reviewec4077d301b813b89dba00b94a7d86e4f6e1b8ca87d25f652c5009c93dfa6b7f; root execution release `task-54-linux-metadata-R25-execution-release.md`.
+- **expected duration:** cooperative60s work after start; single process/thread; connect90s, retain exact async handle until terminal. No restart on observation delay.
+- **GPU memory need:**0. **RAM need:** under150MiB expected.
+- **limits:** unchanged16MiB metadata/16MiB self ceilings; source/small reads0; bounded2048root entries/256distributions, fixed metadata children;8192byte line/header cap and8MiB output. No metadata body, license/header diagnostic value or arbitrary header-value output; only approved Name/Version/WHEEL summary values. No source body acquisition, RECORD dereference, Git command, package import, native load or later collectors.
+- **output path:** ignored ledger `task-54-linux-metadata-R25.{stdout,stderr,meta.json}` original operational records.
+- **pass criterion:** recorded file identity/hash and bounded header diagnostic on refusal; retain partial inventory/incomplete exit. No automatic cap increase, repair, skip-to-success, FULL poll or campaign release.
+- **status:** incomplete (2026-11-07T09:50:13.936008+09:00, SSH exit1). Candidate matplotlib-3.11.2.dist-info/METADATA hash retained; license accumulated8219bytes atline171 over8192cap. Metadata550058B/source0/small0, no later stages or retry. Exact operational originals: observations/R-REB-25/.
