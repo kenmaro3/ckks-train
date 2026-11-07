@@ -1,0 +1,9 @@
+# FULL-2 operational observation — 2026-11-07 22:55 JST slot
+
+Read-only process/log evidence, not a scientific result JSON. Eight source/custody files are exact ledger copies. Actual observation: **2026-11-07T22:55:47.322074+09:00**, SSH exit0 and original remote-observation controller handle93239 terminal0 (launch chunk a2965d, final17a907). Local controller3405/SSH3407 are separate operational records.
+
+Own chain1700979/start465769819 and queue1739838/start467041669 were live at observation. Latest zero-based update491 means **492/1000 completed**; server-log elapsed70424s. Last six updates486–491 each report1369 key switches,4 bootstraps and prediction match. Final result absent; queue contains only owner.json. Direct child1910150/start472983092 was observed but no independent expected start was supplied for that child. Partial progress does not establish final accuracy or a completed measurement.
+
+There were two local controller invocations: the first exited1 at the earliest-time assertion before creating any launch/stream files or starting SSH (tool chunk a5d3e7). The retained preflight-refusal record documents that local failure; it is not a successful observation. After a clock check at13:55:12UTC and confirming all exclusive output paths absent, the eligible invocation performed exactly one SSH observation. No remote retry, job/queue/build/training change occurred. The original job was never restarted.
+
+Next ordinary observation no earlier than23:55:48JST. The request was committed in0254dc3 before invocation. Source SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 is unchanged. The observer seeks from snapshot-last8192bytes then reads to EOF; concurrent appends can add bytes, so this is not a strict allocation/output cap. Local/remote observation times are not training performance comparisons. SHA256SUMS covers the other nine files, including README.

@@ -969,4 +969,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261107-2255.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared, not invoked; earliest22:55:09JST. Existing source and controller logic unchanged; no job changes or new training.
+- **status:** done; actual22:55:47JST, SSH exit0 and original handle93239 terminal0; own chain/queue live, FULL-2 update491 =>492/1000, final JSON absent, queue owner.json only. Initial local invocation exited1 at earliest-time assertion before SSH/custody; one eligible SSH invocation followed, no remote retry/job changes. Exact archive `raw/R-41-FULL2-OBS-20261107-2255/` includes local refusal.
+
+## R-41-FULL2-OBS-20261107-2355: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than23:55:48JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261107-2355-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, snapshot-last8KiB seek then read-to-EOF (concurrent appends may add bytes), connect90s; retained async controller and terminal streams. Observation delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261107-2355.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared, not invoked; earliest23:55:48JST. Existing source and controller logic unchanged; no job changes or new training.

@@ -1,0 +1,9 @@
+{
+  "kind": "local_controller_preflight_refusal_not_remote_observation",
+  "tool_chunk": "a5d3e7",
+  "exit_code": 1,
+  "failure": "AssertionError at earliest_jst check, line 7",
+  "launch_receipt_created": false,
+  "ssh_started": false,
+  "subsequent_clock_utc": "2026-11-07 13:55:12 UTC"
+}
