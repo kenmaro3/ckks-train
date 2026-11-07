@@ -1,0 +1,29 @@
+{
+  "fix": "FIX1/5 I1 only",
+  "review_sha256": "e662465b71a488266559958b8935a22a11c6b321d48af5b3502a117a24d65906",
+  "files": {
+    "task-54-d7-custody-test-inventory.md": {
+      "bytes": 57313,
+      "sha256": "9276aabb55edc10e11e0191e87d807ebb354b1fce8335242b2bf19aa13978aa5"
+    },
+    "task-54-d7-custody-test-inventory-report.md": {
+      "bytes": 6706,
+      "sha256": "fa6d024c5de7afe8dbafcd6db974f5e82bc04cbae9253bfdbcccce645573356a"
+    },
+    "task-54-d7-custody-test-inventory-fix1.diff": {
+      "bytes": 25482,
+      "sha256": "edb89f39ac2e2cb36e4f10a55f876400444d363e024d618b091c8f80b6a3ce6a"
+    },
+    "task-54-d7-custody-test-inventory-before-fix1/task-54-d7-custody-test-inventory.md": {
+      "bytes": 48760,
+      "sha256": "7993132a97175f2e508d1e696a1069948032750e4dd804e96c1ee3ac22f1523c"
+    },
+    "task-54-d7-custody-test-inventory-before-fix1/task-54-d7-custody-test-inventory-report.md": {
+      "bytes": 3470,
+      "sha256": "592e7ce931e70c0901473c4f452064dbf37b64e80880587384541e9ac3833cc0"
+    }
+  },
+  "executed_tests": 0,
+  "additional_planned_postcheck_scenarios": 90,
+  "new_native_schedules_not_executed": 6
+}
