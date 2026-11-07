@@ -259,3 +259,7 @@ For native module files only, select an administrative cap of **1GiB per module*
 Use a private streaming-state extraction of the existing original SHA-256 implementation, preserving the public one-shot API and its outputs. Independent known vectors and chunk-boundary expectations must precede the implementation. The reason is to avoid cloning an entire permitted native module into memory. Alternatives are a newly audited permissive streaming-hash dependency or a redesigned external helper protocol; both add broader dependency or execution ownership and are not selected here. D7 still owns exact canonical descriptor encodings; this extraction creates no alternate wire schema, Debug/CLI hash or admission authority.
 
 Actual Train read/write-refusal integration, native Linux process/fork checks, CUDA hardware observations, D7 gates and full runner execution remain required. These choices alone satisfy none of those gates.
+
+## 12. D7 runtime/physical byte contract (2026-11-07)
+
+The inner representation delegated by §7.3 is now fixed in [runtime/physical descriptors](study-runtime-descriptors.md), with four independently checked literal vectors frozen before encoder source. This closes the representation decision only. Actual retained-fact projections, checked route/created-stream binding, canonical encoders, live gates and durable start remain unimplemented dependencies; the five context-pinned design paths and scientific policies are unchanged.
