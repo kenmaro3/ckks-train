@@ -1,0 +1,69 @@
+{
+  "schema": "human-review-fix-pin-ledger-v1",
+  "task": "Task54 D7 bootstrap workspace worksheet FIX1",
+  "fixed_base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+  "scope": "F1 only: explicit retained Rows in post-build W_BSGS branch plus explanation",
+  "inputs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-before-fix1/task-54-d7-bootstrap-workspace-derivation-report.md",
+      "role": "preserved original report",
+      "bytes": 30309,
+      "sha256": "75e847b3086266d0ccf2a2c1af3ac5bd567096e530c32248de2beb9f7e9f7853"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-before-fix1/task-54-d7-bootstrap-workspace-source-pins.json",
+      "role": "preserved original source pins",
+      "bytes": 10199,
+      "sha256": "9bd058ebff48465845e4000cb9c758b648bbd42a1b6521eb4970ecf2b277e86e"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-source-pins.json",
+      "role": "canonical source pins; unchanged",
+      "bytes": 10199,
+      "sha256": "9bd058ebff48465845e4000cb9c758b648bbd42a1b6521eb4970ecf2b277e86e"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-review.md",
+      "role": "independent review F1",
+      "bytes": 12521,
+      "sha256": "e76661e52aa65cf2df043522fd5a097331b6e40d806408e1c93bb8b614cfae50"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-fix1-brief.md",
+      "role": "canonical FIX1 instruction",
+      "bytes": 1606,
+      "sha256": "21a5367f9188dca20ad5f331a8a10d677b1f14d2b3baf0c04e23a847eb76d12a"
+    }
+  ],
+  "fixed_source_reconsulted": {
+    "path": "crates/ckks-train-ckks/src/linalg.rs",
+    "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+    "bytes": 71884,
+    "sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01",
+    "git_blob_sha1": "51ee94b98a0395822f9cba92f118a3beca10faaf",
+    "semantic_range": "809-887; row ownership through collection/reduction"
+  },
+  "outputs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-derivation-report.md",
+      "role": "corrected report",
+      "bytes": 33388,
+      "sha256": "e7493f3c62e8dfa69290f9895582226a9dab322c15f1a990b5420266cabbacaf"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-fix1.diff",
+      "role": "narrow unified diff against preserved original",
+      "bytes": 5889,
+      "sha256": "44bd9a07c4a1767c9e8e4f40f8af5910c19c1fc610806e0d26857f74974e3d87"
+    }
+  ],
+  "source_pin_json_unchanged": true,
+  "structural_integer_worksheet_rerun": false,
+  "verification": "fixed source row lifetime and symbolic max(rho+B,rho+C)=rho+max(B,C); no numeric primitive evaluation",
+  "not_claimed": [
+    "physical model acceptance",
+    "physical memory fit",
+    "project/native/HE execution",
+    "new structural worksheet evidence"
+  ]
+}

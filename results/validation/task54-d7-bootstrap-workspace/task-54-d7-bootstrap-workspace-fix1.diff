@@ -1,0 +1,37 @@
+--- before-fix1/task-54-d7-bootstrap-workspace-derivation-report.md
++++ task-54-d7-bootstrap-workspace-derivation-report.md
+@@ -4,7 +4,7 @@
+ 
+ ## Scope, preinventory, and performed work
+ 
+-All production/document source reads were `git show BASE:path`, sometimes piped to line numbering, bounded sed, or rg. No current parser files were read. The local Task54 brief was absent at BASE (one `git show` returned exit 128); it was then read as an instruction input, not source evidence. The local workspace derivation brief is the controlling restriction. Only these two output files are written:
++All production/document source reads were `git show BASE:path`, sometimes piped to line numbering, bounded sed, or rg. No current parser files were read. The local Task54 brief was absent at BASE (one `git show` returned exit 128); it was then read as an instruction input, not source evidence. The local workspace derivation brief is the controlling restriction. The original derivation wrote only these two output files:
+ 
+ - `task-54-d7-bootstrap-workspace-derivation-report.md`
+ - `task-54-d7-bootstrap-workspace-source-pins.json`
+@@ -156,11 +156,24 @@
+                max_{0<=k<g_s} [sum_{j<k} e_j C2(l)+B_k(l)] )
+ Reduce  <= (sum_k e_k) C2(l) + 2 C2(l) + U_add22(l)
+ W_BSGS <= max(BabyBuild,
+-              X + max(Collect,Reduce, U_mul_plain(2,l)+C2(l)))
++              Rows(t,b_s) + X
++                + max(Collect,Reduce, U_mul_plain(2,l)+C2(l)))
+           + V_ResultOptionCt(g_s) + ChecksAndCollectionMetadata
+ ```
+ 
+ The last multiplication term covers the all-skipped fallback of the generic executor. The validated sparse caller rejects any term with zero kept entries beforehand, so it does not reach an all-skipped set; retaining the term is conservative. Validating rotation-step vectors, terms/iterator metadata, and backing retained during IntoIter reduction are in ChecksAndCollectionMetadata. Final reduction starts **after the whole Vec is collected**, even without parallelism. Thus all successful giant outputs can coexist. After a block returns Err, `map_range` still calls later blocks and retains their Results; `?` is only applied during subsequent reduction. Replace each result payload bound by `max(e_k C2(l),E_err)` for failure-inclusive Collect/Reduce; up to g_s error payloads can coexist. Do not rely on the source comment 'no step fails part-way' to erase fallible allocations or error handling.
++
++### FIX1: retained row backing in the collection/reduction branch
++
++Independent review F1 (`task-54-d7-bootstrap-workspace-review.md`, SHA256 `e76661e52aa65cf2df043522fd5a097331b6e40d806408e1c93bb8b614cfae50`) identified that the original W_BSGS expression included Rows only in BabyBuild. The corrected second branch above explicitly retains `Rows(t,b_s)` alongside X and the collection/reduction work. The saturated BabyBuild expression is unchanged.
++
++At fixed BASE, `linalg.rs:812–825` creates xs and its Option rows; blocks borrow xs at 833/850, and giant results are collected/reduced at 872–885 before xs leaves scope. Thus the outer row slots and every completed inner row remain allocated during successful collection/reduction. A block returning Err does not consume xs: later blocks still run during collection, and row backing remains until the subsequent reduction propagates an error and exits the function. Partially completed row construction on an earlier error is already bounded by BabyBuild's saturated Rows term. No successful or failing prefix receives an early-release credit.
++
++For any shared nonnegative additive resource coordinate, write BabyBuild as `rho+B`, with `rho=Rows(t,b_s)`, and the post-build term as C. The correction changes `max(rho+B,C)` to `max(rho+B,rho+C)=rho+max(B,C)` before adding the unchanged common terms. This algebra holds coordinatewise and after a nonnegative additive lowering to a shared coordinate; it does not require rows to occupy a disjoint coordinate. In general, lowering does not commute with componentwise max, so a later lowering must either conservatively lower the established vector bound or lower each full retained-owner branch before taking its maximum. It must not omit rho from the post-build branch or assume the build branch dominates.
++
++Rows accounts for outer Vec row slots and inner Option<Ciphertext> slot backing; X accounts for separately owned baby ciphertext component/limb backing. When lowering to object layouts, an inline Ciphertext stored inside an Option slot is already included in that slot: do not add a second inline Ciphertext size from X. Retained row backing is explicit here, not silently assigned to ChecksAndCollectionMetadata. Primitive/error/collection-capacity/allocator envelopes remain unevaluated; this correction provides no physical-fit claim.
++
++FIX1 was checked by rereading only fixed `linalg.rs:809–887` and the additive identity above. The prior cache/degree integer worksheet was not rerun, and its recorded values are unchanged. FIX1 updates this report and writes only `task-54-d7-bootstrap-workspace-fix1.diff` against the preserved original report and `task-54-d7-bootstrap-workspace-fix1-pins.json`; the original source-pin JSON stays byte-identical. FIX1 pinning is limited to the named current/original reports and source pins, the FIX1 brief, the independent review, the fixed linalg blob, and these report/diff/pin outputs. No production-source/public-document changes or project/native execution occurred.
+ 
+ Hoisted rotation's explicit unfinished primitive boundary (`evaluator.rs:572–610`): u key lookup slots; D_l digit QpPolys (`D_l=floor(l/alpha)+1`); u complete rotation Results collected before Result<Vec> conversion; at each nontrivial serial rotation another D_l rotated QpPolys; apply_key/finish_galois scratch; accumulated previous ciphertexts; output/Result/IntoIter slots. A conservative decomposition is:
+ 

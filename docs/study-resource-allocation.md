@@ -157,3 +157,7 @@ Performed: fixed git tree discovery; git show committed blob ranges and text sea
 Important limits: this is a selected-source derivation, not an exhaustive implementation audit. The allowed inventory named additional NN packed-training/planning/materializer/helper files; their full source obligations remain unexamined here and are not silently certified by the inventory. Some early long combined tool outputs were truncated; specific constructor/lifetime claims above were reread in bounded slices. The accepted typed-materializer map is retained context, not rederived. Exact source SHA256 pins let root distinguish historical map coverage from current BASE deltas and from the concurrent parser still awaiting review.
 
 Final output-check inventory recorded before calculation: this report and `task-54-d7-resource-allocation-derivation-source-pins.json`, solely byte length/SHA256 and a text check of the22 table tags. This is document consistency checking, not a project test or model validation.
+
+## 後続資料: bootstrapの再帰保持量
+
+[独立レビュー済みの条件付き算出式](../results/validation/task54-d7-bootstrap-workspace/README.md)で、kind12／13のCheb再帰・逐次BSGS・呼出元の保持量を具体化した。BSGSの行データを出力収集中も計上する修正を含む。これは上記の固定時点の資料に対する追補であり、primitive・allocator等の未知項や完全な物理モデルの未達を解消したとは扱わない。

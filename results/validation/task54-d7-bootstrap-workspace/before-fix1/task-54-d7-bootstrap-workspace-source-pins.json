@@ -1,0 +1,254 @@
+{
+  "schema": "human-review-source-pin-ledger-v1",
+  "task": "Task54 D7 bootstrap workspace recurrence",
+  "fixed_base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+  "status": "conditional selected-source recurrence; no physical model acceptance or execution evidence",
+  "inputs": [
+    {
+      "path": "docs/study-resource-allocation.md",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "b2349d777b31c17749e9a9c188b2a858dc480d87",
+      "sha256": "b72ea065f7289bc832e1b6ddec96493ef534cafcf25a553b79e90e3daf1559fd",
+      "bytes": 42033,
+      "semantic_inspection": "full document then bounded lines 109-155",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "docs/study-resource-design.md",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "cbe624d0814a0dd641c0f80f6ae52d1afbd43134",
+      "sha256": "18e4a1280db6ea6e5b9e338658e46128a171b16137e0b5ee0b9eaf3d85cc7a72",
+      "bytes": 7815,
+      "semantic_inspection": "full document",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/poly.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "efaea9b79f59d8790a50e1c2fbfda27ac4815c69",
+      "sha256": "22006eb00246186ee60e22ccd0717aa293aaad6b8fbfe1a361ae5422207c8a49",
+      "bytes": 44138,
+      "semantic_inspection": "1-620 (initial truncated); operative 384-531,535-595,640-733 reread",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/evalmod.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "377ec0f8e9d628204a469548f707dbfd686c0776",
+      "sha256": "02e7d5a8c026846b8e10ec0b9cc6d0329e679403859ceeff8a23f3948e0089d6",
+      "bytes": 22173,
+      "semantic_inspection": "1-225; adjacent test text through 300 not used",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "f9b59155e64cd52e2c0bca42ee639311f6b7b195",
+      "sha256": "11dfc9ce01dda64bf63481f4f7feb109019f0302af327ca00587459e3adbd770",
+      "bytes": 38908,
+      "semantic_inspection": "190-431",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/linear.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "4d491f3e8638f34061e72bda32af694034f07e0c",
+      "sha256": "4778e8c95885962a3318ec7e72a01f58c704b662ee86b55eda6d55f14c58cf78",
+      "bytes": 80601,
+      "semantic_inspection": "700-935",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/params.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "031aa625948bfb8f41ac1d03494e591500d33bae",
+      "sha256": "963b97fda06647e53e59eb6aab54f1909246d92adbd7621b1f683170e1f83f3b",
+      "bytes": 20926,
+      "semantic_inspection": "1-170",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/linalg.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "51ee94b98a0395822f9cba92f118a3beca10faaf",
+      "sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01",
+      "bytes": 71884,
+      "semantic_inspection": "25-78,165-215,670-887; adjacent tests not used",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/par.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "38b28ea8e44e9f954c3a8988af682477cdc16863",
+      "sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df",
+      "bytes": 1861,
+      "semantic_inspection": "1-58",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/evaluator.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "76743a4f57d1b46c5327f2463b410854cb2cb947",
+      "sha256": "bd5bb8eda962e3815363d42c2482b0bb5b7448bb506caa84b6ac22c0001198b8",
+      "bytes": 81421,
+      "semantic_inspection": "bounded symbol search; 300-550,560-620,625-735,800-824",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keyswitch.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "547cfc75ed3c841cd59cbc0dc93b3535d1aca0f3",
+      "sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441",
+      "bytes": 31653,
+      "semantic_inspection": "65-210,235-319",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/ciphertext.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "93d8c5183f198b1f02c8860c4ce39b1b50fd2412",
+      "sha256": "315e3193cf26c4cf23a32e571f7e3fe9d05be9c24b43b2f6a22d6f7e0cc2ab9b",
+      "bytes": 4378,
+      "semantic_inspection": "1-90; adjacent tests not used",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/params.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "8e682c24b130f9586cad18753f72e5f42d6ea9e5",
+      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596",
+      "bytes": 20965,
+      "semantic_inspection": "10-65,155-190",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-core/src/poly.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "9d3abda8c26b01a6447922d3df1adcaa23ce069e",
+      "sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92",
+      "bytes": 27765,
+      "semantic_inspection": "15-110,165-225",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-core/src/baseconv.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "3bf625ff034ccf40121bf1d0dfd8ebb642f93a06",
+      "sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc",
+      "bytes": 53276,
+      "semantic_inspection": "70-130,170-235,250-295,459-511",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/ops.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "3104375dd660fd15eb4cf76da50ff3ba0aa5fdeb",
+      "sha256": "cdb65fd5e1ee86d01c9fca84335a72855b20d84a1d5df73cef8f8bedd5097923",
+      "bytes": 31140,
+      "semantic_inspection": "bounded symbol search; 115-140,185-205,355-370,420-478",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keys.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "23670b565d533cf6ea9b752be0f3a12bc4b60010",
+      "sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317",
+      "bytes": 39936,
+      "semantic_inspection": "20-100,107-167",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/plaintext.rs",
+      "source": "fixed git blob",
+      "base": "5b50e841e65a0bad698b9a61621ba2e1fde7571d",
+      "git_blob_sha1": "723d9d9935f31615c94d62bb993b8e972faf76c2",
+      "sha256": "575798a761b606fad2638d9fcbad2c5e74d4fc3a2542547e7b879db6333a91ea",
+      "bytes": 2271,
+      "semantic_inspection": "1-68",
+      "full_blob_hash_does_not_mean_full_audit": true
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
+      "source": "local instruction input, not production-source evidence",
+      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb",
+      "bytes": 1032,
+      "semantic_inspection": "full"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-bootstrap-workspace-derivation-brief.md",
+      "source": "local instruction input, not production-source evidence",
+      "sha256": "900db37fd4a931f6e6fbddbf11fd170f32b4456f378391d40594a99bb487c591",
+      "bytes": 3110,
+      "semantic_inspection": "full"
+    }
+  ],
+  "unconsulted_direct_primitive_candidates": [
+    "crates/ckks-train-ckks/src/bootstrap/modraise.rs",
+    "crates/ckks-train-core/src/ntt.rs",
+    "crates/ckks-train-core/src/rns.rs",
+    "crates/ckks-train-core/src/modulus.rs"
+  ],
+  "finite_integer_check": {
+    "meaning": "structural domain check only; no primitive terms evaluated or assumed zero",
+    "degree": 127,
+    "top": 27,
+    "baby": 16,
+    "top_target_level": 21,
+    "power_indices": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      32,
+      64
+    ],
+    "power_objects": 18,
+    "power_rns_poly_objects": 36,
+    "power_u64_elements_div_N": 888,
+    "recurrence_states": 127,
+    "split_candidates": 1523,
+    "checks": [
+      "dependency closure",
+      "legal target power levels",
+      "strictly decreasing split degrees"
+    ],
+    "result": "PASS"
+  },
+  "not_evidence_for": [
+    "physical allocator/RSS/cgroup bound",
+    "memory fit",
+    "native or HE execution",
+    "parallel Rayon allocation model",
+    "scientific performance/correctness",
+    "Task54 completion"
+  ]
+}

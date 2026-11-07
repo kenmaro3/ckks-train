@@ -1,0 +1,255 @@
+# Task54 D7: selected CPU bootstrap workspace recurrence
+
+Fixed source: `5b50e841e65a0bad698b9a61621ba2e1fde7571d`. Status: concrete source-level recurrence supplied for independent review; **not** a physical model, model acceptance, memory-fit decision, execution authority, or scientific evidence. The model/allocator/runtime gaps in `docs/study-resource-allocation.md` remain active. This report closes the recursive composition question, conditional on explicitly named primitive and collection envelopes; it does not replace those envelopes with zero.
+
+## Scope, preinventory, and performed work
+
+All production/document source reads were `git show BASE:path`, sometimes piped to line numbering, bounded sed, or rg. No current parser files were read. The local Task54 brief was absent at BASE (one `git show` returned exit 128); it was then read as an instruction input, not source evidence. The local workspace derivation brief is the controlling restriction. Only these two output files are written:
+
+- `task-54-d7-bootstrap-workspace-derivation-report.md`
+- `task-54-d7-bootstrap-workspace-source-pins.json`
+
+Before standalone arithmetic/pinning, the inventory was declared: 16 actually consulted source files (the initial spoken count 14 was corrected before calculation), two fixed documents, two local instruction files. Source inventory: `crates/ckks-train-ckks/src/bootstrap/{poly,evalmod,bootstrapper,linear,params}.rs`; `crates/ckks-train-ckks/src/{linalg,par,evaluator,keyswitch,ciphertext,params,ops,keys,plaintext}.rs`; `crates/ckks-train-core/src/{poly,baseconv}.rs`. Documents: `docs/study-resource-allocation.md`, `docs/study-resource-design.md`. Instructions: this ledger's `task-54-brief.md` and `task-54-d7-bootstrap-workspace-derivation-brief.md`. The three direct-definition additions (ops, keys, plaintext) were declared before reading them: CPU dispatch, truncated/QpPoly, and plaintext representation respectively. Hashing the entire named blob does not imply semantic review of every line.
+
+One stdlib-only integer worksheet was predeclared and run: degree 127, top 27, baby 16; enumerate the cache superset and the finite recurrence states below, checking closure of ensure dependencies, usable power levels, and strict decrease of split degrees. No source helper, constructor, floating interpolation, project import, Cargo/test/build/--list, native/HE/CUDA, SSH, dataset, process/credential scan, network/install, source/public-document mutation, subagent, commit or push was performed. Adjacent test declarations occasionally appeared in source slices; they were not run or evidence. Some initial combined outputs were truncated; every operative Cheb/caller formula was subsequently read in bounded slices.
+
+## Accounting language and preconditions
+
+The recurrence is evaluated over a nonnegative resource vector, or separately for each resource coordinate, with componentwise `+` and `max`. It counts **live logical objects/elements and requested backing shapes**, not physical bytes. Coordinates may include ciphertext objects, RnsPoly elements, u64 elements, f64 elements, vector element types, map entries, and a separate primitive-cost expression. Componentwise maxima need not be attained at the same instant and are conservative.
+
+Define the following resource tokens:
+
+- `P(l)`: one RnsPoly, one outer Vec of `l+1` limb-Vec elements, `l+1` inner vectors each of N u64 elements. Its u64 coordinate is `N(l+1)`.
+- `C_k(l)`: one ciphertext object, one component Vec with k RnsPoly elements and k copies of P(l)'s limb backing; u64 coordinate `kN(l+1)`. Count the RnsPoly elements once, not once in C and again for its constituent P tokens. `C_2`, `C_3` are distinct.
+- `F(n)`: one Vec with n f64 elements; `Split(n)` means **two** Vec objects whose combined f64 length is n. These tokens are different despite the same scalar count.
+- `Q(l)`: one QpPoly containing one P(l) and one P(p-1), hence `N(l+1+p)` u64 elements, where p is the special-prime count.
+- `Map(A)`: BTreeMap structure for keys in finite set A, including key/value slots, node occupancy, structural backing and transient insertion/node-split backing at up to |A| entries as an unresolved capacity/layout function. Cached ciphertext payload is separately summed; do not count its inline object twice when lowering to a physical layout.
+- `V_T(n)`: one vector's request for n elements of type T. Outer Vec headers, Option/Result slots, iterator buffers and capacity retained after moves/pop are real obligations, not ciphertext payload.
+
+`ciphertext.rs:16–21,40–58,66–88`, `plaintext.rs:12–16,34–46,64–67`, `core/poly.rs:24–28,55–65,70–101`, `keys.rs:109–145` establish these representations. A plaintext has one P(l), multiplication output has three components, ordinary/power/relinearized results two. Clone is deep for polynomial/ciphertext data, shallow only for shared Arc pointees. `keys.rs:153–167` proves even equal-level mod-switch makes a deep copy. `ops.rs:187–190,358–360,422–472` proves generic Cheb's selected CPU dispatch is these Evaluator methods; device-handle prose is not a license to treat CPU clones as aliases.
+
+Inputs: N, maximum level L, p, alpha>0, dnum, polynomial length d+1>=2, input level I, interval a<b finite, finite coefficients, finite positive requested scale, and valid owned CPU ciphertext/key/basis identities. For a normal successful Cheb call let affine A be 0 or 1, `T=I-A`, `D=ceil(log2(d+1))`, `b=2^optimal_split(D)`, `t0=T+1-D`; require `I>=D+A`, valid bounded shifts/usize sums/next_power_of_two and all source index ranges. Source scale/constant guards still apply and may return errors. The resource recurrence does not certify approximation accuracy or scale feasibility. We include unsuccessful prefixes under the same finite shapes.
+
+For bootstrap, require an already constructed validated full-packing Bootstrapper, nonempty valid transform stages, input level 0/two components/exact required scale, and known finite stage shapes. Fixed code's default constants are d=127, double angles r=0, CtS/EvalMod/StC bands 4/7/4, L=31 and N=2^16 (`bootstrap/params.rs:20–29,68–79`; `params.rs:25–57,181–183`). Thus T=27, t0=21, EvalMod output20 and bootstrap output16. This is source substitution, not constructor execution. Other shapes remain symbolic.
+
+All formulas here use the **compiled non-parallel branch** of `par.rs:26–29,54–57`. A Rayon build with one worker is not proved equivalent for allocation/runtime purposes. No worker-times-one-ciphertext bound is asserted. A parallel model must supply its own active-task/result/stack envelopes.
+
+`U_op(args)` denotes peak additional backing/resources inside a named primitive, excluding borrowed inputs and the designated returned object's token already shown at the callsite. It includes internal partial results, checks/errors and transitive calls. An upper expression may conservatively include the whole designated output again to avoid subtraction. These terms are **unevaluated requirements**, never zero. The finite vector/primitive composition is usable with certified U terms; numeric physical lowering must refuse until those terms and collection/std/allocator envelopes exist. `E_err` below is a finite per-result error-storage/formatting envelope over these bounded inputs, also unresolved. Ordinary error payload can coexist with all successful-prefix allocations.
+
+## Cheb cache and ensure recurrence
+
+References: `bootstrap/poly.rs:488–530`. Every cached power i is a two-component ciphertext at `h(i)=T-ceil(log2 i)` (h(1)=T). Cache keys only grow within one call, so the following single envelope can be charged throughout the recursive evaluation:
+
+```
+A(d,b) = {1,...,min(d,b-1)} union {2^j : 0 <= j, 2^j <= d}
+K(T,d,b) = Map(A) + sum_{i in A} C_2(h(i))
+```
+
+This is a **superset**, not a claim all powers are built. Leaf demands i<b; split demands only powers of two. ensure for i>=2 uses `a=2^(ceil(log2 i)-1)`, `b_i=i-a`, `c=2a-i`. All positive dependencies are smaller. For a power of two they are half the power and zero; for a non-power below b they remain below b. Hence A is dependency-closed. This avoids both guessing odd coefficients and charging d arbitrary top-level ciphertexts.
+
+With the cache charged separately, define E(1)=0 (no additional ensure body), and for i>=2 in A:
+
+```
+l_i = min(h(a), h(b_i)) = h(i)+1
+G_i = 7 C_2(l_i) + C_3(l_i) + C_2(l_i-1)
+U_i = max(U_mod(2,h(a),l_i), U_mod(2,h(b_i),l_i),
+          U_mul22(l_i), U_relin3(l_i), U_add22(l_i),
+          U_add_const(2,l_i), U_rescale(2,l_i),
+          [U_mod(2,h(c),l_i), U_mul_const(2,l_i), U_sub22(l_i) if c>0])
+E(i) = max(E(a), E(b_i), [E(c) if c>0], G_i + U_i)
+```
+
+G_i is deliberately a lexical-scope superset: ta, tb, tensor result, relinearized prod, doubled prod, adjusted prod, aligned tc, scaled tc, final rescaled t. The seven C2(l_i) are ta/tb/relin/doubled/adjusted/tc/scaled-tc; tensor is C3 and t is C2(l_i-1). On c=0 the absent tc/scaled-tc terms only overcount. Parent ta/tb/product temporaries are created **after** recursive prerequisites, so prerequisites combine by max, not by summing their whole workspaces. Cached child outputs are already in K. A cache hit costs no new ciphertext; treating it as E(i) is an upper bound. Counting t both in G and the saturated cache K is deliberate slack. BTreeMap insertion/capacity costs are in Map and its operation envelope, not zero.
+
+## Leaf and rec, including cancellation and old/new overlap
+
+References: `poly.rs:323–339,535–595`. Let `Emax(m)=max_{i in A,1<=i<=m} E(i)` with empty max=0. A leaf on degree h at level t returns two components. Its additional envelope, excluding K and the borrowed coefficient slice, is:
+
+```
+Leaf(h,t) = max(
+    C_2(t) + Emax(h),
+    4 C_2(t) + max(U_mod(2,*,t), U_mul_const(2,t),
+                    U_add22(t), U_zero(t), U_add_const(2,t)))
+```
+
+Here `*` ranges only over h(i) for 1<=i<=h and actual legal target t. A constant leaf omits the first/unused primitive branches; keeping them is safe if their domain is nonempty. During ensure, an existing acc survives. During each loop's addition, old accumulator s, aligned t, term, and new accumulator coexist (four C2). Iteration temporaries drop before the next iteration; only the replaced acc continues. At the tail, zero construction or p0 addition is covered, including old/new acc. A nonzero scalar is charged whether positive or negative. Even if integer rounding produces zero, mul_const still constructs all output components.
+
+For **any** coefficient slice with degree at most m and a feasible target t, define R(m,t) below. It excludes K and the incoming coefficient slice; it includes newly split vectors, all descendants, and the returned ciphertext. Let
+
+```
+J(t) = C_3(t+1) + C_2(t+1) + 2 C_2(t) + 3 C_3(t)
+       + max(U_relin3(t+1), U_rescale(2,t+1),
+             U_mod(2,*,t), U_mul22(t), U_add33_or32(t), U_relabel(t))
+SplitBranch(h,t):
+    k = largest power of two <= h
+    Split(h+1) + max(
+        E(k),
+        R(h-k,t+1),
+        C_3(t+1) + R(k-1,t),
+        J(t))
+R(m,t) = max(0,
+    max_{0<=h<=m} [ Leaf(h,t) if h=0 or (h<b and t+ceil(log2 h)<=T)
+                   else SplitBranch(h,t) ])
+```
+
+The `*` in J is the selected h(k). J's tokens are qres (up to C3 at t+1), its relinearized replacement C2(t+1), rescaled qc C2(t), aligned tp C2(t), and rres/product/new sum (three C3(t)). Fewer-component and None branches are dominated. Moves through match bindings do not deep-copy; the tokens represent distinct old/new storage, not another charge for each renamed variable. Shadowed original qc can survive while the rescaled qc and tp exist; J keeps it. `boot_relabel`/`into_polys` moves storage and changes metadata; any nominated U_relabel gap concerns checks/error/object handling, not an invented deep clone.
+
+The third term `C_3(t+1)+R(k-1,t)` is essential: qres exists while r recursively evaluates. q/r vectors have lengths h-k+1 and k, combined h+1, and both remain owned by the parent throughout children and combination. The caller's p is borrowed, so its backing is charged by its owner, not copied by slicing. R's returned value is still included at each child boundary.
+
+The max over **every trimmed h<=m** is intentional. `rposition(c!=0)` can lower degree or return None; split subtraction can cancel coefficients or make a formerly zero coefficient nonzero. Therefore a single dense traversal is not assumed to dominate all zero patterns. For each actual h, split lengths are fixed and each child's actual degree is at most h-k and k-1. Both strictly decrease, so this is a finite computable upper recurrence. It permits every coefficient branch, including leading coefficient/signed cancellation cases, without running interpolation. Initial finite coefficients can overflow in splitting; the same shape bound covers the failure prefix when downstream scalar/scale checks reject it. Arithmetic panic/unwind/allocator abort resources are separately required, not silently certified by Result coverage.
+
+## Dispatch and EvalMod composition
+
+`poly.rs:655–712` checks then makes x, inserts it as T1, recurses, optionally relinearizes, and finally rescales. Define the tail:
+
+```
+Tail(t) = C_3(t) + C_2(t) + C_2(t-1)
+          + max(U_relin3(t), U_rescale(2,t), U_zero(t))
+W_Cheb(I,d,A) = K(T,d,b) + max(Normalize(I,A), R(d,t0), Tail(t0))
+```
+
+The borrowed input ct and coefficient Vec are external retained owners. For A=0 normalization is one C2(I) clone; it becomes the cache entry (counting it again here overbounds). For A=1, use `Normalize = C2(I)+2C2(I-1)+max(U_scalar(2,I),U_rescale(2,I),U_add_const(2,I-1))`: scalar product, rescaled y and constant-adjusted x; actual cache top is I-1. Tail retains old three-component res while new two-component res exists; cache remains live through final rescale. All-zero rec returns None but top constructs boot_zero and rescales, covered here. Error envelope adds E_err to relevant prefixes/validation, not a claim that early returns free backing to the OS.
+
+`evalmod.rs:47–69,147–188`; `poly.rs:85–95,715–732`:
+
+```
+W_DA(l) = C_3(l) + 2C_2(l) + C_2(l-1)
+          + max(U_mul22(l),U_relin3(l),U_add_const(2,l),U_rescale(2,l),U_relabel(l))
+W_EM(I,d,r) = F(r+1) + max(
+    3 F(d+1),
+    F(d+1) + W_Cheb(I,d,0),
+    max_{0<=j<r} [F(d+1)+C_2(I-D-j)+W_DA(I-D-j)],
+    F(d+1)+C_2(I-D-r))
+```
+
+Three interpolation vectors theta/fx/output coexist; afterward one coeffs vector survives across Cheb and double angles. targets (r+1) survives too. Each double-angle assignment keeps the old c while computing its new result; W_DA excludes its input, which is explicitly added. In double_angle the square is moved through relabel, not cloned, but the tensor, relinearized square, constant-adjusted square and rescaled result overlap conservatively. For r=0 omit the empty max. The code **proves** even initial coefficients zero when r=0, but this report's bound does not rely on parity or any floating coefficient sign/zero result. The two EvalMods construct their own coefficient/target vectors; the first call's internal vectors drop before the second serial call, while its returned Result remains.
+
+## Serial BSGS collection and primitive boundary
+
+The selected `matvec_plain_sum_sparse` dispatch (`linalg.rs:741–787`) passes `mul_plain` and identity `finish`. Plaintexts are already encoded resident inputs: at stage level l each kept entry is one P(l), retained independently of every ciphertext below. No encoding/constructor workspace is smuggled into this evaluation envelope.
+
+Inputs: t terms, baby b_s, giant g_s, `d_s=b_s*g_s`, one shape/stride/offset, two-component input ciphertexts at l, actual kept mask M[t,k,j]. All indices and shifts must fit source integer domains. Define `u_t = number of j for which some k has M[t,k,j]`; `e_k=1` if any term/baby entry is kept in giant k, otherwise 0. `X=sum_t u_t C2(l)` is the retained baby ciphertext payload, including j=0's deep clone. All-present fallback gives u_t=b_s,e_k=1 and needs no plaintext-data scan.
+
+`linalg.rs:812–825` builds rows serially. Let `H(u,l)` include all additional resources of hoisted_rotate, **including its u returned ciphertexts**; its input is borrowed. A usable row-build recurrence is:
+
+```
+BabyBuild = max_{0<=v<t} [ sum_{w<v} u_w C2(l)
+                          + H(u_v,l) + V_usize(u_v)+V_i32(u_v)
+                          + V_OptionCt(b_s) ] + Rows(t,b_s)
+Rows(t,b_s) = outer Vec row slots + t row allocations of b_s Option<Ciphertext> slots
+```
+
+The extra current row slot allocation may conservatively duplicate the saturated Rows term; retaining all previously built row slots is intentional. used and steps survive while rotated is produced; converting rotated to row moves ciphertexts, but the consumed Vec/IntoIter backing and row allocation can overlap. Slots are not extra ciphertext payload. Empty masks/zero rotation do not remove the Option-row array. A single current term builds only its own H, while completed previous terms' ciphertexts survive.
+
+For each giant block k, `B_k(l)` excludes X, borrowed terms/plaintexts and preceding giant results, and includes its returned Option ciphertext. A uniform safe bound for this **plaintext identity-finish** caller is:
+
+```
+B_k(l) <= 4 C2(l) + max(U_mul_plain(2,l),U_add22(l),U_rotate(2,l))
+```
+
+For the shared route, old inner + current t + new inner sum need three ciphertexts, and final block+rotated replacement fit inside this bound. For the nonshared route (`share_giant=false` with nonzero shift), pre-rotation t, shadowing rotated t, old sum and new sum need four; iteration scopes release temporaries before the next term. Output remains level l and two components. If e_k=0 the result is None; use zero payload but still a Result<Option<Ct>> slot and possible error slot. Loop count changes work/time but does not multiply block-local live scratch by number of entries.
+
+The key serial collection recurrence, from `linalg.rs:872–880`, `par.rs:16–29`, is:
+
+```
+Collect = max( sum_k e_k C2(l),
+               max_{0<=k<g_s} [sum_{j<k} e_j C2(l)+B_k(l)] )
+Reduce  <= (sum_k e_k) C2(l) + 2 C2(l) + U_add22(l)
+W_BSGS <= max(BabyBuild,
+              X + max(Collect,Reduce, U_mul_plain(2,l)+C2(l)))
+          + V_ResultOptionCt(g_s) + ChecksAndCollectionMetadata
+```
+
+The last multiplication term covers the all-skipped fallback of the generic executor. The validated sparse caller rejects any term with zero kept entries beforehand, so it does not reach an all-skipped set; retaining the term is conservative. Validating rotation-step vectors, terms/iterator metadata, and backing retained during IntoIter reduction are in ChecksAndCollectionMetadata. Final reduction starts **after the whole Vec is collected**, even without parallelism. Thus all successful giant outputs can coexist. After a block returns Err, `map_range` still calls later blocks and retains their Results; `?` is only applied during subsequent reduction. Replace each result payload bound by `max(e_k C2(l),E_err)` for failure-inclusive Collect/Reduce; up to g_s error payloads can coexist. Do not rely on the source comment 'no step fails part-way' to erase fallible allocations or error handling.
+
+Hoisted rotation's explicit unfinished primitive boundary (`evaluator.rs:572–610`): u key lookup slots; D_l digit QpPolys (`D_l=floor(l/alpha)+1`); u complete rotation Results collected before Result<Vec> conversion; at each nontrivial serial rotation another D_l rotated QpPolys; apply_key/finish_galois scratch; accumulated previous ciphertexts; output/Result/IntoIter slots. A conservative decomposition is:
+
+```
+H(u,l) <= V_keyoption(u)+V_rotation_results(u)+V_Ct(u)
+          + D_l Q(l) + u C2(l)
+          + max(U_decompose(l), D_l Q(l)+2P(l)+U_apply_key(l)+U_finish_galois(l), U_clone(2,l))
+```
+
+The explicit 2P(l) is returned kb/ka retained into finish_galois. Here U_decompose may include its complete digit output again, and U_apply_key may include returned kb/ka again; these are safe overcounts. For nonhoist use `u C2(l)+max U_rotate(l)` plus result/output slots and error storage. A sharper serial expression replaces u C2 by preceding j C2 at each call. Unknown NTT/automorphism cache/capacity terms stay in U, not discarded.
+
+## Linear stages and Bootstrapper caller retention
+
+Use `Stage(l,t)` excluding its t borrowed ciphertext inputs and resident plaintext diagonals. From `linear.rs:900–915`:
+
+```
+Stage(l,t) = V_termrefs(t) + max(W_BSGS(l,t),
+                                 C2(l)+C2(l-1)+U_rescale(2,l))
+```
+
+The BSGS result y moves through Ciphertext::new, then coexists with the rescale output. The one/two-reference terms Vec survives. Scale-label checks/errors add their envelope.
+
+For CtS with c stages, levels l_j=L-j, `L_c=L-c` (`linear.rs:776–805`), exclude the caller's borrowed raised input. Initially clone to x. At each stage, old x persists through apply_stage; if second is Some, conjugate xc persists too. A conservative bound is
+
+```
+W_CtS = max(C2(L)+U_clone(2,L),
+            max_j [2C2(l_j)+max(U_conjugate(l_j),Stage(l_j,t_j))],
+            5C2(L_c)+P(L_c)
+                +max(U_conjugate(L_c),U_add22(L_c),U_sub22(L_c),U_xhalf(L_c)))
+```
+
+t_j=1 except the final two-input stage. The factor2 at earlier stages simply overcounts a nonexistent xc. The tail five ciphertexts represent x, xc, re, temporary subtraction and im; P(L_c) is mul_by_x_half's explicit monomial (`linear.rs:921–935`), and U_xhalf includes remaining construction/NTT costs. Old/new x overlap in the Stage output term. Function-level validation vectors/errors are additional metadata.
+
+For StC with s stages starting at L_s, exclude its two borrowed re/im inputs (`linear.rs:824–855`):
+
+```
+W_StC = max(Stage(L_s,2),
+             max_{1<=j<s}[C2(L_s-j)+Stage(L_s-j,1)])
+```
+
+The old intermediate x coexists with the next stage result until assignment. Earlier assigned intermediates are dropped; no false all-stages ciphertext sum is necessary. The original re/im caller temporaries stay outside this formula throughout the call.
+
+Finally `bootstrapper.rs:356–430` uses Arc clones of existing keys in an inner evaluator. Key backing stays in persistent owners, not new copied keys. Let L_e=L_c-D-r, L_s be stoc[0].level, and O=C2(L_e); let `R0=max(O,E_err)` for the first EvalMod's retained Result. Exclude the external input ct, Bootstrapper/encoded stages/key backing, and other external owners in kinds0–11/16. A conservative **serial** pipeline envelope is:
+
+```
+W_boot = max(
+    U_raise(0,L)+C2(L),
+    C2(L)+W_CtS,
+    C2(L)+2C2(L_c)+max(W_EM(L_c,d,r), R0+W_EM(L_c,d,r), 2R0),
+    C2(L)+2C2(L_c)+2O+2C2(L_s)
+        +max(U_mod(2,L_e,L_s),W_StC))
+    + InnerEvaluatorMetadata + PipelineChecksErrors
+```
+
+Raised stays in pipeline scope. The old CtS pair is shadowed by the pair of Results and is conservatively retained; do not drop it merely at its last read. Serial join computes both closures even if the first returns Err; `(re?,im?)` propagates only afterward. The second EvalMod therefore overlaps the first returned Ok/Err, not a second simultaneous full Cheb workspace in this non-parallel branch. to_stoc consumes each EvalMod result, makes a mod-switched copy even at equal level, moves its backing through relabel, and its returned temporaries survive the entire slot_to_coeff call. The formula conservatively retains both original O objects while counting both switched inputs. Production passes `trace=None`, so test-only trace clones are absent. U_raise is a precise excluded primitive obligation: mod_raise SSE/main-key entry at bootstrapper405–408, including all nested switches/lifts and error prefixes; modraise.rs was not consulted and is not certified.
+
+For failure-inclusive final StC preparation use `2R0` in place of 2O as needed and retain PipelineChecksErrors; failed scale checks stop before dependent StC work. Successful-prefix resource maxima plus bounded error owners cover Result exits. No physical credit is inferred for dropped Rust allocations.
+
+## What remains inside primitive/collection terms
+
+These are concrete scoped obligations, not an undifferentiated W_Cheb placeholder:
+
+| Primitive | Source facts already established; remaining envelope |
+|---|---|
+| mod-switch/clone | evaluator513–522; keys153–167 deep-copy k target-level polynomials. Output C_k(t) is explicit. Collection capacity, from_limbs/check/error and allocator costs remain. |
+| mul22/add/sub/scalar/plain/constant | evaluator300–308,369–382,422–436,700–719; poly364–422. Tensor has d0,d1,temporary cross product,d2 construction and C3 output; add pads to max(k_a,k_b); plain/scalar clone k polynomials; mul_const allocates k new polynomials. add_const clones k polynomials then replaces c0 with a new P(l), so **an extra P(l)** overlaps. NTT pointwise mul mutates in place (core/poly167–180), but transitive modulus/std/error/layout costs remain. |
+| relinearize | evaluator441–457 first clones all three components, pops c2 (its allocation remains live), then key_switch returns kb/ka; output component Vec keeps capacity after pop. A safe extra envelope is C3(l)+2P(l)+U_key_switch(l), including the explicit returned kb/ka; primitive envelopes may conservatively count returned outputs again; never just C2(l). |
+| rescale | evaluator498–508 clones all k input polys before shrinking each. baseconv258–290 adds last-limb N u64 clone and per-limb N u64 transformed t, with calls to NTT. Safe extra payload envelope C_k(l)+2N u64 plus U_NTT/layout, conservatively overlapping the output token. Vec limb capacity after pop is not l rather than l+1 by assumption. |
+| key_switch/decompose | keyswitch68–74,100–123,140–209,317–318. D_l completed QpPolys survive; current digit of width a has source aN words, target (l+1-a+p)N words, digit-copy limbs, others/targets/from/to arrays, split_off and source/output outer vectors. U_decompose covers these plus conversion and NTT. |
+| apply_key | keyswitch252–308. Per serial limb two N u128 accumulators and two N u64 reductions; all completed limb pairs collected before unzip. Q results persist during P pass. Four resulting Q/P polynomials remain during sequential mod_down. U_apply_key must retain these and intermediate Vec tuple/unzip allocations, not one limb alone. |
+| converter/mod_down | baseconv77–129,171–232,459–510. Converter a->z has a+z Modulus elements, a inverse u64s, z rows each a u64; convert has aN normalized words, optional N overflow words and a f64 reciprocals, and zN output words. mod_down adds pN source copies, p/r scalar vectors and conversion p->r, r=l+1. NTT, Modulus layout, collect capacities and failure/unwind still required. |
+| rotation/conjugate/hoist | evaluator534–550,572–610,640–646,800–803. A nonhoisted rotation owns automorphed c1 plus key-switch kb/ka, then automorphed c0 while kb remains. Hoist retains original and rotated D_l digit sets and all output collections. First-use Galois permutation cache and its identity/retention must be assigned consistently to kind16 or U; RnsBasis/automorphism definitions were not reopened in this scope. |
+| zero/xhalf/raise | poly436–440 constructs one zero P and its deep clone, with NTT call; linear921–935 creates the monomial P and cloned ciphertext components; raise remains at the named bootstrap primitive boundary. NTT/raise dependencies are not inspected/validated here. |
+
+All checks with format!/String, Result/Option vectors, BTreeMap insertion and Vec::collect/clone/growth/reallocation need exact supported Rust/std/target envelopes. For a polynomial, requested backing is `cap_outer*sizeof(Vec<u64>) + sum cap_limb*sizeof(u64)` plus its inline RnsPoly where actually stored; C adds component storage and its owner object. Logical length is not a capacity maximum. Shared basis/key/plan allocations must be charged once by identity in their persistent owner; separately count newly created permutation caches. Allocator retained-freed blocks, alignment/rounding, arenas, fragmentation, stack frames/unwind/TLS, runtime and process/cgroup charges are outside these payload equations and cannot be recovered with a guessed margin.
+
+## Recorded finite check and SPEC boundary
+
+The predeclared stdlib integer worksheet returned:
+
+```
+degree=127, top=27, baby=16, top_target_level=21
+power_indices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,32,64]
+power_objects=18; power_RnsPoly_objects=36
+power_u64_elements_div_N=888
+recurrence_states=127; split_candidates=1523
+cache dependency closure / power target levels / strict split decrease: PASS
+```
+
+This is only the saturated **cache** scalar count and recurrence-domain check. `888*N` is not total workspace, requested physical bytes, measured allocation, or fit; primitive terms were never assigned numeric zero. It is not evidence for scientific binary execution. No cost-model result JSON was produced. The exact finite check was an inline stdlib Python script with integer bit_length, set construction and memoized visit(m,t); it enumerated h=0..m, applied the stated leaf predicate, and recursed into h-k,t+1 and k-1,t. It did not read source or data. Pin generation separately reads only the 20 inventoried inputs using fixed git show / local instruction reads, computes byte lengths, SHA256 and Git blob IDs, and writes the one named JSON. Final output checking is limited to these two ledger files' byte length and SHA256 and their named content, not project tests.
+
+SPEC fulfillment: concrete terminating ensure/leaf/rec recurrence, finite cache closure, actual CPU component counts/levels, coefficient vector overlap, qres across r recursion, shadowed temporary retention, dispatch/tail/EvalMod/Bootstrapper/linear-stage composition, serial giant-result accumulation and Result-error handling are provided with fixed source references. A root reviewer can substitute admitted primitive/collection envelopes without deriving this recursion again. Limits: compilation mode/actual recipe and full external owner integration must be bound; primitive/std/allocator/native evidence remains missing; non-serial Rayon is unsupported by this recurrence; numerical fit/full physical model and Task54 experiment completion are unclaimed. No architecture, format, threshold or authorization changed.
