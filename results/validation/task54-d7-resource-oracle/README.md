@@ -1,0 +1,9 @@
+# Independent resource source-format oracle
+
+[Root decision](task-54-d7-resource-oracle-ratification.md) accepts these fictional representation artifacts after [independent specification and quality review](task-54-d7-resource-oracle-review.md). [Author report](task-54-d7-resource-oracle-report.md) records the pre-execution inventories, all invocations, first green result's missing registry check and narrow correction. The exact [format contract](../task54-d7-resource-format/task-54-d7-resource-format-contract.md) remains controlling.
+
+`corpus/` contains264 exact files (1,108,805 bytes), including the131-file first submission under before-fix1. Final examples:26 JSON and2 bootstrap; intended negative refusals:67 JSON and9 bootstrap. Nine negative and five positive private witnesses are illustrative context/arithmetic checks, not source-parser/native controls. All final85 expected refusals matched the author verifier; the independent reviewer separately reconstructed bytes and traced first-check reachability without rerunning it.
+
+These are inert fictional inputs, including the study-domain forms. They supply no accepted real model, host-origin/capacity, ownership, native behavior, scientific accuracy or performance evidence. Rust production parsing is subsequent work. The archived standalone scripts retain their original ledger-relative input layout; this archive is byte evidence, not a newly claimed portable invocation. Frozen nested inputs and every exact command/input pin are named in the author report. No project encoder was used to manufacture these expectations.
+
+The264 corpus files and6 adjacent documents/package are exact ledger copies. Top SHA256SUMS covers all270 copies and this README; corpus/SHA256SUMS preserves the author's original263-entry checksum ledger. Historical pending-status text remains historical; the later root decision records current acceptance.

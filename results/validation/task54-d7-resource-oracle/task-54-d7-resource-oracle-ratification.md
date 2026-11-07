@@ -1,0 +1,11 @@
+# Task54 resource oracle ratification
+
+Root accepts the frozen fictional representation corpus after FULL READ of author report4d57e6e and independent SPEC/QUALITY PASS9148290d. Root separately checked all263 checksums,264files1108805B,124 current manifest entries, original19235B report prefix and85 exact expected/observed outcomes. The independent reviewer reconstructed bootstrap/legacy registration/Request bytes, JSON links/arithmetic and each intended first refusal without executing author code.
+
+The corpus has26 JSON and2 bootstrap positive examples,67 JSON and9 bootstrap negative records, plus9 private negative and5 private positive witnesses. Private witness booleans are not source-record fields or native tests. Study-domain examples remain fictional and inert. This acceptance authorizes using the frozen bytes as expectations in a separately scoped Rust implementation; it grants no physical-model, real-source, live-owner or scientific gate authority.
+
+Initial generator1/verifier1 exited0 but the verifier missed the legacy registration-to-registry relation. Direct inspection found it. The full131-file initial submission remains in before-fix1. Narrow correction reused the exact89B prior synthetic registry, added independent legacy registry equality and n85. Generator2/verifier2 exited0; all final85 expectations match. This is artifact repair, not a design or scientific-result change. The initial green cannot prove the omitted check.
+
+Ruling: retain the corrected oracle as an independent expectation set, with historical defect and witness limits explicit, rather than regenerating expectations from the upcoming production encoder. This preserves fault independence; an unnoticed oracle error would require downstream fixture/parser correction. Exact format a7c947fc, existing outer bytes/caps, all21/full2680+20+7/quick268 and original holds remain unchanged. No physical bound or guessed margin is supplied.
+
+Next remains real Rust source parsing/encoding followed by independent source review, same-owner retained typed input integration, actual complete allocation model, native host/lock/helper validation and scientific matrix execution. Standalone artifact results cannot close those requirements.

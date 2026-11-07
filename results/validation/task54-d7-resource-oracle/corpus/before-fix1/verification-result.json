@@ -1,0 +1,632 @@
+{
+  "notice": "FICTIONAL REPRESENTATION ONLY; no source/model/host/native authority",
+  "positive_source_json": 26,
+  "positive_bootstrap": 2,
+  "positive_private_witnesses": 5,
+  "negatives_source_json": 66,
+  "negatives_bootstrap": 9,
+  "negatives_private_witnesses": 9,
+  "positive_paths": [
+    "synthetic/model",
+    "synthetic/validation",
+    "synthetic/host-policy",
+    "synthetic/claim-train-full",
+    "synthetic/claim-train-quick",
+    "synthetic/claim-reference-read",
+    "synthetic/claim-reference-recover",
+    "synthetic/claim-reference-snapshot",
+    "synthetic/claim-target-read-future",
+    "synthetic/claim-target-read-supplied",
+    "synthetic/claim-target-lock",
+    "synthetic/host-observation",
+    "synthetic/disk-observation",
+    "synthetic/bootstrap",
+    "inert-production/model",
+    "inert-production/validation",
+    "inert-production/host-policy",
+    "inert-production/claim-train-full",
+    "inert-production/claim-train-quick",
+    "inert-production/claim-reference-read",
+    "inert-production/claim-reference-recover",
+    "inert-production/claim-reference-snapshot",
+    "inert-production/claim-target-read-future",
+    "inert-production/claim-target-read-supplied",
+    "inert-production/claim-target-lock",
+    "inert-production/host-observation",
+    "inert-production/disk-observation",
+    "inert-production/bootstrap"
+  ],
+  "outcomes": [
+    {
+      "id": "n01-missing-component",
+      "category": "source-json-structural",
+      "expected": "component-order",
+      "observed": "component-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n02-duplicate-component",
+      "category": "source-json-structural",
+      "expected": "component-order",
+      "observed": "component-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n03-component-order",
+      "category": "source-json-structural",
+      "expected": "component-order",
+      "observed": "component-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n04-unknown-rule",
+      "category": "source-json-structural",
+      "expected": "tag",
+      "observed": "tag",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n05-rule-revision",
+      "category": "source-json-structural",
+      "expected": "rule-revision",
+      "observed": "rule-revision",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n06-malformed-json",
+      "category": "source-json-structural",
+      "expected": "json",
+      "observed": "json",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n07-duplicate-decoded-key",
+      "category": "source-json-structural",
+      "expected": "duplicate-key",
+      "observed": "duplicate-key",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n08-unknown-key",
+      "category": "source-json-structural",
+      "expected": "keys",
+      "observed": "keys",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n09-missing-key",
+      "category": "source-json-structural",
+      "expected": "keys",
+      "observed": "keys",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n10-fraction",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n11-exponent",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n12-negative-zero",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n13-bool-as-integer",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n14-u64-overflow",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n15-quoted-number",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n16-invalid-utf8",
+      "category": "source-json-structural",
+      "expected": "utf8",
+      "observed": "utf8",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n17-trailing-junk",
+      "category": "source-json-structural",
+      "expected": "json",
+      "observed": "json",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n18-bom",
+      "category": "source-json-structural",
+      "expected": "json",
+      "observed": "json",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n19-invalid-scalar",
+      "category": "source-json-structural",
+      "expected": "unicode",
+      "observed": "unicode",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n20-source-manifest",
+      "category": "source-json-structural",
+      "expected": "source-identity",
+      "observed": "source-identity",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n21-source-revision",
+      "category": "source-json-structural",
+      "expected": "source-identity",
+      "observed": "source-identity",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n22-build-receipt",
+      "category": "source-json-structural",
+      "expected": "build-identity",
+      "observed": "build-identity",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n23-run-environment",
+      "category": "source-json-structural",
+      "expected": "environment-equality",
+      "observed": "environment-equality",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n24-missing-validation",
+      "category": "source-json-structural",
+      "expected": "keys",
+      "observed": "keys",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n25-validation-hash",
+      "category": "source-json-structural",
+      "expected": "file-link",
+      "observed": "file-link",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n26-model-hash",
+      "category": "source-json-structural",
+      "expected": "file-link",
+      "observed": "file-link",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n27-mixed-domain",
+      "category": "source-json-structural",
+      "expected": "domain",
+      "observed": "domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n28-synthetic-pair",
+      "category": "source-json-structural",
+      "expected": "domain",
+      "observed": "domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n29-absolute-fileref",
+      "category": "source-json-structural",
+      "expected": "fileref-path",
+      "observed": "fileref-path",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n30-duplicate-run",
+      "category": "source-json-structural",
+      "expected": "run-order",
+      "observed": "run-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n31-unresolved-run",
+      "category": "source-json-structural",
+      "expected": "run-reference",
+      "observed": "run-reference",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n32-reciprocal-coverage",
+      "category": "source-json-structural",
+      "expected": "reciprocal-coverage",
+      "observed": "reciprocal-coverage",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n33-unreferenced-run",
+      "category": "source-json-structural",
+      "expected": "unreferenced-run",
+      "observed": "unreferenced-run",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n34-duplicate-source",
+      "category": "source-json-structural",
+      "expected": "source-order",
+      "observed": "source-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n35-source-order",
+      "category": "source-json-structural",
+      "expected": "source-order",
+      "observed": "source-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n36-work-order",
+      "category": "source-json-structural",
+      "expected": "work-order",
+      "observed": "work-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n37-overlap-work",
+      "category": "source-json-structural",
+      "expected": "work-duplicate",
+      "observed": "work-duplicate",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n38-read-expected-some",
+      "category": "source-json-structural",
+      "expected": "reference-option",
+      "observed": "reference-option",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n39-recover-expected-none",
+      "category": "source-json-structural",
+      "expected": "reference-option",
+      "observed": "reference-option",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n40-recover-wrong-hash",
+      "category": "source-json-structural",
+      "expected": "reference-hash",
+      "observed": "reference-hash",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n41-snapshot-expected-some",
+      "category": "source-json-structural",
+      "expected": "reference-option",
+      "observed": "reference-option",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n42-reference-seed",
+      "category": "source-json-structural",
+      "expected": "reference-seed",
+      "observed": "reference-seed",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n43-read-target-none",
+      "category": "source-json-structural",
+      "expected": "target-option",
+      "observed": "target-option",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n44-lock-target-some",
+      "category": "source-json-structural",
+      "expected": "target-option",
+      "observed": "target-option",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n45-lock-input-some",
+      "category": "source-json-structural",
+      "expected": "lock-options",
+      "observed": "lock-options",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n46-lock-seed",
+      "category": "source-json-structural",
+      "expected": "lock-options",
+      "observed": "lock-options",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n47-supplied-receipt-role",
+      "category": "source-json-structural",
+      "expected": "supplied-materialized",
+      "observed": "supplied-materialized",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n48-supplied-contract-role",
+      "category": "source-json-structural",
+      "expected": "supplied-materialized",
+      "observed": "supplied-materialized",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n49-supplied-one-byte",
+      "category": "source-json-structural",
+      "expected": "supplied-materialized",
+      "observed": "supplied-materialized",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n50-future-input-some",
+      "category": "private-context-witness",
+      "expected": "input-not-existing",
+      "observed": "input-not-existing",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n51-other-owner",
+      "category": "private-context-witness",
+      "expected": "input-other-owner",
+      "observed": "input-other-owner",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n52-preparation-train-promotion",
+      "category": "private-context-witness",
+      "expected": "preparation-promotion",
+      "observed": "preparation-promotion",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n53-request-mixed-domain",
+      "category": "source-json-structural",
+      "expected": "request-domain",
+      "observed": "request-domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n54-seed-membership",
+      "category": "source-json-structural",
+      "expected": "work-membership",
+      "observed": "work-membership",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n55-claim-observation-link",
+      "category": "source-json-structural",
+      "expected": "claim-link",
+      "observed": "claim-link",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n56-observation-sequence",
+      "category": "source-json-structural",
+      "expected": "observation-sequence",
+      "observed": "observation-sequence",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n57-observation-physical",
+      "category": "source-json-structural",
+      "expected": "physical-link",
+      "observed": "physical-link",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n58-topology-namespace",
+      "category": "source-json-structural",
+      "expected": "topology-origin",
+      "observed": "topology-origin",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n59-v1-global-root",
+      "category": "source-json-structural",
+      "expected": "structural-root",
+      "observed": "structural-root",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n60-fabricated-root-row",
+      "category": "source-json-structural",
+      "expected": "structural-root-row",
+      "observed": "structural-root-row",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n61-hidden-ancestor",
+      "category": "private-context-witness",
+      "expected": "hidden-ancestor",
+      "observed": "hidden-ancestor",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n62-duplicate-root-role",
+      "category": "source-json-structural",
+      "expected": "root-order",
+      "observed": "root-order",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n63-disk-product-overflow",
+      "category": "source-json-structural",
+      "expected": "arithmetic-overflow",
+      "observed": "arithmetic-overflow",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n64-disk-sum-overflow",
+      "category": "private-context-witness",
+      "expected": "arithmetic-overflow",
+      "observed": "arithmetic-overflow",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n65-phase-overflow",
+      "category": "source-json-structural",
+      "expected": "arithmetic-overflow",
+      "observed": "arithmetic-overflow",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n66-peak-mismatch",
+      "category": "source-json-structural",
+      "expected": "peak-identity",
+      "observed": "peak-identity",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n67-incremental-mismatch",
+      "category": "source-json-structural",
+      "expected": "incremental-identity",
+      "observed": "incremental-identity",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n68-raw-cap-plus-one",
+      "category": "private-context-witness",
+      "expected": "raw-cap",
+      "observed": "raw-cap",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n69-bootstrap-short",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-length",
+      "observed": "bootstrap-length",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n70-bootstrap-policy",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-policy",
+      "observed": "bootstrap-policy",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n71-bootstrap-namespace",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-namespaces",
+      "observed": "bootstrap-namespaces",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n72-bootstrap-origin",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-origin",
+      "observed": "bootstrap-origin",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n73-bootstrap-profile",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-profile",
+      "observed": "bootstrap-profile",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n74-bootstrap-domain",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-domain",
+      "observed": "bootstrap-domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n75-bootstrap-synthetic",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-domain",
+      "observed": "bootstrap-domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n76-bootstrap-trailing",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-length",
+      "observed": "bootstrap-length",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n77-bootstrap-hash-prefix",
+      "category": "bootstrap-structural",
+      "expected": "bootstrap-hash-prefix",
+      "observed": "bootstrap-hash-prefix",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n78-escaped-bytes",
+      "category": "source-json-structural",
+      "expected": "bytes-spelling",
+      "observed": "bytes-spelling",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n79-i32-overflow",
+      "category": "source-json-structural",
+      "expected": "integer",
+      "observed": "integer",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n80-argv-nul",
+      "category": "source-json-structural",
+      "expected": "argv",
+      "observed": "argv",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n81-insufficient-inodes",
+      "category": "source-json-structural",
+      "expected": "disk-inodes",
+      "observed": "disk-inodes",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n82-huge-finite-not-unlimited",
+      "category": "private-context-witness",
+      "expected": "finite-not-unlimited",
+      "observed": "finite-not-unlimited",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n83-zero-other-without-serial-domain",
+      "category": "private-context-witness",
+      "expected": "serial-domain",
+      "observed": "serial-domain",
+      "first_refusal_matches": true
+    },
+    {
+      "id": "n84-omitted-accounting-parent",
+      "category": "private-context-witness",
+      "expected": "missing-ancestor",
+      "observed": "missing-ancestor",
+      "first_refusal_matches": true
+    }
+  ],
+  "all_expected": true,
+  "no_project_or_native_execution": true,
+  "limitation": "Structural checks and private context illustrations only; native origin/lifetime, physical model/source validity, actual complete receipt semantics and experiment applicability remain absent."
+}
