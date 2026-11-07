@@ -1,0 +1,33 @@
+{
+  "kind": "root_operational_observation_outcome_not_scientific_result",
+  "request_id": "R-41-FULL2-OBS-20261108-0700",
+  "observed_jst": "2026-11-08T07:01:30.668426+09:00",
+  "raw_sha256": "989195dde47a7c887ae90d5138342184c133f47430c6a39c20015bcef477b6a2",
+  "raw_bytes": 2412,
+  "last_update_zero_based": 686,
+  "completed_updates": 687,
+  "planned_updates": 1000,
+  "server_log_elapsed_s": 99634,
+  "last_six_updates": [
+    681,
+    682,
+    683,
+    684,
+    685,
+    686
+  ],
+  "last_six_each_ks": 1415,
+  "last_six_each_bootstraps": 4,
+  "last_six_prediction_match": true,
+  "final_result_present": false,
+  "queue_entries": [
+    "owner.json"
+  ],
+  "original_exec": "27b457",
+  "original_session": 98217,
+  "terminal_chunk": "934719",
+  "terminal_exit": 0,
+  "automatic_retry": false,
+  "next_request": "R-41-FULL2-OBS-20261108-0801",
+  "next_earliest_jst": "2026-11-08T08:01:31+09:00"
+}
