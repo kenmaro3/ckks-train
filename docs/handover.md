@@ -849,3 +849,11 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 ## 2026-11-07 21:55 JST追記: FULL-2の定期確認
 
 実際の確認時刻は2026-11-07T21:55:08.282123+09:00。R-41-FULL-2の最新ログはupdate 466で、完了更新は467/1000、ログ上のelapsedは66839秒だった。直近6更新は各1369 KS・4 bootstrap。固定した起動時刻と一致する自分のchain／後続queueは生存しており、最終結果JSONは未出力、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2154/README.md)を保存し、同じcontroller handle15031のterminal0まで確認した。再実行やjob／queue変更はしていない。次回の通常確認は22:55:09JST以降。途中経過であり、最終精度・RQ1の合格や後続計測完了とは扱わない。
+
+<a id="latest-evidence-20261107-d7-gate-custody"></a>
+
+## 2026-11-07追記: 証拠ファイルの保存・復旧設計
+
+[証拠ファイルの保存・復旧設計](study-gates-design.md#6-evidence-custody-and-recovery)を独立レビュー合格後に確定した。五つの固定binary sidecarをguard取得・実行対象の適格性確認後、admissionより前に順序どおり保存し、同じファイルとbytesをstart／beginまで保持する。途中失敗の空・一部保存状態を成功や未使用に戻さず、完全な記録だけを検査・再同期する。Quickは別の運用用namespaceとInitial-onlyの処理を持ち、Fullのtargetや実行権限へ変換しない。
+
+これで設計上のM1（保存場所・順序・途中失敗・復旧）が解消した。新しいevidence／Quick形式の独立テスト値と具体的な障害注入手順、protocol実装、Linux実測は未完了である。数値ゲートや既存user権限を変更せず、新たな一律確認も要求しない。

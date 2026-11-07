@@ -1,0 +1,171 @@
+# Task54 D7 gate evidence custody and closed publication inventory
+
+Status: design proposal, 2026-11-07; addresses carried M1 before protocol/gate source. Based on ratified `docs/study-gates-design.md` at `1072d84`, its accepted FIX1 archive, frozen `docs/study-target-design.md` §§6–7, and current `study_provenance/publication.rs` / `study_reference/target.rs`. Only this ledger proposal is written. No source, encoder, test/runtime, Cargo, SSH, agents or commit; the concurrent request/outer-binding source package is outside scope.
+
+## 1. Selected design and reason
+
+Publish five fixed canonical-binary evidence sidecars inside the selected attempt, under the existing profile guard, **after guarded eligibility and before admission**. Admission's existing five `evidence_sha256` fields identify those exact file bytes. A sidecar is an immutable observation/evidence snapshot, never a gate constructor or live token. Full retains its existing paths, admission/start bytes, caps and eligibility. Quick uses a disjoint operational tree with a narrow concrete adapter and fixed event files; it cannot create or satisfy any Full record.
+
+This keeps the authority-bearing transition in the existing no-clobber publisher. There is no separate evidence transaction journal, mutable manifest, generic path writer or approval service. A pre-admission crash can strand a named attempt. That is the already frozen conservative rule, not a reason to erase the attempt or invent a retry predecessor.
+
+Alternatives rejected: evidence written before eligibility changes case history; sidecars after admission allow an admission to escape before its evidence is durable; embedding all evidence in admission changes frozen bytes/caps; external caller-selected evidence paths lose held-directory custody; a mutable evidence index introduces another atomicity/recovery protocol. A second Quick path under Full profiles would interfere with Full lock/case eligibility and imply a target dependency; use a disjoint tree instead.
+
+## 2. Actual APIs and narrowly required additions
+
+Existing foundation supplies `Anchors::{open,child,child_existing,recheck}`, private `openat`, `safe_directory/safe_file`, same mount/device checks, `Native` and `publish_ops/recover_ops`, `read_stamped_on`, and stable fresh-FD `ProfileGuard`. `Native` uses a short-write-complete call, temporary file sync, `linkat` without replacement, parent sync, inode-checked cleanup of its own temp, then parent sync again. Its error distinction is `BeforeLink` versus `VisibleUnconfirmed`. Temporary suffix search is exactly counters0..63. `safe_file` checks regular file, current UID and mode0600; only the guard additionally requires zero length and link count1. A surviving temp hard link must not be misclassified by adding an incompatible final-file link-count1 requirement.
+
+Current `TargetStore` only opens/reads/publishes/recovers `target.lock.json`; current Train opening is existing-only. `ProfileTargetStore` currently owns context/campaign/profile and no ActiveAttemptHandles. `VerifiedTargetForSeed` already holds exact lock/reference snapshots, selected-seed receipt and threshold. No actual case/attempt/admission/start/sidecar API exists yet. Do not describe the following additions as existing.
+
+Full protocol source adds a **closed** `AttemptFile` selector with five evidence variants plus Admission and Start, and private validated attempt-handle operations on the existing TargetStore foundation. Its methods take typed selectors and internally chosen names/caps/temp IDs, never a filename/path/cap from the caller. The future ProfileTargetStore owns the ratified ActiveAttemptHandles: ancestors/case/attempt FDs, identity stamps, and retained evidence final-file descriptors/read stamps through admission→start→begin. A narrow held-read helper returns owned File+ReadStamp+bounded immutable bytes; today's `read_stamped_on` closes its local File, so retaining that FD requires explicit source work rather than assuming the current helper does it.
+
+Quick adds a private concrete `QuickProfileStore` adapter in the same publication module, sharing Anchors, guard validation and Native/publish_ops. It is not a public configurable Store and does not change `TargetStore::open_existing` or allow Train to create Full profiles/targets. Its only role-specific creation policy is the Quick tree below; Quick events/evidence use a separate closed file selector. Gate scope and live owner checks remain outside these I/O helpers.
+
+## 3. Closed namespaces, filenames and caps
+
+`<root>` is an explicitly selected prepared private publication root outside historical results, reached through retained safe ancestors on supported Linux ext4/XFS. Roots need not be shared between branches. When one root is shared, the two top-level branches are disjoint. This package only owns/traverses its selected branch and does not infer authority from unrelated siblings.
+
+Full, unchanged parent path:
+
+```text
+<root>/campaigns/<campaign>/profiles/p-<profile-slot-hash>/
+  .profile-guard
+  target.lock.json
+  cases/c-<full-case-id>/attempts/<attempt>/
+    inputs.evidence.bin
+    implementation.evidence.bin
+    layout.evidence.bin
+    resource.evidence.bin
+    user.evidence.bin
+    admission.json
+    start.json
+```
+
+Quick, separate operational path:
+
+```text
+<root>/quick-campaigns/<campaign>/profiles/p-<profile-slot-hash>/
+  .profile-guard
+  cases/q-<registration-case-id>/attempts/<operational-attempt>/
+    inputs.evidence.bin
+    implementation.evidence.bin
+    layout.evidence.bin
+    resource.evidence.bin
+    user.evidence.bin
+    quick.preflight.json
+    quick.start.json
+    quick.end.json
+```
+
+The Quick case slot uses the exact full registered case id **as registration provenance** (seed0 for the projected case); it is not an admitted Full case. Its stable slot excludes attempt identity. The separately encoded operational Quick identity includes actual execution/input/two-update consumption and operational attempt, as ratified. Do not make a new case slot from each attempt to bypass eligibility. Quick has no target.lock.json, reference link, threshold or Full predecessor. A Full file name in a Quick attempt, or a Quick event name in Full, is an unknown entry and rejects.
+
+Identifiers keep the existing1..128 ASCII `[A-Za-z0-9_-]` grammar, no normalization. Profile/case slots are derived by the approved encoders, never accepted as CLI hashes. All private directories0700, files0600; guard inode zero-byte/one-link, never replaced. Selected profile entries are exactly guard/target/cases for Full and guard/cases for Quick, plus recognized target-publisher remnants in Full only. A selected case contains only `attempts` (or no entry while being initialized); a selected `attempts` directory contains named attempts. Initial fails on its first existing attempt entry regardless of validity. Retry inspects only the explicitly selected predecessor/new attempt and required parents, not all unrelated attempts or a computed “latest.” Unknown entries in the selected profile/case/attempt reject; unrelated attempts are preserved without inferred success/failure.
+
+| Closed file selector | Final name | Max file bytes | Native temp id |
+|---|---|---:|---|
+| InputsEvidence | `inputs.evidence.bin` | A=2,097,152 | `gate-inputs` |
+| ImplementationEvidence | `implementation.evidence.bin` | A | `gate-implementation` |
+| LayoutEvidence | `layout.evidence.bin` | A | `gate-layout` |
+| ResourceEvidence | `resource.evidence.bin` | A | `gate-resource` |
+| UserEvidence | `user.evidence.bin` | A | `gate-user` |
+| Full Admission | `admission.json` | 70,492,488 | `admission` |
+| Full Start | `start.json` | A | `start` |
+| Quick Preflight | `quick.preflight.json` | A | `quick-preflight` |
+| Quick Start | `quick.start.json` | A | `quick-start` |
+| Quick End | `quick.end.json` | A | `quick-end` |
+
+Evidence files contain the exact canonical bytes, without JSON/hex/base64 wrapper, newline or embedded self-hash. `SHA256(entire_file_bytes)` is exactly the corresponding `Gates.<gate>.evidence_sha256`; policy revision and Full/Quick domain/tag in the decoded bytes must match the live producer/record. No “canonicalized equivalent JSON” substitution is possible. All five are mandatory. The new evidence A cap is an administrative reuse of existing auxiliary cap, not a new scientific limit or a claim that all candidate evidence already fits. Store large existing contracts/receipts by verified identity references in evidence, not embedded duplicates. Each sidecar must fit A before namespace mutation; oversized evidence is unavailable pending an explicit encoding design refinement, never silently truncated or enlarged.
+
+Full admission canonical cap remains36,294,820; Full start canonical cap A. Full lock remains7,324,204 file/4,710,678 canonical; C=2,613,526 and R=31,584,142 unchanged. Maximum final-file sum per Full attempt is83,075,400 bytes; Quick eight finals total16,777,216. These are transport ceilings, not reservations, required RAM or disk-fit estimates. Reserve/account actual retained record bytes and future publication/read buffers under original request limits; physical/disk gates count actual live bytes separately.
+
+Exact recognized temporary names are `.tmp-<Native-temp-id>-<counter>` for the selected branch's file IDs, counter in canonical decimal0..63, with no extra digits/sign/leading zeros. The Full profile also recognizes existing `.tmp-target-lock-0` through `.tmp-target-lock-63`; these never satisfy the target requirement. Temp limits equal their file selector's cap. The selected Full attempt has at most7 final names+448 recognized temp names; Quick at most8+512. Check directory entries in a bounded-memory streaming scan, stop on the first unknown name or malformed object; no growing filename list or reading all temp contents. Stat recognized remnants through nofollow held-parent handles for regular-file/mode/owner/mount/size identity, but never parse a partial temp as finalized evidence. A recognized residual temp is untrusted preserved state, not permission to proceed without a required final. This post-lock admission/inspection inventory does not relax existing Reference `claim_new`/`profile_empty`: any target temp, cases entry or other non-guard profile entry still blocks a fresh lock claim, exactly as current source does.
+
+No completion/result/diagnostic files beyond the listed names may be injected into these directories. Full scientific output lives in the separately designed result publisher's namespace and links receipts; adding its names here requires explicit closed-inventory revision. External evidence referenced by a sidecar must be read through the reviewed evidence producer/context, not resolved by arbitrary artifact-supplied paths. Its referenced hash alone is not a new file-opening capability.
+
+## 4. In-memory gate work and guarded namespace ownership
+
+All five real gates, branch scope, descriptor bindings and canonical evidence records are constructed and bounded in memory before attempt namespace mutation. They retain actual leases, original request/parameter/input/plan owners and inert context identity; no file producer can manufacture them. Preflight diagnostic failure writes no attempt sidecar. Any separately authorized diagnostic output uses its existing diagnostic namespace, not an ersatz admission attempt.
+
+Full opens the existing Train target store and verifies the actual durable target/reference/threshold and independently materialized selected receipt. It must not create a case/attempt before this succeeds. Under a freshly opened stable `.profile-guard` flock, recheck target/current context and all gate scopes, then apply the frozen Initial/Retry eligibility decision. Only after eligibility succeeds create the selected absent case/attempts containers as needed, sync each new directory and its parent, then create the new named attempt **exclusively** (EEXIST is rejection, never reuse), open/validate it and sync it plus `attempts`. Hold the same guard continuously through all sidecars and durable admission. Each gate's recorded evidence snapshot remains fixed; the guard-stage live recheck validates its applicability/current lease. Updated capacity observations are live checks, not permission to rewrite the sealed sidecar under an unchanged hash.
+
+Quick first builds the same five genuine Quick gates and all bounded records in memory, without a target check. It may then initialize only its own disjoint campaign/profile ancestors and stable guard via the existing create-or-open/validate/fsync primitives. This administrative bootstrap can leave empty Quick ancestors/guard after failure; it creates no case/attempt/evidence and supplies no execution authority. After acquiring that guard, validate the exact Quick scope/current context and Initial eligibility, then create/sync case/attempt containers with the same exclusivity rules. This is the sole added Train creation policy; Full existing-only opening remains untouched. There is no profile guard held during HE, waiting for a user, or slow correctness/security research.
+
+## 5. Publication sequence and retained evidence
+
+### Full
+
+1. With eligibility settled and the new attempt held under guard, publish sidecars in exact order **inputs, implementation, layout, resource, user**. Each uses existing `publish_ops`: fresh O_EXCL temp → complete write → file sync → no-replace linkat → parent sync → inode-checked unlink of only this invocation's owned temp → parent sync. After each durable success, open its final through the held attempt FD, validate mount/owner/mode/size, retain the File/stamp, reread exactly bounded bytes and compare byte-for-byte to the in-memory producer plus expected whole-file hash. Recheck anchored identities. Do not use a pathname found inside evidence.
+2. All five durable exact finals must be present before admission publication begins. Recheck the five retained files/namespace identities and live gates, target/current context/process/clock, then serialize the **unchanged** admission using the five hashes. Capture the admission event time according to the frozen lifecycle. Publish admission through the same primitive and recheck files/handles/gates/clock after publication. Only complete durable success returns NewlyPublishedAdmission. A durable sidecar alone never returns a live admission.
+3. Release the guard, retain the same exclusive store borrow and ActiveAttemptHandles/evidence Files. On `start_he_case`, reacquire a fresh guard FD through that store; verify own exact admission, all five sidecars and hashes/policy/branch/scope, current lock, gates/process/context and start absence. Publish the unchanged start; late checks must pass before StartedHeCase escapes. No sidecar is rewritten at start. Resource/user leases undergo current rechecks; their old evidence capture time is not reported as a new measurement.
+4. `begin_checked_he` keeps the same borrows/handles through the ratified rechecks and post-start `validate_plan_binding`. Recheck retained evidence file identities/hash bytes and exact admission/start links at this boundary. Transfer immutable evidence bytes/links, actual gate leases and the checked context/input/plan/accounting into LiveCaseFrame **before** closing ActiveAttemptHandles/evidence FDs and releasing the store borrow. The owned driver has no hidden path-reopen authority. Runtime lease rechecks continue, and immutable admitted evidence is retained as a snapshot rather than claimed to be continuously rewritten disk state. Crypto drops before resource/user leases/accounting.
+
+A native successful final link can leave a recognized temp hard link if cleanup fails/crashes; this is VisibleUnconfirmed, never a live result. The live publication invocation may clean only its inode-verified owned temp according to existing publish_ops. Recovery never adopts a temp as owned, deletes it or links it into a missing final. Existing finals are never overwritten or removed.
+
+### Quick
+
+Same guarded eligibility, five-sidecar order, durable exact byte checks and current live gate rechecks. Publish `quick.preflight.json` only after all five evidence finals are durable. This event binds the separate operational Quick identity/attempt, registration provenance, consumed plan and exact named five evidence hashes/policy revisions, plus actual source/input/runtime facts; it has no Full target/threshold/admission assertion. Release the guard only after durable preflight and late checks.
+
+The private Quick entry reacquires the same profile guard via held Quick attempt handles, rechecks exact preflight and all evidence/current gates/process/context, requires `quick.start.json` absent, publishes it durably with exact preflight linkage, and immediately performs pre-allocation rechecks. Only this live same-process path enters the owned Quick driver. Parsed/recovered events cannot enter it. This is operational start custody, not StartedHeCase or a full admission substitute.
+
+The outer installed `run_owned` Quick frame retains its concrete store/attempt handles while the driver executes, with **no flock held** and no context/gate authority transferred across threads. After the actual driver returns success/failure, the same origin-bound internal continuation may acquire a fresh guard and publish at most one `quick.end.json`, linking exact preflight/start and evidence. It records an operational outcome only. Setup failure after durable Quick start may record failure through that same still-live caller; crash/lost live caller leaves no end, and recovery cannot fabricate one. No end is permitted without valid start and preflight. Exact Quick event encodings still require independent vectors (§9); the file custody/dependency order is fixed here.
+
+Quick has **Initial only in this bounded package**. No operational Retry codec/authority was ratified by FIX1, which explicitly contains no Full predecessor; do not borrow Full retry records or silently add an unreviewed Quick retry chain. A repeated Quick case needs an explicitly selected separate authorized operational campaign/namespace after failed/completed attempt inspection, unless a later separately reviewed Quick retry design is adopted. No scheduler auto-increments campaigns or hides the original attempt. This is a deliberate minimal limit, not a new request for user confirmation when existing task authority already covers a specifically recorded namespace decision.
+
+## 6. Exact partial-state and eligibility table
+
+“Valid evidence set” means all five fixed final files are bounded, canonical, branch/policy/scope correct and hash-equal to the verified admission/preflight, including required source/applicability checks. Temps do not complete a set. “Valid admission/start” retains every frozen canonical/reference/target/input/link/policy check; final presence alone is insufficient. I/O error, unknown entry, symlink, wrong mount/mode/owner, unreadable directory or changed identity is rejection, never absence. ENOENT alone means absent.
+
+| Observed selected case/attempt state under guard | Full Initial / same attempt | Full explicit Retry to absent B | Recovery/inspection action |
+|---|---|---|---|
+| Case absent; or valid case with no attempts dir / valid empty attempts container and no named attempt | Initial allowed only after real target/gates; no attempt identity exists yet | No predecessor exists | May sync verified empty container; no live authority from inspection |
+| ANY named attempt exists, including empty A | Initial rejects; selected existing name rejects Replay/UnresolvedAttemptState | A is not a predecessor without a valid final admission | Preserve A; no deletion, reuse, reset or temp promotion |
+| A has only temp files or1–4 final evidence files, no admission | Initial rejects | Reject A as predecessor | Report incomplete evidence; optional read-only inspection of safe bounded remnants; cannot finish publication on recovery |
+| A has all five final evidence files, no admission | Initial rejects | Reject A as predecessor | Evidence set alone grants nothing; cannot synthesize/link an admission or reconstruct original gates |
+| A has admission temp only, no final admission, whether evidence complete or not | Initial rejects | Reject A as predecessor | Never promote the temp, even if bytes would parse correctly |
+| A has final admission with missing/malformed/hash-mismatched evidence or invalid target/input/scope | Initial rejects | Reject A; unresolved/invalid record | No repairing/reconstructing missing evidence from current input to make old admission pass; preserve exact history |
+| A has valid evidence and final valid admission, start absent | Initial/reusing A reject | Allowed only for explicitly requested A links, expected-start=None, independent retry/overlap scope, fully verified/re-synced finals/parents, and absent B | May recover exact immutable records to inspection receipts; cannot start A from disk |
+| Same valid admission state, but prior publication's sync/cleanup/later check was uncertain | Same rejection | Same as above only after complete verification and successful resync; any failure refuses B | Exact final files may become a verified predecessor; no inferred original live success |
+| A has valid admission/evidence and start temp but no final start | Same rejection | Expected-start=None may match observed **final** absence; recognized temp preserved; validate/resync admission/evidence and require authorized possible overlap | Temp is not a finalized start and is never promoted. Do not infer A is dead or cannot start later |
+| A has valid admission/evidence and exact valid final start | Same rejection | Requires expected-start=Some(exact file/payload links), full verification/resync and independent overlap authority | No resume of A; started does not mean completed |
+| Start final without valid admission or evidence; or start final malformed/mismatched | Same rejection | Reject A even if request says expected-start=None | Preserve unresolved state; presence contradicts absent expectation |
+| Expected-start=None but final start appeared, or expected-start=Some but absent/different | Same rejection | Reject request; do not refresh it automatically | Caller may explicitly resubmit corrected immutable expectations under its authority |
+| New B whole attempt path already exists, even empty | Reuse rejects | Reject B regardless of valid predecessor | No overwrite/reuse; choose no replacement ID automatically |
+| Unknown selected-profile/case/attempt entry, malformed recognized temp object or changed ancestor/guard | Reject | Reject affected transition | Preserve and report unsupported/unresolved state; no cleanup workflow supplied here |
+
+Recognized residual temp files may coexist with a valid final admission/evidence/start and do not by themselves prevent **inspection/resync of exact finals**. They are bounded safe regular files of exactly recognized names, never proof of successful publication. Unknown names or unsafe objects reject. A final and its temp may share an inode; recovery preserves both, revalidates identity after sync, and does not demand nlink1 except for the guard. This preserves the frozen instruction that a complete uncertain admission can become a verified Retry predecessor without authorizing orphan cleanup.
+
+Other attempt entries are preserved without classifying them. A Retry may select any valid explicitly authorized predecessor, never an inferred latest/head; resource/user gates must cover possible overlap with live A and other attempts. Guard release, absent end/start, old mtime or failed process lookup never proves inactivity.
+
+If the first Full attempt left an empty/orphan/evidence-only A and no valid predecessor exists, that Full case is blocked **in this campaign**. There is no built-in repair, unlink, rename-to-hide, recomputation or automatic fresh campaign. A separate explicit namespace/recovery decision is necessary, recorded within actual task authority; this package grants neither mutation nor a new scientific target. Any later new Full campaign must separately have its real verified target lock before case creation. If an older valid predecessor already exists, an explicit Retry from that valid predecessor may remain possible; unrelated orphan A is preserved, not erased or used as a predecessor.
+
+Quick applies the same no-named-attempt Initial rule. Empty/temp/partial-sidecar/all-sidecar-without-preflight states cannot restart. A complete valid quick.preflight (with or without start/end) may be inspected/resynced but never starts recovered work; Quick Retry is unavailable in this package. End-only or start-without-preflight/evidence is invalid. Missing end is incomplete, never a generated success/failure. A new explicitly authorized Quick namespace may be selected separately; no target requirement or Full capability follows.
+
+## 7. Recovery and durability responsibilities
+
+Full retry verification/resync runs under the existing profile guard and consumes no live old capability. Open only the named predecessor final files through its held attempt FD. Read each required final once into bounded bytes, validate canonical/whole-file hashes and all cross-links, then recheck exact file/path-to-inode identities. Required sync order: five evidence final inodes in gate order → admission inode → optional final start inode → selected attempt directory → attempts → case → cases → profile. Recheck anchors/guard/current context and exact namespace again afterward. Extra ancestor directories created when establishing the profile were already synced; held anchors are still revalidated. Failure at any sync/check yields no new B creation or live authority. Do not resync first and interpret bytes afterward.
+
+The initial publisher syncs each newly created directory and its immediate parent before use; every file publisher follows existing Native ordering. The final caller validates after each publication and after the whole transition. A failure before admission link may still leave already durable sidecars/named attempt; label the failure with its exact phase and visible files, not “nothing published.” `BeforeLink` is a per-file primitive result, not a transaction rollback assertion. After admission/start final link, any late sync/cleanup/context/clock uncertainty must retain the frozen PublishedButDurabilityUnconfirmed semantics and exact attempted hashes; it never becomes success merely because a final is visible.
+
+Recovery returns inspection/durability records only. It can fsync verified existing final inodes and parent directories, preserving all temps; it cannot publish a missing final, authorize HE, recover a runtime/process/context instance, reconstruct resource/user leases or output a late end event. No ambient cleanup/reset API is added. Existing lock-only Reference-role recovery remains separate and unchanged; Train may inspect/verify/resync only through the reviewed later admission protocol, not gain lock-writer authority.
+
+## 8. Independent fault/state inventory before implementation
+
+Freeze the exact named fixtures, constructor/file-operation call counts, fault positions and expected side effects in the source brief. The following is the minimum inventory; it is not executed evidence. Synthetic fixtures stay in private protocol tests and cannot create production gate capabilities.
+
+- **C01 closed inventory:** exact Full/Quick path selection, all final/temp names including0/63, leading-zero64/extra-suffix refusal, file caps at cap/cap+1, wrong branch filename, duplicate/unknown entry, symlink/directory/hardlink guard/mount/owner/mode substitutions. Verify no arbitrary path/cap/temp ID can enter the selector API.
+- **C02 no early mutation:** every failed gate/scope/hash/cap/Full target check leaves no new case/attempt/sidecar; Quick needs no target and never touches the Full tree. Permitted Quick empty administrative ancestors are listed separately from forbidden attempt creation. Prove Full ExistingTrain behavior unchanged.
+- **C03 ordered publication:** positive nonallocating private control observes exactly five sidecar publications in the fixed order, then admission or quick.preflight, then own start only after fresh checks. Hashes in the receipt equal independent hashes of exact retained bytes. Setup spy remains zero before successful live start. No scientific constructor runs in these custody tests.
+- **C04 each file operation:** for each of five evidence selectors and admission/preflight/start/end selectors, inject create/write short-write/failure/file-sync/link/first-dir-sync/owned-unlink/second-dir-sync failures and post-return identity/context/clock failure. Cover each of64 temp collisions plus exhausted range without deleting preexisting temp. Record which final is visible and whether this invocation's owned temp remains. Test final link success followed by cleanup failure with retained hardlink and no live result.
+- **C05 every namespace cut:** crash/failure immediately before/after case, attempts and named attempt creation and each directory sync; before/after each of the five sidecar final publications; before/after admission/preflight link/sync; start link/sync; Quick end link/sync. Classify the resulting state using §6, including all-five-evidence/no-admission and empty named attempt blocking Initial.
+- **C06 recovery cross-links:** final admission with any one missing/changed/wrong-policy/wrong-branch evidence file, file digest versus alternate-canonical bytes, wrong target/receipt/threshold/attempt, start-only/end-only; legitimate recognized temps with a valid final; temp-only cannot promote. Each rejected recovery must create no new attempt and return no live token.
+- **C07 recovery fault order:** failure at each final-inode or parent-dir sync, or before/after namespace identity recheck, prevents B creation. No mutation of source records, cleanup, missing-file reconstruction or synthetic end occurs. Confirm recovered receipts cannot type-convert to any live/started/driver capability.
+- **C08 guard/concurrency:** separate fresh FDs serialize same-process threads and separate processes; competing Full Initial A/B yields at most one named attempt creation even if its first sidecar fails; same-name no-clobber; competing Retry B on the same absent name; different authorized retries from one predecessor preserve immutable evidence; expected-start races reject or record actual guarded snapshot. Unknown/unrelated attempts never imply inactivity.
+- **C09 custody lifetime:** swapped ancestor/profile/case/attempt/evidence final or guard rejected at admission/start/begin; same bytes on replaced inode rejected where held identity is required; ProcessStamp/fork/context-instance substitution rejected. The same store borrow and evidence FDs survive until checked transfer, then close without creating a recovery path. Resource/user leases outlive crypto/setup failure.
+- **C10 Quick minimal lifecycle:** target-free five-gate preflight/start/end dependencies; Full bytes/slots never modified; Quick Retry rejected; repeated Initial with any named attempt rejected; failed/end-missing run remains incomplete; only the same live origin-bound caller may publish end. Parsed valid Quick events cannot invoke the driver or late end publisher.
+
+Pure fault harness tests establish deterministic protocol behavior only. Native Linux ext4/XFS tests must separately cover actual flock/open-file-description behavior, nofollow/link/fsync identities, process/fork handling and successful real gate-to-begin lineage under an exact bounded release. A Mac refusal is not native durability evidence. Do not run full HE, real resources or a campaign merely to validate this document. Existing eight Full/Quick branch tests from FIX1 remain mandatory and are not replaced by the custody inventory.
+
+## 9. Remaining before-encoder duties and acceptance
+
+This proposal fixes custody paths/names/caps/state transitions and preserves frozen Full wire. It does not freeze the new gate evidence's full common/branch/tail primitive ordering or Quick event schemas. Before encoder source, supply independently computed literal canonical bytes and file hashes for each of the five evidence domains in both branches, including exact evidence-policy/source applicability. Freeze Quick event domains/fields/types/order/caps, the linkage rule preflight→start→end and independent mutation vectors; no target placeholders, Full admission reuse or inferred operational retry. Specify referenced external evidence-reader custody and how every hash is checked against actual retained files. New bytes must use the ratified primitive grammar, within caps fixed above, and retain no serialized live process/context authority.
+
+Protocol source may not begin on the basis of unspecified sidecar transactions: §3–§7 are the proposed closed inventory to ratify first. Once accepted, remaining encoder details are a separate explicit pre-encoder deliverable, not permission to invent them during implementation. No change to scientific thresholds, current user authority, full encrypted-block hold, Full target-before-start requirement, complete matrix inventory, source approval scope or `begin_checked_he` signature follows.
