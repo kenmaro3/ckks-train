@@ -1,0 +1,13 @@
+--- crates/ckks-train-bench/src/study_plain/p4_fixtures.rs.v1
++++ crates/ckks-train-bench/src/study_plain/p4_fixtures.rs.v2
+@@ -4,8 +4,8 @@
+ use crate::study_profile::{Activation, Layer, LayerRole};
+ use ndarray::Array2;
+ 
+-const VERSION: &str = "task54-p4-pure-v1";
+-const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 5e-4)];
++const VERSION: &str = "task54-p4-pure-v2";
++const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 4e-4)];
+ 
+ #[derive(Clone, Copy, Debug)]
+ enum Candidate {

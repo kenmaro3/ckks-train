@@ -1,0 +1,19 @@
+Original: calls=68 controls=60 statuses={'APPLICABLE': 41, 'INAPPLICABLE': 8, 'EQUIVALENT': 11} margin_rows=114 failures={'I': 51, 'NI': 57} baseline_a_max=1.71278436543640181e-03 baseline_z_max=5.37112124049642960e-03
+  poly-c10-p16: a_max=1.71278436543640181e-03 z_max=1.70986074168046173e-03
+  poly-c2-p2: a_max=1.71237575860953405e-03 z_max=1.70945352724771434e-03
+  poly-c3-p4: a_max=1.71190500259399414e-03 z_max=1.70898437500000000e-03
+  poly-first-reference: a_max=1.71190500259399414e-03 z_max=1.70898437500000000e-03
+  poly-four-rate: a_max=1.71190500259399414e-03 z_max=1.70898437500000000e-03
+  square-c10: a_max=2.88486547044371779e-05 z_max=5.37109436748575263e-03
+  square-c2: a_max=2.88489433801119052e-05 z_max=5.37112124049642960e-03
+  square-c3: a_max=2.88487254184963826e-05 z_max=5.37110095031701883e-03
+Signal: calls=68 controls=60 statuses={'APPLICABLE': 41, 'INAPPLICABLE': 8, 'EQUIVALENT': 11} margin_rows=114 failures={} baseline_a_max=3.28848736694946298e-01 baseline_z_max=5.00000000000000000e-01
+  poly-c10-p16: a_max=3.12500000000000000e-01 z_max=2.50000000000000000e-01
+  poly-c2-p2: a_max=3.28848736694946298e-01 z_max=2.60821093750000010e-01
+  poly-c3-p4: a_max=3.12500000000000000e-01 z_max=2.50000000000000000e-01
+  poly-first-reference: a_max=3.12500000000000000e-01 z_max=2.50000000000000000e-01
+  poly-four-rate: a_max=3.12500000000000000e-01 z_max=2.50000000000000000e-01
+  square-c10: a_max=2.50000000000000000e-01 z_max=5.00000000000000000e-01
+  square-c2: a_max=2.50000000000000000e-01 z_max=5.00000000000000000e-01
+  square-c3: a_max=2.50000000000000000e-01 z_max=5.00000000000000000e-01
+Finite all logged W/b/velocity values: PASS; snapshot tensors=1760; scalar entries=17920; exact frozen b/Vb zero entries=3024

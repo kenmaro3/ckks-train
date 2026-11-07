@@ -1,0 +1,18 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: items after a test module
+   --> crates/ckks-train-bench/src/study_reference.rs:669:1
+    |
+669 |   mod tests {
+    |   ^^^^^^^^^
+...
+931 | / pub(crate) fn registered_case_canonical(
+932 | |     case: &crate::study_profile::RegisteredCase,
+933 | | ) -> std::result::Result<Vec<u8>, DocumentError> {
+    | |________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

@@ -689,6 +689,9 @@ fn class_index<T: PlainScalar>(logits: &[T], classes: usize) -> Result<usize> {
 }
 
 #[cfg(test)]
+pub(crate) mod p4_fixtures;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::study_inputs::materialize;

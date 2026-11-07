@@ -1,0 +1,23 @@
+NONSCIENTIFIC_TEST_EVIDENCE READ_ONLY_COMPARISON
+MANIFEST: v1=1 v2=1
+  PASS VERSION is the only manifest difference
+SNAPSHOT: v1=1760 v2=1760
+  PASS exact full text identity, including every retained value/bit/ordinal
+CALL_INPUT: v1=138 v2=138
+  PASS exact full text identity, including every retained value/bit/ordinal
+RANGE: v1=276 v2=276
+  PASS exact full text identity, including every retained value/bit/ordinal
+ACTUAL_TRAIN: v1=136 v2=136
+  PASS exact full text identity, including every retained value/bit/ordinal
+MARGIN: v1=228 v2=228
+  PASS all raw I margins exact; NI only epsilon/bits, normalized distance/status differ
+CONTROL: v1=120 v2=120
+  PASS exact full text identity, including every retained value/bit/ordinal
+CANDIDATE: v1=2 v2=2
+  PASS candidate identities/counts/harness fields unchanged; numerical gate fields reflect revised cap
+TOTAL: v1=1 v2=1
+  PASS exact full text identity, including every retained value/bit/ordinal
+PASS all input/state bits, ranges, absolute witness distances and coordinates identical.
+PASS exactly five Signal NI FAIL->PASS flips; Original FAIL retained; I fields unchanged.
+PASS all original v1 evidence files/report hashes unchanged; v1 remains FAIL.
+No Engine, forward, materializer, planner, parameter/proof/descriptor/Encoder/key/evaluator or HE operation executed by comparison.

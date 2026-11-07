@@ -1,0 +1,3 @@
+Exact block byte-for-byte move verified; no block body/signature/visibility change.
+before_sha256=8fda8c43df783ab43eb9f359305d62f12ae35170d9e25ae89b51ca5edcacb06c
+after_sha256=fcb7f1d34fd8c87527af4adf59c0ebd919eeeb2a07f5f635a965a436c233c9af

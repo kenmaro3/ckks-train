@@ -1,0 +1,24 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--offline",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--tests",
+    "--no-deps",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "disk_free_before": 67177357312,
+  "CARGO_INCREMENTAL": "0",
+  "CARGO_BUILD_JOBS": "8",
+  "RAYON_NUM_THREADS": "8",
+  "start_unix": 1794029674.324426,
+  "exit_code": 101,
+  "end_unix": 1794029677.33567,
+  "disk_free_after": 67176857600
+}

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "rustfmt",
+    "--edition",
+    "2024",
+    "--check",
+    "crates/ckks-train-bench/src/study_plain.rs",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs",
+    "crates/ckks-train-bench/src/study_reference.rs"
+  ],
+  "disk_free_before": 67199893504,
+  "CARGO_INCREMENTAL": "0",
+  "CARGO_BUILD_JOBS": "8",
+  "RAYON_NUM_THREADS": "8",
+  "start_unix": 1794029769.362957,
+  "exit_code": 0,
+  "end_unix": 1794029769.4673321,
+  "disk_free_after": 67199881216
+}

@@ -665,6 +665,13 @@ pub(crate) fn synthetic_source_projection(
     shared_bytes(&view)
 }
 
+// The existing private document codec exclusively owns case canonical primitives.
+pub(crate) fn registered_case_canonical(
+    case: &crate::study_profile::RegisteredCase,
+) -> std::result::Result<Vec<u8>, DocumentError> {
+    document::registered_case_canonical(case)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -925,11 +932,4 @@ mod tests {
         assert_ne!(projections[1], projections[2]);
         assert_ne!(projections[0], projections[2]);
     }
-}
-
-// The existing private document codec exclusively owns case canonical primitives.
-pub(crate) fn registered_case_canonical(
-    case: &crate::study_profile::RegisteredCase,
-) -> std::result::Result<Vec<u8>, DocumentError> {
-    document::registered_case_canonical(case)
 }

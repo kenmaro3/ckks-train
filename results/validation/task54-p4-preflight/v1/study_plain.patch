@@ -1,0 +1,12 @@
+--- crates/ckks-train-bench/src/study_plain.rs.before
++++ crates/ckks-train-bench/src/study_plain.rs
+@@ -687,6 +687,9 @@
+     }
+     Ok(best)
+ }
++
++#[cfg(test)]
++pub(crate) mod p4_fixtures;
+ 
+ #[cfg(test)]
+ mod tests {

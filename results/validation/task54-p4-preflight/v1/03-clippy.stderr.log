@@ -1,0 +1,44 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: unnecessary closure used to substitute value for `Option::None`
+   --> crates/ckks-train-bench/src/study_plain/p4_fixtures.rs:560:29
+    |
+560 |                   let other = mutant
+    |  _____________________________^
+561 | |                     .as_ref()
+562 | |                     .and_then(|t| t.steps.get(index))
+563 | |                     .or_else(|| {
+...   |
+569 | |                     });
+    | |______________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_lazy_evaluations
+    = note: `-D clippy::unnecessary-lazy-evaluations` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_lazy_evaluations)]`
+help: use `or` instead
+    |
+563 ~                     .or({
+564 +                         if matches!(control, Control::NoUpdate) {
+565 +                             Some(&baseline.initial)
+566 +                         } else {
+567 +                             None
+568 +                         }
+569 ~                     });
+    |
+
+error: items after a test module
+   --> crates/ckks-train-bench/src/study_reference.rs:669:1
+    |
+669 |   mod tests {
+    |   ^^^^^^^^^
+...
+931 | / pub(crate) fn registered_case_canonical(
+932 | |     case: &crate::study_profile::RegisteredCase,
+933 | | ) -> std::result::Result<Vec<u8>, DocumentError> {
+    | |________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+error: could not compile `ckks-train-bench` (lib test) due to 2 previous errors

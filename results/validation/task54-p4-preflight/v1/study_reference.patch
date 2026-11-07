@@ -1,0 +1,27 @@
+--- crates/ckks-train-bench/src/study_reference.rs.before
++++ crates/ckks-train-bench/src/study_reference.rs
+@@ -663,6 +663,13 @@
+     let mut view = SharedView::canonical(p)?;
+     view.selector = selector;
+     shared_bytes(&view)
++}
++
++// The existing private document codec exclusively owns case canonical primitives.
++pub(crate) fn registered_case_canonical(
++    case: &crate::study_profile::RegisteredCase,
++) -> std::result::Result<Vec<u8>, DocumentError> {
++    document::registered_case_canonical(case)
+ }
+ 
+ #[cfg(test)]
+@@ -926,10 +933,3 @@
+         assert_ne!(projections[0], projections[2]);
+     }
+ }
+-
+-// The existing private document codec exclusively owns case canonical primitives.
+-pub(crate) fn registered_case_canonical(
+-    case: &crate::study_profile::RegisteredCase,
+-) -> std::result::Result<Vec<u8>, DocumentError> {
+-    document::registered_case_canonical(case)
+-}

@@ -1,0 +1,11 @@
+--- header-before/extract_evidence.py
++++ extract_evidence.py
+@@ -33,7 +33,7 @@
+     row['actual_calls']=str(calls[(row['candidate'],row['family'],row['control'])])
+ def write_tsv(name,rows,keys):
+     with (root/name).open('w') as out:
+-        out.write('# NONSCIENTIFIC_TEST_EVIDENCE extracted verbatim fields from sole invocation08\n')
++        out.write('# NONSCIENTIFIC_TEST_EVIDENCE extracted verbatim fields from v2 invocation03 (03-single-numerical.stdout.log)\n')
+         writer=csv.DictWriter(out,fieldnames=keys,delimiter='\t',extrasaction='ignore')
+         writer.writeheader();writer.writerows(rows)
+ margin_keys=['candidate','family','control','update','required_layer','backend','epsilon','epsilon_bits','layer','tensor','coordinate','baseline','baseline_bits','control_bits','max_abs_difference','max_normalized_distance','required','status']

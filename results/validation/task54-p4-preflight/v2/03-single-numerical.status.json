@@ -1,0 +1,23 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--offline",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_plain::p4_fixtures::tests::p4_pure_sensitivity_gate",
+    "--",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "disk_free_before": 67054485504,
+  "CARGO_INCREMENTAL": "0",
+  "CARGO_BUILD_JOBS": "8",
+  "RAYON_NUM_THREADS": "8",
+  "start_unix": 1794030485.776051,
+  "exit_code": 0,
+  "end_unix": 1794030497.165982,
+  "disk_free_after": 67034116096
+}

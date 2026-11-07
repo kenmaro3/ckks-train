@@ -1,0 +1,2 @@
+PASS exact two constants only: VERSION task54-p4-pure-v1 -> task54-p4-pure-v2; NI CAPS5e-4 ->4e-4. Reversing only these replacements reproduces complete v1 bytes. Other six files match P3 fix2 frozen pins.
+Prior numerical RED is preserved v1 invocation08 (Original/Signal FAIL), not a new RED run.

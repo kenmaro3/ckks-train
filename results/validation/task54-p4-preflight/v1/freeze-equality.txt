@@ -1,0 +1,1 @@
+PASS: all three source files byte-identical before/after the sole numerical invocation.
