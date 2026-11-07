@@ -1,0 +1,4 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+P3 fix2 isolated rate fields=4 rate_golden_bytes=112 present_velocity_numeric_fields=2; reused existing tiny_params=1 only
+P3 prefix accounting: tiny_params=1; transcript=3 metadata=2256 combined=2259; proof/descriptor/stage/handoff/materialization/HE=0

@@ -1,0 +1,18 @@
+{
+  "index": 16,
+  "name": "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063593.434201,
+  "pid": 2934
+}

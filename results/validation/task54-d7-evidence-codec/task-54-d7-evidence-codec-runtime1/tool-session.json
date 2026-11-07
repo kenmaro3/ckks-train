@@ -1,0 +1,13 @@
+{
+  "kind": "unit_validation_tool_custody_not_scientific",
+  "original_session": 89518,
+  "launch_chunk": "ca8b75",
+  "terminal_chunk": "348568",
+  "terminal_exit": 0,
+  "controller_invocations": 1,
+  "cargo_child_invocations": 32,
+  "automatic_retry": false,
+  "all_children_exit_zero": true,
+  "all_selected_one_exact_test": true,
+  "timeouts": 0
+}

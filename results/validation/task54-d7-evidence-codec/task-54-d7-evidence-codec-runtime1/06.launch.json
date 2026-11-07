@@ -1,0 +1,18 @@
+{
+  "index": 6,
+  "name": "study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063591.0122502,
+  "pid": 2834
+}

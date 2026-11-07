@@ -1,0 +1,18 @@
+{
+  "index": 22,
+  "name": "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063594.872183,
+  "pid": 2946
+}

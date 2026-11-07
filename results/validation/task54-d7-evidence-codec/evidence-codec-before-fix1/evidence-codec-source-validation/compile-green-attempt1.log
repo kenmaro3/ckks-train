@@ -1,0 +1,644 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:19:50
+    |
+19  |     for scope in ["full","quick"] { for kind in [AuxKind::Request,AuxKind::Consumption,AuxKind::UserScope,AuxKind::UserCurrent] {
+    |                                                  ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:19:67
+    |
+19  |     for scope in ["full","quick"] { for kind in [AuxKind::Request,AuxKind::Consumption,AuxKind::UserScope,AuxKind::UserCurrent] {
+    |                                                                   ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:19:88
+    |
+19  |     for scope in ["full","quick"] { for kind in [AuxKind::Request,AuxKind::Consumption,AuxKind::UserScope,AuxKind::UserCurrent] {
+    |                                                                                        ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:19:107
+    |
+19  |     for scope in ["full","quick"] { for kind in [AuxKind::Request,AuxKind::Consumption,AuxKind::UserScope,AuxKind::UserCurrent] {
+    |                                                                                                           ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:21:20
+    |
+21  |         let parsed=Auxiliary::parse_oracle(kind,&bytes).unwrap();
+    |                    ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:23:17
+    |
+23  |         refusal(Auxiliary::parse(kind,&bytes),DocumentErrorCode::UnsupportedSchema);
+    |                 ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickIdentity`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:26:16
+   |
+26 |     assert_eq!(QuickIdentity::parse_oracle(&identity).unwrap().canonical().unwrap(),identity);
+   |                ^^^^^^^^^^^^^ use of undeclared type `QuickIdentity`
+   |
+note: struct `crate::study_reference::document::evidence::QuickIdentity` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:5:1
+   |
+5  | pub(super) struct QuickIdentity<'a>{pub(super) body:IdentityBody<'a>,mode:Mode}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickIdentity`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:27:13
+   |
+27 |     refusal(QuickIdentity::parse(&identity),DocumentErrorCode::UnsupportedSchema);
+   |             ^^^^^^^^^^^^^ use of undeclared type `QuickIdentity`
+   |
+note: struct `crate::study_reference::document::evidence::QuickIdentity` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:5:1
+   |
+5  | pub(super) struct QuickIdentity<'a>{pub(super) body:IdentityBody<'a>,mode:Mode}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `EventKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:28:18
+   |
+28 |     for kind in [EventKind::Preflight,EventKind::Start,EventKind::End] {
+   |                  ^^^^^^^^^ use of undeclared type `EventKind`
+   |
+note: enum `crate::study_reference::document::evidence::EventKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:46:1
+   |
+46 | pub(super) enum EventKind {Preflight,Start,End}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `EventKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:28:39
+   |
+28 |     for kind in [EventKind::Preflight,EventKind::Start,EventKind::End] {
+   |                                       ^^^^^^^^^ use of undeclared type `EventKind`
+   |
+note: enum `crate::study_reference::document::evidence::EventKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:46:1
+   |
+46 | pub(super) enum EventKind {Preflight,Start,End}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `EventKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:28:56
+   |
+28 |     for kind in [EventKind::Preflight,EventKind::Start,EventKind::End] {
+   |                                                        ^^^^^^^^^ use of undeclared type `EventKind`
+   |
+note: enum `crate::study_reference::document::evidence::EventKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:46:1
+   |
+46 | pub(super) enum EventKind {Preflight,Start,End}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:30:20
+   |
+30 |         let parsed=QuickEvent::parse_json_oracle(&raw).unwrap();
+   |                    ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:34:17
+   |
+34 |         refusal(QuickEvent::parse_json(&raw),DocumentErrorCode::UnsupportedSchema);
+   |                 ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:42:43
+    |
+42  | ...   let result=if name=="partition" { Auxiliary::parse_oracle(AuxKind::Consumption,&bytes).map(|_|()) } else { Evidence::parse_oracle(&...
+    |                                         ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:42:67
+    |
+42  | ...   let result=if name=="partition" { Auxiliary::parse_oracle(AuxKind::Consumption,&bytes).map(|_|()) } else { Evidence::parse_oracle(&...
+    |                                                                 ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:45:82
+    |
+45  |     for name in ["quick-seed","quick-one-update","quick-three-updates"] {refusal(Auxiliary::parse_oracle(AuxKind::Consumption,&fixture(&f...
+    |                                                                                  ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:45:106
+    |
+45  | ...ree-updates"] {refusal(Auxiliary::parse_oracle(AuxKind::Consumption,&fixture(&format!("negative/{name}.bin"))),CrossLinkMismatch);}
+    |                                                   ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:62:41
+   |
+62 |     let events:Vec<_>=raw.iter().map(|r|QuickEvent::parse_json_oracle(r).unwrap()).collect();
+   |                                         ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_quick_events` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:68:5
+    |
+68  |     check_quick_events(&events[0],&events[1],&events[2],&sidecars,&captured).unwrap();
+    |     ^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_quick_events` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:113:1
+    |
+113 | pub(super) fn check_quick_events(preflight:&QuickEvent,start:&QuickEvent,end:&QuickEvent,sidecars:&[Evidence<'_>],captured_argv:&[Vec<u8>])->Result<()...
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_quick_events` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:70:13
+    |
+70  |     refusal(check_quick_events(&events[0],&events[1],&events[2],&sidecars,&tampered),DocumentErrorCode::CrossLinkMismatch);
+    |             ^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_quick_events` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:113:1
+    |
+113 | pub(super) fn check_quick_events(preflight:&QuickEvent,start:&QuickEvent,end:&QuickEvent,sidecars:&[Evidence<'_>],captured_argv:&[Vec<u8>])->Result<()...
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0412]: cannot find type `QuickEvent` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:74:24
+   |
+74 |         let mut refs:[&QuickEvent;3]=[&events[0],&events[1],&events[2]];refs[index]=&changed;
+   |                        ^^^^^^^^^^ not found in this scope
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_quick_events` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:75:17
+    |
+75  |         refusal(check_quick_events(refs[0],refs[1],refs[2],&sidecars,&captured),DocumentErrorCode::CrossLinkMismatch);
+    |                 ^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_quick_events` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:113:1
+    |
+113 | pub(super) fn check_quick_events(preflight:&QuickEvent,start:&QuickEvent,end:&QuickEvent,sidecars:&[Evidence<'_>],captured_argv:&[Vec<u8>])->Result<()...
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:77:13
+   |
+77 |     refusal(QuickEvent::parse_binary_oracle(EventKind::End,&fixture("negative/end-incomplete.bin")),DocumentErrorCode::CrossLinkMismatch);
+   |             ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `EventKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:77:45
+   |
+77 |     refusal(QuickEvent::parse_binary_oracle(EventKind::End,&fixture("negative/end-incomplete.bin")),DocumentErrorCode::CrossLinkMismatch);
+   |                                             ^^^^^^^^^ use of undeclared type `EventKind`
+   |
+note: enum `crate::study_reference::document::evidence::EventKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:46:1
+   |
+46 | pub(super) enum EventKind {Preflight,Start,End}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:84:13
+   |
+84 |     refusal(QuickEvent::parse_json_oracle(duplicate.as_bytes()),DuplicateField);
+   |             ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:85:62
+   |
+85 |     let unknown=text.replacen("{","{\"extra\":0,",1);refusal(QuickEvent::parse_json_oracle(unknown.as_bytes()),UnknownField);
+   |                                                              ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:86:99
+   |
+86 | ...,"\"canonical_bytes\":\"\\u0030",1);refusal(QuickEvent::parse_json_oracle(escaped.as_bytes()),BadHex);
+   |                                                ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `QuickEvent`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:87:71
+   |
+87 |     let mut trailing=raw;trailing.extend_from_slice(b"false");refusal(QuickEvent::parse_json_oracle(&trailing),BadJson);
+   |                                                                       ^^^^^^^^^^ use of undeclared type `QuickEvent`
+   |
+note: struct `crate::study_reference::document::evidence::QuickEvent` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:75:1
+   |
+75 | pub(super) struct QuickEvent{kind:EventKind,mode:Mode,canonical:Vec<u8>,file_sha256:String}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:96:11
+    |
+96  |     let r=Auxiliary::parse_oracle(AuxKind::Request,&request).unwrap();let c=Auxiliary::parse_oracle(AuxKind::Consumption,&consumption).un...
+    |           ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:96:35
+    |
+96  |     let r=Auxiliary::parse_oracle(AuxKind::Request,&request).unwrap();let c=Auxiliary::parse_oracle(AuxKind::Consumption,&consumption).un...
+    |                                   ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:96:77
+    |
+96  |     let r=Auxiliary::parse_oracle(AuxKind::Request,&request).unwrap();let c=Auxiliary::parse_oracle(AuxKind::Consumption,&consumption).un...
+    |                                                                             ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:96:101
+    |
+96  | ...equest).unwrap();let c=Auxiliary::parse_oracle(AuxKind::Consumption,&consumption).unwrap();
+    |                                                   ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_request_consumption` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:97:5
+    |
+97  |     check_request_consumption(&r,&c).unwrap();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_request_consumption` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:131:1
+    |
+131 | pub(super) fn check_request_consumption(r:&Auxiliary<'_>,c:&Auxiliary<'_>)->Result<()> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:98:57
+    |
+98  |     let changed=fixture("negative/request.bin");let bad=Auxiliary::parse_oracle(AuxKind::Request,&changed).unwrap();
+    |                                                         ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:98:81
+    |
+98  |     let changed=fixture("negative/request.bin");let bad=Auxiliary::parse_oracle(AuxKind::Request,&changed).unwrap();
+    |                                                                                 ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_request_consumption` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:99:13
+    |
+99  |     refusal(check_request_consumption(&bad,&c),DocumentErrorCode::CrossLinkMismatch);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_request_consumption` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:131:1
+    |
+131 | pub(super) fn check_request_consumption(r:&Auxiliary<'_>,c:&Auxiliary<'_>)->Result<()> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:100:55
+    |
+100 |     let changed=fixture("negative/order.bin");let bad=Auxiliary::parse_oracle(AuxKind::Consumption,&changed).unwrap();
+    |                                                       ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:100:79
+    |
+100 |     let changed=fixture("negative/order.bin");let bad=Auxiliary::parse_oracle(AuxKind::Consumption,&changed).unwrap();
+    |                                                                               ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find function `check_consumption_exact` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:101:13
+    |
+101 |     refusal(check_consumption_exact(&bad,&c),DocumentErrorCode::CrossLinkMismatch);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+note: function `crate::study_reference::document::evidence::check_consumption_exact` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:142:1
+    |
+142 | pub(super) fn check_consumption_exact(a:&Auxiliary<'_>,retained:&Auxiliary<'_>)->Result<()> {same(a.bytes==retained.bytes&&a.mode==retain...
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `Auxiliary`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:102:66
+    |
+102 |     let changed=fixture("negative/full-consumption.bin");refusal(Auxiliary::parse_oracle(AuxKind::Consumption,&changed),DocumentErrorCode...
+    |                                                                  ^^^^^^^^^ use of undeclared type `Auxiliary`
+    |
+note: struct `crate::study_reference::document::evidence::Auxiliary` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:111:1
+    |
+111 | pub(super) struct Auxiliary<'a>{pub(super) mode:Mode,pub(super) kind:AuxKind,pub(super) body:AuxiliaryBody<'a>,pub(super) bytes:&'a [u8]}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `AuxKind`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:102:90
+    |
+102 |     let changed=fixture("negative/full-consumption.bin");refusal(Auxiliary::parse_oracle(AuxKind::Consumption,&changed),DocumentErrorCode...
+    |                                                                                          ^^^^^^^ use of undeclared type `AuxKind`
+    |
+note: enum `crate::study_reference::document::evidence::AuxKind` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:102:1
+    |
+102 | pub(super) enum AuxKind {Request,Consumption,UserScope,UserCurrent}
+    | ^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0603]: struct import `Cursor` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:824:33
+    |
+824 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                 ^^^^^^ private struct import
+    |
+note: the struct import `Cursor` is defined here...
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:3:16
+    |
+3   | pub(super) use super::super::execution_descriptors::Cursor;
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the struct `Cursor` which is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:919:1
+    |
+919 | pub(super) struct Cursor<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: import `Cursor` through the re-export
+    |
+824 |     use super::evidence::wire::{super::execution_descriptors::Cursor, Wire, H, Id};
+    |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0603]: trait `Wire` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:824:41
+    |
+824 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                         ^^^^ private trait
+    |
+note: the trait `Wire` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:4:1
+    |
+4   | pub(super) trait Wire<'a>: Sized {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct `H` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:824:47
+    |
+824 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                               ^ private struct
+    |
+note: the struct `H` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:55:1
+    |
+55  | pub(super) struct H<'a>(pub(super) &'a str);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct `Id` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:824:50
+    |
+824 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                                  ^^ private struct
+    |
+note: the struct `Id` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:48:1
+    |
+48  | pub(super) struct Id<'a>(pub(super) &'a str);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct import `Cursor` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:848:33
+    |
+848 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                 ^^^^^^ private struct import
+    |
+note: the struct import `Cursor` is defined here...
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:3:16
+    |
+3   | pub(super) use super::super::execution_descriptors::Cursor;
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the struct `Cursor` which is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:919:1
+    |
+919 | pub(super) struct Cursor<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: import `Cursor` through the re-export
+    |
+848 |     use super::evidence::wire::{super::execution_descriptors::Cursor, Wire, H, Id};
+    |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0603]: trait `Wire` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:848:41
+    |
+848 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                         ^^^^ private trait
+    |
+note: the trait `Wire` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:4:1
+    |
+4   | pub(super) trait Wire<'a>: Sized {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct `H` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:848:47
+    |
+848 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                               ^ private struct
+    |
+note: the struct `H` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:55:1
+    |
+55  | pub(super) struct H<'a>(pub(super) &'a str);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: struct `Id` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:848:50
+    |
+848 |     use super::evidence::wire::{Cursor, Wire, H, Id};
+    |                                                  ^^ private struct
+    |
+note: the struct `Id` is defined here
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:48:1
+    |
+48  | pub(super) struct Id<'a>(pub(super) &'a str);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: glob import doesn't reexport anything with visibility `pub(document)` because no imported item is public enough
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:10:16
+   |
+10 | pub(super) use auxiliary::*;
+   |                ^^^^^^^^^^^^
+   |
+note: the most public imported item is `pub(self)`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:10:16
+   |
+10 | pub(super) use auxiliary::*;
+   |                ^^^^^^^^^^^^
+   = help: reduce the glob import's visibility or increase visibility of imported items
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: glob import doesn't reexport anything with visibility `pub(document)` because no imported item is public enough
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:14:16
+   |
+14 | pub(super) use quick::*;
+   |                ^^^^^^^^
+   |
+note: the most public imported item is `pub(self)`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:14:16
+   |
+14 | pub(super) use quick::*;
+   |                ^^^^^^^^
+   = help: reduce the glob import's visibility or increase visibility of imported items
+
+error[E0425]: cannot find function `exercise_authority_resource_branches` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs:106:5
+    |
+106 |     exercise_authority_resource_branches();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0412, E0425, E0433, E0603.
+For more information about an error, try `rustc --explain E0412`.
+warning: `ckks-train-bench` (lib test) generated 2 warnings
+error: could not compile `ckks-train-bench` (lib test) due to 50 previous errors; 2 warnings emitted

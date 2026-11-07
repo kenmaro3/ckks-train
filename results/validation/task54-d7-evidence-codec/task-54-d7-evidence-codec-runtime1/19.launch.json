@@ -1,0 +1,18 @@
+{
+  "index": 19,
+  "name": "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063594.144432,
+  "pid": 2940
+}

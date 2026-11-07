@@ -1,0 +1,18 @@
+{
+  "index": 27,
+  "name": "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063596.08038,
+  "pid": 2994
+}

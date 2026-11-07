@@ -1,0 +1,18 @@
+{
+  "index": 26,
+  "name": "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063595.8334,
+  "pid": 2992
+}

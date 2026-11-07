@@ -1,0 +1,144 @@
+{
+  "status": "FIX1 PROPOSAL ONLY; supersedes original shared inventory; root independent review and explicit bounded runtime release still required",
+  "exact_filters": [
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors",
+      "fixture_read_calls_upper_bound": 13,
+      "inputs_and_calls": "Six old Full branch JSON files, six execution hex files, one old case-binding hex file:13 standard read-only fixture reads. ExecutionFields traversal/hash comparisons, no prepared CPU route.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Small Transcript/payload/index/record helpers only; configured buffers<=4096B; no fixtures() invocation and no registry/CKKS/P1 constructors.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_admission::tests::p3_digest_golden_and_mutations",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "One CkksParams::test_tiny (N32 q12/p1); six deterministic prime pools, two RnsBasis and13 NttTable constructors;26 vectors of32 Shoup entries plus26 scalar Shoup fields; three CtMeta::new; fixed metadata retention/transcript/error witnesses. No transform/HE/planner/native execution. See separate corrected transitive inventory.",
+      "runtime_released": false,
+      "constructor_and_execution_calls": {
+        "CkksParams_test_tiny": 1,
+        "CkksParams_new": 1,
+        "RnsBasis_new": 2,
+        "Modulus_new": 13,
+        "NttTable_new": 13,
+        "bitrev_power_table": 26,
+        "CtMeta_new": 3,
+        "ntt_primes": 6,
+        "ntt_primes_skip": 6,
+        "minimal_primitive_root": 13,
+        "NTT_forward": 0,
+        "NTT_inverse": 0,
+        "RNG": 0,
+        "P1": 0,
+        "HE": 0,
+        "registry_materializer_planner_native_Host_CUDA_SSH": 0
+      },
+      "release_class": "separately bounded exact-filter proposal; not parameter-free",
+      "transitive_inventory": "p3-tiny-transitive-inventory.json"
+    }
+  ],
+  "forbidden_runtime_calls_all_zero": false,
+  "author_runtime_runs": 0,
+  "notes": "All16 exact shared regressions retained. Fifteen parameter-free filters and one N32 parameter/NTT-table-construction filter require accurate separate release classification. No runtime or list executed; no broad study_admission filter.",
+  "parameter_free_shared_filters": 15,
+  "parameter_constructing_shared_filters": 1,
+  "separate_bounded_release_required": [
+    "study_admission::tests::p3_digest_golden_and_mutations"
+  ]
+}

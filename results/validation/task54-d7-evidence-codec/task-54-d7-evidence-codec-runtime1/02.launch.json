@@ -1,0 +1,18 @@
+{
+  "index": 2,
+  "name": "study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063590.066293,
+  "pid": 2826
+}

@@ -1,6 +1,6 @@
-# ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
+# ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -941,3 +941,15 @@ Linux 5.6のopenat2 APIと対応filesystemが必要になり、利用できな�
 実際の確認時刻は2026-11-07T23:56:11.936978+09:00。R-41-FULL-2はupdate516（0始まり）、完了517/1000更新、ログ上のelapsed74080秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新511〜516は各1415 KS・4 bootstrap、予測一致で、前回の直近6更新の1369 KSとは区別して記録する。最終結果JSONはなく、queueはowner.jsonのみ。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2355/README.md)を保存した。
 
 予定時刻を確認後に1回だけ起動し、元controller session94881のterminal0とSSH exit0まで回収した。job再起動、queue変更、追加計測は行っていない。次の通常確認は2026-11-08T00:56:12+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
+
+<a id="latest-evidence-20261108-d7-evidence-codec"></a>
+
+## 2026-11-08追記: 証拠形式とQuick記録の実装・検証
+
+[証拠codecの実装・修正・実行証跡](../results/validation/task54-d7-evidence-codec/README.md)を保存した。五つの証拠のFull／Quick形式、補助記録とQuick preflight／start／endを実装し、既存のcanonical処理を共有した。元のFull／Reference／Lock／Admission／Startの形式と上限は維持した。これらは入力された記録の形式・整合性を検査するもので、実際の検証済み証拠や学習開始権限は生成しない。
+
+初回独立レビューでは、共有テスト1件のパラメータ生成負荷の記載漏れと、overlap／Retry／失敗タグの拒否テスト不足を指摘された。元記録を保持して訂正・追加し、FIX1の再レビューは合格した。default／parallel／cudaのコンパイルとstrict Clippyを確認し、テストのみのFIX1はdefault no-runとall-feature Clippy等で再確認した。その後、新規16件・共有16件をdefault featureで1件ずつ一度だけ実行し、32件すべて合格した。元controller89518と全Cargo子プロセスはexit0、64生ログ12490 bytesと642個のsource／input pinを照合し、実行結果の独立レビューも合格した。
+
+31件はパラメータ生成なし。残りのP3回帰は、明示した別枠でN=32の小さなパラメータ1個、RNS基底2個、NTTテーブル13個とmetadataを生成する。NTT変換や暗号処理を実行したこととは区別する。以前のcompile成功ログ1件の上書き消失は未復元の監査上の限界として残した。
+
+実際の証拠reader、前回・現在のtarget照合、current authority、完全なメモリモデル、保存・復旧、durable startと学習の接続は未完了である。別途確定したFull連結テスト値の統合や共有publisherの実装修正も次工程に残る。この32件の合格は、GPU性能・非対話学習の精度・全実験完走の合格ではない。

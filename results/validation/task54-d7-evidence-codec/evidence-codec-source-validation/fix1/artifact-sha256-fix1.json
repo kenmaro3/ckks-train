@@ -1,0 +1,12 @@
+{
+  "final-source-sha256-fix1.json": "87cb90f1fda25a52c83c7f95f628dab483d0debb128b9394c6c8c8d8758f89a9",
+  "proposed-runtime-inventory-fix1.json": "b26f8fca72e5d72507de2195e16058158f70e37801cf00e87f1fb4e1a5f69fe5",
+  "proposed-shared-regressions-fix1.json": "a847ebc467fe5b1915d3bf85529c170da0cd2d4333ed4b4af52ec46f9fadbb65",
+  "p3-tiny-transitive-inventory.json": "274e7f9d88bd5393f3a6df77dc6d74da2a523be58292688323d774e5c3304471",
+  "preservation-fix1.json": "2460119bb4f230912d3bcb881aec177a8afad336eb329d107f64cc5431be9501",
+  "command-results.json": "d486227d366511f914b60dd080ed7047bead916fa99f3b5dc3beee39668dbd81",
+  "01-default-no-run.log": "abd769c3cf57529e2d9e3b4d33a6a89b015df2d1e607f84549ef8168b297f20e",
+  "02-strict-clippy.log": "f28dc274b41da2f0326907d7b2e54e5643638332792411986488e85baf301d86",
+  "03-fmt-check.log": "3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e",
+  "04-diff-check.log": "3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e"
+}

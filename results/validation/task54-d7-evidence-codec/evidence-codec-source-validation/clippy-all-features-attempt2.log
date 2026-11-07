@@ -1,0 +1,39 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: unused variable: `index`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:460:10
+    |
+460 |     for (index, sidecar) in sidecars.iter().enumerate() {
+    |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_index`
+    |
+    = note: `-D unused-variables` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_variables)]`
+
+error: the borrowed expression implements the required traits
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:893:48
+    |
+893 |     let bootstrap_descriptor_sha256 = c.option(&mut hash)?;
+    |                                                ^^^^^^^^^ help: change this to: `hash`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrows_for_generic_args
+    = note: `-D clippy::needless-borrows-for-generic-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrows_for_generic_args)]`
+
+error: the following explicit lifetimes could be elided: 'a
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs:229:17
+    |
+229 | fn decode_event<'a>(kind: EventKind, bytes: &'a [u8], mode: Mode) -> Result<EventBody<'a>> {
+    |                 ^^                           ^^                                       ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+    = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_lifetimes)]`
+help: elide the lifetimes
+    |
+229 - fn decode_event<'a>(kind: EventKind, bytes: &'a [u8], mode: Mode) -> Result<EventBody<'a>> {
+229 + fn decode_event(kind: EventKind, bytes: &[u8], mode: Mode) -> Result<EventBody<'_>> {
+    |
+
+error: could not compile `ckks-train-bench` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors
+exit=101

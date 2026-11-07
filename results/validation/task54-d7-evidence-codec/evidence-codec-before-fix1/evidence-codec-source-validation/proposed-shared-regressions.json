@@ -1,0 +1,120 @@
+{
+  "status": "PROPOSED ONLY; root source review/release required",
+  "exact_filters": [
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors",
+      "fixture_read_calls_upper_bound": 13,
+      "inputs_and_calls": "Six old Full branch JSON files, six execution hex files, one old case-binding hex file:13 standard read-only fixture reads. ExecutionFields traversal/hash comparisons, no prepared CPU route.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Small Transcript/payload/index/record helpers only; configured buffers<=4096B; no fixtures() invocation and no registry/CKKS/P1 constructors.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    },
+    {
+      "filter": "study_admission::tests::p3_digest_golden_and_mutations",
+      "fixture_read_calls_upper_bound": 0,
+      "inputs_and_calls": "Small Transcript/payload/index/record helpers only; configured buffers<=4096B; no fixtures() invocation and no registry/CKKS/P1 constructors.",
+      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
+      "runtime_released": false
+    }
+  ],
+  "forbidden_runtime_calls_all_zero": true,
+  "author_runtime_runs": 0,
+  "notes": "These are selected because record visibility/shared Encoder/Scan/Cursor and shared P3 request traversal were touched. Other study_admission tests can initialize CKKS/P1 fixtures and are deliberately NOT included. No all-tests or broad study_admission filter."
+}

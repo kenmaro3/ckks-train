@@ -1,0 +1,37 @@
+{
+  "index": 32,
+  "name": "study_admission::tests::p3_digest_golden_and_mutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_admission::tests::p3_digest_golden_and_mutations",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063597.315315,
+  "pid": 3045,
+  "timeout_seconds": 60,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063597.462548,
+  "named_successes": [
+    "study_admission::tests::p3_digest_golden_and_mutations"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 181,
+  "stdout_sha256": "d07c57de6f24cf3688019e171002db24502ee2602e94ede9a1fc2e71983bcb0f",
+  "stderr_bytes": 413,
+  "stderr_sha256": "b14daa13c95698cf13063d2de8dfb59bc8a50fcc415bd576831c6041a63cf0f2"
+}

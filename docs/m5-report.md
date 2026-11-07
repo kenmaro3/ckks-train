@@ -1,6 +1,6 @@
-# M5 報告（進行中、2026-11-07）
+# M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -18,7 +18,7 @@
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
+| 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full／証拠／Quick記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
 | 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。queue SHA4b1c499のLinux CIも全6ジョブsuccess（後続SHAには継承しない）。公開操作は未実施 |
 | 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
@@ -703,5 +703,17 @@ Linux 5.6のopenat2 APIと対応filesystemが必要になり、利用できな�
 実際の確認時刻は2026-11-07T23:56:11.936978+09:00。R-41-FULL-2はupdate516（0始まり）、完了517/1000更新、ログ上のelapsed74080秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新511〜516は各1415 KS・4 bootstrap、予測一致で、前回の直近6更新の1369 KSとは区別して記録する。最終結果JSONはなく、queueはowner.jsonのみ。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2355/README.md)を保存した。
 
 予定時刻を確認後に1回だけ起動し、元controller session94881のterminal0とSSH exit0まで回収した。job再起動、queue変更、追加計測は行っていない。次の通常確認は2026-11-08T00:56:12+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
+
+<a id="latest-evidence-20261108-d7-evidence-codec"></a>
+
+## 2026-11-08追記: 証拠形式とQuick記録の実装・検証
+
+[証拠codecの実装・修正・実行証跡](../results/validation/task54-d7-evidence-codec/README.md)を保存した。五つの証拠のFull／Quick形式、補助記録とQuick preflight／start／endを実装し、既存のcanonical処理を共有した。元のFull／Reference／Lock／Admission／Startの形式と上限は維持した。これらは入力された記録の形式・整合性を検査するもので、実際の検証済み証拠や学習開始権限は生成しない。
+
+初回独立レビューでは、共有テスト1件のパラメータ生成負荷の記載漏れと、overlap／Retry／失敗タグの拒否テスト不足を指摘された。元記録を保持して訂正・追加し、FIX1の再レビューは合格した。default／parallel／cudaのコンパイルとstrict Clippyを確認し、テストのみのFIX1はdefault no-runとall-feature Clippy等で再確認した。その後、新規16件・共有16件をdefault featureで1件ずつ一度だけ実行し、32件すべて合格した。元controller89518と全Cargo子プロセスはexit0、64生ログ12490 bytesと642個のsource／input pinを照合し、実行結果の独立レビューも合格した。
+
+31件はパラメータ生成なし。残りのP3回帰は、明示した別枠でN=32の小さなパラメータ1個、RNS基底2個、NTTテーブル13個とmetadataを生成する。NTT変換や暗号処理を実行したこととは区別する。以前のcompile成功ログ1件の上書き消失は未復元の監査上の限界として残した。
+
+実際の証拠reader、前回・現在のtarget照合、current authority、完全なメモリモデル、保存・復旧、durable startと学習の接続は未完了である。別途確定したFull連結テスト値の統合や共有publisherの実装修正も次工程に残る。この32件の合格は、GPU性能・非対話学習の精度・全実験完走の合格ではない。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

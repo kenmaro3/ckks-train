@@ -156,12 +156,13 @@ enum DocumentLayout {
     TargetLock,
     Admission,
     Start,
+    Quick,
 }
 impl DocumentLayout {
     fn file_cap(self) -> usize {
         match self {
             Self::Reference | Self::Admission => J_MAX,
-            Self::Start => A_MAX,
+            Self::Start | Self::Quick => A_MAX,
             Self::TargetLock => 7_324_204,
         }
     }
@@ -169,6 +170,7 @@ impl DocumentLayout {
         match self {
             Self::Reference | Self::Admission => ENVELOPE_MAX,
             Self::Start => A_MAX,
+            Self::Quick => evidence::QUICK_K_MAX,
             Self::TargetLock => 4_710_678,
         }
     }
@@ -236,6 +238,9 @@ impl Scan<'_> {
             && self.at_keys(&["selected_input", "seed_receipt", "canonical_bytes"])
         {
             Some(R_MAX)
+        } else if matches!(self.layout, DocumentLayout::Quick) && self.at_keys(&["canonical_bytes"])
+        {
+            Some(evidence::QUICK_K_MAX)
         } else {
             None
         };
@@ -646,9 +651,9 @@ impl<T: Encode, const N: usize> Encode for List<T, N> {
 // These macros declare fixed private record fields in their normative encoding
 // order. They never retain a generic JSON map or expose arbitrary-metric encoding.
 macro_rules! record {
-    ($name:ident { $($field:ident: $ty:ty),* $(,)? }) => {
+    ($vis:vis $name:ident { $($field:ident: $ty:ty),* $(,)? }) => {
         #[derive(Debug, Clone)]
-        struct $name { $($field: $ty),* }
+        $vis struct $name { $($vis $field: $ty),* }
         impl Decode for $name {
             fn decode(raw: &RawValue, p: &str) -> Result<Self> {
                 let mut fields = Fields::new(raw, &[$(stringify!($field)),*], p)?;
@@ -1982,3 +1987,5 @@ mod execution_descriptor_tests;
 
 #[cfg(test)]
 mod execution_binding_tests;
+
+mod evidence;

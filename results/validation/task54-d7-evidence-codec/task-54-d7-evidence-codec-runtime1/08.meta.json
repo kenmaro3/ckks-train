@@ -1,0 +1,37 @@
+{
+  "index": 8,
+  "name": "study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063591.533968,
+  "pid": 2878,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063591.680917,
+  "named_successes": [
+    "study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 221,
+  "stdout_sha256": "451a36803e972b62cecfa689d6d8cd521f6814adb1fd9e09ce5987b283ab3208",
+  "stderr_bytes": 159,
+  "stderr_sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+}

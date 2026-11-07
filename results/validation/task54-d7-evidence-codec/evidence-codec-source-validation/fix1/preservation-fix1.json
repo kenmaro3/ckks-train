@@ -1,0 +1,11 @@
+{
+  "original_report_sha256": "9a200eb062a58629ccc4bdf62fc4c78faf8670298adb53dfd3c0501db796631c",
+  "original_report_bytes": 25484,
+  "earlier_validation_files_unchanged": 26,
+  "frozen_inputs_unchanged": 218,
+  "changed_owned_source_paths": [
+    "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs"
+  ],
+  "all_other_nine_owned_source_paths_unchanged": true,
+  "new16_filters_unchanged": true
+}

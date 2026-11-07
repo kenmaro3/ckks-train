@@ -1,0 +1,37 @@
+{
+  "index": 17,
+  "name": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063593.659828,
+  "pid": 2936,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063593.804091,
+  "named_successes": [
+    "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 227,
+  "stdout_sha256": "37fb674d85824e578afcece045310596f49376116dc4174b402629ad6848fa71",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

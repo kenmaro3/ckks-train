@@ -1,0 +1,86 @@
+[
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "-p",
+      "ckks-train-bench",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 2.924,
+    "log": "clippy-complete-final.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "d7_evidence",
+      "--no-run"
+    ],
+    "exit": 0,
+    "seconds": 10.364,
+    "log": "compile-default-complete-final.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--features",
+      "parallel",
+      "d7_evidence",
+      "--no-run"
+    ],
+    "exit": 0,
+    "seconds": 10.382,
+    "log": "compile-parallel-complete-final.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--features",
+      "cuda",
+      "d7_evidence",
+      "--no-run"
+    ],
+    "exit": 0,
+    "seconds": 10.264,
+    "log": "compile-cuda-complete-final.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.041,
+    "log": "fmt-complete-final.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.04,
+    "log": "diff-complete-final.log"
+  }
+]

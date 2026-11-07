@@ -1,0 +1,18 @@
+{
+  "index": 10,
+  "name": "study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063592.0240378,
+  "pid": 2882
+}

@@ -1,0 +1,18 @@
+{
+  "index": 32,
+  "name": "study_admission::tests::p3_digest_golden_and_mutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_admission::tests::p3_digest_golden_and_mutations",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063597.315315,
+  "pid": 3045
+}

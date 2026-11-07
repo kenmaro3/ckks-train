@@ -1,0 +1,18 @@
+{
+  "index": 31,
+  "name": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063597.058163,
+  "pid": 3002
+}

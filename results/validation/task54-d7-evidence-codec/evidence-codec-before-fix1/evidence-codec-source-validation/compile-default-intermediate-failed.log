@@ -1,0 +1,54 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: unused import: `Id`
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:869:44
+    |
+869 |     use super::evidence::wire::{Cursor, H, Id, Wire};
+    |                                            ^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+error[E0597]: `e.bytes` does not live long enough
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:319:33
+    |
+281 | impl<'a> Auxiliary<'a> {
+    |      -- lifetime `'a` defined here
+...
+312 |         let mut e = record_encoder(self.kind.domain(), self.mode)?;
+    |             ----- binding `e` declared here
+...
+319 |         Self::decode(self.kind, &e.bytes, self.mode)?;
+    |         ------------------------^^^^^^^^------------
+    |         |                       |
+    |         |                       borrowed value does not live long enough
+    |         argument requires that `e.bytes` is borrowed for `'a`
+320 |         Ok(e.bytes)
+321 |     }
+    |     - `e.bytes` dropped here while still borrowed
+
+error[E0505]: cannot move out of `e.bytes` because it is borrowed
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs:320:12
+    |
+281 | impl<'a> Auxiliary<'a> {
+    |      -- lifetime `'a` defined here
+...
+312 |         let mut e = record_encoder(self.kind.domain(), self.mode)?;
+    |             ----- binding `e` declared here
+...
+319 |         Self::decode(self.kind, &e.bytes, self.mode)?;
+    |         --------------------------------------------
+    |         |                       |
+    |         |                       borrow of `e.bytes` occurs here
+    |         argument requires that `e.bytes` is borrowed for `'a`
+320 |         Ok(e.bytes)
+    |            ^^^^^^^ move out of `e.bytes` occurs here
+    |
+help: consider cloning the value if the performance cost is acceptable
+    |
+319 |         Self::decode(self.kind, &e.bytes.clone(), self.mode)?;
+    |                                         ++++++++
+
+Some errors have detailed explanations: E0505, E0597.
+For more information about an error, try `rustc --explain E0505`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 2 previous errors; 1 warning emitted
+exit=101

@@ -1,0 +1,197 @@
+{
+  "status": "STATIC INSPECTION ONLY; not executed; retain this exact necessary shared regression as a separate bounded release proposal",
+  "exact_filter": "study_admission::tests::p3_digest_golden_and_mutations",
+  "scope": "one existing unchanged test, no fixtures()/synthetic()/planner call",
+  "constructor_counts": {
+    "CkksParams_test_tiny": 1,
+    "CkksParams_new": 1,
+    "RnsBasis_new": 2,
+    "Modulus_new": 13,
+    "NttTable_new": 13,
+    "minimal_primitive_root": 13,
+    "bitrev_power_table": 26,
+    "CtMeta_new": 3
+  },
+  "parameters": {
+    "log_n": 5,
+    "N": 32,
+    "q_count": 12,
+    "p_count": 1,
+    "q_bits": [
+      54,
+      42,
+      34,
+      34,
+      34,
+      34,
+      58,
+      58,
+      56,
+      56,
+      56,
+      56
+    ],
+    "p_bits": [
+      60
+    ],
+    "scale_bits": 42,
+    "dnum": 12
+  },
+  "prime_pools": [
+    {
+      "bits": 34,
+      "count": 4
+    },
+    {
+      "bits": 42,
+      "count": 1
+    },
+    {
+      "bits": 54,
+      "count": 1
+    },
+    {
+      "bits": 56,
+      "count": 4
+    },
+    {
+      "bits": 58,
+      "count": 2
+    },
+    {
+      "bits": 60,
+      "count": 1
+    }
+  ],
+  "search_work": {
+    "prime_pool_search_calls": 6,
+    "candidate_primality_tests": "data dependent deterministic search; exact iterations not measured or claimed",
+    "NttTable_primality_rechecks": 13,
+    "root_search_calls": 13,
+    "primitive_root_post_search_odd_power_steps": 403,
+    "root_search_candidates": "data dependent deterministic loop from2; exact iterations not measured or claimed",
+    "RNG_calls": 0
+  },
+  "table_allocations": {
+    "twiddle_vectors": 26,
+    "entries_per_vector": 32,
+    "total_twiddle_Shoup_entries": 832,
+    "twiddle_value_field_payload_bytes": 13312,
+    "additional_scalar_Shoup_entries": 26,
+    "additional_scalar_value_field_payload_bytes": 416,
+    "notes": "Shoup has two u64 fields. These are field-payload counts, not Vec capacity, allocator overhead, full object allocation or RSS. Two basis moduli vectors hold12/1 Modulus; two basis table vectors hold12/1 NttTable; two Arc basis allocations and empty Galois caches; no Galois permutation materialized."
+  },
+  "parameter_vector_shapes": {
+    "q_bits_build_length": 12,
+    "all_and_initial_distinct_lengths": [
+      13,
+      13
+    ],
+    "distinct_after_dedup_length": 6,
+    "pool_outer_length": 6,
+    "pool_inner_total_length": 13,
+    "next_length": 6,
+    "ordered_primes_length": 13,
+    "retained_q_p_lengths": [
+      12,
+      1
+    ],
+    "retained_q_bits_p_bits_lengths": [
+      12,
+      1
+    ],
+    "notes": "Lengths and constructor counts only; Vec growth/reallocation counts/capacities are not inferred."
+  },
+  "metadata_allocations": {
+    "CtMeta_new": 3,
+    "CtMeta_new_heap_allocation_on_valid_input": 0,
+    "retain_update_summary_success": 1,
+    "StateLabels_retain": 2,
+    "copy_matrix": 2,
+    "copy_vec_success_calls": 16,
+    "retain_handoff_summary_calls": 2,
+    "retain_handoff_summary_success": 1,
+    "retain_handoff_summary_rejected_before_copy": 1,
+    "retained_update_vectors": 15,
+    "retained_update_state_CtMeta_slots": 12,
+    "retained_update_velocity_OptionCtMeta_slots": 4,
+    "retained_update_micro_records": 2,
+    "retained_update_matrix_row_CtMeta_slots": 8,
+    "retained_update_matrix_outer_Vec_headers": 4,
+    "local_hidden_canonical_matrix_shapes": "two outer vectors of length2; four rows length2 (8 CtMeta copies), all metadata only",
+    "local_and_retained_handoff_output_lengths": [
+      2,
+      2
+    ],
+    "MicroPart_copy_vectors": [
+      2,
+      2
+    ],
+    "error_witnesses": "one boxed PlanError, trace Vec length1, attempts Vec length1, three bounded String fields; three index_room reservations (one wire, two charged), no stage execution",
+    "encoded_helper_calls": 8,
+    "encoded_helper_output_lengths": "five rate-field buffers112B each; three state-label buffers211B each (fixed schema/labels); helper uses default ReceiptLimits, not an asserted4096 configured cap",
+    "charged_payload_formula": "3 + 2*size_of::<TransitionIndex>() + expected_update + 2*size_of::<CtMeta>() + 2*size_of::<MicroPart>()",
+    "expected_update_formula": "2*(6*size_of::<CtMeta>()+2*size_of::<Option<CtMeta>>()) + 2*size_of::<MicroMetadata>() + 2*(2*size_of::<Vec<CtMeta>>()+4*size_of::<CtMeta>())",
+    "notes": "OpCounter is scalar fields; metadata cloning/retention does not call CtMeta::new again. Box/slice transfer or allocator growth may allocate/reallocate; no exact heap-call count, search runtime or RSS is claimed."
+  },
+  "execution_calls": {
+    "NTT_forward": 0,
+    "NTT_inverse": 0,
+    "RNG": 0,
+    "P1_DFT_proof_BootstrapMetadata": 0,
+    "key_generator_encoder_evaluator_ciphertext": 0,
+    "HE": 0,
+    "registry": 0,
+    "materializer": 0,
+    "planner_geometry_stage_update_handoff": 0,
+    "Host_CUDA_native_SSH": 0
+  },
+  "proposed_release": {
+    "filter": "study_admission::tests::p3_digest_golden_and_mutations",
+    "invocations": 1,
+    "exact": true,
+    "test_threads": 1,
+    "runtime_released": false,
+    "required_gate": "root review of this corrected fixed-size constructor inventory plus an explicit separately bounded release; root selects process timeout and no implicit retry"
+  },
+  "author_runtime_runs": 0,
+  "author_test_list_runs": 0,
+  "source_pins": [
+    {
+      "path": "crates/ckks-train-bench/src/study_admission.rs",
+      "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/params.rs",
+      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/metadata.rs",
+      "sha256": "dd134348604a32411aa1e4734ccc35ad12d745358627df8370f5c33d97eac032"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/counter.rs",
+      "sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4"
+    },
+    {
+      "path": "crates/ckks-train-core/src/rns.rs",
+      "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397"
+    },
+    {
+      "path": "crates/ckks-train-core/src/ntt.rs",
+      "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318"
+    },
+    {
+      "path": "crates/ckks-train-core/src/primes.rs",
+      "sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee"
+    },
+    {
+      "path": "crates/ckks-train-core/src/modulus.rs",
+      "sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/diagonal_plan.rs",
+      "sha256": "c64373f73625f29d21232a5069d39fbaeb184c3f683d659ab6844ffd703c8065"
+    }
+  ]
+}

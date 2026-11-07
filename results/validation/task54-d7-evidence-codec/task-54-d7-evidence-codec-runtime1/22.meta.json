@@ -1,0 +1,37 @@
+{
+  "index": 22,
+  "name": "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063594.872183,
+  "pid": 2946,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063595.0142221,
+  "named_successes": [
+    "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 216,
+  "stdout_sha256": "1ea539e0663ff3cc9a2c543a67526f4bb4b85cb94b08a6399e290b60e4ce3c76",
+  "stderr_bytes": 159,
+  "stderr_sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+}

@@ -1,0 +1,37 @@
+{
+  "index": 11,
+  "name": "study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063592.2626078,
+  "pid": 2884,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063592.405836,
+  "named_successes": [
+    "study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 222,
+  "stdout_sha256": "82d2ff92d116925c04fc59e81af890f34234f5b88caae86caa2741da740c4e8e",
+  "stderr_bytes": 159,
+  "stderr_sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+}

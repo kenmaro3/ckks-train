@@ -1,0 +1,18 @@
+{
+  "index": 28,
+  "name": "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063596.3206909,
+  "pid": 2996
+}

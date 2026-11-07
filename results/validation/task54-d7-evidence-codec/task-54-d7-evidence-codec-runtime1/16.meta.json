@@ -1,0 +1,37 @@
+{
+  "index": 16,
+  "name": "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063593.434201,
+  "pid": 2934,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063593.572526,
+  "named_successes": [
+    "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 227,
+  "stdout_sha256": "172373c4a770fa3fc5330e7e23c0652141e48674009689cab93f296211c5e834",
+  "stderr_bytes": 159,
+  "stderr_sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+}

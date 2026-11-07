@@ -55,7 +55,7 @@ impl Encode for CaseEvalConfig {
         self.lazy_relin.encode(e)
     }
 }
-record!(CaseIdentity {
+record!(pub(super) CaseIdentity {
     registry_sha256:Hash, origin:CaseOrigin, registration_id:Text<128>, profile_id:Text<128>, seed:u64,
     scope:CaseScope, role:CaseRole, backend:CaseBackend, mode:CaseMode, placement:CasePlacement,
     packing:CasePacking, security_policy:SecurityPolicy, logical_batch:u64, eval_config:Option<CaseEvalConfig>,
@@ -103,7 +103,7 @@ tags!(Implementation {
     Main=0=>"main_diagonal", Row=1=>"matched_row2020", Diagonal=2=>"matched_diagonal2020", Packed=3=>"packed_c", External=4=>"external_b",
 });
 tags!(BootstrapEngine { None=0=>"none", Host=1=>"host", Native=2=>"native_cuda", Upstream=3=>"upstream" });
-struct Execution {
+pub(super) struct Execution {
     implementation: Implementation,
     implementation_revision: Text<128>,
     implementation_manifest_sha256: Hash,
@@ -189,15 +189,15 @@ impl Execution {
         }
     }
 }
-record!(Gate { policy_revision:Text<128>,evidence_sha256:Hash });
-record!(Gates {
+record!(pub(super) Gate { policy_revision:Text<128>,evidence_sha256:Hash });
+record!(pub(super) Gates {
     inputs: Gate,
     implementation: Gate,
     layout: Gate,
     resource: Gate,
     user: Gate
 });
-record!(Predecessor { attempt_id:Text<128>,admission:Link,start:Option<Link> });
+record!(pub(super) Predecessor { attempt_id:Text<128>,admission:Link,start:Option<Link> });
 // The receipt's inner canonical grammar is deliberately opaque and bounded.
 #[derive(Debug)]
 struct SelectedInput {
@@ -817,3 +817,113 @@ impl SyntheticStart {
 #[cfg(test)]
 #[path = "admission_tests.rs"]
 mod tests;
+
+// Decode the frozen binary components into the SAME typed records used by Full.
+// Encoding still uses their original canonical traversal; no alternate wire.
+pub(super) fn parse_case_binary(bytes: &[u8]) -> Result<CaseIdentity> {
+    use super::evidence::wire::{Cursor, H, Id, Wire};
+    ensure(
+        bytes.len() <= A_MAX,
+        DocumentErrorCode::TooLarge,
+        "canonical.component",
+    )?;
+    let mut c = Cursor::new(bytes);
+    ensure(
+        c.bounded_text(128)? == ENCODING_VERSION && c.bounded_text(128)? == CASE_DOMAIN,
+        DocumentErrorCode::UnsupportedSchema,
+        "case.header",
+    )?;
+    macro_rules! tag {($ty:ident; $($v:ident),+) => {{const VALUES:&[$ty]=&[$($ty::$v),+];VALUES[c.tag((VALUES.len()-1) as u8)? as usize]}};}
+    let case = CaseIdentity {
+        registry_sha256: Hash(H::read(&mut c)?.0.into()),
+        origin: tag!(CaseOrigin; Family,Supplement),
+        registration_id: Text(Id::read(&mut c)?.0.into()),
+        profile_id: Text(Id::read(&mut c)?.0.into()),
+        seed: c.u64()?,
+        scope: tag!(CaseScope; Full,Quick,ArchivalFull),
+        role: tag!(CaseRole; Main,BaselineA,BaselineB,BaselineC,MainAblation),
+        backend: tag!(CaseBackend; Cpu,Cuda,ExternalCpu),
+        mode: tag!(CaseMode; Interactive,Noninteractive),
+        placement: tag!(CasePlacement; ClientRefresh,WhenNeeded,AfterUpdate,AfterActivation,UpstreamVerified),
+        packing: tag!(CasePacking; BatchedDiagonal,Row2020,Diagonal2020,AlternatingRebootRowColumn,OfficialUpstream),
+        security_policy: tag!(SecurityPolicy; N16Train,N16Boot,Seal2020,UpstreamVerified,ReducedLevelSupplement),
+        logical_batch: c.u64()?,
+        eval_config: c.option(|c| {
+            Ok(CaseEvalConfig {
+                hoist: c.tag(1)? != 0,
+                bsgs: c.tag(1)? != 0,
+                lazy_relin: c.tag(1)? != 0,
+            })
+        })?,
+    };
+    c.finish()?;
+    validate_case(&case)?;
+    ensure(
+        component(Some(CASE_DOMAIN), &case)? == bytes,
+        DocumentErrorCode::CrossLinkMismatch,
+        "case.canonical",
+    )?;
+    Ok(case)
+}
+pub(super) fn parse_execution_binary(bytes: &[u8]) -> Result<Execution> {
+    use super::evidence::wire::{Cursor, H, Wire};
+    ensure(
+        bytes.len() <= A_MAX,
+        DocumentErrorCode::TooLarge,
+        "canonical.component",
+    )?;
+    let mut c = Cursor::new(bytes);
+    ensure(
+        c.bounded_text(128)? == ENCODING_VERSION
+            && c.bounded_text(128)? == "hekit-study-case-binding-v1",
+        DocumentErrorCode::UnsupportedSchema,
+        "execution.header",
+    )?;
+    let implementation = match c.tag(4)? {
+        0 => Implementation::Main,
+        1 => Implementation::Row,
+        2 => Implementation::Diagonal,
+        3 => Implementation::Packed,
+        _ => Implementation::External,
+    };
+    let implementation_revision = Text(super::evidence::wire::Git::read(&mut c)?.0.into());
+    let hash = |c: &mut Cursor<'_>| H::read(c).map(|h| Hash(h.0.into()));
+    let implementation_manifest_sha256 = hash(&mut c)?;
+    let parameter_identity_sha256 = hash(&mut c)?;
+    let bootstrap_descriptor_sha256 = c.option(hash)?;
+    let layout_plan_sha256 = hash(&mut c)?;
+    let trainer_plan_sha256 = hash(&mut c)?;
+    let eval_config = CaseEvalConfig {
+        hoist: c.tag(1)? != 0,
+        bsgs: c.tag(1)? != 0,
+        lazy_relin: c.tag(1)? != 0,
+    };
+    let bootstrap_engine = match c.tag(3)? {
+        0 => BootstrapEngine::None,
+        1 => BootstrapEngine::Host,
+        2 => BootstrapEngine::Native,
+        _ => BootstrapEngine::Upstream,
+    };
+    let value = Execution {
+        implementation,
+        implementation_revision,
+        implementation_manifest_sha256,
+        parameter_identity_sha256,
+        bootstrap_descriptor_sha256,
+        layout_plan_sha256,
+        trainer_plan_sha256,
+        eval_config,
+        bootstrap_engine,
+        key_policy_sha256: hash(&mut c)?,
+        security_policy_sha256: hash(&mut c)?,
+        physical_binding_sha256: hash(&mut c)?,
+        runtime_policy_sha256: hash(&mut c)?,
+    };
+    c.finish()?;
+    ensure(
+        value.fields().binding_bytes()? == bytes,
+        DocumentErrorCode::CrossLinkMismatch,
+        "execution.canonical",
+    )?;
+    Ok(value)
+}

@@ -1,0 +1,964 @@
+Scoped FIX1 against preserved before-fix1 source, not Git HEAD. Only tests plus additive report/inventory/logs.
+--- before-fix1/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs
++++ crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs
+@@ -331,20 +331,21 @@
+     );
+     let changed = fixture("negative/full-consumption.bin");
+     refusal(
+         Auxiliary::parse_oracle(AuxKind::Consumption, &changed),
+         DocumentErrorCode::OutOfRange,
+     );
+ }
+ #[test]
+ fn d7_evidence_authority_resource_and_closed_branches() {
+     exercise_authority_resource_branches();
++    exercise_overlap_and_retry_refusals();
+ }
+ fn exercise_authority_resource_branches() {
+     use DocumentErrorCode::*;
+     let sbytes = fixture("quick.authority.scope.bin");
+     let cbytes = fixture("quick.authority.current.bin");
+     let scope = Auxiliary::parse_oracle(AuxKind::UserScope, &sbytes).unwrap();
+     let current = Auxiliary::parse_oracle(AuxKind::UserCurrent, &cbytes).unwrap();
+     check_authority(&scope, &current, 0).unwrap();
+     for name in ["authority-revoked", "authority-generation"] {
+         let changed = fixture(&format!("negative/{name}.bin"));
+@@ -437,20 +438,123 @@
+     let mut capacity = r.clone();
+     capacity.observation.cgroups[0].limit = None;
+     capacity.check_supplied_capacity().unwrap();
+     // Resident bytes are already reflected in capacity: compare incremental,
+     // not total peak, without claiming this arithmetic proves actual residency.
+     let mut capacity = r.clone();
+     capacity.observation.host_mem_available = capacity.requirements.incremental_host_bytes;
+     capacity.observation.cgroups.clear();
+     capacity.check_supplied_capacity().unwrap();
+ }
++// Encode an inert negative after updating BOTH administrative payloads, their
++// hashes/lengths, and both FileRefs. This bypasses only the encoder's optional
++// eager validation; the production parsing checks under test still run below.
++fn rebind_user_scope_for_negative(evidence: &Evidence<'_>, scope: &Auxiliary<'_>) -> Vec<u8> {
++    let authority_bytes = scope.canonical().unwrap();
++    let authority_hash = sha256_hex(&authority_bytes);
++    let Tail::User(original) = &evidence.tail else {
++        panic!("user fixture")
++    };
++    let mut current =
++        Auxiliary::parse_oracle(AuxKind::UserCurrent, original.current_bytes.0).unwrap();
++    if let AuxiliaryBody::UserCurrent(c) = &mut current.body {
++        c.authority_sha256 = H(&authority_hash);
++    }
++    let current_bytes = current.canonical().unwrap();
++    let current_hash = sha256_hex(&current_bytes);
++    let mut user = original.clone();
++    user.authority_bytes = Bytes(&authority_bytes);
++    user.authority_sha256 = H(&authority_hash);
++    user.current_bytes = Bytes(&current_bytes);
++    user.current_sha256 = H(&current_hash);
++    user.authority_file.length = authority_bytes.len() as u64;
++    user.authority_file.sha256 = H(&authority_hash);
++    user.current_file.length = current_bytes.len() as u64;
++    user.current_file.sha256 = H(&current_hash);
++    let mut encoded = record_encoder("gate-user-evidence", Mode::Oracle).unwrap();
++    evidence.common.write(&mut encoded).unwrap();
++    evidence.branch.write(&mut encoded).unwrap();
++    user.write(&mut encoded).unwrap();
++    encoded.bytes
++}
++fn exercise_overlap_and_retry_refusals() {
++    let bytes: Vec<_> = GATE_NAMES
++        .iter()
++        .map(|g| fixture(&format!("quick.{g}.evidence.bin")))
++        .collect();
++    let records: Vec<_> = bytes
++        .iter()
++        .map(|b| Evidence::parse_oracle(b).unwrap())
++        .collect();
++    check_evidence_bundle(&records).unwrap();
++    let Tail::User(user) = &records[4].tail else {
++        panic!("user fixture")
++    };
++    for (selected_overlap, claimed_overlap) in [(1, 0), (0, 1)] {
++        let mut scope =
++            Auxiliary::parse_oracle(AuxKind::UserScope, user.authority_bytes.0).unwrap();
++        if let AuxiliaryBody::UserScope(s) = &mut scope.body {
++            s.scopes[0].overlap = Tag(selected_overlap);
++        }
++        let user_bytes = rebind_user_scope_for_negative(&records[4], &scope);
++        // Valid selected scope/current/digests; overlap is a legal tag in both records.
++        let selected = Evidence::parse_oracle(&user_bytes).unwrap();
++        let mut resource = records[3].clone();
++        if let Tail::Resource(r) = &mut resource.tail {
++            r.claim.overlap = Tag(claimed_overlap);
++        }
++        let resource_bytes = resource.canonical().unwrap();
++        let claim = Evidence::parse_oracle(&resource_bytes).unwrap();
++        let mut mixed: Vec<_> = records.iter().collect();
++        mixed[3] = &claim;
++        mixed[4] = &selected;
++        let error = check_evidence_refs(&mixed).unwrap_err();
++        assert_eq!(error.code(), DocumentErrorCode::CrossLinkMismatch);
++        assert_eq!(error.path(), "evidence.bundle.overlap");
++    }
++    let full_bytes = fixture("full.user.evidence.bin");
++    let full = Evidence::parse_oracle(&full_bytes).unwrap();
++    let Tail::User(full_user) = &full.tail else {
++        panic!("full user fixture")
++    };
++    let Branch::Full(full_body) = &full.branch else {
++        panic!("full branch")
++    };
++    // A syntactically valid fictional predecessor. Its Link is a claim only;
++    // no retained prior admission or actual Retry authority is asserted here.
++    let predecessor = admission::Predecessor {
++        attempt_id: Text("SYNTHETIC-PRIOR".into()),
++        admission: full_body.lock.clone(),
++        start: None,
++    };
++    let mut scope =
++        Auxiliary::parse_oracle(AuxKind::UserScope, full_user.authority_bytes.0).unwrap();
++    if let AuxiliaryBody::UserScope(s) = &mut scope.body {
++        s.scopes[0].predecessor = Some(predecessor.clone());
++    }
++    let mismatched = rebind_user_scope_for_negative(&full, &scope);
++    let error = Evidence::parse_oracle(&mismatched).unwrap_err();
++    assert_eq!(error.code(), DocumentErrorCode::CrossLinkMismatch);
++    assert_eq!(error.path(), "user.retry.predecessor");
++    let mut quick = Auxiliary::parse_oracle(AuxKind::UserScope, user.authority_bytes.0).unwrap();
++    if let AuxiliaryBody::UserScope(s) = &mut quick.body {
++        s.scopes[0].predecessor = Some(predecessor);
++    }
++    let mut encoded = record_encoder("user-scope", Mode::Oracle).unwrap();
++    if let AuxiliaryBody::UserScope(scope) = &quick.body {
++        scope.write(&mut encoded).unwrap();
++    }
++    let error = Auxiliary::parse_oracle(AuxKind::UserScope, &encoded.bytes).unwrap_err();
++    assert_eq!(error.code(), DocumentErrorCode::CrossLinkMismatch);
++    assert_eq!(error.path(), "authority.quick.retry");
++}
++
+ fn literal_manifest() -> Value {
+     serde_json::from_slice(&fixture("literal-inputs.json")).unwrap()
+ }
+ fn offset(name: &str, path: &str) -> usize {
+     literal_manifest()["records"][name]["fields"]
+         .as_array()
+         .unwrap()
+         .iter()
+         .find(|f| f["path"] == path)
+         .unwrap()["offset"]
+@@ -617,20 +721,30 @@
+                 let mut failed = original.clone();
+                 failed[outcome] = 1;
+                 failed[completed..completed + 8].copy_from_slice(&updates.to_le_bytes());
+                 failed[failure] = 1;
+                 failed.splice(failure + 1..failure + 1, [phase, code]);
+                 let parsed = QuickEvent::parse_binary_oracle(EventKind::End, &failed).unwrap();
+                 assert_eq!(parsed.canonical().unwrap(), failed);
+             }
+         }
+     }
++    for invalid_tags in [[4, 0], [0, 7]] {
++        let mut invalid = original.clone();
++        invalid[outcome] = 1;
++        invalid[failure] = 1;
++        invalid.splice(failure + 1..failure + 1, invalid_tags);
++        let error = QuickEvent::parse_binary_oracle(EventKind::End, &invalid).unwrap_err();
++        assert_eq!(error.code(), DocumentErrorCode::UnsupportedTag);
++        assert_eq!(error.path(), "execution.tag");
++    }
++
+     let mut failed = original.clone();
+     failed[outcome] = 1;
+     refusal(
+         QuickEvent::parse_binary_oracle(EventKind::End, &failed),
+         DocumentErrorCode::CrossLinkMismatch,
+     );
+     let mut invalid = original.clone();
+     invalid[outcome] = 0;
+     invalid[failure] = 1;
+     invalid.splice(failure + 1..failure + 1, [0, 0]);
+--- before-fix1/task-54-d7-evidence-codec-report.md
++++ task-54-d7-evidence-codec-report.md
+@@ -151,10 +151,104 @@
+ - Canonical typed encoding is compared against unchanged independent `.bin`/original exact `.json` inputs, not just a self-roundtrip. Fixture manifests/generator/expected leaves were not rewritten. Production has only Mode::Production; Oracle variant and decoding entry points exist under cfg(test) only. No runtime synthetic switch or caller pass flag exists.
+ - All binary records are closed and bounded. Frozen case/binding/Clock/Link/Gates/Predecessor traversal is shared. Requests retain all original limits; payload/file hashes remain distinct, including whitespace-sensitive exact JSON file links. Full required target fields cannot disappear into an optional Quick schema, and Quick cannot pass Full expected-claim helpers or mixed-scope bundle comparison.
+ - Resource22-component completeness/order, zero-mask byte consistency, resident+additional phase maxima, incremental-only maxima and checked arithmetic are enforced as representation identities. These cannot prove model completeness, allocation inventory, actual residency/accounting credit, host/cgroup observations, stale-capacity/competing-claim freshness or capacity reservation. Missing model/validation/applicability must remain missing in the genuine gate. CPU-only resource claims do not relabel CUDA/external observations.
+ - User selected tuple, exact scope/authority/current identity, generation/head, revoked-all/index ordering/range/selection, holds, Initial/Retry predecessor and cross-resource overlap are checked as supplied records. Actual root-origin source control, latest received task provenance and the trusted active `authority.current.bin` update/reload/race mechanism remain absent. Re-reading a stale or caller-authored capture is not currentness. **Frozen CaseIdentity carries no actual layer/source graph**: this codec does not invent a placement/profile-string classifier for the global Full encrypted-block hold. The genuine reader must classify the retained canonical profile/source independently and enforce that unchanged hold even when a malformed administrative capture omits it. No user confirmation is requested or fabricated.
+ - Actual expected source inventory, complete contract/selected receipt bytes and canonical order, descriptor/cryptographic declarations, complete approved Train manifest/current revision and512-source-role cap, reviewed KAT/NI/security/model report parsers and applicability implications, attack/export completeness and the existing8MiB role-specific evidence read bound remain reader obligations. A hash or report path in this codec proves none of them. Pure exact supplied-claim comparisons do not upgrade them to verified evidence.
+ - Filesystem safe roots/held descriptors/nofollow/owner/mount/regular-file/read stamps, guarded eligibility, all five no-clobber synchronized evidence finals, custody transfer and durable admission/preflight/start/end publication remain unimplemented. C01–C10 fault inventory belongs before that protocol source; this package implements no protocol or mutation. Partial/recovered records never yield live authority. Full new/old coherent positive linkage needs an independent future oracle as noted above.
+ - Prior Full C1 remains unchanged: a real Retry reader must verify BOTH current and prior admissions against the SAME retained target/reference/approved policy before predecessor/start helpers. This package neither waives nor claims that composition. Missing Full target origin, zero threshold without verified origin, unknown source inventory, actual stale OS/claim/authority sources, current leases/context/process identity, before-allocation construction obligations and actual runtime completion all remain genuine live tests/readers, not synthetic pass flags.
+ - Gate capabilities/live constructors, begin/dispatch lifetime integration, context/source approvals, native Linux publication/fault evidence, actual resource fit, full experiment runner/table publication and scientific outputs remain future dependencies. Local compilation is not any native/GPU/noninteractive performance, security adoption, scientific validity or full campaign authorization claim. Existing evidence maps and historical measurements are not erased by these missing prospective readers.
+ 
+ Author work ends at this pinned source/static report. Independent review, root-selected runtime outcomes and any later integration/commit are separate steps.
++
++
++## FIX1 — Important I1/I2 correction and added semantic negatives
++
++Status: **DONE_WITH_CONCERNS — author FIX1 complete, independent re-review/runtime pending**. Read the entire independent source review, including both full Important findings: `task-54-d7-evidence-codec-source-review.md`, SHA256 `131f04eb5366f8dfa8446b414ac644855d1a831e65b422df05795505d5f2476d`. Root resumed sole source/Cargo ownership for this bounded fix; no new production defect or feature was asserted. Main at assignment was documentation/linked-fixture-only `15cd48b`; this fix does not integrate that separate linked oracle.
++
++The original 25484-byte report prefix is preserved exactly (SHA256 `9a200eb062a58629ccc4bdf62fc4c78faf8670298adb53dfd3c0501db796631c`). Its original statements and inventory files are historical and explicitly superseded where corrected below. All26 earlier validation files remain byte-identical against `evidence-codec-before-fix1/`; that root-owned snapshot and original review were not overwritten. All218 frozen inputs remain unchanged. No oracle generation or expected-value regeneration occurred.
++
++### I1: corrected shared-regression constructor inventory
++
++The original report's assertion that all16 selected shared regressions are parameter-free was **incorrect**. In particular, original `proposed-shared-regressions.json` zero aggregate flag and the `p3_digest_golden_and_mutations` row must not be used to release that test as constructor-free. The16 new evidence test filters remain constructor-free;15 of the16 selected shared filters remain parameter-free on the scoped inspection. The necessary sixteenth filter is retained, unchanged, and proposed for a **separate bounded exact release**, not dropped:
++
++```text
++study_admission::tests::p3_digest_golden_and_mutations
++```
++
++The authoritative corrected JSON versions are now `fix1/proposed-shared-regressions-fix1.json` (aggregate zero flag false;15 parameter-free shared plus this1 constructor-bearing filter), `fix1/proposed-runtime-inventory-fix1.json` (same16 new filter names and their updated cases), and `fix1/p3-tiny-transitive-inventory.json` (separate P3 cost/release inventory). Original JSON files remain untouched as audit evidence, not current release inputs. Root's uninvoked32-filter controller must consume this corrected classification before any release.
++
++Independently inspected the actual unchanged test body through its end, `CkksParams::test_tiny/new`, `RnsBasis::new`, `NttTable::new`/power-table/root helpers, deterministic prime search, Modulus/Shoup, CtMeta and scalar OpCounter, plus relevant state/matrix/update/handoff retention and error helpers. The corrected static successful-path constructor/count inventory is:
++
++| Work / values | Count or fixed shape |
++|---|---|
++| `CkksParams::test_tiny` / `CkksParams::new` |1 /1, insecure toy N=32, scale bits42, dnum12 |
++| q and p primes |q12: `[54,42,34,34,34,34,58,58,56,56,56,56]`; p1: `[60]` |
++| Distinct deterministic prime pools |6: `(34,4),(42,1),(54,1),(56,4),(58,2),(60,1)`;13 selected primes total |
++| RnsBasis / Modulus / NttTable constructors |2 bases (q12/p1),13 Modulus,13 NttTable |
++| Twiddle table allocation shape |26 vectors×32=832 Shoup entries; each Shoup has2 u64 fields,13312B value-field payload |
++| Additional scalar Shoup fields |26 (n_inv/w_n_inv),416B value-field payload; not counted in the832 vector entries |
++| Root/table preparation |13 minimal-root searches,26 power-table fills;31 deterministic odd-power steps per successful root search,403 total after candidate selection |
++| CtMeta::new |3 valid stack/value metadata constructions (initial label, changed level, changed scale); no heap allocation on these successful constructor paths |
++| Update metadata retention |1 successful update summary;2 StateLabels retains;2 matrix copies;15 retained vectors including6 CtMeta state vectors/2 velocity vectors/1 micro vector/2 matrix outer vectors/4 matrix rows |
++| Copy counts |16 successful `copy_vec` calls total:2 two-element MicroPart copies,13 inside update retention,1 retained handoff-output copy |
++| Handoff retention |2 helper calls;1 succeeds,1 rejects accounting before any output copy |
++| Other fixed metadata |Local hidden+canonical:2 outer vectors of2 rows,4 rows×2 CtMeta. Local and retained handoff outputs length2 each;1 boxed PlanError with1 trace record and1 attempt record plus3 bounded String fields;3 index reservations |
++| Encoded helper buffers |8: five fixed112B rate encodings and three fixed211B state-label encodings. The helper uses default ReceiptLimits; the original blanket “configured buffers<=4096B” must not be applied to that helper. Fixed witness lengths remain small. |
++| Actual NTT forward/inverse / RNG / HE |0 /0 /0 /0 |
++| P1/DFT/bootstrap metadata, keys/Encoder/Evaluator/ciphertexts, registry/materializer/planner/stage update/actual handoff/native/Host/CUDA/SSH |all0 |
++
++Prime candidate primality checks and initial root candidate iterations are deterministic but data-dependent and **not measured or claimed exactly**. Each of the13 table constructors additionally rechecks primality. RnsBasis holds12/1 Modulus slots and12/1 table slots in two bases/two Arc allocations with initially empty Galois caches; no permutation is materialized. The corrected JSON pins every inspected transitive source. Vector lengths, stored field-payload bytes and static constructor calls do not establish Vec capacity, allocator overhead, heap-call counts, runtime or RSS. Actual parameter-constructor runtime execution is still0 in this author turn.
++
++The retained accounting payload is recorded symbolically, using the actual test expression:
++
++```text
++expected_update = 2*(6*sizeof(CtMeta)+2*sizeof(Option<CtMeta>))
++                + 2*sizeof(MicroMetadata)
++                + 2*(2*sizeof(Vec<CtMeta>)+4*sizeof(CtMeta))
++charged_cap = 3 + 2*sizeof(TransitionIndex) + expected_update
++                + 2*sizeof(CtMeta) + 2*sizeof(MicroPart)
++```
++
++No exact platform sizeof/RSS measurement is invented. The separately proposed release is this exact filter, one invocation, `--exact --test-threads=1`; root must approve the corrected fixed-size constructor inventory and choose the process bound before running it. No automatic retry or broader test filter is proposed. This test is unexecuted and not described as passed.
++
++### I2: existing pure checks now have the missing meaningful negatives
++
++Only `crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs` changed against root's before-fix1 source snapshot. No production module, Cargo file or existing P3 test was changed. Existing16 new exact filter names are retained; additions live inside two existing tests:
++
++| Exact test suffix | Added case / expected intended refusal |
++|---|---|
++| `d7_evidence_authority_resource_and_closed_branches` |Both legal overlap mismatches: selected UserScope1/resource0 and selected UserScope0/resource1. Each changed sidecar parses successfully on its own; bundled supplied claims reject `CrossLinkMismatch` at `evidence.bundle.overlap`. |
++| same |Full evidence predecessor None versus selected authority Retry1 with a syntactically valid fictional predecessor. Rebound UserScope/current/file identities are coherent; parse rejects `CrossLinkMismatch` at `user.retry.predecessor`. |
++| same |Quick UserScope Retry1 carrying that same validly encoded predecessor. Scope header, Bool, registration, prior ID, Link and overlap are legal; rejects `CrossLinkMismatch` at `authority.quick.retry`. This is syntax/representation only, never a verified actual prior admission. |
++| `d7_evidence_quick_failed_outcomes_and_binary_argv` |Failed outcome with failure present and legal completed count, then phase4/code0 or phase0/code7. Original link fields remain intact; both reject `UnsupportedTag` at existing shared tag path `execution.tag`. No JSON digest is bypassed: these test the canonical binary codec, which has no outer JSON envelope. |
++
++The test-only rebind helper serializes changed authority bytes, computes their SHA256, updates UserCurrent.authority_sha256, serializes/hashes Current, then updates both embedded Bytes/digests and both FileRef lengths/hashes before encoding the User evidence. It uses existing canonical traversals to prepare inert negative inputs and then calls the actual parser/consistency helper under test. No stale enclosing digest can mask the intended overlap/predecessor checks. It creates no gate, origin-current flag, source loader, filesystem mutation, HE object or new oracle. Full and Quick fixture families are still not spliced into a live/linked Full positive.
++
++New16-filter inventory delta: authority/resource filter fixture reads5→11 (five Quick sidecars29939B plus Full user3252B added), top-level parse-call upper estimate7→32; failed-outcome filter parse estimate88→90. Total fixture-read calls138→144; added literal bytes33191; metadata offset reads stay13×278638B. Ordinary generated transport remains<16KiB; all other fixed small bounds and the conservative<8MiB cumulative fixture-read envelope remain unchanged. Allocation/parse counts remain static estimates, not measured telemetry. All16 new filters still have parameters/P1/RNG/NTT-table/forward/inverse/HE/native/Host/CUDA/SSH/registry/materializer/actual-gate/protocol-publication calls0. The corrected P3 shared exception above is explicitly outside that zero-constructor claim.
++
++### FIX1 compile/static outcome, pins and ownership release
++
++No compile failure occurred in FIX1; no tests or `--list` were run. Each log was opened with exclusive creation under a new `fix1/` path; earlier failed/successful validation logs were preserved. Only test bodies changed, without feature-specific cfg or any production-source change, so default no-run plus strict all-target/all-feature Clippy were the relevant compile checks; unchanged broad/native/Linux checks were not added or repeated.
++
++| Exact command | Exit | Seconds | Unique log |
++|---|---:|---:|---|
++| `cargo test -p ckks-train-bench --lib d7_evidence --no-run` | 0 | 13.678 | `fix1/01-default-no-run.log` |
++| `cargo clippy -p ckks-train-bench --all-targets --all-features -- -D warnings` | 0 | 2.712 | `fix1/02-strict-clippy.log` |
++| `cargo fmt --all -- --check` | 0 | 1.029 | `fix1/03-fmt-check.log` |
++| `git diff --check` | 0 | 0.012 | `fix1/04-diff-check.log` |
++
++Changed source final pin: `crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs`, 36987B, SHA256 `430a84b108899f027feed6f4edee80762f3460b7c541954e251416960d678ac2`. All other9 owned source files exactly match before-fix1; all10 current final pins are in the new versioned manifest. Author FIX1 runtime/test-list counts0/0.
++
++| New authoritative artifact (within evidence-codec-source-validation) | SHA256 |
++|---|---|
++| `fix1/final-source-sha256-fix1.json` | `87cb90f1fda25a52c83c7f95f628dab483d0debb128b9394c6c8c8d8758f89a9` |
++| `fix1/proposed-runtime-inventory-fix1.json` | `b26f8fca72e5d72507de2195e16058158f70e37801cf00e87f1fb4e1a5f69fe5` |
++| `fix1/proposed-shared-regressions-fix1.json` | `a847ebc467fe5b1915d3bf85529c170da0cd2d4333ed4b4af52ec46f9fadbb65` |
++| `fix1/p3-tiny-transitive-inventory.json` | `274e7f9d88bd5393f3a6df77dc6d74da2a523be58292688323d774e5c3304471` |
++| `fix1/preservation-fix1.json` | `2460119bb4f230912d3bcb881aec177a8afad336eb329d107f64cc5431be9501` |
++| `fix1/command-results.json` | `d486227d366511f914b60dd080ed7047bead916fa99f3b5dc3beee39668dbd81` |
++| `fix1/01-default-no-run.log` | `abd769c3cf57529e2d9e3b4d33a6a89b015df2d1e607f84549ef8168b297f20e` |
++| `fix1/02-strict-clippy.log` | `f28dc274b41da2f0326907d7b2e54e5643638332792411986488e85baf301d86` |
++| `fix1/03-fmt-check.log` | `3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e` |
++| `fix1/04-diff-check.log` | `3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e` |
++
++Remaining actual readers/target/currentness/global-hold/resource/protocol/gate/native/scientific obligations and earlier disclosed lost intermediate compile log remain as recorded in the preserved prefix. I1/I2 are addressed in this author package; independent scoped re-review must decide acceptance and any exact runtime release. Source ownership is released back to root at these pins.
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/01-default-no-run.log
+@@ -0,0 +1,5 @@
++   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
++    Finished `test` profile [optimized + debuginfo] target(s) in 13.59s
++  Executable unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
++
++exit=0
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/02-strict-clippy.log
+@@ -0,0 +1,4 @@
++    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
++    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.62s
++
++exit=0
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/03-fmt-check.log
+@@ -0,0 +1,2 @@
++
++exit=0
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/04-diff-check.log
+@@ -0,0 +1,2 @@
++
++exit=0
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/artifact-sha256-fix1.json
+@@ -0,0 +1,12 @@
++{
++  "final-source-sha256-fix1.json": "87cb90f1fda25a52c83c7f95f628dab483d0debb128b9394c6c8c8d8758f89a9",
++  "proposed-runtime-inventory-fix1.json": "b26f8fca72e5d72507de2195e16058158f70e37801cf00e87f1fb4e1a5f69fe5",
++  "proposed-shared-regressions-fix1.json": "a847ebc467fe5b1915d3bf85529c170da0cd2d4333ed4b4af52ec46f9fadbb65",
++  "p3-tiny-transitive-inventory.json": "274e7f9d88bd5393f3a6df77dc6d74da2a523be58292688323d774e5c3304471",
++  "preservation-fix1.json": "2460119bb4f230912d3bcb881aec177a8afad336eb329d107f64cc5431be9501",
++  "command-results.json": "d486227d366511f914b60dd080ed7047bead916fa99f3b5dc3beee39668dbd81",
++  "01-default-no-run.log": "abd769c3cf57529e2d9e3b4d33a6a89b015df2d1e607f84549ef8168b297f20e",
++  "02-strict-clippy.log": "f28dc274b41da2f0326907d7b2e54e5643638332792411986488e85baf301d86",
++  "03-fmt-check.log": "3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e",
++  "04-diff-check.log": "3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e"
++}
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/command-results.json
+@@ -0,0 +1,54 @@
++[
++  {
++    "command": [
++      "cargo",
++      "test",
++      "-p",
++      "ckks-train-bench",
++      "--lib",
++      "d7_evidence",
++      "--no-run"
++    ],
++    "exit": 0,
++    "seconds": 13.678,
++    "log": "01-default-no-run.log"
++  },
++  {
++    "command": [
++      "cargo",
++      "clippy",
++      "-p",
++      "ckks-train-bench",
++      "--all-targets",
++      "--all-features",
++      "--",
++      "-D",
++      "warnings"
++    ],
++    "exit": 0,
++    "seconds": 2.712,
++    "log": "02-strict-clippy.log"
++  },
++  {
++    "command": [
++      "cargo",
++      "fmt",
++      "--all",
++      "--",
++      "--check"
++    ],
++    "exit": 0,
++    "seconds": 1.029,
++    "log": "03-fmt-check.log"
++  },
++  {
++    "command": [
++      "git",
++      "diff",
++      "--check"
++    ],
++    "exit": 0,
++    "seconds": 0.012,
++    "log": "04-diff-check.log"
++  }
++]
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/final-source-sha256-fix1.json
+@@ -0,0 +1,52 @@
++[
++  {
++    "path": "crates/ckks-train-bench/src/study_admission.rs",
++    "bytes": 145973,
++    "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document.rs",
++    "bytes": 64309,
++    "sha256": "1562c0754660d715c5d09addddc905b6547d899c03c7d39a9db7e2b5257be59a"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/admission.rs",
++    "bytes": 32107,
++    "sha256": "92fcaaaa1dd2b53a8542ed16591e86128956ac7bbded3d3bd71909528313d8ad"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs",
++    "bytes": 39756,
++    "sha256": "100a462812c3b80f2f3207b3028af653369bd5b7d57db42bc10d46ab33043923"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
++    "bytes": 15901,
++    "sha256": "4f727106cdbccd765a0cb5b3712fc81ec658efc170dddb86192e8ecabb83ae82"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs",
++    "bytes": 7972,
++    "sha256": "c5b922128b845171a8639c08fc2d14d7cc87d587bac795ae7a509b618614c29d"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs",
++    "bytes": 14266,
++    "sha256": "3d39848107d2db079b97a1ab2c725c98ff7cc16bdd1df827908f0b1ee9ce4387"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
++    "bytes": 22789,
++    "sha256": "a591f3618d3e3c736a86dcea95bb8e5b8948180615c6a6a043e7f09d3f002590"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
++    "bytes": 21021,
++    "sha256": "f1ff6d5154c3446a5ef131add86b2a834fbf1b83f498acabf3227c648744772b"
++  },
++  {
++    "path": "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
++    "bytes": 36987,
++    "sha256": "430a84b108899f027feed6f4edee80762f3460b7c541954e251416960d678ac2"
++  }
++]
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/p3-tiny-transitive-inventory.json
+@@ -0,0 +1,197 @@
++{
++  "status": "STATIC INSPECTION ONLY; not executed; retain this exact necessary shared regression as a separate bounded release proposal",
++  "exact_filter": "study_admission::tests::p3_digest_golden_and_mutations",
++  "scope": "one existing unchanged test, no fixtures()/synthetic()/planner call",
++  "constructor_counts": {
++    "CkksParams_test_tiny": 1,
++    "CkksParams_new": 1,
++    "RnsBasis_new": 2,
++    "Modulus_new": 13,
++    "NttTable_new": 13,
++    "minimal_primitive_root": 13,
++    "bitrev_power_table": 26,
++    "CtMeta_new": 3
++  },
++  "parameters": {
++    "log_n": 5,
++    "N": 32,
++    "q_count": 12,
++    "p_count": 1,
++    "q_bits": [
++      54,
++      42,
++      34,
++      34,
++      34,
++      34,
++      58,
++      58,
++      56,
++      56,
++      56,
++      56
++    ],
++    "p_bits": [
++      60
++    ],
++    "scale_bits": 42,
++    "dnum": 12
++  },
++  "prime_pools": [
++    {
++      "bits": 34,
++      "count": 4
++    },
++    {
++      "bits": 42,
++      "count": 1
++    },
++    {
++      "bits": 54,
++      "count": 1
++    },
++    {
++      "bits": 56,
++      "count": 4
++    },
++    {
++      "bits": 58,
++      "count": 2
++    },
++    {
++      "bits": 60,
++      "count": 1
++    }
++  ],
++  "search_work": {
++    "prime_pool_search_calls": 6,
++    "candidate_primality_tests": "data dependent deterministic search; exact iterations not measured or claimed",
++    "NttTable_primality_rechecks": 13,
++    "root_search_calls": 13,
++    "primitive_root_post_search_odd_power_steps": 403,
++    "root_search_candidates": "data dependent deterministic loop from2; exact iterations not measured or claimed",
++    "RNG_calls": 0
++  },
++  "table_allocations": {
++    "twiddle_vectors": 26,
++    "entries_per_vector": 32,
++    "total_twiddle_Shoup_entries": 832,
++    "twiddle_value_field_payload_bytes": 13312,
++    "additional_scalar_Shoup_entries": 26,
++    "additional_scalar_value_field_payload_bytes": 416,
++    "notes": "Shoup has two u64 fields. These are field-payload counts, not Vec capacity, allocator overhead, full object allocation or RSS. Two basis moduli vectors hold12/1 Modulus; two basis table vectors hold12/1 NttTable; two Arc basis allocations and empty Galois caches; no Galois permutation materialized."
++  },
++  "parameter_vector_shapes": {
++    "q_bits_build_length": 12,
++    "all_and_initial_distinct_lengths": [
++      13,
++      13
++    ],
++    "distinct_after_dedup_length": 6,
++    "pool_outer_length": 6,
++    "pool_inner_total_length": 13,
++    "next_length": 6,
++    "ordered_primes_length": 13,
++    "retained_q_p_lengths": [
++      12,
++      1
++    ],
++    "retained_q_bits_p_bits_lengths": [
++      12,
++      1
++    ],
++    "notes": "Lengths and constructor counts only; Vec growth/reallocation counts/capacities are not inferred."
++  },
++  "metadata_allocations": {
++    "CtMeta_new": 3,
++    "CtMeta_new_heap_allocation_on_valid_input": 0,
++    "retain_update_summary_success": 1,
++    "StateLabels_retain": 2,
++    "copy_matrix": 2,
++    "copy_vec_success_calls": 16,
++    "retain_handoff_summary_calls": 2,
++    "retain_handoff_summary_success": 1,
++    "retain_handoff_summary_rejected_before_copy": 1,
++    "retained_update_vectors": 15,
++    "retained_update_state_CtMeta_slots": 12,
++    "retained_update_velocity_OptionCtMeta_slots": 4,
++    "retained_update_micro_records": 2,
++    "retained_update_matrix_row_CtMeta_slots": 8,
++    "retained_update_matrix_outer_Vec_headers": 4,
++    "local_hidden_canonical_matrix_shapes": "two outer vectors of length2; four rows length2 (8 CtMeta copies), all metadata only",
++    "local_and_retained_handoff_output_lengths": [
++      2,
++      2
++    ],
++    "MicroPart_copy_vectors": [
++      2,
++      2
++    ],
++    "error_witnesses": "one boxed PlanError, trace Vec length1, attempts Vec length1, three bounded String fields; three index_room reservations (one wire, two charged), no stage execution",
++    "encoded_helper_calls": 8,
++    "encoded_helper_output_lengths": "five rate-field buffers112B each; three state-label buffers211B each (fixed schema/labels); helper uses default ReceiptLimits, not an asserted4096 configured cap",
++    "charged_payload_formula": "3 + 2*size_of::<TransitionIndex>() + expected_update + 2*size_of::<CtMeta>() + 2*size_of::<MicroPart>()",
++    "expected_update_formula": "2*(6*size_of::<CtMeta>()+2*size_of::<Option<CtMeta>>()) + 2*size_of::<MicroMetadata>() + 2*(2*size_of::<Vec<CtMeta>>()+4*size_of::<CtMeta>())",
++    "notes": "OpCounter is scalar fields; metadata cloning/retention does not call CtMeta::new again. Box/slice transfer or allocator growth may allocate/reallocate; no exact heap-call count, search runtime or RSS is claimed."
++  },
++  "execution_calls": {
++    "NTT_forward": 0,
++    "NTT_inverse": 0,
++    "RNG": 0,
++    "P1_DFT_proof_BootstrapMetadata": 0,
++    "key_generator_encoder_evaluator_ciphertext": 0,
++    "HE": 0,
++    "registry": 0,
++    "materializer": 0,
++    "planner_geometry_stage_update_handoff": 0,
++    "Host_CUDA_native_SSH": 0
++  },
++  "proposed_release": {
++    "filter": "study_admission::tests::p3_digest_golden_and_mutations",
++    "invocations": 1,
++    "exact": true,
++    "test_threads": 1,
++    "runtime_released": false,
++    "required_gate": "root review of this corrected fixed-size constructor inventory plus an explicit separately bounded release; root selects process timeout and no implicit retry"
++  },
++  "author_runtime_runs": 0,
++  "author_test_list_runs": 0,
++  "source_pins": [
++    {
++      "path": "crates/ckks-train-bench/src/study_admission.rs",
++      "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/params.rs",
++      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/metadata.rs",
++      "sha256": "dd134348604a32411aa1e4734ccc35ad12d745358627df8370f5c33d97eac032"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/counter.rs",
++      "sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4"
++    },
++    {
++      "path": "crates/ckks-train-core/src/rns.rs",
++      "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397"
++    },
++    {
++      "path": "crates/ckks-train-core/src/ntt.rs",
++      "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318"
++    },
++    {
++      "path": "crates/ckks-train-core/src/primes.rs",
++      "sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee"
++    },
++    {
++      "path": "crates/ckks-train-core/src/modulus.rs",
++      "sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/diagonal_plan.rs",
++      "sha256": "c64373f73625f29d21232a5069d39fbaeb184c3f683d659ab6844ffd703c8065"
++    }
++  ]
++}
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/preservation-fix1.json
+@@ -0,0 +1,11 @@
++{
++  "original_report_sha256": "9a200eb062a58629ccc4bdf62fc4c78faf8670298adb53dfd3c0501db796631c",
++  "original_report_bytes": 25484,
++  "earlier_validation_files_unchanged": 26,
++  "frozen_inputs_unchanged": 218,
++  "changed_owned_source_paths": [
++    "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs"
++  ],
++  "all_other_nine_owned_source_paths_unchanged": true,
++  "new16_filters_unchanged": true
++}
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/proposed-runtime-inventory-fix1.json
+@@ -0,0 +1,161 @@
++{
++  "status": "FIX1 PROPOSED ONLY; same16 exact new test filters, constructor-free; root review/release required",
++  "new_exact_filters": [
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_independent_all_ten_branches",
++      "fixture_read_calls": 10,
++      "top_level_parse_call_upper_estimate": 30,
++      "inputs_and_mutations": "ten Full/Quick evidence .bin files; no expected-value generation",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json",
++      "fixture_read_calls": 15,
++      "top_level_parse_call_upper_estimate": 24,
++      "inputs_and_mutations": "eight Request/Consumption/UserScope/UserCurrent .bin files; Quick identity; three Quick .json and three corresponding .bin files",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations",
++      "fixture_read_calls": 9,
++      "top_level_parse_call_upper_estimate": 9,
++      "inputs_and_mutations": "nine concrete negative .bin files (unknown-tag/synthetic-bit/identity/input-receipt/partition/resource-peak/Quick seed/count)",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_full_quick_exact_claims_and_nonpromotion",
++      "fixture_read_calls": 22,
++      "top_level_parse_call_upper_estimate": 22,
++      "inputs_and_mutations": "all ten evidence .bin files, each opposite-scope replacement; Quick identity and Quick inputs again for rehashed other-attempt negative",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_quick_event_links_policies_argv_and_context",
++      "fixture_read_calls": 20,
++      "top_level_parse_call_upper_estimate": 18,
++      "inputs_and_mutations": "three event .json files, five Quick evidence files, captured-argv.json, four concrete event/argv negatives, end-incomplete.bin, preflight.bin, five literal-inputs.json offset lookups",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps",
++      "fixture_read_calls": 2,
++      "top_level_parse_call_upper_estimate": 10,
++      "inputs_and_mutations": "Quick start.json and Quick inputs.bin; small JSON aliases/types/trailing mutations and length-only A/K witnesses",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_request_consumption_retained_comparisons",
++      "fixture_read_calls": 5,
++      "top_level_parse_call_upper_estimate": 20,
++      "inputs_and_mutations": "Quick request/consumption plus request/order/full-consumption concrete negatives; three locally rehashed request work/max_records/physical-lane mutations",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches",
++      "fixture_read_calls": 11,
++      "top_level_parse_call_upper_estimate": 32,
++      "inputs_and_mutations": "Quick authority scope/current; two concrete authority current negatives; Quick resource evidence; typed arithmetic/claim/hold mutations; five Quick sidecars and Full user evidence for coherent rehashed overlap1/0 and0/1 mismatches, Full-authority predecessor mismatch and syntactically valid QuickRetry1 refusal",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing",
++      "fixture_read_calls": 26,
++      "top_level_parse_call_upper_estimate": 1487,
++      "inputs_and_mutations": "literal-inputs.json once and all25 .bin files;25 literal positives,302 closed-tag mutations,1135 field-boundary truncations,25 trailing mutations",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity",
++      "fixture_read_calls": 5,
++      "top_level_parse_call_upper_estimate": 4,
++      "inputs_and_mutations": "Full inputs; target-link/threshold negatives; Quick inputs; first independently named retained source fixture bytes",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing",
++      "fixture_read_calls": 1,
++      "top_level_parse_call_upper_estimate": 3,
++      "inputs_and_mutations": "Full implementation evidence only; typed I and NI mandatory-coverage/missing-coverage mutations; no CKKS objects",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_quick_failed_outcomes_and_binary_argv",
++      "fixture_read_calls": 6,
++      "top_level_parse_call_upper_estimate": 90,
++      "inputs_and_mutations": "Quick end/preflight .bin; four literal-inputs.json offset reads;84 failed phase/code/update combinations, two invalid outcomes, NUL and empty argv mutations; failure.phase4 and failure.code7 UnsupportedTag negatives at execution.tag",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_request_shared_p3_traversal_and_all_original_limits",
++      "fixture_read_calls": 3,
++      "top_level_parse_call_upper_estimate": 5,
++      "inputs_and_mutations": "Quick request.bin plus two literal-inputs.json offset reads; eight DiagonalRequest/PlanningBudget metadata objects; dedicated/reuse signed-i32 and physical-None branches",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_production_mixed_nested_domains_tail_and_length_refusals",
++      "fixture_read_calls": 3,
++      "top_level_parse_call_upper_estimate": 6,
++      "inputs_and_mutations": "Quick inputs.bin, branch-tag negative and one literal-inputs.json offset read; production/test nested-domain and domain/tail mutations; u64 length and A/K arithmetic witnesses",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::tests::d7_evidence_shared_predecessors_and_clock_claims",
++      "fixture_read_calls": 0,
++      "top_level_parse_call_upper_estimate": 3,
++      "inputs_and_mutations": "three compile-included old standalone predecessor .hex literals only; three small Clock supplied-claim comparisons; no linked Full family assertion",
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
++      "fixture_read_calls": 6,
++      "top_level_parse_call_upper_estimate": 244,
++      "inputs_and_mutations": "Quick preflight.bin and five Quick sidecars; all119 nonidentity policies and119 nonidentity hash permutations; policies=>UnsupportedSchema; supplied-sidecar hash mismatch=>CrossLinkMismatch",
++      "runtime_released": false
++    }
++  ],
++  "fixture_read_call_total_estimate": 144,
++  "maximum_fixture_binary_bytes": 7138,
++  "maximum_event_json_bytes": 7089,
++  "offset_metadata_file_bytes": 278638,
++  "offset_and_manifest_metadata_reads": 13,
++  "metadata_input_bytes_total": 3622294,
++  "fixture_cumulative_read_bytes_upper_bound": 8388608,
++  "generated_transport_max_bytes_estimate": 16384,
++  "ordinary_vector_elements_max": 22,
++  "gate_permutation_elements": 120,
++  "all_literal_fields": 1135,
++  "parse_call_notes": "Counts are conservative top-level estimates, excluding ordinary primitive reads and repeated nested syntax validation during encoding; complete recursive record-parse estimate below16384 across all16 filters. These are static estimates, not runtime measurements.",
++  "allocation_notes": [
++    "No A/C/R/K-size allocation is constructed by boundary tests; length/overflow use small witnesses and arithmetic.",
++    "Binary fixtures<=7138B, ordinary transient encoded mutations<16KiB, largest metadata read278638B. serde_json Value tree/string/vector allocator overhead and test harness RSS are unmeasured.",
++    "Metadata input is decoded13 times in sequential selected filters; each local Value is dropped after lookup. No global leaked fixture or runtime constructor exists.",
++    "Budget8/Arc8 are metadata-only request limits; planner/geometry/initial/update/handoff/wrapper counters remain0.",
++    "The120 permutation index arrays are fixed small test data; all ordinary resource lists are22 components; Quick update count2."
++  ],
++  "forbidden_runtime_calls": {
++    "registry_load": 0,
++    "materializer": 0,
++    "CkksParams": 0,
++    "P1": 0,
++    "RNG": 0,
++    "NTT": 0,
++    "HE": 0,
++    "native": 0,
++    "Host": 0,
++    "CUDA": 0,
++    "SSH": 0,
++    "observer": 0,
++    "actual_gate_constructor": 0,
++    "publication_or_attempt_mutation": 0,
++    "external_process_or_cargo_from_tests": 0
++  },
++  "runtime_execution_count": 0,
++  "test_list_execution_count": 0,
++  "fix1_added_fixture_reads": {
++    "calls": 6,
++    "bytes": 33191,
++    "files": "five Quick sidecar literals (29939B) plus Full user literal (3252B)"
++  },
++  "scope_note": "Zero constructor claim applies ONLY to these16 new evidence tests. The necessary unchanged shared P3 digest regression has a separate corrected N32 constructor inventory."
++}
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/evidence-codec-source-validation/fix1/proposed-shared-regressions-fix1.json
+@@ -0,0 +1,144 @@
++{
++  "status": "FIX1 PROPOSAL ONLY; supersedes original shared inventory; root independent review and explicit bounded runtime release still required",
++  "exact_filters": [
++    {
++      "filter": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included frozen Full JSON/hex/manifest and small lexical/arithmetic witnesses; existing inert Full/Start parsers, encoders, original primitive Encoder/Scan only. No new/old evidence bundle splicing.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::tests::fix1_genuine_argv_array_elements_keep_os_byte_exception",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included Reference/diagnostic/failure literal strings; existing document parser/encoder and lexical Scan only; constructed escaped/string witnesses<=100KiB; no data materialization.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Compile-included fourteen descriptor hex literals plus inputs/negative metadata. Existing borrowed Cursor/closed descriptor validators and encoders, small GeometryBody/value structs only; no parameter/plan construction. Prefix loop length bounded by sum of literal lengths.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors",
++      "fixture_read_calls_upper_bound": 13,
++      "inputs_and_calls": "Six old Full branch JSON files, six execution hex files, one old case-binding hex file:13 standard read-only fixture reads. ExecutionFields traversal/hash comparisons, no prepared CPU route.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "Small Transcript/payload/index/record helpers only; configured buffers<=4096B; no fixtures() invocation and no registry/CKKS/P1 constructors.",
++      "registry_materializer_parameters_P1_RNG_NTT_HE_native_Host_CUDA_SSH_calls": 0,
++      "runtime_released": false
++    },
++    {
++      "filter": "study_admission::tests::p3_digest_golden_and_mutations",
++      "fixture_read_calls_upper_bound": 0,
++      "inputs_and_calls": "One CkksParams::test_tiny (N32 q12/p1); six deterministic prime pools, two RnsBasis and13 NttTable constructors;26 vectors of32 Shoup entries plus26 scalar Shoup fields; three CtMeta::new; fixed metadata retention/transcript/error witnesses. No transform/HE/planner/native execution. See separate corrected transitive inventory.",
++      "runtime_released": false,
++      "constructor_and_execution_calls": {
++        "CkksParams_test_tiny": 1,
++        "CkksParams_new": 1,
++        "RnsBasis_new": 2,
++        "Modulus_new": 13,
++        "NttTable_new": 13,
++        "bitrev_power_table": 26,
++        "CtMeta_new": 3,
++        "ntt_primes": 6,
++        "ntt_primes_skip": 6,
++        "minimal_primitive_root": 13,
++        "NTT_forward": 0,
++        "NTT_inverse": 0,
++        "RNG": 0,
++        "P1": 0,
++        "HE": 0,
++        "registry_materializer_planner_native_Host_CUDA_SSH": 0
++      },
++      "release_class": "separately bounded exact-filter proposal; not parameter-free",
++      "transitive_inventory": "p3-tiny-transitive-inventory.json"
++    }
++  ],
++  "forbidden_runtime_calls_all_zero": false,
++  "author_runtime_runs": 0,
++  "notes": "All16 exact shared regressions retained. Fifteen parameter-free filters and one N32 parameter/NTT-table-construction filter require accurate separate release classification. No runtime or list executed; no broad study_admission filter.",
++  "parameter_free_shared_filters": 15,
++  "parameter_constructing_shared_filters": 1,
++  "separate_bounded_release_required": [
++    "study_admission::tests::p3_digest_golden_and_mutations"
++  ]
++}

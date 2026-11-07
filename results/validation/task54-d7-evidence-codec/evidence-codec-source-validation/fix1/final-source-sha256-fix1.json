@@ -1,0 +1,52 @@
+[
+  {
+    "path": "crates/ckks-train-bench/src/study_admission.rs",
+    "bytes": 145973,
+    "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document.rs",
+    "bytes": 64309,
+    "sha256": "1562c0754660d715c5d09addddc905b6547d899c03c7d39a9db7e2b5257be59a"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/admission.rs",
+    "bytes": 32107,
+    "sha256": "92fcaaaa1dd2b53a8542ed16591e86128956ac7bbded3d3bd71909528313d8ad"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs",
+    "bytes": 39756,
+    "sha256": "100a462812c3b80f2f3207b3028af653369bd5b7d57db42bc10d46ab33043923"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+    "bytes": 15901,
+    "sha256": "4f727106cdbccd765a0cb5b3712fc81ec658efc170dddb86192e8ecabb83ae82"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs",
+    "bytes": 7972,
+    "sha256": "c5b922128b845171a8639c08fc2d14d7cc87d587bac795ae7a509b618614c29d"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs",
+    "bytes": 14266,
+    "sha256": "3d39848107d2db079b97a1ab2c725c98ff7cc16bdd1df827908f0b1ee9ce4387"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+    "bytes": 22789,
+    "sha256": "a591f3618d3e3c736a86dcea95bb8e5b8948180615c6a6a043e7f09d3f002590"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+    "bytes": 21021,
+    "sha256": "f1ff6d5154c3446a5ef131add86b2a834fbf1b83f498acabf3227c648744772b"
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
+    "bytes": 36987,
+    "sha256": "430a84b108899f027feed6f4edee80762f3460b7c541954e251416960d678ac2"
+  }
+]

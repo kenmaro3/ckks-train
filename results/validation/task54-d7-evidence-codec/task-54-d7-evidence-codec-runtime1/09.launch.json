@@ -1,0 +1,18 @@
+{
+  "index": 9,
+  "name": "study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063591.786319,
+  "pid": 2880
+}

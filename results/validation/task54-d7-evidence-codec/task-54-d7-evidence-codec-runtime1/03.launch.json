@@ -1,0 +1,18 @@
+{
+  "index": 3,
+  "name": "study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063590.295694,
+  "pid": 2828
+}

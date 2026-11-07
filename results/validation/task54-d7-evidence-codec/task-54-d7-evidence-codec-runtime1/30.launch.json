@@ -1,0 +1,18 @@
+{
+  "index": 30,
+  "name": "study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063596.80239,
+  "pid": 3000
+}

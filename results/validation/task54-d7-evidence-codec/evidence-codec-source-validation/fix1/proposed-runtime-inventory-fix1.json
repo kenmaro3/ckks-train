@@ -1,0 +1,161 @@
+{
+  "status": "FIX1 PROPOSED ONLY; same16 exact new test filters, constructor-free; root review/release required",
+  "new_exact_filters": [
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_independent_all_ten_branches",
+      "fixture_read_calls": 10,
+      "top_level_parse_call_upper_estimate": 30,
+      "inputs_and_mutations": "ten Full/Quick evidence .bin files; no expected-value generation",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json",
+      "fixture_read_calls": 15,
+      "top_level_parse_call_upper_estimate": 24,
+      "inputs_and_mutations": "eight Request/Consumption/UserScope/UserCurrent .bin files; Quick identity; three Quick .json and three corresponding .bin files",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations",
+      "fixture_read_calls": 9,
+      "top_level_parse_call_upper_estimate": 9,
+      "inputs_and_mutations": "nine concrete negative .bin files (unknown-tag/synthetic-bit/identity/input-receipt/partition/resource-peak/Quick seed/count)",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_full_quick_exact_claims_and_nonpromotion",
+      "fixture_read_calls": 22,
+      "top_level_parse_call_upper_estimate": 22,
+      "inputs_and_mutations": "all ten evidence .bin files, each opposite-scope replacement; Quick identity and Quick inputs again for rehashed other-attempt negative",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_quick_event_links_policies_argv_and_context",
+      "fixture_read_calls": 20,
+      "top_level_parse_call_upper_estimate": 18,
+      "inputs_and_mutations": "three event .json files, five Quick evidence files, captured-argv.json, four concrete event/argv negatives, end-incomplete.bin, preflight.bin, five literal-inputs.json offset lookups",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps",
+      "fixture_read_calls": 2,
+      "top_level_parse_call_upper_estimate": 10,
+      "inputs_and_mutations": "Quick start.json and Quick inputs.bin; small JSON aliases/types/trailing mutations and length-only A/K witnesses",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_request_consumption_retained_comparisons",
+      "fixture_read_calls": 5,
+      "top_level_parse_call_upper_estimate": 20,
+      "inputs_and_mutations": "Quick request/consumption plus request/order/full-consumption concrete negatives; three locally rehashed request work/max_records/physical-lane mutations",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches",
+      "fixture_read_calls": 11,
+      "top_level_parse_call_upper_estimate": 32,
+      "inputs_and_mutations": "Quick authority scope/current; two concrete authority current negatives; Quick resource evidence; typed arithmetic/claim/hold mutations; five Quick sidecars and Full user evidence for coherent rehashed overlap1/0 and0/1 mismatches, Full-authority predecessor mismatch and syntactically valid QuickRetry1 refusal",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing",
+      "fixture_read_calls": 26,
+      "top_level_parse_call_upper_estimate": 1487,
+      "inputs_and_mutations": "literal-inputs.json once and all25 .bin files;25 literal positives,302 closed-tag mutations,1135 field-boundary truncations,25 trailing mutations",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity",
+      "fixture_read_calls": 5,
+      "top_level_parse_call_upper_estimate": 4,
+      "inputs_and_mutations": "Full inputs; target-link/threshold negatives; Quick inputs; first independently named retained source fixture bytes",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing",
+      "fixture_read_calls": 1,
+      "top_level_parse_call_upper_estimate": 3,
+      "inputs_and_mutations": "Full implementation evidence only; typed I and NI mandatory-coverage/missing-coverage mutations; no CKKS objects",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_quick_failed_outcomes_and_binary_argv",
+      "fixture_read_calls": 6,
+      "top_level_parse_call_upper_estimate": 90,
+      "inputs_and_mutations": "Quick end/preflight .bin; four literal-inputs.json offset reads;84 failed phase/code/update combinations, two invalid outcomes, NUL and empty argv mutations; failure.phase4 and failure.code7 UnsupportedTag negatives at execution.tag",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_request_shared_p3_traversal_and_all_original_limits",
+      "fixture_read_calls": 3,
+      "top_level_parse_call_upper_estimate": 5,
+      "inputs_and_mutations": "Quick request.bin plus two literal-inputs.json offset reads; eight DiagonalRequest/PlanningBudget metadata objects; dedicated/reuse signed-i32 and physical-None branches",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_production_mixed_nested_domains_tail_and_length_refusals",
+      "fixture_read_calls": 3,
+      "top_level_parse_call_upper_estimate": 6,
+      "inputs_and_mutations": "Quick inputs.bin, branch-tag negative and one literal-inputs.json offset read; production/test nested-domain and domain/tail mutations; u64 length and A/K arithmetic witnesses",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::tests::d7_evidence_shared_predecessors_and_clock_claims",
+      "fixture_read_calls": 0,
+      "top_level_parse_call_upper_estimate": 3,
+      "inputs_and_mutations": "three compile-included old standalone predecessor .hex literals only; three small Clock supplied-claim comparisons; no linked Full family assertion",
+      "runtime_released": false
+    },
+    {
+      "filter": "study_reference::document::evidence::quick::tests::d7_evidence_all_gate_policy_and_hash_permutations",
+      "fixture_read_calls": 6,
+      "top_level_parse_call_upper_estimate": 244,
+      "inputs_and_mutations": "Quick preflight.bin and five Quick sidecars; all119 nonidentity policies and119 nonidentity hash permutations; policies=>UnsupportedSchema; supplied-sidecar hash mismatch=>CrossLinkMismatch",
+      "runtime_released": false
+    }
+  ],
+  "fixture_read_call_total_estimate": 144,
+  "maximum_fixture_binary_bytes": 7138,
+  "maximum_event_json_bytes": 7089,
+  "offset_metadata_file_bytes": 278638,
+  "offset_and_manifest_metadata_reads": 13,
+  "metadata_input_bytes_total": 3622294,
+  "fixture_cumulative_read_bytes_upper_bound": 8388608,
+  "generated_transport_max_bytes_estimate": 16384,
+  "ordinary_vector_elements_max": 22,
+  "gate_permutation_elements": 120,
+  "all_literal_fields": 1135,
+  "parse_call_notes": "Counts are conservative top-level estimates, excluding ordinary primitive reads and repeated nested syntax validation during encoding; complete recursive record-parse estimate below16384 across all16 filters. These are static estimates, not runtime measurements.",
+  "allocation_notes": [
+    "No A/C/R/K-size allocation is constructed by boundary tests; length/overflow use small witnesses and arithmetic.",
+    "Binary fixtures<=7138B, ordinary transient encoded mutations<16KiB, largest metadata read278638B. serde_json Value tree/string/vector allocator overhead and test harness RSS are unmeasured.",
+    "Metadata input is decoded13 times in sequential selected filters; each local Value is dropped after lookup. No global leaked fixture or runtime constructor exists.",
+    "Budget8/Arc8 are metadata-only request limits; planner/geometry/initial/update/handoff/wrapper counters remain0.",
+    "The120 permutation index arrays are fixed small test data; all ordinary resource lists are22 components; Quick update count2."
+  ],
+  "forbidden_runtime_calls": {
+    "registry_load": 0,
+    "materializer": 0,
+    "CkksParams": 0,
+    "P1": 0,
+    "RNG": 0,
+    "NTT": 0,
+    "HE": 0,
+    "native": 0,
+    "Host": 0,
+    "CUDA": 0,
+    "SSH": 0,
+    "observer": 0,
+    "actual_gate_constructor": 0,
+    "publication_or_attempt_mutation": 0,
+    "external_process_or_cargo_from_tests": 0
+  },
+  "runtime_execution_count": 0,
+  "test_list_execution_count": 0,
+  "fix1_added_fixture_reads": {
+    "calls": 6,
+    "bytes": 33191,
+    "files": "five Quick sidecar literals (29939B) plus Full user literal (3252B)"
+  },
+  "scope_note": "Zero constructor claim applies ONLY to these16 new evidence tests. The necessary unchanged shared P3 digest regression has a separate corrected N32 constructor inventory."
+}

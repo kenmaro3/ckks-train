@@ -1,0 +1,13 @@
+# Evidence and Quick codec source/static/runtime validation
+
+Accepted bounded implementation package after independent source review, FIX1 re-review and runtime outcome review. Task54 and the research goal remain unfinished.
+
+The private codecs cover five Full/Quick evidence domains, Request/Consumption/UserScope/UserCurrent/QuickIdentity and Quick preflight/start/end transport. Existing Full/Reference/Lock/Admission/Start encodings and caps remain unchanged. Shared canonical traversal, closed tags, checked lengths, exact payload/file hashes and lossless Unix argv are tested against independent frozen literals. Parsed records are inert supplied claims, not real evidence or execution authority.
+
+[Author report](task-54-d7-evidence-codec-report.md) records compile history and FIX1. The [initial source review](task-54-d7-evidence-codec-source-review.md) found an omitted shared-test parameter cost and missing semantic refusal tests. [Scoped FIX1 review](task-54-d7-evidence-codec-fix1-review.md) accepts the corrected versioned inventory and added tests. Original report prefix, inventories and before-fix1 source/static files remain exact historical copies; their old zero-constructor declaration is explicitly superseded. One earlier compile-success log was overwritten and is lost; its contents are not reconstructed or counted as retained evidence.
+
+[Runtime report](task-54-d7-evidence-codec-runtime1-report.md) and [independent outcome review](task-54-d7-evidence-codec-runtime1-review.md):32 exact default tests passed once sequentially, original session89518 terminal0,32 Cargo children exit0, zero retry/timeout/ignored/selection error. The64 raw streams total12490B;642 source/input pins and18 release inputs match. Sixteen new and15 shared tests are parameter-free. The remaining explicit P3 regression constructs one insecure N32 parameter object/two bases/13 NTT tables and small metadata; no forward/inverse NTT, RNG or HE executes. This is not physical memory, cryptographic correctness/security or speed evidence.
+
+The archive has217 exact ledger copies plus this README and SHA256SUMS. Test source is in the source tree; independent oracles remain in their existing archives. The coherent Full oracle is not integrated by this source package. Genuine retained readers, C1 current-and-prior target checks, report applicability, current authority, physical resource model, custody/durable start, live gates and scientific publisher/full matrix remain required. Shared Native mutation remediation is still design-only.
+
+SHA256SUMS covers all other archive files. Validation commands/scripts are historical records, not automatically rerun. Policies, thresholds, matrix scope and holds remain unchanged.

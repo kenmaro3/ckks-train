@@ -1,0 +1,37 @@
+{
+  "index": 18,
+  "name": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063593.9036522,
+  "pid": 2938,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063594.050456,
+  "named_successes": [
+    "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 226,
+  "stdout_sha256": "bb603a23848a98a620c51797287757fc9d154fb9451225ebf2c69d88cf5a8e7b",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

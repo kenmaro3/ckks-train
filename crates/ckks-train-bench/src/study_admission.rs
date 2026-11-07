@@ -1181,39 +1181,61 @@ fn int_steps(w: &mut Transcript, steps: &[i32]) -> Result<()> {
     }
     Ok(())
 }
-fn encode_request(w: &mut Transcript, r: &DiagonalRequest) -> Result<()> {
-    w.tag(match r.consumption {
-        Consumption::Full => 0,
-        Consumption::Quick => 1,
-    })?;
-    w.option_number(r.physical_lanes)?;
-    match &r.transpose {
-        TransposeKeys::Dedicated => w.tag(0)?,
-        TransposeKeys::Reuse(pool) => {
-            w.tag(1)?;
-            int_steps(w, pool)?;
+// One exact P3 request traversal, shared by retained planning and inert D7 wire.
+pub(crate) struct RequestBody<'a> {
+    pub(crate) consumption: u8,
+    pub(crate) physical_lanes: Option<usize>,
+    pub(crate) transpose: Option<&'a [i32]>,
+    pub(crate) eval: EvalConfig,
+    pub(crate) limits: [usize; 2],
+    pub(crate) work: [usize; 5],
+}
+impl<'a> From<&'a DiagonalRequest> for RequestBody<'a> {
+    fn from(r: &'a DiagonalRequest) -> Self {
+        Self {
+            consumption: match r.consumption {
+                Consumption::Full => 0,
+                Consumption::Quick => 1,
+            },
+            physical_lanes: r.physical_lanes,
+            transpose: match &r.transpose {
+                TransposeKeys::Dedicated => None,
+                TransposeKeys::Reuse(pool) => Some(pool),
+            },
+            eval: r.eval_config,
+            limits: [r.limits.max_bytes, r.limits.max_records],
+            work: [
+                r.work_budget.limits.geometries,
+                r.work_budget.limits.initial_states,
+                r.work_budget.limits.updates,
+                r.work_budget.limits.handoffs,
+                r.work_budget.limits.wrapper_calls,
+            ],
         }
     }
-    for n in [
-        r.eval_config.hoist,
-        r.eval_config.bsgs,
-        r.eval_config.lazy_relin,
-    ] {
-        w.tag(u8::from(n))?;
+}
+pub(crate) fn encode_request_body<W: GeometryWriter>(
+    w: &mut W,
+    r: RequestBody<'_>,
+) -> std::result::Result<(), W::Error> {
+    w.tag(r.consumption)?;
+    w.option_number(r.physical_lanes)?;
+    w.tag(u8::from(r.transpose.is_some()))?;
+    if let Some(pool) = r.transpose {
+        w.steps(pool)?;
     }
-    w.number(r.limits.max_bytes)?;
-    w.number(r.limits.max_records)?;
-    for n in [
-        r.work_budget.limits.geometries,
-        r.work_budget.limits.initial_states,
-        r.work_budget.limits.updates,
-        r.work_budget.limits.handoffs,
-        r.work_budget.limits.wrapper_calls,
-    ] {
+    for flag in [r.eval.hoist, r.eval.bsgs, r.eval.lazy_relin] {
+        w.tag(u8::from(flag))?;
+    }
+    for n in r.limits.into_iter().chain(r.work) {
         w.number(n)?;
     }
     Ok(())
 }
+fn encode_request(w: &mut Transcript, r: &DiagonalRequest) -> Result<()> {
+    encode_request_body(w, RequestBody::from(r))
+}
+
 fn make_stages(
     m: &ProfileMetadata,
     p: PlanningParameters<'_>,

@@ -1,0 +1,37 @@
+{
+  "index": 31,
+  "name": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063597.058163,
+  "pid": 3002,
+  "timeout_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794063597.210465,
+  "named_successes": [
+    "study_admission::tests::d7_transcript_failed_prefix_and_counting"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 191,
+  "stdout_sha256": "e5f30eec3523ca504ca1a3d1296829a52bbb44451f9d072f9ba9e7bbf9a96a6e",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

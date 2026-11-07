@@ -1,0 +1,18 @@
+{
+  "index": 18,
+  "name": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794063593.9036522,
+  "pid": 2938
+}

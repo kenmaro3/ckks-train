@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "d7_evidence",
+      "--no-run"
+    ],
+    "exit": 0,
+    "seconds": 13.678,
+    "log": "01-default-no-run.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "-p",
+      "ckks-train-bench",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 2.712,
+    "log": "02-strict-clippy.log"
+  },
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.029,
+    "log": "03-fmt-check.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.012,
+    "log": "04-diff-check.log"
+  }
+]

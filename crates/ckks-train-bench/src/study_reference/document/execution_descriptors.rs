@@ -916,12 +916,51 @@ struct SecurityWire<'a> {
     scope: Option<u8>,
     requirements: &'a [u8],
 }
-struct Cursor<'a> {
+pub(super) struct Cursor<'a> {
     bytes: &'a [u8],
     offset: usize,
 }
 impl<'a> Cursor<'a> {
-    fn take(&mut self, n: usize) -> Result<&'a [u8]> {
+    pub(super) fn new(bytes: &'a [u8]) -> Self {
+        Self { bytes, offset: 0 }
+    }
+    pub(super) fn remaining(&self) -> usize {
+        self.bytes.len() - self.offset
+    }
+    pub(super) fn finish(&self) -> Result<()> {
+        ensure(
+            self.remaining() == 0,
+            DocumentErrorCode::OutOfRange,
+            "canonical.trailing",
+        )
+    }
+    pub(super) fn bounded_count(&mut self, max: usize, minimum: usize) -> Result<usize> {
+        let count = self.u64()?;
+        ensure(
+            count <= max as u64,
+            DocumentErrorCode::TooLarge,
+            "canonical.count",
+        )?;
+        let count = checked_usize(count, usize::BITS)?;
+        ensure(
+            count
+                .checked_mul(minimum)
+                .is_some_and(|n| n <= self.remaining()),
+            DocumentErrorCode::OutOfRange,
+            "canonical.count",
+        )?;
+        Ok(count)
+    }
+    pub(super) fn bounded_bytes(&mut self, max: usize) -> Result<&'a [u8]> {
+        let n = self.bounded_count(max, 1)?;
+        self.take(n)
+    }
+    pub(super) fn bounded_text(&mut self, max: usize) -> Result<&'a str> {
+        std::str::from_utf8(self.bounded_bytes(max)?)
+            .map_err(|_| err(DocumentErrorCode::OutOfRange, "canonical.utf8"))
+    }
+
+    pub(super) fn take(&mut self, n: usize) -> Result<&'a [u8]> {
         let end = self
             .offset
             .checked_add(n)
@@ -931,20 +970,20 @@ impl<'a> Cursor<'a> {
         self.offset = end;
         Ok(b)
     }
-    fn byte(&mut self) -> Result<u8> {
+    pub(super) fn byte(&mut self) -> Result<u8> {
         Ok(self.take(1)?[0])
     }
-    fn tag(&mut self, max: u8) -> Result<u8> {
+    pub(super) fn tag(&mut self, max: u8) -> Result<u8> {
         let b = self.byte()?;
         ensure(b <= max, DocumentErrorCode::UnsupportedTag, "execution.tag")?;
         Ok(b)
     }
-    fn u64(&mut self) -> Result<u64> {
+    pub(super) fn u64(&mut self) -> Result<u64> {
         let mut b = [0; 8];
         b.copy_from_slice(self.take(8)?);
         Ok(u64::from_le_bytes(b))
     }
-    fn count(&mut self, min: u64) -> Result<usize> {
+    pub(super) fn count(&mut self, min: u64) -> Result<usize> {
         let n = self.u64()?;
         let need = checked_mul(n, min)?;
         valid(
@@ -953,7 +992,7 @@ impl<'a> Cursor<'a> {
         )?;
         checked_usize(n, usize::BITS)
     }
-    fn text(&mut self) -> Result<&'a str> {
+    pub(super) fn text(&mut self) -> Result<&'a str> {
         let n = self.count(1)?;
         std::str::from_utf8(self.take(n)?)
             .map_err(|_| err(DocumentErrorCode::OutOfRange, "execution.utf8"))
@@ -961,7 +1000,10 @@ impl<'a> Cursor<'a> {
     fn hash(&mut self) -> Result<()> {
         hash_valid(self.text()?)
     }
-    fn option<T>(&mut self, f: impl FnOnce(&mut Self) -> Result<T>) -> Result<Option<T>> {
+    pub(super) fn option<T>(
+        &mut self,
+        f: impl FnOnce(&mut Self) -> Result<T>,
+    ) -> Result<Option<T>> {
         match self.tag(1)? {
             0 => Ok(None),
             _ => f(self).map(Some),
@@ -973,7 +1015,7 @@ impl<'a> Cursor<'a> {
     fn hash_option(&mut self) -> Result<bool> {
         Ok(self.option(Self::hash)?.is_some())
     }
-    fn fixed(&mut self, count: usize, width: usize) -> Result<&'a [u8]> {
+    pub(super) fn fixed(&mut self, count: usize, width: usize) -> Result<&'a [u8]> {
         let n = count
             .checked_mul(width)
             .ok_or_else(|| err(DocumentErrorCode::TooLarge, "execution.multiply"))?;
