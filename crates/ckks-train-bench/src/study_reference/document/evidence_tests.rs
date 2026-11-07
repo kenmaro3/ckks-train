@@ -1,4 +1,5 @@
 //! Independent literal wire tests only. No registry, planning, P1, HE or native calls.
+use super::super::fixture_literals::target as target_literal;
 use super::*;
 use serde_json::Value;
 const ORACLE: &str = concat!(
@@ -884,9 +885,9 @@ fn d7_evidence_production_mixed_nested_domains_tail_and_length_refusals() {
 #[test]
 fn d7_evidence_shared_predecessors_and_clock_claims() {
     for hex in [
-        include_str!("../target_goldens/predecessor-null.canonical.hex"),
-        include_str!("../target_goldens/predecessor-no-start.canonical.hex"),
-        include_str!("../target_goldens/predecessor-with-start.canonical.hex"),
+        target_literal("predecessor-null.canonical.hex"),
+        target_literal("predecessor-no-start.canonical.hex"),
+        target_literal("predecessor-with-start.canonical.hex"),
     ] {
         let bytes: Vec<_> = hex
             .trim()

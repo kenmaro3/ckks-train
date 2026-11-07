@@ -1,0 +1,707 @@
+{
+  "kind": "operational_evidence_not_science",
+  "files": [
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-accessor-green.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-accessor-green.log",
+      "byte_length": 491,
+      "sha256": "042d8aa6010720a23ba2016bc5f4bc6f6614c2707d7abab73c1f0ba1a5741c21"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-accessor-red.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-accessor-red.log",
+      "byte_length": 1137,
+      "sha256": "7b9261130df5dc63260a558b6a033bfc9542702767093fec8dcc92a488805986"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-assertion-check.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-assertion-check.json",
+      "byte_length": 1372,
+      "sha256": "c372b7b459b8ffedeafc9f41ff5ff1da12361d61e4d91f25b0346813f188423e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-assertion-check.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-assertion-check.log",
+      "byte_length": 1372,
+      "sha256": "c372b7b459b8ffedeafc9f41ff5ff1da12361d61e4d91f25b0346813f188423e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-assertion-check.py",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-assertion-check.py",
+      "byte_length": 2096,
+      "sha256": "27bd6956645ee34a36b7650ac9f21119af399d0adc2102981eada6d8bba2ddb1"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-base-families.tar",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-base-families.tar",
+      "byte_length": 1177600,
+      "sha256": "c13dd91d993490989a8119336c06a67484df39e1cb774ca62511258185c5bdac"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-brief.md",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-brief.md",
+      "byte_length": 8672,
+      "sha256": "b221f6f37e3364deb43c6eba87ea1b62884294506a5e2c12ef34e88c62de1977"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-check-green.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-check-green.json",
+      "byte_length": 641,
+      "sha256": "de4a7d3316d5c1c5a54d9d6dfd43d3594dc10ba4faec8b043ebb751ac79e014d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-check-green.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-check-green.log",
+      "byte_length": 641,
+      "sha256": "de4a7d3316d5c1c5a54d9d6dfd43d3594dc10ba4faec8b043ebb751ac79e014d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-check-red.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-check-red.log",
+      "byte_length": 959,
+      "sha256": "a8c70dacab0ceb648090ce9b490ec24a2d1ce02ab7bbca76b31e8e3839d0e57b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-check.py",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-check.py",
+      "byte_length": 2347,
+      "sha256": "4345c2c4da92d3ff54dda982e8b0d469f60931a4e6516e01f9658eb49a40bd1b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-clippy.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-clippy.log",
+      "byte_length": 175,
+      "sha256": "20ccb42fe40a03a9c7eaee459034c7aeb9d98c0c2814eac2ee5c6862ac4afcc5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-commands.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-commands.json",
+      "byte_length": 1700,
+      "sha256": "dfc5c10d8b2c18e5f481432dd5bec39678d1894bc00523add9ac834b9b4f05e7"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-consumer-tests.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-consumer-tests.json",
+      "byte_length": 22280,
+      "sha256": "ba84ad800e7b80eccb3e895479ad093fc57a24cc11ce5469fab51cb7aeae48fd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-consumer-tests.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-consumer-tests.log",
+      "byte_length": 27716,
+      "sha256": "f7977da1adbdca0a0a291f1d7c96824055f9043bc2fa4520406af27572d762b8"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-draft-brief.md",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-draft-brief.md",
+      "byte_length": 6827,
+      "sha256": "09c910fd4eed5fed389753ad1241786954d4ecbee7d123372303b88571175e26"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-external-literal-inventory.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-external-literal-inventory.json",
+      "byte_length": 119678,
+      "sha256": "53a64906cd5ff02db582704c5c596a8830c6ee3847f907d71232d5499eecaca1"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-fmt.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-fmt.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-original-inventory.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-original-inventory.json",
+      "byte_length": 154040,
+      "sha256": "64a894ffda82248843cab0b35ee25b88e288efa02a6b76d889b26835282d802b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-physical-delta.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-physical-delta.json",
+      "byte_length": 17435,
+      "sha256": "f60574104dee75e54caf446e16c307c9b3c2fcc8c6caf7ccb7e8689c5a22fbb7"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-pins.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-pins.json",
+      "byte_length": 87144,
+      "sha256": "a17d3ccd5f1ae6b9965933a7883cb9d2070daf6d33f8cce08f92fdb4d89758e5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-preflight-green.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-preflight-green.json",
+      "byte_length": 79458,
+      "sha256": "de1c5cdd199fb0adb81c2b9ad2771e4bff2a5c69e640398ded7726af0eea5fb4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-preflight-green.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-preflight-green.log",
+      "byte_length": 786035,
+      "sha256": "37de994cb1444593b5174dd02f821a1fe55fe2a19d09801ec161691c021cb623"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-preflight-red.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-preflight-red.json",
+      "byte_length": 116068,
+      "sha256": "d2c49e391db5b4e61bc72d34b04c7e66eeb7cfd971b3b741e10509965ba62523"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-preflight-red.log",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-preflight-red.log",
+      "byte_length": 179,
+      "sha256": "05a159221c6b04281e8f791e0ab44865e2577021d8bfe008bed6066cd70d050d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-preflight.py",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-preflight.py",
+      "byte_length": 2205,
+      "sha256": "a6554fc8728edffc1d33717e597e8bfc9e76047dd061aca8bcf30dd5054761ff"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-report.md",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-report.md",
+      "byte_length": 3848,
+      "sha256": "087050349e51d4b790ba8f01c8f66c64fc0e1b9fe83d65e782fb028050adafc4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-source.diff",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-source.diff",
+      "byte_length": 2335618,
+      "sha256": "067478d7baade6b09436c57a7b61e53f04aa572b7d010d11e540d21960c8fa01"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-test-ids.json",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-test-ids.json",
+      "byte_length": 5286,
+      "sha256": "457137db51fb787184ecb85cb4147a2aa170b8dce41887a0bb11284c24946932"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-test-inventory.md",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-test-inventory.md",
+      "byte_length": 8910,
+      "sha256": "dba2c6916e8f8f316b998bfff1a698757ae81fe7ebce48e1837faae57e08285d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/ledger/task-54-d7-fixture-custody-tracked-paths.z",
+      "archived": "before-fix1/ledger/task-54-d7-fixture-custody-tracked-paths.z",
+      "byte_length": 435230,
+      "sha256": "cb6d9f83e95a66945d434c3d1966f9e60bb31dba274dbb9a634f1e26764c659b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/snapshot-pins.json",
+      "archived": "before-fix1/snapshot-pins.json",
+      "byte_length": 13867,
+      "sha256": "8e212112f663f98956512cbd4d2e8cab0b16fc318e83e4b9715543a64a30e784"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs",
+      "byte_length": 30257,
+      "sha256": "854e0ef78c38a45298b4712382804f01da5bb0db86f543fb8e45b585705a17cb"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md",
+      "byte_length": 2052,
+      "sha256": "9e374f6701ae9d794493bbcea366c13e77e649d4f9dfba3ab2b284674c5baddd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/literals.json",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/literals.json",
+      "byte_length": 552321,
+      "sha256": "3c300767ab0d47364e5f49843766d62734b4d0688c992f6b4fd22ff72b5e337a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+      "byte_length": 7682,
+      "sha256": "26f1240936b95fb79b20b6ba67084e54be9d573501bf40b89f7d9484f64e256a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
+      "byte_length": 37001,
+      "sha256": "5fdc62d9758dc3feac7a45b63717b49a4aaf1a54bb9c3efdf0c2014661000eca"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs",
+      "byte_length": 4220,
+      "sha256": "2b9fe5024118bbe8282b41dd334ccb642fb6edde73b764509b3c8388ce158c3b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs",
+      "byte_length": 2137,
+      "sha256": "c144587ed861942a4e92bf9beb08906de4cb3a5543eae9038d116d5bc084025f"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs",
+      "byte_length": 10545,
+      "sha256": "75fe4e63b4ed6afc3b5c7554e8a0bfb878c35fff6507113d9967a5a6a1685430"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document/target_tests.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document/target_tests.rs",
+      "byte_length": 10014,
+      "sha256": "cdbfdabfe99320e73fce220fc5428dae4bf768c4f8d39e53e41b000602816553"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/document.rs",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/document.rs",
+      "byte_length": 67777,
+      "sha256": "d278388094cd790230b7f2f8e7bf1744085df6dee0bd7af81cfaf311454fd9eb"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md",
+      "byte_length": 2504,
+      "sha256": "47e858bcfea63d0c289e1254891c088875a7fef677f60e28e142def442b2ce12"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/source/crates/ckks-train-bench/src/study_reference/target_goldens/literals.json",
+      "archived": "before-fix1/source/crates/ckks-train-bench/src/study_reference/target_goldens/literals.json",
+      "byte_length": 607768,
+      "sha256": "60f2292de60d2409884bf5c7d00f56f482b4c3245eda5eddac935611f0a87cd3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-compact-case-literals.json",
+      "archived": "ledger/root-compact-case-literals.json",
+      "byte_length": 552321,
+      "sha256": "3c300767ab0d47364e5f49843766d62734b4d0688c992f6b4fd22ff72b5e337a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-compact-target-literals.json",
+      "archived": "ledger/root-compact-target-literals.json",
+      "byte_length": 607768,
+      "sha256": "60f2292de60d2409884bf5c7d00f56f482b4c3245eda5eddac935611f0a87cd3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-fixture-custody-clarification.md",
+      "archived": "ledger/root-fixture-custody-clarification.md",
+      "byte_length": 2644,
+      "sha256": "74e51eb8f7882796c70e185ce1f9d3290327b7f452196c1e18f88eacce0158b8"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-fixture-custody-fix1-count-projection.json",
+      "archived": "ledger/root-fixture-custody-fix1-count-projection.json",
+      "byte_length": 1887,
+      "sha256": "d9f06cbc49576f9988931c5089b8ea3a75e002209c875623f0a485452980fc5c"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-fixture-custody-license-links.json",
+      "archived": "ledger/root-fixture-custody-license-links.json",
+      "byte_length": 2675,
+      "sha256": "4afb6c0bbc7fec93b0469e8b349044c6bf560631fbf5c889f16badd4f5bbc9bd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-fixture-custody-review-code.diff",
+      "archived": "ledger/root-fixture-custody-review-code.diff",
+      "byte_length": 43470,
+      "sha256": "71579abb4ed9e3660c0ef7b1c325cbe5324252e467af664ba1d17e63aa4c2ba8"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-review-fixture-custody-fix1-release.md",
+      "archived": "ledger/root-review-fixture-custody-fix1-release.md",
+      "byte_length": 3167,
+      "sha256": "226c6809a132fcd084a242562aa78f469b3690280ec7d667cfea3c88cc425144"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/root-review-fixture-custody-release.md",
+      "archived": "ledger/root-review-fixture-custody-release.md",
+      "byte_length": 3271,
+      "sha256": "3f0bf53b250a491648e20e0be6690a7a83a5fa73beb37e6a125a5473dee62d54"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-accessor-green.log",
+      "archived": "ledger/task-54-d7-fixture-custody-accessor-green.log",
+      "byte_length": 491,
+      "sha256": "042d8aa6010720a23ba2016bc5f4bc6f6614c2707d7abab73c1f0ba1a5741c21"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-accessor-red.log",
+      "archived": "ledger/task-54-d7-fixture-custody-accessor-red.log",
+      "byte_length": 1137,
+      "sha256": "7b9261130df5dc63260a558b6a033bfc9542702767093fec8dcc92a488805986"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-assertion-check.json",
+      "archived": "ledger/task-54-d7-fixture-custody-assertion-check.json",
+      "byte_length": 1372,
+      "sha256": "c372b7b459b8ffedeafc9f41ff5ff1da12361d61e4d91f25b0346813f188423e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-assertion-check.log",
+      "archived": "ledger/task-54-d7-fixture-custody-assertion-check.log",
+      "byte_length": 1372,
+      "sha256": "c372b7b459b8ffedeafc9f41ff5ff1da12361d61e4d91f25b0346813f188423e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-assertion-check.py",
+      "archived": "ledger/task-54-d7-fixture-custody-assertion-check.py",
+      "byte_length": 2096,
+      "sha256": "27bd6956645ee34a36b7650ac9f21119af399d0adc2102981eada6d8bba2ddb1"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-base-families.tar",
+      "archived": "ledger/task-54-d7-fixture-custody-base-families.tar",
+      "byte_length": 1177600,
+      "sha256": "c13dd91d993490989a8119336c06a67484df39e1cb774ca62511258185c5bdac"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-brief.md",
+      "archived": "ledger/task-54-d7-fixture-custody-brief.md",
+      "byte_length": 8672,
+      "sha256": "b221f6f37e3364deb43c6eba87ea1b62884294506a5e2c12ef34e88c62de1977"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-check-green.json",
+      "archived": "ledger/task-54-d7-fixture-custody-check-green.json",
+      "byte_length": 641,
+      "sha256": "de4a7d3316d5c1c5a54d9d6dfd43d3594dc10ba4faec8b043ebb751ac79e014d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-check-green.log",
+      "archived": "ledger/task-54-d7-fixture-custody-check-green.log",
+      "byte_length": 641,
+      "sha256": "de4a7d3316d5c1c5a54d9d6dfd43d3594dc10ba4faec8b043ebb751ac79e014d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-check-red.log",
+      "archived": "ledger/task-54-d7-fixture-custody-check-red.log",
+      "byte_length": 959,
+      "sha256": "a8c70dacab0ceb648090ce9b490ec24a2d1ce02ab7bbca76b31e8e3839d0e57b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-check.py",
+      "archived": "ledger/task-54-d7-fixture-custody-check.py",
+      "byte_length": 2347,
+      "sha256": "4345c2c4da92d3ff54dda982e8b0d469f60931a4e6516e01f9658eb49a40bd1b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-clippy.log",
+      "archived": "ledger/task-54-d7-fixture-custody-clippy.log",
+      "byte_length": 175,
+      "sha256": "20ccb42fe40a03a9c7eaee459034c7aeb9d98c0c2814eac2ee5c6862ac4afcc5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-commands.json",
+      "archived": "ledger/task-54-d7-fixture-custody-commands.json",
+      "byte_length": 1700,
+      "sha256": "dfc5c10d8b2c18e5f481432dd5bec39678d1894bc00523add9ac834b9b4f05e7"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-consumer-tests.json",
+      "archived": "ledger/task-54-d7-fixture-custody-consumer-tests.json",
+      "byte_length": 22280,
+      "sha256": "ba84ad800e7b80eccb3e895479ad093fc57a24cc11ce5469fab51cb7aeae48fd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-consumer-tests.log",
+      "archived": "ledger/task-54-d7-fixture-custody-consumer-tests.log",
+      "byte_length": 27716,
+      "sha256": "f7977da1adbdca0a0a291f1d7c96824055f9043bc2fa4520406af27572d762b8"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-draft-brief.md",
+      "archived": "ledger/task-54-d7-fixture-custody-draft-brief.md",
+      "byte_length": 6827,
+      "sha256": "09c910fd4eed5fed389753ad1241786954d4ecbee7d123372303b88571175e26"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-external-literal-inventory.json",
+      "archived": "ledger/task-54-d7-fixture-custody-external-literal-inventory.json",
+      "byte_length": 119678,
+      "sha256": "53a64906cd5ff02db582704c5c596a8830c6ee3847f907d71232d5499eecaca1"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amended-evidence.diff",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amended-evidence.diff",
+      "byte_length": 381001,
+      "sha256": "b0efc55d4e159e1a237c07c34e1d41e9c385c8984110f70aa02c9c15b996b787"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amended-pins.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amended-pins.json",
+      "byte_length": 130051,
+      "sha256": "a6e18c17ec6d2056a7fc47ac6e9d1dccb1fe676b687cc9ce49f484aab3b54685"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amended-report.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amended-report.md",
+      "byte_length": 3360,
+      "sha256": "6b1c76f946ac1af43a23c15ab6cb3712688a03b32f412ca89c1e09523117b1ec"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amended-verification.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amended-verification.json",
+      "byte_length": 121264,
+      "sha256": "a6926243b4f1083f86445cda9ead438192bcde5e9d471d0462afe055396358d3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amended-verify.py",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amended-verify.py",
+      "byte_length": 5383,
+      "sha256": "15bacfd2b0e295e6df1007171e66fd9711f95799d0eaab0dce9f9918eaffa81e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amendment-test-inventory.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amendment-test-inventory.json",
+      "byte_length": 7745,
+      "sha256": "2faaca36ade7cd6eb05336ea8e86796e4cd75029a64d018265b895d5d4431161"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amendment-test-inventory.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amendment-test-inventory.md",
+      "byte_length": 1089,
+      "sha256": "5dd5b539c6c1821759ddfc13e9aca30494673e731db04ba2e6da6fa93cae9ff3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amendment.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-amendment.md",
+      "byte_length": 3582,
+      "sha256": "5ddfcdb41d2ab911d6f559a04d9f7828f5225fec2be0ecb0a736b3005c52ecdd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-command.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-01-command.json",
+      "byte_length": 2373,
+      "sha256": "fe13a22c5221e53782b25bb6868d4d398268dabebd15261a2eccf7fe98eaafc5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-process-outcome.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-01-process-outcome.json",
+      "byte_length": 1981,
+      "sha256": "52b383858c0491bfed9e7cfd988a61b96e2ac2848ee39e9c0c19064bd8c2d38c"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stderr.log",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-01-stderr.log",
+      "byte_length": 359,
+      "sha256": "a4fe71688da960587b8ea779c9f2f0aa1f106683464de28a4617c64e9672e356"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stdout.log",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-01-stdout.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-command.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-command.json",
+      "byte_length": 2417,
+      "sha256": "91196e7694f2ba4dd9af66a7bf3a4fca6f2b3d6f36f2ffaaaae884de14cf95ba"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-controller.py",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-controller.py",
+      "byte_length": 2385,
+      "sha256": "3c3efd6ead80dc95bf807d0a0088c5f50e61843f82b1ecf3b5283a3a700c993f"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-driver.py",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-driver.py",
+      "byte_length": 3701,
+      "sha256": "40c1dceb9d61afc43b1c310f0dfb0a69d91c0b53c1a33e51d411abf904ba91bb"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-process-outcome.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-process-outcome.json",
+      "byte_length": 2287,
+      "sha256": "6f2e587ab2b750e76fd3a5ef11bb8f0d0551722c0bd9e7e3d7cc950e0c07c0a3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-result.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-result.json",
+      "byte_length": 80120,
+      "sha256": "fb7c41d62d0fb829bf03346533d284bc683fc23510270added9a6506a2781eab"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-stderr.log",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-stderr.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-stdout.log",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-stdout.log",
+      "byte_length": 843,
+      "sha256": "cc42acf2a0043ced6be3d37aafa385b6e1b5b4d5d13e02bef91c5b976e100052"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-test-inventory.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-test-inventory.json",
+      "byte_length": 1553,
+      "sha256": "403127f085ba003d677fcefdef88f901e7955ac4b6ce737a4b81e948c4842198"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-test-inventory.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-attempt-02-test-inventory.md",
+      "byte_length": 776,
+      "sha256": "6ea9ab6e4fc82fa67dce362fcf9d27e6ba323be32ea7fbea6940958cfbbb2b8a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-brief.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-brief.md",
+      "byte_length": 8900,
+      "sha256": "10280ebfbe8c28cbe2cc4ca420e6f1173f7c409e4fa69b9626f00d8f82fc9383"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-controller.py",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-controller.py",
+      "byte_length": 2363,
+      "sha256": "5d3aca3c7e1a3e633d6c82d022c10948cc61ff143c70427db19557e1fb329858"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-driver.py",
+      "byte_length": 3701,
+      "sha256": "05bddd182529abe44071954e5749f5250926f10f304e770977daa906d8d11c05"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-full-source.diff",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-full-source.diff",
+      "byte_length": 2384666,
+      "sha256": "c2acfb48aa74108654f5f39913320ec380c4a9f5b6279a2057b127420bdc97fc"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-pins.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-pins.json",
+      "byte_length": 4226,
+      "sha256": "ca4280fbf85f7e5bf784b4414bf6953ff93c1640afe365148b3104865a08c7eb"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-preservation-check.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-preservation-check.json",
+      "byte_length": 106069,
+      "sha256": "f436b14946f7834e9ca4d8d1da405aa4794a993705eed49ee191276f234994cd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-report.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-report.md",
+      "byte_length": 4279,
+      "sha256": "99033b5b50776ead6c950a8bd5e3dc1e3e3e8ee103ebf8922a8c83b4fa816d6f"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-review.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-review.md",
+      "byte_length": 9018,
+      "sha256": "441c4300ee1eac42476ceecb6b13a15899238a687ac2e485a95da1bc4ec2b4f5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-source.diff",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-source.diff",
+      "byte_length": 49048,
+      "sha256": "65115508e41165d2d735ec0645c08cc943d066895261e56e128801fb59f42f5d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.json",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-test-inventory.json",
+      "byte_length": 1436,
+      "sha256": "3ebfa7977e7fd435906ec827f1472f3a298f3cb609b24e184548f825533f953b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.md",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1-test-inventory.md",
+      "byte_length": 1632,
+      "sha256": "e7a9ba4ba0a8daaa1e376c71d1c5d4801106bee8b9d288f28f47fafcd99a7c06"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1.diff",
+      "archived": "ledger/task-54-d7-fixture-custody-fix1.diff",
+      "byte_length": 131331,
+      "sha256": "e9f0098b16e4596975c74be98f64fce9712a1eee415b7cff530c4f5abab699e7"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fmt.log",
+      "archived": "ledger/task-54-d7-fixture-custody-fmt.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-original-inventory.json",
+      "archived": "ledger/task-54-d7-fixture-custody-original-inventory.json",
+      "byte_length": 154040,
+      "sha256": "64a894ffda82248843cab0b35ee25b88e288efa02a6b76d889b26835282d802b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-physical-delta.json",
+      "archived": "ledger/task-54-d7-fixture-custody-physical-delta.json",
+      "byte_length": 17435,
+      "sha256": "f60574104dee75e54caf446e16c307c9b3c2fcc8c6caf7ccb7e8689c5a22fbb7"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-pins.json",
+      "archived": "ledger/task-54-d7-fixture-custody-pins.json",
+      "byte_length": 87144,
+      "sha256": "a17d3ccd5f1ae6b9965933a7883cb9d2070daf6d33f8cce08f92fdb4d89758e5"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-preflight-green.json",
+      "archived": "ledger/task-54-d7-fixture-custody-preflight-green.json",
+      "byte_length": 79458,
+      "sha256": "de1c5cdd199fb0adb81c2b9ad2771e4bff2a5c69e640398ded7726af0eea5fb4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-preflight-green.log",
+      "archived": "ledger/task-54-d7-fixture-custody-preflight-green.log",
+      "byte_length": 786035,
+      "sha256": "37de994cb1444593b5174dd02f821a1fe55fe2a19d09801ec161691c021cb623"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-preflight-red.json",
+      "archived": "ledger/task-54-d7-fixture-custody-preflight-red.json",
+      "byte_length": 116068,
+      "sha256": "d2c49e391db5b4e61bc72d34b04c7e66eeb7cfd971b3b741e10509965ba62523"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-preflight-red.log",
+      "archived": "ledger/task-54-d7-fixture-custody-preflight-red.log",
+      "byte_length": 179,
+      "sha256": "05a159221c6b04281e8f791e0ab44865e2577021d8bfe008bed6066cd70d050d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-preflight.py",
+      "archived": "ledger/task-54-d7-fixture-custody-preflight.py",
+      "byte_length": 2205,
+      "sha256": "a6554fc8728edffc1d33717e597e8bfc9e76047dd061aca8bcf30dd5054761ff"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-report.md",
+      "archived": "ledger/task-54-d7-fixture-custody-report.md",
+      "byte_length": 3848,
+      "sha256": "087050349e51d4b790ba8f01c8f66c64fc0e1b9fe83d65e782fb028050adafc4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-review.md",
+      "archived": "ledger/task-54-d7-fixture-custody-review.md",
+      "byte_length": 11374,
+      "sha256": "88fd12cc21096f58fe33deec5de36ca14ee37899cfd471ccbdf7a363fa8d6719"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-source.diff",
+      "archived": "ledger/task-54-d7-fixture-custody-source.diff",
+      "byte_length": 2335618,
+      "sha256": "067478d7baade6b09436c57a7b61e53f04aa572b7d010d11e540d21960c8fa01"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-test-ids.json",
+      "archived": "ledger/task-54-d7-fixture-custody-test-ids.json",
+      "byte_length": 5286,
+      "sha256": "457137db51fb787184ecb85cb4147a2aa170b8dce41887a0bb11284c24946932"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-test-inventory.md",
+      "archived": "ledger/task-54-d7-fixture-custody-test-inventory.md",
+      "byte_length": 8910,
+      "sha256": "dba2c6916e8f8f316b998bfff1a698757ae81fe7ebce48e1837faae57e08285d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-tracked-paths.z",
+      "archived": "ledger/task-54-d7-fixture-custody-tracked-paths.z",
+      "byte_length": 435230,
+      "sha256": "cb6d9f83e95a66945d434c3d1966f9e60bb31dba274dbb9a634f1e26764c659b"
+    }
+  ]
+}

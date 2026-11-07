@@ -1,0 +1,61 @@
+{
+  "classification": "read-only tracked-file type finding, not license-policy or build acceptance",
+  "paths": [
+    {
+      "path": "crates/ckks-train-ckks/LICENSE",
+      "target": "../../LICENSE",
+      "git_entry": "120000 30cff7403da04711c46979a06f6bf8eb10ee088a 0\tcrates/ckks-train-ckks/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "target": "../../THIRD_PARTY_NOTICES",
+      "git_entry": "120000 0066ed28269f20ff0ab3e56052d21d1f372df152 0\tcrates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "bytes": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-core/LICENSE",
+      "target": "../../LICENSE",
+      "git_entry": "120000 30cff7403da04711c46979a06f6bf8eb10ee088a 0\tcrates/ckks-train-core/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "target": "../../THIRD_PARTY_NOTICES",
+      "git_entry": "120000 0066ed28269f20ff0ab3e56052d21d1f372df152 0\tcrates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "bytes": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-cuda/LICENSE",
+      "target": "../../LICENSE",
+      "git_entry": "120000 30cff7403da04711c46979a06f6bf8eb10ee088a 0\tcrates/ckks-train-cuda/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "target": "../../THIRD_PARTY_NOTICES",
+      "git_entry": "120000 0066ed28269f20ff0ab3e56052d21d1f372df152 0\tcrates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "bytes": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-nn/LICENSE",
+      "target": "../../LICENSE",
+      "git_entry": "120000 30cff7403da04711c46979a06f6bf8eb10ee088a 0\tcrates/ckks-train-nn/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "target": "../../THIRD_PARTY_NOTICES",
+      "git_entry": "120000 0066ed28269f20ff0ab3e56052d21d1f372df152 0\tcrates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "bytes": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    }
+  ]
+}

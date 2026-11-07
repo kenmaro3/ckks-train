@@ -1119,3 +1119,15 @@ canonical prepare_datasetでは先行読込のbytesをまだ破棄して再取�
 ## 2026-11-08 06:00 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T06:00:51.949151+09:00。FULL-2はupdate662（0始まり）＝**663/1000更新**、ログ内elapsed95977s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0559/README.md)。0559は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T07:00:52+09:00以降のR-41-FULL2-OBS-20261108-0700として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+<a id="latest-evidence-20261108-d7-fixture-custody"></a>
+
+## 2026-11-08追記: fixtureの内容を保ったソース一覧の整理
+
+[変更・失敗を含む元証跡・独立レビュー](../results/validation/task54-d7-fixture-custody/README.md)を保存した。既存158 payloadを2つのtransportへ同じbytesで集約し、一覧を565件から410件へ減らした。512件の上限は変更していない。既存consumer 49件と全payloadを確認するaccessor 1件、strict Clippy、formatは合格。8つのライセンス・通知ファイルは、既存のsymlink禁止条件に合わせてrootと同一内容の通常ファイルへ変更した。root通知の更新時にはコピーの同期が必要となる。
+
+初回報告のpreflight合格・Mac物理tree一致という主張は誤りだった。失敗ログと古いJSONを保存し、修正attempt01のsymlink拒否（exit1、preflight未実行）を経て、attempt02で全410選択行・54,531 bytesのmanifestを純粋検査しexit0を確認した。仕様・品質の独立再レビューは合格。これは現在のMac全ファイルとの一致やLinuxのclean buildを証明しない。
+
+手順上の未達は残す。最終accessorの呼出し経路には実装前のbehavioral REDがなく、GREENのみ。初回E0618の完全なログも失われた。後付けの再現では過去の手順を回復できないため、修正前に理由・代替案・リスクを記録し、独立したbytes照合・実際の上限/欠落拒否・既存consumer検証・独立レビューを条件に採用した。これらを全件TDD達成や完全な履歴保存とは扱わない。
+
+実際のsupervisor／broker、保持入力と同じowner、Reference／Targetと開始条件、最終モデル・FP32・計時・保存・run_allの接続は引き続き未完了。Task54全体・M5・実機計測の合格ではない。

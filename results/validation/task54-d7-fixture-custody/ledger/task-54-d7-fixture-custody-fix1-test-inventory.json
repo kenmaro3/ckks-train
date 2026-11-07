@@ -1,0 +1,35 @@
+{
+  "attempt_id": "task54-fixture-custody-fix1-attempt-01",
+  "driver": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+    "byte_length": 3701,
+    "sha256": "05bddd182529abe44071954e5749f5250926f10f304e770977daa906d8d11c05"
+  },
+  "controller": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-controller.py",
+    "byte_length": 2363,
+    "sha256": "5d3aca3c7e1a3e633d6c82d022c10948cc61ff143c70427db19557e1fb329858"
+  },
+  "operation": "One existing pure support.preflight_manifest(0,rows) invocation only",
+  "input_records": 565,
+  "deleted_payload_paths": 158,
+  "added_paths": 3,
+  "selected_records_to_read": 410,
+  "selected_bytes_to_read": 12934199,
+  "expected_manifest_encoded_bytes": 54531,
+  "source_files_unchanged": true,
+  "exclusive_attempt_artifact_prefix": "task-54-d7-fixture-custody-fix1-attempt-01",
+  "physical_tree_equality": "not attempted; historical failure remains",
+  "forbidden_reruns": [
+    "Cargo",
+    "consumer tests",
+    "accessor tests",
+    "Clippy",
+    "fmt",
+    "source_inventory",
+    "build",
+    "native",
+    "Git helpers"
+  ],
+  "postcheck": "Hash verify43 originals and43 snapshot copies plus snapshot manifest, and every410 selected source file; no source edits"
+}

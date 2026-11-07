@@ -1,0 +1,42 @@
+{
+  "attempt_id": "task54-fixture-custody-fix1-attempt-02",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-driver.py",
+    "--attempt-id",
+    "task54-fixture-custody-fix1-attempt-02",
+    "--output",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-result.json"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "driver": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-driver.py",
+    "byte_length": 3701,
+    "sha256": "40c1dceb9d61afc43b1c310f0dfb0a69d91c0b53c1a33e51d411abf904ba91bb"
+  },
+  "command_metadata": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-command.json",
+    "byte_length": 2417,
+    "sha256": "91196e7694f2ba4dd9af66a7bf3a4fca6f2b3d6f36f2ffaaaae884de14cf95ba"
+  },
+  "started_utc": "2026-11-07T21:19:51.797916+00:00",
+  "finished_utc": "2026-11-07T21:19:52.019232+00:00",
+  "actual_exit_status": 0,
+  "stdout": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-stdout.log",
+    "byte_length": 843,
+    "sha256": "cc42acf2a0043ced6be3d37aafa385b6e1b5b4d5d13e02bef91c5b976e100052"
+  },
+  "stderr": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-stderr.log",
+    "byte_length": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "result": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-result.json",
+    "byte_length": 80120,
+    "sha256": "fb7c41d62d0fb829bf03346533d284bc683fc23510270added9a6506a2781eab"
+  },
+  "exit_status_propagated": true
+}

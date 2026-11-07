@@ -1,0 +1,858 @@
+Complete custody source code/adoption-note companion. Only158 removed original payload hunks and2 new exact bundle hunks omitted; all10 code/adoption-note hunks retained. Full patch task-54-d7-fixture-custody-source.diff2335618B SHA256067478d7baade6b09436c57a7b61e53f04aa572b7d010d11e540d21960c8fa01 remains available. Custody scripts and base tar retain every original byte.
+
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index 378d937..aed8686 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -2074,3 +2074,7 @@ pub(in crate::study_reference) fn check_verified_target_history(
+         reference,
+     )
+ }
++
++#[cfg(test)]
++#[path = "document/fixture_literals.rs"]
++mod fixture_literals;
+diff --git a/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs b/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
+index 24aff2b..321c44d 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
+@@ -1,14 +1,29 @@
+ //! Frozen wire-only claims. No registry, materializer, context or native construction.
++use super::super::fixture_literals::target as target_literal;
+ use super::super::*;
+ use super::*;
+ use serde_json::{Value, json};
+-const INITIAL: &[u8] = include_bytes!("../target_goldens/initial.json");
+-const RETRY_NONE: &[u8] = include_bytes!("../target_goldens/retry-no-start.json");
+-const RETRY_SOME: &[u8] = include_bytes!("../target_goldens/retry-with-start.json");
+-const START_INITIAL: &[u8] = include_bytes!("../target_goldens/start-initial.json");
+-const START_RETRY: &[u8] = include_bytes!("../target_goldens/start-retry.json");
+-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
+-const REFERENCE_BYTES: &[u8] = include_bytes!("../target_goldens/reference.json");
++fn literal_initial() -> &'static [u8] {
++    target_literal("initial.json").as_bytes()
++}
++fn literal_retry_none() -> &'static [u8] {
++    target_literal("retry-no-start.json").as_bytes()
++}
++fn literal_retry_some() -> &'static [u8] {
++    target_literal("retry-with-start.json").as_bytes()
++}
++fn literal_start_initial() -> &'static [u8] {
++    target_literal("start-initial.json").as_bytes()
++}
++fn literal_start_retry() -> &'static [u8] {
++    target_literal("start-retry.json").as_bytes()
++}
++fn literal_lock() -> &'static [u8] {
++    target_literal("lock.json").as_bytes()
++}
++fn literal_reference_bytes() -> &'static [u8] {
++    target_literal("reference.json").as_bytes()
++}
+ fn unhex(s: &str) -> Vec<u8> {
+     s.trim()
+         .as_bytes()
+@@ -24,22 +39,22 @@ fn parse_value(v: &Value) -> Result<SyntheticAdmission> {
+ }
+ #[test]
+ fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
+-    let manifest = value(include_bytes!("../target_goldens/manifest.json"));
++    let manifest = value(target_literal("manifest.json").as_bytes());
+     for (name, bytes, hex) in [
+         (
+             "initial",
+-            INITIAL,
+-            include_str!("../target_goldens/initial.canonical.hex"),
++            literal_initial(),
++            target_literal("initial.canonical.hex"),
+         ),
+         (
+             "retry-no-start",
+-            RETRY_NONE,
+-            include_str!("../target_goldens/retry-no-start.canonical.hex"),
++            literal_retry_none(),
++            target_literal("retry-no-start.canonical.hex"),
+         ),
+         (
+             "retry-with-start",
+-            RETRY_SOME,
+-            include_str!("../target_goldens/retry-with-start.canonical.hex"),
++            literal_retry_some(),
++            target_literal("retry-with-start.canonical.hex"),
+         ),
+     ] {
+         let a = SyntheticAdmission::parse(bytes).unwrap();
+@@ -54,13 +69,13 @@ fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
+     for (name, bytes, hex) in [
+         (
+             "start-initial",
+-            START_INITIAL,
+-            include_str!("../target_goldens/start-initial.canonical.hex"),
++            literal_start_initial(),
++            target_literal("start-initial.canonical.hex"),
+         ),
+         (
+             "start-retry",
+-            START_RETRY,
+-            include_str!("../target_goldens/start-retry.canonical.hex"),
++            literal_start_retry(),
++            target_literal("start-retry.canonical.hex"),
+         ),
+     ] {
+         let s = SyntheticStart::parse(bytes).unwrap();
+@@ -75,55 +90,55 @@ fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
+ }
+ #[test]
+ fn d7_admission_six_frozen_branches_and_domain_components() {
+-    let manifest = value(include_bytes!("../target_goldens/manifest.json"));
++    let manifest = value(target_literal("manifest.json").as_bytes());
+     for (branch, bytes, full, case, execution, gates) in [
+         (
+             0,
+-            include_bytes!("../target_goldens/branch-0.json").as_slice(),
+-            include_str!("../target_goldens/branch-0.canonical.hex"),
+-            include_str!("../target_goldens/case-0.canonical.hex"),
+-            include_str!("../target_goldens/execution-0.canonical.hex"),
+-            include_str!("../target_goldens/gates-0.canonical.hex"),
++            target_literal("branch-0.json").as_bytes(),
++            target_literal("branch-0.canonical.hex"),
++            target_literal("case-0.canonical.hex"),
++            target_literal("execution-0.canonical.hex"),
++            target_literal("gates-0.canonical.hex"),
+         ),
+         (
+             1,
+-            include_bytes!("../target_goldens/branch-1.json").as_slice(),
+-            include_str!("../target_goldens/branch-1.canonical.hex"),
+-            include_str!("../target_goldens/case-1.canonical.hex"),
+-            include_str!("../target_goldens/execution-1.canonical.hex"),
+-            include_str!("../target_goldens/gates-1.canonical.hex"),
++            target_literal("branch-1.json").as_bytes(),
++            target_literal("branch-1.canonical.hex"),
++            target_literal("case-1.canonical.hex"),
++            target_literal("execution-1.canonical.hex"),
++            target_literal("gates-1.canonical.hex"),
+         ),
+         (
+             2,
+-            include_bytes!("../target_goldens/branch-2.json").as_slice(),
+-            include_str!("../target_goldens/branch-2.canonical.hex"),
+-            include_str!("../target_goldens/case-2.canonical.hex"),
+-            include_str!("../target_goldens/execution-2.canonical.hex"),
+-            include_str!("../target_goldens/gates-2.canonical.hex"),
++            target_literal("branch-2.json").as_bytes(),
++            target_literal("branch-2.canonical.hex"),
++            target_literal("case-2.canonical.hex"),
++            target_literal("execution-2.canonical.hex"),
++            target_literal("gates-2.canonical.hex"),
+         ),
+         (
+             3,
+-            include_bytes!("../target_goldens/branch-3.json").as_slice(),
+-            include_str!("../target_goldens/branch-3.canonical.hex"),
+-            include_str!("../target_goldens/case-3.canonical.hex"),
+-            include_str!("../target_goldens/execution-3.canonical.hex"),
+-            include_str!("../target_goldens/gates-3.canonical.hex"),
++            target_literal("branch-3.json").as_bytes(),
++            target_literal("branch-3.canonical.hex"),
++            target_literal("case-3.canonical.hex"),
++            target_literal("execution-3.canonical.hex"),
++            target_literal("gates-3.canonical.hex"),
+         ),
+         (
+             4,
+-            include_bytes!("../target_goldens/branch-4.json").as_slice(),
+-            include_str!("../target_goldens/branch-4.canonical.hex"),
+-            include_str!("../target_goldens/case-4.canonical.hex"),
+-            include_str!("../target_goldens/execution-4.canonical.hex"),
+-            include_str!("../target_goldens/gates-4.canonical.hex"),
++            target_literal("branch-4.json").as_bytes(),
++            target_literal("branch-4.canonical.hex"),
++            target_literal("case-4.canonical.hex"),
++            target_literal("execution-4.canonical.hex"),
++            target_literal("gates-4.canonical.hex"),
+         ),
+         (
+             5,
+-            include_bytes!("../target_goldens/branch-5.json").as_slice(),
+-            include_str!("../target_goldens/branch-5.canonical.hex"),
+-            include_str!("../target_goldens/case-5.canonical.hex"),
+-            include_str!("../target_goldens/execution-5.canonical.hex"),
+-            include_str!("../target_goldens/gates-5.canonical.hex"),
++            target_literal("branch-5.json").as_bytes(),
++            target_literal("branch-5.canonical.hex"),
++            target_literal("case-5.canonical.hex"),
++            target_literal("execution-5.canonical.hex"),
++            target_literal("gates-5.canonical.hex"),
+         ),
+     ] {
+         let a = SyntheticAdmission::parse(bytes).unwrap().0;
+@@ -153,35 +168,31 @@ fn d7_admission_six_frozen_branches_and_domain_components() {
+         );
+         assert!(parse_admission(bytes).is_err());
+     }
+-    let a = SyntheticAdmission::parse(INITIAL).unwrap().0;
++    let a = SyntheticAdmission::parse(literal_initial()).unwrap().0;
+     assert_eq!(
+         component(Some("hekit-study-registered-case-v1"), &a.case).unwrap(),
+-        unhex(include_str!(
+-            "../target_goldens/registered-case.canonical.hex"
+-        ))
++        unhex(target_literal("registered-case.canonical.hex"))
+     );
+     assert_eq!(
+         a.execution.fields().binding_bytes().unwrap(),
+-        unhex(include_str!("../target_goldens/case-binding.canonical.hex"))
++        unhex(target_literal("case-binding.canonical.hex"))
+     );
+     assert_eq!(
+         component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap(),
+-        unhex(include_str!(
+-            "../target_goldens/admission-gates.canonical.hex"
+-        ))
++        unhex(target_literal("admission-gates.canonical.hex"))
+     );
+     for (bytes, hex) in [
+         (
+-            INITIAL,
+-            include_str!("../target_goldens/predecessor-null.canonical.hex"),
++            literal_initial(),
++            target_literal("predecessor-null.canonical.hex"),
+         ),
+         (
+-            RETRY_NONE,
+-            include_str!("../target_goldens/predecessor-no-start.canonical.hex"),
++            literal_retry_none(),
++            target_literal("predecessor-no-start.canonical.hex"),
+         ),
+         (
+-            RETRY_SOME,
+-            include_str!("../target_goldens/predecessor-with-start.canonical.hex"),
++            literal_retry_some(),
++            target_literal("predecessor-with-start.canonical.hex"),
+         ),
+     ] {
+         let a = SyntheticAdmission::parse(bytes).unwrap().0;
+@@ -190,15 +201,16 @@ fn d7_admission_six_frozen_branches_and_domain_components() {
+ }
+ #[test]
+ fn d7_admission_target_start_and_explicit_predecessor_claim_links() {
+-    let lock = super::super::target::SyntheticTargetLock::parse(LOCK).unwrap();
+-    let reference = synthetic_reference(REFERENCE_BYTES);
+-    let initial = SyntheticAdmission::parse(INITIAL).unwrap();
+-    let retry_none = SyntheticAdmission::parse(RETRY_NONE).unwrap();
+-    let retry_some = SyntheticAdmission::parse(RETRY_SOME).unwrap();
+-    let start_initial = SyntheticStart::parse(START_INITIAL).unwrap();
+-    let start_retry = SyntheticStart::parse(START_RETRY).unwrap();
++    let lock = super::super::target::SyntheticTargetLock::parse(literal_lock()).unwrap();
++    let reference = synthetic_reference(literal_reference_bytes());
++    let initial = SyntheticAdmission::parse(literal_initial()).unwrap();
++    let retry_none = SyntheticAdmission::parse(literal_retry_none()).unwrap();
++    let retry_some = SyntheticAdmission::parse(literal_retry_some()).unwrap();
++    let start_initial = SyntheticStart::parse(literal_start_initial()).unwrap();
++    let start_retry = SyntheticStart::parse(literal_start_retry()).unwrap();
+     for a in [&initial, &retry_none, &retry_some] {
+-        a.check_target(&lock, REFERENCE_BYTES, &reference).unwrap();
++        a.check_target(&lock, literal_reference_bytes(), &reference)
++            .unwrap();
+     }
+     check_start_claims(&start_initial.0, &initial.0).unwrap();
+     check_start_claims(&start_retry.0, &retry_some.0).unwrap();
+@@ -208,14 +220,18 @@ fn d7_admission_target_start_and_explicit_predecessor_claim_links() {
+     assert!(check_predecessor_claims(&retry_some.0, &initial.0, None).is_err());
+     assert!(check_predecessor_claims(&initial.0, &initial.0, None).is_err());
+     assert!(check_start_claims(&start_retry.0, &initial.0).is_err());
+-    let bad = SyntheticAdmission::parse(include_bytes!(
+-        "../target_goldens/prior-start-link-mismatch.negative.json"
+-    ))
++    let bad = SyntheticAdmission::parse(
++        target_literal("prior-start-link-mismatch.negative.json").as_bytes(),
++    )
+     .unwrap();
+     assert!(check_predecessor_claims(&bad.0, &initial.0, Some(&start_initial.0)).is_err());
+     assert!(
+         initial
+-            .check_target(&lock, &[REFERENCE_BYTES, b" "].concat(), &reference)
++            .check_target(
++                &lock,
++                &[literal_reference_bytes(), b" "].concat(),
++                &reference
++            )
+             .is_err()
+     );
+ }
+@@ -237,7 +253,11 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
+             _ => (),
+         }
+     }
+-    for bytes in [INITIAL, RETRY_SOME, START_INITIAL] {
++    for bytes in [
++        literal_initial(),
++        literal_retry_some(),
++        literal_start_initial(),
++    ] {
+         let v = value(bytes);
+         let mut paths = Vec::new();
+         objects(&v, String::new(), &mut paths);
+@@ -250,7 +270,7 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
+                     .unwrap()
+                     .remove(key);
+                 assert!(
+-                    if bytes == START_INITIAL {
++                    if bytes == literal_start_initial() {
+                         SyntheticStart::parse(&serde_json::to_vec(&bad).unwrap()).is_err()
+                     } else {
+                         parse_value(&bad).is_err()
+@@ -265,7 +285,7 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
+                 .unwrap()
+                 .insert("unexpected".into(), json!(true));
+             assert!(
+-                if bytes == START_INITIAL {
++                if bytes == literal_start_initial() {
+                     SyntheticStart::parse(&serde_json::to_vec(&bad).unwrap()).is_err()
+                 } else {
+                     parse_value(&bad).is_err()
+@@ -295,11 +315,11 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
+         ("/attempt_id", json!("bad/id")),
+         ("/provenance/value/host/execution_threads", json!(0)),
+     ] {
+-        let mut bad = value(INITIAL);
++        let mut bad = value(literal_initial());
+         *bad.pointer_mut(pointer).unwrap() = replacement;
+         assert!(parse_value(&bad).is_err(), "{pointer}");
+     }
+-    let raw = std::str::from_utf8(INITIAL).unwrap();
++    let raw = std::str::from_utf8(literal_initial()).unwrap();
+     for bad in [raw.replacen("\"seed\": 7","\"seed\": 18446744073709551616",1),raw.replacen("\"seed\": 7","\"seed\": 1e0",1),raw.replacen("\"seed\": 7","\"seed\": -0",1),raw.replacen("\"seed\": 7","\"seed\": 1.0",1),raw.replacen("\"case_id\":", "\"case_id\": \"0000000000000000000000000000000000000000000000000000000000000000\", \"\\u0063ase_id\":",1),format!("{raw} {{}}"),raw.replacen("46494354494f4e414c2d434f4e545241435400ff","\\u00346494354494f4e414c2d434f4e545241435400ff",1)] {assert!(SyntheticAdmission::parse(bad.as_bytes()).is_err());}
+ }
+ #[test]
+@@ -432,9 +452,9 @@ fn rehashed_start(mut v: Value) -> Vec<u8> {
+ }
+ #[test]
+ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+-    let lock = super::super::target::SyntheticTargetLock::parse(LOCK).unwrap();
+-    let reference = synthetic_reference(REFERENCE_BYTES);
+-    let initial = SyntheticAdmission::parse(INITIAL).unwrap();
++    let lock = super::super::target::SyntheticTargetLock::parse(literal_lock()).unwrap();
++    let reference = synthetic_reference(literal_reference_bytes());
++    let initial = SyntheticAdmission::parse(literal_initial()).unwrap();
+     for pointer in [
+         "/lock/file_sha256",
+         "/lock/payload_sha256",
+@@ -445,7 +465,7 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+         "/policy/approval_sha256",
+         "/policy/design_documents/0/sha256",
+     ] {
+-        let mut bad = value(INITIAL);
++        let mut bad = value(literal_initial());
+         *bad.pointer_mut(pointer).unwrap() = json!("0".repeat(64));
+         if pointer == "/policy/registry_sha256" {
+             bad["case"]["registry_sha256"] = json!("0".repeat(64));
+@@ -454,7 +474,8 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+         }
+         let a = SyntheticAdmission::parse(&rehashed_admission(bad)).unwrap();
+         assert!(
+-            a.check_target(&lock, REFERENCE_BYTES, &reference).is_err(),
++            a.check_target(&lock, literal_reference_bytes(), &reference)
++                .is_err(),
+             "{pointer}"
+         );
+     }
+@@ -471,7 +492,7 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+         "/reference/payload_sha256",
+         "/policy/approval_sha256",
+     ] {
+-        let mut bad = value(START_INITIAL);
++        let mut bad = value(literal_start_initial());
+         *bad.pointer_mut(pointer).unwrap() = json!("0".repeat(64));
+         let s = SyntheticStart::parse(&rehashed_start(bad)).unwrap();
+         assert!(check_start_claims(&s.0, &initial.0).is_err(), "{pointer}");
+@@ -481,12 +502,12 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+         ("/attempt_id", json!("OTHER")),
+         ("/started/unix_ns", json!(39)),
+     ] {
+-        let mut bad = value(START_INITIAL);
++        let mut bad = value(literal_start_initial());
+         *bad.pointer_mut(pointer).unwrap() = replacement;
+         let s = SyntheticStart::parse(&rehashed_start(bad)).unwrap();
+         assert!(check_start_claims(&s.0, &initial.0).is_err());
+     }
+-    let mut equal_time = value(START_INITIAL);
++    let mut equal_time = value(literal_start_initial());
+     equal_time["started"]["unix_ns"] = json!(40);
+     check_start_claims(
+         &SyntheticStart::parse(&rehashed_start(equal_time))
+@@ -495,28 +516,32 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
+         &initial.0,
+     )
+     .unwrap();
+-    let mut before_lock = value(INITIAL);
++    let mut before_lock = value(literal_initial());
+     before_lock["admitted"]["unix_ns"] = json!(29);
+     assert!(
+         SyntheticAdmission::parse(&rehashed_admission(before_lock))
+             .unwrap()
+-            .check_target(&lock, REFERENCE_BYTES, &reference)
++            .check_target(&lock, literal_reference_bytes(), &reference)
+             .is_err()
+     );
+-    let mut p = value(RETRY_SOME);
++    let mut p = value(literal_retry_some());
+     p["predecessor"]["attempt_id"] = p["attempt_id"].clone();
+     assert!(SyntheticAdmission::parse(&rehashed_admission(p)).is_err());
+-    let mut reference = synthetic_reference(REFERENCE_BYTES);
++    let mut reference = synthetic_reference(literal_reference_bytes());
+     reference.common.integrity.payload_sha256 = Hash("0".repeat(64));
+     assert!(
+         initial
+-            .check_target(&lock, REFERENCE_BYTES, &reference)
++            .check_target(&lock, literal_reference_bytes(), &reference)
+             .is_err()
+     );
+ }
+ #[test]
+ fn d7_admission_production_rejects_rehashed_synthetic_markers() {
+-    for bytes in [INITIAL, RETRY_NONE, RETRY_SOME] {
++    for bytes in [
++        literal_initial(),
++        literal_retry_none(),
++        literal_retry_some(),
++    ] {
+         for (schema, synthetic) in [
+             ("hekit-test-he-admission-v1", true),
+             ("hekit-test-he-admission-v1", false),
+@@ -528,7 +553,7 @@ fn d7_admission_production_rejects_rehashed_synthetic_markers() {
+             assert!(parse_admission(&rehashed_admission(v)).is_err());
+         }
+     }
+-    for bytes in [START_INITIAL, START_RETRY] {
++    for bytes in [literal_start_initial(), literal_start_retry()] {
+         for (schema, synthetic) in [
+             ("hekit-test-he-start-v1", true),
+             ("hekit-test-he-start-v1", false),
+@@ -543,7 +568,7 @@ fn d7_admission_production_rejects_rehashed_synthetic_markers() {
+ }
+ #[test]
+ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
+-    let raw = std::str::from_utf8(INITIAL).unwrap();
++    let raw = std::str::from_utf8(literal_initial()).unwrap();
+     for (key, alias) in [
+         ("seed", "\\u0073eed"),
+         ("implementation", "\\u0069mplementation"),
+@@ -570,7 +595,7 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
+         "/selected_input/seed_receipt/canonical_bytes",
+     ] {
+         for text in ["0", "GG", "FF", "\\u0030"] {
+-            let mut v = value(INITIAL);
++            let mut v = value(literal_initial());
+             *v.pointer_mut(pointer).unwrap() = json!(text);
+             assert!(parse_value(&v).is_err());
+         }
+@@ -584,11 +609,11 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
+         "/writer/algorithm_revision",
+         "/integrity/encoding",
+     ] {
+-        let mut v = value(INITIAL);
++        let mut v = value(literal_initial());
+         *v.pointer_mut(pointer).unwrap() = json!("unsupported-v999");
+         assert!(parse_value(&v).is_err());
+     }
+-    let mut bad = value(INITIAL);
++    let mut bad = value(literal_initial());
+     bad["integrity"]["payload_sha256"] = json!("0".repeat(64));
+     assert_eq!(
+         parse_value(&bad).err().unwrap().code(),
+@@ -607,7 +632,7 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
+             .code(),
+         DocumentErrorCode::BadHex
+     );
+-    let mut malformed = INITIAL.to_vec();
++    let mut malformed = literal_initial().to_vec();
+     malformed.push(0xff);
+     assert!(SyntheticAdmission::parse(&malformed).is_err());
+ }
+@@ -633,12 +658,12 @@ fn d7_admission_inherited_caps_and_small_oversize_witnesses() {
+         ("/provenance/value/invocation/argv", 257),
+         ("/provenance/value/thread_environment", 33),
+     ] {
+-        let mut v = value(INITIAL);
++        let mut v = value(literal_initial());
+         let item = v.pointer(pointer).unwrap()[0].clone();
+         *v.pointer_mut(pointer).unwrap() = json!(vec![item; n]);
+         assert!(parse_value(&v).is_err());
+     }
+-    let mut v = value(INITIAL);
++    let mut v = value(literal_initial());
+     v["provenance"]["value"]["build"]["compiler_vv"] = json!("a".repeat(16385));
+     assert!(parse_value(&v).is_err());
+     let long_key = format!("{{\"{}\":null}}", "a".repeat(65));
+diff --git a/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md b/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md
+index 7445b6a..f5e9b80 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md
++++ b/crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md
+@@ -12,3 +12,9 @@ Train facts, checked D7 binding, standalone artifact envelope, production
+ admission/start/HE or native runtime approval is supplied by these files.
+ The original77 target goldens and Reference scalar1 policy remain unchanged.
+ Full copy hashes live in task-54-case-provenance-fixture-adoption.json in the ledger.
++
++## Exact literal custody compaction (Task54 build prerequisite)
++
++The original payload files, including manifest.json and SHA256SUMS, now reside byte-exact in literals.json under their original relative names. The outer JSON stores original UTF8 text, byte length and SHA256; the test-only cached accessor returns decoded text bytes without parsing/reserializing the inner document or normalizing whitespace, hex case or trailing bytes. This keeps every original independent expectation and malformed/duplicate-key negative. The adoption history above is unchanged.
++
++Root prepared the bundle from original BASE abd6c3393b843d7d80fff4ebc890526866682c3b. Before removal, every member was independently compared against exact released BASE ec2d2656f21e9139d3dde12abdce13d770ea2757 Git objects and a frozen whole-family path/length/SHA256 inventory. The ledger task-54-d7-fixture-custody-original-inventory.json and task-54-d7-fixture-custody-check.py retain that check. These are fictional test documents, not scientific results. Both families remain inside source-root coverage; compaction preserves the unchanged512-record source cap.
+diff --git a/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs b/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
+index 3249285..8d92d70 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
+@@ -1,13 +1,7 @@
+ use super::*;
+ use serde_json::{Value, json};
+-use std::path::Path;
+ fn fixture(name: &str) -> Vec<u8> {
+-    std::fs::read(
+-        Path::new(env!("CARGO_MANIFEST_DIR"))
+-            .join("src/study_reference/document/case_provenance_goldens")
+-            .join(name),
+-    )
+-    .unwrap()
++    super::fixture_literals::case(name).as_bytes().to_vec()
+ }
+ fn component(input: &[u8]) -> Result<Vec<u8>> {
+     // Reuse the existing exact-path transport, without inventing an artifact.
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs b/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs
+index 73edde7..84898a2 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs
+@@ -1,4 +1,5 @@
+ //! Independent literal wire tests only. No registry, planning, P1, HE or native calls.
++use super::super::fixture_literals::target as target_literal;
+ use super::*;
+ use serde_json::Value;
+ const ORACLE: &str = concat!(
+@@ -884,9 +885,9 @@ fn d7_evidence_production_mixed_nested_domains_tail_and_length_refusals() {
+ #[test]
+ fn d7_evidence_shared_predecessors_and_clock_claims() {
+     for hex in [
+-        include_str!("../target_goldens/predecessor-null.canonical.hex"),
+-        include_str!("../target_goldens/predecessor-no-start.canonical.hex"),
+-        include_str!("../target_goldens/predecessor-with-start.canonical.hex"),
++        target_literal("predecessor-null.canonical.hex"),
++        target_literal("predecessor-no-start.canonical.hex"),
++        target_literal("predecessor-with-start.canonical.hex"),
+     ] {
+         let bytes: Vec<_> = hex
+             .trim()
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs b/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
+index 9107ee7..6019951 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
+@@ -3,12 +3,7 @@ use super::execution_binding::ExecutionFields;
+ use ckks_train_ckks::EvalConfig;
+ use serde_json::Value;
+ fn fixture(name: &str) -> String {
+-    std::fs::read_to_string(
+-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+-            .join("src/study_reference/target_goldens")
+-            .join(name),
+-    )
+-    .unwrap()
++    super::fixture_literals::target(name).to_owned()
+ }
+ fn literal(s: &str) -> Vec<u8> {
+     s.trim()
+diff --git a/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs b/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs
+index adf1e24..d49fc4c 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs
+@@ -1,12 +1,17 @@
++use super::super::fixture_literals::target as target_literal;
+ use super::*;
+-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
+-const REFERENCE_BYTES: &[u8] = include_bytes!("../target_goldens/reference.json");
++fn literal_lock() -> &'static [u8] {
++    target_literal("lock.json").as_bytes()
++}
++fn literal_reference_bytes() -> &'static [u8] {
++    target_literal("reference.json").as_bytes()
++}
+ struct SyntheticReference {
+     reference: ReferenceLink,
+     contract: Vec<u8>,
+ }
+ fn synthetic_reference() -> SyntheticReference {
+-    let v: Value = serde_json::from_slice(REFERENCE_BYTES).unwrap();
++    let v: Value = serde_json::from_slice(literal_reference_bytes()).unwrap();
+     let field = |key: &str| serde_json::value::to_raw_value(&v[key]).unwrap();
+     let identity = ClaimedIdentity::decode(&field("identity"), "identity").unwrap();
+     let completion = Completion::decode(&field("completion"), "completion").unwrap();
+@@ -19,7 +24,7 @@ fn synthetic_reference() -> SyntheticReference {
+             schema: Text::decode(&field("schema"), "schema").unwrap(),
+             kind: Kind::decode(&field("kind"), "kind").unwrap(),
+             link: Link {
+-                file_sha256: Hash(sha256_hex(REFERENCE_BYTES)),
++                file_sha256: Hash(sha256_hex(literal_reference_bytes())),
+                 payload_sha256: Hash(
+                     "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d".into(),
+                 ),
+@@ -58,9 +63,9 @@ fn synthetic_reference() -> SyntheticReference {
+ #[test]
+ fn literal_synthetic_reference_links_every_projection_field() {
+     let source = synthetic_reference();
+-    let lock = SyntheticTargetLock::parse(LOCK).unwrap();
++    let lock = SyntheticTargetLock::parse(literal_lock()).unwrap();
+     source_matches(&lock.0, &source.reference, &source.contract).unwrap();
+-    let raw: Value = serde_json::from_slice(LOCK).unwrap();
++    let raw: Value = serde_json::from_slice(literal_lock()).unwrap();
+     fn leaf_paths(v: &Value, p: String, out: &mut Vec<String>) {
+         match v {
+             Value::Object(m) => {
+@@ -102,7 +107,7 @@ fn literal_synthetic_reference_links_every_projection_field() {
+         }
+     }
+     for i in 0..source.contract.len() {
+-        let mut bad = decode_lock(LOCK).unwrap();
++        let mut bad = decode_lock(literal_lock()).unwrap();
+         bad.contract.bytes[i] ^= 255;
+         bad.contract.sha256 = Hash(sha256_hex(&bad.contract.bytes));
+         bad.integrity.payload_sha256 = Hash(sha256_hex(&bad.canonical().unwrap()));
+@@ -113,14 +118,15 @@ fn literal_synthetic_reference_links_every_projection_field() {
+ fn digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject() {
+     let source = synthetic_reference();
+     for which in 0..8 {
+-        let mut bad = decode_lock(LOCK).unwrap();
++        let mut bad = decode_lock(literal_lock()).unwrap();
+         match which {
+             0 => std::mem::swap(
+                 &mut bad.reference.link.file_sha256,
+                 &mut bad.reference.link.payload_sha256,
+             ),
+             1 => {
+-                bad.reference.link.file_sha256 = Hash(sha256_hex(&[REFERENCE_BYTES, b" "].concat()))
++                bad.reference.link.file_sha256 =
++                    Hash(sha256_hex(&[literal_reference_bytes(), b" "].concat()))
+             }
+             2 => bad.reference.seed = 7,
+             3 => bad.reference.completion.final_endpoint_index += 1,
+@@ -150,9 +156,9 @@ fn digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject()
+ }
+ #[test]
+ fn every_policy_binding_rejects_rehashed_substitution() {
+-    let baseline = decode_lock(LOCK).unwrap();
++    let baseline = decode_lock(literal_lock()).unwrap();
+     let mut values = Vec::new();
+-    let v: Value = serde_json::from_slice(LOCK).unwrap();
++    let v: Value = serde_json::from_slice(literal_lock()).unwrap();
+     for field in [
+         "scientific_revision",
+         "scientific_sha256",
+@@ -189,7 +195,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only()
+         common: Common,
+         body: ReferenceBody,
+     }
+-    let v: Value = serde_json::from_slice(REFERENCE_BYTES).unwrap();
++    let v: Value = serde_json::from_slice(literal_reference_bytes()).unwrap();
+     let field = |key: &str| serde_json::value::to_raw_value(&v[key]).unwrap();
+     let mut reference = SyntheticReferenceDocument {
+         common: Common {
+@@ -202,7 +208,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only()
+             arithmetic: Arithmetic::decode(&field("arithmetic"), "arithmetic").unwrap(),
+             provenance: ProvenanceClaim::decode(&field("provenance"), "provenance").unwrap(),
+             integrity: Integrity::decode(&field("integrity"), "integrity").unwrap(),
+-            file_sha256: sha256_hex(REFERENCE_BYTES),
++            file_sha256: sha256_hex(literal_reference_bytes()),
+         },
+         body: ReferenceBody {
+             identity: ClaimedIdentity::decode(&field("identity"), "identity").unwrap(),
+@@ -225,7 +231,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only()
+     let canonical = reference_encoding(&reference.common, &reference.body)
+         .unwrap()
+         .bytes;
+-    let expected = include_str!("../target_goldens/reference.canonical.hex")
++    let expected = target_literal("reference.canonical.hex")
+         .trim()
+         .as_bytes()
+         .chunks_exact(2)
+@@ -236,5 +242,5 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only()
+         sha256_hex(&canonical),
+         "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d"
+     );
+-    assert!(parse_reference_document(REFERENCE_BYTES).is_err());
++    assert!(parse_reference_document(literal_reference_bytes()).is_err());
+ }
+diff --git a/crates/ckks-train-bench/src/study_reference/document/target_tests.rs b/crates/ckks-train-bench/src/study_reference/document/target_tests.rs
+index 7c42d02..fda7372 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/target_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/target_tests.rs
+@@ -1,3 +1,4 @@
++use super::fixture_literals::target as target_literal;
+ use super::target::*;
+ use super::*;
+ fn unhex(s: &str) -> Vec<u8> {
+@@ -7,23 +8,25 @@ fn unhex(s: &str) -> Vec<u8> {
+         .map(|p| u8::from_str_radix(std::str::from_utf8(p).unwrap(), 16).unwrap())
+         .collect()
+ }
+-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
++fn literal_lock() -> &'static [u8] {
++    target_literal("lock.json").as_bytes()
++}
+ #[test]
+ fn independent_literal_lock_canonical_and_file_identity() {
+-    let s = SyntheticTargetLock::parse(LOCK).unwrap();
++    let s = SyntheticTargetLock::parse(literal_lock()).unwrap();
+     assert_eq!(
+         s.canonical().unwrap(),
+-        unhex(include_str!("../target_goldens/lock.canonical.hex"))
++        unhex(target_literal("lock.canonical.hex"))
+     );
+     assert_eq!(
+-        sha256_hex(LOCK),
++        sha256_hex(literal_lock()),
+         "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7"
+     );
+     assert_eq!(
+         s.payload_sha256(),
+         "62dabb2e01360ed99e79590b869ca38616fee2bbb8ed7572c240257688c87812"
+     );
+-    assert!(parse_lock(LOCK).is_err());
++    assert!(parse_lock(literal_lock()).is_err());
+ }
+ #[test]
+ fn binary64_separate_operations_exact_vectors() {
+@@ -70,21 +73,15 @@ fn auxiliary_ids_are_domain_separated_exact_canonical_bytes() {
+         &["FICTIONAL-CAMPAIGN", "FICTIONAL-PROFILE"],
+     )
+     .unwrap();
+-    assert_eq!(
+-        p,
+-        unhex(include_str!("../target_goldens/profile-slot.canonical.hex"))
+-    );
+-    assert_eq!(
+-        l,
+-        unhex(include_str!("../target_goldens/lock-id.canonical.hex"))
+-    );
++    assert_eq!(p, unhex(target_literal("profile-slot.canonical.hex")));
++    assert_eq!(l, unhex(target_literal("lock-id.canonical.hex")));
+     assert_eq!(
+         sha256_hex(&l),
+         "bc1c2add0a5e7deac620b2fe9606f1288d1db80d165bd85700b3864142d06aea"
+     );
+ }
+ fn value() -> serde_json::Value {
+-    serde_json::from_slice(LOCK).unwrap()
++    serde_json::from_slice(literal_lock()).unwrap()
+ }
+ fn parse_value(v: &serde_json::Value) -> Result<SyntheticTargetLock> {
+     SyntheticTargetLock::parse(&serde_json::to_vec(v).unwrap())
+@@ -98,19 +95,19 @@ fn every_required_lock_field_and_unknown_decoded_duplicate_keys_reject() {
+         assert!(parse_value(&bad).is_err(), "missing {key}");
+     }
+     for raw in [
+-        include_bytes!("../target_goldens/duplicate-escaped-key.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/unknown-field.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/escaped-large-hex.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/bits-value-disagree.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/target-one-ulp-up.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/unsupported-domain.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/unsupported-hash.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/wrong-identity-hash.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/wrong-payload-hash.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/mismatched-source-schema.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/production-header-false.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/production-header-true.negative.json").as_slice(),
+-        include_bytes!("../target_goldens/test-header-false.negative.json").as_slice(),
++        target_literal("duplicate-escaped-key.negative.json").as_bytes(),
++        target_literal("unknown-field.negative.json").as_bytes(),
++        target_literal("escaped-large-hex.negative.json").as_bytes(),
++        target_literal("bits-value-disagree.negative.json").as_bytes(),
++        target_literal("target-one-ulp-up.negative.json").as_bytes(),
++        target_literal("unsupported-domain.negative.json").as_bytes(),
++        target_literal("unsupported-hash.negative.json").as_bytes(),
++        target_literal("wrong-identity-hash.negative.json").as_bytes(),
++        target_literal("wrong-payload-hash.negative.json").as_bytes(),
++        target_literal("mismatched-source-schema.negative.json").as_bytes(),
++        target_literal("production-header-false.negative.json").as_bytes(),
++        target_literal("production-header-true.negative.json").as_bytes(),
++        target_literal("test-header-false.negative.json").as_bytes(),
+     ] {
+         assert!(SyntheticTargetLock::parse(raw).is_err());
+         assert!(parse_lock(raw).is_err());
+diff --git a/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md b/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md
+index a814eda..4e97984 100644
+--- a/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md
++++ b/crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md
+@@ -21,3 +21,9 @@ oracle package, not production test completion or runtime evidence.
+ The exact copy manifest is recorded in the task ledger's
+ `task-54-d6c3-lock-fixture-adoption.json`. This note is the only additional file;
+ all 77 copied files retain their accepted bytes.
++
++## Exact literal custody compaction (Task54 build prerequisite)
++
++The original payload files, including manifest.json and SHA256SUMS, now reside byte-exact in literals.json under their original relative names. The outer JSON stores original UTF8 text, byte length and SHA256; the test-only cached accessor returns decoded text bytes without parsing/reserializing the inner document or normalizing whitespace, hex case or trailing bytes. This keeps every original independent expectation and malformed/duplicate-key negative. The adoption history above is unchanged.
++
++Root prepared the bundle from original BASE abd6c3393b843d7d80fff4ebc890526866682c3b. Before removal, every member was independently compared against exact released BASE ec2d2656f21e9139d3dde12abdce13d770ea2757 Git objects and a frozen whole-family path/length/SHA256 inventory. The ledger task-54-d7-fixture-custody-original-inventory.json and task-54-d7-fixture-custody-check.py retain that check. These are fictional test documents, not scientific results. Both families remain inside source-root coverage; compaction preserves the unchanged512-record source cap.
+diff --git a/crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs b/crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs
+new file mode 100644
+index 0000000..a6c004a
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs
+@@ -0,0 +1,58 @@
++//! Test-only exact UTF8 custody for independently frozen literal documents.
++use serde_json::Value;
++use std::sync::OnceLock;
++
++fn bundles() -> &'static [Value; 2] {
++    static BUNDLES: OnceLock<[Value; 2]> = OnceLock::new();
++    BUNDLES.get_or_init(|| {
++        [
++            (
++                include_str!("../target_goldens/literals.json"),
++                "60f2292de60d2409884bf5c7d00f56f482b4c3245eda5eddac935611f0a87cd3",
++            ),
++            (
++                include_str!("case_provenance_goldens/literals.json"),
++                "3c300767ab0d47364e5f49843766d62734b4d0688c992f6b4fd22ff72b5e337a",
++            ),
++        ]
++        .map(|(text, expected_hash)| {
++            // Pin the outer transport, including its complete member-name set.
++            assert_eq!(crate::data::sha256_hex(text.as_bytes()), expected_hash);
++            serde_json::from_str(text).expect("frozen literal bundle")
++        })
++    })
++}
++
++// Borrow the decoded outer string only. Inner JSON/hex/trailing bytes stay untouched.
++pub(super) fn target(name: &str) -> &'static str {
++    bundles()[0]["files"][name]["text"]
++        .as_str()
++        .expect("known target literal")
++}
++
++pub(super) fn case(name: &str) -> &'static str {
++    bundles()[1]["files"][name]["text"]
++        .as_str()
++        .expect("known Case provenance literal")
++}
++
++#[test]
++fn all_158_logical_members_retain_lengths_hashes_and_counts() {
++    let bundles = bundles();
++    for (bundle, count, bytes, literal) in [
++        (&bundles[0], 77, 553493, target as fn(&str) -> &'static str),
++        (&bundles[1], 81, 489492, case as fn(&str) -> &'static str),
++    ] {
++        let files = bundle["files"].as_object().unwrap();
++        assert_eq!(files.len(), count);
++        let mut total = 0;
++        for (name, member) in files {
++            let text = literal(name);
++            assert_eq!(text, member["text"].as_str().unwrap());
++            assert_eq!(text.len() as u64, member["byte_length"].as_u64().unwrap());
++            assert_eq!(crate::data::sha256_hex(text.as_bytes()), member["sha256"]);
++            total += text.len();
++        }
++        assert_eq!(total, bytes);
++    }
++}

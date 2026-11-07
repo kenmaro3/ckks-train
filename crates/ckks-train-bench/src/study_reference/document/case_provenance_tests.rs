@@ -1,13 +1,7 @@
 use super::*;
 use serde_json::{Value, json};
-use std::path::Path;
 fn fixture(name: &str) -> Vec<u8> {
-    std::fs::read(
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/study_reference/document/case_provenance_goldens")
-            .join(name),
-    )
-    .unwrap()
+    super::fixture_literals::case(name).as_bytes().to_vec()
 }
 fn component(input: &[u8]) -> Result<Vec<u8>> {
     // Reuse the existing exact-path transport, without inventing an artifact.

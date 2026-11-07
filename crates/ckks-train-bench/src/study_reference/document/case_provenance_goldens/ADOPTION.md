@@ -12,3 +12,9 @@ Train facts, checked D7 binding, standalone artifact envelope, production
 admission/start/HE or native runtime approval is supplied by these files.
 The original77 target goldens and Reference scalar1 policy remain unchanged.
 Full copy hashes live in task-54-case-provenance-fixture-adoption.json in the ledger.
+
+## Exact literal custody compaction (Task54 build prerequisite)
+
+The original payload files, including manifest.json and SHA256SUMS, now reside byte-exact in literals.json under their original relative names. The outer JSON stores original UTF8 text, byte length and SHA256; the test-only cached accessor returns decoded text bytes without parsing/reserializing the inner document or normalizing whitespace, hex case or trailing bytes. This keeps every original independent expectation and malformed/duplicate-key negative. The adoption history above is unchanged.
+
+Root prepared the bundle from original BASE abd6c3393b843d7d80fff4ebc890526866682c3b. Before removal, every member was independently compared against exact released BASE ec2d2656f21e9139d3dde12abdce13d770ea2757 Git objects and a frozen whole-family path/length/SHA256 inventory. The ledger task-54-d7-fixture-custody-original-inventory.json and task-54-d7-fixture-custody-check.py retain that check. These are fictional test documents, not scientific results. Both families remain inside source-root coverage; compaction preserves the unchanged512-record source cap.

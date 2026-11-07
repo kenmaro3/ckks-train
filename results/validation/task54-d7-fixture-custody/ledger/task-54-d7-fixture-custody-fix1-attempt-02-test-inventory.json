@@ -1,0 +1,30 @@
+{
+  "attempt_id": "task54-fixture-custody-fix1-attempt-02",
+  "driver": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-driver.py",
+    "byte_length": 3701,
+    "sha256": "40c1dceb9d61afc43b1c310f0dfb0a69d91c0b53c1a33e51d411abf904ba91bb"
+  },
+  "controller": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-02-controller.py",
+    "byte_length": 2385,
+    "sha256": "3c3efd6ead80dc95bf807d0a0088c5f50e61843f82b1ecf3b5283a3a700c993f"
+  },
+  "amendment_inventory": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amendment-test-inventory.json",
+    "byte_length": 7745,
+    "sha256": "2faaca36ade7cd6eb05336ea8e86796e4cd75029a64d018265b895d5d4431161"
+  },
+  "operation": "One existing pure support.preflight_manifest(0,rows) invocation only",
+  "original_selected_records": 565,
+  "deleted_payload_paths": 158,
+  "added_paths": 3,
+  "selected_records_to_read": 410,
+  "selected_bytes_to_read": 12934199,
+  "expected_manifest_encoded_bytes": 54531,
+  "exact8_symlinks_replaced_by_regular0644_root_copies": true,
+  "all_source_content_pins_unchanged": true,
+  "historical_attempt01": "preserved failed exit1 zero pure calls",
+  "mac_physical_equality": "not retested or claimed",
+  "source_inventory_build": "not invoked"
+}

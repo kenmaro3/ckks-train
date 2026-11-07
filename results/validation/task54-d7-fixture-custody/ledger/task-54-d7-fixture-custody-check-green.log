@@ -1,0 +1,18 @@
+[
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/target_goldens/literals.json",
+    "members": 77,
+    "original_bytes": 553493,
+    "bundle_bytes": 607768,
+    "sha256": "60f2292de60d2409884bf5c7d00f56f482b4c3245eda5eddac935611f0a87cd3",
+    "all_base_bytes_names_lengths_hashes_equal": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/literals.json",
+    "members": 81,
+    "original_bytes": 489492,
+    "bundle_bytes": 552321,
+    "sha256": "3c300767ab0d47364e5f49843766d62734b4d0688c992f6b4fd22ff72b5e337a",
+    "all_base_bytes_names_lengths_hashes_equal": true
+  }
+]

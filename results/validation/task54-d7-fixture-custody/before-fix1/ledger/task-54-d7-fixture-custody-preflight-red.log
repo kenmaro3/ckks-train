@@ -1,0 +1,1 @@
+{'mode': 'red', 'source_records': 565, 'source_bytes': 12812789, 'maximum_source_file_bytes': 2626323, 'accepted': False, 'error': 'manifest count cap', 'source_record_cap': 512}

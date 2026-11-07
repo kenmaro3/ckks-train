@@ -1,14 +1,29 @@
 //! Frozen wire-only claims. No registry, materializer, context or native construction.
+use super::super::fixture_literals::target as target_literal;
 use super::super::*;
 use super::*;
 use serde_json::{Value, json};
-const INITIAL: &[u8] = include_bytes!("../target_goldens/initial.json");
-const RETRY_NONE: &[u8] = include_bytes!("../target_goldens/retry-no-start.json");
-const RETRY_SOME: &[u8] = include_bytes!("../target_goldens/retry-with-start.json");
-const START_INITIAL: &[u8] = include_bytes!("../target_goldens/start-initial.json");
-const START_RETRY: &[u8] = include_bytes!("../target_goldens/start-retry.json");
-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
-const REFERENCE_BYTES: &[u8] = include_bytes!("../target_goldens/reference.json");
+fn literal_initial() -> &'static [u8] {
+    target_literal("initial.json").as_bytes()
+}
+fn literal_retry_none() -> &'static [u8] {
+    target_literal("retry-no-start.json").as_bytes()
+}
+fn literal_retry_some() -> &'static [u8] {
+    target_literal("retry-with-start.json").as_bytes()
+}
+fn literal_start_initial() -> &'static [u8] {
+    target_literal("start-initial.json").as_bytes()
+}
+fn literal_start_retry() -> &'static [u8] {
+    target_literal("start-retry.json").as_bytes()
+}
+fn literal_lock() -> &'static [u8] {
+    target_literal("lock.json").as_bytes()
+}
+fn literal_reference_bytes() -> &'static [u8] {
+    target_literal("reference.json").as_bytes()
+}
 fn unhex(s: &str) -> Vec<u8> {
     s.trim()
         .as_bytes()
@@ -24,22 +39,22 @@ fn parse_value(v: &Value) -> Result<SyntheticAdmission> {
 }
 #[test]
 fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
-    let manifest = value(include_bytes!("../target_goldens/manifest.json"));
+    let manifest = value(target_literal("manifest.json").as_bytes());
     for (name, bytes, hex) in [
         (
             "initial",
-            INITIAL,
-            include_str!("../target_goldens/initial.canonical.hex"),
+            literal_initial(),
+            target_literal("initial.canonical.hex"),
         ),
         (
             "retry-no-start",
-            RETRY_NONE,
-            include_str!("../target_goldens/retry-no-start.canonical.hex"),
+            literal_retry_none(),
+            target_literal("retry-no-start.canonical.hex"),
         ),
         (
             "retry-with-start",
-            RETRY_SOME,
-            include_str!("../target_goldens/retry-with-start.canonical.hex"),
+            literal_retry_some(),
+            target_literal("retry-with-start.canonical.hex"),
         ),
     ] {
         let a = SyntheticAdmission::parse(bytes).unwrap();
@@ -54,13 +69,13 @@ fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
     for (name, bytes, hex) in [
         (
             "start-initial",
-            START_INITIAL,
-            include_str!("../target_goldens/start-initial.canonical.hex"),
+            literal_start_initial(),
+            target_literal("start-initial.canonical.hex"),
         ),
         (
             "start-retry",
-            START_RETRY,
-            include_str!("../target_goldens/start-retry.canonical.hex"),
+            literal_start_retry(),
+            target_literal("start-retry.canonical.hex"),
         ),
     ] {
         let s = SyntheticStart::parse(bytes).unwrap();
@@ -75,55 +90,55 @@ fn d7_admission_frozen_documents_complete_bytes_and_hashes() {
 }
 #[test]
 fn d7_admission_six_frozen_branches_and_domain_components() {
-    let manifest = value(include_bytes!("../target_goldens/manifest.json"));
+    let manifest = value(target_literal("manifest.json").as_bytes());
     for (branch, bytes, full, case, execution, gates) in [
         (
             0,
-            include_bytes!("../target_goldens/branch-0.json").as_slice(),
-            include_str!("../target_goldens/branch-0.canonical.hex"),
-            include_str!("../target_goldens/case-0.canonical.hex"),
-            include_str!("../target_goldens/execution-0.canonical.hex"),
-            include_str!("../target_goldens/gates-0.canonical.hex"),
+            target_literal("branch-0.json").as_bytes(),
+            target_literal("branch-0.canonical.hex"),
+            target_literal("case-0.canonical.hex"),
+            target_literal("execution-0.canonical.hex"),
+            target_literal("gates-0.canonical.hex"),
         ),
         (
             1,
-            include_bytes!("../target_goldens/branch-1.json").as_slice(),
-            include_str!("../target_goldens/branch-1.canonical.hex"),
-            include_str!("../target_goldens/case-1.canonical.hex"),
-            include_str!("../target_goldens/execution-1.canonical.hex"),
-            include_str!("../target_goldens/gates-1.canonical.hex"),
+            target_literal("branch-1.json").as_bytes(),
+            target_literal("branch-1.canonical.hex"),
+            target_literal("case-1.canonical.hex"),
+            target_literal("execution-1.canonical.hex"),
+            target_literal("gates-1.canonical.hex"),
         ),
         (
             2,
-            include_bytes!("../target_goldens/branch-2.json").as_slice(),
-            include_str!("../target_goldens/branch-2.canonical.hex"),
-            include_str!("../target_goldens/case-2.canonical.hex"),
-            include_str!("../target_goldens/execution-2.canonical.hex"),
-            include_str!("../target_goldens/gates-2.canonical.hex"),
+            target_literal("branch-2.json").as_bytes(),
+            target_literal("branch-2.canonical.hex"),
+            target_literal("case-2.canonical.hex"),
+            target_literal("execution-2.canonical.hex"),
+            target_literal("gates-2.canonical.hex"),
         ),
         (
             3,
-            include_bytes!("../target_goldens/branch-3.json").as_slice(),
-            include_str!("../target_goldens/branch-3.canonical.hex"),
-            include_str!("../target_goldens/case-3.canonical.hex"),
-            include_str!("../target_goldens/execution-3.canonical.hex"),
-            include_str!("../target_goldens/gates-3.canonical.hex"),
+            target_literal("branch-3.json").as_bytes(),
+            target_literal("branch-3.canonical.hex"),
+            target_literal("case-3.canonical.hex"),
+            target_literal("execution-3.canonical.hex"),
+            target_literal("gates-3.canonical.hex"),
         ),
         (
             4,
-            include_bytes!("../target_goldens/branch-4.json").as_slice(),
-            include_str!("../target_goldens/branch-4.canonical.hex"),
-            include_str!("../target_goldens/case-4.canonical.hex"),
-            include_str!("../target_goldens/execution-4.canonical.hex"),
-            include_str!("../target_goldens/gates-4.canonical.hex"),
+            target_literal("branch-4.json").as_bytes(),
+            target_literal("branch-4.canonical.hex"),
+            target_literal("case-4.canonical.hex"),
+            target_literal("execution-4.canonical.hex"),
+            target_literal("gates-4.canonical.hex"),
         ),
         (
             5,
-            include_bytes!("../target_goldens/branch-5.json").as_slice(),
-            include_str!("../target_goldens/branch-5.canonical.hex"),
-            include_str!("../target_goldens/case-5.canonical.hex"),
-            include_str!("../target_goldens/execution-5.canonical.hex"),
-            include_str!("../target_goldens/gates-5.canonical.hex"),
+            target_literal("branch-5.json").as_bytes(),
+            target_literal("branch-5.canonical.hex"),
+            target_literal("case-5.canonical.hex"),
+            target_literal("execution-5.canonical.hex"),
+            target_literal("gates-5.canonical.hex"),
         ),
     ] {
         let a = SyntheticAdmission::parse(bytes).unwrap().0;
@@ -153,35 +168,31 @@ fn d7_admission_six_frozen_branches_and_domain_components() {
         );
         assert!(parse_admission(bytes).is_err());
     }
-    let a = SyntheticAdmission::parse(INITIAL).unwrap().0;
+    let a = SyntheticAdmission::parse(literal_initial()).unwrap().0;
     assert_eq!(
         component(Some("hekit-study-registered-case-v1"), &a.case).unwrap(),
-        unhex(include_str!(
-            "../target_goldens/registered-case.canonical.hex"
-        ))
+        unhex(target_literal("registered-case.canonical.hex"))
     );
     assert_eq!(
         a.execution.fields().binding_bytes().unwrap(),
-        unhex(include_str!("../target_goldens/case-binding.canonical.hex"))
+        unhex(target_literal("case-binding.canonical.hex"))
     );
     assert_eq!(
         component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap(),
-        unhex(include_str!(
-            "../target_goldens/admission-gates.canonical.hex"
-        ))
+        unhex(target_literal("admission-gates.canonical.hex"))
     );
     for (bytes, hex) in [
         (
-            INITIAL,
-            include_str!("../target_goldens/predecessor-null.canonical.hex"),
+            literal_initial(),
+            target_literal("predecessor-null.canonical.hex"),
         ),
         (
-            RETRY_NONE,
-            include_str!("../target_goldens/predecessor-no-start.canonical.hex"),
+            literal_retry_none(),
+            target_literal("predecessor-no-start.canonical.hex"),
         ),
         (
-            RETRY_SOME,
-            include_str!("../target_goldens/predecessor-with-start.canonical.hex"),
+            literal_retry_some(),
+            target_literal("predecessor-with-start.canonical.hex"),
         ),
     ] {
         let a = SyntheticAdmission::parse(bytes).unwrap().0;
@@ -190,15 +201,16 @@ fn d7_admission_six_frozen_branches_and_domain_components() {
 }
 #[test]
 fn d7_admission_target_start_and_explicit_predecessor_claim_links() {
-    let lock = super::super::target::SyntheticTargetLock::parse(LOCK).unwrap();
-    let reference = synthetic_reference(REFERENCE_BYTES);
-    let initial = SyntheticAdmission::parse(INITIAL).unwrap();
-    let retry_none = SyntheticAdmission::parse(RETRY_NONE).unwrap();
-    let retry_some = SyntheticAdmission::parse(RETRY_SOME).unwrap();
-    let start_initial = SyntheticStart::parse(START_INITIAL).unwrap();
-    let start_retry = SyntheticStart::parse(START_RETRY).unwrap();
+    let lock = super::super::target::SyntheticTargetLock::parse(literal_lock()).unwrap();
+    let reference = synthetic_reference(literal_reference_bytes());
+    let initial = SyntheticAdmission::parse(literal_initial()).unwrap();
+    let retry_none = SyntheticAdmission::parse(literal_retry_none()).unwrap();
+    let retry_some = SyntheticAdmission::parse(literal_retry_some()).unwrap();
+    let start_initial = SyntheticStart::parse(literal_start_initial()).unwrap();
+    let start_retry = SyntheticStart::parse(literal_start_retry()).unwrap();
     for a in [&initial, &retry_none, &retry_some] {
-        a.check_target(&lock, REFERENCE_BYTES, &reference).unwrap();
+        a.check_target(&lock, literal_reference_bytes(), &reference)
+            .unwrap();
     }
     check_start_claims(&start_initial.0, &initial.0).unwrap();
     check_start_claims(&start_retry.0, &retry_some.0).unwrap();
@@ -208,14 +220,18 @@ fn d7_admission_target_start_and_explicit_predecessor_claim_links() {
     assert!(check_predecessor_claims(&retry_some.0, &initial.0, None).is_err());
     assert!(check_predecessor_claims(&initial.0, &initial.0, None).is_err());
     assert!(check_start_claims(&start_retry.0, &initial.0).is_err());
-    let bad = SyntheticAdmission::parse(include_bytes!(
-        "../target_goldens/prior-start-link-mismatch.negative.json"
-    ))
+    let bad = SyntheticAdmission::parse(
+        target_literal("prior-start-link-mismatch.negative.json").as_bytes(),
+    )
     .unwrap();
     assert!(check_predecessor_claims(&bad.0, &initial.0, Some(&start_initial.0)).is_err());
     assert!(
         initial
-            .check_target(&lock, &[REFERENCE_BYTES, b" "].concat(), &reference)
+            .check_target(
+                &lock,
+                &[literal_reference_bytes(), b" "].concat(),
+                &reference
+            )
             .is_err()
     );
 }
@@ -237,7 +253,11 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
             _ => (),
         }
     }
-    for bytes in [INITIAL, RETRY_SOME, START_INITIAL] {
+    for bytes in [
+        literal_initial(),
+        literal_retry_some(),
+        literal_start_initial(),
+    ] {
         let v = value(bytes);
         let mut paths = Vec::new();
         objects(&v, String::new(), &mut paths);
@@ -250,7 +270,7 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
                     .unwrap()
                     .remove(key);
                 assert!(
-                    if bytes == START_INITIAL {
+                    if bytes == literal_start_initial() {
                         SyntheticStart::parse(&serde_json::to_vec(&bad).unwrap()).is_err()
                     } else {
                         parse_value(&bad).is_err()
@@ -265,7 +285,7 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
                 .unwrap()
                 .insert("unexpected".into(), json!(true));
             assert!(
-                if bytes == START_INITIAL {
+                if bytes == literal_start_initial() {
                     SyntheticStart::parse(&serde_json::to_vec(&bad).unwrap()).is_err()
                 } else {
                     parse_value(&bad).is_err()
@@ -295,11 +315,11 @@ fn d7_admission_required_nested_fields_unknowns_types_and_link_mutations() {
         ("/attempt_id", json!("bad/id")),
         ("/provenance/value/host/execution_threads", json!(0)),
     ] {
-        let mut bad = value(INITIAL);
+        let mut bad = value(literal_initial());
         *bad.pointer_mut(pointer).unwrap() = replacement;
         assert!(parse_value(&bad).is_err(), "{pointer}");
     }
-    let raw = std::str::from_utf8(INITIAL).unwrap();
+    let raw = std::str::from_utf8(literal_initial()).unwrap();
     for bad in [raw.replacen("\"seed\": 7","\"seed\": 18446744073709551616",1),raw.replacen("\"seed\": 7","\"seed\": 1e0",1),raw.replacen("\"seed\": 7","\"seed\": -0",1),raw.replacen("\"seed\": 7","\"seed\": 1.0",1),raw.replacen("\"case_id\":", "\"case_id\": \"0000000000000000000000000000000000000000000000000000000000000000\", \"\\u0063ase_id\":",1),format!("{raw} {{}}"),raw.replacen("46494354494f4e414c2d434f4e545241435400ff","\\u00346494354494f4e414c2d434f4e545241435400ff",1)] {assert!(SyntheticAdmission::parse(bad.as_bytes()).is_err());}
 }
 #[test]
@@ -432,9 +452,9 @@ fn rehashed_start(mut v: Value) -> Vec<u8> {
 }
 #[test]
 fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
-    let lock = super::super::target::SyntheticTargetLock::parse(LOCK).unwrap();
-    let reference = synthetic_reference(REFERENCE_BYTES);
-    let initial = SyntheticAdmission::parse(INITIAL).unwrap();
+    let lock = super::super::target::SyntheticTargetLock::parse(literal_lock()).unwrap();
+    let reference = synthetic_reference(literal_reference_bytes());
+    let initial = SyntheticAdmission::parse(literal_initial()).unwrap();
     for pointer in [
         "/lock/file_sha256",
         "/lock/payload_sha256",
@@ -445,7 +465,7 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
         "/policy/approval_sha256",
         "/policy/design_documents/0/sha256",
     ] {
-        let mut bad = value(INITIAL);
+        let mut bad = value(literal_initial());
         *bad.pointer_mut(pointer).unwrap() = json!("0".repeat(64));
         if pointer == "/policy/registry_sha256" {
             bad["case"]["registry_sha256"] = json!("0".repeat(64));
@@ -454,7 +474,8 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
         }
         let a = SyntheticAdmission::parse(&rehashed_admission(bad)).unwrap();
         assert!(
-            a.check_target(&lock, REFERENCE_BYTES, &reference).is_err(),
+            a.check_target(&lock, literal_reference_bytes(), &reference)
+                .is_err(),
             "{pointer}"
         );
     }
@@ -471,7 +492,7 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
         "/reference/payload_sha256",
         "/policy/approval_sha256",
     ] {
-        let mut bad = value(START_INITIAL);
+        let mut bad = value(literal_start_initial());
         *bad.pointer_mut(pointer).unwrap() = json!("0".repeat(64));
         let s = SyntheticStart::parse(&rehashed_start(bad)).unwrap();
         assert!(check_start_claims(&s.0, &initial.0).is_err(), "{pointer}");
@@ -481,12 +502,12 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
         ("/attempt_id", json!("OTHER")),
         ("/started/unix_ns", json!(39)),
     ] {
-        let mut bad = value(START_INITIAL);
+        let mut bad = value(literal_start_initial());
         *bad.pointer_mut(pointer).unwrap() = replacement;
         let s = SyntheticStart::parse(&rehashed_start(bad)).unwrap();
         assert!(check_start_claims(&s.0, &initial.0).is_err());
     }
-    let mut equal_time = value(START_INITIAL);
+    let mut equal_time = value(literal_start_initial());
     equal_time["started"]["unix_ns"] = json!(40);
     check_start_claims(
         &SyntheticStart::parse(&rehashed_start(equal_time))
@@ -495,28 +516,32 @@ fn d7_admission_rehashed_cross_record_fields_and_clock_ordering() {
         &initial.0,
     )
     .unwrap();
-    let mut before_lock = value(INITIAL);
+    let mut before_lock = value(literal_initial());
     before_lock["admitted"]["unix_ns"] = json!(29);
     assert!(
         SyntheticAdmission::parse(&rehashed_admission(before_lock))
             .unwrap()
-            .check_target(&lock, REFERENCE_BYTES, &reference)
+            .check_target(&lock, literal_reference_bytes(), &reference)
             .is_err()
     );
-    let mut p = value(RETRY_SOME);
+    let mut p = value(literal_retry_some());
     p["predecessor"]["attempt_id"] = p["attempt_id"].clone();
     assert!(SyntheticAdmission::parse(&rehashed_admission(p)).is_err());
-    let mut reference = synthetic_reference(REFERENCE_BYTES);
+    let mut reference = synthetic_reference(literal_reference_bytes());
     reference.common.integrity.payload_sha256 = Hash("0".repeat(64));
     assert!(
         initial
-            .check_target(&lock, REFERENCE_BYTES, &reference)
+            .check_target(&lock, literal_reference_bytes(), &reference)
             .is_err()
     );
 }
 #[test]
 fn d7_admission_production_rejects_rehashed_synthetic_markers() {
-    for bytes in [INITIAL, RETRY_NONE, RETRY_SOME] {
+    for bytes in [
+        literal_initial(),
+        literal_retry_none(),
+        literal_retry_some(),
+    ] {
         for (schema, synthetic) in [
             ("hekit-test-he-admission-v1", true),
             ("hekit-test-he-admission-v1", false),
@@ -528,7 +553,7 @@ fn d7_admission_production_rejects_rehashed_synthetic_markers() {
             assert!(parse_admission(&rehashed_admission(v)).is_err());
         }
     }
-    for bytes in [START_INITIAL, START_RETRY] {
+    for bytes in [literal_start_initial(), literal_start_retry()] {
         for (schema, synthetic) in [
             ("hekit-test-he-start-v1", true),
             ("hekit-test-he-start-v1", false),
@@ -543,7 +568,7 @@ fn d7_admission_production_rejects_rehashed_synthetic_markers() {
 }
 #[test]
 fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
-    let raw = std::str::from_utf8(INITIAL).unwrap();
+    let raw = std::str::from_utf8(literal_initial()).unwrap();
     for (key, alias) in [
         ("seed", "\\u0073eed"),
         ("implementation", "\\u0069mplementation"),
@@ -570,7 +595,7 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
         "/selected_input/seed_receipt/canonical_bytes",
     ] {
         for text in ["0", "GG", "FF", "\\u0030"] {
-            let mut v = value(INITIAL);
+            let mut v = value(literal_initial());
             *v.pointer_mut(pointer).unwrap() = json!(text);
             assert!(parse_value(&v).is_err());
         }
@@ -584,11 +609,11 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
         "/writer/algorithm_revision",
         "/integrity/encoding",
     ] {
-        let mut v = value(INITIAL);
+        let mut v = value(literal_initial());
         *v.pointer_mut(pointer).unwrap() = json!("unsupported-v999");
         assert!(parse_value(&v).is_err());
     }
-    let mut bad = value(INITIAL);
+    let mut bad = value(literal_initial());
     bad["integrity"]["payload_sha256"] = json!("0".repeat(64));
     assert_eq!(
         parse_value(&bad).err().unwrap().code(),
@@ -607,7 +632,7 @@ fn d7_admission_nested_aliases_hex_tokens_and_unsupported_schema() {
             .code(),
         DocumentErrorCode::BadHex
     );
-    let mut malformed = INITIAL.to_vec();
+    let mut malformed = literal_initial().to_vec();
     malformed.push(0xff);
     assert!(SyntheticAdmission::parse(&malformed).is_err());
 }
@@ -633,12 +658,12 @@ fn d7_admission_inherited_caps_and_small_oversize_witnesses() {
         ("/provenance/value/invocation/argv", 257),
         ("/provenance/value/thread_environment", 33),
     ] {
-        let mut v = value(INITIAL);
+        let mut v = value(literal_initial());
         let item = v.pointer(pointer).unwrap()[0].clone();
         *v.pointer_mut(pointer).unwrap() = json!(vec![item; n]);
         assert!(parse_value(&v).is_err());
     }
-    let mut v = value(INITIAL);
+    let mut v = value(literal_initial());
     v["provenance"]["value"]["build"]["compiler_vv"] = json!("a".repeat(16385));
     assert!(parse_value(&v).is_err());
     let long_key = format!("{{\"{}\":null}}", "a".repeat(65));

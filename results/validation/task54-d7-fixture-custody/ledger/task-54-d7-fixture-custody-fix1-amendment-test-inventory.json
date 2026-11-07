@@ -1,0 +1,178 @@
+{
+  "kind": "frozen_before_eight_file_type_changes",
+  "reason": "Preserve selected paths and exact logical license contents while satisfying unchanged source no-symlink policy",
+  "alternatives_rejected": [
+    "Relaxing production policy changes the trust contract",
+    "Excluding paths weakens coverage",
+    "Postponing leaves known clean-build prerequisite"
+  ],
+  "cost": "Copies require synchronization when root notices change",
+  "scope": "Exactly8 non-code file-type replacements; all other source contents/types unchanged",
+  "checks": [
+    {
+      "path": "crates/ckks-train-ckks/LICENSE",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../LICENSE",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../THIRD_PARTY_NOTICES",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-core/LICENSE",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../LICENSE",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../THIRD_PARTY_NOTICES",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-cuda/LICENSE",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../LICENSE",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../THIRD_PARTY_NOTICES",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-nn/LICENSE",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../LICENSE",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "before_git_mode": "120000",
+      "before_lstat_mode": "0o120755",
+      "before_link_target": "../../THIRD_PARTY_NOTICES",
+      "planned_mode": "100644",
+      "planned_permissions": "0644",
+      "root_origin": "THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    }
+  ],
+  "interim_fix1_files_preserved": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-amendment.md",
+      "byte_length": 3582,
+      "sha256": "5ddfcdb41d2ab911d6f559a04d9f7828f5225fec2be0ecb0a736b3005c52ecdd"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-command.json",
+      "byte_length": 2373,
+      "sha256": "fe13a22c5221e53782b25bb6868d4d398268dabebd15261a2eccf7fe98eaafc5"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-process-outcome.json",
+      "byte_length": 1981,
+      "sha256": "52b383858c0491bfed9e7cfd988a61b96e2ac2848ee39e9c0c19064bd8c2d38c"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stderr.log",
+      "byte_length": 359,
+      "sha256": "a4fe71688da960587b8ea779c9f2f0aa1f106683464de28a4617c64e9672e356"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stdout.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-brief.md",
+      "byte_length": 8900,
+      "sha256": "10280ebfbe8c28cbe2cc4ca420e6f1173f7c409e4fa69b9626f00d8f82fc9383"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-controller.py",
+      "byte_length": 2363,
+      "sha256": "5d3aca3c7e1a3e633d6c82d022c10948cc61ff143c70427db19557e1fb329858"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+      "byte_length": 3701,
+      "sha256": "05bddd182529abe44071954e5749f5250926f10f304e770977daa906d8d11c05"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-pins.json",
+      "byte_length": 4226,
+      "sha256": "ca4280fbf85f7e5bf784b4414bf6953ff93c1640afe365148b3104865a08c7eb"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-preservation-check.json",
+      "byte_length": 106069,
+      "sha256": "f436b14946f7834e9ca4d8d1da405aa4794a993705eed49ee191276f234994cd"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-report.md",
+      "byte_length": 4279,
+      "sha256": "99033b5b50776ead6c950a8bd5e3dc1e3e3e8ee103ebf8922a8c83b4fa816d6f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.json",
+      "byte_length": 1436,
+      "sha256": "3ebfa7977e7fd435906ec827f1472f3a298f3cb609b24e184548f825533f953b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.md",
+      "byte_length": 1632,
+      "sha256": "e7a9ba4ba0a8daaa1e376c71d1c5d4801106bee8b9d288f28f47fafcd99a7c06"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1.diff",
+      "byte_length": 131331,
+      "sha256": "e9f0098b16e4596975c74be98f64fce9712a1eee415b7cff530c4f5abab699e7"
+    }
+  ],
+  "planned_attempt": "task54-fixture-custody-fix1-attempt-02",
+  "planned_pure_preflight_calls": 1,
+  "planned_records": 410,
+  "planned_total_source_content_bytes": 12934199,
+  "planned_validation": "lstat regular0644 + exact corresponding root bytes/length/hash; all410 content pins and43 originals unchanged"
+}

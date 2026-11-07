@@ -1,0 +1,54 @@
+{
+  "environment": {
+    "CARGO_NET_OFFLINE": "true",
+    "CARGO_BUILD_JOBS": "2",
+    "HEKIT_STUDY_CAPSULE_REQUEST": "absent"
+  },
+  "preflight_red": {
+    "command": "python3 -B task-54-d7-fixture-custody-preflight.py red",
+    "exit_code": 0,
+    "expected_rejection": "manifest count cap"
+  },
+  "custody_red": {
+    "command": "python3 -B task-54-d7-fixture-custody-check.py",
+    "exit_code": 1,
+    "expected_failure": "compact bundle absent"
+  },
+  "accessor_red": {
+    "test": "study_reference::document::fixture_literals::all_158_logical_members_retain_lengths_hashes_and_counts",
+    "exit_code": 101,
+    "expected_failure": "compact literal loader and bundles not adopted"
+  },
+  "first_green_compile": {
+    "exit_code": 101,
+    "error": "four E0618 fixture-function/local-binding name collisions (initial x2, lock x2)",
+    "correction": "prefixed fixture-only wrapper function names literal_; successful named GREEN log retained"
+  },
+  "accessor_green": {
+    "exit_code": 0,
+    "passed": 1
+  },
+  "consumers": {
+    "exit_code": 0,
+    "exact_tests_passed": 49,
+    "details": "task-54-d7-fixture-custody-consumer-tests.json"
+  },
+  "clippy": {
+    "command": "CARGO_NET_OFFLINE=true CARGO_BUILD_JOBS=2 cargo clippy -p ckks-train-bench --all-features --all-targets -- -D warnings",
+    "exit_code": 0
+  },
+  "fmt": {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0
+  },
+  "final_custody_and_assertion_checks": {
+    "exit_code": 0
+  },
+  "preflight_green": {
+    "command": "python3 -B task-54-d7-fixture-custody-preflight.py green",
+    "exit_code": 0,
+    "accepted_records": 410,
+    "manifest_bytes": 54531,
+    "actual_physical_membership_equal": true
+  }
+}

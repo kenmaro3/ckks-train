@@ -1,0 +1,22 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 31.20s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::fixture_literals::all_158_logical_members_retain_lengths_hashes_and_counts ... FAILED
+
+failures:
+
+---- study_reference::document::fixture_literals::all_158_logical_members_retain_lengths_hashes_and_counts stdout ----
+
+thread 'study_reference::document::fixture_literals::all_158_logical_members_retain_lengths_hashes_and_counts' panicked at crates/ckks-train-bench/src/study_reference/document/fixture_literals.rs:5:5:
+compact literal loader and bundles not adopted
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    study_reference::document::fixture_literals::all_158_logical_members_retain_lengths_hashes_and_counts
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

@@ -2074,3 +2074,7 @@ pub(in crate::study_reference) fn check_verified_target_history(
         reference,
     )
 }
+
+#[cfg(test)]
+#[path = "document/fixture_literals.rs"]
+mod fixture_literals;

@@ -1,0 +1,26 @@
+{
+  "classification": "static inventory projection, not source preflight/build acceptance",
+  "observed_utc": "2026-11-07T20:51:13.832264+00:00",
+  "head": "4ff70c9c5e355ecb070576155fb5a084025d3ecb",
+  "reviewed_fix1_manifest_sha256": "43bee70ab13071e85da9bbded3f6ff773a2240fdfac57acba1074298dd6ff0d0",
+  "tracked_selected": 553,
+  "new_fixed_source_paths": [
+    "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/bundle.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/fix1_literals.json",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/literals.json",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/policy.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs",
+    "crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs"
+  ],
+  "proposed_before_compaction": 565,
+  "proposed_after_158_to_2_compaction_excluding_any_new_loader": 409,
+  "original_fixture_files_checked_unchanged": 160,
+  "source_cap_unchanged": 512,
+  "initial_inspection_error": "First root assertion compared 553 selected paths against observation.paths which contains only545 root paths; corrected by union with its eight fixed_files. Initial attempt exited1 before any artifact write or source mutation."
+}

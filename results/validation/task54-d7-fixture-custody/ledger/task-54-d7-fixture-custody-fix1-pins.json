@@ -1,0 +1,85 @@
+{
+  "status": "NEEDS_CONTEXT",
+  "source_frozen": true,
+  "source_changed": false,
+  "source_base": "ec2d2656f21e9139d3dde12abdce13d770ea2757",
+  "release_brief": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-brief.md",
+    "byte_length": 8900,
+    "sha256": "10280ebfbe8c28cbe2cc4ca420e6f1173f7c409e4fa69b9626f00d8f82fc9383"
+  },
+  "original_snapshot_manifest": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/fixture-custody-review-snapshot/snapshot-pins.json",
+    "byte_length": 13867,
+    "sha256": "8e212112f663f98956512cbd4d2e8cab0b16fc318e83e4b9715543a64a30e784"
+  },
+  "original43_preserved": true,
+  "snapshot43_preserved": true,
+  "all410_source_content_pins_unchanged": true,
+  "attempt_id": "task54-fixture-custody-fix1-attempt-01",
+  "actual_driver_exit_status": 1,
+  "actual_pure_preflight_invocations": 0,
+  "new_result_json": null,
+  "FC1": "OPEN: fresh driver failed before pure preflight; no accepted410 measurement",
+  "FC2": "historical final-accessor RED unmet; root-disposed before correction; final direct-accessor behavior GREEN-only",
+  "FC3": "missing complete original E0618 output disclosed; unavailable historically",
+  "mac_physical_equality": "historically failed/unestablished; not retested or repaired",
+  "clean_fixed_recipe_build": "not performed",
+  "artifacts": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+      "byte_length": 3701,
+      "sha256": "05bddd182529abe44071954e5749f5250926f10f304e770977daa906d8d11c05"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-controller.py",
+      "byte_length": 2363,
+      "sha256": "5d3aca3c7e1a3e633d6c82d022c10948cc61ff143c70427db19557e1fb329858"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.json",
+      "byte_length": 1436,
+      "sha256": "3ebfa7977e7fd435906ec827f1472f3a298f3cb609b24e184548f825533f953b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-test-inventory.md",
+      "byte_length": 1632,
+      "sha256": "e7a9ba4ba0a8daaa1e376c71d1c5d4801106bee8b9d288f28f47fafcd99a7c06"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-command.json",
+      "byte_length": 2373,
+      "sha256": "fe13a22c5221e53782b25bb6868d4d398268dabebd15261a2eccf7fe98eaafc5"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stdout.log",
+      "byte_length": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stderr.log",
+      "byte_length": 359,
+      "sha256": "a4fe71688da960587b8ea779c9f2f0aa1f106683464de28a4617c64e9672e356"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-process-outcome.json",
+      "byte_length": 1981,
+      "sha256": "52b383858c0491bfed9e7cfd988a61b96e2ac2848ee39e9c0c19064bd8c2d38c"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-preservation-check.json",
+      "byte_length": 106069,
+      "sha256": "f436b14946f7834e9ca4d8d1da405aa4794a993705eed49ee191276f234994cd"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-report.md",
+      "byte_length": 4279,
+      "sha256": "99033b5b50776ead6c950a8bd5e3dc1e3e3e8ee103ebf8922a8c83b4fa816d6f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1.diff",
+      "byte_length": 131331,
+      "sha256": "e9f0098b16e4596975c74be98f64fce9712a1eee415b7cff530c4f5abab699e7"
+    }
+  ]
+}

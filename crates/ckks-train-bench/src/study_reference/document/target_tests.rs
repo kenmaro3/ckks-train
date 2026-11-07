@@ -1,3 +1,4 @@
+use super::fixture_literals::target as target_literal;
 use super::target::*;
 use super::*;
 fn unhex(s: &str) -> Vec<u8> {
@@ -7,23 +8,25 @@ fn unhex(s: &str) -> Vec<u8> {
         .map(|p| u8::from_str_radix(std::str::from_utf8(p).unwrap(), 16).unwrap())
         .collect()
 }
-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
+fn literal_lock() -> &'static [u8] {
+    target_literal("lock.json").as_bytes()
+}
 #[test]
 fn independent_literal_lock_canonical_and_file_identity() {
-    let s = SyntheticTargetLock::parse(LOCK).unwrap();
+    let s = SyntheticTargetLock::parse(literal_lock()).unwrap();
     assert_eq!(
         s.canonical().unwrap(),
-        unhex(include_str!("../target_goldens/lock.canonical.hex"))
+        unhex(target_literal("lock.canonical.hex"))
     );
     assert_eq!(
-        sha256_hex(LOCK),
+        sha256_hex(literal_lock()),
         "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7"
     );
     assert_eq!(
         s.payload_sha256(),
         "62dabb2e01360ed99e79590b869ca38616fee2bbb8ed7572c240257688c87812"
     );
-    assert!(parse_lock(LOCK).is_err());
+    assert!(parse_lock(literal_lock()).is_err());
 }
 #[test]
 fn binary64_separate_operations_exact_vectors() {
@@ -70,21 +73,15 @@ fn auxiliary_ids_are_domain_separated_exact_canonical_bytes() {
         &["FICTIONAL-CAMPAIGN", "FICTIONAL-PROFILE"],
     )
     .unwrap();
-    assert_eq!(
-        p,
-        unhex(include_str!("../target_goldens/profile-slot.canonical.hex"))
-    );
-    assert_eq!(
-        l,
-        unhex(include_str!("../target_goldens/lock-id.canonical.hex"))
-    );
+    assert_eq!(p, unhex(target_literal("profile-slot.canonical.hex")));
+    assert_eq!(l, unhex(target_literal("lock-id.canonical.hex")));
     assert_eq!(
         sha256_hex(&l),
         "bc1c2add0a5e7deac620b2fe9606f1288d1db80d165bd85700b3864142d06aea"
     );
 }
 fn value() -> serde_json::Value {
-    serde_json::from_slice(LOCK).unwrap()
+    serde_json::from_slice(literal_lock()).unwrap()
 }
 fn parse_value(v: &serde_json::Value) -> Result<SyntheticTargetLock> {
     SyntheticTargetLock::parse(&serde_json::to_vec(v).unwrap())
@@ -98,19 +95,19 @@ fn every_required_lock_field_and_unknown_decoded_duplicate_keys_reject() {
         assert!(parse_value(&bad).is_err(), "missing {key}");
     }
     for raw in [
-        include_bytes!("../target_goldens/duplicate-escaped-key.negative.json").as_slice(),
-        include_bytes!("../target_goldens/unknown-field.negative.json").as_slice(),
-        include_bytes!("../target_goldens/escaped-large-hex.negative.json").as_slice(),
-        include_bytes!("../target_goldens/bits-value-disagree.negative.json").as_slice(),
-        include_bytes!("../target_goldens/target-one-ulp-up.negative.json").as_slice(),
-        include_bytes!("../target_goldens/unsupported-domain.negative.json").as_slice(),
-        include_bytes!("../target_goldens/unsupported-hash.negative.json").as_slice(),
-        include_bytes!("../target_goldens/wrong-identity-hash.negative.json").as_slice(),
-        include_bytes!("../target_goldens/wrong-payload-hash.negative.json").as_slice(),
-        include_bytes!("../target_goldens/mismatched-source-schema.negative.json").as_slice(),
-        include_bytes!("../target_goldens/production-header-false.negative.json").as_slice(),
-        include_bytes!("../target_goldens/production-header-true.negative.json").as_slice(),
-        include_bytes!("../target_goldens/test-header-false.negative.json").as_slice(),
+        target_literal("duplicate-escaped-key.negative.json").as_bytes(),
+        target_literal("unknown-field.negative.json").as_bytes(),
+        target_literal("escaped-large-hex.negative.json").as_bytes(),
+        target_literal("bits-value-disagree.negative.json").as_bytes(),
+        target_literal("target-one-ulp-up.negative.json").as_bytes(),
+        target_literal("unsupported-domain.negative.json").as_bytes(),
+        target_literal("unsupported-hash.negative.json").as_bytes(),
+        target_literal("wrong-identity-hash.negative.json").as_bytes(),
+        target_literal("wrong-payload-hash.negative.json").as_bytes(),
+        target_literal("mismatched-source-schema.negative.json").as_bytes(),
+        target_literal("production-header-false.negative.json").as_bytes(),
+        target_literal("production-header-true.negative.json").as_bytes(),
+        target_literal("test-header-false.negative.json").as_bytes(),
     ] {
         assert!(SyntheticTargetLock::parse(raw).is_err());
         assert!(parse_lock(raw).is_err());

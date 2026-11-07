@@ -1,0 +1,38 @@
+{
+  "attempt_id": "task54-fixture-custody-fix1-attempt-01",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+    "--attempt-id",
+    "task54-fixture-custody-fix1-attempt-01",
+    "--output",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-result.json"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "driver": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py",
+    "byte_length": 3701,
+    "sha256": "05bddd182529abe44071954e5749f5250926f10f304e770977daa906d8d11c05"
+  },
+  "command_metadata": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-command.json",
+    "byte_length": 2373,
+    "sha256": "fe13a22c5221e53782b25bb6868d4d398268dabebd15261a2eccf7fe98eaafc5"
+  },
+  "started_utc": "2026-11-07T21:15:41.288540+00:00",
+  "finished_utc": "2026-11-07T21:15:41.426386+00:00",
+  "actual_exit_status": 1,
+  "stdout": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stdout.log",
+    "byte_length": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-attempt-01-stderr.log",
+    "byte_length": 359,
+    "sha256": "a4fe71688da960587b8ea779c9f2f0aa1f106683464de28a4617c64e9672e356"
+  },
+  "result": null,
+  "exit_status_propagated": true
+}

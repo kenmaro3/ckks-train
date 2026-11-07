@@ -1,1 +1,196 @@
-../../THIRD_PARTY_NOTICES
+ckks-train third-party notices
+==============================
+
+hekit is licensed under the MIT License (see LICENSE). Parts of it are derived from, or
+written to reproduce bit for bit, the third-party software listed below. Their copyright and
+permission notices are reproduced here as their licenses require.
+
+
+1. Microsoft SEAL 4.1.2
+-----------------------
+
+Source: https://github.com/microsoft/SEAL (version 4.1.2), MIT License.
+
+Ported from SEAL (derived code):
+
+- crates/ckks-train-ckks/src/encoder.rs: the bit-reversed negacyclic DWT
+  (util::DWTHandler::transform_to_rev / transform_from_rev), the complex root table
+  (util::ComplexRoots) and the CKKSEncoder slot index map (matrix_reps_index_map_), ported
+  so that encodings agree with SEAL coefficient by coefficient.
+
+Written against the SEAL 4.1.2 sources to reproduce its results or formats (interop):
+
+- crates/ckks-train-ckks/src/params.rs: the prime assignment order of CoeffModulus::Create.
+- crates/ckks-train-core/src/baseconv.rs: the formulas of BaseConverter::fast_convert_array and
+  of divide_and_round_q_last (rescale / mod_down) for one special prime.
+- crates/ckks-train-core/src/ntt.rs: the NTT root and storage conventions.
+- crates/ckks-train-ckks/src/seal_compat.rs: the SEAL serialization format (SEALHeader,
+  Ciphertext / Plaintext / key layouts) and parms_id. The BLAKE2b used for parms_id is an
+  independent implementation from RFC 7693, not SEAL code.
+- crates/ckks-train-ckks/src/encoder.rs (tests): known-answer values printed by SEAL.
+
+Not distributed with hekit: the tools under tools/seal-kat/ and the spikes under spikes/
+build against SEAL fetched by CMake FetchContent; no SEAL source file is vendored in this
+repository.
+
+SEAL's LICENSE:
+
+    MIT License
+
+    Copyright (c) Microsoft Corporation. All rights reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+
+Data sets
+---------
+
+- Iris (R. A. Fisher, 1936), UCI Machine Learning Repository,
+  https://doi.org/10.24432/C56C76, CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). The bundled file is
+  crates/ckks-train-bench/data/iris.csv, sourced from the scikit-learn data copy;
+  its local checksum and source are recorded in the data README.
+- MNIST (Yann LeCun, Corinna Cortes, Christopher J. C. Burges),
+  http://yann.lecun.com/exdb/mnist/. Not distributed here; scripts/fetch_mnist.sh
+  obtains the data separately. This acknowledgement does not relicense the data.
+- Breast Cancer Wisconsin (Diagnostic), UCI WDBC, by William H. Wolberg, W. Nick Street and
+  Olvi L. Mangasarian (UCI Machine Learning Repository, https://doi.org/10.24432/C5DW2B),
+  licensed under Creative Commons Attribution 4.0 International (CC BY 4.0,
+  https://creativecommons.org/licenses/by/4.0/). Distributed unmodified as
+  crates/ckks-train-bench/data/breast_cancer.csv (UCI's wdbc.data, renamed); source URL and
+  sha256 in crates/ckks-train-bench/data/README.md.
+- Fashion-MNIST (Han Xiao, Kashif Rasul, Roland Vollgraf; Copyright (c) 2017 Zalando SE,
+  MIT License, https://github.com/zalandoresearch/fashion-mnist) is not distributed with
+  hekit: scripts/fetch_fashion_mnist.sh downloads it from the official repository into the
+  gitignored data/fashion_mnist/.
+
+
+Acknowledgements (no code derived)
+----------------------------------
+
+The projects below informed algorithmic choices. No source file of theirs was read for, copied
+into or ported to hekit, so their licenses impose no notice; they are listed for credit only.
+
+- Lattigo (https://github.com/tuneinsight/lattigo, Apache-2.0): the baby-step split rule of
+  the level-optimal Chebyshev evaluation (crates/ckks-train-ckks/src/bootstrap/poly.rs,
+  optimal_split), a cost formula known from the Lattigo implementation of Bossuat, Mouchet,
+  Troncoso-Pastoriza and Hubaux (Eurocrypt 2021), reimplemented from the formula.
+
+
+Dependencies under licenses other than MIT / Apache-2.0 / BSD
+-------------------------------------------------------------
+
+hekit links these crates as ordinary dependencies (no code of theirs is copied into hekit).
+They are listed so the license set stays visible.
+
+- libloading 0.8 (https://github.com/nagisa/rust_libloading), ISC License. Pulled in by
+  cudarc for dynamic loading of the CUDA driver/NVRTC in crates/ckks-train-cuda (feature `cuda`
+  only). ISC is an OSI-approved permissive license equivalent to MIT; accepted by planner
+  ruling on 2026-11-05.
+
+
+rustix 1.1.6 (MIT license alternative)
+--------------------------------------
+
+Source: https://github.com/bytecodealliance/rustix (crate version 1.1.6).
+ckks-train selects the MIT alternative for this dependency. The Linux-only
+ckks-train-bench dependency enables std/fs with default features disabled and
+uses safe filesystem APIs for anonymous-file publication and retained descriptors.
+The crate version was already present in Cargo.lock; the direct dependency edge
+was added in commit 71d3f0937741a4ff8d156b36540332ea82203d3c.
+No rustix implementation source is copied into this repository.
+ckks-train-bench remains publish=false; this notice records the repository's
+dependency choice and does not claim a crates.io release or a tested binary package.
+
+The following text is reproduced verbatim from rustix 1.1.6 LICENSE-MIT:
+
+    Permission is hereby granted, free of charge, to any
+    person obtaining a copy of this software and associated
+    documentation files (the "Software"), to deal in the
+    Software without restriction, including without
+    limitation the rights to use, copy, modify, merge,
+    publish, distribute, sublicense, and/or sell copies of
+    the Software, and to permit persons to whom the Software
+    is furnished to do so, subject to the following
+    conditions:
+
+    The above copyright notice and this permission notice
+    shall be included in all copies or substantial portions
+    of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+    SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+    IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+
+Unicode character data (scoped dependency exception)
+----------------------------------------------------
+
+The transitive dependency unicode-ident 1.0.27 declares
+(MIT OR Apache-2.0) AND Unicode-3.0. Its character-property data adds the
+Unicode-3.0 requirement. The user approved this Unicode-table-only exception
+on 2026-11-06. deny.toml restricts it to unicode-ident =1.0.27; it does not
+allow Unicode-3.0 for other crates or versions. The library itself remains MIT.
+Source: https://github.com/dtolnay/unicode-ident (crate version 1.0.27)
+
+    UNICODE LICENSE V3
+
+    COPYRIGHT AND PERMISSION NOTICE
+
+    Copyright © 1991-2023 Unicode, Inc.
+
+    NOTICE TO USER: Carefully read the following legal agreement. BY
+    DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+    SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+    TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+    DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of data files and any associated documentation (the "Data Files") or
+    software and any associated documentation (the "Software") to deal in the
+    Data Files or Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, and/or sell
+    copies of the Data Files or Software, and to permit persons to whom the
+    Data Files or Software are furnished to do so, provided that either (a)
+    this copyright and permission notice appear with all copies of the Data
+    Files or Software, or (b) this copyright and permission notice appear in
+    associated Documentation.
+
+    THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+    KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+    THIRD PARTY RIGHTS.
+
+    IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+    BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+    OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+    WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+    FILES OR SOFTWARE.
+
+    Except as contained in this notice, the name of a copyright holder shall
+    not be used in advertising or otherwise to promote the sale, use or other
+    dealings in these Data Files or Software without prior written
+    authorization of the copyright holder.

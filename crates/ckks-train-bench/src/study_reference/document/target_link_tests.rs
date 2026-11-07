@@ -1,12 +1,17 @@
+use super::super::fixture_literals::target as target_literal;
 use super::*;
-const LOCK: &[u8] = include_bytes!("../target_goldens/lock.json");
-const REFERENCE_BYTES: &[u8] = include_bytes!("../target_goldens/reference.json");
+fn literal_lock() -> &'static [u8] {
+    target_literal("lock.json").as_bytes()
+}
+fn literal_reference_bytes() -> &'static [u8] {
+    target_literal("reference.json").as_bytes()
+}
 struct SyntheticReference {
     reference: ReferenceLink,
     contract: Vec<u8>,
 }
 fn synthetic_reference() -> SyntheticReference {
-    let v: Value = serde_json::from_slice(REFERENCE_BYTES).unwrap();
+    let v: Value = serde_json::from_slice(literal_reference_bytes()).unwrap();
     let field = |key: &str| serde_json::value::to_raw_value(&v[key]).unwrap();
     let identity = ClaimedIdentity::decode(&field("identity"), "identity").unwrap();
     let completion = Completion::decode(&field("completion"), "completion").unwrap();
@@ -19,7 +24,7 @@ fn synthetic_reference() -> SyntheticReference {
             schema: Text::decode(&field("schema"), "schema").unwrap(),
             kind: Kind::decode(&field("kind"), "kind").unwrap(),
             link: Link {
-                file_sha256: Hash(sha256_hex(REFERENCE_BYTES)),
+                file_sha256: Hash(sha256_hex(literal_reference_bytes())),
                 payload_sha256: Hash(
                     "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d".into(),
                 ),
@@ -58,9 +63,9 @@ fn synthetic_reference() -> SyntheticReference {
 #[test]
 fn literal_synthetic_reference_links_every_projection_field() {
     let source = synthetic_reference();
-    let lock = SyntheticTargetLock::parse(LOCK).unwrap();
+    let lock = SyntheticTargetLock::parse(literal_lock()).unwrap();
     source_matches(&lock.0, &source.reference, &source.contract).unwrap();
-    let raw: Value = serde_json::from_slice(LOCK).unwrap();
+    let raw: Value = serde_json::from_slice(literal_lock()).unwrap();
     fn leaf_paths(v: &Value, p: String, out: &mut Vec<String>) {
         match v {
             Value::Object(m) => {
@@ -102,7 +107,7 @@ fn literal_synthetic_reference_links_every_projection_field() {
         }
     }
     for i in 0..source.contract.len() {
-        let mut bad = decode_lock(LOCK).unwrap();
+        let mut bad = decode_lock(literal_lock()).unwrap();
         bad.contract.bytes[i] ^= 255;
         bad.contract.sha256 = Hash(sha256_hex(&bad.contract.bytes));
         bad.integrity.payload_sha256 = Hash(sha256_hex(&bad.canonical().unwrap()));
@@ -113,14 +118,15 @@ fn literal_synthetic_reference_links_every_projection_field() {
 fn digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject() {
     let source = synthetic_reference();
     for which in 0..8 {
-        let mut bad = decode_lock(LOCK).unwrap();
+        let mut bad = decode_lock(literal_lock()).unwrap();
         match which {
             0 => std::mem::swap(
                 &mut bad.reference.link.file_sha256,
                 &mut bad.reference.link.payload_sha256,
             ),
             1 => {
-                bad.reference.link.file_sha256 = Hash(sha256_hex(&[REFERENCE_BYTES, b" "].concat()))
+                bad.reference.link.file_sha256 =
+                    Hash(sha256_hex(&[literal_reference_bytes(), b" "].concat()))
             }
             2 => bad.reference.seed = 7,
             3 => bad.reference.completion.final_endpoint_index += 1,
@@ -150,9 +156,9 @@ fn digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject() 
 }
 #[test]
 fn every_policy_binding_rejects_rehashed_substitution() {
-    let baseline = decode_lock(LOCK).unwrap();
+    let baseline = decode_lock(literal_lock()).unwrap();
     let mut values = Vec::new();
-    let v: Value = serde_json::from_slice(LOCK).unwrap();
+    let v: Value = serde_json::from_slice(literal_lock()).unwrap();
     for field in [
         "scientific_revision",
         "scientific_sha256",
@@ -189,7 +195,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only() 
         common: Common,
         body: ReferenceBody,
     }
-    let v: Value = serde_json::from_slice(REFERENCE_BYTES).unwrap();
+    let v: Value = serde_json::from_slice(literal_reference_bytes()).unwrap();
     let field = |key: &str| serde_json::value::to_raw_value(&v[key]).unwrap();
     let mut reference = SyntheticReferenceDocument {
         common: Common {
@@ -202,7 +208,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only() 
             arithmetic: Arithmetic::decode(&field("arithmetic"), "arithmetic").unwrap(),
             provenance: ProvenanceClaim::decode(&field("provenance"), "provenance").unwrap(),
             integrity: Integrity::decode(&field("integrity"), "integrity").unwrap(),
-            file_sha256: sha256_hex(REFERENCE_BYTES),
+            file_sha256: sha256_hex(literal_reference_bytes()),
         },
         body: ReferenceBody {
             identity: ClaimedIdentity::decode(&field("identity"), "identity").unwrap(),
@@ -225,7 +231,7 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only() 
     let canonical = reference_encoding(&reference.common, &reference.body)
         .unwrap()
         .bytes;
-    let expected = include_str!("../target_goldens/reference.canonical.hex")
+    let expected = target_literal("reference.canonical.hex")
         .trim()
         .as_bytes()
         .chunks_exact(2)
@@ -236,5 +242,5 @@ fn independent_literal_reference_uses_unchanged_inherited_record_encoder_only() 
         sha256_hex(&canonical),
         "26c0d842f9e02f547e8fb6678f5d7550aa9326d05c91f568ba157bf652e1762d"
     );
-    assert!(parse_reference_document(REFERENCE_BYTES).is_err());
+    assert!(parse_reference_document(literal_reference_bytes()).is_err());
 }

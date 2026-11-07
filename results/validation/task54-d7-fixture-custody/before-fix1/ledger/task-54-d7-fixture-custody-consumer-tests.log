@@ -1,0 +1,490 @@
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_member_order_does_not_choose_canonical_order -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_member_order_does_not_choose_canonical_order ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_canonical_bytes_cannot_escape_outer_budget -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_canonical_bytes_cannot_escape_outer_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.02s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::execution_binding_tests::d7_outer_six_frozen_independent_vectors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::execution_binding_tests::d7_outer_payload_checked_live_intervals -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::execution_binding_tests::d7_outer_payload_checked_live_intervals ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::execution_binding_tests::d7_outer_transport_bounds_refuse_without_route_authority -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::execution_binding_tests::d7_outer_transport_bounds_refuse_without_route_authority ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target::linkage_tests::literal_synthetic_reference_links_every_projection_field -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target::linkage_tests::literal_synthetic_reference_links_every_projection_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.02s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target::linkage_tests::digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target::linkage_tests::digest_confusion_whitespace_source_clock_and_endpoint_substitutions_reject ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target::linkage_tests::every_policy_binding_rejects_rehashed_substitution -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target::linkage_tests::every_policy_binding_rejects_rehashed_substitution ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target::linkage_tests::independent_literal_reference_uses_unchanged_inherited_record_encoder_only -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target::linkage_tests::independent_literal_reference_uses_unchanged_inherited_record_encoder_only ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::binary64_separate_operations_exact_vectors -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::binary64_separate_operations_exact_vectors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::auxiliary_ids_are_domain_separated_exact_canonical_bytes -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::auxiliary_ids_are_domain_separated_exact_canonical_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::every_required_lock_field_and_unknown_decoded_duplicate_keys_reject -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::every_required_lock_field_and_unknown_decoded_duplicate_keys_reject ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::target_rejects_one_ulp_neighbors_negative_zero_nonfinite_and_f32 -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::target_rejects_one_ulp_neighbors_negative_zero_nonfinite_and_f32 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::target_layout_exempts_only_exact_contract_path_and_charges_all_outer_bytes -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::target_layout_exempts_only_exact_contract_path_and_charges_all_outer_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.02s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::maximal_individual_manifest_already_overflows_aggregate_outer_budget -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::maximal_individual_manifest_already_overflows_aggregate_outer_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::bounded_integer_list_depth_and_decoded_string_limits -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::bounded_integer_list_depth_and_decoded_string_limits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::target_tests::exact_rational_substitution_fails_observation_before_payload_integrity -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::target_tests::exact_rational_substitution_fails_observation_before_payload_integrity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_independent_all_ten_branches -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_independent_all_ten_branches ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_auxiliary_and_quick_exact_json ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_concrete_representation_mutations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_full_quick_exact_claims_and_nonpromotion -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_full_quick_exact_claims_and_nonpromotion ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_quick_event_links_policies_argv_and_context -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_quick_event_links_policies_argv_and_context ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_strict_json_and_caps ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_request_consumption_retained_comparisons -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_request_consumption_retained_comparisons ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_authority_resource_and_closed_branches ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_all_literals_closed_tags_and_trailing ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_target_expected_claims_and_file_identity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_implementation_ni_mandatory_and_missing ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_quick_failed_outcomes_and_binary_argv -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_quick_failed_outcomes_and_binary_argv ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_request_shared_p3_traversal_and_all_original_limits -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_request_shared_p3_traversal_and_all_original_limits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_production_mixed_nested_domains_tail_and_length_refusals -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_production_mixed_nested_domains_tail_and_length_refusals ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::evidence::tests::d7_evidence_shared_predecessors_and_clock_claims -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::tests::d7_evidence_shared_predecessors_and_clock_claims ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.09s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::retained_c1_current_and_prior_share_one_verified_target_representation -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.27s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::retained_c1_current_and_prior_share_one_verified_target_representation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.01s
+
+
+COMMAND: cargo test -p ckks-train-bench --lib study_reference::document::admission::tests::retained_c1_exact_file_payload_and_stale_self_are_distinct -- --exact --test-threads=1
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::admission::tests::retained_c1_exact_file_payload_and_stale_self_are_distinct ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+

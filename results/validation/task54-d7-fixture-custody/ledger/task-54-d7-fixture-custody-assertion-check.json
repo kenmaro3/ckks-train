@@ -1,0 +1,38 @@
+[
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+    "original_tests": 7,
+    "preserved_assertions": 23,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs",
+    "original_tests": 3,
+    "preserved_assertions": 14,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs",
+    "original_tests": 4,
+    "preserved_assertions": 9,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/target_tests.rs",
+    "original_tests": 9,
+    "preserved_assertions": 28,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
+    "original_tests": 15,
+    "preserved_assertions": 22,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/admission_tests.rs",
+    "original_tests": 11,
+    "preserved_assertions": 88,
+    "all_post_first_test_tokens_equal_after_fixture_substitutions": true
+  }
+]

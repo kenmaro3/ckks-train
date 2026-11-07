@@ -3,12 +3,7 @@ use super::execution_binding::ExecutionFields;
 use ckks_train_ckks::EvalConfig;
 use serde_json::Value;
 fn fixture(name: &str) -> String {
-    std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/study_reference/target_goldens")
-            .join(name),
-    )
-    .unwrap()
+    super::fixture_literals::target(name).to_owned()
 }
 fn literal(s: &str) -> Vec<u8> {
     s.trim()

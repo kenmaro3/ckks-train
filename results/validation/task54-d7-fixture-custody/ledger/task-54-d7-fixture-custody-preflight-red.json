@@ -1,0 +1,2836 @@
+{
+  "mode": "red",
+  "source_records": 565,
+  "source_bytes": 12812789,
+  "maximum_source_file_bytes": 2626323,
+  "records": [
+    {
+      "path": "Cargo.lock",
+      "byte_length": 20584,
+      "sha256": "e5059c771e93261c6fecf855f7a2d8ab052021f62cadafddbb23c43fa2f216c3"
+    },
+    {
+      "path": "Cargo.toml",
+      "byte_length": 614,
+      "sha256": "7d0943095542c31ca1ab1038c59af8efe5a6bd621ba890c8f8fa28f0c4dc52c4"
+    },
+    {
+      "path": "crates/ckks-train-bench/Cargo.toml",
+      "byte_length": 1640,
+      "sha256": "fc698bca60c78aa259180e6cd238514cb9e83bdb780a70e3c0287831b6a438b4"
+    },
+    {
+      "path": "crates/ckks-train-bench/README.md",
+      "byte_length": 2551,
+      "sha256": "b546cfcaf3056d1ee67f33f4b07c66a96f9be5e962a5a99ccb96ad0b4714b920"
+    },
+    {
+      "path": "crates/ckks-train-bench/benches/ckks_ops.rs",
+      "byte_length": 5879,
+      "sha256": "34166f480911b86f142d9251d214c2e83d014bf44ec77ff8a305c25f74c562ba"
+    },
+    {
+      "path": "crates/ckks-train-bench/benches/cuda_ops.rs",
+      "byte_length": 16897,
+      "sha256": "8c484a5c52b0b5b1f4f411a2b41341a22f35028e2f50fe815a9c2146d9f5e2a9"
+    },
+    {
+      "path": "crates/ckks-train-bench/build.rs",
+      "byte_length": 4557,
+      "sha256": "3608ed38370f611095dae58d52ed537420b0b570b86db8992b785be98679805b"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/bc_mlp.json",
+      "byte_length": 2605,
+      "sha256": "10c41e08a57a62b7c2cff23872eaa8a5718d60e6ca36893d5e120ccbeddda004"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/experiment_input_locks.json",
+      "byte_length": 3696,
+      "sha256": "cc04f6f7451b0ec99416e10d14c2bf6b2eaf5f703c8de43d500cac3e40da126b"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/experiment_matrix.json",
+      "byte_length": 96937,
+      "sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/fmnist_emlp1.json",
+      "byte_length": 2104,
+      "sha256": "b832169466140cc68bb7271fe40bd06c1fc544137b49db0dd8c51a2d629defbb"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/mnist_emlp1_paper.json",
+      "byte_length": 1676,
+      "sha256": "aae695cf39d5faba35a9da27c5d7e042e15695c7505a57c0359f476d822e9f19"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp1.json",
+      "byte_length": 337,
+      "sha256": "6f4f37ed7e0e53110dddab0f9083e954ae9650781cb9e87905644b29a3c524e7"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp1_faithful.json",
+      "byte_length": 3199,
+      "sha256": "94ea76155ccd7e2e862923ea239f7f737b6f8ca6d8ed3263575909081751f276"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp2.json",
+      "byte_length": 4095,
+      "sha256": "d9c77e5f6fcd191be38424013edd9a28131276f5834902dff49179c652a0dce0"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/reboot_emlp3.json",
+      "byte_length": 4476,
+      "sha256": "89d06b3754d4041ee5d38e8973ae189125e9f203aa291845360440847b59aaa9"
+    },
+    {
+      "path": "crates/ckks-train-bench/data/README.md",
+      "byte_length": 2263,
+      "sha256": "154aedb250ad205b5f914bbfd716348dd87fde75566dfc8ffb87043ad5792320"
+    },
+    {
+      "path": "crates/ckks-train-bench/data/breast_cancer.csv",
+      "byte_length": 124103,
+      "sha256": "d606af411f3e5be8a317a5a8b652b425aaf0ff38ca683d5327ffff94c3695f4a"
+    },
+    {
+      "path": "crates/ckks-train-bench/data/iris.csv",
+      "byte_length": 2756,
+      "sha256": "874d28c2148c94ac8bed1b98ab1d93d27a473f72b2a712b06833f49b3259e54d"
+    },
+    {
+      "path": "crates/ckks-train-bench/data/iris_split_seed2020.txt",
+      "byte_length": 705,
+      "sha256": "9da646715cfa3f2bd0e800680ff987fe066a4e0403cc2acf25ca90b8cf02cf12"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/backend.rs",
+      "byte_length": 24648,
+      "sha256": "438374d71775c0690f67ab0e9ebaba16b288e84e7fbd7db4d02796c3ac578358"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/ablation.rs",
+      "byte_length": 32244,
+      "sha256": "e9c442d3b931bc3700f3a73e09da13951bda0de0655d40f5d941adaf6bc9a7d3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/iris.rs",
+      "byte_length": 55957,
+      "sha256": "76e8f54c90df8b03cb84d63de2e8ea88d7de3d8898beed20917a27e98147b328"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/mnist.rs",
+      "byte_length": 156641,
+      "sha256": "cca13bb73603fdac4b21a72c56729f4e0a803c55e4addb2828a1862cb1564f7c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/mnist/blocks.rs",
+      "byte_length": 50016,
+      "sha256": "0687e4a5f0f54d638fbe1292acf57f025409b7ba333faf98e034152c9e7079fa"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/mnist_reboot_layout.rs",
+      "byte_length": 23184,
+      "sha256": "51a975cf80d55fcadf183fd1571f79e070e34b7eb79ea0624427a39323aae28e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/plain.rs",
+      "byte_length": 32252,
+      "sha256": "d2bc78c717ce97ae49738e84254dac850a10e7234e9ecfa7568bdac98c92fc9d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/study_train.rs",
+      "byte_length": 340,
+      "sha256": "4fe66a2c40efb0b883f28c03a96a485835c3d726457910fc622a50979983c252"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/data.rs",
+      "byte_length": 61527,
+      "sha256": "d9c3e97d2ae37bf22d5a960fd5b4997235bdff4bd4db0f0a82e2be697685fa94"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/lib.rs",
+      "byte_length": 791,
+      "sha256": "d302a7f69fc54ae7cd8174283b26c9de7ea3a4fe2e8ab71dfedff26ddaa9cdd0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/profile_data.rs",
+      "byte_length": 32199,
+      "sha256": "046206dba711343487bf9a40d41b124e0a65eb5bbfc684838d6b77224152de14"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/provenance.rs",
+      "byte_length": 6691,
+      "sha256": "19896fcb83b7be20520123829fa9b62ab93e4499c626397377192cbdee7dd34c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission.rs",
+      "byte_length": 145973,
+      "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs",
+      "byte_length": 9700,
+      "sha256": "c2426266444120b084ed3351696f0a7b42376f09b24b1589f5642e98ac71c1f7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission/p5_fixtures.rs",
+      "byte_length": 8915,
+      "sha256": "5e72a14b3adf70946e20f087d4ab0c1371c3b723f0c1fae0593129c8f7b5e435"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_blocks.rs",
+      "byte_length": 57364,
+      "sha256": "0c9fca750faeac190626744bb8d16c81c1215557a209a7aa28c2ad315ce99adc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_blocks/p5_tests.rs",
+      "byte_length": 38714,
+      "sha256": "94908fa7f701fc6e638d407586808e2d4022c6226d524bc4354e8efa5de355f2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client.rs",
+      "byte_length": 42402,
+      "sha256": "f043916ef3801c2c4c3bafa122f0d4dd5980a748f4f83926f792cd137ce4ec0d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client/blocks.rs",
+      "byte_length": 29864,
+      "sha256": "ce8dc1ef0d42c8c4c0832dd418059dadb8eba15470b6e9176ef0391169465f40"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_diagonal.rs",
+      "byte_length": 42002,
+      "sha256": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs",
+      "byte_length": 36323,
+      "sha256": "21bab33949e21ec3178dcdc717265cd838cd1fe9b79ff4693fd4c2d67abfc0bc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution.rs",
+      "byte_length": 29051,
+      "sha256": "7aea7dc643cac55926935f4264e18f5bc480dfd8c5beee4f24771f33f8f6ff6a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs",
+      "byte_length": 5799,
+      "sha256": "d85772f75be08af076f1ca5424dbf385ec266cfa0ea75b1f0bea7b317f8ab64e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution/cpu_continuation.rs",
+      "byte_length": 21387,
+      "sha256": "f6695959663fd1fcff206d6e04f4092154d7ed68344bb9aa58339fcdfce82e67"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_inputs.rs",
+      "byte_length": 66327,
+      "sha256": "fd641f27fc454ad85eb3c1ef67db759459a1ad22dc2a42dff15373c9650063a9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_plain.rs",
+      "byte_length": 41051,
+      "sha256": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs",
+      "byte_length": 26285,
+      "sha256": "e062bc2678a205431ea2fcd522cfb4351795bd375a7aa073c3204d12915813f8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs",
+      "byte_length": 38833,
+      "sha256": "cd580c14c8f6aa8099c113701890ec2231bb5b162f2375b63103c6562dcdb99e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile.rs",
+      "byte_length": 79141,
+      "sha256": "eaaf3ad085f1a347b664099f720a1ad2fb068ada66939baf60c3c6bbefe3670f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/registered_case.rs",
+      "byte_length": 24488,
+      "sha256": "4ce1738959718d23e6265c2ae17f4d4507a30ed0260fb13bc965affa26067404"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/registered_case_tests.rs",
+      "byte_length": 5560,
+      "sha256": "9a81b5bb15e0c8f80355fb9be2daf3d40ee67e5c756b98d9ac50095549cb37b3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance.rs",
+      "byte_length": 1594,
+      "sha256": "85c23881b074eedf1eb83f61bf5c22dcb8b65399be70749f038ce1e026ec6566"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/codec.rs",
+      "byte_length": 35826,
+      "sha256": "4e204cd43315748ecbe358d2fac264128c572a22ee25755c22ca6e16b1768f98"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/context.rs",
+      "byte_length": 52987,
+      "sha256": "31454576d90d557ef1950d3b45e4d404a4630fc29b862d5fa6fd3e3360263aa3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/context_tests.rs",
+      "byte_length": 16449,
+      "sha256": "9452c6150cab27e3f3506d0cf0e40ae90b8a0a8c67afd9ce75a4b8b5507e2558"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/README.md",
+      "byte_length": 527,
+      "sha256": "04692d6a5fd2798af0d43102528e4f639024057d1b6ef24f66e54ad0e4b2f70e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/SHA256SUMS",
+      "byte_length": 3024,
+      "sha256": "13a06fe20db9250eafc2a6438f76426a52f1d659ad8be617d5d7c6932d468136"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/approval.hex",
+      "byte_length": 2028,
+      "sha256": "b930a099fcf68700a215703dbb2b344ca4ce7ac786da7e8d4721255212c4dba0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/capsule.hex",
+      "byte_length": 2663,
+      "sha256": "cbe4ded54780df3e8bf4392a9708415981c8d0c17ddc3788857347967c085bf7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/capsule_debug1.hex",
+      "byte_length": 2663,
+      "sha256": "3d7f522ef60560213cbe2442c1dbc4bc9f323d708c0044bff520ff6f53a584eb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/environment.hex",
+      "byte_length": 283,
+      "sha256": "7c0963200cbc70c3bc98a89cd0ca134fc368b49080962a58a28a5fb90473fe25"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/environment_absent_to_empty.hex",
+      "byte_length": 299,
+      "sha256": "d90c0ac46574231f935f1ce3631f9fb359643e11c1dcb17e4fdc2207de0bd0b9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/files_config.hex",
+      "byte_length": 336,
+      "sha256": "177429bb1c27d274ce8df3627629e8cf40e694e48c700d8f1397f7388afa2567"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/files_dependency.hex",
+      "byte_length": 827,
+      "sha256": "b8a89fcff36141bcd8b819c35cf44aeff15db1e655b3bcf89d0fca4cf5f9fb63"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/files_source.hex",
+      "byte_length": 518,
+      "sha256": "50bcbbc7b4372036d26620d1a791c373af8508ec06fa675a10bd3f07e8282e36"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/files_toolchain.hex",
+      "byte_length": 713,
+      "sha256": "77ff9ee67b5d81781cf28a57bea5870cbab04f0b1cd8f4b6659be0670effbc0e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/fixture_inputs.json",
+      "byte_length": 5220,
+      "sha256": "c5bf50b316636681f33944a70081b75ef939d5099efe6f9ac391a0123d4faec8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/receipt.hex",
+      "byte_length": 7449,
+      "sha256": "b8d8476683ef7a8e18d42d9a818c36a848c16565149869c2e48269851d561541"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/receipt_second_build.hex",
+      "byte_length": 7449,
+      "sha256": "4ca40a859edf5ef21cb7b49bb76359ee299039ae07dda3f052ae1b663755f9bf"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/README.md",
+      "byte_length": 627,
+      "sha256": "eb3b6626690bcd45a1a25355c9229989b4f678ac314161c7cb8cf2114fd0bf33"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/index.json",
+      "byte_length": 103215,
+      "sha256": "ce9cd1897e4629636a12f1c1b78880130fb4438f0610e30736029778a2e96cbb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/literals.json",
+      "byte_length": 777479,
+      "sha256": "df44e5a96cadab9014ee4a2200ad28afafdac14a584c740f9f84a54d4ef516fc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/metadata.json",
+      "byte_length": 321273,
+      "sha256": "6918f766612ca1c05948ddfe3b916640baaa620b525886a2ec4a06f8aceffe7d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/obligations.json",
+      "byte_length": 5184,
+      "sha256": "7e1f8d0f0829642ad4fc2920dcbc766fbb62fd2727d43d48258344605fd99f1e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/roles/provenance.json",
+      "byte_length": 19349,
+      "sha256": "1c6b3c09a7a4b469187ebaa571cfd489e92c2b087dbbf784bd1e1380ba25aca8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_config_absent.hex",
+      "byte_length": 248,
+      "sha256": "7689221006f69965ab4cc95710b3bfd42b3600a2de727988b5cb9bde177f63d5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_config_regular.hex",
+      "byte_length": 395,
+      "sha256": "9a0eccb97b898653ec2e08848fb58cf16ffbf61ec164fdbe4a337e21acd929f2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_config_symlink.hex",
+      "byte_length": 277,
+      "sha256": "a6b96ca6ae1fd3e4b82b1c3adc20f045adadbe6c05a5c29ff4a0f524c7a767a0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_source_absent.hex",
+      "byte_length": 206,
+      "sha256": "bb8f82500c63933ffc4c2cce481408082aab67b4f95474b4d9e303e04eb8f9f7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_source_regular.hex",
+      "byte_length": 352,
+      "sha256": "176827bc0f2e56a622bfc3990cc79752212af7f89428692166f28f25c0b8aad2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/tag_source_symlink.hex",
+      "byte_length": 234,
+      "sha256": "46261100fdc269919c20776221eb95be2fcb0887b95f8fe88486dda6465d8e5f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/process.rs",
+      "byte_length": 7363,
+      "sha256": "5f7e9c2e132a79b71c971d45ce34337659c56aa8980bff42edde9f5b98525f88"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication.rs",
+      "byte_length": 37228,
+      "sha256": "4cb08e06dc57459e87784fc22cf1aa32904382fe716ec6bd46dc1a2f05666557"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
+      "byte_length": 20306,
+      "sha256": "311d1806eaf39642fc1b2904ac9a9e02569659fc079003d90baa2734d27b01af"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication_anonymous.rs",
+      "byte_length": 4617,
+      "sha256": "f6e8b4b4938ba3c30741b7d0f9fcc745395250d65abc8e3f4a91898c84c38038"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+      "byte_length": 37265,
+      "sha256": "8805757ca2a0c35b3a0fa351ff5b986bf6db3a6fa6f435c43d0e6b2e374c6fa4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication_test_hooks.rs",
+      "byte_length": 1273,
+      "sha256": "301801b16c8961483fb418d8f48e7f583a33fedf49f8f980ba7b82c6c3f73f6e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+      "byte_length": 26140,
+      "sha256": "94b2b128993d7276a670df2c67fe896e2e6a5195f262f359e3db4d61b5e59ff1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/role.rs",
+      "byte_length": 3438,
+      "sha256": "e9fa80564d313adc1ab4a74b1696fc6d00fe8a87628ec714941635b492d9ad91"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/role_tests.rs",
+      "byte_length": 4606,
+      "sha256": "71468ed696c0cb58a2ec09121440d580839b1ef193130bffa1895674041e0f92"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/train_capture.rs",
+      "byte_length": 9737,
+      "sha256": "6387702a2ef09d5e33037d65144afedcedcc532f3c66abb6d8cbde208de579ee"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs",
+      "byte_length": 5907,
+      "sha256": "c1d7d412feb27e4149328097d5a93ab826f70c429a081e22509a0a77b3930857"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference.rs",
+      "byte_length": 37212,
+      "sha256": "c04c340c754f17a674215f56e9d92bbdf643ab3cd3e33a1f01d482d8dd91e6c2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/digests.rs",
+      "byte_length": 6094,
+      "sha256": "0f29d56ae72cce1d4f04b226454bca6f62b3b979fc3441d7be845c8a1315ee62"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/digests_tests.rs",
+      "byte_length": 6173,
+      "sha256": "d510344816c2d0281da24fd03ef49d7a56333f8f838810b3c501338ab365ee3b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document.rs",
+      "byte_length": 67700,
+      "sha256": "193783906876377788689e56a3d472c38e41d2c604cbfb06f12445139e7c72a4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/admission.rs",
+      "byte_length": 35350,
+      "sha256": "eaa2a97e0755bb0b0a4a93d64263e0b349551255f4d9386769ec6d09c3f5c2e4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/admission_tests.rs",
+      "byte_length": 30168,
+      "sha256": "1dfad6090b4b0d4a0d6a9b76530b7c616a6072d510e378b7c49ce3e813643802"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance.rs",
+      "byte_length": 6156,
+      "sha256": "3ee93a7cddb9a010fa673655a0f6debdaeec2e74e5e70c63708fa9822f54a520"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/ADOPTION.md",
+      "byte_length": 918,
+      "sha256": "229f2280953b0f5a04eb9f7c18b6c5a20d62d15c8285298e23658d5a3a6a93e5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/manifest.json",
+      "byte_length": 34448,
+      "sha256": "55aa509322d9e98a927d89e3c91d745faa1cce758c015b034ef8ae7f3b9d61aa"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/argv-excess.json",
+      "byte_length": 31503,
+      "sha256": "3046cf56c58196eea1ef83995d727d0e2c0f9437e905fc6a9813c4b0b09b65d5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/available_cpus-zero.json",
+      "byte_length": 4356,
+      "sha256": "cf8eb0b983dfcb2f32ff2e05403b6341150f944729319f1abc1a46d4d0639da2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/bad-hash.json",
+      "byte_length": 4356,
+      "sha256": "d5168c870f1a3eaba87be8bb98655fe13272485e2f131bde96e0a85069869a24"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/bad-raw-hex.json",
+      "byte_length": 4330,
+      "sha256": "1c6c89a1519ebd4fce11312c6a041ec893e73aadb95a8e847a77200d677d7caf"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/compiler-excess.json",
+      "byte_length": 20704,
+      "sha256": "d662f5b07265f938a3057588f741b182b5304fa34ce092ec864266e27a2a509b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-env-key.json",
+      "byte_length": 4322,
+      "sha256": "61beb0669123782c65bb051bf082833932c88484dc1c667c29487654d139ded3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-escaped-role.json",
+      "byte_length": 2986,
+      "sha256": "89d6d59346d6f54bf79d83e4fd5a242786a85dec9bb256f0e4a5661f62331714"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-feature.json",
+      "byte_length": 4379,
+      "sha256": "5c26aaa6e2c99fdad9383083aaeffb9df34088bd486efe7d340f8ca903a17ae6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-manifest-path.json",
+      "byte_length": 4500,
+      "sha256": "d883a64d83a63b46ca8837f5c56f74a2bb99d2a7ace59a31b62631faa8b7e550"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-role.json",
+      "byte_length": 2981,
+      "sha256": "289e804faa761d10db04d6ccb543a56e6c9a5c933684071d32a60354c1299234"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-status.json",
+      "byte_length": 2980,
+      "sha256": "4d2ece2941ee78ed828a674e79cb8dcf589edc5904158f030fe9df20327b44d4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/duplicate-threads.json",
+      "byte_length": 2982,
+      "sha256": "72f66fe3839a36cf4d888698e94b0557e999ef16b9900e742fe0ca11b96d8708"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/executable-recheck-mismatch.json",
+      "byte_length": 4356,
+      "sha256": "fafcaa8042447118cc27d662f94ad373dc94492a01168d31f1f9513311d67b62"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/extra-branch-reason.json",
+      "byte_length": 4381,
+      "sha256": "45ff4dd6426a69666bb9c78fa999ee017a6db396d7017669a30d47ce737fc697"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/features-excess.json",
+      "byte_length": 5800,
+      "sha256": "21cf4e7821fac3905eb40722bed9e636fe362f12c188998d63e6558496da0faa"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/manifest-excess.json",
+      "byte_length": 77935,
+      "sha256": "16ad071040380d9634cbf75f2dba0785d414a2eac492dcc34d2bdbdf456ea5a4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-build.json",
+      "byte_length": 3462,
+      "sha256": "3716d6e89569dc0e8923f0646a049076b676987aaf3c3de689fe88a8a9ef2df8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-executable.json",
+      "byte_length": 4045,
+      "sha256": "7c15de890a9062f57f3938dec08a6229429e1a6b384bb5daba32a9aa80752439"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-host.json",
+      "byte_length": 3778,
+      "sha256": "da6a077bdeb5c65db2080233895764dfda2ea1bc4e672cd4cc10ee010e128ea7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-invocation.json",
+      "byte_length": 3856,
+      "sha256": "21d5e0a96781f2e6c093a13763b038b343f76800a8d870e1cdaa877d144d1758"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-recheck.json",
+      "byte_length": 4130,
+      "sha256": "805d760c7a81aae229be47fe15fd3ac59ebc0cd3aa5b73f5f071874f27e9678c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-role.json",
+      "byte_length": 4329,
+      "sha256": "ac133d7b331ecc0b5034c0a20e7c917964b4d6120a7aff972498fb1962f0f81e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-schema.json",
+      "byte_length": 4308,
+      "sha256": "99f5339a55e4a66b76ddde4e6a73accc026bef7d44d85fb826deaedd41eb7860"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-source.json",
+      "byte_length": 3738,
+      "sha256": "68fb069ece4fa86633caa4660a3718123570db480ac6db883935e8abbaf9a7c2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/missing-thread_environment.json",
+      "byte_length": 3246,
+      "sha256": "d20a0c989f162307c6581f3b8b6fd501967ceafe89273b987bd12315e79fc6bf"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/observation-reason-excess.json",
+      "byte_length": 4603,
+      "sha256": "2421bc56e17a2beb84a370bd29e51814b707a49e1aa5844fa7ed401302e70dbb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/observed_threads-zero.json",
+      "byte_length": 4356,
+      "sha256": "4e6caed6b052bcdcf8e69a6ae4d481f8290ec9dc084da8c4ebe2ad81401c882b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/odd-raw-hex.json",
+      "byte_length": 4329,
+      "sha256": "f1cbea13313a5cfd36de7b8a4fff16d2ba052d8f4fa5783367ef5c91b9083785"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/ordinary-text-excess.json",
+      "byte_length": 8437,
+      "sha256": "d6ee853f06020a924ac79b8c64f795dfbef3fc27c0714d495318c848d82e69e3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/parent-source-path.json",
+      "byte_length": 4349,
+      "sha256": "7f880117e9dd730c666d75a323fd1b9d5dba79d51ab017ce94c401085e080f33"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/raw-os-excess.json",
+      "byte_length": 12526,
+      "sha256": "9a28bd319863f30545235ed443dcd2bb49a9864694f8b28247577b76f33c0a54"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/receipt-recheck-mismatch.json",
+      "byte_length": 4356,
+      "sha256": "96726269b348257cd07b83105e132a5d7f58008d9aa7121e17b5b7c09f418ba1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/reference-provenance.json",
+      "byte_length": 4324,
+      "sha256": "b08b76c00310d024627e7c6953099fdc15c60b2f044d732ce9c1be4a82cee09c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/reference-role.json",
+      "byte_length": 4354,
+      "sha256": "a52e4091e5e2d82af38d066a6bc265f6704f7676317993b99ce67d024a5133a2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/reference-schema.json",
+      "byte_length": 4351,
+      "sha256": "8b0e003f6151dd320518d73492c8e2d020c3efe34b31f4b750ea6f4042440a81"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/relative-root.json",
+      "byte_length": 4334,
+      "sha256": "5a6930a87947653481ae7b0c6db3ebdf7b0867cb123ede0c972ad4cc5b0ab323"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/schema-excess.json",
+      "byte_length": 4455,
+      "sha256": "6b5a0c2d326df3a7926c1f338ccdfcb32a48b5ea696f472a9bd6e245e1ba1b0c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/source-recheck-mismatch.json",
+      "byte_length": 4356,
+      "sha256": "8daa3cc5c17a815884d5f94506aa2d2a38aee7499c167f7e3b6fbba490971af7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/thread_environment-excess.json",
+      "byte_length": 7801,
+      "sha256": "67ca163d26dd56e487019a808adb72ef064992163e27041737aecf2c9936e9fc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-exponent.json",
+      "byte_length": 2962,
+      "sha256": "4b7cba8ab79290e9876452c5c949c5f44d4b63d6ee88e892c1a961d419012854"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-fraction-integral.json",
+      "byte_length": 2962,
+      "sha256": "1e28fb69a4211bce2293bd2e1430b34fe6fef5d76d987955763dc8c22d4a6a7d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-fraction.json",
+      "byte_length": 4358,
+      "sha256": "fc07f73719a77d25ac2d14d2d5174284ff58fb12c574061ce2bf9e35d87730c7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-leading-zero.json",
+      "byte_length": 2961,
+      "sha256": "4e69f2b2f3d1acfdb0abdbdebce49c07bc1e07e5b5b0fdaeb5bfcfb10f706624"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-negative.json",
+      "byte_length": 4357,
+      "sha256": "5160f787cd767ab0ef483d0e5fd8d591dcc556cf7b232387fb94afe704770980"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-null.json",
+      "byte_length": 4359,
+      "sha256": "3704929b4a4fd403dc00f438967b75882214f83e43f005a935cfe2c805d0bd30"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-overflow.json",
+      "byte_length": 4375,
+      "sha256": "b1f944f438c676c03ca734cc0c8a2156fba0fe893af548b50e8b5fbc2a517a0e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-plus.json",
+      "byte_length": 2961,
+      "sha256": "462c482a2468af277139d57aa92c80e3d4cf79d6a46215e3d9b16b11b1e08e12"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-string.json",
+      "byte_length": 4358,
+      "sha256": "7a75053eef42f3fe03975feeab477625fdc60d3c8a64f6d59b56f4acf4fe9b54"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/threads-zero.json",
+      "byte_length": 4356,
+      "sha256": "b516e8407847793b936d2a1652b9f67b6e1e88fe79574f2263575fc9b00dd07b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/trailing-document.json",
+      "byte_length": 2962,
+      "sha256": "33fceacaf2f2cd801c46bfad752e37ebb974ca71a075992801fbad9cb89733b7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/truncated-json.json",
+      "byte_length": 2959,
+      "sha256": "605a47065bc628b117b81275dd334e768b9892a9e53ea07db7d2c968de4e975a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unavailable.json",
+      "byte_length": 67,
+      "sha256": "0b29ec391cfabb41aeb8bcf1b434b4877ecef76e411d0807910c867936f4bec5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-build.json",
+      "byte_length": 4374,
+      "sha256": "6bf0608b796f6794f73780c5a9d5e34a29314267d5930adb2b8cd897877c4c9a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-env-key.json",
+      "byte_length": 4353,
+      "sha256": "f7a742e9d2a91c8608d3aa5ccf4a47713341ac4545d8e6b6470a4efc011ad060"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-environment-record.json",
+      "byte_length": 4376,
+      "sha256": "deaf01129ac2d1c6c75ce6c4d16c17c76d5b8c241de8fe5da4b41ebca85b90e4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-executable.json",
+      "byte_length": 4374,
+      "sha256": "bfaf38cc312dc9e412e407c1ac854e06a9277d44c653a080698805dcf028bb8e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-host.json",
+      "byte_length": 4374,
+      "sha256": "86f1752b31420c5ca07439e9411b879681e124174a4e64eaf2a7dde4911c9a94"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-invocation.json",
+      "byte_length": 4374,
+      "sha256": "101c5d2136c1cd282bbfc8dba4936dff2b9f57850a0160007a62f0c84974ff1c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-observation.json",
+      "byte_length": 4383,
+      "sha256": "41397473afd9596c3c9fa4771e6e817fdfa77f5722a0b636904c7b105d52b8fa"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-recheck.json",
+      "byte_length": 4374,
+      "sha256": "db7af3c8067896e012ecc7355ff70883d26d6a24d078fe064d931f97d437c9f6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-role.json",
+      "byte_length": 4356,
+      "sha256": "7e4cb60c83b9f9b4ce0d1359f30b8a6ef6ce954663ccdf277699cb7ebb62e0a5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-schema.json",
+      "byte_length": 4356,
+      "sha256": "ade4453a20da810b3b5f57aad2734c927ed85d4c71f5f3317edd421ca2bdd8d8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-source.json",
+      "byte_length": 4374,
+      "sha256": "5a739a46ae9bbf7484a7ea82dbabfc3899024737a10822e9b45fa831f947b9a6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-status.json",
+      "byte_length": 4356,
+      "sha256": "549933b0980015b06fcc618356a386d752e30960bfcc3a092432e657259295e3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-top.json",
+      "byte_length": 4377,
+      "sha256": "89c8bffc1d44824d8f7b78a9808a4fca9ef0f9c1af63fe6db6c99732fd053962"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/unknown-value.json",
+      "byte_length": 4372,
+      "sha256": "228e218c272aa15881fe309426f57300e6a728385315867fc65afb0885b6a8af"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/negative/wrong-raw-encoding.json",
+      "byte_length": 4350,
+      "sha256": "6cda44c710a56f3bdf5ae308e0a87038fb772edccd09259de22c41fb78f944eb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/optional-host-unavailable.canonical.hex",
+      "byte_length": 3807,
+      "sha256": "4bf21bf9719b9d539ca5e5e58476ebbbb6c79b58d02e15f12b26e4ea20a2b9c0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/optional-host-unavailable.json",
+      "byte_length": 4547,
+      "sha256": "e48a9cf1d98715af8e9c930392fa1744b78bd759e0a8bd6cfd3f326bb0d930c3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/reference-preserved.canonical.hex",
+      "byte_length": 3453,
+      "sha256": "4010f7ccf611e496369f86a8d6fcc079dce2511820a25076f7ffd4a4ce29efa9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-1.canonical.hex",
+      "byte_length": 3465,
+      "sha256": "7d47734060c856eea8401c8a7929a22b1fa710523449bce10d4cebbef9eb0e6b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-1.json",
+      "byte_length": 4356,
+      "sha256": "94f7195785735d50c072e5b015bc09c65e8e9a3c0dbbc7630c49292fc3b61994"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2-environment-99.canonical.hex",
+      "byte_length": 3403,
+      "sha256": "d60ed1aa107743d029a815e735ca569991ea049c6ddaeb26003695003ffbc4b5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2-environment-99.json",
+      "byte_length": 4322,
+      "sha256": "13560151b784192844c4e079f2d8940b4de9224328e7cf41a69409715ff3991f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2.canonical.hex",
+      "byte_length": 3465,
+      "sha256": "09d04f12a55e434ed2f3766a4ddeb50de3b17f118c058bb8cb470ae1dd9ce7d6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2.json",
+      "byte_length": 4356,
+      "sha256": "ae1af68c4f353c6f47b37c70a85e941d612046cbcf07120dddfd5eb0930f531f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2pow53-plus1.canonical.hex",
+      "byte_length": 3465,
+      "sha256": "9bd4dcb6bd0597ad2f7f8dd53b345b36b63ecfed6e150e96b0658b1d3b1d5044"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-2pow53-plus1.json",
+      "byte_length": 4371,
+      "sha256": "b976d358680d87677a6a9d6b68225358b143c39713ee45b575c573db44d5fc2f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-u64-max.canonical.hex",
+      "byte_length": 3465,
+      "sha256": "6a3789d2593ca3601b568fc993a9a3720037619b49b0383000b9c43d6fca82af"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_goldens/threads-u64-max.json",
+      "byte_length": 4375,
+      "sha256": "1c17efffdf03ce55bac818acc801255e8d0911b54c8f1aa91cbc682114a1821b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+      "byte_length": 7827,
+      "sha256": "427698f2a3c5232245fcd645866195d05536e449e6d5212371388b6fb7a7e068"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "byte_length": 16431,
+      "sha256": "236738dfc976b2e3735cd43a5d672018f868a46a6ff1f3d0af0a2f93eb8c59e4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs",
+      "byte_length": 14266,
+      "sha256": "3d39848107d2db079b97a1ab2c725c98ff7cc16bdd1df827908f0b1ee9ce4387"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs",
+      "byte_length": 9595,
+      "sha256": "300ea6826b60e613adcbda2ce44346d68157357c5775e38f60956cf68c47b8d0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs",
+      "byte_length": 21170,
+      "sha256": "0d5d9e4dca47c564ec4e661b7c158c1f20dd86f643c16331bb3a8eebeaccd973"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs",
+      "byte_length": 2355,
+      "sha256": "d5280441b72888ad71c6ad5b626821102f42c5198a8f041ff0ad6090fedcf530"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/bundle.rs",
+      "byte_length": 9246,
+      "sha256": "9cda83b53fbf05199471850b4542ca6507cae2f1841909504bbfb6c6f4d273be"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/fix1_literals.json",
+      "byte_length": 2626323,
+      "sha256": "cce1b560087df832926d4eae36e098694f926c1d5a8a770fc47307dcb6621847"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/literals.json",
+      "byte_length": 354262,
+      "sha256": "aa73aa530c039532e2c72867bd7c73bbf357d87ffe33bf44602d21c2f9ea7549"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/policy.rs",
+      "byte_length": 4438,
+      "sha256": "8259399e9b20c9aaa7a42deb45b9cc510f36a9d0f053719169de88661c619a8c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs",
+      "byte_length": 10059,
+      "sha256": "3db4d28adb6dda705f4a30a7d1ce7c24ec0972d238c9b065430f5cf81eeab928"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs",
+      "byte_length": 19034,
+      "sha256": "604866923868d010c82b11e1a05dcdbf6e82fe2cb54a598d74a4e927b0ee7eca"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs",
+      "byte_length": 9992,
+      "sha256": "42dbe9b13237ba784b8d17894bd47bb91f68f2851878712153c7f96f48df3146"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs",
+      "byte_length": 27537,
+      "sha256": "e18b4e630aa97488206839538afa5edd47cb6e5fca33050331af654a064addf4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs",
+      "byte_length": 10218,
+      "sha256": "261c7bc7cc523b53d981507294e3847682d4261460875581708109a27f1fc597"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+      "byte_length": 23198,
+      "sha256": "7a0c36998785fac7c4ed55aaebb3ece242eda5aea2107beb7f8e7162688f3413"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+      "byte_length": 23105,
+      "sha256": "36dde5187b8525152f4af9835177e03b5fb565b20238a165a61fb2cf940ec629"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs",
+      "byte_length": 7972,
+      "sha256": "c5b922128b845171a8639c08fc2d14d7cc87d587bac795ae7a509b618614c29d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence_tests.rs",
+      "byte_length": 36987,
+      "sha256": "430a84b108899f027feed6f4edee80762f3460b7c541954e251416960d678ac2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_binding.rs",
+      "byte_length": 8546,
+      "sha256": "683c563e605d47e588e6de63fa9358eb55c608d9626d13587397872326591bc3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs",
+      "byte_length": 4354,
+      "sha256": "a19d0a3bba0e1fb66f9f33ae5187ceac74a81b48d85892a6ad17444876e5cf7f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/README.md",
+      "byte_length": 2867,
+      "sha256": "d9d36e8f0ba53fc5659f3c9eebe4b673c34e45f05f83376e70651b78eb1ffc8b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/SHA256SUMS",
+      "byte_length": 1608,
+      "sha256": "899b45991113581638a5758bd9bdaec441df768e771fa706a16549faf93b287e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/generate.py",
+      "byte_length": 21006,
+      "sha256": "8e1bdbea566ebc051a3b3c36d07d16406bb2fbc75f4a62c1d3a5374aa979356c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/inputs.json",
+      "byte_length": 26903,
+      "sha256": "1f30a3c7665fa184ed0b0e971343c0770f51eabcbb26c5984c934ab312c05b85"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_dedicated.hex",
+      "byte_length": 413,
+      "sha256": "d993093d2210e53279db5bc6a44380e7ebd787f7eb58f061801752e3c29010ef"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_reuse.hex",
+      "byte_length": 453,
+      "sha256": "8340d77d596216ba3d68b8894a9758c6fdea42da300418420dcd22533976241a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_dedicated.hex",
+      "byte_length": 597,
+      "sha256": "ec2543b1d824fed9ccd9e7eb0e22fe427a0c0ae04b1be71b4253124c4526b49c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_reuse.hex",
+      "byte_length": 637,
+      "sha256": "c5d1c62417f79a332df0690de274efad09bbe7cf7cf12e8be78d0bcd49ce0b31"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_single.hex",
+      "byte_length": 1303,
+      "sha256": "d4ed1f0762e026a6483f1e71df4aad1bc95e74860ab6cd4b2f873e3a85a20e5c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_three.hex",
+      "byte_length": 3059,
+      "sha256": "7a91ad819ed0f7d4fe858cdc9d4b604cca079df3b3772601ffdf8bc65492b777"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_ni_two.hex",
+      "byte_length": 3165,
+      "sha256": "ce94c7b1613a6ed010d0f4bd6ffe2c8a1c221aa679d76049e85733bfdcfe2e6b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/manifest.json",
+      "byte_length": 35957,
+      "sha256": "6b983e7d31016756ed5906be1558e0eebcd923d37f5b3f8332dd2e28428e96d7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/negative-vectors.json",
+      "byte_length": 75977,
+      "sha256": "d8c2fcf1e4abf13b271e4a0c1e48af4bbc45506aecc946c5a9e14ed5f7a16a70"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_dense.hex",
+      "byte_length": 383,
+      "sha256": "bb2f659c77068ae1e2fa5ae4c2befe52d3e83897018f083fbaad23db494090d8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_fixed.hex",
+      "byte_length": 399,
+      "sha256": "f55464bafd17dc40404e13758cdfbad85a94ad34dc63cbb6363239a084af090b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_dense.hex",
+      "byte_length": 341,
+      "sha256": "9c5f2bf26e41de319f1b5c82f2fe559742ff626eabdd149476be5ef80f3fbb5e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_fixed.hex",
+      "byte_length": 357,
+      "sha256": "90b5431d112d0e46cbe66de8a454d07a4ccef53ecc39c8372a5be42d6ca335bf"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_absent.hex",
+      "byte_length": 505,
+      "sha256": "4a631472f676da1af8b09d9126075573974a8e94d513f8141eefb83c3cb99987"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_dense.hex",
+      "byte_length": 507,
+      "sha256": "e8c49ec91a42be52dd4829644f591c252aae32b377fbf07aaef15b67224c35f4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_fixed.hex",
+      "byte_length": 523,
+      "sha256": "b554dfa3958790f6ffad3a33cb38c3325b4eb71e5dfe32c7905f2a921ca7b737"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs",
+      "byte_length": 21346,
+      "sha256": "5212fced7ce53cf3a5f52c5da1ff400f1c99c403c5bdccecf810f4fc5f7523fe"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs",
+      "byte_length": 39756,
+      "sha256": "100a462812c3b80f2f3207b3028af653369bd5b7d57db42bc10d46ab33043923"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/producer.rs",
+      "byte_length": 17077,
+      "sha256": "ecbb85c62430b47f7ea698b5e8b81a03a8fc6ab41d814231dccff326f202f06f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/reader.rs",
+      "byte_length": 20691,
+      "sha256": "2945b3424c9b3d6001b82d733d08c8669139f9e2aba41d70eb2ccbb84336a84f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/reader_tests.rs",
+      "byte_length": 12550,
+      "sha256": "f1cf9b7e75bc45816c1a442da0f6cd06f0e56b3ff57ccb5890746f1c5122ab3c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/resource.rs",
+      "byte_length": 38787,
+      "sha256": "35fd46b3b3dad36de951c6ba4c747230c84f07873bbb0a05b849e75dcfbb857e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs",
+      "byte_length": 6801,
+      "sha256": "f11c957e1eccf4ce80751692acd47fc663b5bd4c50a3d880013d0445a66236c1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/resource/links.rs",
+      "byte_length": 13412,
+      "sha256": "c1e9fe9a2e1b5b60916194a15913b07c70cab0e189a6e73a1f367eaf060e5fc7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/resource/tests.rs",
+      "byte_length": 28830,
+      "sha256": "5d6c161c7ff0500595163dc0ad805467d9e388c069cb82134516a0e0c682f890"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/runtime_descriptor_tests.rs",
+      "byte_length": 13929,
+      "sha256": "3873f08466775c3ac9d9e50734680dd450d7e8a20971a62385ddd1bd2f653d03"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs",
+      "byte_length": 26198,
+      "sha256": "1d129e3d67514d5ac2318016dbfec8391f1ebe742da2ea0039b190f3f89f4379"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/target.rs",
+      "byte_length": 23871,
+      "sha256": "1886cb46761708e3ee4b170b9b5189468eee5661db1fc908c33f59d7e6531363"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/target_link_tests.rs",
+      "byte_length": 10329,
+      "sha256": "81a287f86a752c4f281c2649f922d104e291470af7c491cb6769755d0abe8f5f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/target_tests.rs",
+      "byte_length": 10230,
+      "sha256": "7cb47f05f5242cd852cb244ad0d79aabdbb225b78c6113221dcc6c3e8ed9f7e8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document_goldens.rs",
+      "byte_length": 46366,
+      "sha256": "280d42c9ca5b0b964e2a29dbc8539e1532d4c69f866847c1ef785fe4640394e4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document_tests.rs",
+      "byte_length": 19071,
+      "sha256": "1709956f8226497fd16ab653597cecc281bdf508acd58b1dbdc743d156080c71"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document_variant_goldens.rs",
+      "byte_length": 39283,
+      "sha256": "57ae67034f9a73f417bf078a4ced77665f8c4de357220d1d3f13dafde0efb4bf"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/publication.rs",
+      "byte_length": 13782,
+      "sha256": "721abcd70ec014b413999baeaa5a53219d1d6d36e3e0dc131cb733c8693d7598"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session.rs",
+      "byte_length": 37209,
+      "sha256": "2d9fc63bb16d20ad9d23f9dac12deb8319d401e51439069663cc00cbf072b1a5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/README.md",
+      "byte_length": 1037,
+      "sha256": "84c8dadc65f003b0bc4fd7090b6c91668a1f70d09ba63d456b367d7fd363e9ca"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/adversarial_captured_reference.json",
+      "byte_length": 4589,
+      "sha256": "04cfce771dd84c2776bbea10307c4a078f9856a77b6cfa83fc66ca95d6a8d933"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/adversarial_reference.json",
+      "byte_length": 2494,
+      "sha256": "52ff0195c5aefe74ed5a58bbb4056ff76ba49d8509065fcf2126a72d411082be"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/fixture_inputs.json",
+      "byte_length": 5220,
+      "sha256": "c5bf50b316636681f33944a70081b75ef939d5099efe6f9ac391a0123d4faec8"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/prefix_n0.hex",
+      "byte_length": 372,
+      "sha256": "78bc46158bbb249cafe84cd0006e9581bd0412b2af5ea994fdb30b5246aeea21"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/prefix_n1.hex",
+      "byte_length": 372,
+      "sha256": "edd244b705a5ada81e277ae93a515df06e56813d346e1b9a87859b95e961cea6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/prefix_n2.hex",
+      "byte_length": 372,
+      "sha256": "cbbdfbce5a05938f02ca58f5dd3fadd8014d8e06656199df3211df047dcbebee"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/prefix_n4.hex",
+      "byte_length": 372,
+      "sha256": "71819578a2ea3d412def841322c0b08499cf1946ccd6472f709fdac38b02b307"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/state_f32.hex",
+      "byte_length": 1152,
+      "sha256": "37145c4701db8b42290b487525942c39e006ef2bd7ad5e5fa3b955e2998fb6d6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/state_f32_positive_zero.hex",
+      "byte_length": 1152,
+      "sha256": "486cb003a6cf16168d1857bb6ef4e049c579c36e5eae61c75b7481ec614f0114"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/state_f64.hex",
+      "byte_length": 1298,
+      "sha256": "38a850acbfd79ccb27b5b3dd11509655ede939922da7ee213c631caf3d03ec26"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_goldens/state_f64_positive_zero.hex",
+      "byte_length": 1298,
+      "sha256": "37cefef59df16db33c875d6c1e0ebbe8ca35d32505a7cbb54073508895454965"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session_tests.rs",
+      "byte_length": 11365,
+      "sha256": "c23c433a9e4cd789d04f0915fd3bc049d3d58194ea12cfee2bbbf7234fbf8f38"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "byte_length": 23993,
+      "sha256": "ccb13e42286c80bf609ae6d2e05b7e9f059e664a22e3ad4e1acb20bd8620b69b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md",
+      "byte_length": 1370,
+      "sha256": "4dee53baabdae3d85206a146ac018a01a0f6a82f3c69836a21cda684ecb1e6dd"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/admission-gates.canonical.hex",
+      "byte_length": 1245,
+      "sha256": "7cecfb26e0de93a8f9255d69059e00b1b8136a2207bf9bb2ac5029092ab5673c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/binary64-components.json",
+      "byte_length": 1699,
+      "sha256": "8c8813ed6c3fda388a587a2846e0005d80e20d745694a64fabbf8e69ba525abc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/binary64-vectors.json",
+      "byte_length": 2897,
+      "sha256": "f47763cb7515482de689ccbf3c573b5d0439141f0ab608e2ce577c632af74796"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/bits-value-disagree.negative.json",
+      "byte_length": 9156,
+      "sha256": "380a8fc14c08c47005adb1ddbd7cb840bd559693c932b707404f4ad51869a3b3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-0.canonical.hex",
+      "byte_length": 10581,
+      "sha256": "1badd1c6a23e65be290de805ded9793e732aa8a7a165f58abe9e5614bea85c8f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-0.json",
+      "byte_length": 10544,
+      "sha256": "1df79615f1c4b40857c5296d4dcc993ca707d84a06ab3e9124694c63c6ae5187"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-1.canonical.hex",
+      "byte_length": 11035,
+      "sha256": "5ce96e709bc1795325f9fce0210fa75712bb1d952387a63d3f7695669712c22b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-1.json",
+      "byte_length": 10860,
+      "sha256": "bbf5fa3d57025df630288621249c6db20f51c3740d6dfa95bb6d1e31c753c4b4"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-2.canonical.hex",
+      "byte_length": 10731,
+      "sha256": "191bd71bbe9b8c1ba12f1b4e27b76c90aeab554ccd4c2074be57e9f9eb6a198a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-2.json",
+      "byte_length": 10706,
+      "sha256": "e9c2933022fffcc2736ada9f820c767edb0434da26440426b26d670882bf4483"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-3.canonical.hex",
+      "byte_length": 11035,
+      "sha256": "806735f05de619056f8f6fa485d2b1c535a22aea17425fb82c0ea90bddbb09f7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-3.json",
+      "byte_length": 10883,
+      "sha256": "4b28114196766145d19af184ab283d5b9dd2b4417dce3b51a829db2d1875f21b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-4.canonical.hex",
+      "byte_length": 10587,
+      "sha256": "d1e4cb941daab2c487dbbb4b5e9c44efc29a2210c0401e2e0634e4a578781a01"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-4.json",
+      "byte_length": 10646,
+      "sha256": "44fdcbacc16491180f27864bb9554de6cd67f5c54694f4a93790c8068dc5c39c"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-5.canonical.hex",
+      "byte_length": 10725,
+      "sha256": "dff16c00be7d2e234a3132afcb954652817ed86d5e065c882219c5b739df557d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-5.json",
+      "byte_length": 10611,
+      "sha256": "0e1bc1b87cc425de18f200b6b97cf515839fe07617874d3d6496fec13272152a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/cap-accounting.json",
+      "byte_length": 79461,
+      "sha256": "b35ba58ecf16e53ee7b0aa3e59ec134d322085b28b1994a636c05cec4cfda645"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/cap-accounting.md",
+      "byte_length": 5723,
+      "sha256": "e977647ab4369c8b1feba7b9a24283d7f790f5bca081f7222136235bec6be67b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-0.canonical.hex",
+      "byte_length": 305,
+      "sha256": "ab38fcf05d19602e80e968056e67f5e5eeb19f737f74192e8201199458b8786a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-1.canonical.hex",
+      "byte_length": 311,
+      "sha256": "61ee8e7ebf37bb85359065895230bfc380b6cf232341392eae5b42ca8c737084"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-2.canonical.hex",
+      "byte_length": 311,
+      "sha256": "217560eb44cc8461f6e04bb993fb7ea42e17a223cd39dfff43cc0738e636247e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-3.canonical.hex",
+      "byte_length": 311,
+      "sha256": "0e717628cfae8d84624d2b8fb17bb86884ae988fc6c3278bd599a299e8467302"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-4.canonical.hex",
+      "byte_length": 311,
+      "sha256": "6ea4f104e920cb1d967d24e03a80d9217cad616e4814f85d70ff3a0f82f75e49"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-5.canonical.hex",
+      "byte_length": 305,
+      "sha256": "82e70f98604a817336bee2ed837823b2ae514e01f66d18510c8bdc39671a6670"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-binding.canonical.hex",
+      "byte_length": 1361,
+      "sha256": "8275a245e58a5a097e041527c73cc082c17faec98ecfacd5881efad5f91a0147"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/coverage.md",
+      "byte_length": 7251,
+      "sha256": "68e4bbe282ec64882917cafd0096019dc10cdc154b6e24f9ff2b2c5c7e157dcb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/duplicate-escaped-key.negative.json",
+      "byte_length": 9198,
+      "sha256": "b0faf34e1077d9c57ea4cb2ab4355db315dda0442c4aee812ef8ba36cd055dc1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/error-expectations.json",
+      "byte_length": 8010,
+      "sha256": "9f9ce855851dd058439c0dabbbc4a48a5679ec543f204831aae821666406e7bc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/escaped-large-hex.negative.json",
+      "byte_length": 9161,
+      "sha256": "a63a0d19f1296d1f39dcfa855012cf7e844b0e46179d373170677be3e84863dd"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-0.canonical.hex",
+      "byte_length": 1209,
+      "sha256": "f5dec878f4577d5a836e67562670d34b467ab79b6ab8b5e912310559b533e1ee"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-1.canonical.hex",
+      "byte_length": 1353,
+      "sha256": "bc71ad9e3cbe30fd1a87c88940e32d08554fa380284469d668c8a57fea77670e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-2.canonical.hex",
+      "byte_length": 1353,
+      "sha256": "11aba495d767ad802364c8fedc16875c9b1aefc873d838f2367d5ba37cdcd010"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-3.canonical.hex",
+      "byte_length": 1353,
+      "sha256": "819c350b39cd3926e57d73d4879a8335cfc30221d81f229254d81420ca3ba0e5"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-4.canonical.hex",
+      "byte_length": 1209,
+      "sha256": "0e3c3d9ecdc6523eb08d2c7e55ae1b266dbde8d1ece16b6a6e72349bcd096054"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-5.canonical.hex",
+      "byte_length": 1353,
+      "sha256": "b2db1f0b3543d88ece1c38a16467da91f611f9b85402495b956caaa19e1e73a7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-0.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-1.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-2.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-3.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-4.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-5.canonical.hex",
+      "byte_length": 1087,
+      "sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/initial.canonical.hex",
+      "byte_length": 10585,
+      "sha256": "9b3a0cba1f964847173c88fcdf4932d6fcbb83df355514340213ee1540de8987"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/initial.json",
+      "byte_length": 10546,
+      "sha256": "d2aabaaadcce564370f807c78793a31cff3843478613c4d689742c94a1874e6a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-endpoint-negative.canonical.hex",
+      "byte_length": 8375,
+      "sha256": "55826701f46173e80bfabb85b652d9eed7c17c94624847be12a5719a491ac649"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-endpoint-negative.json",
+      "byte_length": 9239,
+      "sha256": "faec41f62224052f1308aab7bd4d9793266fefe6e43744b06ac7d51b568346f7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-id.canonical.hex",
+      "byte_length": 259,
+      "sha256": "9a6c4b69aa6b5cf4b42da363dd819d9d01a546ec121c59b6943be44c1913ac4a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock.canonical.hex",
+      "byte_length": 8227,
+      "sha256": "0bf7ca334a6270d2d34cfccda0485d73b4233b10c27a0c2c6d9beb08fed207dd"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock.json",
+      "byte_length": 9156,
+      "sha256": "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/manifest.json",
+      "byte_length": 9033,
+      "sha256": "5da1db0c629ed183d20a23b878289cae7dd727b846dc8441edb3024c2d1fe820"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/mismatched-source-schema.negative.json",
+      "byte_length": 9148,
+      "sha256": "1d6910f0c975e9036ab5590dca1d2ca4adfccc90bc0e029576f0c4d6ef8794d7"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-no-start.canonical.hex",
+      "byte_length": 343,
+      "sha256": "d53a70d7ff00ffa8ad7ca51edc9f7faf307673688ee6269a7502bb0a78516d32"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-null.canonical.hex",
+      "byte_length": 3,
+      "sha256": "d9b2aefb1febe2dd6e403f634e18917a8c0dd1a440c976e9fe126b465ae9fc8d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-with-start.canonical.hex",
+      "byte_length": 631,
+      "sha256": "194a68b8a280f8f3dcd0dbe3183d5931441b3a68fe32c598201f2a93ac643e9e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/prior-start-link-mismatch.negative.json",
+      "byte_length": 11002,
+      "sha256": "39de46af4a30c4250d1509e30407ece45a1f3c14b155555315e9c87f67b356d2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/production-header-false.negative.json",
+      "byte_length": 9158,
+      "sha256": "0ae3bdc527c6ebc495c1e6341192746c27064ef2081032ab827eb690bc1e4d75"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/production-header-true.negative.json",
+      "byte_length": 9157,
+      "sha256": "a5b724a83d443555867a93b7eae80dc80b09967115589135264a2f7fd12a3513"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/profile-slot.canonical.hex",
+      "byte_length": 203,
+      "sha256": "083dea30656c48003aa02940a3afc61957b9e67a6ecbdbdd474976c0230eff25"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/reference.canonical.hex",
+      "byte_length": 6009,
+      "sha256": "cd6a14193d9caf87719c704f455c7ec9bd0a20c391e7f37d2a5c653345444202"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/reference.json",
+      "byte_length": 7857,
+      "sha256": "3f1dfecb374523d1236a441e36e4dbe99ad648313aa811b8e3b2c57edaf5a768"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/registered-case.canonical.hex",
+      "byte_length": 463,
+      "sha256": "38ae737e7f33624f980e2b3d345dc24eba4eec93dc19737ad28f4ec68022d845"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/rejection-specs.json",
+      "byte_length": 6075,
+      "sha256": "e86a57d8462a45933204fd2a1a1e3847121bda053437b17b274389692ebc7fae"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-no-start.canonical.hex",
+      "byte_length": 10939,
+      "sha256": "ae6bbdab09cc9096ce78056a17b10b42b24cca42a16655b12029cd50ce0d1287"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-no-start.json",
+      "byte_length": 10817,
+      "sha256": "fff47b4f0426a23cef7795fb0fd28310becf2dec17cb6cf24c7a7f7182bef662"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-with-start.canonical.hex",
+      "byte_length": 11231,
+      "sha256": "66a2e1362242ddc9e4b4e205b98f722bc33ccc645e1027974c7391973dee5d8e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-with-start.json",
+      "byte_length": 11002,
+      "sha256": "c4317d7f83dddd73f4e48202642f889a5549766d73989b7e29c75a54e8277bd1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-initial.canonical.hex",
+      "byte_length": 7523,
+      "sha256": "0c41e3bf79f9b544f7ca7f948f99a7730e86082e16d32f65fb008d16f9ae8fd9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-initial.json",
+      "byte_length": 7690,
+      "sha256": "e4577a9c9fadb3ea3f7bc231e1deca9dc7adeb0e0eb01b252034e4c897c2fcc1"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-retry.canonical.hex",
+      "byte_length": 7541,
+      "sha256": "3201f0216efa558d2f7ec5f93fea86742bd6a0df77222b30a04bcd0b3619f3f0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-retry.json",
+      "byte_length": 7699,
+      "sha256": "cf3a998fef266f720250ecbd074618ec303e301004d9e01ce8726385e52bab9e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/target-one-ulp-up.negative.json",
+      "byte_length": 9157,
+      "sha256": "9fffb9b56668bebb40ef277162fa22926e52b374f66c5201f7a1de19ce332c32"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/test-header-false.negative.json",
+      "byte_length": 9157,
+      "sha256": "2d061319a6fd3e3b5b0a920663dce8d24cb8dbe05f061ea2c57fc03d51727448"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unknown-field.negative.json",
+      "byte_length": 9174,
+      "sha256": "e972099a4d0c9fa639d9dfdfe82d08b1d2c3dd1d3feef1275d3bcf92c920cd24"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unsupported-domain.negative.json",
+      "byte_length": 9158,
+      "sha256": "841da27e3f0b1b4bd6d93741cc6d4712056b94c06f94980dfe7866100b5994da"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unsupported-hash.negative.json",
+      "byte_length": 9156,
+      "sha256": "e03eb63d6167aa05c3af65eaaa850f9478b1b8d671ee6d616cea3cba1a2902ed"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-identity-hash.negative.json",
+      "byte_length": 9156,
+      "sha256": "4d0671fffebd45af360abcdcf53c468de28a6b3b4eb3f97204dd800db7a62a8e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-payload-hash.negative.json",
+      "byte_length": 9156,
+      "sha256": "051ccbcc1ae42aa65044202cc7369d082c0848b1a7a632f5beb90aa01cb8c684"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-reference-link.negative.json",
+      "byte_length": 9156,
+      "sha256": "832f42980846a2f1ee6a174d55f7247897fbd7b6a5c8b98ba0795e751f37c3c6"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_tests.rs",
+      "byte_length": 13268,
+      "sha256": "7a3c34222b70a9ec8cf02a46033d995c120d7fe18bbdceb0ea96aba6895806e3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_run.rs",
+      "byte_length": 12769,
+      "sha256": "37276613969cb0164b9e44f335a8baad34ac9d56e70ecd3a24e181323b9d0645"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_run_tests.rs",
+      "byte_length": 11293,
+      "sha256": "23fb87355cda30bc1a58aa684f723caa1fa120751f9c9825512fc734a8e4830f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "byte_length": 15808,
+      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime/cuda.rs",
+      "byte_length": 11187,
+      "sha256": "351a30ddccb584325275fa62044c9e0fad5b194589c3b4ad2f3aec0f6951f740"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime/cuda_tests.rs",
+      "byte_length": 2631,
+      "sha256": "ef0a51ad5f63b53fe33861a4b7ba01edd65c9d8bd87304c857c92372a06f95f2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime/tests.rs",
+      "byte_length": 6930,
+      "sha256": "72c44716dc06b1763260a5037acdcf2a71723253ee21048f77b492ed781b6b81"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/twin.rs",
+      "byte_length": 12500,
+      "sha256": "1294cb46079e6d1cb0482d3d76bc274c83844049da9a265f56a675f692442953"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/ablation_provenance.rs",
+      "byte_length": 2197,
+      "sha256": "61bb0a5723ac2e613fa938e504d1faacbe70689127ac3ddabfbc2e50f6fe271f"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/byte_dataset.rs",
+      "byte_length": 13401,
+      "sha256": "00493360740862db3bade3d9bfe564d5bc328513ff0b092d7c7a31492fec7b7d"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/PROVENANCE.md",
+      "byte_length": 1356,
+      "sha256": "6c02cdfa50320946a40fab9aa62734fd038ba8b00566de370b92b58bea741ba9"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/exact-iris-tuples.json",
+      "byte_length": 9453,
+      "sha256": "384bb709e94e651ad819b65aa64449d5a3a8021ed1eee84cd7d0dc90f01e13d3"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/family-tuples.tsv",
+      "byte_length": 509019,
+      "sha256": "2a2ea27f3383fe98a52d58ae8d06b171f1f6418c054d42c57b4b5283851b0b4f"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/membership-summary.json",
+      "byte_length": 8449,
+      "sha256": "da5020b5c150a4d34e0507cf17afb8160a4fd9c434c02341e94977e23574c8f1"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/representative-vectors.json",
+      "byte_length": 53593,
+      "sha256": "4745cbda4995d01d916f0c6cc0c8ebfae6386046cab3af408e05e3bad09d551c"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/supplement-inspection-notes.json",
+      "byte_length": 1369,
+      "sha256": "b7bc3ab191f7c0ded675067158ffe16f7c115b4344fe3e02e6bf8b921939d203"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/fixtures/registered-case-v1/supplements-preserved.json",
+      "byte_length": 3974,
+      "sha256": "a23bd7badec82c9c36392096cb337f13825b004c576a9cb41e77b2c5672aa3e5"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/iris_backend.rs",
+      "byte_length": 2122,
+      "sha256": "56072d86ab17c4f2797c6f685b25a737f884328eaac62cc5660eccc4d4bb0075"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/iris_cuda.rs",
+      "byte_length": 4374,
+      "sha256": "86ca7e9f866d3cf2f154f68679e26e00fdec7c2fdd29d8c520017e1a9206ab6a"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_blocks.rs",
+      "byte_length": 5633,
+      "sha256": "3744949d8fe647dd44af39eef9d3410caa982f2b6f5da8dae30d15f29795b08f"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_cuda.rs",
+      "byte_length": 6346,
+      "sha256": "7987925e787423557bea48fdfd611e99b93e1b36f68c231300b088b9ed902419"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_flags.rs",
+      "byte_length": 9145,
+      "sha256": "09d400f92bf99aacabeb439dacdd4bbc33346dc2d846ee09719e8c8c8b69e60e"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_ni_smoke.rs",
+      "byte_length": 4779,
+      "sha256": "411f99a5a4ad686383edd7c0f683cf5dbd4fdf88e3d1f2c73de468a2220cd9cb"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_plain.rs",
+      "byte_length": 4707,
+      "sha256": "bac1c492042e640e1d7a43be53a498bed2ab2c6c4c6a3a3900f217d0868f31d0"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_reboot_smoke.rs",
+      "byte_length": 2899,
+      "sha256": "782345db264d885d371832510c7322f30fb089fc794145ae5f468feff0d131c5"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/mnist_smoke.rs",
+      "byte_length": 3297,
+      "sha256": "e3ea693fc19c4a37d675d8e2f5615a51360f7aca2ebd99b08360a2a610a887cd"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/output_provenance.rs",
+      "byte_length": 11623,
+      "sha256": "074e5d038699de58f41144b8930f29c10dfa1995b09bbb952866ac9c2ba6b98c"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/profile_data.rs",
+      "byte_length": 16179,
+      "sha256": "ed90169c7b306026701ccca05a850270db930ff6933be2cf845849a96879b1de"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/registered_case.rs",
+      "byte_length": 11675,
+      "sha256": "d800112703d1e8d89b42d9c5dabe59589a65e25b24b6bc400d106949843b8e24"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_admission.rs",
+      "byte_length": 15517,
+      "sha256": "571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_inputs.rs",
+      "byte_length": 6481,
+      "sha256": "5ba5e197ea4febaa88071caa7f065572f9c660842403caa88efaa6181c97eab2"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_plain.rs",
+      "byte_length": 3778,
+      "sha256": "983c6c74b02e9e910016cd2516d89595ebc4336c3912205f80305edf409e3ec2"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_profile.rs",
+      "byte_length": 13449,
+      "sha256": "bbbb94e072c1f6cb61c45093d41b0e46e6106029e0185fb24d08e06cd25fa19b"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_provenance.rs",
+      "byte_length": 505,
+      "sha256": "15d5ef14fa7e71249c96d47f95b942fec8ba304cb97bb5f48958aa83cacf57d7"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_reference.rs",
+      "byte_length": 4840,
+      "sha256": "308d96eb797a83a43e77cb3bcd5a522c5f9ff011524d607b05462da730fb7945"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_reference_document.rs",
+      "byte_length": 29606,
+      "sha256": "f31b234c790422205c3a80770ccf7f0d31fc8c7504c4f3d524734bba47c80104"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_reference_session.rs",
+      "byte_length": 4683,
+      "sha256": "3ffb08dbe528af4bef2544f161574b6ec4ff1f220bacc430af161f58da7cdbd8"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/study_train.rs",
+      "byte_length": 2523,
+      "sha256": "abb2cb56630e2eabc11409f619b4a9e31f15f54277560306144dcb6b1dc584b1"
+    },
+    {
+      "path": "crates/ckks-train-ckks/Cargo.toml",
+      "byte_length": 1113,
+      "sha256": "d8e09543a609f4e7411d5c2f07fd67ba35ea774529fc646b00334ab4a0c1286a"
+    },
+    {
+      "path": "crates/ckks-train-ckks/LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-ckks/README.md",
+      "byte_length": 1491,
+      "sha256": "39c98f922acbeac8c5e9b30f2a458944114f82bfe565546508272ef395334387"
+    },
+    {
+      "path": "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-ckks/benches/bootstrap.rs",
+      "byte_length": 3416,
+      "sha256": "f3564c3be52593d7266304ee7535a2c8c48c2a1eee76a3861895e11d196b38fe"
+    },
+    {
+      "path": "crates/ckks-train-ckks/benches/rotate.rs",
+      "byte_length": 1730,
+      "sha256": "8cb62f74182bec6f8bce6bdb51605ad7db29250ba3bb47e8f1934686541a2de8"
+    },
+    {
+      "path": "crates/ckks-train-ckks/build.rs",
+      "byte_length": 1268,
+      "sha256": "1b4ea1a8439e2b45653ead6c3f3dbe10f2a023d3312c0485e42a185454358ce7"
+    },
+    {
+      "path": "crates/ckks-train-ckks/examples/export_params.rs",
+      "byte_length": 2014,
+      "sha256": "7c9ead394daf95a35e59ef56da8774ac6a6fcf4b2f5da81683d8bfec5103d862"
+    },
+    {
+      "path": "crates/ckks-train-ckks/examples/precision.rs",
+      "byte_length": 674,
+      "sha256": "2593f344d363b6d73ae914f3b3e40d5b67f0c7ab12323acc711ed153e1fe64fd"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs",
+      "byte_length": 38908,
+      "sha256": "11dfc9ce01dda64bf63481f4f7feb109019f0302af327ca00587459e3adbd770"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/evalmod.rs",
+      "byte_length": 22173,
+      "sha256": "02e7d5a8c026846b8e10ec0b9cc6d0329e679403859ceeff8a23f3948e0089d6"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/linear.rs",
+      "byte_length": 80601,
+      "sha256": "4778e8c95885962a3318ec7e72a01f58c704b662ee86b55eda6d55f14c58cf78"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/metadata.rs",
+      "byte_length": 68687,
+      "sha256": "e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/mod.rs",
+      "byte_length": 1220,
+      "sha256": "7eef2082d536511ac59e978dc181a5e4c51b70ee5863fd57c5691779c1789978"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/modraise.rs",
+      "byte_length": 21012,
+      "sha256": "5680cf2d146cd78091d3b1989bd1689feaa8fdad72a520554990e7f305da0f24"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/params.rs",
+      "byte_length": 20926,
+      "sha256": "963b97fda06647e53e59eb6aab54f1909246d92adbd7621b1f683170e1f83f3b"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/poly.rs",
+      "byte_length": 44138,
+      "sha256": "22006eb00246186ee60e22ccd0717aa293aaad6b8fbfe1a361ae5422207c8a49"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/ciphertext.rs",
+      "byte_length": 4378,
+      "sha256": "315e3193cf26c4cf23a32e571f7e3fe9d05be9c24b43b2f6a22d6f7e0cc2ab9b"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/counter.rs",
+      "byte_length": 11531,
+      "sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/encoder.rs",
+      "byte_length": 34592,
+      "sha256": "ff806dcb15118efd20330acd3e748a17089109ebf56fc9da86f979ce6aca5962"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/encrypt.rs",
+      "byte_length": 13178,
+      "sha256": "f67bebda7c8087c77e4d6151a47d602177d4c016c44100ea86121156c0add8a6"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/evaluator.rs",
+      "byte_length": 81421,
+      "sha256": "bd5bb8eda962e3815363d42c2482b0bb5b7448bb506caa84b6ac22c0001198b8"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keys.rs",
+      "byte_length": 39936,
+      "sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keyswitch.rs",
+      "byte_length": 31653,
+      "sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/lib.rs",
+      "byte_length": 940,
+      "sha256": "5c10991dfeafcf56df164ba3a97bf658c8fdf1372681774e4d83158191d0dbaf"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/linalg.rs",
+      "byte_length": 71884,
+      "sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/metadata.rs",
+      "byte_length": 5654,
+      "sha256": "dd134348604a32411aa1e4734ccc35ad12d745358627df8370f5c33d97eac032"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/ops.rs",
+      "byte_length": 31140,
+      "sha256": "cdb65fd5e1ee86d01c9fca84335a72855b20d84a1d5df73cef8f8bedd5097923"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/par.rs",
+      "byte_length": 1861,
+      "sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/params.rs",
+      "byte_length": 20965,
+      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/plaintext.rs",
+      "byte_length": 2271,
+      "sha256": "575798a761b606fad2638d9fcbad2c5e74d4fc3a2542547e7b879db6333a91ea"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/precision.rs",
+      "byte_length": 7107,
+      "sha256": "7bdbc8a2a99803e06183696fd22dcfece9d67268ced39b62594f792bfeb19f3b"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/seal_compat.rs",
+      "byte_length": 30783,
+      "sha256": "bf7d8673a6957b256c972bbe9e510ad9afac553f9c214aa7d1454a6e086da72b"
+    },
+    {
+      "path": "crates/ckks-train-ckks/tests/bootstrap_metadata.rs",
+      "byte_length": 26743,
+      "sha256": "b2864ecb906ffa73e07a63ff2f9c6b8b8f30428cc578fcacf4b99845c17d9cad"
+    },
+    {
+      "path": "crates/ckks-train-ckks/tests/metadata.rs",
+      "byte_length": 14241,
+      "sha256": "9ded26e0bd0e00ae4d2d1774afc42b0afd3f0c37ab535051dc466dbc8133aefb"
+    },
+    {
+      "path": "crates/ckks-train-ckks/tests/precision.rs",
+      "byte_length": 1444,
+      "sha256": "6837cb281ff23629a69d665bed8ccd684ad9fc251d3da47da570171ba8e8b632"
+    },
+    {
+      "path": "crates/ckks-train-ckks/tests/seal_kat.rs",
+      "byte_length": 15427,
+      "sha256": "8686ad83eefaf3b8a205c4da3f40c18307199a9bd9f5b3615bf49503617f775c"
+    },
+    {
+      "path": "crates/ckks-train-core/Cargo.toml",
+      "byte_length": 686,
+      "sha256": "16754894b66cc238efeb14393dd1eaa1f52b5fe2b0ee4cfc07b4035004efae80"
+    },
+    {
+      "path": "crates/ckks-train-core/LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-core/README.md",
+      "byte_length": 981,
+      "sha256": "812225b89b6fdff19dc343334906df6db73ff0ef9c93fd0a8f2a215114d1d5fb"
+    },
+    {
+      "path": "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-core/benches/ntt.rs",
+      "byte_length": 1121,
+      "sha256": "52d67f27450a4519d7b709fe79389093bbbc10ff373e2316c94273396c699224"
+    },
+    {
+      "path": "crates/ckks-train-core/src/baseconv.rs",
+      "byte_length": 53276,
+      "sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc"
+    },
+    {
+      "path": "crates/ckks-train-core/src/error.rs",
+      "byte_length": 1757,
+      "sha256": "d5bcb70e1f9701c0f33c77a6932db92790fa479f3eab24396bb5615bb747fbb6"
+    },
+    {
+      "path": "crates/ckks-train-core/src/lib.rs",
+      "byte_length": 433,
+      "sha256": "60fcfdf76771b9af04585b833096e37c09b0e41e574a1eb61a713b551a3b556b"
+    },
+    {
+      "path": "crates/ckks-train-core/src/modulus.rs",
+      "byte_length": 7116,
+      "sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b"
+    },
+    {
+      "path": "crates/ckks-train-core/src/ntt.rs",
+      "byte_length": 14169,
+      "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318"
+    },
+    {
+      "path": "crates/ckks-train-core/src/poly.rs",
+      "byte_length": 27765,
+      "sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92"
+    },
+    {
+      "path": "crates/ckks-train-core/src/primes.rs",
+      "byte_length": 6077,
+      "sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee"
+    },
+    {
+      "path": "crates/ckks-train-core/src/rns.rs",
+      "byte_length": 8206,
+      "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397"
+    },
+    {
+      "path": "crates/ckks-train-core/src/sampler.rs",
+      "byte_length": 21588,
+      "sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89"
+    },
+    {
+      "path": "crates/ckks-train-core/tests/modulus_prop.rs",
+      "byte_length": 3112,
+      "sha256": "09ca11b5310b60effa7b2865167b2b48f8ab0ba69b6b63f4ba5ce3eb425de132"
+    },
+    {
+      "path": "crates/ckks-train-cuda/Cargo.toml",
+      "byte_length": 2007,
+      "sha256": "457d57ffb7763ce5285a6302d5fe338cd8726f319ec5e426dd08b5d938a37320"
+    },
+    {
+      "path": "crates/ckks-train-cuda/LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-cuda/README.md",
+      "byte_length": 1390,
+      "sha256": "76ea55c74313414f53bbe9e22bc9e01bd6b2eb1bf6a939676c571fe05ed00347"
+    },
+    {
+      "path": "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-cuda/examples/batch_streams.rs",
+      "byte_length": 7250,
+      "sha256": "ffd4bfcb46da4f04dca10562341697e2fa7e959e66d92a510f1628b38015e7c6"
+    },
+    {
+      "path": "crates/ckks-train-cuda/kernels/basis.cu",
+      "byte_length": 5768,
+      "sha256": "f339bcb5492fee28e5041f7c3097aea6326b2024f0f9a4be2855fcd21bafef0a"
+    },
+    {
+      "path": "crates/ckks-train-cuda/kernels/clang_check_shim.h",
+      "byte_length": 1980,
+      "sha256": "cf8322ae85616e938da4bbde961d312f44340e5eca7bbc2cde292f87ff4ac791"
+    },
+    {
+      "path": "crates/ckks-train-cuda/kernels/keyswitch.cu",
+      "byte_length": 5570,
+      "sha256": "8001e378323e64173700f82aa734d042d75c08af8aaad906864120dcd0ea5014"
+    },
+    {
+      "path": "crates/ckks-train-cuda/kernels/ntt.cu",
+      "byte_length": 12188,
+      "sha256": "fc487dfe9190c712c4a27f862100019d57afe7f501ce17acbc31691155b315da"
+    },
+    {
+      "path": "crates/ckks-train-cuda/kernels/pointwise.cu",
+      "byte_length": 8282,
+      "sha256": "d7da2002c30ff52256ffed4ba8b88117effaf3f039f6e44ced84db7666b1541b"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/arith.rs",
+      "byte_length": 17224,
+      "sha256": "77dd887aabc8601085a1168e20df0cbcc45ea3071a88017e6d0742e9a37d9928"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/basis.rs",
+      "byte_length": 26570,
+      "sha256": "cd707b3f79148eee1ff786b88dcdaf879bef4aebf2e8912bc67c0a0ef587adb0"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/bootstrap.rs",
+      "byte_length": 24877,
+      "sha256": "00ec23b2185ee24fa937fa8f57e09c8e973a4b3735da02ff95fb5c4cdca65b1a"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/ciphertext.rs",
+      "byte_length": 16817,
+      "sha256": "6300fdc3b3ddb4730e0aea8094a98838f59525e4c340cdf0f12d26b42797ae72"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/device.rs",
+      "byte_length": 37714,
+      "sha256": "e2da66b4c09692f5c1638656a915dcb471b652952405b6a0836bbcb611d73549"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/emu.rs",
+      "byte_length": 13627,
+      "sha256": "a93978ee9fedcf0be14a316d530b8e384e91b596403580fbfac07bccca36dc65"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/emu_arith.rs",
+      "byte_length": 25328,
+      "sha256": "74db586cc52e117474cfb2b96b79a9afcbd12b7495b64f3aa523554e4fce65db"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/emu_ks.rs",
+      "byte_length": 13636,
+      "sha256": "0b9c7bf85e7b0c81b67f77925f056ac3f3b5558870cd5eb393d3fc81b8bf3a00"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/evaluator.rs",
+      "byte_length": 30715,
+      "sha256": "9e868d65efcad30204be8377e9901ce80ed3707880e88226603124c94353d1aa"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/keyswitch.rs",
+      "byte_length": 16767,
+      "sha256": "e45cbaa4100be705d4f81f7e336f43d105910441387c331cd787a80dc5350100"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/ks.rs",
+      "byte_length": 21412,
+      "sha256": "cd4beb12f042474b78e570618b0addb946b4a4218ba0c1ef1a17cf096a47b8b9"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/lib.rs",
+      "byte_length": 5638,
+      "sha256": "b7007e9b7b44cf9c315cbf1dfecd275b7b58101f27e2e0b2c9cc4ad350f6eeed"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/matvec.rs",
+      "byte_length": 23324,
+      "sha256": "647f607a377c88a267581811df82bd0029f8c70e06d506a6e290f31d185f84f5"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/plan.rs",
+      "byte_length": 7201,
+      "sha256": "b75a090272d9be11464a024357af6a58c52e70c75452b3cb7cd1c1e8b56b8efd"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/poly.rs",
+      "byte_length": 7808,
+      "sha256": "6edb55bf7487cfb3ddc0d0688133c5f43753105201295d8490ad7fbb6d8bd752"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/runtime_observation.rs",
+      "byte_length": 18268,
+      "sha256": "e43610e6c7b5d0ba0e672352c0e84a278f35863cd0a5243f10a551aaecf93c5b"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/runtime_observation_tests.rs",
+      "byte_length": 9732,
+      "sha256": "4a846f1be25df93b4dc7e7693180683c10009b4b92b1423f7d43fc0668ecff23"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/tables.rs",
+      "byte_length": 8676,
+      "sha256": "f0490c75496f74849e1d8e763f81042d9a9572c5262c17d2a5e161edc1ec7d98"
+    },
+    {
+      "path": "crates/ckks-train-cuda/src/testing.rs",
+      "byte_length": 3853,
+      "sha256": "e37b5ba0f3dd925b184dd8d23e79973ed3761eab2e914724330882a847876eb5"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/bootstrap_replay.rs",
+      "byte_length": 1371,
+      "sha256": "77c8bdf75c1d24b6390dfebffa05d7eba70a0aac9b569b6119bc31a80c274a3c"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/cases/eval.rs",
+      "byte_length": 13560,
+      "sha256": "9d47d69a35b9217b005cec16673d425998a3d817ed08ccf01971eb07020c564b"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/cases/failing.rs",
+      "byte_length": 6408,
+      "sha256": "38a4bcbbc200f5168742aa649815687200923a46bc4e2442e45d96ce29d3b8f8"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/cases/ks.rs",
+      "byte_length": 11373,
+      "sha256": "760696bdc8c17ece4fadd901200aa4e5b9700ba379e958f5beae9a17436ca4e7"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/cases/mod.rs",
+      "byte_length": 14978,
+      "sha256": "6c2d799fb22f3e015bcc7ee49dc6ec510710fb4d5fed871cdf6bdf980fd79a78"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/gpu.rs",
+      "byte_length": 8221,
+      "sha256": "4900a03cfbbcbdf1761daaa420b998dae7096aceb9c55106fcd5acad331cf122"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/gpu_arith.rs",
+      "byte_length": 7930,
+      "sha256": "7fcea0d040c512ba21d61daf4f6a728a364a064a27a5fe03494440fe6b1f9833"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/gpu_bootstrap.rs",
+      "byte_length": 5239,
+      "sha256": "ee9963717890d22c95a2f2044a90359834c8e960dd694ab86c22f9f644589e1c"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/gpu_eval.rs",
+      "byte_length": 18140,
+      "sha256": "8880ebc508cd3d6659f7b8282843871bc62c4bbf195e9b5bf956e90c058eb132"
+    },
+    {
+      "path": "crates/ckks-train-cuda/tests/gpu_ks.rs",
+      "byte_length": 18432,
+      "sha256": "c8150cd5a9f535f9c01fbbed2cf78ce05b2aa241ea952a06bcc9aaaa749114ec"
+    },
+    {
+      "path": "crates/ckks-train-nn/Cargo.toml",
+      "byte_length": 591,
+      "sha256": "db40d8c8c8e7739195edc7f8fccb3596ea24f3090235d1f972115e107d9eacfb"
+    },
+    {
+      "path": "crates/ckks-train-nn/LICENSE",
+      "byte_length": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "path": "crates/ckks-train-nn/README.md",
+      "byte_length": 1207,
+      "sha256": "c8490a4e7fe2c2af40de7c6eb40ab84ebeccc6fe4a1513b50f66061a4937a5b4"
+    },
+    {
+      "path": "crates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "byte_length": 10047,
+      "sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/activation.rs",
+      "byte_length": 20684,
+      "sha256": "10c76cd71ea109ae46262d01fdf3ae30ce3717e9f22c74a8c13e2f8cc092c1e5"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/block.rs",
+      "byte_length": 34966,
+      "sha256": "0a7f53e1e61ff6b1660322aa9c23f5967a14f1a5aa92a7d69bcb745203ce7cef"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/compact.rs",
+      "byte_length": 25887,
+      "sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/dense.rs",
+      "byte_length": 58957,
+      "sha256": "b7e919813b63412de759d42779c69f481a8f133c61c6d999473e49a2fb3a2fa2"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/diagonal_plan.rs",
+      "byte_length": 83676,
+      "sha256": "c64373f73625f29d21232a5069d39fbaeb184c3f683d659ab6844ffd703c8065"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/diagonal_plan_tests.rs",
+      "byte_length": 74563,
+      "sha256": "b93aa5e9fe8dfffdd76c6c654d4c7a67c3422306f7bf7fb836d0cde5454ce286"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/layout.rs",
+      "byte_length": 13767,
+      "sha256": "267c0cf711a0051dbad0f49c43a1408f3a5c2a3efcd47eccb0d2829d09def56a"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/layout_reboot.rs",
+      "byte_length": 24509,
+      "sha256": "753448fd0e4a520aac9eb148cdb1b9a43e7072b5b87ee66fe23796a95dd193a6"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/lib.rs",
+      "byte_length": 370,
+      "sha256": "abe8c9f1775208f91fabeeb60a459eb2468d1426349dd0903e8290fba2044ff8"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/loss.rs",
+      "byte_length": 2207,
+      "sha256": "aca0d2785cb2d7ff68077acb901678144230fd4ba3bc58ab69459f5654bb63f6"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/optim.rs",
+      "byte_length": 19281,
+      "sha256": "7f99d28585c0656f0faa00b87d9808b4c52cda1ce0d99de877b39bcffe74bcfe"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/block.rs",
+      "byte_length": 64659,
+      "sha256": "b5ee74460127178d4b0e720077afe1d92ee10ce7599f1885a72332f871212d45"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/dag.rs",
+      "byte_length": 22566,
+      "sha256": "8780efb7c01035cfa93ec53f60a43d37167b0a59e9a2bb19c10461e77d613b4c"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/mod.rs",
+      "byte_length": 2496,
+      "sha256": "98aa227e6e4b4128839f45f667a70ba30218e0a7490ce5e9fab53ef0b5db8797"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/ops.rs",
+      "byte_length": 9636,
+      "sha256": "f12ef54adfaf45d0dfa34b258fbcf3913639cbd9849b601d68e157759fc7d15b"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/optimizer.rs",
+      "byte_length": 14034,
+      "sha256": "4f15efea5eb317bd6fe0fe346f200a72f7564a3e1af12c71eaccf697f4bce38b"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/plan.rs",
+      "byte_length": 10383,
+      "sha256": "ab242a78e1bd539055bf313ec122d4b1251219602497052c569c7834fffa3ed5"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/refresh.rs",
+      "byte_length": 35275,
+      "sha256": "b26abd5232182f62fced39a7e1e0f7a8423b14cf1c2b9a4b91695f71a79a0b80"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/stage.rs",
+      "byte_length": 47900,
+      "sha256": "7f2c68b914d4ed7306ea2b348566c35e277887514ac50a484ca8b8508ca023d1"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/trainer.rs",
+      "byte_length": 22135,
+      "sha256": "4b541d2a3ea5f66a8617a35d3fd36082bbfa54aee0a0555faf266c497a84a3f2"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/packed_training/types.rs",
+      "byte_length": 3260,
+      "sha256": "41e3fe4177f9663920a98c41f9c4db96366fa3700659d8b6f9da8bdbaf5e5d5f"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/refresh.rs",
+      "byte_length": 35450,
+      "sha256": "073cb769cfc4e6d15c833dfd8b40610fabca856dd04322cd4b0a609916b45cb4"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/sim.rs",
+      "byte_length": 19608,
+      "sha256": "58754e346d42bad3e242bb43b8a3d2ab413bc295bca64a9cc88ab29864ec88e1"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/trainer.rs",
+      "byte_length": 62359,
+      "sha256": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/trainer_ni.rs",
+      "byte_length": 102255,
+      "sha256": "8b218cccd0106e8a925c8cc3be8a328864e04dfba91f059a63b86021250a3dbe"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/ablation.rs",
+      "byte_length": 21139,
+      "sha256": "e75505a091721c5d5ecf4f6fd7a0ba9bf590b63679d7058126619b94fd865f1d"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/activation.rs",
+      "byte_length": 10245,
+      "sha256": "f6461f62b8db2443eef63127df02b4320146212b995470c89225be58349fef06"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/backward.rs",
+      "byte_length": 17858,
+      "sha256": "11979e92b655d73c08d2a3ee92cd19abfe935a17ff573614a10ba5db8cdbd30a"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/block.rs",
+      "byte_length": 41725,
+      "sha256": "8024dd7e2c248fabcb24f774379e87bcdf7e2458bead0f5b21b401fa905d6aec"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/block_profile.rs",
+      "byte_length": 25371,
+      "sha256": "1ad59eeb68dbc914bdaaadec38d04d118a1dd89d20090624ab917bdff58d8606"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/compact.rs",
+      "byte_length": 23284,
+      "sha256": "ed4643f7dc084edf46af41ca251874dac4ad01f982bb3514193974ecc0d6b204"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/dense.rs",
+      "byte_length": 11787,
+      "sha256": "8be4b759881feb3ac438ab3ec49ba79186bceb438e49db9ca40175ace5c5e5bb"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/diagonal_plan.rs",
+      "byte_length": 28314,
+      "sha256": "765704f38d2499ffe7280f588125413102691070b58afb0131ef46193d33d9ae"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/grad.rs",
+      "byte_length": 35469,
+      "sha256": "30d38c7fdd5f63715069bb0c3bfe52f0ddc00328e6516e4e7dffa6d1709e220c"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/identity.rs",
+      "byte_length": 8699,
+      "sha256": "1b415b991943b2c45b85e95f2483063fc45cdb4ed9df06c897e92faab61dbc7d"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/layout_reboot.rs",
+      "byte_length": 26493,
+      "sha256": "0aa7c653e1a087a37905d7a4c583bb203c1e937907df9569b2ba3dd5a273440b"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/layout_sim.rs",
+      "byte_length": 21369,
+      "sha256": "ab48ce19271eb4ac448a420cb7482d10286efecdfbf55722c6bf1b21876ff02a"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_blocks.rs",
+      "byte_length": 53435,
+      "sha256": "3a7dad5cfbe7fb3890e59ec5dfc80051dd8103f9392e47073abdae33d70db456"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_blocks_helpers/fixture.rs",
+      "byte_length": 17318,
+      "sha256": "b0fb1e7b1038a4f09e2a95ba18b59f568251ee8bdd06d5da4081a65647074a71"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_blocks_helpers/mod.rs",
+      "byte_length": 14903,
+      "sha256": "c70d8d50b7064446fa0fa7a3ae3f3041fc22431944faf23e1a6aac430e7c6e29"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_blocks_helpers/primary.rs",
+      "byte_length": 57970,
+      "sha256": "fb492e0d04a8d83df6930db4c78e35042fd8cd771f074e98755150cea9a2255a"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_layout.rs",
+      "byte_length": 23748,
+      "sha256": "6f1113396838064a190e47d11942a9d58de781857a883aede8aec8df1670c896"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_ni_calibration.rs",
+      "byte_length": 26640,
+      "sha256": "6fe5d2a2807088a7f574d06e30a747f2920923d57c644daabdf231058045787e"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_ni_helpers/mod.rs",
+      "byte_length": 7565,
+      "sha256": "9eb187195dd1d83c08c927704261b807c94de61bb48c306fa6c6fef6c8d9fbf4"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_ni_helpers/primary.rs",
+      "byte_length": 25041,
+      "sha256": "f9954a2a3247a21b27f825e4caadc7aca2f4058e1bb5319f29e2b59075c88a49"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_ni_helpers/trace_ops.rs",
+      "byte_length": 3848,
+      "sha256": "1982b0a554c7538840dcda70bfbc5c887df307f0f04d9218b6fc02fd4f2ca1cd"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_optimizer.rs",
+      "byte_length": 15778,
+      "sha256": "f97b6a85cd27a5e0567df700458d8b2b4812db2ad9b34eba22f6056aa0ba2d27"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_plan.rs",
+      "byte_length": 23296,
+      "sha256": "05e6092d4075c8ea2ec59d0b5408ad577f9db6147c35dcd3df697ee59208f665"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_refresh.rs",
+      "byte_length": 37346,
+      "sha256": "45bbadc4f3db290ec6e452a9f42e29f244df3a0785d5dde61fbc1458008a0514"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_training.rs",
+      "byte_length": 30509,
+      "sha256": "5476f867e8cd2664cea0e343ce056bd646adf5c4e3215f34d6a65cf82ad2226c"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/packed_training_ni.rs",
+      "byte_length": 20016,
+      "sha256": "1a85b23fbdaeaf75e6d6d34d6316ae96ced8a12a5bd34c4061b53cf544b77aa9"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/study_microbatch.rs",
+      "byte_length": 21024,
+      "sha256": "a8e5eb954fed4f705b4497f9ee12d30b99b2bd6b3f8920c472672f16d13ae454"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/trainer.rs",
+      "byte_length": 35647,
+      "sha256": "f8af771491dd56e04cb61b05d32bcca597c3bf4e67c9f0c81ad512e17f614120"
+    },
+    {
+      "path": "crates/ckks-train-nn/tests/trainer_ni.rs",
+      "byte_length": 43647,
+      "sha256": "de237a1b0f0b8a67e520412419e62f75b56387ec87995eaf933ccfa24e60257c"
+    },
+    {
+      "path": "docs/experiment-matrix.md",
+      "byte_length": 28176,
+      "sha256": "65287eaac43de3c3335f4ef03eb1238a2e94693fe3d1eb99545bb77d5e8a26ee"
+    },
+    {
+      "path": "docs/study-reference-design.md",
+      "byte_length": 53508,
+      "sha256": "d71d7cac85ab8f9c05efb7ac5debba9eeaf9db13d29e5ce34fb179b300cfd2bf"
+    },
+    {
+      "path": "docs/study-reference-document-design.md",
+      "byte_length": 64583,
+      "sha256": "788cc036c96d6a944391147713033973552e6d0c8b08fe6b5d7e3dd21c3fb9f1"
+    },
+    {
+      "path": "docs/study-reference-session-design.md",
+      "byte_length": 50324,
+      "sha256": "04a8bf9a0288e0740a7538edd77ceb5c29985f64fd2026628bed857453cc82f6"
+    },
+    {
+      "path": "docs/study-training-design.md",
+      "byte_length": 55515,
+      "sha256": "4f1f9437a25a05b3755dcf5b75352346ca437e816e8f13eecfe27b5336035285"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "byte_length": 64,
+      "sha256": "55298905deb5fab7ccb177ffc719cc501277d8d5cf9c7ed38ccccc418f1ea76f"
+    },
+    {
+      "path": "scripts/fetch_fashion_mnist.sh",
+      "byte_length": 2345,
+      "sha256": "1ecc5cfa25ea1d16d93c8df533e24ead408cf35fdee2eee9a18527a11753c3c0"
+    },
+    {
+      "path": "scripts/fetch_mnist.sh",
+      "byte_length": 2157,
+      "sha256": "7e117f299d3790ba6cfbf69f5a82f6feac58c4dd1e4ffebc665881c896a6d495"
+    },
+    {
+      "path": "scripts/rename.sh",
+      "byte_length": 4125,
+      "sha256": "6f026eb2caeda7db2aea4d22e1ecdfffc3bbfd86f4b441ea1fd76ecd460fb9bc"
+    },
+    {
+      "path": "scripts/run_all.sh",
+      "byte_length": 31788,
+      "sha256": "3275b307152b5d0e1d016a0c30db21ba8a27eed73fccebbcddf5bd11c25f86d5"
+    },
+    {
+      "path": "scripts/study_reference_build.py",
+      "byte_length": 15034,
+      "sha256": "0986d606c7965239364e8c75d35794d33c63e755237afff4c6b75d668da8518c"
+    },
+    {
+      "path": "scripts/study_reference_build_support.py",
+      "byte_length": 53059,
+      "sha256": "3f71b0aeb0afcf5fba7f9f4d6c850f99b4b57d4f54c53d191524b0caeb0b6227"
+    },
+    {
+      "path": "scripts/study_train_build.py",
+      "byte_length": 809,
+      "sha256": "9e5c3e282516ac97e27872fb91b8a0e6dadc2282dfbe446f1d3a297bbc5751de"
+    },
+    {
+      "path": "scripts/test_study_reference_build.py",
+      "byte_length": 31838,
+      "sha256": "8ec601d64adf038658206e93a5ca3872afd815673a5e2c57950ba71b35e22b2f"
+    },
+    {
+      "path": "scripts/test_study_train_build.py",
+      "byte_length": 37515,
+      "sha256": "1f9780ba141f810ffb6c40f45bfcd695e7723e6206fbf13dd071cefc0fd45950"
+    },
+    {
+      "path": "tools/bootstrap/evalmod_design.py",
+      "byte_length": 13487,
+      "sha256": "9aba1c480e66bf7e4d0efedc680817bf3046ad6be6b7faa64caf50b98cb28840"
+    },
+    {
+      "path": "tools/estimate/README.md",
+      "byte_length": 3377,
+      "sha256": "dc2c1a4a77920776251c8893fb52a876336868a0061c140a7cd33d8c36ab7bfe"
+    },
+    {
+      "path": "tools/estimate/dual_mitm_scan.py",
+      "byte_length": 5311,
+      "sha256": "20600a2f6c6950feb64034d76fd9fd5918df19009a67eb27e32894264e5e90ef"
+    },
+    {
+      "path": "tools/estimate/estimate.py",
+      "byte_length": 8293,
+      "sha256": "484fa6871e1eb7e5c251365f7adb804b8752a959741909f6817f6476d121a169"
+    },
+    {
+      "path": "tools/estimate/params.json",
+      "byte_length": 955,
+      "sha256": "8a96c8606f9014a28e6a660392f5e960500bc71af211ff0b29e6d54998094fa0"
+    },
+    {
+      "path": "tools/estimate/reboot_params.json",
+      "byte_length": 448,
+      "sha256": "9ecd18a791ac0c2147fc63f18afd2bcf91eeaab9cc9199f12a84bff0eed61d9b"
+    },
+    {
+      "path": "tools/export_reboot_block_seed_inputs.py",
+      "byte_length": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce"
+    },
+    {
+      "path": "tools/figs.py",
+      "byte_length": 7505,
+      "sha256": "3ac90c3bbbb8c443b3b39779963af40599433f17db59b6fc30037e32cc35ee58"
+    },
+    {
+      "path": "tools/lock_experiment_inputs.py",
+      "byte_length": 2067,
+      "sha256": "6001e550cf8992edd3debbdbba3a1fd2fb30a43d7149269de163727256fa471a"
+    },
+    {
+      "path": "tools/paper_tables.py",
+      "byte_length": 49859,
+      "sha256": "ea83f834af20e7a21eb460d38dae91e862cf24b31eae63e89d6be98ecbbcac37"
+    },
+    {
+      "path": "tools/reboot_layout/assemble.py",
+      "byte_length": 7342,
+      "sha256": "9aaa71ad9c87841d08559ae28a96091ca6ef7a21b3c17f4dbdb86a977e5c2066"
+    },
+    {
+      "path": "tools/rq1_summary.py",
+      "byte_length": 22295,
+      "sha256": "9380e740f5a7333607dfdce5966d0d793bf8b71fc03d1df5327390ce1b342c79"
+    },
+    {
+      "path": "tools/seal-kat/bench/CMakeLists.txt",
+      "byte_length": 1103,
+      "sha256": "2e3ba4c0042702ad30b8dd77b8ffcbcece18872a7f80cdb0dac4e82758698a37"
+    },
+    {
+      "path": "tools/seal-kat/bench/bench.cpp",
+      "byte_length": 11702,
+      "sha256": "f055d3abdd557954c9ec67c76f1f953d09893ddbfc3133f949c8271cc2263e2e"
+    },
+    {
+      "path": "tools/seal-kat/bench/run_bench.sh",
+      "byte_length": 1094,
+      "sha256": "ade219c4b7e62989aac01c5a49eef1ecfa04cd23b7acfad2c606fa3b57b78bc6"
+    },
+    {
+      "path": "tools/seal-kat/encoder_kat/CMakeLists.txt",
+      "byte_length": 1082,
+      "sha256": "7b46bfeacf404962ccfc169387e5ceec52688094c2804163890231e3d2d04233"
+    },
+    {
+      "path": "tools/seal-kat/encoder_kat/README.md",
+      "byte_length": 1492,
+      "sha256": "4331e73e97f280a550530aee45f2d5b9b6e74fd5a00603efbcdfd8da6b2fcfb9"
+    },
+    {
+      "path": "tools/seal-kat/encoder_kat/kat.cpp",
+      "byte_length": 2969,
+      "sha256": "c3456847a1630c48d9a51fc395c32c7e26ffecc93d56c2046336e8deb080e86a"
+    },
+    {
+      "path": "tools/seal-kat/interop/CMakeLists.txt",
+      "byte_length": 1092,
+      "sha256": "385522c77848ec5601e5fd393dfae5d72572211c2bb69f004b1b9d6c261032b9"
+    },
+    {
+      "path": "tools/seal-kat/interop/README.md",
+      "byte_length": 3171,
+      "sha256": "da1f0abef634dd38cf842e4dfe12a5657c3895c7dae88462f9a5cddff9a03621"
+    },
+    {
+      "path": "tools/seal-kat/interop/kat.cpp",
+      "byte_length": 11420,
+      "sha256": "f05294e1bbf198382861945f42edb1ddce43317ba4be11ca9c3510e953918408"
+    },
+    {
+      "path": "tools/seal-kat/run_kat.sh",
+      "byte_length": 2080,
+      "sha256": "18a712979e37eccafc445933047813fec2ada152076c858f5e829707ad86f688"
+    },
+    {
+      "path": "tools/tables.py",
+      "byte_length": 198,
+      "sha256": "f6075d51843cd9c9e16b1521f4c7722356d568808af2d5895ffbe4225e8851e7"
+    },
+    {
+      "path": "tools/test_export_reboot_block_seed_inputs.py",
+      "byte_length": 70890,
+      "sha256": "ee87b65dd644fa725cf9be252f2ba48be8133add2ecb23b202989becca9f4386"
+    },
+    {
+      "path": "tools/test_figs.py",
+      "byte_length": 1802,
+      "sha256": "8487be1a806d3360c90b75c075d90d3984b73bdcae1bf1ba89ed66528f0ed058"
+    },
+    {
+      "path": "tools/test_lock_experiment_inputs.py",
+      "byte_length": 3173,
+      "sha256": "112db150fb6e94dca3a7ad482b65eb2c35b26058fe58b85644e36205deba6a97"
+    },
+    {
+      "path": "tools/test_paper_tables.py",
+      "byte_length": 10577,
+      "sha256": "dc247a80b19ea3894c11f94ffb2fddc1778c2a5af7e5178a9ca849d2da71bc2a"
+    },
+    {
+      "path": "tools/test_post_full_queue.py",
+      "byte_length": 13091,
+      "sha256": "78c9d99b7715888f9a74ed8772e471e3bf9d91b915d05eed19140560d64b9cf6"
+    },
+    {
+      "path": "tools/test_rq1_summary.py",
+      "byte_length": 20505,
+      "sha256": "7a49551049ac2176694d1dc09236996c9de2cb0afc4acec434e6b50096c6e4fd"
+    },
+    {
+      "path": "tools/test_run_all.py",
+      "byte_length": 12712,
+      "sha256": "ed727a6b8f9db579c37cb2ea655cd43897ee9f4165fd948f97f248dc27569852"
+    }
+  ],
+  "accepted": false,
+  "error": "manifest count cap",
+  "source_record_cap": 512
+}

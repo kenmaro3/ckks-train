@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-fixture-custody-fix1-driver.py", line 45, in <module>
+    assert stat.S_ISREG(path.lstat().st_mode), name
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: crates/ckks-train-ckks/LICENSE
