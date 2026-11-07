@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の設計: [取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
+最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -1043,3 +1043,11 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 実際の確認時刻は2026-11-08T02:58:24.687887+09:00。R-41-FULL-2はupdate590（0始まり）、完了591/1000更新、ログ上のelapsed85006秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新585〜590は各1415 KS・4 bootstrapで予測一致、最終結果JSONはなく、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0257/README.md)を保存した。
 
 予定時刻以降に実時刻・pins・未起動を確認して一度だけ起動し、元controller76337のterminal0とSSH exit0まで回収した。job再起動・queue変更・追加計測はない。次の通常確認は2026-11-08T03:58:25+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
+
+<a id="latest-evidence-20261108-d7-resource-allocation"></a>
+
+## 2026-11-08追記: ソースに基づく資源量と保持期間の算出
+
+[算出資料](study-resource-allocation.md)と[元資料・独立レビュー](../results/validation/task54-d7-resource-allocation/README.md)を保存した。固定commitの37ファイルを根拠に、暗号鍵・Encoder・NN状態・学習用packet・bootstrap等の要素数と保持期間を整理した。refresh時の鍵の複製、NI更新時の旧状態と新状態の同時保持、逐次BSGSでも全giant出力が蓄積する点を反映している。
+
+選択したソースの算出資料として仕様・品質レビューは合格。pinの説明とMarkdown表の区切りに関する軽微な2点を閲覧用文書で修正し、元資料はそのまま保存した。22区分のうち0〜13に具体的な算出根拠があるが、再帰処理の完全なピーク、allocation容量・allocator・runtime・kernel、入力保持と実materializerの接続、実機検証は未完了である。payloadの要素数を物理メモリ上限や実行許可へ置き換えず、Task54全体は未完了とする。

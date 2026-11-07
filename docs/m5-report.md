@@ -802,4 +802,12 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 
 予定時刻以降に実時刻・pins・未起動を確認して一度だけ起動し、元controller76337のterminal0とSSH exit0まで回収した。job再起動・queue変更・追加計測はない。次の通常確認は2026-11-08T03:58:25+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
 
+<a id="latest-evidence-20261108-d7-resource-allocation"></a>
+
+## 2026-11-08追記: ソースに基づく資源量と保持期間の算出
+
+[算出資料](study-resource-allocation.md)と[元資料・独立レビュー](../results/validation/task54-d7-resource-allocation/README.md)を保存した。固定commitの37ファイルを根拠に、暗号鍵・Encoder・NN状態・学習用packet・bootstrap等の要素数と保持期間を整理した。refresh時の鍵の複製、NI更新時の旧状態と新状態の同時保持、逐次BSGSでも全giant出力が蓄積する点を反映している。
+
+選択したソースの算出資料として仕様・品質レビューは合格。pinの説明とMarkdown表の区切りに関する軽微な2点を閲覧用文書で修正し、元資料はそのまま保存した。22区分のうち0〜13に具体的な算出根拠があるが、再帰処理の完全なピーク、allocation容量・allocator・runtime・kernel、入力保持と実materializerの接続、実機検証は未完了である。payloadの要素数を物理メモリ上限や実行許可へ置き換えず、Task54全体は未完了とする。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

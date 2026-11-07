@@ -1,0 +1,241 @@
+{
+  "base": "931f17439ebfe491c7be5ca9c662efdb2553f16d",
+  "purpose": "fixed-source allocation derivation; no constructors executed, no physical bounds",
+  "committed_blobs": [
+    {
+      "path": "docs/study-resource-design.md",
+      "bytes": 7815,
+      "sha256": "18e4a1280db6ea6e5b9e338658e46128a171b16137e0b5ee0b9eaf3d85cc7a72",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "results/validation/task54-d7-resource-design/task-54-d7-resource-producer-proposal.md",
+      "bytes": 65108,
+      "sha256": "e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "results/validation/task54-d7-resource-design/task-54-d7-typed-materializer-preallocation-map.md",
+      "bytes": 44480,
+      "sha256": "31504e7c3cda346de741448103ce1d9629003bd3fc4359d3d6916db9ac583f9c",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "results/validation/task54-d7-resource-format/task-54-d7-resource-format-contract.md",
+      "bytes": 30832,
+      "sha256": "a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-core/src/poly.rs",
+      "bytes": 27765,
+      "sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-core/src/rns.rs",
+      "bytes": 8206,
+      "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-core/src/ntt.rs",
+      "bytes": 14169,
+      "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-core/src/sampler.rs",
+      "bytes": 21588,
+      "sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-core/src/baseconv.rs",
+      "bytes": 53276,
+      "sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keys.rs",
+      "bytes": 39936,
+      "sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/encoder.rs",
+      "bytes": 34592,
+      "sha256": "ff806dcb15118efd20330acd3e748a17089109ebf56fc9da86f979ce6aca5962",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/params.rs",
+      "bytes": 20965,
+      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/encrypt.rs",
+      "bytes": 13178,
+      "sha256": "f67bebda7c8087c77e4d6151a47d602177d4c016c44100ea86121156c0add8a6",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/keyswitch.rs",
+      "bytes": 31653,
+      "sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/evaluator.rs",
+      "bytes": 81421,
+      "sha256": "bd5bb8eda962e3815363d42c2482b0bb5b7448bb506caa84b6ac22c0001198b8",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/par.rs",
+      "bytes": 1861,
+      "sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/linalg.rs",
+      "bytes": 71884,
+      "sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs",
+      "bytes": 38908,
+      "sha256": "11dfc9ce01dda64bf63481f4f7feb109019f0302af327ca00587459e3adbd770",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/linear.rs",
+      "bytes": 80601,
+      "sha256": "4778e8c95885962a3318ec7e72a01f58c704b662ee86b55eda6d55f14c58cf78",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/evalmod.rs",
+      "bytes": 22173,
+      "sha256": "02e7d5a8c026846b8e10ec0b9cc6d0329e679403859ceeff8a23f3948e0089d6",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/poly.rs",
+      "bytes": 44138,
+      "sha256": "22006eb00246186ee60e22ccd0717aa293aaad6b8fbfe1a361ae5422207c8a49",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/compact.rs",
+      "bytes": 25887,
+      "sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/trainer_ni.rs",
+      "bytes": 102255,
+      "sha256": "8b218cccd0106e8a925c8cc3be8a328864e04dfba91f059a63b86021250a3dbe",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/optim.rs",
+      "bytes": 19281,
+      "sha256": "7f99d28585c0656f0faa00b87d9808b4c52cda1ce0d99de877b39bcffe74bcfe",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/trainer.rs",
+      "bytes": 62359,
+      "sha256": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/dense.rs",
+      "bytes": 58957,
+      "sha256": "b7e919813b63412de759d42779c69f481a8f133c61c6d999473e49a2fb3a2fa2",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-nn/src/block.rs",
+      "bytes": 34966,
+      "sha256": "0a7f53e1e61ff6b1660322aa9c23f5967a14f1a5aa92a7d69bcb745203ce7cef",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client.rs",
+      "bytes": 42402,
+      "sha256": "f043916ef3801c2c4c3bafa122f0d4dd5980a748f4f83926f792cd137ce4ec0d",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client/blocks.rs",
+      "bytes": 29864,
+      "sha256": "ce8dc1ef0d42c8c4c0832dd418059dadb8eba15470b6e9176ef0391169465f40",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_blocks.rs",
+      "bytes": 57364,
+      "sha256": "0c9fca750faeac190626744bb8d16c81c1215557a209a7aa28c2ad315ce99adc",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_diagonal.rs",
+      "bytes": 42002,
+      "sha256": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution.rs",
+      "bytes": 29051,
+      "sha256": "7aea7dc643cac55926935f4264e18f5bc480dfd8c5beee4f24771f33f8f6ff6a",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution/cpu_continuation.rs",
+      "bytes": 21387,
+      "sha256": "f6695959663fd1fcff206d6e04f4092154d7ed68344bb9aa58339fcdfce82e67",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "bytes": 15808,
+      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication.rs",
+      "bytes": 37228,
+      "sha256": "4cb08e06dc57459e87784fc22cf1aa32904382fe716ec6bd46dc1a2f05666557",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
+      "bytes": 20306,
+      "sha256": "311d1806eaf39642fc1b2904ac9a9e02569659fc079003d90baa2734d27b01af",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+      "bytes": 22789,
+      "sha256": "a591f3618d3e3c736a86dcea95bb8e5b8948180615c6a6a043e7f09d3f002590",
+      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
+    }
+  ],
+  "instruction_inputs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
+      "bytes": 1032,
+      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-allocation-derivation-brief.md",
+      "bytes": 4629,
+      "sha256": "19904572155455cc974ff02e90d6c673d328820c9250ec7d21aadafa9db82e98"
+    }
+  ],
+  "calculation_scope": "SHA256 and lengths of exact listed blobs only; no dataset or physical memory arithmetic"
+}

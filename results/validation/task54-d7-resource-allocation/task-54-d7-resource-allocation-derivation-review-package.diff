@@ -1,0 +1,404 @@
+--- /dev/null
++++ task-54-d7-resource-allocation-derivation-report.md
+@@ -0,0 +1,157 @@
++# Task54 D7 fixed-source allocation derivation
++
++Status: SOURCE WORKSHEET COMPLETE FOR ROOT REVIEW; physical rule package remains incomplete. Fixed BASE `931f17439ebfe491c7be5ca9c662efdb2553f16d`. No physical upper bound, model approval, fit, runtime release or scientific claim.
++
++## Recorded finite inspection/calculation inventory
++
++Recorded before standalone text/hash/integer calculations. All code/config/document blobs below are read only by `git show BASE:path`; no project constructors/helpers are executed. Exact SHA256 pins will cover these named blobs. Read slices and text searches are allowed within this finite inventory; hashing does not imply a full semantic audit of every line.
++
++- `docs/study-resource-design.md`
++- `results/validation/task54-d7-resource-design/task-54-d7-resource-producer-proposal.md`
++- `results/validation/task54-d7-resource-design/task-54-d7-typed-materializer-preallocation-map.md`
++- `results/validation/task54-d7-resource-format/task-54-d7-resource-format-contract.md`
++- Core source: `crates/ckks-train-core/src/{poly,rns,ntt,sampler,baseconv}.rs`
++- CKKS source: `crates/ckks-train-ckks/src/{params,keys,encoder,encrypt,plaintext,ciphertext,evaluator,keyswitch,par,linalg}.rs`; `bootstrap/{bootstrapper,linear,evalmod,modraise,params,poly}.rs` under the same source directory.
++- NN source: `crates/ckks-train-nn/src/{compact,dense,optim,trainer,trainer_ni,refresh,diagonal_plan}.rs`; `packed_training/{types,trainer,optimizer,refresh,plan,block,dag,stage,ops}.rs` under the same source directory.
++- Bench source: `crates/ckks-train-bench/src/{study_runtime,study_client,study_blocks,study_diagonal,study_execution,study_profile,study_inputs}.rs`; `study_client/blocks.rs`, `study_execution/cpu_continuation.rs`, `study_provenance/publication/retained.rs`, `study_provenance/context.rs`, `study_provenance/process.rs`, `study_provenance/publication_anonymous.rs`, `study_reference/target.rs`, `study_reference/document/evidence/tails.rs` under the same source directory.
++- `crates/ckks-train-bench/configs/experiment_matrix.json`
++- `Cargo.lock`
++- Local immutable task instructions read: `task-54-d7-resource-allocation-derivation-brief.md`, `task-54-brief.md` in this ledger directory. These are instruction inputs, not committed-source facts.
++
++Only this report and optional source-pin JSON are outputs. No datasets, process/host observations, current resource parser files, build/tests/Cargo, native/HE, project helpers or subagents are in scope.
++
++Inventory extension (before any calculation over these additional paths): `crates/ckks-train-nn/src/block.rs` (source-discovery search already read; needed for actual handoffs), `crates/ckks-train-core/src/modulus.rs`, `crates/ckks-train-bench/src/study_provenance/publication.rs`. These fixed blobs are included in pin scope.
++
++## Result and applicability
++
++This worksheet derives representation sizes, allocation families and overlapping owners from fixed source. It supplies substantive missing core evidence for kinds0–13 and a closed22-row coverage map. It deliberately does **not** produce22 complete physical rules: collection capacity/layout, library/allocator behavior, several recursive/NN workspaces, the new parser, resource-owner integration, actual loaded environment and native validation are unresolved. No value below may be emitted as a physical Requirements byte field merely by substituting payload arithmetic.
++
++The accepted proposal hash is `e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a`; exact format hash is `a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429`; accepted materializer map hash is `31504e7c3cda346de741448103ce1d9629003bd3fc4359d3d6916db9ac583f9c`. All cited code locations below refer to BASE, never the concurrent writer's files. `task-54-d7-resource-allocation-derivation-source-pins.json` binds37 actually consulted committed source/document blobs (range/search inspection) and the two instruction inputs; inventory candidates not consulted are not claimed audited.
++
++`study_runtime.rs:312–395` still constructs context/registry/materialized input/registered parameters/plan/prepared route and refuses before keys/HE. The concrete continuation studied here is the reserved future consuming path, not an executed production path. `study_execution.rs:294–330` selects only Main + CPU + BatchedDiagonal and chooses n16_train for I, n16_boot + default_n16 bootstrap for NI; other roles/backends/packing return None. This does not remove those cases from the full objective. Preparation-only Reference/Target operations require their actual source/reader envelope and cannot finalize an HE gate; crypto inapplicability is operation-specific, never missing HE coverage encoded as zero.
++
++## Notation and physical-accounting boundary
++
++Let `N` be ring degree, `S=N/2`, `q=Q.len=L+1`, `p=P.len`, `d=dnum`, `alpha=q/d`, `r=l+1`, and `D(l)=floor(l/alpha)+1`. For the registered constructor above both presets have `N=2^16,q=32,p=4,d=8,alpha=4` (`params.rs:12–58,159–183`); their prime bit values differ. NI compute output level is16 and initial expanded state starts at15; retain exact stage/step levels from planning instead of assigning every object level31. No constructor was called to obtain these constants. These constants do not imply a universal parameter bound for every matrix role.
++
++Use `P(r)=8*N*r` for **coefficient payload** of one RnsPoly, `Q(l)=P(l+1)+P(p)` for a QpPoly at level l, `C(k,l)=k*P(l+1)` for a k-component ciphertext, and `K(l)=2*D(l)*Q(l)` for a stored switching key whose parts are generated at level l. These are logical scalar payloads only. Normally stored ciphertexts have k=2; unrelinearized intermediates have k=3. Record actual k and level for each lifetime.
++
++The requested backing layout of one polynomial is instead `cap_outer*sizeof(Vec<u64>) + sum_j cap_j*sizeof(u64)`, plus its inline RnsPoly object **where that object is actually stored**. The latter contains an Arc handle, Vec handle and form flag. The shared basis allocation is counted once in16, not once per polynomial. Capacities, object sizes/alignment, padding and allocator rounding remain symbolic, dependent on pinned Rust/std/dependency/target/allocator proofs. `vec![..]`, `collect`, `clone`, `with_capacity`, `try_reserve_exact` identify allocation requests and live lengths; they are not a platform-independent maximum capacity guarantee. Nested Vec headers are real allocated elements. `pop`/`clear` drop elements but retain the outer allocation; freed heap blocks may remain allocator resident (19).
++
++Every deep copy of `RnsPoly`, ciphertext, SecretKey/PublicKey or Encoder has separate element backing; Arc clones alias the same pointee. Assignment/move of Vec/RnsPoly transfers ownership without coefficient copying. When replacing an old value with a fallible new value, old and completed new allocations coexist until assignment/drop. Error propagation drops owned partial results but does not prove memory has returned to the OS.
++
++Existing phase bits are **1 prepare,2 key-setup,4 update,8 endpoint** (format contract §3). The table's phase letters P/K/U/E describe source lifetime/work, not a finalized numeric mask. Lifetime retained across a phase remains chargeable there even if it performs no new allocation. Cross-phase absolute/incremental maxima still use existing Requirements; this report computes no sums. No residency credit is asserted: a same-observation proof is required to classify an allocation as already charged, and dropped objects do not justify credit. Conservatively retaining proved live terms as additional is the accepted architecture; unknown terms still refuse.
++
++## Closed22 coverage worksheet
++
++| Kind/rule | Fixed source basis and multiplicity/lifetime | Phase/overlap and exact remaining proof |
++|---|---|---|
++|0 main generator|keys.rs:325–360, study_client.rs:800–842. One generator-owned secret `Q(L)` plus RNG and Arc handle; sampled signed N-vector, optional N-index vector, Q/P limb construction. Generator secret lives throughout bootstrap/public/relin/rotation construction.|K. Overlaps1–5,16; sampler/collection capacities, RNG dependency layout and construction scratch remain. Generator does not remain in returned client/context.|
++|1 main secret/public|keys.rs:369–376; encrypt.rs:23–43,103–112; client:441–442,694–702. Base client owns secret `Q(L)` + public `2Q(L)`; I refresh service separately deep-copies both, adding `3Q(L)` during execution. Generator's separate secret belongs0.|K/U/E; I refresh duplicate begins at continuation execution, not initial make_material. No key sharing through Encryptor/Decryptor Clone. Layout/capacity/allocator and exact future endpoint retention remain.|
++|2 relin|keys.rs:380–384,522–565. One `K(L)`, plus temporary s² polynomial `P(q)` during construction. Evaluator wraps final key in Arc.|K/U/E. Shared by evaluator clones/bootstrap inner evaluator; do not multiply backing for Arc aliases. Per-part RLWE/gadget scratch and layout remain.|
++|3 training rotations|keys.rs:407–417. `R=|{galois_elt(N,s):s in selected training union,g!=1}|` independently generated K(L) keys in HashMap; each source automorphism adds temporary P(q).|K/U/E. Actual modulo-element union, map growth buckets and cached Q/P permutation lifetimes16 required. Logical step count is not necessarily R.|
++|4 bootstrap bundle|bootstrapper.rs:104–116,191–202,255–290. NI-only separate bootstrap map `(R_boot+1)*K(L)` (conjugation included), optional SSE `K(0)+K(L)`, encoded transform plaintexts `sum_t h_t*P(l_t+1)` and stage arrays.|K/U/E. Independent from training keys even if rotations overlap. Two raw DFT constructions and adapted/window/pre-rotated vectors overlap during constructor; exact sparse h_t/shape and physical containers remain.|
++|5 Encoder|encoder.rs:168–245. Per instance roots/inverse roots 2N Complex64, S+N usize permutation entries, q(q−1)/2+q u64 CRT entries, q nested row headers; temporary `(N/4+1)` Complex64 root table.|K/U/E, plus any transient creation in actual preparation/work. Client/context two copies; I refresher third; one trainer per active stage adds a fresh Encoder, plus transient mask encoders. No global count=2 bound.|
++|6 client/decryptor objects|client:321–328,449–465,557–559,694–702. Owner Arc<()> aliases; RefCell RNG, prepared Vec of plan owner/layout; Encryptor/Decryptor object fields; refresh RefCell and boxed borrowed handles.|K/U/E. Keys assigned1, Encoder backing5, shared plans16. Cache push count must be limited by actual owned invocation; generic repeated public prepare calls cannot inherit a one-entry bound.|
++|7 compact NN weights|trainer_ni.rs:239–323,401–488,1230–1248. `sum_layers ceil(m_j/(S/L_j))` weight containers plus actual greedy bias-only containers b, each one 2-component Ct. `0<=b<=number_layers` is a source count bound, not a physical bound.|K/U/E NI. Separate from expanded8. Old state overlaps new update/boot/unpack until2153. Metadata plan16; velocity9. Exact container selection/levels/capacities remain.|
++|8 expanded NN weights/biases|dense.rs:172ff; trainer_ni.rs:1230–1248; blocks:1232–1242. Layer j has `m_j=min(pow2(out),pow2(in))` encrypted generalized diagonals plus one bias. Payload is sum of actual C(2,l) across these entries.|K/U/E. NI expanded initial model constructed before compact encryption, both retained. New layer replacements and refresh output arrays overlap old model; snapshots17, gradients/old copies9.|
++|9 NAG/old state|optim.rs:396–466; trainer.rs:1340–1422; trainer_ni.rs:1730–1812,1859ff,2040–2164. I NAG holds m_j velocity entries/layer after initialization; NI velocity only for weight containers, not bias-only containers. Forward acts/z, optional hidden, gradients, reference-rate gradients, new states are distinct allocations.|U/E persistent velocity; K initial Option slots. Exact per-route high-water of all temporary dimensions/levels and error paths remains; scalar optimizer count alone is insufficient.|
++|10 micro packets|client:591–691; client/blocks:437–560; continuation:219–244,281–306. One logical update packet at a time; m micros with one x and one target per stage: `sum_micro[C(2,l_x)+sum_stage C(2,l_y)]`.|U. Retained entire packet during step, prior partial ciphertexts during encryption, gathered dense rows/targets and slice copies overlap. No all-epoch packet multiplication on this continuation; do not assume broader callers same.|
++|11 handoffs|nn/block.rs:496–510,705–746; trainer_ni:1777–1805,2159–2163; bench blocks:1263–1288. Deep input clones m, new boundary outputs m, separate retained handoff clones m per completed boundary; AA has own retained activation copies.|U/E. Current inputs remain while next built; last_handoffs.clear retains outer capacity, old per-stage AA outputs survive until that stage succeeds. Failure can leave earlier stages committed. Complete stage/placement lifetime sum remains.|
++|12 bootstrap workspace|bootstrapper:356–430; linear:776–930; poly:488–595; evalmod:147ff. Raise, CtS pair, two EvalMods, StC, Cheb powers/split arrays, sparse BSGS baby rotations and all giant outputs, nested key-switch/baseconv scratch.|U, with keys4 and NN0–11/16 residents. Exact recursive live-set/level bound, join overlap, source error exits and per-primitive capacity proof remain; cannot substitute bootstrap key bytes.|
++|13 worker/evaluator workspace|keyswitch:100–209,252–308; baseconv:171–232,459–510; par:15–57; runtime:94–175. Per-limb inner product has two N u128 buffers plus two N u64 outputs; decomposition stores D(l) QpPolys; base conversion arrays described below.|K/U/E where called; P if preparation probe actually invokes. Serial helpers still collect complete outputs; nested Rayon sections require task live-set proof, not workers×one ciphertext. Runtime/stacks20 separate.|
++|14 raw/materialized input|Accepted map31504e7c plus retained.rs:31–85,171–190. Raw Box bytes+held source/ancestor owners alongside canonical F64/F32 arrays, raw decoder copies, init/order/full schedule/encoding arrays and independent reconstructions.|P/K/U/E as owner requires. Existing accepted map retained; no dataset reread/recalculation. Same-byte acquisition-to-decoder integration and new owner overlap remain.|
++|15 reference/target/receipts|Accepted map's actual three materializer callers and transitive read/recover/snapshot/lock paths; publication.rs:638–665,763–812 adds Rc-backed TargetStore identity + original guard FD + each retained-origin cloned guard FD.|P then K/U/E for retained views. Independent seed0/selected canonical arrays assigned14; JSON/hex/canonical receipt/comparison allocations15. Exact reader result lifetime, parser capacities and FD/kernel accounting remain.|
++|16 parameter/plan/preparation|params:117–156; rns:39–45,82–94,128–156; ntt:34–42,54–62; execution:289–334. Shared Q/P bases, 2N Shoup elements/prime, moduli, prime-generation temps, per-basis Galois cache N u32 per used element; retained geometry/P1/plans/checkpoints/accounting.|P/K/U/E. Basis cache grows at first automorphism even during K; Arc identity dedup actual objects only. Accepted materializer map covers source seams, not exhaustive metadata allocator proof; prime/dependency/plan expansion still required.|
++|17 diagnostics|client:711–743; client/blocks:563–612; blocks:1303–1325; session trace/failed-update records. Encrypted snapshots deep-copy model/handoffs; plaintext layer arrays, unpacked and sliced handoff arrays coexist with snapshots.|U/E; preparation diagnostics if actually retained. Reserved continuation currently returns progress only; do not allocate imagined endpoints or zero actual traces/error strings. Scientific endpoint/log protocol and maximum retained counts still unfinished.|
++|18 evidence/publication|Accepted proposal bootstrap/model/observation/claim lifecycle; retained.rs:100–158 recheck scratch; existing evidence tails:373–460 validates supplied arithmetic only.|P/K/U/E. NEW six-source parser physical cost is pending reviewed source; bootstrap producer/observer/claim/publisher buffers and failure storage counts must be derived after integration. Transport caps are not allocation bounds.|
++|19 allocator/alignment|All allocations above; system-glibc selected by accepted format, not observed here.|All phases plus released-but-retained blocks. Exact loaded libc/std, arena/tcache/mmap/fragmentation/realloc/page behavior unresolved. No percentage margin, guessed multiplier or unknown zero.|
++|20 runtime/stacks/helpers|runtime dedicated pool and installed owner frame; proposal inherited helper hold; retained.rs stack scratch. Actual Rust stacks/TLS/runtime mappings and Python/Git/helper descendants overlap parent retained allocations.|P/K/U/E according to real helper calls. No host/process scan. Loaded binaries/dependencies, stack/native/kernel profile and bounded child lifetime evidence missing.|
++|21 finite residual|Must enumerate source-owned library/kernel allocation sites not assigned0–20; e.g. descriptor-table/open-file/dentry accounting assigned consistently with actual native profile.|No default mask or amount. No residual percentage/RSS subtraction. Complete inventory and evidence classification remain; unresolved residual is missing model.|
++
++## Core allocation and lifetime derivation details
++
++### Key generation and key owners (0–4)
++
++`RnsPoly` is derived Clone over `Vec<Vec<u64>>` and one Arc (`core/poly.rs:24–28`). Its `zero` allocates one outer vector and r distinct N-word vectors (55–65); from_limbs consumes vectors and clones only the basis handle (70–101). `keys::truncated` at even the SAME level clones, and below it `[..=level].to_vec()` clones each limb (153–167). Therefore secret at_level, public q_at_level, and equal-level alignment cannot be charged as borrowed views.
++
++Ternary sampling (`sampler.rs:110–139`) holds N i64 coefficients. Sparse h adds N usize Fisher–Yates indices, but that index Vec's branch scope ends before signed_to_poly; do not claim its backing returned to OS. Dense sampling has no index allocation. signed_to_poly emits r separate N u64 limbs. `small_qp` moves Q and creates p new N-word P limbs from Q limb0, then NTTs in place (`keys.rs:627–658`). Gaussian sampling (sampler166–187) retains CDT and N i64 coefficients while producing Q limbs. The key error sigma is3.2 (keys85), so the CDT logical count is `2*floor(6*3.2)+1`; its constructor intermediate weight Vec and all capacities remain in scratch inventory, not an unbounded MAX_GAUSSIAN_SIGMA substitution for this callsite.
++
++Public/RLWE construction (`keys.rs:486–514`) first creates aq/ap (`Q(l)`), then e as another QpPoly. It clones a to construct bq/bp, so a+e+b can coexist before return; Q at_level truncation of a sparse target additionally allocates P(r) when target remains full. Return moves a/b and drops e/truncation. A switching-key iteration (`522–565`) keeps all previous completed parts, creates current `(b,a)`, then constructs a FULL r-limb gadget even though only one digit is nonzero: zero branches allocate `vec![0u64;N]`, not absent limbs. Thus the current pair `2Q(l)` and gadget `P(r)` overlap; do not model gadget as alpha limbs. The parts vector requests D(l) pairs. Relin's extra s² or rotation's sigma(s) source stays during the whole ksk construction. Permutation caches persist with basis16, not temporary source0/3.
++
++SSE (`435–466`) samples a full-QP sparse secret, constructs to_sparse first at level0 (one digit), then to_dense at full L while the sparse secret and to_sparse coexist. `sse_keys(...).map(|(k,_)|k)` drops the ephemeral secret only after both are complete. Final payload `K(0)+K(L)` must not be replaced by two full keys or two level0 keys. Main generator still lives during this process.
++
++`make_material` order is Encoder → optional Bootstrapper → public encryptor → copied secret decryptor → relin → training rotations → cloned client Encoder (`study_client.rs:411–465`). Bootstrap keys are not drawn from or aliases of the later training Galois map. At the end of make_owned_fields (`832–842`) main generator drops; returned client/context retain all other owners. I execution creates refresh service later and deep-copies public/secret/Encoder (`694–702`), then session borrows the service. `cpu_continuation.rs:186–315` ensures session before refresher before client/evaluation before retained inputs on normal and error exits.
++
++### Encoder and client multiplicity (5–6)
++
++Per Encoder **element payload** is `2N*sizeof(Complex64)+(N+S)*sizeof(usize)+8*(q*(q−1)/2+q)`. There are q CRT row Vec headers plus other top-level handles; q=0/1 rows can be empty but their header storage is real. Complex64's f64 real/imag data is16 bytes of element payload; target layout remains to bind. During new(), temporary root table has N/4+1 entries and overlaps root arrays/permutations, but dies before CRT construction (encoder203–235). Clone deep-copies all table vectors, while sharing params.
++
++Resident count along the reserved train path is **2 + I_refresh + number_of_constructed_stage_trainers**, where I_refresh=1 only on I. Each `Trainer::new` builds an Encoder (`trainer.rs:822–842`); each `NonInteractiveTrainer::new` does likewise (`trainer_ni.rs:1319`). During staged session construction earlier trainers coexist with the next Encoder's construction scratch. This count does not include temporary `compact::mask0` and `compact_extract` Encoders (`compact.rs:233–239,492`), scale/activation probes or other callsites whose full envelope remains to be audited. One Encoder object is not a global singleton.
++
++Encoding f64 input length v allocates v Complex64 values (`encoder264–267`); encode_complex additionally N Complex64 cv, N f64 coeffs and r×N u64 output limbs (294–334), while input slots remain owned by caller. Decode clones input polynomial P(r), builds r f64 q values+r i64 digits, N Complex64 reconstruction and S Complex64 return (349–392). Real decode maps complex return to S f64; in-place reuse must not be assumed without std/compiler evidence. Encrypt/decrypt scratch belongs to work13 or diagnostic17, not a second charge of stored keys1.
++
++Public encryption (`encrypt.rs:69–83`) retains u/e0/e1 each Q(l), then each half clones public Q-prefix and P, runs mod_down, and returns Q; first Q result survives second half. Plaintext input and retained packet prefix overlap. Decryption (`121–135`) constructs secret Q-prefix P(r) and accumulator P(r); Horner updates in place. Exact scratch requested byte formulas require converter and decoder lifetimes below.
++
++### Compact, expanded, optimizer and packet states (7–11)
++
++For layer j, let `L_j=max(pow2(out_j),pow2(in_j))`, `m_j=min(pow2(out_j),pow2(in_j))`, capacity in compact positions `a_j=S/L_j`, and `w_j=ceil(m_j/a_j)` (`compact.rs:96–135`). CompactLayout builds w_j weight containers and then places one bias per layer greedily among unused positions with sufficient L, adding a bias-only container when necessary (`trainer_ni.rs:260–323`). Define b by that exact finite placement algorithm; do not round each layer up with a separate compulsory bias ciphertext. Container count `W=sum w_j`, `T=W+b`; construction temporarily holds used bool vectors of a_j entries per container, candidate Vecs and sorted choices. Their physical bool/Vec layout and sort scratch require std/target evidence.
++
++CompactState::encrypt creates T slot vectors of S f64 and encrypts them while retaining the slot matrix (`trainer_ni.rs:455–488`), then stores T ciphertexts and T Option<Ct> velocity slots all None initially. NAG later has W Some entries, exactly those with `ContainerSpec.layer.is_some`, as explicitly checked at2079–2083. SGD has no encrypted velocity but the T Option slots remain allocated. Expanded model stores sum(m_j+1) ciphertexts with separately tracked bias level. NI encrypt_network constructs expanded Dense layers first at bootstrap_output−1, then compact state at bootstrap_output (`1230–1248`); numerical agreement does not make their encrypted storage shared.
++
++During NI forward pass with M micros and H layers, final local `acts` holds M*(H+1) ciphertexts, `zs` M*H, and requested `hidden` M*(H−1) deep clones (`1730–1812`). These are exact live element counts at the end of that pass, **not** peak ciphertext count: prev/input/a/ab, bootstrap internals, previous persistent AA outputs, model/compact/packets still coexist. Gradients h_w/h_w_ref/h_b, deltas and transpose/alignment work then join the live set (1859 onward). Reference-rate gradients exist when NAG lr differs from lr_ref; treating a constant-lr path as complete scheduled coverage is wrong.
++
++NI update_state builds new compact W/U on copies while old self.state remains. Bootstrap loops through the new vector one ciphertext at a time but each replacement RHS overlaps the old entry and all other entries (`2041–2073`). Old expanded model, old compact state, new compact state and all new expanded layers/biases coexist before commit (`2087–2153`). Then act_outputs deep-copies inner `acts[1..H]`; previous self.act_outputs is not cleared at function entry and can overlap the newly completed copy until assignment. Fallible returns preserve the actual old/partial-commit state; no automatic rollback allocation or zero-work assumption follows.
++
++Interactive NAG `weights_at` produces aligned copies; old velocity persists while w_new/u_new are built. First velocity is `h_ref.entries().to_vec()` (deep copy), later entries retain ue/mu_u/k_u and nested subtraction temporaries (`optim.rs:407–466`). Interactive trainer builds all new biases and cloned/updated weights into new_layers before replacing model layers, and refresh_all builds a full layer's refreshed diagonal Vec before assignment (`trainer.rs:1340–1422`). Velocity refresh similarly collects all refreshed entries before setter (243–254). One-at-a-time refresh calls do not eliminate layer-level old/new overlap.
++
++For a selected logical update, M=`parts.len()` from the actual plan. Single-stage packet has2M stored ciphertexts; B-stage block has M*(1+B), with exact independent levels from transition micros. Gathered input is total_rows*features f64; target arrays are total_rows*output_width per stage; selected labels, per-micro owned slice copies, packed S-value slots, plaintext and encryption workspace overlap partially accumulated packet (`client.rs:591–681`; `client/blocks.rs:437–550`). Continuation encrypts one update and borrows it for session.step inside the same and_then scope; packet drops before next iteration (`cpu_continuation:224–228,286–290`). Quick limits consumed updates, not full canonical input/order allocations14/16.
++
++Block NI wrapper clears last_handoffs at accepted attempt entry (outer Vec capacity stays), deep-copies M input ciphertexts, and for each boundary creates `next`, then `handoffs.push(next.clone())` before moving next into inputs (`nn/block.rs:705–746`). Consequently completed boundary retention grows to M*(B−1), distinct from current stage inputs. AA obtains next by cloning the trainer's first retained activation output; three roles can coexist: source AA output, next input, retained handoff. Old per-stage activation caches remain until individual stage success, and failure after earlier stages does not undo their committed states. Interactive wrapper also clones inputs/current→next; boundary recorder clones are additional retained objects (bench blocks1263–1266). `retention_receipt` explicitly excludes workspaces/capacity and must remain a payload cross-check, not an upper bound.
++
++### Bootstrap construction/workspaces and serial worker work (4,12–13)
++
++Bootstrapper::new holds raw cts/stc DiagMatrix lists, encodes CtS then StC, then calls BootstrapKeys::generate, which calls stages AGAIN (`bootstrapper267–273,104–111`). Thus the first raw lists plus both encoded transform lists overlap the second raw lists during key generation, and grow with completed keys. A raw DiagMatrix owns BTreeMap nodes and one S-entry Complex64 Vec per stored offset (`linear78–81`). Adaptation uses rho/scaled/conj_sandwich and creates independent matrices (512–555). `window` creates shape.d full S-entry vectors, including explicit zero slots and cloned stored diagonals (259–277); sparse encoding omits polynomial payload only for actual all-zero diagonals, not the Option entry array or preceding dense windows/pre-rotation buffers. Final stored transform payload is `sum_{stage,main/second} nonzero_diagonals*P(stage_level+1)`; CtS level starts L, StC starts levels_after_boot+stoc_levels (bootstrapper217–235). Exact number of nonzero diagonals and maximum map node/window overlap across registered BootParams remains a source-sizing obligation; comments saying “about13GB” have no role in this worksheet.
++
++Bootstrap pipeline (`bootstrapper405–430`) retains raised output and CtS real/imag pair while evaluating two EvalMods; join is `(a(),b())` in serial builds and Rayon join in parallel builds (`par43–57`). Even serial execution retains the first returned Result while evaluating the second. Shadowed earlier owners must not be assumed dropped at last read; bound their lexical/drop scope or prove a narrower compiled lifetime. Test trace extends cloned intermediates only when the test-only caller supplies trace; production passes no trace. Do not include test observation allocations as production behavior, or claim their absence removes ordinary temporaries.
++
++Cheb owns a BTreeMap of cached ciphertext powers; each power i has level `top−ceil(log2 i)` (`poly488–530`). `ensure` recursively retains prerequisite powers and constructs aligned ta/tb, a 3-component multiplication, relinearized/doubled/constant-adjusted products and rescale output before insertion. rec splits coefficients into q/r Vecs, retains qres while computing rres and then combines them (`535–569`). A valid final workspace rule needs the exact demanded power set and recursive simultaneous live set over the registered polynomial and zero-coefficient branches, plus each primitive's work13. Simply multiplying degree by one ciphertext misses levels and intermediary k=3; counting only powers misses recursion. That proof is unfinished here, explicitly `W_Cheb(top,coefficients,split,worker_recipe)`.
++
++BSGS (`linalg.rs:801–885`) retains per-term baby-rotation tables (`Vec<Vec<Option<Ciphertext>>>`), then calls par::map_range(giant,block) and only afterward reduces. **Serial map_range also collects every giant result first** (par16–29). Peak includes all returned giant results even with one worker, plus baby's ciphertexts and block scratch during construction. `used`, `steps`, temporary rotated output, Option rows, and error-bearing result vector must be counted. Each successful preceding block remains in the Vec if a later block returns Err before reduction stops. Hoisted decompositions and rotated digit copies add separate nested lifetimes.
++
++At level l, decomposition stores D(l) QpPolys, coefficient payload `D(l)*Q(l)` (keyswitch100–123). For digit width a<=alpha, lift_digit_exact creates source a*N words and target `(r−a+p)*N` words; a>1 also constructs from/to scalar vectors and BaseConverter. The result duplicates digit limbs from original poly while conversion results move; split_off allocates a P outer Vec and leaves old outer capacity to model (140–209). For converter source count a and target count b, constructor owns a+b Modulus elements, a u64 inverses and b rows each a u64. convert_exact retains a*N word normalized y, optional N-word overflow (a>1), temporary a f64 reciprocals during overflow generation, and b*N word output accumulated before return (baseconv77–129,171–232). Inputs remain borrowed and live.
++
++Key-switch apply_key allocates per active limb TWO N-entry u128 accumulators and TWO N-entry u64 reductions (`keyswitch269–300`): element payload32N +16N at the end of that limb calculation. Q results are retained while P inner runs; final Q/P output payload is2Q(l), then mod_down for bq followed by aq while all others remain. mod_down copies p*N special limbs, constructs converter p→r and r*N converted output (`baseconv481–510`), in addition to its input Q/P backing. rescale clones last N-word limb and allocates one N-word transformed temporary at a time while the outer limb Vec retains capacity after pop (`baseconv258–290`, core/poly218–220).
++
++These per-site requested payload terms are proven but their combined physical peak is not. Serial work means one active branch at those specific loops; it does not imply one global scratch object. Rayon adds task-result buffers/work-stealing/live nested recursion; workers bounds alone do not derive those. The selected runtime checks same owner/thread and retains a dedicated pool, but pool/thread/stack/TLS/dependency behavior still needs source/native environment proof20.
++
++## Accepted-map coverage and integration delta (14–21)
++
++Map31504e7c remains the evidence for Iris/BC/IDX/NPY preprocessing, F64/F32/raw overlaps, full order/init schedules, transient canonical hash encodings, and independent reference seed0 plus selected-seed reconstructions. Its exact three direct materializer callsites and read/recover/snapshot/read_target/lock_target transitive paths must be rebased to actual retained-byte integration. This worksheet does not reread datasets or substitute a new numerical materializer total. Preparation-only operations use their real repeated reconstructions, including extra supplied-input construction when None, without inventing HE work. Full/Quick do not shorten canonical source inventory.
++
++New fixed-source retained delta is concrete: TargetStore owns one Rc<TargetStoreIdentity> allocation and an original guard File; each retained_origin clones the Rc handle (same backing) and duplicates the File descriptor (`publication.rs:638–665,763–803`). Original owner survives store movement/drop via Rc and cloned original guard FD. HeldRead retains file, every anchor, name String, stamp, role and Box<[u8]> (`retained.rs:31–85`); acquisition try_reserve_exact(length)→resize→read→into_boxed_slice may involve shrink/realloc behavior requiring std/allocator proof. Recheck keeps original FD plus current and after namespace FDs and uses `[u8;65536]` stack scratch while comparing retained bytes, with pre/post mount checks (100–158). Mount/file-identity syscalls and anchor duplication create kernel/runtime obligations; they are not zero because user-space buffers are small. Rc identity token is not an admission capability and no new authority is claimed.
++
++Parameter owner16 has q+p NttTables, each with roots/inverse-root vectors of N Shoup elements. RnsBasis has two persistent caches (one per actual basis object) with one Arc<[u32]> N-vector per first-used element, plus Mutex/HashMap storage (`rns39–45,128–156`). Q cache can grow during Galois-key source automorphism; P cache can grow during hoisted QP rotations. Arc handles share actual identity, not equal numerical parameters. CkksParams construction also keeps all bit vector, distinct bit vector, per-bit prime pools, next indices and complete primes while splitting q/p and constructing both bases (`params117–156`). Neither a shallow sum of prime words nor no-NTT metadata comments cover these NTT tables.
++
++The new six-source resource JSON parser was deliberately not read in the working tree. Its arena/tree/string/list/hex/canonical bytes, duplicate/unknown-field tracking, bounds-check failure allocations and lifetime relative to retained raw bytes are **pending actual reviewed source**, not assigned zero. Bootstrap's fixed704 production bytes are wire length, not the compiled B0/B1/B2 physical envelope. The new ResourceOwner/observer/claim/retained typed-load wiring, inherited helper FD route and exact record publication count likewise do not exist as a completed validated path at BASE; derive them against their eventual fixed source/build before applying this worksheet.
++
++## Exact outstanding terms for a genuine physical rule package
++
++1. **Layout/capacity map:** for every named allocation derive maximum cap and object size/alignment for exact target/std/dependency versions; include collect/Clone specializations, Vec growth/pop/clear, Vec→Box, Arc slice construction, HashMap/BTreeMap buckets/nodes, ndarray array storage/layout, sort scratch and reallocation overlap. Allocation-request sizes plus target layout are still not allocator-owned RSS.
++2. **Core scratch closure:** finish per-primitive evaluator/matvec/hoist/modraise/activation/transpose/compact tree and recursive Cheb lifetime trees, with actual k,level and aliases. Incorporate source buffers retained in parent stack frames, output collections and fallible partial results. Assign each once to12/13/9 according to its owning operation; avoid charging the same converter both in a nested W and in a standalone multiplier.
++3. **Registered recipe/plan projection:** pure checked sizing from exact selected case/graph, full canonical order and consumed transitions, stage/layer dimensions, lanes, training rotation modulo union, actual optimizer/rate schedule, bootstrap sparse windows and first-use cache sets. No constructor/registry execution to discover budgets. Bind actual output downward to envelope. Roles/packing/GPU/external not selected by this CPU factory stay required and unsupported, not omitted.
++4. **Owner/parser/reader integration:** close actual new resource-source parser costs and B0/B1/B2 allocation order, one owner through standalone/nested readers, retained raw+decoded overlaps, Rc/original/cloned FDs, all receipts/comparison encodings, helper invocations and final view teardown. Preserve actual/supplied complete receipt equality; shared raw does not permit eliding independent typed reconstruction.
++5. **Finite evidence/storage:** exact successful/failing invocation counts of observations/rechecks/snapshots/publications/logs/directories/inodes, every retained raw document/decoded record/canonical encoding, serializer/publisher buffers and failure partial ownership. No retry-until-fit or one-record-per-run assumption. Per-volume bytes/inodes/quota and tmpfs backing must be modeled, not just host memory.
++6. **Allocator/kernel/runtime environment:** actual system-glibc libraries/configuration, Rust/std and allocator call paths, arenas/caches/realloc/page accounting, retained freed memory, loader mappings/TLS/stacks, kernel fd/file/mount structures and cgroup charge attribution. Obtain actual loaded identities and supported source/configuration proof later; local source inspection or Cargo.lock alone cannot establish them.
++7. **Worker/helper tree:** compiled serial versus parallel feature and actual retained worker count; nested Rayon active tasks plus finished outputs; parent/Python/Git/allowed-descendant overlap and source-proved inherited same-description hold until allocation teardown, including parent/child failure. One process/one worker is not sufficient proof. No helper or native process inspected here.
++8. **Validation evidence:** independently review complete source/lifetime bounds; then bounded instrumented constructions under separately scoped native work must observe actual sites/capacity/overlap and bind exact source/build/environment, allocator-owned/process-RSS/cgroup metrics distinctly. Observed maximum alone cannot establish a bound. Same-observation resident credit and all error/drop paths need explicit proof; missing source/runtime/native terms refuse.
++
++No architecture conflict was found. One ordinary-user cooperative same-host lock and SAME retained owner/bytes remain the chosen design; no sudo, extra approval layer, new schema, physical totals/margins, model authority or native release is proposed. The full original scientific matrix and all holds remain active.
++
++## Performed scope and concerns
++
++Performed: fixed git tree discovery; git show committed blob ranges and text searches; read the two named task instructions; stdlib SHA256/byte-length pinning of37 explicit committed files plus2 instruction files; write this ledger report and companion source-pin JSON. No numeric physical example or total was evaluated. Broad discovery listed filenames (including dataset names) but no dataset content was read. No tests, builds, Cargo, project helpers, registry/parameter/materializer constructors, --list, process scans, credentials, native/HE/SSH, subagents, source/publicdoc edits, commit or push occurred. Source searches sometimes displayed adjacent cfg(test) declarations; no test was run or counted as production evidence.
++
++Important limits: this is a selected-source derivation, not an exhaustive implementation audit. The allowed inventory named additional NN packed-training/planning/materializer/helper files; their full source obligations remain unexamined here and are not silently certified by the inventory. Some early long combined tool outputs were truncated; specific constructor/lifetime claims above were reread in bounded slices. The accepted typed-materializer map is retained context, not rederived. Exact source SHA256 pins let root distinguish historical map coverage from current BASE deltas and from the concurrent parser still awaiting review.
++
++Final output-check inventory recorded before calculation: this report and `task-54-d7-resource-allocation-derivation-source-pins.json`, solely byte length/SHA256 and a text check of the22 table tags. This is document consistency checking, not a project test or model validation.
+--- /dev/null
++++ task-54-d7-resource-allocation-derivation-source-pins.json
+@@ -0,0 +1,241 @@
++{
++  "base": "931f17439ebfe491c7be5ca9c662efdb2553f16d",
++  "purpose": "fixed-source allocation derivation; no constructors executed, no physical bounds",
++  "committed_blobs": [
++    {
++      "path": "docs/study-resource-design.md",
++      "bytes": 7815,
++      "sha256": "18e4a1280db6ea6e5b9e338658e46128a171b16137e0b5ee0b9eaf3d85cc7a72",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "results/validation/task54-d7-resource-design/task-54-d7-resource-producer-proposal.md",
++      "bytes": 65108,
++      "sha256": "e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "results/validation/task54-d7-resource-design/task-54-d7-typed-materializer-preallocation-map.md",
++      "bytes": 44480,
++      "sha256": "31504e7c3cda346de741448103ce1d9629003bd3fc4359d3d6916db9ac583f9c",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "results/validation/task54-d7-resource-format/task-54-d7-resource-format-contract.md",
++      "bytes": 30832,
++      "sha256": "a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-core/src/poly.rs",
++      "bytes": 27765,
++      "sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-core/src/rns.rs",
++      "bytes": 8206,
++      "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-core/src/ntt.rs",
++      "bytes": 14169,
++      "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-core/src/sampler.rs",
++      "bytes": 21588,
++      "sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-core/src/baseconv.rs",
++      "bytes": 53276,
++      "sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/keys.rs",
++      "bytes": 39936,
++      "sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/encoder.rs",
++      "bytes": 34592,
++      "sha256": "ff806dcb15118efd20330acd3e748a17089109ebf56fc9da86f979ce6aca5962",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/params.rs",
++      "bytes": 20965,
++      "sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/encrypt.rs",
++      "bytes": 13178,
++      "sha256": "f67bebda7c8087c77e4d6151a47d602177d4c016c44100ea86121156c0add8a6",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/keyswitch.rs",
++      "bytes": 31653,
++      "sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/evaluator.rs",
++      "bytes": 81421,
++      "sha256": "bd5bb8eda962e3815363d42c2482b0bb5b7448bb506caa84b6ac22c0001198b8",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/par.rs",
++      "bytes": 1861,
++      "sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/linalg.rs",
++      "bytes": 71884,
++      "sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs",
++      "bytes": 38908,
++      "sha256": "11dfc9ce01dda64bf63481f4f7feb109019f0302af327ca00587459e3adbd770",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/bootstrap/linear.rs",
++      "bytes": 80601,
++      "sha256": "4778e8c95885962a3318ec7e72a01f58c704b662ee86b55eda6d55f14c58cf78",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/bootstrap/evalmod.rs",
++      "bytes": 22173,
++      "sha256": "02e7d5a8c026846b8e10ec0b9cc6d0329e679403859ceeff8a23f3948e0089d6",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-ckks/src/bootstrap/poly.rs",
++      "bytes": 44138,
++      "sha256": "22006eb00246186ee60e22ccd0717aa293aaad6b8fbfe1a361ae5422207c8a49",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/compact.rs",
++      "bytes": 25887,
++      "sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/trainer_ni.rs",
++      "bytes": 102255,
++      "sha256": "8b218cccd0106e8a925c8cc3be8a328864e04dfba91f059a63b86021250a3dbe",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/optim.rs",
++      "bytes": 19281,
++      "sha256": "7f99d28585c0656f0faa00b87d9808b4c52cda1ce0d99de877b39bcffe74bcfe",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/trainer.rs",
++      "bytes": 62359,
++      "sha256": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/dense.rs",
++      "bytes": 58957,
++      "sha256": "b7e919813b63412de759d42779c69f481a8f133c61c6d999473e49a2fb3a2fa2",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-nn/src/block.rs",
++      "bytes": 34966,
++      "sha256": "0a7f53e1e61ff6b1660322aa9c23f5967a14f1a5aa92a7d69bcb745203ce7cef",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_client.rs",
++      "bytes": 42402,
++      "sha256": "f043916ef3801c2c4c3bafa122f0d4dd5980a748f4f83926f792cd137ce4ec0d",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_client/blocks.rs",
++      "bytes": 29864,
++      "sha256": "ce8dc1ef0d42c8c4c0832dd418059dadb8eba15470b6e9176ef0391169465f40",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_blocks.rs",
++      "bytes": 57364,
++      "sha256": "0c9fca750faeac190626744bb8d16c81c1215557a209a7aa28c2ad315ce99adc",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_diagonal.rs",
++      "bytes": 42002,
++      "sha256": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_execution.rs",
++      "bytes": 29051,
++      "sha256": "7aea7dc643cac55926935f4264e18f5bc480dfd8c5beee4f24771f33f8f6ff6a",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_execution/cpu_continuation.rs",
++      "bytes": 21387,
++      "sha256": "f6695959663fd1fcff206d6e04f4092154d7ed68344bb9aa58339fcdfce82e67",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_runtime.rs",
++      "bytes": 15808,
++      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_provenance/publication.rs",
++      "bytes": 37228,
++      "sha256": "4cb08e06dc57459e87784fc22cf1aa32904382fe716ec6bd46dc1a2f05666557",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
++      "bytes": 20306,
++      "sha256": "311d1806eaf39642fc1b2904ac9a9e02569659fc079003d90baa2734d27b01af",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    },
++    {
++      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
++      "bytes": 22789,
++      "sha256": "a591f3618d3e3c736a86dcea95bb8e5b8948180615c6a6a043e7f09d3f002590",
++      "read_scope": "selected source ranges/searches; not whole-file semantic certification"
++    }
++  ],
++  "instruction_inputs": [
++    {
++      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
++      "bytes": 1032,
++      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb"
++    },
++    {
++      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-allocation-derivation-brief.md",
++      "bytes": 4629,
++      "sha256": "19904572155455cc974ff02e90d6c673d328820c9250ec7d21aadafa9db82e98"
++    }
++  ],
++  "calculation_scope": "SHA256 and lengths of exact listed blobs only; no dataset or physical memory arithmetic"
++}
