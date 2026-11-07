@@ -767,3 +767,30 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `task-54-linux-prerequisite-R26.{stdout,stderr,meta.json}`. Stdout includes4CPython audit bodies: NEVER copy to tracked/public archives. Later public summary must be derived and omit source_text.
 - **pass criterion:** Original bounded observations and explicit missing/unsupported/refused outcomes preserved; firstraised/latchedfailure stops. Observation completion is not prerequisite/closure/context/capture/scientific acceptance. No automatic retry/repair/capincrease/FULLpoll/campaign release.
 - **status:** bounded observation complete (2026-11-07T10:13:35.121185+09:00, SSH exit0). Metadata66distributions/198entries, fournewsourcepinsmatch, two roots no metadata candidates. Exporter checkout absent; historicalconfigpin mismatch unresolved; native candidates metadata-only. No context/capture/scientific acceptance. Derived identities/forms summary: observations/R-REB-26/; originalsource-body stdout private only.
+
+
+## R-41-FULL2-OBS-20261107-1047: hourly read-only progress observation
+
+- **purpose:** Check existing FULL-2 and post-full queue after the ordinary10:47JST interval; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; unchanged ledger `post-full-observation-20261107-0600.remote.py` SHA25617550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; bounded8KiB tail, one observer, connect90s; local async controller retains original streams and exact terminal status.
+- **GPU memory need:**0. **RAM need:** under50MiB expected.
+- **output path:** ignored ledger `post-full-observation-20261107-1047.{stdout,stderr,meta.json}`.
+- **pass criterion:** Actual own process identity/state, log tail, result existence and queue listing retained; operational only. No signals, new training/build, queue mutation or inspection of other users' processes. Delayed observation does not authorize restart.
+- **status:** done (2026-11-07T10:48:05.077714+09:00, SSH exit0). Same owned chain/queue live;187/1000 updates, finalJSON absent, queue owner.json only. Exact records raw/R-41-FULL2-OBS-20261107-1047/. No job or queue mutation.
+
+
+## R-REB-27-FRESH-CHECKOUT-RAW: fixed isolated exporter/input staging
+
+- **purpose:** Create a genuine detached exporter checkout and separate exact raw8 input root, preserving existing baseline/source/data/jobs; preparation only.
+- **commit to sync:** detached010bb3c82627a0b8809e0308cdcbf76615bf9b39 from complete bundleHEAD1220bd0d76225e312bbaca9e78d1a22093abc3b5; no change to any existing checkout.
+- **working dir:** new `/home/kmihara/hekit-stage-task54-010bb3c-v1` and `/home/kmihara/hekit-exporter-010bb3c-task54-v1`; both must be absent.
+- **command:** sequential exact phases in ledger `linux-checkout-stage-20261107-v1/commands.json` SHAeaf2cca7833ab3e6f888090eba09dfc95c14104963373b5c29303b770fdde9af: key-only SSH sanitized env/nice10, stdlib Python preflight, fixed bounded stdin receive, stdlib create-readback. Remote source d8f3e95a01fe2acc45b3732f135e50293a6958f23500f4460b13045994e06d1f. Root release `task-54-linux-checkout-staging-execution-release.md`.
+- **expected duration:** seconds to minutes; cooperative180s script budget, retained background controller for potentially>2min phases. No hard descendant deadline claimed; inspect terminal state before next phase, no retry.
+- **GPU memory need:**0. **RAM need:** under256MiB expected. **Threads:**1 preparation thread, Git pack/index1.
+- **disk:** package112650240B SHA373efd0a284fdcfe7997162bd5d8ef1db633a238c068c740ea6e11bbb2959cc0; initial free824604661B/postreceipt711954421B minimum; original128MiBbundle/200MiBtar/65MiBtree caps retained.
+- **output path:** ignored ledger package directory `remote-{preflight,receive,create-readback}.{stdout,stderr,meta.json}`; remote newroot pre.json/readback.json/package.tar.part/payload and genuine checkout.
+- **pass criterion:** exact outerpackage hash, ten regular allowlisted members, actual detached commit/tree/exporter/config36/raw8 verification, honest Git config/status/diff, unchanged bounded static sentinels. Controller records early failures even without script JSON; absent success JSON is not success. No existing-tree repair/deletion/overwrite, no target/native/context/capture/scientific work or FULL poll. Preserve partial roots on any failure.
+- **status:** pending exact sequence; wait for1047FULLobserverterminal before preflight.

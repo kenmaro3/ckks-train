@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [CaseProvenanceと入力原本の準備](#latest-evidence-20261107-case-inputs)。
+最新の追記: [FULL-2の定期確認](#latest-evidence-20261107-1048)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-case-inputs)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-1048)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -593,3 +593,10 @@ CaseProvenanceの固定codecとthin `study_train` 入口を実装し、独立sou
 ReBoot再現用のMNIST gzip原本4点を既存の配布元からMacの隔離領域に取得し、exporterの固定SHA-256との完全一致を確認した。既存の未圧縮4点も含む計8点（66,544,770 bytes）は、読取り前後のファイル識別情報と全体hashが一致した。これはローカル入力の保全確認で、科学測定結果ではない。サーバーの既存データは変更しておらず、新しい正規checkoutと専用入力rootの準備を進める。追加helperの限定sourceレビューは合格したが、実context／capture・全package／native内容の確認は未完了である。
 
 FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度・GPU計測・Task42／M4／M5全体の合格は未確定で、既存キューとfull encrypted-block campaign holdを維持する。
+
+<a id="latest-evidence-20261107-1048"></a>
+## 2026-11-07 10:48 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1047/README.md)では、10:48:05 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は187/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1047は依頼時刻のラベルで、実観測時刻とは区別する。ジョブ・キューは変更していない。
+
+この途中経過を最終精度やTask42／M4の合格とは扱わない。学習前のレベル・スケール・演算回数計画器は実装を開始し、実暗号比較は限定テストの条件を確認してから実施する。新しいexporter checkout／入力rootの配置ツールはローカル検証と独立sourceレビューを通過したが、サーバーへの配置・readbackはまだ未実行である。全登録範囲とfull encrypted-block campaign holdを維持する。
