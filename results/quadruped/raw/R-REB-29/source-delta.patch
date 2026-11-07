@@ -1,0 +1,178 @@
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-deploy.py
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-deploy.py
+@@ -38,9 +38,9 @@
+     need(stat.S_ISDIR(s.st_mode) and s.st_uid==1000 and stat.S_IMODE(s.st_mode)==0o700 and s.st_dev==66311 and s.st_ino==36309263,'existing v2 identity drift')
+     need(not os.path.lexists(DEST/'context1-release.json'),'sidecar exists; no retry/reuse')
+     need(all(not os.path.lexists(DEST/n) for n in ('context1-parent.json','context1-child.json','context1-context.json')),'evidence exists; no retry/reuse')
+-    for item in [{'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py', 'bytes': 7044, 'sha256': 'c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py', 'bytes': 29357, 'sha256': '17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py', 'bytes': 61243, 'sha256': '0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce', 'uid': 1000, 'mode': 420}]:
++    for item in [{'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py', 'bytes': 7044, 'sha256': 'c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py', 'bytes': 29357, 'sha256': '17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py', 'bytes': 61243, 'sha256': '0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce', 'uid': 1000, 'mode': 0o664}]:
+         p=Path(item['path']);h=digest(p,1024*1024);s=p.lstat()
+-        need(s.st_uid==item['uid'] and stat.S_IMODE(s.st_mode)==item['mode'] and s.st_size==item['bytes'] and h==item['sha256'] and (item['mode']==0o644 or s.st_nlink==1),'immutable input drift')
++        need(s.st_uid==item['uid'] and stat.S_IMODE(s.st_mode)==item['mode'] and s.st_size==item['bytes'] and h==item['sha256'] and (item['path']=='/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py' or s.st_nlink==1),'immutable input drift')
+         r['preserved_inputs'].append(dict(item,device=s.st_dev,inode=s.st_ino))
+     for item,data in prepared:
+         path=DEST/item['name'];fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-readback.py
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-readback.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ import json,os,time
+ import hashlib,stat
+-expected=[{'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py', 'bytes': 7044, 'sha256': 'c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py', 'bytes': 29357, 'sha256': '17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py', 'bytes': 61243, 'sha256': '0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce', 'uid': 1000, 'mode': 420}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/context1-release.json', 'bytes': 309421, 'sha256': '6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e', 'uid': 1000, 'mode': 384}]
++expected=[{'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py', 'bytes': 7044, 'sha256': 'c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py', 'bytes': 29357, 'sha256': '17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c', 'uid': 1000, 'mode': 384}, {'path': '/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py', 'bytes': 61243, 'sha256': '0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce', 'uid': 1000, 'mode': 0o664}, {'path': '/home/kmihara/hekit-runs/task54-launch/v2/context1-release.json', 'bytes': 309421, 'sha256': '6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e', 'uid': 1000, 'mode': 384}]
+ record={'kind':'context_sidecar_readback_not_scientific_result','observed_unix':time.time(),'nice':os.nice(0),'uid':os.getuid()}
+ record['deployment_files']=[];record['deployment_directories']=[]
+ def need(ok,why):
+@@ -13,7 +13,7 @@
+ try:
+  need(os.getuid()==1000 and os.nice(0)>=10,'uid/nice')
+  for item in expected:
+-  p=Path(item['path']);need(p.resolve()==p,'canonical');a=p.lstat();need(stat.S_ISREG(a.st_mode) and a.st_size<=1024*1024 and (item['mode']==0o644 or a.st_nlink==1),'kind/size/links')
++  p=Path(item['path']);need(p.resolve()==p,'canonical');a=p.lstat();need(stat.S_ISREG(a.st_mode) and a.st_size<=1024*1024 and (item['path']=='/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py' or a.st_nlink==1),'kind/size/links')
+   fd=os.open(p,os.O_RDONLY|os.O_NOFOLLOW)
+   try:
+    b=os.fstat(fd);need((a.st_dev,a.st_ino)==(b.st_dev,b.st_ino) and stat.S_ISREG(b.st_mode) and b.st_size<=1024*1024,'opened identity')
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-invoke.py
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-invoke.py
+@@ -34,7 +34,7 @@
+         s=folder.lstat();need(folder.resolve()==folder and stat.S_ISDIR(s.st_mode) and s.st_uid==1000 and stat.S_IMODE(s.st_mode)==0o700,'deployment directory drift')
+     for name in ('task-54-exporter-linux-prelaunch-v1.py','task-54-exporter-linux-launch-v1.py','context1-release.json'):
+         s=(ROOT/name).lstat();need(stat.S_IMODE(s.st_mode)==0o600 and s.st_nlink==1,'deployment mode/linkcount drift')
+-    e=Path('/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py').lstat();need(stat.S_IMODE(e.st_mode)==0o644 and e.st_size==61243,'genuine exporter mode/size drift')
++    e=Path('/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py').lstat();need(stat.S_IMODE(e.st_mode)==0o664 and e.st_size==61243,'genuine exporter mode/size drift')
+     need(all(not os.path.lexists(ROOT/name) for name in ('context1-parent.json','context1-child.json','context1-context.json')),'prior evidence exists; no retry')
+     need(not os.path.lexists('/nonexistent-task54-fictional'),'fictional warmup path now exists')
+     need(str(Path('/usr/bin/uname').resolve())=='/usr/lib/cargo/bin/coreutils/uname' and os.access('/usr/bin/uname',os.X_OK),'selected uname path drift')
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-controller.py
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-controller.py
+@@ -45,15 +45,15 @@
+ 
+ def run_once(phase,release_path,release_sha,manifest_sha):
+     need(phase in LIMITS,'unknown operation')
+-    manifest_path=L/'task-54-linux-context1-transport-command-manifest.json'
++    manifest_path=L/'task-54-linux-context1-recovery1-transport-command-manifest.json'
+     manifest_raw=read_regular(manifest_path,1024*1024);need(sha(manifest_raw)==manifest_sha,'command manifest pin')
+     spec=strict_json(manifest_raw)
+     need(spec['command']==COMMAND and spec['candidate_sha256']==CANDIDATE_SHA,'command/candidate drift')
+     controller_sha=sha(read_regular(Path(__file__).resolve(),1024*1024));need(controller_sha==spec['controller_sha256'],'controller pin')
+-    name=f'task-54-linux-context1-{phase}.py';item=spec['sources'][phase];need(item['name']==name,'source selection')
++    name=('task-54-linux-context1-collect.py' if phase=='collect' else f'task-54-linux-context1-recovery1-{phase}.py');item=spec['sources'][phase];need(item['name']==name,'source selection')
+     source=read_regular(L/name,1024*1024);need(sha(source)==item['sha256'],'source pin')
+     release_path=Path(release_path).resolve();release=read_regular(release_path,1024*1024);need(sha(release)==release_sha,'concrete action release pin')
+-    prefix=L/f'task-54-linux-context1-{phase}'
++    prefix=L/f'task-54-linux-context1-recovery1-{phase}'
+     paths={k:Path(str(prefix)+s) for k,s in [('launch','.launch.json'),('stdout','.stdout'),('stderr','.stderr'),('meta','.meta.json'),('cutoff','.cutoff.json')]}
+     # This fixed sentinel is never removed, including on pre-spawn or terminal failure.
+     meta={'kind':'context1_local_operation_custody_not_context_verdict','phase':phase,'started_unix':time.time(),'local_controller_pid':os.getpid(),'command':COMMAND,'source_path':str(L/name),'source_bytes':len(source),'source_sha256':sha(source),'candidate_sha256':CANDIDATE_SHA,'controller_sha256':controller_sha,'command_manifest_sha256':manifest_sha,'action_release_path':str(release_path),'action_release_sha256':release_sha,'observation_deadline_seconds':DEADLINE_SECONDS,'stdout_limit_bytes':LIMITS[phase][0],'stderr_limit_bytes':LIMITS[phase][1],'observation_deadline_expired':False,'cutoff_reason':None,'remote_terminal':'unknown','streams_complete':False,'returncode':None,'automatic_retry':False}
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-transport-command-manifest.json
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-command-manifest.json
+@@ -1,5 +1,5 @@
+ {
+-  "kind": "context1_transport_frozen_preparation_not_action_release",
++  "kind": "context1_recovery1_transport_frozen_preparation_not_action_release",
+   "candidate_sha256": "6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e",
+   "command": [
+     "ssh",
+@@ -28,19 +28,19 @@
+   ],
+   "sources": {
+     "deploy": {
+-      "name": "task-54-linux-context1-deploy.py",
+-      "bytes": 417819,
+-      "sha256": "f0e747cd7c99b92cee6b3dedcf3b9499b059fdc000bc6330b27a5219cb9ef523"
++      "name": "task-54-linux-context1-recovery1-deploy.py",
++      "bytes": 417905,
++      "sha256": "36264a9166f24e1b3e19e33a0ee37b35ba9ab640b2deafde68ef3860c1b0889f"
+     },
+     "readback": {
+-      "name": "task-54-linux-context1-readback.py",
+-      "bytes": 3305,
+-      "sha256": "efac95957b5b7a6d02d44a5cc4fea8122a1f7d7569066eba5ea472fcde06cb75"
++      "name": "task-54-linux-context1-recovery1-readback.py",
++      "bytes": 3391,
++      "sha256": "1f74a2d74c33795a7a7c6dd2d37d20dd6a92ad1469d3512b27108f379313e099"
+     },
+     "invoke": {
+-      "name": "task-54-linux-context1-invoke.py",
++      "name": "task-54-linux-context1-recovery1-invoke.py",
+       "bytes": 7754,
+-      "sha256": "721ba884db49410dc41158c61d15172ff5b2f255e8ef20a7f4b5442ef4aa32d0"
++      "sha256": "f597d4c3f2f92152578a86e3490b0a4e31f0f7ecdb1f91d89a5b4deac7627029"
+     },
+     "collect": {
+       "name": "task-54-linux-context1-collect.py",
+@@ -48,7 +48,7 @@
+       "sha256": "b886eb5a8d2adc889db46b86b6e1533fe484a7e7097e7be5c9c2e5780c8fc2de"
+     }
+   },
+-  "controller_sha256": "c5c4e8d428d0895cf8f1220a285eb20848e4fb39d95fcb6b8dad52eedd7224bd",
++  "controller_sha256": "6b48d9dd617ffe8010f7e6e1103d8b72020b15b4a14795cf2ab149de8eee3b29",
+   "source_input": "exact pinned wrapper bytes on SSH stdin",
+   "observation_deadline_seconds": 2100,
+   "limits_bytes": {
+@@ -64,12 +64,12 @@
+   "maximum_base64_characters": 100663300,
+   "wrapper_allowance_bytes": 65536,
+   "outer_envelope_planning_bytes": 100728836,
+-  "authority": "Preparation only. Independent source review and separately concrete root action release required. Full timed-job gate required before invoke; no automatic phase chaining or retry.",
++  "authority": "Source preparation only. Independent source review and separately concrete root action release required for every phase. Original deploy sentinel remains consumed; no automatic retry/phase chaining. Full timed-job gate required before invoke.",
+   "local_controller_argv_template": [
+     "python3",
+     "-I",
+     "-B",
+-    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-controller.py",
++    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-controller.py",
+     "run",
+     "<one of deploy/readback/invoke/collect>",
+     "--action-release",
+@@ -80,22 +80,22 @@
+     "<this manifest SHA256>"
+   ],
+   "future_local_receipts": [
+-    "task-54-linux-context1-{phase}.launch.json",
+-    "task-54-linux-context1-{phase}.stdout",
+-    "task-54-linux-context1-{phase}.stderr",
+-    "task-54-linux-context1-{phase}.meta.json",
+-    "task-54-linux-context1-{phase}.cutoff.json (only cutoff)"
++    "task-54-linux-context1-recovery1-{phase}.launch.json",
++    "task-54-linux-context1-recovery1-{phase}.stdout",
++    "task-54-linux-context1-recovery1-{phase}.stderr",
++    "task-54-linux-context1-recovery1-{phase}.meta.json",
++    "task-54-linux-context1-recovery1-{phase}.cutoff.json (only cutoff)"
+   ],
+   "decode_argv_template": [
+     "python3",
+     "-I",
+     "-B",
+-    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-controller.py",
++    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-controller.py",
+     "decode",
+     "--stdout",
+-    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-collect.stdout",
++    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-collect.stdout",
+     "--prefix",
+-    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-decoded"
++    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-decoded"
+   ],
+   "readback_join_required": "Join all four identity records with deploy sidecar and preserved_inputs; join directory observations to R21/R27. No invocation until a separate release.",
+   "after_decode_review_required": [
+@@ -106,5 +106,18 @@
+   ],
+   "producer_bound": false,
+   "peak_memory_measured": false,
+-  "remote_terminal_on_cutoff": "unknown; local SSH kill only; separately authorized read-only recovery; never reinvoke"
++  "remote_terminal_on_cutoff": "unknown; local SSH kill only; separately authorized read-only recovery; never reinvoke",
++  "original_command_manifest_sha256": "998005c6307e81430ede5ff94b934f627eb11c1f52b07ff99cfea779db173dbf",
++  "correction": {
++    "reason": "Correct wrong full-stat-mode interpretation; R27 and diagnostic1 both retain permission0664, with no observed permission difference",
++    "r27_full_mode": 33204,
++    "r27_normalized_permissions": 436,
++    "diagnostic1_permissions": 436,
++    "expected_octal": "0o664",
++    "r27_stdout_sha256": "2f4894b5dfd0123db5dc531cdea04efe68f68ba2ba08aaa6c8c72a579743e7cd",
++    "diagnostic1_stdout_sha256": "88e9adb7f56ec02e2b309544ea2b0d82ad7ca2d07c0a89b477f7f7669545f7cb",
++    "diagnostic1_review_sha256": "d46f6e423aed374025603ae6a585500c6ff809afbecf45cc8a5c7368f8c23718",
++    "source_release_sha256": "6c7bdddcd0037295d2a66b73fcb0048bb8dcf4b9fbf2e88f39e85a50b7de5ace",
++    "failed_deploy_no_write_review_sha256": "aa151e147083e1b68357c18801e9cf7fda8e7a4c875449a29b852c793556cf3a"
++  }
+ }

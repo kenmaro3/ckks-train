@@ -1,0 +1,108 @@
+test_content_owner_and_size_rejections_remain (__main__.EvidenceGates.test_content_owner_and_size_rejections_remain) ... ok
+test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) ... 
+  test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='deploy', mode=420) ... FAIL
+  test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='readback', mode=420) ... FAIL
+  test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='invoke', mode=420) ... FAIL
+test_only_exact_exporter_path_has_link_exemption (__main__.EvidenceGates.test_only_exact_exporter_path_has_link_exemption) ... FAIL
+test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) ... 
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='deploy', mode=33204) ... FAIL
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='deploy', mode=436) ... FAIL
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='readback', mode=33204) ... FAIL
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='readback', mode=436) ... FAIL
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='invoke', mode=33204) ... FAIL
+  test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='invoke', mode=436) ... FAIL
+
+======================================================================
+FAIL: test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='deploy', mode=420)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 59, in test_old0644_and_other_permissions_rejected_by_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertFalse(self.accepted(role,mode,nlink=1))
+                                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='readback', mode=420)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 59, in test_old0644_and_other_permissions_rejected_by_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertFalse(self.accepted(role,mode,nlink=1))
+                                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) (role='invoke', mode=420)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 59, in test_old0644_and_other_permissions_rejected_by_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertFalse(self.accepted(role,mode,nlink=1))
+                                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_only_exact_exporter_path_has_link_exemption (__main__.EvidenceGates.test_only_exact_exporter_path_has_link_exemption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 63, in test_only_exact_exporter_path_has_link_exemption
+    self.assertTrue(self.accepted(role,self.r27['stat']['mode'],nlink=3))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='deploy', mode=33204)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='deploy', mode=436)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='readback', mode=33204)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='readback', mode=436)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='invoke', mode=33204)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) (role='invoke', mode=436)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-transport-tests.py", line 55, in test_retained_normalization_consumes_all_three_actual_gates
+    with self.subTest(role=role,mode=mode):self.assertTrue(self.accepted(role,mode))
+                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.046s
+
+FAILED (failures=10)

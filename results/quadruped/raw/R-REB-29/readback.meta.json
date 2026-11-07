@@ -1,0 +1,63 @@
+{
+  "kind": "context1_local_operation_custody_not_context_verdict",
+  "phase": "readback",
+  "started_unix": 1794023749.14929,
+  "local_controller_pid": 14415,
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 /usr/bin/python3.14 -I -B -"
+  ],
+  "source_path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-readback.py",
+  "source_bytes": 3391,
+  "source_sha256": "1f74a2d74c33795a7a7c6dd2d37d20dd6a92ad1469d3512b27108f379313e099",
+  "candidate_sha256": "6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e",
+  "controller_sha256": "6b48d9dd617ffe8010f7e6e1103d8b72020b15b4a14795cf2ab149de8eee3b29",
+  "command_manifest_sha256": "94e6eaca18287235f638f953ed107a05d5ae71e28fa49d36c02ad7d95dfbd5aa",
+  "action_release_path": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-readback-action-release.md",
+  "action_release_sha256": "486cb8a05f0e6d75cc85a0e611479ad7ee7fc9072a9d43ac3f47e59f7bda79fa",
+  "observation_deadline_seconds": 2100,
+  "stdout_limit_bytes": 1048576,
+  "stderr_limit_bytes": 33554432,
+  "observation_deadline_expired": false,
+  "cutoff_reason": null,
+  "remote_terminal": "ssh_command_returned_zero_not_context_verdict",
+  "streams_complete": true,
+  "returncode": 0,
+  "automatic_retry": false,
+  "local_process_pid": 14416,
+  "finished_unix": 1794023757.501538,
+  "retained_bytes": {
+    "stdout": 2025,
+    "stderr": 0
+  },
+  "observed_bytes": {
+    "stdout": 2025,
+    "stderr": 0
+  },
+  "retained_prefix_sha256": {
+    "stdout": "ed50f20c34e67374ca44805a44621d039b5c49b517974f8e1ac4a7cc391b7a32",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "hash_scope": "exact retained files; a cutoff hash is a prefix hash, not a complete stream hash"
+}

@@ -1,0 +1,123 @@
+{
+  "kind": "context1_recovery1_transport_frozen_preparation_not_action_release",
+  "candidate_sha256": "6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 /usr/bin/python3.14 -I -B -"
+  ],
+  "sources": {
+    "deploy": {
+      "name": "task-54-linux-context1-recovery1-deploy.py",
+      "bytes": 417905,
+      "sha256": "36264a9166f24e1b3e19e33a0ee37b35ba9ab640b2deafde68ef3860c1b0889f"
+    },
+    "readback": {
+      "name": "task-54-linux-context1-recovery1-readback.py",
+      "bytes": 3391,
+      "sha256": "1f74a2d74c33795a7a7c6dd2d37d20dd6a92ad1469d3512b27108f379313e099"
+    },
+    "invoke": {
+      "name": "task-54-linux-context1-recovery1-invoke.py",
+      "bytes": 7754,
+      "sha256": "f597d4c3f2f92152578a86e3490b0a4e31f0f7ecdb1f91d89a5b4deac7627029"
+    },
+    "collect": {
+      "name": "task-54-linux-context1-collect.py",
+      "bytes": 2327,
+      "sha256": "b886eb5a8d2adc889db46b86b6e1533fe484a7e7097e7be5c9c2e5780c8fc2de"
+    }
+  },
+  "controller_sha256": "6b48d9dd617ffe8010f7e6e1103d8b72020b15b4a14795cf2ab149de8eee3b29",
+  "source_input": "exact pinned wrapper bytes on SSH stdin",
+  "observation_deadline_seconds": 2100,
+  "limits_bytes": {
+    "invoke_stdout": 1048576,
+    "invoke_stderr": 33554432,
+    "collect_stdout": 104857600,
+    "collect_stderr": 33554432,
+    "parent_raw": 33554432,
+    "child_raw": 8388608,
+    "context_raw": 33554432
+  },
+  "collection_memory_planning_bytes": 1073741824,
+  "maximum_base64_characters": 100663300,
+  "wrapper_allowance_bytes": 65536,
+  "outer_envelope_planning_bytes": 100728836,
+  "authority": "Source preparation only. Independent source review and separately concrete root action release required for every phase. Original deploy sentinel remains consumed; no automatic retry/phase chaining. Full timed-job gate required before invoke.",
+  "local_controller_argv_template": [
+    "python3",
+    "-I",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-controller.py",
+    "run",
+    "<one of deploy/readback/invoke/collect>",
+    "--action-release",
+    "<root-selected concrete action-release file>",
+    "--action-release-sha256",
+    "<root-selected exact SHA256>",
+    "--command-manifest-sha256",
+    "<this manifest SHA256>"
+  ],
+  "future_local_receipts": [
+    "task-54-linux-context1-recovery1-{phase}.launch.json",
+    "task-54-linux-context1-recovery1-{phase}.stdout",
+    "task-54-linux-context1-recovery1-{phase}.stderr",
+    "task-54-linux-context1-recovery1-{phase}.meta.json",
+    "task-54-linux-context1-recovery1-{phase}.cutoff.json (only cutoff)"
+  ],
+  "decode_argv_template": [
+    "python3",
+    "-I",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-controller.py",
+    "decode",
+    "--stdout",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-collect.stdout",
+    "--prefix",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-recovery1-decoded"
+  ],
+  "readback_join_required": "Join all four identity records with deploy sidecar and preserved_inputs; join directory observations to R21/R27. No invocation until a separate release.",
+  "after_decode_review_required": [
+    "parent.child_evidence_sha256 equals exact child hash",
+    "both release bindings equal accepted candidate",
+    "purpose context and expected status/terminal/streams/cleanup",
+    "independent actual context content review; parent does not hash context"
+  ],
+  "producer_bound": false,
+  "peak_memory_measured": false,
+  "remote_terminal_on_cutoff": "unknown; local SSH kill only; separately authorized read-only recovery; never reinvoke",
+  "original_command_manifest_sha256": "998005c6307e81430ede5ff94b934f627eb11c1f52b07ff99cfea779db173dbf",
+  "correction": {
+    "reason": "Correct wrong full-stat-mode interpretation; R27 and diagnostic1 both retain permission0664, with no observed permission difference",
+    "r27_full_mode": 33204,
+    "r27_normalized_permissions": 436,
+    "diagnostic1_permissions": 436,
+    "expected_octal": "0o664",
+    "r27_stdout_sha256": "2f4894b5dfd0123db5dc531cdea04efe68f68ba2ba08aaa6c8c72a579743e7cd",
+    "diagnostic1_stdout_sha256": "88e9adb7f56ec02e2b309544ea2b0d82ad7ca2d07c0a89b477f7f7669545f7cb",
+    "diagnostic1_review_sha256": "d46f6e423aed374025603ae6a585500c6ff809afbecf45cc8a5c7368f8c23718",
+    "source_release_sha256": "6c7bdddcd0037295d2a66b73fcb0048bb8dcf4b9fbf2e88f39e85a50b7de5ace",
+    "failed_deploy_no_write_review_sha256": "aa151e147083e1b68357c18801e9cf7fda8e7a4c875449a29b852c793556cf3a"
+  }
+}

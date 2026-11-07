@@ -1,0 +1,16 @@
+test_content_owner_and_size_rejections_remain (__main__.EvidenceGates.test_content_owner_and_size_rejections_remain) ... ok
+test_old0644_and_other_permissions_rejected_by_all_three_actual_gates (__main__.EvidenceGates.test_old0644_and_other_permissions_rejected_by_all_three_actual_gates) ... ok
+test_only_exact_exporter_path_has_link_exemption (__main__.EvidenceGates.test_only_exact_exporter_path_has_link_exemption) ... ok
+test_retained_normalization_consumes_all_three_actual_gates (__main__.EvidenceGates.test_retained_normalization_consumes_all_three_actual_gates) ... ok
+test_deadline_retains_prefix_unknown_state_and_no_reuse (__main__.FixedCustody.test_deadline_retains_prefix_unknown_state_and_no_reuse) ... ok
+test_fixed_names_all_four_phases_and_original_receipts_untouched (__main__.FixedCustody.test_fixed_names_all_four_phases_and_original_receipts_untouched) ... ok
+test_nonzero_unknown_remote_terminal (__main__.FixedCustody.test_nonzero_unknown_remote_terminal) ... ok
+test_one_shot_zero_and_no_second_child (__main__.FixedCustody.test_one_shot_zero_and_no_second_child) ... ok
+test_retained_hash_after_custody_failure (__main__.FixedCustody.test_retained_hash_after_custody_failure) ... ok
+test_stream_cutoff_retains_bounded_prefix (__main__.FixedCustody.test_stream_cutoff_retains_bounded_prefix) ... ok
+test_wrong_source_names_rejected_before_launch (__main__.FixedCustody.test_wrong_source_names_rejected_before_launch) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.511s
+
+OK

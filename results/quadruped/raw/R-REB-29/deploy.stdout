@@ -1,0 +1,60 @@
+{
+  "kind": "context_sidecar_deployment_not_scientific_result",
+  "started_unix": 1794023683.7281628,
+  "uid": 1000,
+  "nice": 10,
+  "files": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/context1-release.json",
+      "bytes": 309421,
+      "sha256": "6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36310843
+    }
+  ],
+  "preserved_inputs": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309264
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py",
+      "bytes": 29357,
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309265
+    },
+    {
+      "path": "/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "uid": 1000,
+      "mode": 436,
+      "device": 66311,
+      "inode": 36310811
+    }
+  ],
+  "controller": {
+    "lexical": "/usr/bin/python3.14",
+    "resolved": "/usr/bin/python3.14",
+    "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "argv": [
+      "/usr/bin/python3.14",
+      "-I",
+      "-B",
+      "-"
+    ]
+  },
+  "status": "deployed_verified_no_target_startup",
+  "finished_unix": 1794023683.746321,
+  "scope": "One exact sidecar only in existing v2; no interpreter/command launch, package import, environment repair, clone mutation, job/queue mutation or scientific result."
+}

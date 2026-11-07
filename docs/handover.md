@@ -632,3 +632,12 @@ FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1249/README.md)では、12:49:42 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は238/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handleで終端まで回収し、再試行やジョブ・キューの変更はしていない。
 
 これは途中経過で、最終精度やTask42／M4の合格を意味しない。次の通常確認は13:49 JST頃とする。全登録範囲とfull encrypted-block campaign holdを維持する。
+
+<a id="latest-evidence-20261107-r29"></a>
+## 2026-11-07 12:55 JST追記: 修正後の配置と読戻し完了
+
+[R29の運用記録](../results/quadruped/raw/R-REB-29/README.md)では、期待permissionを実記録どおり0664に直した限定修正が独立sourceレビューを通過した。元のR28失敗記録と一回限りの実行記録を保持し、新しい固定ローカル記録名で12:54:43 JSTに設定sidecarの配置、12:55:55 JSTに独立した読戻しがそれぞれexit0で完了した。サーバーの既存ファイルの権限や内容は変更していない。
+
+新規sidecarは309421 bytesで固定hashに一致し、0600で作成された。読戻しの4ファイルのpath・size・hash・uid・mode・device・inodeは配置記録と完全に一致し、2つのdirectory識別情報も固定値に一致した。後続のcontext証拠3パスは、その観測時点で存在しなかった。両処理は完全なstdout／空stderrを保持し、cutoffや再試行なしだった。
+
+完了したのは配置・読戻しであり、context起動、追加seed取得、学習やGPU計測は未実行である。invoke／collectは未許可で、既存の計時ジョブ終了待ち条件を維持する。FULL-2の最新実観測は12:49:42 JSTの238/1000更新のまま。Task42／M4／M5全体の合格、全登録範囲、full encrypted-block campaign holdは変えていない。

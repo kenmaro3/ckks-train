@@ -831,3 +831,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261107-1249.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
 - **status:** done; SSH exit0, actual12:49:42 JST, own chain/queue live, FULL-2 update237 =>238/1000; final JSON absent, queue owner.json only. Exact source/custody archive `raw/R-41-FULL2-OBS-20261107-1249/`; no retry or job changes.
+
+## R-REB-29-CONTEXT1-RECOVERY1: corrected fixed configuration deployment and readback
+
+- **purpose:** Correct the local expected exporter permission to the0664 retained in both R27 and R28, then deploy the unchanged context1 sidecar and independently read back identities. This is not a chmod, target startup or permission-change acceptance.
+- **commit to sync:** none. Candidate6137e3df... and existing v2 programs/exporter unchanged. Original R28 deploy failed before any write; its sentinel stays consumed.
+- **working dir:** existing `/home/kmihara/hekit-runs/task54-launch/v2`; do not recreate R27/v2 roots.
+- **command:** frozen `task-54-linux-context1-recovery1-controller.py run deploy`, separately `run readback`, each with its own concrete action-release hash and command-manifest SHA94e6eaca18287235f638f953ed107a05d5ae71e28fa49d36c02ad7d95dfbd5aa. Exact key-only SSH stdin script, `nice -n 10 /usr/bin/python3.14 -I -B -`.
+- **expected duration:** seconds after connection, one thread, retained asynchronous custody;2100s observation cutoff is not remote termination proof. No automatic retry or phase chain.
+- **GPU memory need:**0. **RAM need:** under128MiB expected for small deploy/readback, unmeasured.
+- **output path:** fixed new local `task-54-linux-context1-recovery1-{deploy,readback}.{launch.json,stdout,stderr,meta.json}`. Only new remote file is unchanged309421-byte `context1-release.json`,0600 exclusive creation. Existing files/permissions remain unchanged.
+- **pass criterion:** reviewed corrected source, actual terminal complete streams, exact sidecar and preserved input/directory identities; separately released readback joins all four files and confirms three future evidence names absent. Operational evidence only.
+- **status:** done for deployment/readback only. Deploy exit0 at12:54:43JST; independent readback exit0 at12:55:55JST, four file records exactly joined, directory identities retained and three future evidence paths absent at observation. Exact originals in `raw/R-REB-29/`. No target startup/repair/retry/job changes. Invoke/collect unreleased; full timed-job gate/capture/full encrypted-block holds remain.
