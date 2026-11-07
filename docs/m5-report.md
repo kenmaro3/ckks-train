@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0701)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0802)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -19,7 +19,7 @@
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
 | 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full／証拠／Quick記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
-| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。queue SHA4b1c499のLinux CIも全6ジョブsuccess（後続SHAには継承しない）。公開操作は未実施 |
+| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **改名時の公開準備・検証済み、最終候補の検証は未完了**。改名SHA09202cfとqueue SHA4b1c499のLinux CIは各全6ジョブ成功（後続SHAには継承しない）。直近のCI未起動は下記07:09追記に記録。公開操作は未実施 |
 | 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
 | 58: PyO3（最後、削減可） | 今回の範囲から削減 | 未検証 | Rust API と再現手順を優先。Python binding は提供しない |
@@ -51,7 +51,9 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
 
 元の計測 JSON を不変の入力とする。Mac と quadruped-gpu の時間は分け、単一 seed に標準偏差 0 を付けず、未計測とする統計量を明示する。runner のメタデータは、バイナリが書いた provenance の代わりにはならない。古い結果に provenance を後付けしない。`d611c9d` で Iris・対話 MNIST・ReBoot-layout の新規出力にバイナリ自身の provenance を追加し、平文の `--plan` が学習・ファイル書き込みへ進まない回帰テストを通した。既存の元結果は変更していない。
 
-現時点の表生成は `tools/paper_tables.py`、実験入口は `scripts/run_all.sh`。Task 54 の実装は、長い暗号化実験を 1 seed、平文を複数 seed にした縮小行列である。研究計画の全組合せ・10 seeds が完走したとは記載しない。未対応・資源不足・入力欠落・保留を coverage として残し、公式 ReBoot の実行は外部環境と requests の手順に従う。実機の `--quick` が完了するまでは「2 時間以内」は目標・見積もりである。
+表生成は `tools/paper_tables.py`、実験入口は `scripts/run_all.sh`。初期の実験入口は長い暗号化実験を1 seed、平文を複数 seedにした縮小版だったが、これは現在のTask 54の完了範囲ではない。[登録済みの全実験条件](experiment-matrix.md)と[CPU統合設計](#latest-evidence-20261108-d7-cpu-integration-design)に従い、全21 profiles・seeds 0–9を維持する。Fullの2,680 family cases、別枠20 Iris、7補足記述子とQuickの268 casesは登録範囲であり、実行済み件数ではない。補足記述子を単純に足して研究全体の分母とは扱わない。
+
+保存済み結果からの表再生成は可能だが、全条件の実行、最終モデル・FP32比較・計時・バイナリ自身による結果保存をつないだ通し試験は未完了である。最初のIris/eMLP-1/seed0のCPU I/NI接続が完了しても、全体の完了とは扱わない。未対応・資源不足・入力欠落・保留をcoverageとして残し、公式ReBootの実行は外部環境とrequestsの手順に従う。実機の `--quick` が完了するまでは「2時間以内」は目標・見積もりである。
 
 旧 runner の09:30停止記録（`0c819d4`）では後続は未投入だったが、2026-11-06 10:49:44 JSTの起動後観測でpost-full-v1 PID1739838 / start ticks467041669はwaiting、owner.jsonのみ、clones_created=falseだった。R-47-3 → R-48-1〜4 → R-52-1/2（各21更新subset）は両FULL成功terminalとchain10 terminal/非稼働identityの検証待ちとして投入済み。ビルド・測定は未開始で、R54は未投入。計画の全実験行列は実装未完で拡張設計中。実stateと完全commit・SHA256は [運用記録](post-full-queue.md) を参照する。この10:49記録時点で確認済みだったFULL進捗は10:21:08のupdate113（0始まり、114/750）。11:09の新しい実観測は下の追記に分け、観測間の更新数を推定しない。別テナントを停止せず、GPU に入らない行は未計測と記す。鍵認証、nice 10、24 スレッド以内、長時間処理のバックグラウンド化を維持する。SSH のタイムアウトはジョブの完了・失敗を意味しない。新たなクラウド GPU は使わない。
 
