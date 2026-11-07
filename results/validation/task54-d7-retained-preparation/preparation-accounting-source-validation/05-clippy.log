@@ -1,0 +1,43 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> crates/ckks-train-bench/src/study_admission.rs:1886:6
+     |
+1886 | ) -> Result<(Transcript, Vec<Vec<MicroPart>>, DiagonalMode, String, usize)> {
+     |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
+     = note: `-D clippy::type-complexity` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`
+
+error: the following explicit lifetimes could be elided: 'i, 'p
+   --> crates/ckks-train-bench/src/study_execution.rs:216:6
+    |
+216 | impl<'i, 'p> RetainedPreparation<'i, CheckedPreparation<'p>> {
+    |      ^^  ^^                      ^^                     ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+    = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_lifetimes)]`
+help: elide the lifetimes
+    |
+216 - impl<'i, 'p> RetainedPreparation<'i, CheckedPreparation<'p>> {
+216 + impl RetainedPreparation<'_, CheckedPreparation<'_>> {
+    |
+
+error: the following explicit lifetimes could be elided: 'i, 'p
+   --> crates/ckks-train-bench/src/study_execution.rs:231:6
+    |
+231 | impl<'i, 'p> RetainedPreparation<'i, CheckedBlockPreparation<'p>> {
+    |      ^^  ^^                      ^^                          ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+    |
+231 - impl<'i, 'p> RetainedPreparation<'i, CheckedBlockPreparation<'p>> {
+231 + impl RetainedPreparation<'_, CheckedBlockPreparation<'_>> {
+    |
+
+error: could not compile `ckks-train-bench` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors

@@ -389,6 +389,17 @@ pub struct KeyManifest {
     sse: bool,
 }
 impl KeyManifest {
+    pub(crate) fn into_training(self) -> Vec<i32> {
+        self.training
+    }
+    pub(crate) fn matches(&self, other: &Self) -> bool {
+        self.training == other.training
+            && self.bootstrap_generated == other.bootstrap_generated
+            && self.bootstrap_execution == other.bootstrap_execution
+            && self.conjugation == other.conjugation
+            && self.sse == other.sse
+            && self.separate_bootstrap_bundle() == other.separate_bootstrap_bundle()
+    }
     /// Union of normalized nonzero stage training rotations, not physical allocation count.
     pub fn training_rotations(&self) -> &[i32] {
         &self.training
@@ -424,7 +435,35 @@ pub struct CandidateDescription {
     input: InputStatus,
     issue: Option<AdmissionIssue>,
 }
+pub(crate) struct CandidateComponents {
+    pub(crate) geometries: Vec<StageGeometry>,
+    pub(crate) keys: KeyManifest,
+}
 impl CandidateDescription {
+    pub(crate) fn retained_geometry_payload(
+        &self,
+    ) -> crate::study_execution::AccountingResult<usize> {
+        self.geometries.iter().try_fold(0usize, |a, g| {
+            crate::study_execution::sum([
+                a,
+                g.requested_heap_payload_bytes()
+                    .ok_or(crate::study_execution::AccountingError::Overflow)?,
+            ])
+        })
+    }
+    #[allow(clippy::result_large_err)] // Preserve the original diagnostic without a clone.
+    pub(crate) fn into_checked_components(self) -> std::result::Result<CandidateComponents, Self> {
+        if self.issue.is_some() || self.keys.is_none() {
+            return Err(self);
+        }
+        let Self {
+            geometries, keys, ..
+        } = self;
+        Ok(CandidateComponents {
+            geometries,
+            keys: keys.expect("checked manifest"),
+        })
+    }
     /// Seed-independent metadata geometry identity; empty on malformed geometry.
     pub fn geometry_digest(&self) -> &str {
         &self.geometry_digest
@@ -466,6 +505,8 @@ pub fn metadata_input_status(metadata: &ProfileMetadata) -> InputStatus {
 // One checked append stream. A failed scalar append leaves no silently accepted plan.
 struct Transcript {
     bytes: Vec<u8>,
+    length: usize,
+    counting: bool,
     limits: ReceiptLimits,
     metadata_bytes: usize,
 }
@@ -473,9 +514,34 @@ impl Transcript {
     fn new(limits: ReceiptLimits) -> Self {
         Self {
             bytes: vec![],
+            length: 0,
+            counting: false,
             limits,
             metadata_bytes: 0,
         }
+    }
+    fn counter(limits: ReceiptLimits) -> Self {
+        let mut w = Self::new(limits);
+        w.counting = true;
+        w
+    }
+    fn raw_length(&mut self, n: usize) -> Result<()> {
+        debug_assert!(self.counting);
+        let next = sum_payload([self.length, n])?;
+        let combined = sum_payload([next, self.metadata_bytes])?;
+        if combined > self.limits.max_bytes {
+            return Err(budget_error(
+                "combined transcript/metadata bytes",
+                combined,
+                self.limits.max_bytes,
+            ));
+        }
+        self.length = next;
+        Ok(())
+    }
+    fn blob_length(&mut self, n: usize) -> Result<()> {
+        self.number(n)?;
+        self.raw_length(n)
     }
     fn metadata(&mut self, amount: usize) -> Result<()> {
         let next = self
@@ -483,8 +549,7 @@ impl Transcript {
             .checked_add(amount)
             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "metadata payload"))?;
         let combined = self
-            .bytes
-            .len()
+            .length
             .checked_add(next)
             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "combined payload"))?;
         if combined > self.limits.max_bytes {
@@ -499,8 +564,7 @@ impl Transcript {
     }
     fn raw(&mut self, value: &[u8]) -> Result<()> {
         let next = self
-            .bytes
-            .len()
+            .length
             .checked_add(value.len())
             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "transcript length"))?;
         let combined = next
@@ -513,10 +577,13 @@ impl Transcript {
                 self.limits.max_bytes,
             ));
         }
-        self.bytes
-            .try_reserve_exact(value.len())
-            .map_err(|_| issue(IssueKind::AllocationFailed, "transcript reservation"))?;
-        self.bytes.extend_from_slice(value);
+        if !self.counting {
+            self.bytes
+                .try_reserve_exact(value.len())
+                .map_err(|_| issue(IssueKind::AllocationFailed, "transcript reservation"))?;
+            self.bytes.extend_from_slice(value);
+        }
+        self.length = next;
         Ok(())
     }
     fn tag(&mut self, value: u8) -> Result<()> {
@@ -767,7 +834,6 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
         Model::Emlp3 => 3,
     })?;
     w.number(m.layers.len())?;
-    let mut names = BTreeSet::new();
     let blocks = model_stages(m.model) - 1;
     for (i, pair) in m.layers.chunks_exact(2).enumerate() {
         let (a, b) = (&pair[0], &pair[1]);
@@ -817,7 +883,14 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
         )?;
         for layer in pair {
             require(
-                !layer.name.is_empty() && names.insert(&layer.name),
+                !layer.name.is_empty()
+                    && !m.layers[..m
+                        .layers
+                        .iter()
+                        .position(|l| std::ptr::eq(l, layer))
+                        .expect("layer reference")]
+                        .iter()
+                        .any(|l| l.name == layer.name),
                 IssueKind::InvalidDimensions,
                 "layer names",
             )?;
@@ -831,12 +904,16 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
     }
     Ok(())
 }
+fn try_digest(bytes: &[u8]) -> Result<String> {
+    crate::data::try_sha256_hex(bytes)
+        .map_err(|_| issue(IssueKind::AllocationFailed, "digest output reservation"))
+}
 /// Seed-independent checked geometry identity; input readiness is deliberately excluded.
 pub fn geometry_identity(metadata: &ProfileMetadata) -> Result<String> {
     let mut w = Transcript::new(ReceiptLimits::default());
     w.text("hekit-study-diagonal-geometry-v1")?;
     metadata_geometry(&mut w, metadata)?;
-    Ok(sha256_hex(&w.bytes))
+    try_digest(&w.bytes)
 }
 fn checked_mode(
     m: &ProfileMetadata,
@@ -892,22 +969,34 @@ fn secure_parameters(p: PlanningParameters<'_>, mode: DiagonalMode) -> Result<()
     let q = p.params;
     // CkksParams is sealed: its safe constructor deterministically generates actual
     // q/p from these exact bit vectors; no arbitrary-prime constructor is exposed.
-    let (qb, pb, dnum) = if mode == DiagonalMode::Interactive {
-        let mut a = vec![58];
-        a.extend(vec![42; ckks_train_ckks::params::N16_TRAIN_L]);
-        (
-            a,
-            vec![58; ckks_train_ckks::params::N16_TRAIN_K],
-            ckks_train_ckks::params::N16_TRAIN_DNUM,
-        )
+    use ckks_train_ckks::params::*;
+    let interactive = mode == DiagonalMode::Interactive;
+    let q_matches = if interactive {
+        q.q_bits().len() == 1 + N16_TRAIN_L
+            && q.q_bits().first() == Some(&58)
+            && q.q_bits()[1..].iter().all(|&n| n == 42)
     } else {
-        let (a, b) = ckks_train_ckks::params::n16_boot_bits();
-        (a, b, ckks_train_ckks::params::N16_BOOT_DNUM)
+        let bands = [
+            (1, 54),
+            (N16_BOOT_COMPUTE_LEVELS, 42),
+            (N16_BOOT_STOC_LEVELS, 34),
+            (N16_BOOT_EVALMOD_LEVELS, 58),
+            (N16_BOOT_CTOS_LEVELS, 56),
+        ];
+        q.q_bits().iter().copied().eq(bands
+            .into_iter()
+            .flat_map(|(count, bits)| std::iter::repeat_n(bits, count)))
+    };
+    let (p_len, p_bits, dnum) = if interactive {
+        (N16_TRAIN_K, 58, N16_TRAIN_DNUM)
+    } else {
+        (N16_BOOT_K, 60, N16_BOOT_DNUM)
     };
     require(
         q.n() == 1 << 16
-            && q.q_bits() == qb
-            && q.p_bits() == pb
+            && q_matches
+            && q.p_bits().len() == p_len
+            && q.p_bits().iter().all(|&n| n == p_bits)
             && q.scale().to_bits() == (2f64.powi(42)).to_bits()
             && q.dnum() == dnum
             && q.hamming_weight().is_none(),
@@ -1567,15 +1656,66 @@ impl DiagonalPlan {
         &UNPROVED
     }
 }
+fn partition_row(
+    total: usize,
+    lanes: usize,
+    r: &DiagonalRequest,
+    index: usize,
+    mut emit: impl FnMut(MicroPart) -> Result<()>,
+) -> Result<usize> {
+    require(
+        lanes.is_power_of_two(),
+        IssueKind::InvalidDimensions,
+        "physical lanes",
+    )?;
+    if r.partitions.is_none() {
+        require(
+            total > 0,
+            IssueKind::InvalidMicroPartition,
+            "empty logical update",
+        )?;
+    }
+    let len = r
+        .partitions
+        .as_ref()
+        .map_or(total.div_ceil(lanes), |p| p[index].len());
+    let mut end = 0usize;
+    for j in 0..len {
+        let part = if let Some(p) = &r.partitions {
+            p[index][j]
+        } else {
+            let start = j
+                .checked_mul(lanes)
+                .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "partition start"))?;
+            MicroPart {
+                start,
+                valid: lanes.min(total - start),
+            }
+        };
+        require(
+            part.start == end && part.valid > 0 && part.valid <= lanes,
+            IssueKind::InvalidMicroPartition,
+            "ordered contiguous micro slices",
+        )?;
+        end = sum_payload([end, part.valid])?;
+        emit(part)?;
+    }
+    require(
+        len > 0 && end == total,
+        IssueKind::InvalidMicroPartition,
+        "micro conservation",
+    )?;
+    Ok(len)
+}
 fn partitions(counts: &[usize], lanes: usize, r: &DiagonalRequest) -> Result<Vec<Vec<MicroPart>>> {
     require(
         lanes.is_power_of_two(),
         IssueKind::InvalidDimensions,
         "physical lanes",
     )?;
-    if let Some(parts) = &r.partitions {
+    if let Some(p) = &r.partitions {
         require(
-            parts.len() == counts.len(),
+            p.len() == counts.len(),
             IssueKind::InvalidMicroPartition,
             "partition update count",
         )?;
@@ -1584,43 +1724,18 @@ fn partitions(counts: &[usize], lanes: usize, r: &DiagonalRequest) -> Result<Vec
     out.try_reserve_exact(counts.len())
         .map_err(|_| issue(IssueKind::AllocationFailed, "partition vector"))?;
     for (i, &total) in counts.iter().enumerate() {
-        let parts = if let Some(p) = &r.partitions {
-            copy_vec(&p[i])?
-        } else {
-            require(
-                total > 0,
-                IssueKind::InvalidMicroPartition,
-                "empty logical update",
-            )?;
-            let mut parts = Vec::new();
-            parts
-                .try_reserve_exact(total.div_ceil(lanes))
-                .map_err(|_| issue(IssueKind::AllocationFailed, "micro slices"))?;
-            for start in (0..total).step_by(lanes) {
-                parts.push(MicroPart {
-                    start,
-                    valid: lanes.min(total - start),
-                });
-            }
-            parts
-        };
-        let mut end = 0usize;
-        for p in &parts {
-            require(
-                p.start == end && p.valid > 0 && p.valid <= lanes,
-                IssueKind::InvalidMicroPartition,
-                "ordered contiguous micro slices",
-            )?;
-            end = end
-                .checked_add(p.valid)
-                .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "micro partition total"))?;
-        }
-        require(
-            !parts.is_empty() && end == total,
-            IssueKind::InvalidMicroPartition,
-            "micro conservation",
-        )?;
-        out.push(parts);
+        let len = r
+            .partitions
+            .as_ref()
+            .map_or(total.div_ceil(lanes), |p| p[i].len());
+        let mut row = Vec::new();
+        row.try_reserve_exact(len)
+            .map_err(|_| issue(IssueKind::AllocationFailed, "micro slices"))?;
+        partition_row(total, lanes, r, i, |part| {
+            row.push(part);
+            Ok(())
+        })?;
+        out.push(row);
     }
     Ok(out)
 }
@@ -1693,22 +1808,74 @@ fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
     w.number(p.processed_samples)?;
     w.number(p.dropped_samples)
 }
-fn bound_partitions(w: &mut Transcript, parts: &[Vec<MicroPart>], lanes: usize) -> Result<()> {
-    w.number(parts.len())?;
-    for (i, p) in parts.iter().enumerate() {
-        w.number(i)?;
-        w.number(p.len())?;
-        for v in p {
-            w.number(v.start)?;
-            w.number(v.valid)?;
+trait PartitionRows {
+    fn len(&self) -> usize;
+    fn row_len(&self, i: usize) -> usize;
+    fn part(&self, i: usize, j: usize) -> MicroPart;
+    fn all_full(&self, i: usize, lanes: usize) -> bool {
+        (0..self.row_len(i)).all(|j| self.part(i, j).valid == lanes)
+    }
+}
+impl PartitionRows for &[Vec<MicroPart>] {
+    fn len(&self) -> usize {
+        <[Vec<MicroPart>]>::len(self)
+    }
+    fn row_len(&self, i: usize) -> usize {
+        self[i].len()
+    }
+    fn part(&self, i: usize, j: usize) -> MicroPart {
+        self[i][j]
+    }
+}
+struct RequestedPartitionRows<'a> {
+    updates: &'a [crate::study_profile::PlannedUpdate],
+    request: &'a DiagonalRequest,
+    lanes: usize,
+}
+impl PartitionRows for RequestedPartitionRows<'_> {
+    fn len(&self) -> usize {
+        self.updates.len()
+    }
+    fn row_len(&self, i: usize) -> usize {
+        self.request
+            .partitions
+            .as_ref()
+            .map_or(self.updates[i].valid_samples.div_ceil(self.lanes), |p| {
+                p[i].len()
+            })
+    }
+    fn part(&self, i: usize, j: usize) -> MicroPart {
+        if let Some(p) = &self.request.partitions {
+            p[i][j]
+        } else {
+            let start = j * self.lanes;
+            MicroPart {
+                start,
+                valid: self.lanes.min(self.updates[i].valid_samples - start),
+            }
         }
-        w.bool_option(
-            parts
-                .get(i + 1)
-                .map(|next| next.iter().all(|x| x.valid == lanes)),
-        )?;
+    }
+}
+fn bound_partition_rows(
+    w: &mut Transcript,
+    parts: &impl PartitionRows,
+    lanes: usize,
+) -> Result<()> {
+    w.number(parts.len())?;
+    for i in 0..parts.len() {
+        w.number(i)?;
+        w.number(parts.row_len(i))?;
+        for j in 0..parts.row_len(i) {
+            let p = parts.part(i, j);
+            w.number(p.start)?;
+            w.number(p.valid)?;
+        }
+        w.bool_option((i + 1 < parts.len()).then(|| parts.all_full(i + 1, lanes)))?;
     }
     Ok(())
+}
+fn bound_partitions(w: &mut Transcript, parts: &[Vec<MicroPart>], lanes: usize) -> Result<()> {
+    bound_partition_rows(w, &parts, lanes)
 }
 fn canonical_binding(
     p: &MaterializedProfile,
@@ -1716,6 +1883,30 @@ fn canonical_binding(
     params: PlanningParameters<'_>,
     r: &DiagonalRequest,
 ) -> Result<(Transcript, Vec<Vec<MicroPart>>, DiagonalMode, String)> {
+    let (w, parts, mode, digest, _) = binding_traversal(p, c, params, r, false)?;
+    Ok((w, parts, mode, digest))
+}
+// Both modes share all binding encoders. Counting borrows source/partition values;
+// it constructs neither transcripts, partitions, counts, identities nor hashes.
+fn identity_issue(e: crate::study_reference::ReferenceIdentityError) -> AdmissionIssue {
+    use crate::study_reference::ReferenceIdentityError;
+    issue(
+        match e {
+            ReferenceIdentityError::AllocationFailed => IssueKind::AllocationFailed,
+            ReferenceIdentityError::ArithmeticOverflow => IssueKind::ArithmeticOverflow,
+            _ => IssueKind::IdentityMismatch,
+        },
+        "canonical dual identity",
+    )
+}
+type BindingTraversal = (Transcript, Vec<Vec<MicroPart>>, DiagonalMode, String, usize);
+fn binding_traversal(
+    p: &MaterializedProfile,
+    c: &RegisteredCase,
+    params: PlanningParameters<'_>,
+    r: &DiagonalRequest,
+    counting: bool,
+) -> Result<BindingTraversal> {
     require(
         p.identity().canonical_prepared(),
         IssueKind::IdentityMismatch,
@@ -1729,7 +1920,13 @@ fn canonical_binding(
         IssueKind::IdentityMismatch,
         "canonical selector",
     )?;
-    geometry_identity(m)?;
+    let mut geometry_size = Transcript::counter(ReceiptLimits::default());
+    geometry_size.text("hekit-study-diagonal-geometry-v1")?;
+    metadata_geometry(&mut geometry_size, m)?;
+    let geometry_peak = sum_payload([geometry_size.length, 64])?;
+    if !counting {
+        geometry_identity(m)?;
+    }
     for (i, s) in p.graph().stages().iter().enumerate() {
         require(
             s.layers() == (2 * i..2 * i + 2),
@@ -1767,16 +1964,23 @@ fn canonical_binding(
             .checked_next_power_of_two()
             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "lane padding"))?,
     );
-    let counts = p.plan().updates[..count]
-        .iter()
-        .map(|u| u.valid_samples)
-        .collect::<Vec<_>>();
+    let mut counts = Vec::new();
+    if !counting {
+        counts
+            .try_reserve_exact(count)
+            .map_err(|_| issue(IssueKind::AllocationFailed, "binding count vector"))?;
+        counts.extend(p.plan().updates[..count].iter().map(|u| u.valid_samples));
+    }
     require(
         lanes.is_power_of_two(),
         IssueKind::InvalidDimensions,
         "physical lanes",
     )?;
-    let mut w = Transcript::new(r.limits);
+    let mut w = if counting {
+        Transcript::counter(r.limits)
+    } else {
+        Transcript::new(r.limits)
+    };
     let mut partition_bytes = payload::<Vec<MicroPart>>(count)?;
     if let Some(v) = &r.partitions {
         require(
@@ -1785,7 +1989,8 @@ fn canonical_binding(
             "partition update count",
         )?;
     }
-    for (i, &n) in counts.iter().enumerate() {
+    for (i, u) in p.plan().updates[..count].iter().enumerate() {
+        let n = u.valid_samples;
         let len = r
             .partitions
             .as_ref()
@@ -1793,7 +1998,14 @@ fn canonical_binding(
         partition_bytes = sum_payload([partition_bytes, payload::<MicroPart>(len)?])?;
     }
     w.metadata(partition_bytes)?;
-    let parts = partitions(&counts, lanes, r)?;
+    let parts = if counting {
+        for (i, u) in p.plan().updates[..count].iter().enumerate() {
+            partition_row(u.valid_samples, lanes, r, i, |_| Ok(()))?;
+        }
+        Vec::new()
+    } else {
+        partitions(&counts, lanes, r)?
+    };
     encode_preamble(&mut w)?;
     w.blob(c.canonical_bytes())?;
     w.text(c.digest())?;
@@ -1826,12 +2038,24 @@ fn canonical_binding(
         w.text(&s.actual_sha256)?;
     }
     // Bind BOTH COMPLETE trusted identities, not transported hashes alone.
-    let (shared, selected) = crate::study_reference::derive_identities(p)
-        .map_err(|_| issue(IssueKind::IdentityMismatch, "canonical dual identity"))?;
-    w.blob(shared.canonical_bytes())?;
-    w.text(shared.digest())?;
-    w.blob(selected.canonical_bytes())?;
-    w.text(selected.digest())?;
+    let (shared_size, selected_size) =
+        crate::study_reference::identity_payload_sizes(p).map_err(identity_issue)?;
+    let identities = if counting {
+        None
+    } else {
+        Some(crate::study_reference::derive_identities(p).map_err(identity_issue)?)
+    };
+    if let Some((shared, selected)) = &identities {
+        w.blob(shared.canonical_bytes())?;
+        w.text(shared.digest())?;
+        w.blob(selected.canonical_bytes())?;
+        w.text(selected.digest())?;
+    } else {
+        w.blob_length(shared_size)?;
+        w.blob_length(64)?;
+        w.blob_length(selected_size)?;
+        w.blob_length(64)?;
+    }
     metadata_geometry(&mut w, m)?;
     w.tag(match m.loss {
         crate::study_profile::Loss::MeanOutputMse => 0,
@@ -1855,11 +2079,28 @@ fn canonical_binding(
     rates(&mut w, numeric.rates(), p.reference_kernel_rate_f64())?;
     encode_request(&mut w, r)?;
     encode_params(&mut w, params)?;
-    let mut consumed = Transcript::new(r.limits);
+    let mut consumed = if counting {
+        Transcript::counter(r.limits)
+    } else {
+        Transcript::new(r.limits)
+    };
     consumed.text("hekit-study-diagonal-consumed-v1")?;
     consumed.text(identity.plan_sha256())?;
-    bound_partitions(&mut consumed, &parts, lanes)?;
-    for (i, &valid_count) in counts.iter().enumerate() {
+    if !counting {
+        bound_partitions(&mut consumed, &parts, lanes)?;
+    } else {
+        bound_partition_rows(
+            &mut consumed,
+            &RequestedPartitionRows {
+                updates: &p.plan().updates[..count],
+                request: r,
+                lanes,
+            },
+            lanes,
+        )?;
+    }
+    for (i, u) in p.plan().updates[..count].iter().enumerate() {
+        let valid_count = u.valid_samples;
         let rows = p
             .update_rows(i)
             .map_err(|_| issue(IssueKind::IdentityMismatch, "canonical update rows"))?;
@@ -1879,9 +2120,30 @@ fn canonical_binding(
         }
     }
     w.metadata(64)?; // Retained consumed-digest String, charged before hashing allocates it.
-    let digest = sha256_hex(&consumed.bytes);
-    w.blob(&consumed.bytes)?;
-    Ok((w, parts, mode, digest))
+    let digest = if counting {
+        String::new()
+    } else {
+        try_digest(&consumed.bytes)?
+    };
+    if counting {
+        w.blob_length(consumed.length)?;
+    } else {
+        w.blob(&consumed.bytes)?;
+    }
+    // All successful-path application buffers overlap here. Identity encoders no
+    // longer allocate sort pointer vectors; secure preset checks borrow constants.
+    // counts/parts/identities remain in scope through the final consumed append.
+    let peak = geometry_peak.max(sum_payload([
+        payload::<usize>(count)?,
+        partition_bytes,
+        w.length,
+        shared_size,
+        selected_size,
+        256,
+        consumed.length,
+        64,
+    ])?);
+    Ok((w, parts, mode, digest, peak))
 }
 
 /// Plans the entire explicitly consumed schedule against one sealed Full registration.
@@ -1991,10 +2253,34 @@ pub fn validate_plan_binding(
     require(
         binding.bytes == plan.binding
             && plan.bytes.starts_with(&plan.binding)
-            && sha256_hex(&plan.bytes) == plan.digest,
+            && try_digest(&plan.bytes)? == plan.digest,
         IssueKind::IdentityMismatch,
         "actual plan/input/parameters/partition binding",
     )
+}
+
+pub(crate) fn binding_workspace_payload(
+    p: &MaterializedProfile,
+    c: &RegisteredCase,
+    params: PlanningParameters<'_>,
+    r: &DiagonalRequest,
+) -> Result<usize> {
+    let (binding, _, _, _, peak) = binding_traversal(p, c, params, r, true)?;
+    Ok(peak.max(sum_payload([binding.length, 64])?))
+}
+pub(crate) fn validate_plan_binding_accounted(
+    p: &MaterializedProfile,
+    c: &RegisteredCase,
+    plan: &DiagonalPlan,
+    params: PlanningParameters<'_>,
+    r: &DiagonalRequest,
+    accounting: &mut crate::study_execution::PreparationAccounting,
+) -> crate::study_client::CpuPreparationResult<()> {
+    let bytes = binding_workspace_payload(p, c, params, r)
+        .map_err(|e| crate::study_client::CpuPreparationError::Admission(Box::new(e)))?;
+    let _reservation = accounting.reserve(bytes)?;
+    validate_plan_binding(p, c, plan, params, r)
+        .map_err(|e| crate::study_client::CpuPreparationError::Admission(Box::new(e)))
 }
 
 fn ct(w: &mut Transcript, m: CtMeta) -> Result<()> {
@@ -2357,6 +2643,7 @@ fn fail_record(
     w.metadata_bytes = last.metadata;
     index.truncate(last.index);
     error.prefix = std::mem::take(&mut w.bytes);
+    w.length = 0; // the failed transcript has transferred its exact saved prefix
     error.prefix_index = std::mem::take(index).into_boxed_slice();
     error
 }
@@ -2806,6 +3093,38 @@ mod tests {
         m.layers[2].role = LayerRole::Hidden;
         assert!(geometry_identity(&m).is_err());
         // No fake factory exists here. The reachable P4/D7 spy is explicitly pending.
+    }
+    // Pure prefix/charge regression: no fixture, parameters, P1, planner or files.
+    #[test]
+    fn d7_transcript_failed_prefix_and_counting() {
+        let limits = ReceiptLimits {
+            max_bytes: 64,
+            max_records: 0,
+        };
+        let mut w = Transcript::new(limits);
+        w.metadata(8).unwrap();
+        w.raw(b"complete").unwrap();
+        let mut records = Vec::new();
+        let saved = RecordCheckpoint::capture(&w, &records);
+        w.metadata(4).unwrap();
+        w.raw(b"partial").unwrap();
+        let failure = fail_record(
+            &mut w,
+            &mut records,
+            saved,
+            issue(IssueKind::PlanningBudgetExceeded, "pure prefix"),
+        );
+        assert_eq!(failure.completed_prefix_bytes(), b"complete");
+        assert_eq!(w.metadata_bytes, 8);
+        assert!(w.bytes.is_empty());
+        assert_eq!(w.length, 0);
+        w.raw(b"x").unwrap();
+        let mut count = Transcript::counter(limits);
+        count.metadata(8).unwrap();
+        count.raw(b"x").unwrap();
+        assert!(count.bytes.is_empty());
+        assert_eq!(count.length, w.bytes.len());
+        assert_eq!(count.metadata_bytes, w.metadata_bytes);
     }
     // Independent wire primitives: explicit bytes, not an encoder-produced golden.
     #[test]

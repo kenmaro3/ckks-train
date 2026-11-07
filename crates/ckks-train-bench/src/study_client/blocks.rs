@@ -51,6 +51,14 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
     parts: &[Vec<MicroPart>],
     factory: impl FnOnce(CheckedBlockPreparation<'a>) -> Result<T>,
 ) -> CpuPreparationResult<T> {
+    factory(check_block_preparation(input, actual, parts, None)?).map_err(CpuPreparationError::He)
+}
+pub(crate) fn check_block_preparation<'a>(
+    input: BlockPreparationInput<'_>,
+    actual: PlanningParameters<'a>,
+    parts: &[Vec<MicroPart>],
+    mut accounting: Option<&mut crate::study_execution::PreparationAccounting>,
+) -> CpuPreparationResult<CheckedBlockPreparation<'a>> {
     let (plan, descriptions, classes, rotations) = match input {
         BlockPreparationInput::Canonical {
             materialized,
@@ -60,14 +68,25 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
         } => {
             let owner = BlockPlanOwner::Canonical(plan.clone());
             owner.check_shape()?;
-            study_admission::validate_plan_binding(
-                materialized,
-                registered,
-                &plan,
-                actual,
-                request,
-            )
-            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
+            if let Some(a) = accounting.as_deref_mut() {
+                study_admission::validate_plan_binding_accounted(
+                    materialized,
+                    registered,
+                    &plan,
+                    actual,
+                    request,
+                    a,
+                )?;
+            } else {
+                study_admission::validate_plan_binding(
+                    materialized,
+                    registered,
+                    &plan,
+                    actual,
+                    request,
+                )
+                .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
+            }
             ensure(parts == plan.partitions(), "block partition")?;
             // Original request only: reserve the additional S geometry/initial allowance
             // before its hash. No cloned replacement budget or post-binding mutation.
@@ -88,19 +107,58 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
             let keys = candidate
                 .keys()
                 .ok_or_else(|| mismatch("block candidate manifest"))?;
-            ensure(
-                keys.training_rotations() == plan.keys().training_rotations()
-                    && keys.bootstrap_generated_rotations()
-                        == plan.keys().bootstrap_generated_rotations()
-                    && keys.bootstrap_execution_rotations()
-                        == plan.keys().bootstrap_execution_rotations()
-                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
-                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
-                "block candidate/plan manifest",
-            )?;
-            let mut descriptions = Vec::with_capacity(graph.len());
-            for (stage, (topology, geometry)) in
-                graph.iter().zip(candidate.geometries()).enumerate()
+            ensure(keys.matches(plan.keys()), "block candidate/plan manifest")?;
+            // Complete borrowed graph/policy validation before consuming the candidate.
+            for (stage, topology) in graph.iter().enumerate() {
+                let range = topology.layers();
+                let specs = &materialized.metadata().layers[range.clone()];
+                ensure(
+                    specs.len() == 2
+                        && topology.representation_layer()
+                            == (stage + 1 < graph.len()).then_some(range.start),
+                    "block actual representation/local-head graph",
+                )?;
+                ensure(
+                    specs.iter().all(|l| !l.bias) || specs.iter().all(|l| l.bias),
+                    "block mixed bias policy",
+                )?;
+            }
+            use crate::study_execution::{allocated, payload, sum};
+            let transpose_bytes = match &request.transpose {
+                ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
+                ckks_train_nn::dense::TransposeKeys::Reuse(v) => payload::<i32>(v.len())?,
+            };
+            let mut retained = sum([
+                candidate.retained_geometry_payload()?,
+                payload::<Description>(graph.len())?,
+                payload::<usize>(graph.len())?,
+                payload::<i32>(keys.training_rotations().len())?,
+            ])?;
+            for topology in graph {
+                retained = sum([
+                    retained,
+                    payload::<DiagonalActivation>(topology.layers().len())?,
+                    transpose_bytes,
+                ])?;
+            }
+            let mut reservation = accounting
+                .map(|a| {
+                    a.reserve(sum([
+                        retained,
+                        payload::<ckks_train_nn::diagonal_plan::StageGeometry>(graph.len())?,
+                    ])?)
+                })
+                .transpose()?;
+            let training_pointer = keys.training_rotations().as_ptr();
+            let components = candidate
+                .into_checked_components()
+                .map_err(|c| CpuPreparationError::Candidate(Box::new(c)))?;
+            let rotations = components.keys.into_training();
+            debug_assert_eq!(training_pointer, rotations.as_ptr());
+            let mut descriptions = allocated(graph.len())?;
+            let mut classes = allocated(graph.len())?;
+            classes.resize(graph.len(), materialized.metadata().classes);
+            for (stage, (topology, geometry)) in graph.iter().zip(components.geometries).enumerate()
             {
                 let range = topology.layers();
                 let specs = &materialized.metadata().layers[range.clone()];
@@ -110,32 +168,41 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
                             == (stage + 1 < graph.len()).then_some(range.start),
                     "block actual representation/local-head graph",
                 )?;
-                let acts = specs
-                    .iter()
-                    .map(|l| match l.activation {
-                        ProfileActivation::Square => DiagonalActivation::Square,
-                        ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
-                        ProfileActivation::Identity => DiagonalActivation::Identity,
-                    })
-                    .collect();
+                let mut acts = allocated(specs.len())?;
+                acts.extend(specs.iter().map(|l| match l.activation {
+                    ProfileActivation::Square => DiagonalActivation::Square,
+                    ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
+                    ProfileActivation::Identity => DiagonalActivation::Identity,
+                }));
                 let frozen = specs.iter().all(|l| !l.bias);
                 ensure(
                     frozen || specs.iter().all(|l| l.bias),
                     "block mixed bias policy",
                 )?;
                 descriptions.push(Description {
-                    geometry: geometry.clone(),
+                    geometry,
                     activations: acts,
-                    transpose: request.transpose.clone(),
+                    transpose: match &request.transpose {
+                        ckks_train_nn::dense::TransposeKeys::Dedicated => {
+                            ckks_train_nn::dense::TransposeKeys::Dedicated
+                        }
+                        ckks_train_nn::dense::TransposeKeys::Reuse(v) => {
+                            let mut p = allocated(v.len())?;
+                            p.extend_from_slice(v);
+                            ckks_train_nn::dense::TransposeKeys::Reuse(p)
+                        }
+                    },
                     frozen,
                 });
             }
-            (
-                owner,
-                descriptions,
-                vec![materialized.metadata().classes; graph.len()],
-                keys.training_rotations().to_vec(),
-            )
+            // The for-loop's owning geometry iterator drops at the loop boundary.
+            if let Some(r) = &mut reservation {
+                r.release(payload::<ckks_train_nn::diagonal_plan::StageGeometry>(
+                    graph.len(),
+                )?)?;
+                r.retain(retained)?;
+            }
+            (owner, descriptions, classes, rotations)
         }
         #[cfg(test)]
         BlockPreparationInput::Synthetic { plan, claim } => {
@@ -152,7 +219,7 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
             (owner, descriptions, plan.classes.clone(), rotations)
         }
     };
-    factory(CheckedBlockPreparation {
+    Ok(CheckedBlockPreparation {
         plan,
         descriptions,
         classes,
@@ -162,7 +229,6 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
         boot_parameters: actual.boot_params,
         rotations,
     })
-    .map_err(CpuPreparationError::He)
 }
 pub(crate) fn make_blocks_owned(
     checked: &CheckedBlockPreparation<'_>,

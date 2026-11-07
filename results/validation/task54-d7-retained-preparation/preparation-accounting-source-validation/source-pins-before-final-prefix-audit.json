@@ -1,0 +1,20 @@
+{
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "head": "68b9e96659ec6b2408e2d832b743d279571b5588",
+  "source_files": {
+    "crates/ckks-train-bench/src/data.rs": "548c647d832e860d6daadd48ac8832fb185c788365798b32941ee650ee752225",
+    "crates/ckks-train-bench/src/lib.rs": "d302a7f69fc54ae7cd8174283b26c9de7ea3a4fe2e8ab71dfedff26ddaa9cdd0",
+    "crates/ckks-train-bench/src/study_execution.rs": "bf3eab8f619e6765a15c33139ab8774de43ac93aa8f9cf169784e775aa33a6f1",
+    "crates/ckks-train-bench/src/study_admission.rs": "e63f4b95284d2f5faa85d98908758a73ee8d09d7f0273d57a7c6861d98edc701",
+    "crates/ckks-train-bench/src/study_client.rs": "6f4edde9a64169c5c80e252a8ead3771e46537dca0416a51ea625b8798431699",
+    "crates/ckks-train-bench/src/study_client/blocks.rs": "6cb3a52b998a2834f95a54208fbec1cf3d70afa0ddd7bab39f6d5b7c6dc0420b",
+    "crates/ckks-train-bench/src/study_reference.rs": "ecda3d37bb8b882999be0055da9aa1475a052f262206d61c70af969648a599a2",
+    "crates/ckks-train-bench/src/study_reference/document.rs": "34da76edc2633496c5842727304ea97696df6eb10f2921afd9e1f5e6f67240d0",
+    "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs": "66f7622a88c7f7939a53a697283501e2950b1a5fd53fed619543f364809ecac4",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "21bab33949e21ec3178dcdc717265cd838cd1fe9b79ff4693fd4c2d67abfc0bc",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs": "94908fa7f701fc6e638d407586808e2d4022c6226d524bc4354e8efa5de355f2",
+    "crates/ckks-train-nn/src/diagonal_plan.rs": "c64373f73625f29d21232a5069d39fbaeb184c3f683d659ab6844ffd703c8065"
+  },
+  "cargo_lock": "7250dbf896c207b4e838cabea88c5a4110e46803e3c8e8fe6460f8a7f60c97b1",
+  "cargo_toml": "7d0943095542c31ca1ab1038c59af8efe5a6bd621ba890c8f8fa28f0c4dc52c4"
+}

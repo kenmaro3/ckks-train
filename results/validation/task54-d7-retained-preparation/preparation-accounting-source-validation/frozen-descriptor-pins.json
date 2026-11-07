@@ -1,0 +1,102 @@
+[
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_dedicated.hex",
+    "sha256": "d993093d2210e53279db5bc6a44380e7ebd787f7eb58f061801752e3c29010ef",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_reuse.hex",
+    "sha256": "c5d1c62417f79a332df0690de274efad09bbe7cf7cf12e8be78d0bcd49ce0b31",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/generate.py",
+    "sha256": "8e1bdbea566ebc051a3b3c36d07d16406bb2fbc75f4a62c1d3a5374aa979356c",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_reuse.hex",
+    "sha256": "8340d77d596216ba3d68b8894a9758c6fdea42da300418420dcd22533976241a",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_fixed.hex",
+    "sha256": "f55464bafd17dc40404e13758cdfbad85a94ad34dc63cbb6363239a084af090b",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_dense.hex",
+    "sha256": "bb2f659c77068ae1e2fa5ae4c2befe52d3e83897018f083fbaad23db494090d8",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/README.md",
+    "sha256": "d9d36e8f0ba53fc5659f3c9eebe4b673c34e45f05f83376e70651b78eb1ffc8b",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/negative-vectors.json",
+    "sha256": "d8c2fcf1e4abf13b271e4a0c1e48af4bbc45506aecc946c5a9e14ed5f7a16a70",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_dedicated.hex",
+    "sha256": "ec2543b1d824fed9ccd9e7eb0e22fe427a0c0ae04b1be71b4253124c4526b49c",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_absent.hex",
+    "sha256": "4a631472f676da1af8b09d9126075573974a8e94d513f8141eefb83c3cb99987",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_single.hex",
+    "sha256": "d4ed1f0762e026a6483f1e71df4aad1bc95e74860ab6cd4b2f873e3a85a20e5c",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_dense.hex",
+    "sha256": "e8c49ec91a42be52dd4829644f591c252aae32b377fbf07aaef15b67224c35f4",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_dense.hex",
+    "sha256": "9c5f2bf26e41de319f1b5c82f2fe559742ff626eabdd149476be5ef80f3fbb5e",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/inputs.json",
+    "sha256": "1f30a3c7665fa184ed0b0e971343c0770f51eabcbb26c5984c934ab312c05b85",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_fixed.hex",
+    "sha256": "90b5431d112d0e46cbe66de8a454d07a4ccef53ecc39c8372a5be42d6ca335bf",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/manifest.json",
+    "sha256": "6b983e7d31016756ed5906be1558e0eebcd923d37f5b3f8332dd2e28428e96d7",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_fixed.hex",
+    "sha256": "b554dfa3958790f6ffad3a33cb38c3325b4eb71e5dfe32c7905f2a921ca7b737",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_ni_two.hex",
+    "sha256": "ce94c7b1613a6ed010d0f4bd6ffe2c8a1c221aa679d76049e85733bfdcfe2e6b",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/SHA256SUMS",
+    "sha256": "899b45991113581638a5758bd9bdaec441df768e771fa706a16549faf93b287e",
+    "same_as_head": true
+  },
+  {
+    "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_three.hex",
+    "sha256": "7a91ad819ed0f7d4fe858cdc9d4b604cca079df3b3772601ffdf8bc65492b777",
+    "same_as_head": true
+  }
+]

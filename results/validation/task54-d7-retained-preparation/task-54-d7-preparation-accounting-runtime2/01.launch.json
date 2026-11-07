@@ -1,0 +1,19 @@
+{
+  "index": 1,
+  "name": "data::streaming_hash_tests::streaming_sha_independent_vectors_and_empty_updates",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "data::streaming_hash_tests::streaming_sha_independent_vectors_and_empty_updates",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794053132.690444,
+  "pid": 29679
+}

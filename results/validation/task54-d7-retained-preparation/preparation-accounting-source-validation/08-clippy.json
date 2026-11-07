@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--tests",
+    "--features",
+    "parallel",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "exit": 101,
+  "elapsed_seconds": 4.759335994720459
+}

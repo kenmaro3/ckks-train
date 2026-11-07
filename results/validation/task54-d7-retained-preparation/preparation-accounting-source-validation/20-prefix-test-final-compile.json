@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "--no-run"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 7.6295270919799805
+}

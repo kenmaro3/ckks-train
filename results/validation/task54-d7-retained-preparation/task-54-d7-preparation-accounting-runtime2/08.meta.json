@@ -1,0 +1,36 @@
+{
+  "index": 8,
+  "name": "study_execution::tests::d7_canonical_six_retained_sources",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_execution::tests::d7_canonical_six_retained_sources",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794053134.5016031,
+  "pid": 29716,
+  "exit_code": 0,
+  "end": 1794053135.0334232,
+  "named_successes": [
+    "study_execution::tests::d7_canonical_six_retained_sources"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 184,
+  "stdout_sha256": "6d7fc4ba3ac6bb3bb97ad7631616ef33add4f873e035b8304c89743ecadd45c0",
+  "stderr_bytes": 159,
+  "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+}

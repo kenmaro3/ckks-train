@@ -1,0 +1,2103 @@
+diff --git a/crates/ckks-train-bench/src/data.rs b/crates/ckks-train-bench/src/data.rs
+index 4e41517..c383b6f 100644
+--- a/crates/ckks-train-bench/src/data.rs
++++ b/crates/ckks-train-bench/src/data.rs
+@@ -366,6 +366,24 @@ pub fn sha256_hex(data: &[u8]) -> String {
+     state.finish()
+ }
+ 
++// D7 callers reserve their accounting payload before this fallible allocation.
++// Keep legacy output semantics; both paths share finalization/compression below.
++fn reserved_digest_output(
++    bytes: usize,
++) -> std::result::Result<String, std::collections::TryReserveError> {
++    let mut output = String::new();
++    output.try_reserve_exact(bytes)?;
++    Ok(output)
++}
++pub(crate) fn try_sha256_hex(
++    data: &[u8],
++) -> std::result::Result<String, std::collections::TryReserveError> {
++    let output = reserved_digest_output(64)?;
++    let mut state = Sha256State::new();
++    state.update(data);
++    Ok(state.finish_with_output(output))
++}
++
+ // Original compression algorithm, now retaining only one partial block.
+ pub(crate) struct Sha256State {
+     h: [u32; 8],
+@@ -408,7 +426,11 @@ impl Sha256State {
+         self.block[..tail.len()].copy_from_slice(tail);
+         self.used = tail.len();
+     }
+-    pub(crate) fn finish(mut self) -> String {
++    pub(crate) fn finish(self) -> String {
++        self.finish_with_output(String::with_capacity(64))
++    }
++    fn finish_with_output(mut self, output: String) -> String {
++        debug_assert!(output.is_empty() && output.capacity() >= 64);
+         self.block[self.used] = 0x80;
+         self.block[self.used + 1..].fill(0);
+         if self.used >= 56 {
+@@ -419,7 +441,7 @@ impl Sha256State {
+         self.block[56..].copy_from_slice(&self.bytes.wrapping_mul(8).to_be_bytes());
+         let block = self.block;
+         self.compress(&block);
+-        self.h.iter().fold(String::with_capacity(64), |mut out, x| {
++        self.h.iter().fold(output, |mut out, x| {
+             use std::fmt::Write as _;
+             write!(out, "{x:08x}").expect("writing to a String");
+             out
+@@ -1024,6 +1046,30 @@ mod tests {
+         assert!(parse_npy_f64(&npy("<f8", false, "(1, 2, 3)", &f8)).is_err());
+     }
+ 
++    #[test]
++    fn d7_sha_fallible_known_vectors() {
++        for (input, expected) in [
++            (
++                &b""[..],
++                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++            ),
++            (
++                &b"abc"[..],
++                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
++            ),
++        ] {
++            let digest = try_sha256_hex(input).unwrap();
++            assert_eq!(digest, expected);
++            assert_eq!(digest, sha256_hex(input));
++        }
++    }
++    #[test]
++    fn d7_sha_output_reservation_boundary() {
++        let output = reserved_digest_output(64).unwrap();
++        assert!(output.is_empty());
++        assert!(output.capacity() >= 64);
++        assert!(reserved_digest_output(usize::MAX).is_err());
++    }
+     #[test]
+     fn sha256_known_vectors() {
+         assert_eq!(
+diff --git a/crates/ckks-train-bench/src/lib.rs b/crates/ckks-train-bench/src/lib.rs
+index e6e5ed3..169866c 100644
+--- a/crates/ckks-train-bench/src/lib.rs
++++ b/crates/ckks-train-bench/src/lib.rs
+@@ -24,3 +24,5 @@ pub mod study_blocks;
+ pub mod study_client;
+ /// Single-stage CPU consuming bridge; production dispatch remains disconnected.
+ pub mod study_diagonal;
++
++mod study_execution;
+diff --git a/crates/ckks-train-bench/src/study_admission.rs b/crates/ckks-train-bench/src/study_admission.rs
+index 5433759..8dfc274 100644
+--- a/crates/ckks-train-bench/src/study_admission.rs
++++ b/crates/ckks-train-bench/src/study_admission.rs
+@@ -389,6 +389,17 @@ pub struct KeyManifest {
+     sse: bool,
+ }
+ impl KeyManifest {
++    pub(crate) fn into_training(self) -> Vec<i32> {
++        self.training
++    }
++    pub(crate) fn matches(&self, other: &Self) -> bool {
++        self.training == other.training
++            && self.bootstrap_generated == other.bootstrap_generated
++            && self.bootstrap_execution == other.bootstrap_execution
++            && self.conjugation == other.conjugation
++            && self.sse == other.sse
++            && self.separate_bootstrap_bundle() == other.separate_bootstrap_bundle()
++    }
+     /// Union of normalized nonzero stage training rotations, not physical allocation count.
+     pub fn training_rotations(&self) -> &[i32] {
+         &self.training
+@@ -424,7 +435,35 @@ pub struct CandidateDescription {
+     input: InputStatus,
+     issue: Option<AdmissionIssue>,
+ }
++pub(crate) struct CandidateComponents {
++    pub(crate) geometries: Vec<StageGeometry>,
++    pub(crate) keys: KeyManifest,
++}
+ impl CandidateDescription {
++    pub(crate) fn retained_geometry_payload(
++        &self,
++    ) -> crate::study_execution::AccountingResult<usize> {
++        self.geometries.iter().try_fold(0usize, |a, g| {
++            crate::study_execution::sum([
++                a,
++                g.requested_heap_payload_bytes()
++                    .ok_or(crate::study_execution::AccountingError::Overflow)?,
++            ])
++        })
++    }
++    #[allow(clippy::result_large_err)] // Preserve the original diagnostic without a clone.
++    pub(crate) fn into_checked_components(self) -> std::result::Result<CandidateComponents, Self> {
++        if self.issue.is_some() || self.keys.is_none() {
++            return Err(self);
++        }
++        let Self {
++            geometries, keys, ..
++        } = self;
++        Ok(CandidateComponents {
++            geometries,
++            keys: keys.expect("checked manifest"),
++        })
++    }
+     /// Seed-independent metadata geometry identity; empty on malformed geometry.
+     pub fn geometry_digest(&self) -> &str {
+         &self.geometry_digest
+@@ -466,6 +505,8 @@ pub fn metadata_input_status(metadata: &ProfileMetadata) -> InputStatus {
+ // One checked append stream. A failed scalar append leaves no silently accepted plan.
+ struct Transcript {
+     bytes: Vec<u8>,
++    length: usize,
++    counting: bool,
+     limits: ReceiptLimits,
+     metadata_bytes: usize,
+ }
+@@ -473,18 +514,42 @@ impl Transcript {
+     fn new(limits: ReceiptLimits) -> Self {
+         Self {
+             bytes: vec![],
++            length: 0,
++            counting: false,
+             limits,
+             metadata_bytes: 0,
+         }
+     }
++    fn counter(limits: ReceiptLimits) -> Self {
++        let mut w = Self::new(limits);
++        w.counting = true;
++        w
++    }
++    fn raw_length(&mut self, n: usize) -> Result<()> {
++        debug_assert!(self.counting);
++        let next = sum_payload([self.length, n])?;
++        let combined = sum_payload([next, self.metadata_bytes])?;
++        if combined > self.limits.max_bytes {
++            return Err(budget_error(
++                "combined transcript/metadata bytes",
++                combined,
++                self.limits.max_bytes,
++            ));
++        }
++        self.length = next;
++        Ok(())
++    }
++    fn blob_length(&mut self, n: usize) -> Result<()> {
++        self.number(n)?;
++        self.raw_length(n)
++    }
+     fn metadata(&mut self, amount: usize) -> Result<()> {
+         let next = self
+             .metadata_bytes
+             .checked_add(amount)
+             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "metadata payload"))?;
+         let combined = self
+-            .bytes
+-            .len()
++            .length
+             .checked_add(next)
+             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "combined payload"))?;
+         if combined > self.limits.max_bytes {
+@@ -499,8 +564,7 @@ impl Transcript {
+     }
+     fn raw(&mut self, value: &[u8]) -> Result<()> {
+         let next = self
+-            .bytes
+-            .len()
++            .length
+             .checked_add(value.len())
+             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "transcript length"))?;
+         let combined = next
+@@ -513,10 +577,13 @@ impl Transcript {
+                 self.limits.max_bytes,
+             ));
+         }
+-        self.bytes
+-            .try_reserve_exact(value.len())
+-            .map_err(|_| issue(IssueKind::AllocationFailed, "transcript reservation"))?;
+-        self.bytes.extend_from_slice(value);
++        if !self.counting {
++            self.bytes
++                .try_reserve_exact(value.len())
++                .map_err(|_| issue(IssueKind::AllocationFailed, "transcript reservation"))?;
++            self.bytes.extend_from_slice(value);
++        }
++        self.length = next;
+         Ok(())
+     }
+     fn tag(&mut self, value: u8) -> Result<()> {
+@@ -767,7 +834,6 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
+         Model::Emlp3 => 3,
+     })?;
+     w.number(m.layers.len())?;
+-    let mut names = BTreeSet::new();
+     let blocks = model_stages(m.model) - 1;
+     for (i, pair) in m.layers.chunks_exact(2).enumerate() {
+         let (a, b) = (&pair[0], &pair[1]);
+@@ -817,7 +883,14 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
+         )?;
+         for layer in pair {
+             require(
+-                !layer.name.is_empty() && names.insert(&layer.name),
++                !layer.name.is_empty()
++                    && !m.layers[..m
++                        .layers
++                        .iter()
++                        .position(|l| std::ptr::eq(l, layer))
++                        .expect("layer reference")]
++                        .iter()
++                        .any(|l| l.name == layer.name),
+                 IssueKind::InvalidDimensions,
+                 "layer names",
+             )?;
+@@ -831,12 +904,16 @@ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
+     }
+     Ok(())
+ }
++fn try_digest(bytes: &[u8]) -> Result<String> {
++    crate::data::try_sha256_hex(bytes)
++        .map_err(|_| issue(IssueKind::AllocationFailed, "digest output reservation"))
++}
+ /// Seed-independent checked geometry identity; input readiness is deliberately excluded.
+ pub fn geometry_identity(metadata: &ProfileMetadata) -> Result<String> {
+     let mut w = Transcript::new(ReceiptLimits::default());
+     w.text("hekit-study-diagonal-geometry-v1")?;
+     metadata_geometry(&mut w, metadata)?;
+-    Ok(sha256_hex(&w.bytes))
++    try_digest(&w.bytes)
+ }
+ fn checked_mode(
+     m: &ProfileMetadata,
+@@ -892,22 +969,34 @@ fn secure_parameters(p: PlanningParameters<'_>, mode: DiagonalMode) -> Result<()
+     let q = p.params;
+     // CkksParams is sealed: its safe constructor deterministically generates actual
+     // q/p from these exact bit vectors; no arbitrary-prime constructor is exposed.
+-    let (qb, pb, dnum) = if mode == DiagonalMode::Interactive {
+-        let mut a = vec![58];
+-        a.extend(vec![42; ckks_train_ckks::params::N16_TRAIN_L]);
+-        (
+-            a,
+-            vec![58; ckks_train_ckks::params::N16_TRAIN_K],
+-            ckks_train_ckks::params::N16_TRAIN_DNUM,
+-        )
++    use ckks_train_ckks::params::*;
++    let interactive = mode == DiagonalMode::Interactive;
++    let q_matches = if interactive {
++        q.q_bits().len() == 1 + N16_TRAIN_L
++            && q.q_bits().first() == Some(&58)
++            && q.q_bits()[1..].iter().all(|&n| n == 42)
++    } else {
++        let bands = [
++            (1, 54),
++            (N16_BOOT_COMPUTE_LEVELS, 42),
++            (N16_BOOT_STOC_LEVELS, 34),
++            (N16_BOOT_EVALMOD_LEVELS, 58),
++            (N16_BOOT_CTOS_LEVELS, 56),
++        ];
++        q.q_bits().iter().copied().eq(bands
++            .into_iter()
++            .flat_map(|(count, bits)| std::iter::repeat_n(bits, count)))
++    };
++    let (p_len, p_bits, dnum) = if interactive {
++        (N16_TRAIN_K, 58, N16_TRAIN_DNUM)
+     } else {
+-        let (a, b) = ckks_train_ckks::params::n16_boot_bits();
+-        (a, b, ckks_train_ckks::params::N16_BOOT_DNUM)
++        (N16_BOOT_K, 60, N16_BOOT_DNUM)
+     };
+     require(
+         q.n() == 1 << 16
+-            && q.q_bits() == qb
+-            && q.p_bits() == pb
++            && q_matches
++            && q.p_bits().len() == p_len
++            && q.p_bits().iter().all(|&n| n == p_bits)
+             && q.scale().to_bits() == (2f64.powi(42)).to_bits()
+             && q.dnum() == dnum
+             && q.hamming_weight().is_none(),
+@@ -1567,60 +1656,86 @@ impl DiagonalPlan {
+         &UNPROVED
+     }
+ }
+-fn partitions(counts: &[usize], lanes: usize, r: &DiagonalRequest) -> Result<Vec<Vec<MicroPart>>> {
++fn partition_row(
++    total: usize,
++    lanes: usize,
++    r: &DiagonalRequest,
++    index: usize,
++    mut emit: impl FnMut(MicroPart) -> Result<()>,
++) -> Result<usize> {
+     require(
+         lanes.is_power_of_two(),
+         IssueKind::InvalidDimensions,
+         "physical lanes",
+     )?;
+-    if let Some(parts) = &r.partitions {
++    if r.partitions.is_none() {
+         require(
+-            parts.len() == counts.len(),
++            total > 0,
+             IssueKind::InvalidMicroPartition,
+-            "partition update count",
++            "empty logical update",
+         )?;
+     }
+-    let mut out = Vec::new();
+-    out.try_reserve_exact(counts.len())
+-        .map_err(|_| issue(IssueKind::AllocationFailed, "partition vector"))?;
+-    for (i, &total) in counts.iter().enumerate() {
+-        let parts = if let Some(p) = &r.partitions {
+-            copy_vec(&p[i])?
++    let len = r
++        .partitions
++        .as_ref()
++        .map_or(total.div_ceil(lanes), |p| p[index].len());
++    let mut end = 0usize;
++    for j in 0..len {
++        let part = if let Some(p) = &r.partitions {
++            p[index][j]
+         } else {
+-            require(
+-                total > 0,
+-                IssueKind::InvalidMicroPartition,
+-                "empty logical update",
+-            )?;
+-            let mut parts = Vec::new();
+-            parts
+-                .try_reserve_exact(total.div_ceil(lanes))
+-                .map_err(|_| issue(IssueKind::AllocationFailed, "micro slices"))?;
+-            for start in (0..total).step_by(lanes) {
+-                parts.push(MicroPart {
+-                    start,
+-                    valid: lanes.min(total - start),
+-                });
++            let start = j
++                .checked_mul(lanes)
++                .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "partition start"))?;
++            MicroPart {
++                start,
++                valid: lanes.min(total - start),
+             }
+-            parts
+         };
+-        let mut end = 0usize;
+-        for p in &parts {
+-            require(
+-                p.start == end && p.valid > 0 && p.valid <= lanes,
+-                IssueKind::InvalidMicroPartition,
+-                "ordered contiguous micro slices",
+-            )?;
+-            end = end
+-                .checked_add(p.valid)
+-                .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "micro partition total"))?;
+-        }
+         require(
+-            !parts.is_empty() && end == total,
++            part.start == end && part.valid > 0 && part.valid <= lanes,
++            IssueKind::InvalidMicroPartition,
++            "ordered contiguous micro slices",
++        )?;
++        end = sum_payload([end, part.valid])?;
++        emit(part)?;
++    }
++    require(
++        len > 0 && end == total,
++        IssueKind::InvalidMicroPartition,
++        "micro conservation",
++    )?;
++    Ok(len)
++}
++fn partitions(counts: &[usize], lanes: usize, r: &DiagonalRequest) -> Result<Vec<Vec<MicroPart>>> {
++    require(
++        lanes.is_power_of_two(),
++        IssueKind::InvalidDimensions,
++        "physical lanes",
++    )?;
++    if let Some(p) = &r.partitions {
++        require(
++            p.len() == counts.len(),
+             IssueKind::InvalidMicroPartition,
+-            "micro conservation",
++            "partition update count",
+         )?;
+-        out.push(parts);
++    }
++    let mut out = Vec::new();
++    out.try_reserve_exact(counts.len())
++        .map_err(|_| issue(IssueKind::AllocationFailed, "partition vector"))?;
++    for (i, &total) in counts.iter().enumerate() {
++        let len = r
++            .partitions
++            .as_ref()
++            .map_or(total.div_ceil(lanes), |p| p[i].len());
++        let mut row = Vec::new();
++        row.try_reserve_exact(len)
++            .map_err(|_| issue(IssueKind::AllocationFailed, "micro slices"))?;
++        partition_row(total, lanes, r, i, |part| {
++            row.push(part);
++            Ok(())
++        })?;
++        out.push(row);
+     }
+     Ok(out)
+ }
+@@ -1693,29 +1808,105 @@ fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     w.number(p.processed_samples)?;
+     w.number(p.dropped_samples)
+ }
+-fn bound_partitions(w: &mut Transcript, parts: &[Vec<MicroPart>], lanes: usize) -> Result<()> {
++trait PartitionRows {
++    fn len(&self) -> usize;
++    fn row_len(&self, i: usize) -> usize;
++    fn part(&self, i: usize, j: usize) -> MicroPart;
++    fn all_full(&self, i: usize, lanes: usize) -> bool {
++        (0..self.row_len(i)).all(|j| self.part(i, j).valid == lanes)
++    }
++}
++impl PartitionRows for &[Vec<MicroPart>] {
++    fn len(&self) -> usize {
++        <[Vec<MicroPart>]>::len(self)
++    }
++    fn row_len(&self, i: usize) -> usize {
++        self[i].len()
++    }
++    fn part(&self, i: usize, j: usize) -> MicroPart {
++        self[i][j]
++    }
++}
++struct RequestedPartitionRows<'a> {
++    updates: &'a [crate::study_profile::PlannedUpdate],
++    request: &'a DiagonalRequest,
++    lanes: usize,
++}
++impl PartitionRows for RequestedPartitionRows<'_> {
++    fn len(&self) -> usize {
++        self.updates.len()
++    }
++    fn row_len(&self, i: usize) -> usize {
++        self.request
++            .partitions
++            .as_ref()
++            .map_or(self.updates[i].valid_samples.div_ceil(self.lanes), |p| {
++                p[i].len()
++            })
++    }
++    fn part(&self, i: usize, j: usize) -> MicroPart {
++        if let Some(p) = &self.request.partitions {
++            p[i][j]
++        } else {
++            let start = j * self.lanes;
++            MicroPart {
++                start,
++                valid: self.lanes.min(self.updates[i].valid_samples - start),
++            }
++        }
++    }
++}
++fn bound_partition_rows(
++    w: &mut Transcript,
++    parts: &impl PartitionRows,
++    lanes: usize,
++) -> Result<()> {
+     w.number(parts.len())?;
+-    for (i, p) in parts.iter().enumerate() {
++    for i in 0..parts.len() {
+         w.number(i)?;
+-        w.number(p.len())?;
+-        for v in p {
+-            w.number(v.start)?;
+-            w.number(v.valid)?;
++        w.number(parts.row_len(i))?;
++        for j in 0..parts.row_len(i) {
++            let p = parts.part(i, j);
++            w.number(p.start)?;
++            w.number(p.valid)?;
+         }
+-        w.bool_option(
+-            parts
+-                .get(i + 1)
+-                .map(|next| next.iter().all(|x| x.valid == lanes)),
+-        )?;
++        w.bool_option((i + 1 < parts.len()).then(|| parts.all_full(i + 1, lanes)))?;
+     }
+     Ok(())
+ }
++fn bound_partitions(w: &mut Transcript, parts: &[Vec<MicroPart>], lanes: usize) -> Result<()> {
++    bound_partition_rows(w, &parts, lanes)
++}
+ fn canonical_binding(
+     p: &MaterializedProfile,
+     c: &RegisteredCase,
+     params: PlanningParameters<'_>,
+     r: &DiagonalRequest,
+ ) -> Result<(Transcript, Vec<Vec<MicroPart>>, DiagonalMode, String)> {
++    let (w, parts, mode, digest, _) = binding_traversal(p, c, params, r, false)?;
++    Ok((w, parts, mode, digest))
++}
++// Both modes share all binding encoders. Counting borrows source/partition values;
++// it constructs neither transcripts, partitions, counts, identities nor hashes.
++fn identity_issue(e: crate::study_reference::ReferenceIdentityError) -> AdmissionIssue {
++    use crate::study_reference::ReferenceIdentityError;
++    issue(
++        match e {
++            ReferenceIdentityError::AllocationFailed => IssueKind::AllocationFailed,
++            ReferenceIdentityError::ArithmeticOverflow => IssueKind::ArithmeticOverflow,
++            _ => IssueKind::IdentityMismatch,
++        },
++        "canonical dual identity",
++    )
++}
++type BindingTraversal = (Transcript, Vec<Vec<MicroPart>>, DiagonalMode, String, usize);
++fn binding_traversal(
++    p: &MaterializedProfile,
++    c: &RegisteredCase,
++    params: PlanningParameters<'_>,
++    r: &DiagonalRequest,
++    counting: bool,
++) -> Result<BindingTraversal> {
+     require(
+         p.identity().canonical_prepared(),
+         IssueKind::IdentityMismatch,
+@@ -1729,7 +1920,13 @@ fn canonical_binding(
+         IssueKind::IdentityMismatch,
+         "canonical selector",
+     )?;
+-    geometry_identity(m)?;
++    let mut geometry_size = Transcript::counter(ReceiptLimits::default());
++    geometry_size.text("hekit-study-diagonal-geometry-v1")?;
++    metadata_geometry(&mut geometry_size, m)?;
++    let geometry_peak = sum_payload([geometry_size.length, 64])?;
++    if !counting {
++        geometry_identity(m)?;
++    }
+     for (i, s) in p.graph().stages().iter().enumerate() {
+         require(
+             s.layers() == (2 * i..2 * i + 2),
+@@ -1767,16 +1964,23 @@ fn canonical_binding(
+             .checked_next_power_of_two()
+             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "lane padding"))?,
+     );
+-    let counts = p.plan().updates[..count]
+-        .iter()
+-        .map(|u| u.valid_samples)
+-        .collect::<Vec<_>>();
++    let mut counts = Vec::new();
++    if !counting {
++        counts
++            .try_reserve_exact(count)
++            .map_err(|_| issue(IssueKind::AllocationFailed, "binding count vector"))?;
++        counts.extend(p.plan().updates[..count].iter().map(|u| u.valid_samples));
++    }
+     require(
+         lanes.is_power_of_two(),
+         IssueKind::InvalidDimensions,
+         "physical lanes",
+     )?;
+-    let mut w = Transcript::new(r.limits);
++    let mut w = if counting {
++        Transcript::counter(r.limits)
++    } else {
++        Transcript::new(r.limits)
++    };
+     let mut partition_bytes = payload::<Vec<MicroPart>>(count)?;
+     if let Some(v) = &r.partitions {
+         require(
+@@ -1785,7 +1989,8 @@ fn canonical_binding(
+             "partition update count",
+         )?;
+     }
+-    for (i, &n) in counts.iter().enumerate() {
++    for (i, u) in p.plan().updates[..count].iter().enumerate() {
++        let n = u.valid_samples;
+         let len = r
+             .partitions
+             .as_ref()
+@@ -1793,7 +1998,14 @@ fn canonical_binding(
+         partition_bytes = sum_payload([partition_bytes, payload::<MicroPart>(len)?])?;
+     }
+     w.metadata(partition_bytes)?;
+-    let parts = partitions(&counts, lanes, r)?;
++    let parts = if counting {
++        for (i, u) in p.plan().updates[..count].iter().enumerate() {
++            partition_row(u.valid_samples, lanes, r, i, |_| Ok(()))?;
++        }
++        Vec::new()
++    } else {
++        partitions(&counts, lanes, r)?
++    };
+     encode_preamble(&mut w)?;
+     w.blob(c.canonical_bytes())?;
+     w.text(c.digest())?;
+@@ -1826,12 +2038,24 @@ fn canonical_binding(
+         w.text(&s.actual_sha256)?;
+     }
+     // Bind BOTH COMPLETE trusted identities, not transported hashes alone.
+-    let (shared, selected) = crate::study_reference::derive_identities(p)
+-        .map_err(|_| issue(IssueKind::IdentityMismatch, "canonical dual identity"))?;
+-    w.blob(shared.canonical_bytes())?;
+-    w.text(shared.digest())?;
+-    w.blob(selected.canonical_bytes())?;
+-    w.text(selected.digest())?;
++    let (shared_size, selected_size) =
++        crate::study_reference::identity_payload_sizes(p).map_err(identity_issue)?;
++    let identities = if counting {
++        None
++    } else {
++        Some(crate::study_reference::derive_identities(p).map_err(identity_issue)?)
++    };
++    if let Some((shared, selected)) = &identities {
++        w.blob(shared.canonical_bytes())?;
++        w.text(shared.digest())?;
++        w.blob(selected.canonical_bytes())?;
++        w.text(selected.digest())?;
++    } else {
++        w.blob_length(shared_size)?;
++        w.blob_length(64)?;
++        w.blob_length(selected_size)?;
++        w.blob_length(64)?;
++    }
+     metadata_geometry(&mut w, m)?;
+     w.tag(match m.loss {
+         crate::study_profile::Loss::MeanOutputMse => 0,
+@@ -1855,11 +2079,28 @@ fn canonical_binding(
+     rates(&mut w, numeric.rates(), p.reference_kernel_rate_f64())?;
+     encode_request(&mut w, r)?;
+     encode_params(&mut w, params)?;
+-    let mut consumed = Transcript::new(r.limits);
++    let mut consumed = if counting {
++        Transcript::counter(r.limits)
++    } else {
++        Transcript::new(r.limits)
++    };
+     consumed.text("hekit-study-diagonal-consumed-v1")?;
+     consumed.text(identity.plan_sha256())?;
+-    bound_partitions(&mut consumed, &parts, lanes)?;
+-    for (i, &valid_count) in counts.iter().enumerate() {
++    if !counting {
++        bound_partitions(&mut consumed, &parts, lanes)?;
++    } else {
++        bound_partition_rows(
++            &mut consumed,
++            &RequestedPartitionRows {
++                updates: &p.plan().updates[..count],
++                request: r,
++                lanes,
++            },
++            lanes,
++        )?;
++    }
++    for (i, u) in p.plan().updates[..count].iter().enumerate() {
++        let valid_count = u.valid_samples;
+         let rows = p
+             .update_rows(i)
+             .map_err(|_| issue(IssueKind::IdentityMismatch, "canonical update rows"))?;
+@@ -1879,9 +2120,30 @@ fn canonical_binding(
+         }
+     }
+     w.metadata(64)?; // Retained consumed-digest String, charged before hashing allocates it.
+-    let digest = sha256_hex(&consumed.bytes);
+-    w.blob(&consumed.bytes)?;
+-    Ok((w, parts, mode, digest))
++    let digest = if counting {
++        String::new()
++    } else {
++        try_digest(&consumed.bytes)?
++    };
++    if counting {
++        w.blob_length(consumed.length)?;
++    } else {
++        w.blob(&consumed.bytes)?;
++    }
++    // All successful-path application buffers overlap here. Identity encoders no
++    // longer allocate sort pointer vectors; secure preset checks borrow constants.
++    // counts/parts/identities remain in scope through the final consumed append.
++    let peak = geometry_peak.max(sum_payload([
++        payload::<usize>(count)?,
++        partition_bytes,
++        w.length,
++        shared_size,
++        selected_size,
++        256,
++        consumed.length,
++        64,
++    ])?);
++    Ok((w, parts, mode, digest, peak))
+ }
+ 
+ /// Plans the entire explicitly consumed schedule against one sealed Full registration.
+@@ -1991,12 +2253,36 @@ pub fn validate_plan_binding(
+     require(
+         binding.bytes == plan.binding
+             && plan.bytes.starts_with(&plan.binding)
+-            && sha256_hex(&plan.bytes) == plan.digest,
++            && try_digest(&plan.bytes)? == plan.digest,
+         IssueKind::IdentityMismatch,
+         "actual plan/input/parameters/partition binding",
+     )
+ }
+ 
++pub(crate) fn binding_workspace_payload(
++    p: &MaterializedProfile,
++    c: &RegisteredCase,
++    params: PlanningParameters<'_>,
++    r: &DiagonalRequest,
++) -> Result<usize> {
++    let (binding, _, _, _, peak) = binding_traversal(p, c, params, r, true)?;
++    Ok(peak.max(sum_payload([binding.length, 64])?))
++}
++pub(crate) fn validate_plan_binding_accounted(
++    p: &MaterializedProfile,
++    c: &RegisteredCase,
++    plan: &DiagonalPlan,
++    params: PlanningParameters<'_>,
++    r: &DiagonalRequest,
++    accounting: &mut crate::study_execution::PreparationAccounting,
++) -> crate::study_client::CpuPreparationResult<()> {
++    let bytes = binding_workspace_payload(p, c, params, r)
++        .map_err(|e| crate::study_client::CpuPreparationError::Admission(Box::new(e)))?;
++    let _reservation = accounting.reserve(bytes)?;
++    validate_plan_binding(p, c, plan, params, r)
++        .map_err(|e| crate::study_client::CpuPreparationError::Admission(Box::new(e)))
++}
++
+ fn ct(w: &mut Transcript, m: CtMeta) -> Result<()> {
+     w.number(m.level())?;
+     w.u64(m.scale_bits())
+diff --git a/crates/ckks-train-bench/src/study_blocks/p5_tests.rs b/crates/ckks-train-bench/src/study_blocks/p5_tests.rs
+index 95b9283..3748372 100644
+--- a/crates/ckks-train-bench/src/study_blocks/p5_tests.rs
++++ b/crates/ckks-train-bench/src/study_blocks/p5_tests.rs
+@@ -1002,19 +1002,16 @@ fn p5_cpu_block_bridge_contract() {
+             Some(phase.oracle(case.family).unwrap())
+         };
+         let claim = case.plan.claim();
+-        let checked = prepare_blocks_then_make(
++        let (initial, binding) = prepare_blocks_then_make(
+             BlockPreparationInput::Synthetic {
+                 plan: case.plan.clone(),
+                 claim: &claim,
+             },
+             context_parameters(&context),
+             &case.plan.parts,
+-            Ok,
++            |checked| client.encrypt_block_initial(checked, &context, &arrays(&recipe)),
+         )
+         .unwrap();
+-        let (initial, binding) = client
+-            .encrypt_block_initial(checked, &context, &arrays(&recipe))
+-            .unwrap();
+         let prefix = case.poison.then(|| capture_prefix_initial(&initial));
+         let mut session = CpuBlockSession::from_owner(
+             &facade,
+diff --git a/crates/ckks-train-bench/src/study_client.rs b/crates/ckks-train-bench/src/study_client.rs
+index 5abce73..99613d8 100644
+--- a/crates/ckks-train-bench/src/study_client.rs
++++ b/crates/ckks-train-bench/src/study_client.rs
+@@ -33,6 +33,10 @@ pub enum CpuPreparationError {
+     Admission(Box<study_admission::AdmissionIssue>),
+     /// Existing candidate description, retaining its exact borrowed issue without cloning it.
+     Candidate(Box<study_admission::CandidateDescription>),
++    /// New retained preparation requested-payload accounting failure.
++    Accounting(crate::study_execution::AccountingError),
++    /// Canonical source descriptor encoding failure.
++    Descriptor(crate::study_reference::DocumentError),
+     /// Bridge association, shape, encryption or evaluation error.
+     He(ckks_train_core::error::HekitError),
+ }
+@@ -42,7 +46,7 @@ impl CpuPreparationError {
+         match self {
+             Self::Admission(e) => Some(e),
+             Self::Candidate(c) => c.issue(),
+-            Self::He(_) => None,
++            Self::He(_) | Self::Accounting(_) | Self::Descriptor(_) => None,
+         }
+     }
+ }
+@@ -55,6 +59,8 @@ impl std::fmt::Display for CpuPreparationError {
+                 None => write!(f, "candidate preparation failed without issue"),
+             },
+             Self::He(e) => e.fmt(f),
++            Self::Accounting(e) => e.fmt(f),
++            Self::Descriptor(e) => e.fmt(f),
+         }
+     }
+ }
+@@ -64,6 +70,8 @@ impl std::error::Error for CpuPreparationError {
+             Self::Admission(e) => Some(e),
+             Self::Candidate(c) => c.issue().map(|e| e as _),
+             Self::He(e) => Some(e),
++            Self::Accounting(e) => Some(e),
++            Self::Descriptor(e) => Some(e),
+         }
+     }
+ }
+@@ -156,108 +164,158 @@ pub(crate) fn prepare_then_make<'a, T>(
+     actual_partition: &[Vec<MicroPart>],
+     factory: impl FnOnce(CheckedPreparation<'a>) -> Result<T>,
+ ) -> CpuPreparationResult<T> {
+-    let checked = match input {
+-        PreparationInput::Canonical {
+-            materialized,
+-            registered,
+-            plan,
+-            request,
+-        } => {
+-            let owner = PlanOwner::Canonical(plan.clone());
+-            owner.check_shape()?;
+-            study_admission::validate_plan_binding(
++    factory(check_preparation(input, actual, actual_partition, None)?)
++        .map_err(CpuPreparationError::He)
++}
++pub(crate) fn check_preparation<'a>(
++    input: PreparationInput<'_>,
++    actual: PlanningParameters<'a>,
++    actual_partition: &[Vec<MicroPart>],
++    mut accounting: Option<&mut crate::study_execution::PreparationAccounting>,
++) -> CpuPreparationResult<CheckedPreparation<'a>> {
++    let checked =
++        match input {
++            PreparationInput::Canonical {
+                 materialized,
+                 registered,
+-                &plan,
+-                actual,
++                plan,
+                 request,
+-            )
+-            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
+-            ensure(actual_partition == plan.partitions(), "partition")?;
+-            // Reserve geometry/initial allowance in the original request BEFORE hashing.
+-            let candidate = study_admission::describe_candidate(
+-                materialized.metadata(),
+-                registered,
+-                actual,
+-                request,
+-            );
+-            if candidate.issue().is_some() {
+-                return Err(CpuPreparationError::Candidate(Box::new(candidate)));
+-            }
+-            ensure(
+-                candidate.geometries().len() == 1,
+-                "missing block-stage execution capability",
+-            )?;
+-            let keys = candidate
+-                .keys()
+-                .ok_or_else(|| mismatch("candidate key manifest"))?;
+-            ensure(
+-                keys.training_rotations() == plan.keys().training_rotations()
+-                    && keys.bootstrap_generated_rotations()
+-                        == plan.keys().bootstrap_generated_rotations()
+-                    && keys.bootstrap_execution_rotations()
+-                        == plan.keys().bootstrap_execution_rotations()
+-                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
+-                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
+-                "candidate/plan key manifest",
+-            )?;
+-            let activations = materialized
+-                .metadata()
+-                .layers
+-                .iter()
+-                .map(|l| match l.activation {
+-                    ProfileActivation::Square => DiagonalActivation::Square,
+-                    ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
+-                    ProfileActivation::Identity => DiagonalActivation::Identity,
+-                })
+-                .collect();
+-            let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
+-            ensure(
+-                frozen || materialized.metadata().layers.iter().all(|l| l.bias),
+-                "mixed bias policy unsupported",
+-            )?;
+-            // Clone only this one geometry, never the candidate's placeholder initial states.
+-            CheckedPreparation {
+-                parameters: actual.params,
+-                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+-                bootstrap_metadata: actual.bootstrap,
+-                boot_parameters: actual.boot_params,
+-                plan: owner,
+-                description: Description {
+-                    geometry: candidate.geometries()[0].clone(),
+-                    activations,
+-                    transpose: request.transpose.clone(),
+-                    frozen,
+-                },
++            } => {
++                let owner = PlanOwner::Canonical(plan.clone());
++                owner.check_shape()?;
++                if let Some(a) = accounting.as_deref_mut() {
++                    study_admission::validate_plan_binding_accounted(
++                        materialized,
++                        registered,
++                        &plan,
++                        actual,
++                        request,
++                        a,
++                    )?;
++                } else {
++                    study_admission::validate_plan_binding(
++                        materialized,
++                        registered,
++                        &plan,
++                        actual,
++                        request,
++                    )
++                    .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++                }
++                ensure(actual_partition == plan.partitions(), "partition")?;
++                // Reserve geometry/initial allowance in the original request BEFORE hashing.
++                let candidate = study_admission::describe_candidate(
++                    materialized.metadata(),
++                    registered,
++                    actual,
++                    request,
++                );
++                if candidate.issue().is_some() {
++                    return Err(CpuPreparationError::Candidate(Box::new(candidate)));
++                }
++                ensure(
++                    candidate.geometries().len() == 1,
++                    "missing block-stage execution capability",
++                )?;
++                let keys = candidate
++                    .keys()
++                    .ok_or_else(|| mismatch("candidate key manifest"))?;
++                ensure(keys.matches(plan.keys()), "candidate/plan key manifest")?;
++                let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
++                ensure(
++                    frozen || materialized.metadata().layers.iter().all(|l| l.bias),
++                    "mixed bias policy unsupported",
++                )?;
++                use crate::study_execution::{allocated, payload, sum};
++                let transpose_bytes = match &request.transpose {
++                    ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
++                    ckks_train_nn::dense::TransposeKeys::Reuse(v) => payload::<i32>(v.len())?,
++                };
++                let retained = sum([
++                    candidate.retained_geometry_payload()?,
++                    payload::<DiagonalActivation>(materialized.metadata().layers.len())?,
++                    transpose_bytes,
++                ])?;
++                let mut reservation = accounting
++                    .map(|a| {
++                        a.reserve(sum([
++                            retained,
++                            payload::<ckks_train_nn::diagonal_plan::StageGeometry>(1)?,
++                        ])?)
++                    })
++                    .transpose()?;
++                let dims_pointer = candidate.geometries()[0].dims().as_ptr();
++                let components = candidate
++                    .into_checked_components()
++                    .map_err(|c| CpuPreparationError::Candidate(Box::new(c)))?;
++                let mut geometries = components.geometries.into_iter();
++                let geometry = geometries.next().expect("validated single geometry");
++                debug_assert_eq!(dims_pointer, geometry.dims().as_ptr());
++                drop(components.keys); // bootstrap/training copies are not retained by single setup
++                let mut activations = allocated(materialized.metadata().layers.len())?;
++                activations.extend(materialized.metadata().layers.iter().map(
++                    |l| match l.activation {
++                        ProfileActivation::Square => DiagonalActivation::Square,
++                        ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
++                        ProfileActivation::Identity => DiagonalActivation::Identity,
++                    },
++                ));
++                let transpose = match &request.transpose {
++                    ckks_train_nn::dense::TransposeKeys::Dedicated => {
++                        ckks_train_nn::dense::TransposeKeys::Dedicated
++                    }
++                    ckks_train_nn::dense::TransposeKeys::Reuse(v) => {
++                        let mut p = allocated(v.len())?;
++                        p.extend_from_slice(v);
++                        ckks_train_nn::dense::TransposeKeys::Reuse(p)
++                    }
++                };
++                drop(geometries); // all new nested payload now overlaps the owning iterator
++                if let Some(r) = &mut reservation {
++                    r.release(payload::<ckks_train_nn::diagonal_plan::StageGeometry>(1)?)?;
++                    r.retain(retained)?;
++                }
++                CheckedPreparation {
++                    parameters: actual.params,
++                    bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                    bootstrap_metadata: actual.bootstrap,
++                    boot_parameters: actual.boot_params,
++                    plan: owner,
++                    description: Description {
++                        geometry,
++                        activations,
++                        transpose,
++                        frozen,
++                    },
++                }
+             }
+-        }
+-        #[cfg(test)]
+-        PreparationInput::Synthetic { plan, claim } => {
+-            plan.validate(actual, actual_partition, claim)
+-                .map_err(mismatch)?;
+-            let owner = PlanOwner::Synthetic(plan.clone());
+-            owner.check_shape()?;
+-            let activations = if plan.frozen {
+-                vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
+-            } else {
+-                vec![DiagonalActivation::Square; 2]
+-            };
+-            CheckedPreparation {
+-                parameters: actual.params,
+-                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+-                bootstrap_metadata: actual.bootstrap,
+-                boot_parameters: actual.boot_params,
+-                plan: owner,
+-                description: Description {
+-                    geometry: plan.geometry.clone(),
+-                    activations,
+-                    transpose: plan.transpose.clone(),
+-                    frozen: plan.frozen,
+-                },
++            #[cfg(test)]
++            PreparationInput::Synthetic { plan, claim } => {
++                plan.validate(actual, actual_partition, claim)
++                    .map_err(mismatch)?;
++                let owner = PlanOwner::Synthetic(plan.clone());
++                owner.check_shape()?;
++                let activations = if plan.frozen {
++                    vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
++                } else {
++                    vec![DiagonalActivation::Square; 2]
++                };
++                CheckedPreparation {
++                    parameters: actual.params,
++                    bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                    bootstrap_metadata: actual.bootstrap,
++                    boot_parameters: actual.boot_params,
++                    plan: owner,
++                    description: Description {
++                        geometry: plan.geometry.clone(),
++                        activations,
++                        transpose: plan.transpose.clone(),
++                        frozen: plan.frozen,
++                    },
++                }
+             }
+-        }
+-    };
+-    factory(checked).map_err(CpuPreparationError::He)
++        };
++    Ok(checked)
+ }
+ /// Secret-bearing client; sessions never receive this value or a materialized profile.
+ pub struct StudyClient {
+@@ -416,7 +474,7 @@ impl StudyClient {
+         request: &DiagonalRequest,
+         context: &CpuEvaluationContext,
+     ) -> CpuPreparationResult<EncryptedInitialState> {
+-        let checked = prepare_then_make(
++        prepare_then_make(
+             PreparationInput::Canonical {
+                 materialized,
+                 registered,
+@@ -425,16 +483,16 @@ impl StudyClient {
+             },
+             context_parameters(context),
+             plan.partitions(),
+-            Ok,
+-        )?;
+-        let arrays = materialized
+-            .initial()
+-            .layers()
+-            .iter()
+-            .map(|l| (l.weights().clone(), l.biases().to_vec()))
+-            .collect::<Vec<_>>();
+-        self.encrypt_initial(checked, context, &arrays)
+-            .map_err(CpuPreparationError::He)
++            |checked| {
++                let arrays = materialized
++                    .initial()
++                    .layers()
++                    .iter()
++                    .map(|l| (l.weights().clone(), l.biases().to_vec()))
++                    .collect::<Vec<_>>();
++                self.encrypt_initial(checked, context, &arrays)
++            },
++        )
+     }
+     pub(crate) fn encrypt_initial(
+         &self,
+diff --git a/crates/ckks-train-bench/src/study_client/blocks.rs b/crates/ckks-train-bench/src/study_client/blocks.rs
+index fb73fcf..5e37a51 100644
+--- a/crates/ckks-train-bench/src/study_client/blocks.rs
++++ b/crates/ckks-train-bench/src/study_client/blocks.rs
+@@ -51,6 +51,14 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+     parts: &[Vec<MicroPart>],
+     factory: impl FnOnce(CheckedBlockPreparation<'a>) -> Result<T>,
+ ) -> CpuPreparationResult<T> {
++    factory(check_block_preparation(input, actual, parts, None)?).map_err(CpuPreparationError::He)
++}
++pub(crate) fn check_block_preparation<'a>(
++    input: BlockPreparationInput<'_>,
++    actual: PlanningParameters<'a>,
++    parts: &[Vec<MicroPart>],
++    mut accounting: Option<&mut crate::study_execution::PreparationAccounting>,
++) -> CpuPreparationResult<CheckedBlockPreparation<'a>> {
+     let (plan, descriptions, classes, rotations) = match input {
+         BlockPreparationInput::Canonical {
+             materialized,
+@@ -60,14 +68,25 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+         } => {
+             let owner = BlockPlanOwner::Canonical(plan.clone());
+             owner.check_shape()?;
+-            study_admission::validate_plan_binding(
+-                materialized,
+-                registered,
+-                &plan,
+-                actual,
+-                request,
+-            )
+-            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++            if let Some(a) = accounting.as_deref_mut() {
++                study_admission::validate_plan_binding_accounted(
++                    materialized,
++                    registered,
++                    &plan,
++                    actual,
++                    request,
++                    a,
++                )?;
++            } else {
++                study_admission::validate_plan_binding(
++                    materialized,
++                    registered,
++                    &plan,
++                    actual,
++                    request,
++                )
++                .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++            }
+             ensure(parts == plan.partitions(), "block partition")?;
+             // Original request only: reserve the additional S geometry/initial allowance
+             // before its hash. No cloned replacement budget or post-binding mutation.
+@@ -88,19 +107,58 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+             let keys = candidate
+                 .keys()
+                 .ok_or_else(|| mismatch("block candidate manifest"))?;
+-            ensure(
+-                keys.training_rotations() == plan.keys().training_rotations()
+-                    && keys.bootstrap_generated_rotations()
+-                        == plan.keys().bootstrap_generated_rotations()
+-                    && keys.bootstrap_execution_rotations()
+-                        == plan.keys().bootstrap_execution_rotations()
+-                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
+-                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
+-                "block candidate/plan manifest",
+-            )?;
+-            let mut descriptions = Vec::with_capacity(graph.len());
+-            for (stage, (topology, geometry)) in
+-                graph.iter().zip(candidate.geometries()).enumerate()
++            ensure(keys.matches(plan.keys()), "block candidate/plan manifest")?;
++            // Complete borrowed graph/policy validation before consuming the candidate.
++            for (stage, topology) in graph.iter().enumerate() {
++                let range = topology.layers();
++                let specs = &materialized.metadata().layers[range.clone()];
++                ensure(
++                    specs.len() == 2
++                        && topology.representation_layer()
++                            == (stage + 1 < graph.len()).then_some(range.start),
++                    "block actual representation/local-head graph",
++                )?;
++                ensure(
++                    specs.iter().all(|l| !l.bias) || specs.iter().all(|l| l.bias),
++                    "block mixed bias policy",
++                )?;
++            }
++            use crate::study_execution::{allocated, payload, sum};
++            let transpose_bytes = match &request.transpose {
++                ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
++                ckks_train_nn::dense::TransposeKeys::Reuse(v) => payload::<i32>(v.len())?,
++            };
++            let mut retained = sum([
++                candidate.retained_geometry_payload()?,
++                payload::<Description>(graph.len())?,
++                payload::<usize>(graph.len())?,
++                payload::<i32>(keys.training_rotations().len())?,
++            ])?;
++            for topology in graph {
++                retained = sum([
++                    retained,
++                    payload::<DiagonalActivation>(topology.layers().len())?,
++                    transpose_bytes,
++                ])?;
++            }
++            let mut reservation = accounting
++                .map(|a| {
++                    a.reserve(sum([
++                        retained,
++                        payload::<ckks_train_nn::diagonal_plan::StageGeometry>(graph.len())?,
++                    ])?)
++                })
++                .transpose()?;
++            let training_pointer = keys.training_rotations().as_ptr();
++            let components = candidate
++                .into_checked_components()
++                .map_err(|c| CpuPreparationError::Candidate(Box::new(c)))?;
++            let rotations = components.keys.into_training();
++            debug_assert_eq!(training_pointer, rotations.as_ptr());
++            let mut descriptions = allocated(graph.len())?;
++            let mut classes = allocated(graph.len())?;
++            classes.resize(graph.len(), materialized.metadata().classes);
++            for (stage, (topology, geometry)) in graph.iter().zip(components.geometries).enumerate()
+             {
+                 let range = topology.layers();
+                 let specs = &materialized.metadata().layers[range.clone()];
+@@ -110,32 +168,41 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+                             == (stage + 1 < graph.len()).then_some(range.start),
+                     "block actual representation/local-head graph",
+                 )?;
+-                let acts = specs
+-                    .iter()
+-                    .map(|l| match l.activation {
+-                        ProfileActivation::Square => DiagonalActivation::Square,
+-                        ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
+-                        ProfileActivation::Identity => DiagonalActivation::Identity,
+-                    })
+-                    .collect();
++                let mut acts = allocated(specs.len())?;
++                acts.extend(specs.iter().map(|l| match l.activation {
++                    ProfileActivation::Square => DiagonalActivation::Square,
++                    ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
++                    ProfileActivation::Identity => DiagonalActivation::Identity,
++                }));
+                 let frozen = specs.iter().all(|l| !l.bias);
+                 ensure(
+                     frozen || specs.iter().all(|l| l.bias),
+                     "block mixed bias policy",
+                 )?;
+                 descriptions.push(Description {
+-                    geometry: geometry.clone(),
++                    geometry,
+                     activations: acts,
+-                    transpose: request.transpose.clone(),
++                    transpose: match &request.transpose {
++                        ckks_train_nn::dense::TransposeKeys::Dedicated => {
++                            ckks_train_nn::dense::TransposeKeys::Dedicated
++                        }
++                        ckks_train_nn::dense::TransposeKeys::Reuse(v) => {
++                            let mut p = allocated(v.len())?;
++                            p.extend_from_slice(v);
++                            ckks_train_nn::dense::TransposeKeys::Reuse(p)
++                        }
++                    },
+                     frozen,
+                 });
+             }
+-            (
+-                owner,
+-                descriptions,
+-                vec![materialized.metadata().classes; graph.len()],
+-                keys.training_rotations().to_vec(),
+-            )
++            // The for-loop's owning geometry iterator drops at the loop boundary.
++            if let Some(r) = &mut reservation {
++                r.release(payload::<ckks_train_nn::diagonal_plan::StageGeometry>(
++                    graph.len(),
++                )?)?;
++                r.retain(retained)?;
++            }
++            (owner, descriptions, classes, rotations)
+         }
+         #[cfg(test)]
+         BlockPreparationInput::Synthetic { plan, claim } => {
+@@ -152,7 +219,7 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+             (owner, descriptions, plan.classes.clone(), rotations)
+         }
+     };
+-    factory(CheckedBlockPreparation {
++    Ok(CheckedBlockPreparation {
+         plan,
+         descriptions,
+         classes,
+@@ -162,7 +229,6 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+         boot_parameters: actual.boot_params,
+         rotations,
+     })
+-    .map_err(CpuPreparationError::He)
+ }
+ pub(crate) fn make_blocks_owned(
+     checked: &CheckedBlockPreparation<'_>,
+diff --git a/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+index ff8e9a9..7c41212 100644
+--- a/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
++++ b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+@@ -194,17 +194,16 @@ fn prepare_initial(
+     layers: &[(ndarray::Array2<f64>, Vec<f64>)],
+ ) -> EncryptedInitialState {
+     let claim = plan.claim();
+-    let checked = prepare_then_make(
++    prepare_then_make(
+         PreparationInput::Synthetic {
+             plan: plan.clone(),
+             claim: &claim,
+         },
+         context_parameters(context),
+         &plan.parts,
+-        Ok,
++        |checked| client.encrypt_initial(checked, context, layers),
+     )
+-    .unwrap();
+-    client.encrypt_initial(checked, context, layers).unwrap()
++    .unwrap()
+ }
+ fn compare(
+     client: &StudyClient,
+diff --git a/crates/ckks-train-bench/src/study_reference.rs b/crates/ckks-train-bench/src/study_reference.rs
+index 8529562..7036976 100644
+--- a/crates/ckks-train-bench/src/study_reference.rs
++++ b/crates/ckks-train-bench/src/study_reference.rs
+@@ -5,6 +5,9 @@
+ //! materializations can construct the private-field public values.
+ mod digests;
+ mod document;
++pub(crate) use document::{
++    collect_block_preparation_descriptors, collect_single_preparation_descriptors,
++};
+ mod publication;
+ mod session;
+ mod target;
+@@ -31,8 +34,9 @@ pub use target::{
+     VerifiedTargetForSeed, lock_target,
+ };
+ 
++#[cfg(test)]
++use crate::data::sha256_hex;
+ use crate::{
+-    data::sha256_hex,
+     profile_data::OrderCoverage,
+     study_inputs::{IDENTITY_VERSION, InitialModel, MaterializedProfile, StageInput},
+     study_profile::{
+@@ -68,6 +72,10 @@ pub enum ReferenceIdentityError {
+     NonCanonical,
+     /// An unsupported or inconsistent selected input cannot be projected.
+     Unsupported(&'static str),
++    /// Checked requested-payload length overflow.
++    ArithmeticOverflow,
++    /// A canonical identity buffer or digest could not be reserved.
++    AllocationFailed,
+ }
+ impl fmt::Display for ReferenceIdentityError {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+@@ -125,26 +133,68 @@ impl SeedInputReceiptV1 {
+     }
+ }
+ 
+-struct Encoding(Vec<u8>);
++struct Encoding {
++    bytes: Vec<u8>,
++    length: Option<usize>,
++    counting: bool,
++    allocation_failed: bool,
++}
+ impl Encoding {
+     fn new(domain: &str) -> Self {
+-        let mut e = Self(Vec::new());
++        let mut e = Self {
++            bytes: Vec::new(),
++            length: Some(0),
++            counting: false,
++            allocation_failed: false,
++        };
++        e.text(ENCODING_VERSION);
++        e.text(domain);
++        e
++    }
++    fn counting(domain: &str) -> Self {
++        let mut e = Self {
++            bytes: Vec::new(),
++            length: Some(0),
++            counting: true,
++            allocation_failed: false,
++        };
+         e.text(ENCODING_VERSION);
+         e.text(domain);
+         e
+     }
++    fn raw(&mut self, bytes: &[u8]) {
++        self.length = self.length.and_then(|n| n.checked_add(bytes.len()));
++        if !self.counting && !self.allocation_failed {
++            if self.bytes.try_reserve_exact(bytes.len()).is_err() {
++                self.allocation_failed = true;
++            } else {
++                self.bytes.extend_from_slice(bytes);
++            }
++        }
++    }
++    fn checked_length(&self) -> Result<usize> {
++        if self.allocation_failed {
++            return Err(ReferenceIdentityError::AllocationFailed);
++        }
++        self.length
++            .ok_or(ReferenceIdentityError::ArithmeticOverflow)
++    }
++    fn finish(self) -> Result<Vec<u8>> {
++        self.checked_length()?;
++        Ok(self.bytes)
++    }
+     fn byte(&mut self, n: u8) {
+-        self.0.push(n);
++        self.raw(&[n]);
+     }
+     fn count(&mut self, n: usize) {
+-        self.0.extend_from_slice(&(n as u64).to_le_bytes());
++        self.raw(&(n as u64).to_le_bytes());
+     }
+     fn text(&mut self, s: &str) {
+         self.count(s.len());
+-        self.0.extend_from_slice(s.as_bytes());
++        self.raw(s.as_bytes());
+     }
+     fn float(&mut self, n: f64) {
+-        self.0.extend_from_slice(&n.to_bits().to_le_bytes());
++        self.raw(&n.to_bits().to_le_bytes());
+     }
+     fn option(&mut self, n: Option<usize>) {
+         self.byte(u8::from(n.is_some()));
+@@ -216,10 +266,19 @@ fn layers(e: &mut Encoding, values: &[Layer]) {
+     }
+ }
+ fn sources(e: &mut Encoding, files: &[StudySource]) {
+-    let mut sorted = files.iter().collect::<Vec<_>>();
+-    sorted.sort_by(|a, b| (a.path(), a.role()).cmp(&(b.path(), b.role())));
+-    e.count(sorted.len());
+-    for f in sorted {
++    e.count(files.len());
++    let mut previous: Option<usize> = None;
++    for _ in 0..files.len() {
++        let index = (0..files.len())
++            .filter(|&i| {
++                previous.is_none_or(|p| {
++                    (files[i].path(), files[i].role(), i) > (files[p].path(), files[p].role(), p)
++                })
++            })
++            .min_by_key(|&i| (files[i].path(), files[i].role(), i))
++            .expect("remaining source");
++        previous = Some(index);
++        let f = &files[index];
+         e.byte(match f.role() {
+             StudySourceRole::Registry => 0,
+             StudySourceRole::PortableLock => 1,
+@@ -330,7 +389,7 @@ impl<'a> SharedView<'a> {
+         })
+     }
+ }
+-fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
++fn shared_encoding(v: &SharedView<'_>, counting: bool) -> Result<Encoding> {
+     let ProfileMetadata {
+         id,
+         seed: _,
+@@ -362,7 +421,11 @@ fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
+         split_policy,
+         dataset_files: _,
+     } = identity; // all file fields in immutable selector
+-    let mut e = Encoding::new(CONTRACT_VERSION);
++    let mut e = if counting {
++        Encoding::counting(CONTRACT_VERSION)
++    } else {
++        Encoding::new(CONTRACT_VERSION)
++    };
+     e.text(CONTRACT_VERSION);
+     e.text(SELECTOR_VERSION);
+     e.text(POLICY_REVISION);
+@@ -527,7 +590,8 @@ fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
+         e.text(LOOKUP_POLICY);
+     }
+     plan(&mut e, v.plan, false);
+-    Ok(e.0)
++    e.checked_length()?;
++    Ok(e)
+ }
+ fn parameters64(e: &mut Encoding, m: &InitialModel<f64>) {
+     e.byte(64);
+@@ -555,16 +619,25 @@ fn parameters32(e: &mut Encoding, m: &InitialModel<f32>) {
+         e.count(l.weights().nrows());
+         e.count(l.weights().ncols());
+         for &v in l.weights() {
+-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
++            e.raw(&v.to_bits().to_le_bytes());
+         }
+         e.count(l.biases().len());
+         for &v in l.biases() {
+-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
++            e.raw(&v.to_bits().to_le_bytes());
+         }
+     }
+ }
+-fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) -> Vec<u8> {
+-    let mut e = Encoding::new(RECEIPT_VERSION);
++fn receipt_encoding(
++    p: &MaterializedProfile,
++    s: &SharedSelector,
++    contract: &str,
++    counting: bool,
++) -> Encoding {
++    let mut e = if counting {
++        Encoding::counting(RECEIPT_VERSION)
++    } else {
++        Encoding::new(RECEIPT_VERSION)
++    };
+     e.text(RECEIPT_VERSION);
+     e.text(contract);
+     e.byte(p.metadata().seed);
+@@ -585,10 +658,16 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
+     ] {
+         e.text(value);
+     }
+-    let mut sorted = i.sources().iter().collect::<Vec<_>>();
+-    sorted.sort_by(|a, b| a.path.cmp(&b.path));
+-    e.count(sorted.len());
+-    for f in sorted {
++    let files = i.sources();
++    e.count(files.len());
++    let mut previous: Option<usize> = None;
++    for _ in 0..files.len() {
++        let index = (0..files.len())
++            .filter(|&i| previous.is_none_or(|p| (&files[i].path, i) > (&files[p].path, p)))
++            .min_by_key(|&i| (&files[i].path, i))
++            .expect("remaining source");
++        previous = Some(index);
++        let f = &files[index];
+         e.text(&f.path);
+         e.text(&f.expected_sha256);
+         e.text(&f.actual_sha256);
+@@ -605,7 +684,7 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
+     plan(&mut e, p.plan(), true);
+     e.float(p.reference_kernel_rate_f64());
+     let f = p.numeric_f32();
+-    e.0.extend_from_slice(&f.reference_kernel_rate().to_bits().to_le_bytes());
++    e.raw(&f.reference_kernel_rate().to_bits().to_le_bytes());
+     let d = p.numeric_f64();
+     e.count(d.rates().len());
+     for r in d.rates() {
+@@ -616,7 +695,7 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
+     e.count(f.rates().len());
+     for r in f.rates() {
+         for v in [r.source, r.mean, r.delta, r.kernel] {
+-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
++            e.raw(&v.to_bits().to_le_bytes());
+         }
+     }
+     e.count(p.order().rows().len());
+@@ -626,7 +705,32 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
+     e.indices(p.order().pass_offsets());
+     parameters64(&mut e, p.initial());
+     parameters32(&mut e, f.initial());
+-    e.0
++    e
++}
++#[cfg(test)]
++fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
++    shared_encoding(v, false)?.finish()
++}
++/// Allocation-free traversal of the same identity encoders. Hash values have fixed width.
++pub(crate) fn identity_payload_sizes(p: &MaterializedProfile) -> Result<(usize, usize)> {
++    let v = SharedView::canonical(p)?;
++    let shared = shared_encoding(&v, true)?.checked_length()?;
++    let receipt = receipt_encoding(
++        p,
++        v.selector,
++        "0000000000000000000000000000000000000000000000000000000000000000",
++        true,
++    )
++    .checked_length()?;
++    Ok((shared, receipt))
++}
++fn copy_identity_text(s: &str) -> Result<String> {
++    let mut output = String::new();
++    output
++        .try_reserve_exact(s.len())
++        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
++    output.push_str(s);
++    Ok(output)
+ }
+ /// Derive immutable dual identities from one already prepared canonical profile.
+ /// This does not prepare again, train, generate a target, or attest external provenance.
+@@ -634,21 +738,23 @@ pub fn derive_identities(
+     p: &MaterializedProfile,
+ ) -> Result<(StudyProfileContractV1, SeedInputReceiptV1)> {
+     let v = SharedView::canonical(p)?;
+-    let bytes = shared_bytes(&v)?;
+-    let digest = sha256_hex(&bytes);
+-    let receipt = receipt_bytes(p, v.selector, &digest);
+-    let receipt_digest = sha256_hex(&receipt);
++    let bytes = shared_encoding(&v, false)?.finish()?;
++    let digest = crate::data::try_sha256_hex(&bytes)
++        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
++    let receipt = receipt_encoding(p, v.selector, &digest, false).finish()?;
++    let receipt_digest = crate::data::try_sha256_hex(&receipt)
++        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
+     Ok((
+         StudyProfileContractV1 {
+             bytes,
+-            digest: digest.clone(),
++            digest: copy_identity_text(&digest)?,
+         },
+         SeedInputReceiptV1 {
+             bytes: receipt,
+             digest: receipt_digest,
+             seed: p.metadata().seed,
+             contract: digest,
+-            materialized: p.identity().digest().into(),
++            materialized: copy_identity_text(p.identity().digest())?,
+         },
+     ))
+ }
+@@ -714,9 +820,9 @@ mod tests {
+             .step_by(2)
+             .map(|i| u8::from_str_radix(&expected[i..i + 2], 16).unwrap())
+             .collect();
+-        assert_eq!(e.0, expected_bytes);
++        assert_eq!(e.bytes, expected_bytes);
+         assert_eq!(
+-            sha256_hex(&e.0),
++            sha256_hex(&e.bytes),
+             "4e99587a77915a320fc1332ad79c1bd53bd3b74a61a6e845278044b684810b34"
+         );
+     }
+@@ -728,7 +834,7 @@ mod tests {
+         let bytes = |p: &BatchPlan, numeric| {
+             let mut e = Encoding::new("test-plan");
+             plan(&mut e, p, numeric);
+-            e.0
++            e.bytes
+         };
+         type Change = fn(&mut BatchPlan);
+         let changes: &[Change] = &[
+@@ -906,7 +1012,7 @@ mod tests {
+             plan(&mut numeric_b, &bp.plan, true);
+             // Current released schedules happen to be equal for seeds 0/7;
+             // synthetic coefficient mutations above test the permitted difference.
+-            assert_eq!(sha256_hex(&numeric_a.0), sha256_hex(&numeric_b.0));
++            assert_eq!(sha256_hex(&numeric_a.bytes), sha256_hex(&numeric_b.bytes));
+             for mutate in [
+                 (|m: &mut ProfileMetadata| m.schedule.as_mut().unwrap().steps += 1)
+                     as fn(&mut ProfileMetadata),
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index 4804abb..21e1305 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -6,6 +6,10 @@
+ //! denominator, arithmetic and digest claim against the trusted full plan/data.
+ //! Source/build/session/prefix/state/publication policies remain separate gates.
+ mod execution_descriptors;
++pub(crate) use execution_descriptors::{
++    collect_blocks as collect_block_preparation_descriptors,
++    collect_single as collect_single_preparation_descriptors,
++};
+ mod producer;
+ mod reader;
+ mod runtime_descriptors;
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+index db00798..30c150c 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+@@ -124,7 +124,11 @@ impl GeometryWriter for Writer {
+         self.u64(u64::try_from(n).map_err(|_| err(DocumentErrorCode::TooLarge, "execution.index"))?)
+     }
+ }
+-fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8>> {
++fn traverse(
++    kind: Kind,
++    output: bool,
++    body: impl Fn(&mut Writer) -> Result<()>,
++) -> Result<(usize, Vec<u8>)> {
+     let mut size = Writer {
+         length: 0,
+         output: None,
+@@ -132,6 +136,9 @@ fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8
+     size.header(kind)?;
+     body(&mut size)?;
+     let n = checked_size(size.length)?;
++    if !output {
++        return Ok((n, Vec::new()));
++    }
+     let mut output = Encoder::new(DocumentLayout::Reference);
+     output
+         .bytes
+@@ -144,7 +151,7 @@ fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8
+     writer.header(kind)?;
+     body(&mut writer)?;
+     valid(writer.length == size.length, "execution.size_changed")?;
+-    Ok(writer.output.expect("output pass").bytes)
++    Ok((n, writer.output.expect("output pass").bytes))
+ }
+ #[derive(Clone, Copy)]
+ pub(super) enum BitSizes<'a> {
+@@ -217,8 +224,11 @@ impl<'a> ParameterFields<'a> {
+         weight(self.main_weight, 1u64 << self.log_n)
+     }
+     pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        Ok(self.traverse(true)?.1)
++    }
++    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
+         self.validate()?;
+-        encode(Kind::Parameters, |w| {
++        traverse(Kind::Parameters, output, |w| {
+             for v in [self.q, self.p] {
+                 w.number(v.len())?;
+                 for n in v {
+@@ -275,6 +285,9 @@ pub(super) struct LayoutFields<'a, S: GeometryStages> {
+ }
+ impl<S: GeometryStages> LayoutFields<'_, S> {
+     pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        Ok(self.traverse(true)?.1)
++    }
++    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
+         valid(
+             self.consumption <= 1
+                 && self.mode <= 1
+@@ -326,7 +339,7 @@ impl<S: GeometryStages> LayoutFields<'_, S> {
+                 end = checked_add(end, p.valid as u64)?;
+             }
+         }
+-        encode(Kind::Layout, |w| {
++        traverse(Kind::Layout, output, |w| {
+             w.hash(self.parameter_identity)?;
+             w.tag(self.consumption)?;
+             w.tag(self.mode)?;
+@@ -372,8 +385,11 @@ pub(super) struct KeyFields<'a> {
+ }
+ impl KeyFields<'_> {
+     pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        Ok(self.traverse(true)?.1)
++    }
++    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
+         valid(self.owner_policy == 0, "keys.owner")?;
+-        encode(Kind::Keys, |w| {
++        traverse(Kind::Keys, output, |w| {
+             w.hash(self.parameter_identity)?;
+             w.optional_hash(self.bootstrap_descriptor)?;
+             w.tag(u8::from(self.transpose.is_some()))?;
+@@ -449,13 +465,16 @@ pub(super) struct SecurityFields<'a> {
+ }
+ impl SecurityFields<'_> {
+     pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        Ok(self.traverse(true)?.1)
++    }
++    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
+         valid(
+             self.registered_policy <= 1
+                 && self.assurance == 0
+                 && self.bootstrap_scope.is_none_or(|n| n == 0),
+             "security.tags",
+         )?;
+-        encode(Kind::Security, |w| {
++        traverse(Kind::Security, output, |w| {
+             w.tag(self.registered_policy)?;
+             w.hash(self.parameter_identity)?;
+             w.optional_hash(self.bootstrap_descriptor)?;
+@@ -499,6 +518,18 @@ impl PreparationDescriptorFacts<'_> {
+         }
+     }
+     pub(crate) fn physical_layout_bytes(&self) -> Result<Vec<u8>> {
++        let parameter = self.parameter_hash()?;
++        Ok(self
++            .layout_with(
++                DescriptorDigests {
++                    parameter: &parameter,
++                    bootstrap: None,
++                },
++                true,
++            )?
++            .1)
++    }
++    fn layout_with(&self, hashes: DescriptorDigests<'_>, output: bool) -> Result<(usize, Vec<u8>)> {
+         let p = self.parameters();
+         valid(self.stage_count() > 0, "source.stages")?;
+         for i in 0..self.stage_count() {
+@@ -508,9 +539,8 @@ impl PreparationDescriptorFacts<'_> {
+                 "source.geometry",
+             )?;
+         }
+-        let hash = self.parameter_hash()?;
+         LayoutFields {
+-            parameter_identity: &hash,
++            parameter_identity: hashes.parameter,
+             consumption: match self.plan().consumption() {
+                 Consumption::Full => 0,
+                 Consumption::Quick => 1,
+@@ -520,13 +550,24 @@ impl PreparationDescriptorFacts<'_> {
+             stages: self,
+             parts: self.plan().partitions(),
+         }
+-        .encode()
++        .traverse(output)
+     }
+     pub(crate) fn cpu_key_policy_bytes(&self) -> Result<Vec<u8>> {
+-        let hash = self.parameter_hash()?;
+-        let boot = self
++        let parameter = self.parameter_hash()?;
++        let bootstrap = self
+             .bootstrap()
+             .map(|b| sha256_hex(b.descriptor_identity_bytes()));
++        Ok(self
++            .keys_with(
++                DescriptorDigests {
++                    parameter: &parameter,
++                    bootstrap: bootstrap.as_deref(),
++                },
++                true,
++            )?
++            .1)
++    }
++    fn keys_with(&self, hashes: DescriptorDigests<'_>, output: bool) -> Result<(usize, Vec<u8>)> {
+         let keys = self.plan().keys();
+         let rotations = keys.training_rotations();
+         let slots = self.parameters().slots();
+@@ -573,8 +614,8 @@ impl PreparationDescriptorFacts<'_> {
+             TransposeKeys::Reuse(v) => Some(v.as_slice()),
+         };
+         KeyFields {
+-            parameter_identity: &hash,
+-            bootstrap_descriptor: boot.as_deref(),
++            parameter_identity: hashes.parameter,
++            bootstrap_descriptor: hashes.bootstrap,
+             transpose: pool,
+             training_level: self.parameters().max_level() as u64,
+             training_rotations: rotations,
+@@ -588,13 +629,28 @@ impl PreparationDescriptorFacts<'_> {
+             separate_bootstrap_bundle: keys.separate_bootstrap_bundle(),
+             owner_policy: 0,
+         }
+-        .encode()
++        .traverse(output)
+     }
+     pub(crate) fn security_declaration_bytes(&self) -> Result<Vec<u8>> {
+-        let hash = self.parameter_hash()?;
+-        let boot = self
++        let parameter = self.parameter_hash()?;
++        let bootstrap = self
+             .bootstrap()
+             .map(|b| sha256_hex(b.descriptor_identity_bytes()));
++        Ok(self
++            .security_with(
++                DescriptorDigests {
++                    parameter: &parameter,
++                    bootstrap: bootstrap.as_deref(),
++                },
++                true,
++            )?
++            .1)
++    }
++    fn security_with(
++        &self,
++        hashes: DescriptorDigests<'_>,
++        output: bool,
++    ) -> Result<(usize, Vec<u8>)> {
+         let main = self.parameters().hamming_weight().map(|n| n as u64);
+         if let Some(b) = self.bootstrap() {
+             valid(
+@@ -602,12 +658,154 @@ impl PreparationDescriptorFacts<'_> {
+                 "source.main_secret",
+             )?;
+         }
+-        let bytes=SecurityFields{registered_policy:u8::from(self.bootstrap().is_some()),parameter_identity:&hash,bootstrap_descriptor:boot.as_deref(),main,ephemeral:self.bootstrap().and_then(|b|b.declared_ephemeral_secret()).map(secret_weight),assurance:0,bootstrap_scope:self.bootstrap().map(|b|match b.proof_scope(){ckks_train_ckks::bootstrap::metadata::ProofScope::StructuralCostAndBoundaryScales=>0}),bootstrap_unvalidated:Requirements::P1(self.bootstrap().map_or(&[],|b|b.unvalidated_requirements()))}.encode()?;
+-        WireDescriptor::parse(Kind::Security, &bytes)?
+-            .validate_registered_security_declarations(self.parameters().n() as u64)?;
++        let bytes=SecurityFields{registered_policy:u8::from(self.bootstrap().is_some()),parameter_identity:hashes.parameter,bootstrap_descriptor:hashes.bootstrap,main,ephemeral:self.bootstrap().and_then(|b|b.declared_ephemeral_secret()).map(secret_weight),assurance:0,bootstrap_scope:self.bootstrap().map(|b|match b.proof_scope(){ckks_train_ckks::bootstrap::metadata::ProofScope::StructuralCostAndBoundaryScales=>0}),bootstrap_unvalidated:Requirements::P1(self.bootstrap().map_or(&[],|b|b.unvalidated_requirements()))}.traverse(output)?;
++        if output {
++            WireDescriptor::parse(Kind::Security, &bytes.1)?
++                .validate_registered_security_declarations(self.parameters().n() as u64)?;
++        }
+         Ok(bytes)
+     }
+ }
++// Hash cache is module-private and only derived in the fixed same-owner collector.
++struct DescriptorDigests<'a> {
++    parameter: &'a str,
++    bootstrap: Option<&'a str>,
++}
++pub(crate) struct DescriptorSizes {
++    pub(crate) interactive: Option<usize>,
++    pub(crate) layout: usize,
++    pub(crate) keys: usize,
++    pub(crate) security: usize,
++}
++impl PreparationDescriptorFacts<'_> {
++    pub(crate) fn descriptor_sizes(&self) -> Result<DescriptorSizes> {
++        const HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";
++        let hashes = || DescriptorDigests {
++            parameter: HASH,
++            bootstrap: self.bootstrap().map(|_| HASH),
++        };
++        Ok(DescriptorSizes {
++            interactive: if self.bootstrap().is_none() {
++                Some(
++                    ParameterFields::from_params(self.parameters())
++                        .traverse(false)?
++                        .0,
++                )
++            } else {
++                None
++            },
++            layout: self.layout_with(hashes(), false)?.0,
++            keys: self.keys_with(hashes(), false)?.0,
++            security: self.security_with(hashes(), false)?.0,
++        })
++    }
++}
++fn collect_descriptors(
++    facts: PreparationDescriptorFacts<'_>,
++    accounting: &mut crate::study_execution::PreparationAccounting,
++) -> crate::study_client::CpuPreparationResult<crate::study_execution::CanonicalDescriptors> {
++    use crate::study_client::CpuPreparationError;
++    use crate::study_execution::CanonicalDescriptors;
++    let document = |e| CpuPreparationError::Descriptor(e);
++    let sizes = facts.descriptor_sizes().map_err(document)?;
++    // Every output and digest reservation precedes the corresponding allocation.
++    let mut bytes = accounting.reserve(
++        sizes
++            .interactive
++            .unwrap_or(0)
++            .checked_add(sizes.layout)
++            .and_then(|n| n.checked_add(sizes.keys))
++            .and_then(|n| n.checked_add(sizes.security))
++            .and_then(|n| {
++                n.checked_add(if facts.bootstrap().is_some() {
++                    320
++                } else {
++                    256
++                })
++            })
++            .ok_or(crate::study_execution::AccountingError::Overflow)?,
++    )?;
++    let interactive_parameters = if sizes.interactive.is_some() {
++        Some(facts.interactive_parameter_bytes().map_err(document)?)
++    } else {
++        None
++    };
++    let digest = |bytes: &[u8]| {
++        crate::data::try_sha256_hex(bytes)
++            .map_err(|_| crate::study_execution::AccountingError::Allocation)
++    };
++    let parameter_digest = digest(match &interactive_parameters {
++        Some(p) => p,
++        None => facts
++            .bootstrap()
++            .expect("NI metadata")
++            .parameter_identity_bytes(),
++    })?;
++    let bootstrap_digest = facts
++        .bootstrap()
++        .map(|b| digest(b.descriptor_identity_bytes()))
++        .transpose()?;
++    let hashes = || DescriptorDigests {
++        parameter: &parameter_digest,
++        bootstrap: bootstrap_digest.as_deref(),
++    };
++    let layout = facts.layout_with(hashes(), true).map_err(document)?.1;
++    let keys = facts.keys_with(hashes(), true).map_err(document)?.1;
++    let security = facts.security_with(hashes(), true).map_err(document)?.1;
++    let layout_digest = digest(&layout)?;
++    let keys_digest = digest(&keys)?;
++    let security_digest = digest(&security)?;
++    bytes.retain_all()?;
++    Ok(CanonicalDescriptors {
++        interactive_parameters,
++        layout,
++        keys,
++        security,
++        parameter_digest,
++        bootstrap_digest,
++        layout_digest,
++        keys_digest,
++        security_digest,
++    })
++}
++// Only these fixed collectors may use the private hash cache. The complete owner
++// enters and leaves intact; no checked-by-value or arbitrary digest API is exposed.
++pub(crate) fn collect_single<'i, 'p>(
++    mut preparation: crate::study_execution::RetainedPreparation<
++        'i,
++        crate::study_client::CheckedPreparation<'p>,
++    >,
++) -> crate::study_client::CpuPreparationResult<
++    crate::study_execution::PreparedCanonicalBundle<
++        'i,
++        crate::study_client::CheckedPreparation<'p>,
++    >,
++> {
++    let (facts, accounting) = preparation.descriptor_parts();
++    let descriptors = collect_descriptors(facts, accounting)?;
++    Ok(crate::study_execution::PreparedCanonicalBundle::new(
++        descriptors,
++        preparation,
++    ))
++}
++pub(crate) fn collect_blocks<'i, 'p>(
++    mut preparation: crate::study_execution::RetainedPreparation<
++        'i,
++        crate::study_client::blocks::CheckedBlockPreparation<'p>,
++    >,
++) -> crate::study_client::CpuPreparationResult<
++    crate::study_execution::PreparedCanonicalBundle<
++        'i,
++        crate::study_client::blocks::CheckedBlockPreparation<'p>,
++    >,
++> {
++    let (facts, accounting) = preparation.descriptor_parts();
++    let descriptors = collect_descriptors(facts, accounting)?;
++    Ok(crate::study_execution::PreparedCanonicalBundle::new(
++        descriptors,
++        preparation,
++    ))
++}
+ // Allocation-free transport preflight. Lists borrow their encoded ranges; every
+ // count is checked against the remaining complete image before entering a loop.
+ // It intentionally does NOT grant source/production validity to wire fixtures.
+diff --git a/crates/ckks-train-nn/src/diagonal_plan.rs b/crates/ckks-train-nn/src/diagonal_plan.rs
+index 8ffd262..f496da3 100644
+--- a/crates/ckks-train-nn/src/diagonal_plan.rs
++++ b/crates/ckks-train-nn/src/diagonal_plan.rs
+@@ -250,6 +250,41 @@ pub struct StageGeometry {
+     masks: Vec<MaskRecipe>,
+ }
+ impl StageGeometry {
++    /// Logical requested nested heap payload, excluding this inline root and allocator
++    /// capacity/overhead. Includes private identity vectors and every owned geometry
++    /// vector exactly once. This is sizing only, not serialization or admission.
++    pub fn requested_heap_payload_bytes(&self) -> Option<usize> {
++        fn add<T>(total: &mut usize, n: usize) -> Option<()> {
++            *total = total.checked_add(n.checked_mul(std::mem::size_of::<T>())?)?;
++            Some(())
++        }
++        let mut n = 0;
++        add::<usize>(&mut n, self.identity.dims.len())?;
++        add::<DiagonalActivation>(&mut n, self.identity.acts.len())?;
++        if let TransposeIdentity::Reuse(v) = &self.identity.transpose {
++            add::<i32>(&mut n, v.len())?;
++        }
++        add::<LayerShape>(&mut n, self.shapes.len())?;
++        add::<MaskRecipe>(&mut n, self.masks.len())?;
++        for m in &self.masks {
++            add::<i32>(&mut n, m.reduce_steps.len())?;
++            add::<i32>(&mut n, m.replication_steps.len())?;
++        }
++        add::<TransposeRecipe>(&mut n, self.transpose.len())?;
++        for r in &self.transpose {
++            add::<(usize, Vec<i32>)>(&mut n, r.len())?;
++            for (_, chain) in r {
++                add::<i32>(&mut n, chain.len())?;
++            }
++        }
++        add::<i32>(&mut n, self.keys.len())?;
++        if let Some(c) = &self.compact {
++            add::<crate::compact::CompactPlan>(&mut n, c.plans.len())?;
++            add::<crate::trainer_ni::ContainerSpec>(&mut n, c.containers.len())?;
++            add::<crate::trainer_ni::BiasSlot>(&mut n, c.biases.len())?;
++        }
++        Some(n)
++    }
+     /// Logical dimensions, including the actual trainable output width.
+     pub fn dims(&self) -> &[usize] {
+         &self.identity.dims

@@ -194,17 +194,16 @@ fn prepare_initial(
     layers: &[(ndarray::Array2<f64>, Vec<f64>)],
 ) -> EncryptedInitialState {
     let claim = plan.claim();
-    let checked = prepare_then_make(
+    prepare_then_make(
         PreparationInput::Synthetic {
             plan: plan.clone(),
             claim: &claim,
         },
         context_parameters(context),
         &plan.parts,
-        Ok,
+        |checked| client.encrypt_initial(checked, context, layers),
     )
-    .unwrap();
-    client.encrypt_initial(checked, context, layers).unwrap()
+    .unwrap()
 }
 fn compare(
     client: &StudyClient,

@@ -5,6 +5,9 @@
 //! materializations can construct the private-field public values.
 mod digests;
 mod document;
+pub(crate) use document::{
+    collect_block_preparation_descriptors, collect_single_preparation_descriptors,
+};
 mod publication;
 mod session;
 mod target;
@@ -31,8 +34,9 @@ pub use target::{
     VerifiedTargetForSeed, lock_target,
 };
 
+#[cfg(test)]
+use crate::data::sha256_hex;
 use crate::{
-    data::sha256_hex,
     profile_data::OrderCoverage,
     study_inputs::{IDENTITY_VERSION, InitialModel, MaterializedProfile, StageInput},
     study_profile::{
@@ -68,6 +72,10 @@ pub enum ReferenceIdentityError {
     NonCanonical,
     /// An unsupported or inconsistent selected input cannot be projected.
     Unsupported(&'static str),
+    /// Checked requested-payload length overflow.
+    ArithmeticOverflow,
+    /// A canonical identity buffer or digest could not be reserved.
+    AllocationFailed,
 }
 impl fmt::Display for ReferenceIdentityError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -125,26 +133,68 @@ impl SeedInputReceiptV1 {
     }
 }
 
-struct Encoding(Vec<u8>);
+struct Encoding {
+    bytes: Vec<u8>,
+    length: Option<usize>,
+    counting: bool,
+    allocation_failed: bool,
+}
 impl Encoding {
     fn new(domain: &str) -> Self {
-        let mut e = Self(Vec::new());
+        let mut e = Self {
+            bytes: Vec::new(),
+            length: Some(0),
+            counting: false,
+            allocation_failed: false,
+        };
         e.text(ENCODING_VERSION);
         e.text(domain);
         e
     }
+    fn counting(domain: &str) -> Self {
+        let mut e = Self {
+            bytes: Vec::new(),
+            length: Some(0),
+            counting: true,
+            allocation_failed: false,
+        };
+        e.text(ENCODING_VERSION);
+        e.text(domain);
+        e
+    }
+    fn raw(&mut self, bytes: &[u8]) {
+        self.length = self.length.and_then(|n| n.checked_add(bytes.len()));
+        if !self.counting && !self.allocation_failed && self.length.is_some() {
+            if self.bytes.try_reserve_exact(bytes.len()).is_err() {
+                self.allocation_failed = true;
+            } else {
+                self.bytes.extend_from_slice(bytes);
+            }
+        }
+    }
+    fn checked_length(&self) -> Result<usize> {
+        if self.allocation_failed {
+            return Err(ReferenceIdentityError::AllocationFailed);
+        }
+        self.length
+            .ok_or(ReferenceIdentityError::ArithmeticOverflow)
+    }
+    fn finish(self) -> Result<Vec<u8>> {
+        self.checked_length()?;
+        Ok(self.bytes)
+    }
     fn byte(&mut self, n: u8) {
-        self.0.push(n);
+        self.raw(&[n]);
     }
     fn count(&mut self, n: usize) {
-        self.0.extend_from_slice(&(n as u64).to_le_bytes());
+        self.raw(&(n as u64).to_le_bytes());
     }
     fn text(&mut self, s: &str) {
         self.count(s.len());
-        self.0.extend_from_slice(s.as_bytes());
+        self.raw(s.as_bytes());
     }
     fn float(&mut self, n: f64) {
-        self.0.extend_from_slice(&n.to_bits().to_le_bytes());
+        self.raw(&n.to_bits().to_le_bytes());
     }
     fn option(&mut self, n: Option<usize>) {
         self.byte(u8::from(n.is_some()));
@@ -216,10 +266,19 @@ fn layers(e: &mut Encoding, values: &[Layer]) {
     }
 }
 fn sources(e: &mut Encoding, files: &[StudySource]) {
-    let mut sorted = files.iter().collect::<Vec<_>>();
-    sorted.sort_by(|a, b| (a.path(), a.role()).cmp(&(b.path(), b.role())));
-    e.count(sorted.len());
-    for f in sorted {
+    e.count(files.len());
+    let mut previous: Option<usize> = None;
+    for _ in 0..files.len() {
+        let index = (0..files.len())
+            .filter(|&i| {
+                previous.is_none_or(|p| {
+                    (files[i].path(), files[i].role(), i) > (files[p].path(), files[p].role(), p)
+                })
+            })
+            .min_by_key(|&i| (files[i].path(), files[i].role(), i))
+            .expect("remaining source");
+        previous = Some(index);
+        let f = &files[index];
         e.byte(match f.role() {
             StudySourceRole::Registry => 0,
             StudySourceRole::PortableLock => 1,
@@ -330,7 +389,7 @@ impl<'a> SharedView<'a> {
         })
     }
 }
-fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
+fn shared_encoding(v: &SharedView<'_>, counting: bool) -> Result<Encoding> {
     let ProfileMetadata {
         id,
         seed: _,
@@ -362,7 +421,11 @@ fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
         split_policy,
         dataset_files: _,
     } = identity; // all file fields in immutable selector
-    let mut e = Encoding::new(CONTRACT_VERSION);
+    let mut e = if counting {
+        Encoding::counting(CONTRACT_VERSION)
+    } else {
+        Encoding::new(CONTRACT_VERSION)
+    };
     e.text(CONTRACT_VERSION);
     e.text(SELECTOR_VERSION);
     e.text(POLICY_REVISION);
@@ -527,7 +590,8 @@ fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
         e.text(LOOKUP_POLICY);
     }
     plan(&mut e, v.plan, false);
-    Ok(e.0)
+    e.checked_length()?;
+    Ok(e)
 }
 fn parameters64(e: &mut Encoding, m: &InitialModel<f64>) {
     e.byte(64);
@@ -555,16 +619,25 @@ fn parameters32(e: &mut Encoding, m: &InitialModel<f32>) {
         e.count(l.weights().nrows());
         e.count(l.weights().ncols());
         for &v in l.weights() {
-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
+            e.raw(&v.to_bits().to_le_bytes());
         }
         e.count(l.biases().len());
         for &v in l.biases() {
-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
+            e.raw(&v.to_bits().to_le_bytes());
         }
     }
 }
-fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) -> Vec<u8> {
-    let mut e = Encoding::new(RECEIPT_VERSION);
+fn receipt_encoding(
+    p: &MaterializedProfile,
+    s: &SharedSelector,
+    contract: &str,
+    counting: bool,
+) -> Encoding {
+    let mut e = if counting {
+        Encoding::counting(RECEIPT_VERSION)
+    } else {
+        Encoding::new(RECEIPT_VERSION)
+    };
     e.text(RECEIPT_VERSION);
     e.text(contract);
     e.byte(p.metadata().seed);
@@ -585,10 +658,16 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
     ] {
         e.text(value);
     }
-    let mut sorted = i.sources().iter().collect::<Vec<_>>();
-    sorted.sort_by(|a, b| a.path.cmp(&b.path));
-    e.count(sorted.len());
-    for f in sorted {
+    let files = i.sources();
+    e.count(files.len());
+    let mut previous: Option<usize> = None;
+    for _ in 0..files.len() {
+        let index = (0..files.len())
+            .filter(|&i| previous.is_none_or(|p| (&files[i].path, i) > (&files[p].path, p)))
+            .min_by_key(|&i| (&files[i].path, i))
+            .expect("remaining source");
+        previous = Some(index);
+        let f = &files[index];
         e.text(&f.path);
         e.text(&f.expected_sha256);
         e.text(&f.actual_sha256);
@@ -605,7 +684,7 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
     plan(&mut e, p.plan(), true);
     e.float(p.reference_kernel_rate_f64());
     let f = p.numeric_f32();
-    e.0.extend_from_slice(&f.reference_kernel_rate().to_bits().to_le_bytes());
+    e.raw(&f.reference_kernel_rate().to_bits().to_le_bytes());
     let d = p.numeric_f64();
     e.count(d.rates().len());
     for r in d.rates() {
@@ -616,7 +695,7 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
     e.count(f.rates().len());
     for r in f.rates() {
         for v in [r.source, r.mean, r.delta, r.kernel] {
-            e.0.extend_from_slice(&v.to_bits().to_le_bytes());
+            e.raw(&v.to_bits().to_le_bytes());
         }
     }
     e.count(p.order().rows().len());
@@ -626,7 +705,32 @@ fn receipt_bytes(p: &MaterializedProfile, s: &SharedSelector, contract: &str) ->
     e.indices(p.order().pass_offsets());
     parameters64(&mut e, p.initial());
     parameters32(&mut e, f.initial());
-    e.0
+    e
+}
+#[cfg(test)]
+fn shared_bytes(v: &SharedView<'_>) -> Result<Vec<u8>> {
+    shared_encoding(v, false)?.finish()
+}
+/// Allocation-free traversal of the same identity encoders. Hash values have fixed width.
+pub(crate) fn identity_payload_sizes(p: &MaterializedProfile) -> Result<(usize, usize)> {
+    let v = SharedView::canonical(p)?;
+    let shared = shared_encoding(&v, true)?.checked_length()?;
+    let receipt = receipt_encoding(
+        p,
+        v.selector,
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        true,
+    )
+    .checked_length()?;
+    Ok((shared, receipt))
+}
+fn copy_identity_text(s: &str) -> Result<String> {
+    let mut output = String::new();
+    output
+        .try_reserve_exact(s.len())
+        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
+    output.push_str(s);
+    Ok(output)
 }
 /// Derive immutable dual identities from one already prepared canonical profile.
 /// This does not prepare again, train, generate a target, or attest external provenance.
@@ -634,21 +738,23 @@ pub fn derive_identities(
     p: &MaterializedProfile,
 ) -> Result<(StudyProfileContractV1, SeedInputReceiptV1)> {
     let v = SharedView::canonical(p)?;
-    let bytes = shared_bytes(&v)?;
-    let digest = sha256_hex(&bytes);
-    let receipt = receipt_bytes(p, v.selector, &digest);
-    let receipt_digest = sha256_hex(&receipt);
+    let bytes = shared_encoding(&v, false)?.finish()?;
+    let digest = crate::data::try_sha256_hex(&bytes)
+        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
+    let receipt = receipt_encoding(p, v.selector, &digest, false).finish()?;
+    let receipt_digest = crate::data::try_sha256_hex(&receipt)
+        .map_err(|_| ReferenceIdentityError::AllocationFailed)?;
     Ok((
         StudyProfileContractV1 {
             bytes,
-            digest: digest.clone(),
+            digest: copy_identity_text(&digest)?,
         },
         SeedInputReceiptV1 {
             bytes: receipt,
             digest: receipt_digest,
             seed: p.metadata().seed,
             contract: digest,
-            materialized: p.identity().digest().into(),
+            materialized: copy_identity_text(p.identity().digest())?,
         },
     ))
 }
@@ -714,9 +820,9 @@ mod tests {
             .step_by(2)
             .map(|i| u8::from_str_radix(&expected[i..i + 2], 16).unwrap())
             .collect();
-        assert_eq!(e.0, expected_bytes);
+        assert_eq!(e.bytes, expected_bytes);
         assert_eq!(
-            sha256_hex(&e.0),
+            sha256_hex(&e.bytes),
             "4e99587a77915a320fc1332ad79c1bd53bd3b74a61a6e845278044b684810b34"
         );
     }
@@ -728,7 +834,7 @@ mod tests {
         let bytes = |p: &BatchPlan, numeric| {
             let mut e = Encoding::new("test-plan");
             plan(&mut e, p, numeric);
-            e.0
+            e.bytes
         };
         type Change = fn(&mut BatchPlan);
         let changes: &[Change] = &[
@@ -906,7 +1012,7 @@ mod tests {
             plan(&mut numeric_b, &bp.plan, true);
             // Current released schedules happen to be equal for seeds 0/7;
             // synthetic coefficient mutations above test the permitted difference.
-            assert_eq!(sha256_hex(&numeric_a.0), sha256_hex(&numeric_b.0));
+            assert_eq!(sha256_hex(&numeric_a.bytes), sha256_hex(&numeric_b.bytes));
             for mutate in [
                 (|m: &mut ProfileMetadata| m.schedule.as_mut().unwrap().steps += 1)
                     as fn(&mut ProfileMetadata),

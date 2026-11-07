@@ -124,7 +124,11 @@ impl GeometryWriter for Writer {
         self.u64(u64::try_from(n).map_err(|_| err(DocumentErrorCode::TooLarge, "execution.index"))?)
     }
 }
-fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8>> {
+fn traverse(
+    kind: Kind,
+    output: bool,
+    body: impl Fn(&mut Writer) -> Result<()>,
+) -> Result<(usize, Vec<u8>)> {
     let mut size = Writer {
         length: 0,
         output: None,
@@ -132,6 +136,9 @@ fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8
     size.header(kind)?;
     body(&mut size)?;
     let n = checked_size(size.length)?;
+    if !output {
+        return Ok((n, Vec::new()));
+    }
     let mut output = Encoder::new(DocumentLayout::Reference);
     output
         .bytes
@@ -144,7 +151,7 @@ fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8
     writer.header(kind)?;
     body(&mut writer)?;
     valid(writer.length == size.length, "execution.size_changed")?;
-    Ok(writer.output.expect("output pass").bytes)
+    Ok((n, writer.output.expect("output pass").bytes))
 }
 #[derive(Clone, Copy)]
 pub(super) enum BitSizes<'a> {
@@ -217,8 +224,11 @@ impl<'a> ParameterFields<'a> {
         weight(self.main_weight, 1u64 << self.log_n)
     }
     pub(super) fn encode(&self) -> Result<Vec<u8>> {
+        Ok(self.traverse(true)?.1)
+    }
+    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
         self.validate()?;
-        encode(Kind::Parameters, |w| {
+        traverse(Kind::Parameters, output, |w| {
             for v in [self.q, self.p] {
                 w.number(v.len())?;
                 for n in v {
@@ -275,6 +285,9 @@ pub(super) struct LayoutFields<'a, S: GeometryStages> {
 }
 impl<S: GeometryStages> LayoutFields<'_, S> {
     pub(super) fn encode(&self) -> Result<Vec<u8>> {
+        Ok(self.traverse(true)?.1)
+    }
+    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
         valid(
             self.consumption <= 1
                 && self.mode <= 1
@@ -326,7 +339,7 @@ impl<S: GeometryStages> LayoutFields<'_, S> {
                 end = checked_add(end, p.valid as u64)?;
             }
         }
-        encode(Kind::Layout, |w| {
+        traverse(Kind::Layout, output, |w| {
             w.hash(self.parameter_identity)?;
             w.tag(self.consumption)?;
             w.tag(self.mode)?;
@@ -372,8 +385,11 @@ pub(super) struct KeyFields<'a> {
 }
 impl KeyFields<'_> {
     pub(super) fn encode(&self) -> Result<Vec<u8>> {
+        Ok(self.traverse(true)?.1)
+    }
+    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
         valid(self.owner_policy == 0, "keys.owner")?;
-        encode(Kind::Keys, |w| {
+        traverse(Kind::Keys, output, |w| {
             w.hash(self.parameter_identity)?;
             w.optional_hash(self.bootstrap_descriptor)?;
             w.tag(u8::from(self.transpose.is_some()))?;
@@ -449,13 +465,16 @@ pub(super) struct SecurityFields<'a> {
 }
 impl SecurityFields<'_> {
     pub(super) fn encode(&self) -> Result<Vec<u8>> {
+        Ok(self.traverse(true)?.1)
+    }
+    fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
         valid(
             self.registered_policy <= 1
                 && self.assurance == 0
                 && self.bootstrap_scope.is_none_or(|n| n == 0),
             "security.tags",
         )?;
-        encode(Kind::Security, |w| {
+        traverse(Kind::Security, output, |w| {
             w.tag(self.registered_policy)?;
             w.hash(self.parameter_identity)?;
             w.optional_hash(self.bootstrap_descriptor)?;
@@ -499,6 +518,18 @@ impl PreparationDescriptorFacts<'_> {
         }
     }
     pub(crate) fn physical_layout_bytes(&self) -> Result<Vec<u8>> {
+        let parameter = self.parameter_hash()?;
+        Ok(self
+            .layout_with(
+                DescriptorDigests {
+                    parameter: &parameter,
+                    bootstrap: None,
+                },
+                true,
+            )?
+            .1)
+    }
+    fn layout_with(&self, hashes: DescriptorDigests<'_>, output: bool) -> Result<(usize, Vec<u8>)> {
         let p = self.parameters();
         valid(self.stage_count() > 0, "source.stages")?;
         for i in 0..self.stage_count() {
@@ -508,9 +539,8 @@ impl PreparationDescriptorFacts<'_> {
                 "source.geometry",
             )?;
         }
-        let hash = self.parameter_hash()?;
         LayoutFields {
-            parameter_identity: &hash,
+            parameter_identity: hashes.parameter,
             consumption: match self.plan().consumption() {
                 Consumption::Full => 0,
                 Consumption::Quick => 1,
@@ -520,13 +550,24 @@ impl PreparationDescriptorFacts<'_> {
             stages: self,
             parts: self.plan().partitions(),
         }
-        .encode()
+        .traverse(output)
     }
     pub(crate) fn cpu_key_policy_bytes(&self) -> Result<Vec<u8>> {
-        let hash = self.parameter_hash()?;
-        let boot = self
+        let parameter = self.parameter_hash()?;
+        let bootstrap = self
             .bootstrap()
             .map(|b| sha256_hex(b.descriptor_identity_bytes()));
+        Ok(self
+            .keys_with(
+                DescriptorDigests {
+                    parameter: &parameter,
+                    bootstrap: bootstrap.as_deref(),
+                },
+                true,
+            )?
+            .1)
+    }
+    fn keys_with(&self, hashes: DescriptorDigests<'_>, output: bool) -> Result<(usize, Vec<u8>)> {
         let keys = self.plan().keys();
         let rotations = keys.training_rotations();
         let slots = self.parameters().slots();
@@ -573,8 +614,8 @@ impl PreparationDescriptorFacts<'_> {
             TransposeKeys::Reuse(v) => Some(v.as_slice()),
         };
         KeyFields {
-            parameter_identity: &hash,
-            bootstrap_descriptor: boot.as_deref(),
+            parameter_identity: hashes.parameter,
+            bootstrap_descriptor: hashes.bootstrap,
             transpose: pool,
             training_level: self.parameters().max_level() as u64,
             training_rotations: rotations,
@@ -588,13 +629,28 @@ impl PreparationDescriptorFacts<'_> {
             separate_bootstrap_bundle: keys.separate_bootstrap_bundle(),
             owner_policy: 0,
         }
-        .encode()
+        .traverse(output)
     }
     pub(crate) fn security_declaration_bytes(&self) -> Result<Vec<u8>> {
-        let hash = self.parameter_hash()?;
-        let boot = self
+        let parameter = self.parameter_hash()?;
+        let bootstrap = self
             .bootstrap()
             .map(|b| sha256_hex(b.descriptor_identity_bytes()));
+        Ok(self
+            .security_with(
+                DescriptorDigests {
+                    parameter: &parameter,
+                    bootstrap: bootstrap.as_deref(),
+                },
+                true,
+            )?
+            .1)
+    }
+    fn security_with(
+        &self,
+        hashes: DescriptorDigests<'_>,
+        output: bool,
+    ) -> Result<(usize, Vec<u8>)> {
         let main = self.parameters().hamming_weight().map(|n| n as u64);
         if let Some(b) = self.bootstrap() {
             valid(
@@ -602,11 +658,153 @@ impl PreparationDescriptorFacts<'_> {
                 "source.main_secret",
             )?;
         }
-        let bytes=SecurityFields{registered_policy:u8::from(self.bootstrap().is_some()),parameter_identity:&hash,bootstrap_descriptor:boot.as_deref(),main,ephemeral:self.bootstrap().and_then(|b|b.declared_ephemeral_secret()).map(secret_weight),assurance:0,bootstrap_scope:self.bootstrap().map(|b|match b.proof_scope(){ckks_train_ckks::bootstrap::metadata::ProofScope::StructuralCostAndBoundaryScales=>0}),bootstrap_unvalidated:Requirements::P1(self.bootstrap().map_or(&[],|b|b.unvalidated_requirements()))}.encode()?;
-        WireDescriptor::parse(Kind::Security, &bytes)?
-            .validate_registered_security_declarations(self.parameters().n() as u64)?;
+        let bytes=SecurityFields{registered_policy:u8::from(self.bootstrap().is_some()),parameter_identity:hashes.parameter,bootstrap_descriptor:hashes.bootstrap,main,ephemeral:self.bootstrap().and_then(|b|b.declared_ephemeral_secret()).map(secret_weight),assurance:0,bootstrap_scope:self.bootstrap().map(|b|match b.proof_scope(){ckks_train_ckks::bootstrap::metadata::ProofScope::StructuralCostAndBoundaryScales=>0}),bootstrap_unvalidated:Requirements::P1(self.bootstrap().map_or(&[],|b|b.unvalidated_requirements()))}.traverse(output)?;
+        if output {
+            WireDescriptor::parse(Kind::Security, &bytes.1)?
+                .validate_registered_security_declarations(self.parameters().n() as u64)?;
+        }
         Ok(bytes)
     }
+}
+// Hash cache is module-private and only derived in the fixed same-owner collector.
+struct DescriptorDigests<'a> {
+    parameter: &'a str,
+    bootstrap: Option<&'a str>,
+}
+pub(crate) struct DescriptorSizes {
+    pub(crate) interactive: Option<usize>,
+    pub(crate) layout: usize,
+    pub(crate) keys: usize,
+    pub(crate) security: usize,
+}
+impl PreparationDescriptorFacts<'_> {
+    pub(crate) fn descriptor_sizes(&self) -> Result<DescriptorSizes> {
+        const HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+        let hashes = || DescriptorDigests {
+            parameter: HASH,
+            bootstrap: self.bootstrap().map(|_| HASH),
+        };
+        Ok(DescriptorSizes {
+            interactive: if self.bootstrap().is_none() {
+                Some(
+                    ParameterFields::from_params(self.parameters())
+                        .traverse(false)?
+                        .0,
+                )
+            } else {
+                None
+            },
+            layout: self.layout_with(hashes(), false)?.0,
+            keys: self.keys_with(hashes(), false)?.0,
+            security: self.security_with(hashes(), false)?.0,
+        })
+    }
+}
+fn collect_descriptors(
+    facts: PreparationDescriptorFacts<'_>,
+    accounting: &mut crate::study_execution::PreparationAccounting,
+) -> crate::study_client::CpuPreparationResult<crate::study_execution::CanonicalDescriptors> {
+    use crate::study_client::CpuPreparationError;
+    use crate::study_execution::CanonicalDescriptors;
+    let document = |e| CpuPreparationError::Descriptor(e);
+    let sizes = facts.descriptor_sizes().map_err(document)?;
+    // Every output and digest reservation precedes the corresponding allocation.
+    let mut bytes = accounting.reserve(
+        sizes
+            .interactive
+            .unwrap_or(0)
+            .checked_add(sizes.layout)
+            .and_then(|n| n.checked_add(sizes.keys))
+            .and_then(|n| n.checked_add(sizes.security))
+            .and_then(|n| {
+                n.checked_add(if facts.bootstrap().is_some() {
+                    320
+                } else {
+                    256
+                })
+            })
+            .ok_or(crate::study_execution::AccountingError::Overflow)?,
+    )?;
+    let interactive_parameters = if sizes.interactive.is_some() {
+        Some(facts.interactive_parameter_bytes().map_err(document)?)
+    } else {
+        None
+    };
+    let digest = |bytes: &[u8]| {
+        crate::data::try_sha256_hex(bytes)
+            .map_err(|_| crate::study_execution::AccountingError::Allocation)
+    };
+    let parameter_digest = digest(match &interactive_parameters {
+        Some(p) => p,
+        None => facts
+            .bootstrap()
+            .expect("NI metadata")
+            .parameter_identity_bytes(),
+    })?;
+    let bootstrap_digest = facts
+        .bootstrap()
+        .map(|b| digest(b.descriptor_identity_bytes()))
+        .transpose()?;
+    let hashes = || DescriptorDigests {
+        parameter: &parameter_digest,
+        bootstrap: bootstrap_digest.as_deref(),
+    };
+    let layout = facts.layout_with(hashes(), true).map_err(document)?.1;
+    let keys = facts.keys_with(hashes(), true).map_err(document)?.1;
+    let security = facts.security_with(hashes(), true).map_err(document)?.1;
+    let layout_digest = digest(&layout)?;
+    let keys_digest = digest(&keys)?;
+    let security_digest = digest(&security)?;
+    bytes.retain_all()?;
+    Ok(CanonicalDescriptors {
+        interactive_parameters,
+        layout,
+        keys,
+        security,
+        parameter_digest,
+        bootstrap_digest,
+        layout_digest,
+        keys_digest,
+        security_digest,
+    })
+}
+// Only these fixed collectors may use the private hash cache. The complete owner
+// enters and leaves intact; no checked-by-value or arbitrary digest API is exposed.
+pub(crate) fn collect_single<'i, 'p>(
+    mut preparation: crate::study_execution::RetainedPreparation<
+        'i,
+        crate::study_client::CheckedPreparation<'p>,
+    >,
+) -> crate::study_client::CpuPreparationResult<
+    crate::study_execution::PreparedCanonicalBundle<
+        'i,
+        crate::study_client::CheckedPreparation<'p>,
+    >,
+> {
+    let (facts, accounting) = preparation.descriptor_parts();
+    let descriptors = collect_descriptors(facts, accounting)?;
+    Ok(crate::study_execution::PreparedCanonicalBundle::new(
+        descriptors,
+        preparation,
+    ))
+}
+pub(crate) fn collect_blocks<'i, 'p>(
+    mut preparation: crate::study_execution::RetainedPreparation<
+        'i,
+        crate::study_client::blocks::CheckedBlockPreparation<'p>,
+    >,
+) -> crate::study_client::CpuPreparationResult<
+    crate::study_execution::PreparedCanonicalBundle<
+        'i,
+        crate::study_client::blocks::CheckedBlockPreparation<'p>,
+    >,
+> {
+    let (facts, accounting) = preparation.descriptor_parts();
+    let descriptors = collect_descriptors(facts, accounting)?;
+    Ok(crate::study_execution::PreparedCanonicalBundle::new(
+        descriptors,
+        preparation,
+    ))
 }
 // Allocation-free transport preflight. Lists borrow their encoded ranges; every
 // count is checked against the remaining complete image before entering a loop.

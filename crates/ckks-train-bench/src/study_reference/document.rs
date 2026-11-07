@@ -6,6 +6,10 @@
 //! denominator, arithmetic and digest claim against the trusted full plan/data.
 //! Source/build/session/prefix/state/publication policies remain separate gates.
 mod execution_descriptors;
+pub(crate) use execution_descriptors::{
+    collect_blocks as collect_block_preparation_descriptors,
+    collect_single as collect_single_preparation_descriptors,
+};
 mod producer;
 mod reader;
 mod runtime_descriptors;

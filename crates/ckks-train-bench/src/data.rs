@@ -366,6 +366,24 @@ pub fn sha256_hex(data: &[u8]) -> String {
     state.finish()
 }
 
+// D7 callers reserve their accounting payload before this fallible allocation.
+// Keep legacy output semantics; both paths share finalization/compression below.
+fn reserved_digest_output(
+    bytes: usize,
+) -> std::result::Result<String, std::collections::TryReserveError> {
+    let mut output = String::new();
+    output.try_reserve_exact(bytes)?;
+    Ok(output)
+}
+pub(crate) fn try_sha256_hex(
+    data: &[u8],
+) -> std::result::Result<String, std::collections::TryReserveError> {
+    let output = reserved_digest_output(64)?;
+    let mut state = Sha256State::new();
+    state.update(data);
+    Ok(state.finish_with_output(output))
+}
+
 // Original compression algorithm, now retaining only one partial block.
 pub(crate) struct Sha256State {
     h: [u32; 8],
@@ -408,7 +426,11 @@ impl Sha256State {
         self.block[..tail.len()].copy_from_slice(tail);
         self.used = tail.len();
     }
-    pub(crate) fn finish(mut self) -> String {
+    pub(crate) fn finish(self) -> String {
+        self.finish_with_output(String::with_capacity(64))
+    }
+    fn finish_with_output(mut self, output: String) -> String {
+        debug_assert!(output.is_empty() && output.capacity() >= 64);
         self.block[self.used] = 0x80;
         self.block[self.used + 1..].fill(0);
         if self.used >= 56 {
@@ -419,7 +441,7 @@ impl Sha256State {
         self.block[56..].copy_from_slice(&self.bytes.wrapping_mul(8).to_be_bytes());
         let block = self.block;
         self.compress(&block);
-        self.h.iter().fold(String::with_capacity(64), |mut out, x| {
+        self.h.iter().fold(output, |mut out, x| {
             use std::fmt::Write as _;
             write!(out, "{x:08x}").expect("writing to a String");
             out
@@ -1024,6 +1046,30 @@ mod tests {
         assert!(parse_npy_f64(&npy("<f8", false, "(1, 2, 3)", &f8)).is_err());
     }
 
+    #[test]
+    fn d7_sha_fallible_known_vectors() {
+        for (input, expected) in [
+            (
+                &b""[..],
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ),
+            (
+                &b"abc"[..],
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            ),
+        ] {
+            let digest = try_sha256_hex(input).unwrap();
+            assert_eq!(digest, expected);
+            assert_eq!(digest, sha256_hex(input));
+        }
+    }
+    #[test]
+    fn d7_sha_output_reservation_boundary() {
+        let output = reserved_digest_output(64).unwrap();
+        assert!(output.is_empty());
+        assert!(output.capacity() >= 64);
+        assert!(reserved_digest_output(usize::MAX).is_err());
+    }
     #[test]
     fn sha256_known_vectors() {
         assert_eq!(

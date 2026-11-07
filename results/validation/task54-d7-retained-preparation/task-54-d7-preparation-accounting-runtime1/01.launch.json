@@ -1,0 +1,19 @@
+{
+  "index": 1,
+  "name": "study_execution::tests::d7_accounting_pure_boundaries",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_execution::tests::d7_accounting_pure_boundaries",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052896.08595,
+  "pid": 24095
+}

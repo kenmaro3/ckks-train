@@ -1,0 +1,23 @@
+{
+  "command": [
+    "rustfmt",
+    "--edition",
+    "2024",
+    "--config",
+    "skip_children=true",
+    "--check",
+    "crates/ckks-train-bench/src/data.rs",
+    "crates/ckks-train-bench/src/lib.rs",
+    "crates/ckks-train-bench/src/study_execution.rs",
+    "crates/ckks-train-bench/src/study_admission.rs",
+    "crates/ckks-train-bench/src/study_client.rs",
+    "crates/ckks-train-bench/src/study_client/blocks.rs",
+    "crates/ckks-train-bench/src/study_reference.rs",
+    "crates/ckks-train-bench/src/study_reference/document.rs",
+    "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs",
+    "crates/ckks-train-nn/src/diagonal_plan.rs"
+  ],
+  "exit": 0
+}

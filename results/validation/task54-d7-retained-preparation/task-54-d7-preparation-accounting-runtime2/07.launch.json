@@ -1,0 +1,19 @@
+{
+  "index": 7,
+  "name": "study_admission::tests::p3_fix1_structured_golden",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_admission::tests::p3_fix1_structured_golden",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794053134.2888849,
+  "pid": 29714
+}

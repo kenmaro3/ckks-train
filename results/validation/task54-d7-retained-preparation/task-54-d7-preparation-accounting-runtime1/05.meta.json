@@ -1,0 +1,36 @@
+{
+  "index": 5,
+  "name": "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052901.032,
+  "pid": 24259,
+  "exit_code": 0,
+  "end": 1794052901.13533,
+  "named_successes": [
+    "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 199,
+  "stdout_sha256": "99e50d9b31fd3002c22802f3d3c6e3863506094ff3e75ec60f80757b203e601f",
+  "stderr_bytes": 159,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+}

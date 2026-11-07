@@ -1,0 +1,19 @@
+{
+  "index": 5,
+  "name": "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052901.032,
+  "pid": 24259
+}

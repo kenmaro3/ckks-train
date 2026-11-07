@@ -1,0 +1,19 @@
+{
+  "index": 6,
+  "name": "study_reference::tests::every_plan_field_and_numeric_coefficient_has_its_declared_scope",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::tests::every_plan_field_and_numeric_coefficient_has_its_declared_scope",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052901.21743,
+  "pid": 24261
+}

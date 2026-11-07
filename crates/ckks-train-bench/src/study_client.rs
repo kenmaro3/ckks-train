@@ -33,6 +33,10 @@ pub enum CpuPreparationError {
     Admission(Box<study_admission::AdmissionIssue>),
     /// Existing candidate description, retaining its exact borrowed issue without cloning it.
     Candidate(Box<study_admission::CandidateDescription>),
+    /// New retained preparation requested-payload accounting failure.
+    Accounting(crate::study_execution::AccountingError),
+    /// Canonical source descriptor encoding failure.
+    Descriptor(crate::study_reference::DocumentError),
     /// Bridge association, shape, encryption or evaluation error.
     He(ckks_train_core::error::HekitError),
 }
@@ -42,7 +46,7 @@ impl CpuPreparationError {
         match self {
             Self::Admission(e) => Some(e),
             Self::Candidate(c) => c.issue(),
-            Self::He(_) => None,
+            Self::He(_) | Self::Accounting(_) | Self::Descriptor(_) => None,
         }
     }
 }
@@ -55,6 +59,8 @@ impl std::fmt::Display for CpuPreparationError {
                 None => write!(f, "candidate preparation failed without issue"),
             },
             Self::He(e) => e.fmt(f),
+            Self::Accounting(e) => e.fmt(f),
+            Self::Descriptor(e) => e.fmt(f),
         }
     }
 }
@@ -64,6 +70,8 @@ impl std::error::Error for CpuPreparationError {
             Self::Admission(e) => Some(e),
             Self::Candidate(c) => c.issue().map(|e| e as _),
             Self::He(e) => Some(e),
+            Self::Accounting(e) => Some(e),
+            Self::Descriptor(e) => Some(e),
         }
     }
 }
@@ -156,108 +164,158 @@ pub(crate) fn prepare_then_make<'a, T>(
     actual_partition: &[Vec<MicroPart>],
     factory: impl FnOnce(CheckedPreparation<'a>) -> Result<T>,
 ) -> CpuPreparationResult<T> {
-    let checked = match input {
-        PreparationInput::Canonical {
-            materialized,
-            registered,
-            plan,
-            request,
-        } => {
-            let owner = PlanOwner::Canonical(plan.clone());
-            owner.check_shape()?;
-            study_admission::validate_plan_binding(
+    factory(check_preparation(input, actual, actual_partition, None)?)
+        .map_err(CpuPreparationError::He)
+}
+pub(crate) fn check_preparation<'a>(
+    input: PreparationInput<'_>,
+    actual: PlanningParameters<'a>,
+    actual_partition: &[Vec<MicroPart>],
+    mut accounting: Option<&mut crate::study_execution::PreparationAccounting>,
+) -> CpuPreparationResult<CheckedPreparation<'a>> {
+    let checked =
+        match input {
+            PreparationInput::Canonical {
                 materialized,
                 registered,
-                &plan,
-                actual,
+                plan,
                 request,
-            )
-            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
-            ensure(actual_partition == plan.partitions(), "partition")?;
-            // Reserve geometry/initial allowance in the original request BEFORE hashing.
-            let candidate = study_admission::describe_candidate(
-                materialized.metadata(),
-                registered,
-                actual,
-                request,
-            );
-            if candidate.issue().is_some() {
-                return Err(CpuPreparationError::Candidate(Box::new(candidate)));
+            } => {
+                let owner = PlanOwner::Canonical(plan.clone());
+                owner.check_shape()?;
+                if let Some(a) = accounting.as_deref_mut() {
+                    study_admission::validate_plan_binding_accounted(
+                        materialized,
+                        registered,
+                        &plan,
+                        actual,
+                        request,
+                        a,
+                    )?;
+                } else {
+                    study_admission::validate_plan_binding(
+                        materialized,
+                        registered,
+                        &plan,
+                        actual,
+                        request,
+                    )
+                    .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
+                }
+                ensure(actual_partition == plan.partitions(), "partition")?;
+                // Reserve geometry/initial allowance in the original request BEFORE hashing.
+                let candidate = study_admission::describe_candidate(
+                    materialized.metadata(),
+                    registered,
+                    actual,
+                    request,
+                );
+                if candidate.issue().is_some() {
+                    return Err(CpuPreparationError::Candidate(Box::new(candidate)));
+                }
+                ensure(
+                    candidate.geometries().len() == 1,
+                    "missing block-stage execution capability",
+                )?;
+                let keys = candidate
+                    .keys()
+                    .ok_or_else(|| mismatch("candidate key manifest"))?;
+                ensure(keys.matches(plan.keys()), "candidate/plan key manifest")?;
+                let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
+                ensure(
+                    frozen || materialized.metadata().layers.iter().all(|l| l.bias),
+                    "mixed bias policy unsupported",
+                )?;
+                use crate::study_execution::{allocated, payload, sum};
+                let transpose_bytes = match &request.transpose {
+                    ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
+                    ckks_train_nn::dense::TransposeKeys::Reuse(v) => payload::<i32>(v.len())?,
+                };
+                let retained = sum([
+                    candidate.retained_geometry_payload()?,
+                    payload::<DiagonalActivation>(materialized.metadata().layers.len())?,
+                    transpose_bytes,
+                ])?;
+                let mut reservation = accounting
+                    .map(|a| {
+                        a.reserve(sum([
+                            retained,
+                            payload::<ckks_train_nn::diagonal_plan::StageGeometry>(1)?,
+                        ])?)
+                    })
+                    .transpose()?;
+                let dims_pointer = candidate.geometries()[0].dims().as_ptr();
+                let components = candidate
+                    .into_checked_components()
+                    .map_err(|c| CpuPreparationError::Candidate(Box::new(c)))?;
+                let mut geometries = components.geometries.into_iter();
+                let geometry = geometries.next().expect("validated single geometry");
+                debug_assert_eq!(dims_pointer, geometry.dims().as_ptr());
+                drop(components.keys); // bootstrap/training copies are not retained by single setup
+                let mut activations = allocated(materialized.metadata().layers.len())?;
+                activations.extend(materialized.metadata().layers.iter().map(
+                    |l| match l.activation {
+                        ProfileActivation::Square => DiagonalActivation::Square,
+                        ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
+                        ProfileActivation::Identity => DiagonalActivation::Identity,
+                    },
+                ));
+                let transpose = match &request.transpose {
+                    ckks_train_nn::dense::TransposeKeys::Dedicated => {
+                        ckks_train_nn::dense::TransposeKeys::Dedicated
+                    }
+                    ckks_train_nn::dense::TransposeKeys::Reuse(v) => {
+                        let mut p = allocated(v.len())?;
+                        p.extend_from_slice(v);
+                        ckks_train_nn::dense::TransposeKeys::Reuse(p)
+                    }
+                };
+                drop(geometries); // all new nested payload now overlaps the owning iterator
+                if let Some(r) = &mut reservation {
+                    r.release(payload::<ckks_train_nn::diagonal_plan::StageGeometry>(1)?)?;
+                    r.retain(retained)?;
+                }
+                CheckedPreparation {
+                    parameters: actual.params,
+                    bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+                    bootstrap_metadata: actual.bootstrap,
+                    boot_parameters: actual.boot_params,
+                    plan: owner,
+                    description: Description {
+                        geometry,
+                        activations,
+                        transpose,
+                        frozen,
+                    },
+                }
             }
-            ensure(
-                candidate.geometries().len() == 1,
-                "missing block-stage execution capability",
-            )?;
-            let keys = candidate
-                .keys()
-                .ok_or_else(|| mismatch("candidate key manifest"))?;
-            ensure(
-                keys.training_rotations() == plan.keys().training_rotations()
-                    && keys.bootstrap_generated_rotations()
-                        == plan.keys().bootstrap_generated_rotations()
-                    && keys.bootstrap_execution_rotations()
-                        == plan.keys().bootstrap_execution_rotations()
-                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
-                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
-                "candidate/plan key manifest",
-            )?;
-            let activations = materialized
-                .metadata()
-                .layers
-                .iter()
-                .map(|l| match l.activation {
-                    ProfileActivation::Square => DiagonalActivation::Square,
-                    ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
-                    ProfileActivation::Identity => DiagonalActivation::Identity,
-                })
-                .collect();
-            let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
-            ensure(
-                frozen || materialized.metadata().layers.iter().all(|l| l.bias),
-                "mixed bias policy unsupported",
-            )?;
-            // Clone only this one geometry, never the candidate's placeholder initial states.
-            CheckedPreparation {
-                parameters: actual.params,
-                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
-                bootstrap_metadata: actual.bootstrap,
-                boot_parameters: actual.boot_params,
-                plan: owner,
-                description: Description {
-                    geometry: candidate.geometries()[0].clone(),
-                    activations,
-                    transpose: request.transpose.clone(),
-                    frozen,
-                },
+            #[cfg(test)]
+            PreparationInput::Synthetic { plan, claim } => {
+                plan.validate(actual, actual_partition, claim)
+                    .map_err(mismatch)?;
+                let owner = PlanOwner::Synthetic(plan.clone());
+                owner.check_shape()?;
+                let activations = if plan.frozen {
+                    vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
+                } else {
+                    vec![DiagonalActivation::Square; 2]
+                };
+                CheckedPreparation {
+                    parameters: actual.params,
+                    bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+                    bootstrap_metadata: actual.bootstrap,
+                    boot_parameters: actual.boot_params,
+                    plan: owner,
+                    description: Description {
+                        geometry: plan.geometry.clone(),
+                        activations,
+                        transpose: plan.transpose.clone(),
+                        frozen: plan.frozen,
+                    },
+                }
             }
-        }
-        #[cfg(test)]
-        PreparationInput::Synthetic { plan, claim } => {
-            plan.validate(actual, actual_partition, claim)
-                .map_err(mismatch)?;
-            let owner = PlanOwner::Synthetic(plan.clone());
-            owner.check_shape()?;
-            let activations = if plan.frozen {
-                vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
-            } else {
-                vec![DiagonalActivation::Square; 2]
-            };
-            CheckedPreparation {
-                parameters: actual.params,
-                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
-                bootstrap_metadata: actual.bootstrap,
-                boot_parameters: actual.boot_params,
-                plan: owner,
-                description: Description {
-                    geometry: plan.geometry.clone(),
-                    activations,
-                    transpose: plan.transpose.clone(),
-                    frozen: plan.frozen,
-                },
-            }
-        }
-    };
-    factory(checked).map_err(CpuPreparationError::He)
+        };
+    Ok(checked)
 }
 /// Secret-bearing client; sessions never receive this value or a materialized profile.
 pub struct StudyClient {
@@ -416,7 +474,7 @@ impl StudyClient {
         request: &DiagonalRequest,
         context: &CpuEvaluationContext,
     ) -> CpuPreparationResult<EncryptedInitialState> {
-        let checked = prepare_then_make(
+        prepare_then_make(
             PreparationInput::Canonical {
                 materialized,
                 registered,
@@ -425,16 +483,16 @@ impl StudyClient {
             },
             context_parameters(context),
             plan.partitions(),
-            Ok,
-        )?;
-        let arrays = materialized
-            .initial()
-            .layers()
-            .iter()
-            .map(|l| (l.weights().clone(), l.biases().to_vec()))
-            .collect::<Vec<_>>();
-        self.encrypt_initial(checked, context, &arrays)
-            .map_err(CpuPreparationError::He)
+            |checked| {
+                let arrays = materialized
+                    .initial()
+                    .layers()
+                    .iter()
+                    .map(|l| (l.weights().clone(), l.biases().to_vec()))
+                    .collect::<Vec<_>>();
+                self.encrypt_initial(checked, context, &arrays)
+            },
+        )
     }
     pub(crate) fn encrypt_initial(
         &self,

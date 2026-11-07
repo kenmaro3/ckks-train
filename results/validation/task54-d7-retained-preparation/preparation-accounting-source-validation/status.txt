@@ -1,0 +1,15 @@
+ M crates/ckks-train-bench/src/data.rs
+ M crates/ckks-train-bench/src/lib.rs
+ M crates/ckks-train-bench/src/study_admission.rs
+ M crates/ckks-train-bench/src/study_blocks/p5_tests.rs
+ M crates/ckks-train-bench/src/study_client.rs
+ M crates/ckks-train-bench/src/study_client/blocks.rs
+ M crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+ M crates/ckks-train-bench/src/study_reference.rs
+ M crates/ckks-train-bench/src/study_reference/document.rs
+ M crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+ M crates/ckks-train-nn/src/diagonal_plan.rs
+?? .vscode/
+?? crates/ckks-train-bench/src/study_execution.rs
+?? results/mnist_blocks_128-64_plain_b48.json
+?? results/mnist_blocks_64_plain_b48.json

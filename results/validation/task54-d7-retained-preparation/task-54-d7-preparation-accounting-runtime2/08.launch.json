@@ -1,0 +1,19 @@
+{
+  "index": 8,
+  "name": "study_execution::tests::d7_canonical_six_retained_sources",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_execution::tests::d7_canonical_six_retained_sources",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794053134.5016031,
+  "pid": 29716
+}

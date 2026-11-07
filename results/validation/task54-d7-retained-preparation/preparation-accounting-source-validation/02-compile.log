@@ -1,0 +1,38 @@
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: unused import: `self`
+ --> crates/ckks-train-bench/src/study_execution.rs:3:31
+  |
+3 | use crate::{study_admission::{self, DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters, ReceiptLimits}, study_client::{self, Ch...
+  |                               ^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0282]: type annotations needed
+   --> crates/ckks-train-bench/src/study_reference.rs:231:115
+    |
+231 | ..._none_or(|p| (files[i].path(), files[i].role(), i) > (files[p].path(), files[p].role(), p)))
+    |                                                          ^^^^^^^^ cannot infer type
+
+error[E0609]: no field `bytes` on type `(usize, usize)`
+   --> crates/ckks-train-bench/src/study_reference.rs:487:41
+    |
+487 |                 e.count(a.logical_shape.bytes);
+    |                                         ^^^^^ unknown field
+
+error[E0609]: no field `bytes` on type `(usize, usize)`
+   --> crates/ckks-train-bench/src/study_reference.rs:489:40
+    |
+489 |                 e.count(a.source_shape.bytes);
+    |                                        ^^^^^ unknown field
+
+error[E0282]: type annotations needed
+   --> crates/ckks-train-bench/src/study_reference.rs:604:98
+    |
+604 |         let index = (0..files.len()).filter(|&i| previous.is_none_or(|p| (&files[i].path, i) > (&files[p].path, p)))
+    |                                                                                                  ^^^^^^^^ cannot infer type
+
+Some errors have detailed explanations: E0282, E0609.
+For more information about an error, try `rustc --explain E0282`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 4 previous errors; 1 warning emitted

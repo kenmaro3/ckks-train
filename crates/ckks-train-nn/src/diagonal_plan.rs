@@ -250,6 +250,41 @@ pub struct StageGeometry {
     masks: Vec<MaskRecipe>,
 }
 impl StageGeometry {
+    /// Logical requested nested heap payload, excluding this inline root and allocator
+    /// capacity/overhead. Includes private identity vectors and every owned geometry
+    /// vector exactly once. This is sizing only, not serialization or admission.
+    pub fn requested_heap_payload_bytes(&self) -> Option<usize> {
+        fn add<T>(total: &mut usize, n: usize) -> Option<()> {
+            *total = total.checked_add(n.checked_mul(std::mem::size_of::<T>())?)?;
+            Some(())
+        }
+        let mut n = 0;
+        add::<usize>(&mut n, self.identity.dims.len())?;
+        add::<DiagonalActivation>(&mut n, self.identity.acts.len())?;
+        if let TransposeIdentity::Reuse(v) = &self.identity.transpose {
+            add::<i32>(&mut n, v.len())?;
+        }
+        add::<LayerShape>(&mut n, self.shapes.len())?;
+        add::<MaskRecipe>(&mut n, self.masks.len())?;
+        for m in &self.masks {
+            add::<i32>(&mut n, m.reduce_steps.len())?;
+            add::<i32>(&mut n, m.replication_steps.len())?;
+        }
+        add::<TransposeRecipe>(&mut n, self.transpose.len())?;
+        for r in &self.transpose {
+            add::<(usize, Vec<i32>)>(&mut n, r.len())?;
+            for (_, chain) in r {
+                add::<i32>(&mut n, chain.len())?;
+            }
+        }
+        add::<i32>(&mut n, self.keys.len())?;
+        if let Some(c) = &self.compact {
+            add::<crate::compact::CompactPlan>(&mut n, c.plans.len())?;
+            add::<crate::trainer_ni::ContainerSpec>(&mut n, c.containers.len())?;
+            add::<crate::trainer_ni::BiasSlot>(&mut n, c.biases.len())?;
+        }
+        Some(n)
+    }
     /// Logical dimensions, including the actual trainable output width.
     pub fn dims(&self) -> &[usize] {
         &self.identity.dims

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "check",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel,cuda"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 0.5919449329376221
+}

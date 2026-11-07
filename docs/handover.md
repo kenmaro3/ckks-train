@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
+最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [CPU学習準備・計上](#latest-evidence-20261107-d7-retained-preparation)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -813,3 +813,15 @@ Macで10件の限定テストを1回実行し、全件合格、全Cargoとcontro
 ## 2026-11-07 20:54 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2053/README.md)では、20:54:16 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は442/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。20:53:02以降の予定枠から1回観測し、同じcontroller handle15129で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は21:54:17 JST以降とする。
+
+<a id="latest-evidence-20261107-d7-retained-preparation"></a>
+
+## 2026-11-07追記: 実際の入力を用いたCPU学習準備の検証
+
+[実装・検証証跡](../results/validation/task54-d7-retained-preparation/README.md)を保存した。保持した同一の入力・計画・パラメータから、単一段／複数段のchecked preparationとdescriptorを生成する処理を実装した。候補の配置と鍵の回転集合を移動し、元のplanの保持量と追加の保持・一時payloadを同じownerで計上する。サイズ計算と出力は共通の符号化処理を使い、ハッシュ出力の確保失敗も型付きerrorで返す。既存callbackでchecked値を外へ返していた3か所を修正し、旧互換経路の範囲と新しいD7保持経路を区別した。
+
+no-run、strict Clippy、CPU／CUDA feature check、formatと独立ソースレビューが合格した。限定実行では初回の7件が合格したが、8件目のテスト名のmodule指定が違い、0件選択のためcontrollerがexit1で停止した。元記録を保持し、独立照合後に未実行8件だけを正しい名前で実行して全件合格した。実行証跡の独立レビューも合格した。合わせて15種類のテストが合格、Cargoは計16呼出しがexit0（うち1呼出しは0件選択）であり、初回batch自体を成功とはしない。
+
+Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの準備・descriptor・同一owner・元の制限・拒否診断を確認した。入力の完全なmaterializationは3回で、Quickはその後の2更新分の計画消費を意味する。N16パラメータ2個に加え既存P3 golden用N10パラメータ2個、DFT proofとP1 metadata各2個を生成した。成功した6ケースのgeometry24／initial24／update24／handoff12／wrapper6は完走したテストのsourceとwork-budget assertionに基づく内訳で、独立イベント計測や暗号学習結果ではない。実際の鍵・HE Encoder／evaluator／session・GPU・学習は0である。
+
+計上対象は指定したアプリケーションpayloadであり、既存P2生成や別管理の入力・パラメータ等を含む全メモリ、allocator容量、RSSの保証ではない。Reuse／full schedule全分岐、実際の資源・セキュリティ・精度gateは未検証。残りは固定CPU実行経路と暗号オブジェクト破棄までの計上保持、実ExecutionBinding／runtime-policy、明示request／consumption、live gate・durable start・科学結果出力と全実験であり、productionのMissingExecutionDependencyは維持している。Task54／M4／M5全体の合格ではなく、既存hold・全登録範囲・FULL-2条件を維持する。

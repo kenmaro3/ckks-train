@@ -1,0 +1,15 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "--no-run"
+  ],
+  "cargo_exit": "not separately captured; raw log shows compile failure with 14 errors",
+  "enclosing_shell_exit": 0,
+  "note": "Initial shell continued to print the saved log after Cargo failure. This is not an observed Cargo exit101 claim. One missing test import also appears and was corrected; all raw failures remain unchanged."
+}

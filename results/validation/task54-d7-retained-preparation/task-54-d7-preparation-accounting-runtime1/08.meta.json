@@ -1,0 +1,34 @@
+{
+  "index": 8,
+  "name": "data::tests::streaming_sha_independent_vectors_and_empty_updates",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "data::tests::streaming_sha_independent_vectors_and_empty_updates",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052901.5668359,
+  "pid": 24267,
+  "exit_code": 0,
+  "end": 1794052901.671458,
+  "named_successes": [],
+  "result_counts": [
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": false,
+  "stdout_bytes": 115,
+  "stdout_sha256": "683240adda420090b2670495336a382af17f8d22aa7249f1492eb3fc70ca313b",
+  "stderr_bytes": 159,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+}

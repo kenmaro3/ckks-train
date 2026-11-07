@@ -1,0 +1,107 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0412]: cannot find type `CanonicalPreparationInput` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:27:44
+   |
+27 |     fn independent_lifetimes<'i,'p>(input: CanonicalPreparationInput<'i,'p>, parts: &[Vec<crate::study_admission::MicroPart>]) -> crate::...
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `RetainedPreparation` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:27:173
+   |
+27 | ...-> crate::study_client::CpuPreparationResult<RetainedPreparation<'i,crate::study_client::CheckedPreparation<'p>>> {
+   |                                                 ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0433]: failed to resolve: use of undeclared type `DftSupportProof`
+  --> crates/ckks-train-bench/src/study_execution.rs:38:19
+   |
+38 |         let proof=DftSupportProof::verify_current().unwrap();
+   |                   ^^^^^^^^^^^^^^^ use of undeclared type `DftSupportProof`
+   |
+help: consider importing this struct
+   |
+4  +     use ckks_train_ckks::bootstrap::metadata::DftSupportProof;
+   |
+
+error[E0422]: cannot find struct, variant or union type `CanonicalPreparationInput` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:49:27
+   |
+49 |                 let input=CanonicalPreparationInput{materialized:&materialized,registered:case,plan:plan.clone(),request:&request,actual};
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `CanonicalDescriptors` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:65:25
+   |
+65 |     fn assert_bundle(d:&CanonicalDescriptors,f:crate::study_client::PreparationDescriptorFacts<'_>) {
+   |                         ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+warning: unused import: `super::*`
+ --> crates/ckks-train-bench/src/study_execution.rs:4:9
+  |
+4 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution.rs:13:17
+   |
+13 |         assert!(PreparationAccounting::from_seed(101, 0, limits).is_err());
+   |                 ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution.rs:14:17
+   |
+14 |         assert!(PreparationAccounting::from_seed(0, 3, limits).is_err());
+   |                 ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution.rs:15:19
+   |
+15 |         let mut a=PreparationAccounting::from_seed(20, 2, limits).unwrap();
+   |                   ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution.rs:22:19
+   |
+22 |         let mut a=PreparationAccounting::from_seed(usize::MAX,0,ReceiptLimits{max_bytes:usize::MAX,max_records:0}).unwrap();
+   |                   ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+
+error[E0425]: cannot find function `prepare_canonical` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:28:9
+   |
+28 |         prepare_canonical(input,parts)
+   |         ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `collect_single` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:53:27
+   |
+53 |                     let b=collect_single(p).unwrap();
+   |                           ^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `prepare_blocks_canonical` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:57:27
+   |
+57 |                     let p=prepare_blocks_canonical(input,plan.partitions()).unwrap();
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `collect_blocks` in this scope
+  --> crates/ckks-train-bench/src/study_execution.rs:58:27
+   |
+58 |                     let b=collect_blocks(p).unwrap();
+   |                           ^^^^^^^^^^^^^^ not found in this scope
+
+error[E0599]: no method named `descriptor_sizes` found for struct `study_client::PreparationDescriptorFacts` in the current scope
+   --> crates/ckks-train-bench/src/study_execution.rs:66:17
+    |
+66  |         let s=f.descriptor_sizes().unwrap();
+    |                 ^^^^^^^^^^^^^^^^ method not found in `PreparationDescriptorFacts<'_>`
+    |
+   ::: crates/ckks-train-bench/src/study_client.rs:108:1
+    |
+108 | pub(crate) struct PreparationDescriptorFacts<'a> {
+    | ------------------------------------------------ method `descriptor_sizes` not found for this struct
+
+Some errors have detailed explanations: E0412, E0422, E0425, E0433, E0599.
+For more information about an error, try `rustc --explain E0412`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 14 previous errors; 1 warning emitted

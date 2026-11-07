@@ -1,0 +1,292 @@
+{
+  "kind": "unit_validation_not_scientific",
+  "complete": false,
+  "results": [
+    {
+      "index": 1,
+      "name": "study_execution::tests::d7_accounting_pure_boundaries",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_execution::tests::d7_accounting_pure_boundaries",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052896.08595,
+      "pid": 24095,
+      "exit_code": 0,
+      "end": 1794052900.3896809,
+      "named_successes": [
+        "study_execution::tests::d7_accounting_pure_boundaries"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 180,
+      "stdout_sha256": "b17361bedb8202d547f6e08f5fd3c4572f4e5bd42370a2bc0ad0fa6bbda240ce",
+      "stderr_bytes": 262,
+      "stderr_sha256": "f63ab5b50ed3c80d4cba70cda5e8dd7c8861296be8abef2be7430616043a9fc2"
+    },
+    {
+      "index": 2,
+      "name": "data::tests::d7_sha_fallible_known_vectors",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "data::tests::d7_sha_fallible_known_vectors",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052900.4743419,
+      "pid": 24215,
+      "exit_code": 0,
+      "end": 1794052900.600986,
+      "named_successes": [
+        "data::tests::d7_sha_fallible_known_vectors"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 169,
+      "stdout_sha256": "41e5f96929f586d570a83aeddd14a6909cef2a21ee1a8d294942ae34e79c4729",
+      "stderr_bytes": 159,
+      "stderr_sha256": "5f2e0c7a16d1cae70e7daea5175eefe7f3da326729d3a81b696d272c0ef809f0"
+    },
+    {
+      "index": 3,
+      "name": "data::tests::d7_sha_output_reservation_boundary",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "data::tests::d7_sha_output_reservation_boundary",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052900.674484,
+      "pid": 24255,
+      "exit_code": 0,
+      "end": 1794052900.7776,
+      "named_successes": [
+        "data::tests::d7_sha_output_reservation_boundary"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 174,
+      "stdout_sha256": "fa943788f81688c4e5e9963ba67d13bf563ee5e686623f1149b0bceadee84500",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    },
+    {
+      "index": 4,
+      "name": "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_admission::tests::d7_transcript_failed_prefix_and_counting",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052900.8534038,
+      "pid": 24257,
+      "exit_code": 0,
+      "end": 1794052900.954792,
+      "named_successes": [
+        "study_admission::tests::d7_transcript_failed_prefix_and_counting"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 191,
+      "stdout_sha256": "0953deb64d6efc51225fa5b434bff6944aced0dcaa2602c9ab0a9b490bf6e736",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    },
+    {
+      "index": 5,
+      "name": "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052901.032,
+      "pid": 24259,
+      "exit_code": 0,
+      "end": 1794052901.13533,
+      "named_successes": [
+        "study_reference::tests::independent_minimal_plan_golden_bytes_and_sha256"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 199,
+      "stdout_sha256": "99e50d9b31fd3002c22802f3d3c6e3863506094ff3e75ec60f80757b203e601f",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    },
+    {
+      "index": 6,
+      "name": "study_reference::tests::every_plan_field_and_numeric_coefficient_has_its_declared_scope",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::tests::every_plan_field_and_numeric_coefficient_has_its_declared_scope",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052901.21743,
+      "pid": 24261,
+      "exit_code": 0,
+      "end": 1794052901.319975,
+      "named_successes": [
+        "study_reference::tests::every_plan_field_and_numeric_coefficient_has_its_declared_scope"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 214,
+      "stdout_sha256": "458bd6fbd0107ad2ba73db19911e07a3a57b52febacc5760abbcfdd24d6d5426",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    },
+    {
+      "index": 7,
+      "name": "data::tests::sha256_known_vectors",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "data::tests::sha256_known_vectors",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052901.390286,
+      "pid": 24263,
+      "exit_code": 0,
+      "end": 1794052901.492633,
+      "named_successes": [
+        "data::tests::sha256_known_vectors"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 160,
+      "stdout_sha256": "3133e5eed6f1b034d6c4f79b038b5c802d5b301e3fc906ab86635f9ae8fa5cf6",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    },
+    {
+      "index": 8,
+      "name": "data::tests::streaming_sha_independent_vectors_and_empty_updates",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "data::tests::streaming_sha_independent_vectors_and_empty_updates",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794052901.5668359,
+      "pid": 24267,
+      "exit_code": 0,
+      "end": 1794052901.671458,
+      "named_successes": [],
+      "result_counts": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": false,
+      "stdout_bytes": 115,
+      "stdout_sha256": "683240adda420090b2670495336a382af17f8d22aa7249f1492eb3fc70ca313b",
+      "stderr_bytes": 159,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2"
+    }
+  ]
+}

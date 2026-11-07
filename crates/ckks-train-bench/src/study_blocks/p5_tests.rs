@@ -1002,19 +1002,16 @@ fn p5_cpu_block_bridge_contract() {
             Some(phase.oracle(case.family).unwrap())
         };
         let claim = case.plan.claim();
-        let checked = prepare_blocks_then_make(
+        let (initial, binding) = prepare_blocks_then_make(
             BlockPreparationInput::Synthetic {
                 plan: case.plan.clone(),
                 claim: &claim,
             },
             context_parameters(&context),
             &case.plan.parts,
-            Ok,
+            |checked| client.encrypt_block_initial(checked, &context, &arrays(&recipe)),
         )
         .unwrap();
-        let (initial, binding) = client
-            .encrypt_block_initial(checked, &context, &arrays(&recipe))
-            .unwrap();
         let prefix = case.poison.then(|| capture_prefix_initial(&initial));
         let mut session = CpuBlockSession::from_owner(
             &facade,

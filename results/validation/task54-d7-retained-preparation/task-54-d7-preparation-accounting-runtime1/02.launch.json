@@ -1,0 +1,19 @@
+{
+  "index": 2,
+  "name": "data::tests::d7_sha_fallible_known_vectors",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "data::tests::d7_sha_fallible_known_vectors",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052900.4743419,
+  "pid": 24215
+}

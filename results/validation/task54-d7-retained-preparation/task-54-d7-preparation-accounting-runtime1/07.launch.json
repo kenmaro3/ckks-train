@@ -1,0 +1,19 @@
+{
+  "index": 7,
+  "name": "data::tests::sha256_known_vectors",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "data::tests::sha256_known_vectors",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794052901.390286,
+  "pid": 24263
+}

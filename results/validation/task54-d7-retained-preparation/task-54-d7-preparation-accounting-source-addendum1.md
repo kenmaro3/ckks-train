@@ -1,0 +1,3 @@
+# Phase2 source scope addendum1
+
+Root authorizes the directly necessary crate-private fixed-collector re-export in study_reference/document.rs, and the existing narrow parent re-export pattern in study_reference.rs if required. The source module is currently private; a named fixed collector bridge is preferable to making the descriptor module or arbitrary-hash helpers visible. This is a routine source-scope clarification, not a changed design, byte format, capability or runtime authorization. Include the exact changed path in the report and independent source review. The original source release0b96a99c remains immutable.

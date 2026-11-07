@@ -1,0 +1,12 @@
+{
+  "command": [
+    "cargo",
+    "check",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--no-default-features"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 2.0726311206817627
+}

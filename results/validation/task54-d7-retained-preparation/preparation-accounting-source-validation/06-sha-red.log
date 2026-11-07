@@ -1,0 +1,24 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find function `try_sha256_hex` in this scope
+    --> crates/ckks-train-bench/src/data.rs:1030:24
+     |
+363  | pub fn sha256_hex(data: &[u8]) -> String {
+     | ---------------------------------------- similarly named function `sha256_hex` defined here
+...
+1030 |             let digest=try_sha256_hex(input).unwrap();
+     |                        ^^^^^^^^^^^^^^ help: a function with a similar name exists: `sha256_hex`
+
+error[E0425]: cannot find function `reserved_digest_output` in this scope
+    --> crates/ckks-train-bench/src/data.rs:1036:20
+     |
+1036 |         let output=reserved_digest_output(64).unwrap();
+     |                    ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `reserved_digest_output` in this scope
+    --> crates/ckks-train-bench/src/data.rs:1038:17
+     |
+1038 |         assert!(reserved_digest_output(usize::MAX).is_err());
+     |                 ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors

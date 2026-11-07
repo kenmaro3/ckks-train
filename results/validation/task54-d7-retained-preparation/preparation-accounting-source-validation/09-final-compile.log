@@ -1,0 +1,9 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find value `dims_pointer` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:252:34
+    |
+252 |                 debug_assert_eq!(dims_pointer, geometry.dims().as_ptr());
+    |                                  ^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

@@ -24,3 +24,5 @@ pub mod study_blocks;
 pub mod study_client;
 /// Single-stage CPU consuming bridge; production dispatch remains disconnected.
 pub mod study_diagonal;
+
+mod study_execution;
