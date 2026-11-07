@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の実装: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1750)。
+最新の実装: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1851)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -527,5 +527,11 @@ compile REDから実装し、最終no-run／strict Clippy／逐次CPU・CUDA fea
 全32Cargo呼出しはexit0だったが、controllerはdoctestの最後のsuite8だけを総数9と比べ、exit1になった。元controller・ログ・metadataを保持し、実際の1＋8件の成功を結果報告で区別した。数値JSONの書換えや再実行はしていない。synthetic predicate／codecとcompile-only検査を、本物の承認済みLinux Train contextの実行証拠へ読み替えない。
 
 Linuxでの正式なcontextを使うpositive integrationは未計測である。production runnerはこの接続後もMissingExecutionDependencyを返す。残りのdescriptor／route、実資源等のgate、target／reference要求、durable admission／start、科学結果publisherと全実験への接続は未完了で、Task54／M4／M5全体の合格ではない。HE／学習／GPU計測はこの検証では行っていない。全登録範囲と既存hold、FULL-2の判定条件を維持する。
+
+<a id="latest-evidence-20261107-1851"></a>
+
+## 2026-11-07 18:52 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1851/README.md)では、18:52:11 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は390/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。18:51:10以降の予定枠から1回観測し、同じcontroller handle66436で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は19:52:12 JST以降とする。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
