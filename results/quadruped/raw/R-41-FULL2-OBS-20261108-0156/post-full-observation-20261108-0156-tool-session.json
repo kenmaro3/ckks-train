@@ -1,0 +1,12 @@
+{
+  "kind": "operational_tool_execution_not_scientific",
+  "original_session_id": 96564,
+  "launch_chunk": "2972a8",
+  "terminal_chunk": "68edd7",
+  "terminal_exit_code": 0,
+  "invocations": 1,
+  "automatic_retry": false,
+  "preflight_utc": "2026-11-07T16:57:12.997747+00:00",
+  "source_and_manifest_pins_verified": true,
+  "exclusive_outputs_absent_before_invocation": true
+}
