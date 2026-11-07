@@ -1,5 +1,7 @@
 # ReBoot baseline run (Task 5 / Spike 3)
 
+**2026-11-08 local cleanup:** The unused Mac `_ext/venv` was removed after the user requested disk cleanup (about1.19GiB allocated). This document's build/run environment below is historical. The67-package inventory and original Python3.11.9 configuration are preserved in [cleanup evidence](../../results/validation/mac-reboot-venv-cleanup-20261108/README.md). Source clones, builds, install, logs, patches and data remain; `run.sh` requires recreating the venv and documented OpenFHE/libomp setup. Current authoritative baseline runs use quadruped-gpu; no server or result was changed.
+
 Status: **build OK, eMLP-1 does NOT run to completion on this machine (36 GB RAM): the CKKS context alone needs ~44 GB.
 No epoch time / accuracy could be measured.** Paper's own numbers are recorded below for reference.
 

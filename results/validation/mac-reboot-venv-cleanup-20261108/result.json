@@ -1,0 +1,10 @@
+{
+  "kind": "local_rebuildable_environment_cleanup_not_scientific",
+  "completed_utc": "2026-11-07T15:18:41.898618+00:00",
+  "removed_path": "/Users/marconi/Documents/research/hekit/spikes/reboot/_ext/venv",
+  "removed_allocated_bytes_before": 1275260928,
+  "protected_files_verified_unchanged": 27,
+  "package_inventory": "packages.json",
+  "restoration_note": "Recreate Python3.11.9 venv from67 recorded package versions and retained OpenFHE/ReBoot local builds; apply libomp symlink compatibility steps in spikes/reboot/RUN.md. Server baseline unaffected.",
+  "original_inspection": "inspection.json"
+}

@@ -1,0 +1,13 @@
+{
+  "kind": "local_rebuildable_environment_cleanup_not_scientific",
+  "time_utc": "2026-11-07T15:17:19.554852+00:00",
+  "path": "/Users/marconi/Documents/research/hekit/spikes/reboot/_ext/venv",
+  "allocated_bytes_before": 1275260928,
+  "package_count": 67,
+  "own_python_matches": [],
+  "own_lsof_exit": 1,
+  "tracked_files": 0,
+  "reason": "Mac baseline OOM documented in spikes/reboot/RUN.md; current authoritative ReBoot runs on quadruped-gpu; preserve source/install/build/logs/data and package inventory.",
+  "preflight_history": "Initial guard refused unexpected .DS_Store before writing anything; inspected normal Mac metadata file and included it in exact allowlist.",
+  "state": "inspected_not_deleted"
+}

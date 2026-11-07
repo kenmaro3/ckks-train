@@ -953,3 +953,7 @@ Linux 5.6のopenat2 APIと対応filesystemが必要になり、利用できな�
 31件はパラメータ生成なし。残りのP3回帰は、明示した別枠でN=32の小さなパラメータ1個、RNS基底2個、NTTテーブル13個とmetadataを生成する。NTT変換や暗号処理を実行したこととは区別する。以前のcompile成功ログ1件の上書き消失は未復元の監査上の限界として残した。
 
 実際の証拠reader、前回・現在のtarget照合、current authority、完全なメモリモデル、保存・復旧、durable startと学習の接続は未完了である。別途確定したFull連結テスト値の統合や共有publisherの実装修正も次工程に残る。この32件の合格は、GPU性能・非対話学習の精度・全実験完走の合格ではない。
+
+## 2026-11-08追記: Macの不要なReBoot仮想環境を整理
+
+容量整理の依頼に基づき、MacでOOMとなった試行用の`spikes/reboot/_ext/venv`を削除した。対象の割当量は約1.19GiB。自分の利用中プロセス・open fileがないことを確認し、67パッケージとPython3.11.9設定を[整理記録](../results/validation/mac-reboot-venv-cleanup-20261108/README.md)へ保存した。削除前後でログ・データ・論文PDF等27ファイルの不変を確認し、その後RUN.mdへ履歴を追記した。ソース・build・install・パッチは保持している。Macの旧`run.sh`には環境の再作成が必要で、再作成手順の再実行確認はしていない。Linux側のbaseline・本番job・結果には変更していない。削除後の空き表示は32GiBであり、割当量の削除を同量の空き増加とは主張しない。

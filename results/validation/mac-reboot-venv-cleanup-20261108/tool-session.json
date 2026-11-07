@@ -1,0 +1,13 @@
+{
+  "kind": "local_cleanup_tool_receipt_not_scientific",
+  "inspection_session": 23040,
+  "inspection_terminal_chunk": "9958ee",
+  "inspection_exit": 0,
+  "deletion_session": 70150,
+  "deletion_launch_chunk": "1975ff",
+  "deletion_terminal_chunk": "422ab1",
+  "deletion_exit": 0,
+  "deletion_invocations": 1,
+  "initial_guard_refusal_chunk": "6362aa",
+  "initial_guard_refusal": "Unexpected .DS_Store; refused before writes/deletion; normal Mac metadata inspected then guard corrected."
+}
