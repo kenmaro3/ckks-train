@@ -1,0 +1,2 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-190377a24cc433d7)

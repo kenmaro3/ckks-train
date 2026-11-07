@@ -1,0 +1,19 @@
+{
+  "index": 8,
+  "name": "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048960.974764,
+  "pid": 36928
+}

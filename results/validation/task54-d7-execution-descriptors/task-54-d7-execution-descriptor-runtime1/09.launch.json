@@ -1,0 +1,19 @@
+{
+  "index": 9,
+  "name": "study_reference::document::execution_descriptor_tests::execution_parameter_constructor_invariants_without_construction",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_parameter_constructor_invariants_without_construction",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048961.109951,
+  "pid": 36968
+}

@@ -2022,25 +2022,84 @@ fn counts(w: &mut Transcript, c: &OpCounter) -> Result<()> {
     }
     Ok(())
 }
-fn compact(w: &mut Transcript, c: CompactPlan) -> Result<()> {
-    for n in [c.d_out, c.d_in, c.batch, c.diags_per_ct, c.lane_shift] {
-        w.number(n)?;
+// Borrowed physical representation only. No geometry planner or readiness authority.
+pub(crate) struct GeometryBody<'a> {
+    pub(crate) layout: Layout,
+    pub(crate) shapes: &'a [ckks_train_nn::layout::LayerShape],
+    pub(crate) masks: &'a [ckks_train_nn::diagonal_plan::MaskRecipe],
+    pub(crate) transpose: &'a [ckks_train_nn::diagonal_plan::TransposeRecipe],
+    pub(crate) rotations: &'a [i32],
+    pub(crate) compact: Option<&'a ckks_train_nn::trainer_ni::CompactLayout>,
+}
+impl<'a> From<&'a StageGeometry> for GeometryBody<'a> {
+    fn from(g: &'a StageGeometry) -> Self {
+        Self {
+            layout: g.layout(),
+            shapes: g.shapes(),
+            masks: g.mask_recipes(),
+            transpose: g.transpose_recipes(),
+            rotations: g.rotation_steps(),
+            compact: g.compact(),
+        }
     }
-    Ok(())
+}
+// The single unchanged P3 geometry field/order body, shared with the new descriptor.
+pub(crate) trait GeometryWriter {
+    type Error;
+    fn raw(&mut self, bytes: &[u8]) -> std::result::Result<(), Self::Error>;
+    fn number(&mut self, n: usize) -> std::result::Result<(), Self::Error>;
+    fn tag(&mut self, n: u8) -> std::result::Result<(), Self::Error> {
+        self.raw(&[n])
+    }
+    fn option_number(&mut self, n: Option<usize>) -> std::result::Result<(), Self::Error> {
+        self.tag(u8::from(n.is_some()))?;
+        if let Some(n) = n {
+            self.number(n)?;
+        }
+        Ok(())
+    }
+    fn steps(&mut self, values: &[i32]) -> std::result::Result<(), Self::Error> {
+        self.number(values.len())?;
+        for n in values {
+            self.raw(&n.to_le_bytes())?;
+        }
+        Ok(())
+    }
+    fn compact(&mut self, c: CompactPlan) -> std::result::Result<(), Self::Error> {
+        for n in [c.d_out, c.d_in, c.batch, c.diags_per_ct, c.lane_shift] {
+            self.number(n)?;
+        }
+        Ok(())
+    }
+}
+impl GeometryWriter for Transcript {
+    type Error = AdmissionIssue;
+    fn raw(&mut self, bytes: &[u8]) -> Result<()> {
+        Transcript::raw(self, bytes)
+    }
+    fn number(&mut self, n: usize) -> Result<()> {
+        Transcript::number(self, n)
+    }
 }
 fn encode_geometry(w: &mut Transcript, g: &StageGeometry) -> Result<()> {
-    let l = g.layout();
+    encode_geometry_body(w, GeometryBody::from(g))
+}
+pub(crate) fn encode_geometry_body<W: GeometryWriter>(
+    w: &mut W,
+    g: GeometryBody<'_>,
+) -> std::result::Result<(), W::Error> {
+    let l = g.layout;
     for n in [l.slots, l.d, l.batch] {
         w.number(n)?;
     }
-    w.number(g.shapes().len())?;
-    for s in g.shapes() {
+    w.number(g.shapes.len())?;
+    for s in g.shapes {
         for n in [s.d_out, s.d_in, s.n_out, s.n_in, s.l, s.m, s.baby, s.giant] {
             w.number(n)?;
         }
     }
-    w.number(g.mask_recipes().len())?;
-    for m in g.mask_recipes() {
+    w.number(g.masks.len())?;
+    for m in g.masks {
         for n in [
             m.canonical_period,
             m.gradient_period,
@@ -2049,30 +2108,30 @@ fn encode_geometry(w: &mut Transcript, g: &StageGeometry) -> Result<()> {
         ] {
             w.number(n)?;
         }
-        int_steps(w, &m.reduce_steps)?;
-        int_steps(w, &m.replication_steps)?;
+        w.steps(&m.reduce_steps)?;
+        w.steps(&m.replication_steps)?;
         w.tag(u8::from(m.compact_first_period))?;
     }
-    w.number(g.transpose_recipes().len())?;
-    for r in g.transpose_recipes() {
+    w.number(g.transpose.len())?;
+    for r in g.transpose {
         w.number(r.len())?;
         for (source, steps) in r {
             w.number(*source)?;
-            int_steps(w, steps)?;
+            w.steps(steps)?;
         }
     }
-    int_steps(w, g.rotation_steps())?;
-    w.tag(u8::from(g.compact().is_some()))?;
-    if let Some(c) = g.compact() {
+    w.steps(g.rotations)?;
+    w.tag(u8::from(g.compact.is_some()))?;
+    if let Some(c) = g.compact {
         w.number(c.plans.len())?;
         for &p in &c.plans {
-            compact(w, p)?;
+            w.compact(p)?;
         }
         w.number(c.containers.len())?;
         for v in &c.containers {
             w.option_number(v.layer)?;
             w.number(v.index)?;
-            compact(w, v.plan)?;
+            w.compact(v.plan)?;
         }
         w.number(c.biases.len())?;
         for b in &c.biases {
@@ -2082,6 +2141,16 @@ fn encode_geometry(w: &mut Transcript, g: &StageGeometry) -> Result<()> {
     }
     Ok(())
 }
+#[cfg(test)]
+pub(crate) fn test_geometry_transcript(g: GeometryBody<'_>) -> Result<Vec<u8>> {
+    let mut w = Transcript::new(ReceiptLimits {
+        max_bytes: 2_097_152,
+        max_records: 0,
+    });
+    encode_geometry_body(&mut w, g)?;
+    Ok(w.bytes)
+}
+
 fn encode_state_labels(w: &mut Transcript, s: StateLabels<'_>) -> Result<()> {
     for v in [s.weights, s.biases, s.compact] {
         cts(w, v)?;

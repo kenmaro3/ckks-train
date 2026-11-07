@@ -1,0 +1,19 @@
+{
+  "index": 7,
+  "name": "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048960.8530838,
+  "pid": 36925
+}

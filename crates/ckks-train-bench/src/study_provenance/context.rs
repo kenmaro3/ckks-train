@@ -1287,6 +1287,16 @@ impl VerifiedStudyContext {
             })
             .collect()
     }
+    // Only the current Train receipt. Borrow the complete approved source Manifest;
+    // the context and caller retain their existing live/source rechecks.
+    #[allow(dead_code)] // Consumed by the next retained ExecutionBinding producer.
+    pub(crate) fn train_source_manifest_bytes(&self) -> Result<&[u8]> {
+        ensure(
+            self.current_role() == ExecutableRole::StudyTrain,
+            "current Train receipt required",
+        )?;
+        Ok(&self.core.receipts[self.core.current].receipt.files[0])
+    }
     pub(crate) fn source_commit(&self) -> &str {
         &self.core.approval.commit
     }

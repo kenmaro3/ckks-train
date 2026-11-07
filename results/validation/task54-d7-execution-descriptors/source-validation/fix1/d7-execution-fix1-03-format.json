@@ -1,0 +1,16 @@
+{
+  "command": [
+    "rustfmt",
+    "--edition",
+    "2024",
+    "--check",
+    "--config",
+    "skip_children=true",
+    "crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs"
+  ],
+  "env": {
+    "CARGO_NET_OFFLINE": "true"
+  },
+  "exit": 0,
+  "elapsed_seconds": 0.03699898719787598
+}

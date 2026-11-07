@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1952)。
+最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1952)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -785,3 +785,15 @@ runtime-policyのcodecと実情報viewは実装したが、具体的な学習経
 ## 2026-11-07 19:53 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1952/README.md)では、19:53:01 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は416/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。19:52:12以降の予定枠から1回観測し、同じcontroller handle88946で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は20:53:02 JST以降とする。
+
+<a id="latest-evidence-20261107-d7-execution-descriptors"></a>
+
+## 2026-11-07追記: ExecutionBindingの内部descriptor実装と限定検証
+
+[実装・検証証跡](../results/validation/task54-d7-execution-descriptors/README.md)を保存した。対話パラメータ・物理配置・鍵方針・秘密鍵分布の宣言の4形式を実装し、canonicalなchecked preparationから同じplan／parameter／P1／geometryを借用するviewと、現在のTrain receiptのsource manifest参照を追加した。P3配置のエンコード本体を共有し、既存P1／P3／physical／runtimeの形式を維持する。
+
+tests-firstのcompile REDから実装し、no-run／strict Clippy／逐次CPU・CUDA feature check／formatが合格した。初回レビューで負例テストが一部のparseエラーを見逃す点を指摘され、30形式エラー・9パラメータ条件違反・17形式上有効な不一致例を明示的に区別するよう修正した。元テスト・報告・失敗ログを保持し、sourceと修正の独立レビューが合格した。
+
+Macで10件の限定テストを1回実行し、全件合格、全Cargoとcontrollerがexit0で終了した。独立した14の完全なbytes／hash、56負例、6,314の途中切断、6段のP3配置bytes、宣言weightの範囲と同一性の違いを検査した。実行証跡の独立レビューも合格した。syntheticな形式検証であり、パラメータ生成・planner・dataset・HE・GPU／native実行は行っていない。Macの時間を性能比較に使用しない。
+
+実際のcanonical sourceを用いるpositive integrationは未計測で、runnerのMissingExecutionDependencyは維持している。残りは保持したCPU経路、実ExecutionBinding／runtime-policy生成、追加payloadの一括計上、live gate、durable admission／startと科学結果出力である。この限定合格をTask54／M4／M5全体、セキュリティ、学習精度の合格とはしない。全登録範囲・既存hold・FULL-2判定条件を維持する。

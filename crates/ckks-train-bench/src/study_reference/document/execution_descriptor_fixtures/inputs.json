@@ -1,0 +1,1113 @@
+{
+  "notice": "Literal transport-only fixtures; all digests a/b are literal placeholders, not evidence.",
+  "vectors": [
+    {
+      "covers": [
+        "main_weight=None"
+      ],
+      "input": {
+        "dnum": 1,
+        "log_n": 4,
+        "main_weight": null,
+        "p": [
+          257
+        ],
+        "p_bits": [
+          9
+        ],
+        "q": [
+          97,
+          193
+        ],
+        "q_bits": [
+          7,
+          8
+        ],
+        "scale_bits": 4634204016564240384
+      },
+      "kind": "parameters",
+      "name": "parameter_dense",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "main_weight=Some(3)"
+      ],
+      "input": {
+        "dnum": 1,
+        "log_n": 4,
+        "main_weight": 3,
+        "p": [
+          257
+        ],
+        "p_bits": [
+          9
+        ],
+        "q": [
+          97,
+          193
+        ],
+        "q_bits": [
+          7,
+          8
+        ],
+        "scale_bits": 4634204016564240384
+      },
+      "kind": "parameters",
+      "name": "parameter_fixed",
+      "production_status": "Fixed main weight is explicitly unsupported by current main I policy; transport-only fixture."
+    },
+    {
+      "covers": [
+        "Full",
+        "I",
+        "single stage",
+        "compact=None",
+        "partial partition",
+        "negative ordered I32 chains",
+        "empty/nonempty nested lists"
+      ],
+      "input": {
+        "consumption": 0,
+        "eval": {
+          "bsgs": 1,
+          "hoist": 1,
+          "lazy_relin": 0
+        },
+        "mode": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "parts": [
+          [
+            {
+              "start": 0,
+              "valid": 2
+            },
+            {
+              "start": 2,
+              "valid": 1
+            }
+          ]
+        ],
+        "stages": [
+          {
+            "batch": 2,
+            "compact": null,
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "kind": "layout",
+      "name": "layout_i_single",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "Quick",
+        "NI",
+        "two stages",
+        "compact=Some",
+        "container layer=None/Some",
+        "partial final update",
+        "Bool0/1"
+      ],
+      "input": {
+        "consumption": 1,
+        "eval": {
+          "bsgs": 1,
+          "hoist": 0,
+          "lazy_relin": 1
+        },
+        "mode": 1,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "parts": [
+          [
+            {
+              "start": 0,
+              "valid": 2
+            }
+          ],
+          [
+            {
+              "start": 0,
+              "valid": 1
+            }
+          ]
+        ],
+        "stages": [
+          {
+            "batch": 2,
+            "compact": {
+              "biases": [
+                {
+                  "container": 0,
+                  "position": 0
+                },
+                {
+                  "container": 1,
+                  "position": 1
+                }
+              ],
+              "containers": [
+                {
+                  "index": 0,
+                  "layer": 0,
+                  "plan": {
+                    "batch": 2,
+                    "d_in": 2,
+                    "d_out": 2,
+                    "diags_per_ct": 2,
+                    "lane_shift": 4
+                  }
+                },
+                {
+                  "index": 1,
+                  "layer": null,
+                  "plan": {
+                    "batch": 2,
+                    "d_in": 2,
+                    "d_out": 2,
+                    "diags_per_ct": 2,
+                    "lane_shift": 4
+                  }
+                }
+              ],
+              "plans": [
+                {
+                  "batch": 2,
+                  "d_in": 2,
+                  "d_out": 2,
+                  "diags_per_ct": 2,
+                  "lane_shift": 4
+                },
+                {
+                  "batch": 2,
+                  "d_in": 2,
+                  "d_out": 2,
+                  "diags_per_ct": 2,
+                  "lane_shift": 4
+                }
+              ]
+            },
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 1,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 1,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          },
+          {
+            "batch": 2,
+            "compact": {
+              "biases": [
+                {
+                  "container": 0,
+                  "position": 0
+                },
+                {
+                  "container": 1,
+                  "position": 1
+                }
+              ],
+              "containers": [
+                {
+                  "index": 0,
+                  "layer": 0,
+                  "plan": {
+                    "batch": 2,
+                    "d_in": 2,
+                    "d_out": 2,
+                    "diags_per_ct": 2,
+                    "lane_shift": 4
+                  }
+                },
+                {
+                  "index": 1,
+                  "layer": null,
+                  "plan": {
+                    "batch": 2,
+                    "d_in": 2,
+                    "d_out": 2,
+                    "diags_per_ct": 2,
+                    "lane_shift": 4
+                  }
+                }
+              ],
+              "plans": [
+                {
+                  "batch": 2,
+                  "d_in": 2,
+                  "d_out": 2,
+                  "diags_per_ct": 2,
+                  "lane_shift": 4
+                },
+                {
+                  "batch": 2,
+                  "d_in": 2,
+                  "d_out": 2,
+                  "diags_per_ct": 2,
+                  "lane_shift": 4
+                }
+              ]
+            },
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 1,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 1,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "kind": "layout",
+      "name": "layout_ni_two",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "three stages",
+        "common layout"
+      ],
+      "input": {
+        "consumption": 0,
+        "eval": {
+          "bsgs": 1,
+          "hoist": 1,
+          "lazy_relin": 0
+        },
+        "mode": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "parts": [
+          [
+            {
+              "start": 0,
+              "valid": 2
+            },
+            {
+              "start": 2,
+              "valid": 1
+            }
+          ]
+        ],
+        "stages": [
+          {
+            "batch": 2,
+            "compact": null,
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          },
+          {
+            "batch": 2,
+            "compact": null,
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          },
+          {
+            "batch": 2,
+            "compact": null,
+            "d": 2,
+            "dims": [
+              2,
+              2,
+              2
+            ],
+            "masks": [
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              },
+              {
+                "bias_period": 2,
+                "canonical_period": 2,
+                "compact_first_period": 0,
+                "gradient_period": 2,
+                "lanes": 2,
+                "reduce_steps": [
+                  1
+                ],
+                "replication_steps": [
+                  -1
+                ]
+              }
+            ],
+            "rotations": [
+              1,
+              2,
+              6
+            ],
+            "shapes": [
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2
+              ]
+            ],
+            "slots": 8,
+            "transpose": [
+              [
+                {
+                  "source": 0,
+                  "steps": []
+                },
+                {
+                  "source": 1,
+                  "steps": [
+                    -2,
+                    1
+                  ]
+                }
+              ],
+              [
+                {
+                  "source": 0,
+                  "steps": [
+                    1,
+                    -2
+                  ]
+                },
+                {
+                  "source": 1,
+                  "steps": []
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "kind": "layout",
+      "name": "layout_i_three",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "Dedicated",
+        "bootstrap=None",
+        "empty bootstrap lists",
+        "separate=false"
+      ],
+      "input": {
+        "bootstrap_conjugation": 0,
+        "bootstrap_descriptor": null,
+        "bootstrap_execution": [],
+        "bootstrap_generated": [],
+        "bootstrap_sse": 0,
+        "owner_policy": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "separate_bootstrap_bundle": 0,
+        "training_conjugation": 0,
+        "training_level": 1,
+        "training_relin": 1,
+        "training_rotations": [
+          1,
+          2,
+          6
+        ],
+        "training_sse": 0,
+        "transpose": null
+      },
+      "kind": "keys",
+      "name": "keys_i_dedicated",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "Reuse",
+        "exact ordered pool"
+      ],
+      "input": {
+        "bootstrap_conjugation": 0,
+        "bootstrap_descriptor": null,
+        "bootstrap_execution": [],
+        "bootstrap_generated": [],
+        "bootstrap_sse": 0,
+        "owner_policy": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "separate_bootstrap_bundle": 0,
+        "training_conjugation": 0,
+        "training_level": 1,
+        "training_relin": 1,
+        "training_rotations": [
+          1,
+          2,
+          6
+        ],
+        "training_sse": 0,
+        "transpose": [
+          6,
+          1,
+          2
+        ]
+      },
+      "kind": "keys",
+      "name": "keys_i_reuse",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "bootstrap=Some",
+        "Dedicated",
+        "generated != executed",
+        "bootstrap SSE=false"
+      ],
+      "input": {
+        "bootstrap_conjugation": 1,
+        "bootstrap_descriptor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bootstrap_execution": [
+          1,
+          4
+        ],
+        "bootstrap_generated": [
+          1,
+          2,
+          4
+        ],
+        "bootstrap_sse": 0,
+        "owner_policy": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "separate_bootstrap_bundle": 1,
+        "training_conjugation": 0,
+        "training_level": 1,
+        "training_relin": 1,
+        "training_rotations": [
+          1,
+          2,
+          6
+        ],
+        "training_sse": 0,
+        "transpose": null
+      },
+      "kind": "keys",
+      "name": "keys_ni_dedicated",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "Reuse",
+        "bootstrap SSE=true",
+        "separate=true"
+      ],
+      "input": {
+        "bootstrap_conjugation": 1,
+        "bootstrap_descriptor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bootstrap_execution": [
+          1,
+          4
+        ],
+        "bootstrap_generated": [
+          1,
+          2,
+          4
+        ],
+        "bootstrap_sse": 1,
+        "owner_policy": 0,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "separate_bootstrap_bundle": 1,
+        "training_conjugation": 0,
+        "training_level": 1,
+        "training_relin": 1,
+        "training_rotations": [
+          1,
+          2,
+          6
+        ],
+        "training_sse": 0,
+        "transpose": [
+          6,
+          1,
+          2
+        ]
+      },
+      "kind": "keys",
+      "name": "keys_ni_reuse",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "I",
+        "DenseTernary",
+        "ephemeral=None",
+        "bootstrap=None",
+        "scope=None",
+        "empty limitations"
+      ],
+      "input": {
+        "assurance": 0,
+        "bootstrap_descriptor": null,
+        "bootstrap_scope": null,
+        "bootstrap_unvalidated": [],
+        "ephemeral": null,
+        "main": null,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registered_policy": 0
+      },
+      "kind": "security",
+      "name": "security_i_dense",
+      "production_status": "All are transport-only synthetic fixtures; no live owned producer or secure profile."
+    },
+    {
+      "covers": [
+        "main FixedWeight(3)"
+      ],
+      "input": {
+        "assurance": 0,
+        "bootstrap_descriptor": null,
+        "bootstrap_scope": null,
+        "bootstrap_unvalidated": [],
+        "ephemeral": null,
+        "main": 3,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registered_policy": 0
+      },
+      "kind": "security",
+      "name": "security_i_fixed",
+      "production_status": "Fixed main weight is unsupported by current main I policy; transport-only secret-tag fixture."
+    },
+    {
+      "covers": [
+        "NI",
+        "scope=Some(0)",
+        "all limitations0..8",
+        "ephemeral=None"
+      ],
+      "input": {
+        "assurance": 0,
+        "bootstrap_descriptor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bootstrap_scope": 0,
+        "bootstrap_unvalidated": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "ephemeral": null,
+        "main": null,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registered_policy": 1
+      },
+      "kind": "security",
+      "name": "security_ni_absent",
+      "production_status": "Absent ephemeral may differ from registered default NI BootParams; transport-only, exact owned-default equality still required."
+    },
+    {
+      "covers": [
+        "ephemeral=Some(FixedWeight(3))"
+      ],
+      "input": {
+        "assurance": 0,
+        "bootstrap_descriptor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bootstrap_scope": 0,
+        "bootstrap_unvalidated": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "ephemeral": {
+          "weight": 3
+        },
+        "main": null,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registered_policy": 1
+      },
+      "kind": "security",
+      "name": "security_ni_fixed",
+      "production_status": "Ephemeral weight3 is synthetic, not a default_n16 declaration or security evidence."
+    },
+    {
+      "covers": [
+        "ephemeral=Some(DenseTernary)"
+      ],
+      "input": {
+        "assurance": 0,
+        "bootstrap_descriptor": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bootstrap_scope": 0,
+        "bootstrap_unvalidated": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "ephemeral": {
+          "weight": null
+        },
+        "main": null,
+        "parameter_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registered_policy": 1
+      },
+      "kind": "security",
+      "name": "security_ni_dense",
+      "production_status": "Some(DenseTernary) is a grammar branch not produced by current P1 ephemeral_hw mapping; never a production candidate."
+    }
+  ]
+}

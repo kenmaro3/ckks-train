@@ -1,0 +1,13 @@
+Diff in /Users/marconi/Documents/research/hekit/crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:429:
+         let b = literal(name);
+         let wire = WireDescriptor::parse(Kind::Security, &b).unwrap();
+         assert!(wire.validate_security_declarations(16).is_ok());
+[31m-        assert!(wire.validate_registered_security_declarations(1 << 16).is_err(), "{name}");
+(B[m[32m+        assert!(
+(B[m[32m+            wire.validate_registered_security_declarations(1 << 16)
+(B[m[32m+                .is_err(),
+(B[m[32m+            "{name}"
+(B[m[32m+        );
+(B[m     }
+ }
+ #[test]

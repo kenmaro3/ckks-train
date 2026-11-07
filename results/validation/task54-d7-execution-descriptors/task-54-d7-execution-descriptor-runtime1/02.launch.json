@@ -1,0 +1,19 @@
+{
+  "index": 2,
+  "name": "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048960.1719391,
+  "pid": 36900
+}

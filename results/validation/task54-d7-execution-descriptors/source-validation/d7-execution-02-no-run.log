@@ -1,0 +1,245 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find function `require` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/context.rs:1294:9
+     |
+1294 |         require(
+     |         ^^^^^^^ not found in this scope
+     |
+note: these functions exist but are inaccessible
+    --> crates/ckks-train-bench/src/study_admission.rs:355:1
+     |
+355  | fn require(ok: bool, kind: IssueKind, operation: &'static str) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_admission::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_inputs.rs:41:1
+     |
+41   | fn require(ok: bool, message: &str) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_inputs::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_profile/registered_case.rs:30:1
+     |
+30   | fn require(ok: bool, why: &'static str) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_profile::registered_case::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_reference/session.rs:28:1
+     |
+28   | fn require(ok: bool, why: &'static str) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_reference::session::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_reference/target.rs:70:1
+     |
+70   | fn require(ok: bool, e: TargetError) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_reference::target::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_run.rs:41:1
+     |
+41   | fn require(ok: bool, why: &'static str) -> Result<(), RequestError> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_run::require`: not accessible
+     |
+    ::: crates/ckks-train-bench/src/study_runtime.rs:20:1
+     |
+20   | fn require(ok: bool, why: &'static str) -> Result<()> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::study_runtime::require`: not accessible
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:334:24
+    |
+334 | fn kind(name: &str) -> Kind {
+    |                        ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:336:9
+    |
+336 |         Kind::Parameters
+    |         ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:338:9
+    |
+338 |         Kind::Layout
+    |         ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:340:9
+    |
+340 |         Kind::Keys
+    |         ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:342:9
+    |
+342 |         Kind::Security
+    |         ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0659]: `Kind` is ambiguous
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:430:42
+    |
+430 |         let wire = WireDescriptor::parse(Kind::Security, &b).unwrap();
+    |                                          ^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Kind` could refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:2:5
+    |
+2   | use super::execution_descriptors::*;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+note: `Kind` could also refer to the enum imported here
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:3:5
+    |
+3   | use super::*;
+    |     ^^^^^^^^
+    = help: consider adding an explicit import of `Kind` to disambiguate
+
+error[E0053]: method `raw` has an incompatible type for trait
+    --> crates/ckks-train-bench/src/study_admission.rs:2077:40
+     |
+2077 |     fn raw(&mut self, bytes: &[u8]) -> Result<()> {
+     |                                        ^^^^^^^^^^ expected `Box<AdmissionIssue>`, found `AdmissionIssue`
+     |
+note: type in trait
+    --> crates/ckks-train-bench/src/study_admission.rs:2049:40
+     |
+2049 |     fn raw(&mut self, bytes: &[u8]) -> std::result::Result<(), Self::Error>;
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: expected signature `fn(&mut study_admission::Transcript, &_) -> std::result::Result<_, Box<AdmissionIssue>>`
+                found signature `fn(&mut study_admission::Transcript, &_) -> std::result::Result<_, AdmissionIssue>`
+help: change the output type to match the trait
+     |
+2077 |     fn raw(&mut self, bytes: &[u8]) -> std::result::Result<(), Box<AdmissionIssue>> {
+     |                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0053]: method `number` has an incompatible type for trait
+    --> crates/ckks-train-bench/src/study_admission.rs:2080:39
+     |
+2080 |     fn number(&mut self, n: usize) -> Result<()> {
+     |                                       ^^^^^^^^^^ expected `Box<AdmissionIssue>`, found `AdmissionIssue`
+     |
+note: type in trait
+    --> crates/ckks-train-bench/src/study_admission.rs:2050:39
+     |
+2050 |     fn number(&mut self, n: usize) -> std::result::Result<(), Self::Error>;
+     |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: expected signature `fn(&mut study_admission::Transcript, _) -> std::result::Result<_, Box<AdmissionIssue>>`
+                found signature `fn(&mut study_admission::Transcript, _) -> std::result::Result<_, AdmissionIssue>`
+help: change the output type to match the trait
+     |
+2080 |     fn number(&mut self, n: usize) -> std::result::Result<(), Box<AdmissionIssue>> {
+     |                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0308]: mismatched types
+    --> crates/ckks-train-bench/src/study_admission.rs:2085:5
+     |
+2084 | fn encode_geometry(w: &mut Transcript, g: &StageGeometry) -> Result<()> {
+     |                                                              ---------- expected `std::result::Result<(), AdmissionIssue>` because of return type
+2085 |     encode_geometry_body(w, GeometryBody::from(g))
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), AdmissionIssue>`, found `Result<(), Box<AdmissionIssue>>`
+     |
+     = note: expected enum `std::result::Result<_, AdmissionIssue>`
+                found enum `std::result::Result<_, Box<AdmissionIssue>>`
+
+error[E0658]: use of unstable library feature `unsigned_is_multiple_of`
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:213:52
+    |
+213 |             self.dnum > 0 && (self.q.len() as u64).is_multiple_of(self.dnum),
+    |                                                    ^^^^^^^^^^^^^^
+    |
+    = note: see issue #128101 <https://github.com/rust-lang/rust/issues/128101> for more information
+
+error[E0658]: use of unstable library feature `unsigned_is_multiple_of`
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:301:50
+    |
+301 |                 occupied > 0 && (l.slots as u64).is_multiple_of(occupied),
+    |                                                  ^^^^^^^^^^^^^^
+    |
+    = note: see issue #128101 <https://github.com/rust-lang/rust/issues/128101> for more information
+
+error[E0658]: use of unstable library feature `unsigned_is_multiple_of`
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:785:75
+    |
+785 |             (1..=17).contains(&log_n) && dnum > 0 && (q.len() as u64 / 8).is_multiple_of(dnum),
+    |                                                                           ^^^^^^^^^^^^^^
+    |
+    = note: see issue #128101 <https://github.com/rust-lang/rust/issues/128101> for more information
+
+error[E0621]: explicit lifetime required in the type of `expected`
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs:640:9
+    |
+639 |     pub(super) fn matches_bytes(&self, expected: &[u8]) -> Result<()> {
+    |                                                  ----- help: add explicit lifetime `'a` to the type of `expected`: `&'a [u8]`
+640 |         Self::parse(self.kind, expected)?;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ lifetime `'a` required
+
+Some errors have detailed explanations: E0053, E0308, E0425, E0621, E0658, E0659.
+For more information about an error, try `rustc --explain E0053`.
+error: could not compile `ckks-train-bench` (lib test) due to 14 previous errors

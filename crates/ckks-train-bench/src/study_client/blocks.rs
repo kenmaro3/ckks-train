@@ -24,8 +24,25 @@ pub(crate) struct CheckedBlockPreparation<'a> {
     classes: Vec<usize>,
     parameters: &'a CkksParams,
     bootstrap_identity: Option<&'a [u8]>,
+    bootstrap_metadata: Option<&'a BootstrapMetadata>,
     boot_parameters: Option<&'a BootParams>,
     rotations: Vec<i32>,
+}
+impl CheckedBlockPreparation<'_> {
+    #[allow(dead_code)]
+    pub(crate) fn descriptor_facts(&self) -> Option<PreparationDescriptorFacts<'_>> {
+        let plan = match &self.plan {
+            BlockPlanOwner::Canonical(p) => p.as_ref(),
+            #[cfg(test)]
+            BlockPlanOwner::Synthetic(_) => return None,
+        };
+        Some(PreparationDescriptorFacts {
+            plan,
+            descriptions: &self.descriptions,
+            parameters: self.parameters,
+            bootstrap: self.bootstrap_metadata,
+        })
+    }
 }
 /// Closed validation before the first key-material factory; never an admission capability.
 pub(crate) fn prepare_blocks_then_make<'a, T>(
@@ -141,6 +158,7 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
         classes,
         parameters: actual.params,
         bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+        bootstrap_metadata: actual.bootstrap,
         boot_parameters: actual.boot_params,
         rotations,
     })

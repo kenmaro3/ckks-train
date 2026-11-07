@@ -1,0 +1,36 @@
+{
+  "index": 8,
+  "name": "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048960.974764,
+  "pid": 36928,
+  "exit_code": 0,
+  "end": 1794048961.096927,
+  "named_successes": [
+    "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 241,
+  "stdout_sha256": "4001b327d86d961ebab8560d1f790973ac223fbeb57eebd699f98feb4f91718a",
+  "stderr_bytes": 159,
+  "stderr_sha256": "5f2e0c7a16d1cae70e7daea5175eefe7f3da326729d3a81b696d272c0ef809f0"
+}

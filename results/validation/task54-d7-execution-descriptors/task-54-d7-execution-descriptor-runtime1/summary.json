@@ -1,0 +1,366 @@
+{
+  "kind": "unit_validation_not_scientific",
+  "complete": true,
+  "results": [
+    {
+      "index": 1,
+      "name": "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048959.104618,
+      "pid": 36886,
+      "exit_code": 0,
+      "end": 1794048960.1616268,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_parameter_literal_bytes"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 215,
+      "stdout_sha256": "a8994459a6a376f508fe68a16fc9c598845bbb4e8eef61c539faf1aa9d5821a4",
+      "stderr_bytes": 159,
+      "stderr_sha256": "0361e366b435bb432036578ba4b8b56745c50d7bd5fc1663b81193ad2e0d6024"
+    },
+    {
+      "index": 2,
+      "name": "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.1719391,
+      "pid": 36900,
+      "exit_code": 0,
+      "end": 1794048960.301072,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_layout_literal_bytes"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 212,
+      "stdout_sha256": "6990b1f474014e1901f8b16c4f06051590d824c88f79e06e62d0f5cb9ef70de8",
+      "stderr_bytes": 159,
+      "stderr_sha256": "5f2e0c7a16d1cae70e7daea5175eefe7f3da326729d3a81b696d272c0ef809f0"
+    },
+    {
+      "index": 3,
+      "name": "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.317906,
+      "pid": 36907,
+      "exit_code": 0,
+      "end": 1794048960.446961,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_key_literal_bytes"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 209,
+      "stdout_sha256": "b0bc1457aef3f0397018b8b699a792cd2bc5bb487d2079bbf1e52096f088352a",
+      "stderr_bytes": 159,
+      "stderr_sha256": "904c130ee8bb94a13170ec6c0a8fdf863b4af8b4d855f64910d535493dd36307"
+    },
+    {
+      "index": 4,
+      "name": "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.4594402,
+      "pid": 36912,
+      "exit_code": 0,
+      "end": 1794048960.5688121,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_security_literal_bytes"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 214,
+      "stdout_sha256": "87a3b47910dfd861b687b2137680d706ead0262a8294b2efdc033d67ca941708",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    },
+    {
+      "index": 5,
+      "name": "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.580721,
+      "pid": 36915,
+      "exit_code": 0,
+      "end": 1794048960.6993952,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_complete_negative_images_distinguish_wire_and_binding"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 245,
+      "stdout_sha256": "8232473d72024e378805b26d189842510900e526100210fb1ba26462c7e105ed",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    },
+    {
+      "index": 6,
+      "name": "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.7147892,
+      "pid": 36920,
+      "exit_code": 0,
+      "end": 1794048960.8400798,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_every_proper_prefix_rejected"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 220,
+      "stdout_sha256": "8e246e7801fbb3dcc1582330f219df1f0dbd394a70ddd2e8748e15cd713df4e4",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    },
+    {
+      "index": 7,
+      "name": "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.8530838,
+      "pid": 36925,
+      "exit_code": 0,
+      "end": 1794048960.962605,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_checked_size_and_arithmetic_guards"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 226,
+      "stdout_sha256": "baeabe89331b3c8b0500d9a7fba116a436306b78a36a4d64a1fc0da85c0cd806",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    },
+    {
+      "index": 8,
+      "name": "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048960.974764,
+      "pid": 36928,
+      "exit_code": 0,
+      "end": 1794048961.096927,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_synthetic_wire_has_no_registered_policy_authority"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 241,
+      "stdout_sha256": "4001b327d86d961ebab8560d1f790973ac223fbeb57eebd699f98feb4f91718a",
+      "stderr_bytes": 159,
+      "stderr_sha256": "5f2e0c7a16d1cae70e7daea5175eefe7f3da326729d3a81b696d272c0ef809f0"
+    },
+    {
+      "index": 9,
+      "name": "study_reference::document::execution_descriptor_tests::execution_parameter_constructor_invariants_without_construction",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_parameter_constructor_invariants_without_construction",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048961.109951,
+      "pid": 36968,
+      "exit_code": 0,
+      "end": 1794048961.218796,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_parameter_constructor_invariants_without_construction"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 245,
+      "stdout_sha256": "f9870f6a657878268801421d5407d26820f1ee64b9f659dc1c55d588e0509293",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    },
+    {
+      "index": 10,
+      "name": "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794048961.231952,
+      "pid": 36970,
+      "exit_code": 0,
+      "end": 1794048961.344337,
+      "named_successes": [
+        "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 239,
+      "stdout_sha256": "ec454c78a2b054eb5cb2c6985874fa654f82b5e02fa3bbcd4deb5e67dfd0fb65",
+      "stderr_bytes": 159,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+    }
+  ]
+}

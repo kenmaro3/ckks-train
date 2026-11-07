@@ -1,0 +1,142 @@
+--- .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-execution-descriptor-tests-before-fix1.rs	2026-11-07 19:50:23
++++ crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs	2026-11-07 19:51:34
+@@ -376,23 +376,129 @@
+ }
+ #[test]
+ fn execution_complete_negative_images_distinguish_wire_and_binding() {
++    const GRAMMAR_REFUSALS: [&str; 30] = [
++        "parameter_dense-wrong-domain",
++        "layout_i_single-wrong-domain",
++        "keys_i_dedicated-wrong-domain",
++        "security_i_dense-wrong-domain",
++        "parameter-count-u64-overflow",
++        "parameter-count-exceeds-A_MAX",
++        "parameter-wrong-text-length",
++        "parameter-option-tag2",
++        "layout-mode-tag2",
++        "layout-consumption-tag2",
++        "layout-bool2",
++        "layout-count-zero",
++        "layout-count-four",
++        "layout-compact-option2",
++        "layout-container-layer-option2",
++        "keys-bootstrap-option2",
++        "keys-transpose-tag2",
++        "keys-owner-tag1",
++        "keys-uppercase-hash",
++        "security-policy-tag2",
++        "security-main-secret-tag2",
++        "security-ephemeral-option2",
++        "security-ephemeral-secret-tag2",
++        "security-assurance1",
++        "security-scope-option2",
++        "security-scope-value1",
++        "parameter_dense-trailing-byte",
++        "layout_i_single-trailing-byte",
++        "keys_i_dedicated-trailing-byte",
++        "security_i_dense-trailing-byte",
++    ];
++    const PARAMETER_REFUSALS: [&str; 9] = [
++        "parameter-empty-chain",
++        "parameter-bit-vector-count",
++        "parameter-dnum-zero",
++        "parameter-dnum-not-divisor",
++        "parameter-logN-overflow",
++        "parameter-zero-scale",
++        "parameter-main-weight-zero",
++        "parameter-main-weight-overN",
++        "parameter-swapped-bit-vectors",
++    ];
++    const SEMANTIC_MISMATCHES: [&str; 17] = [
++        "layout-valid-zero",
++        "layout-valid-over-lanes",
++        "layout-start-discontinuous",
++        "layout-ordered-chain-swap",
++        "keys-zero-rotation",
++        "keys-duplicate-rotation",
++        "keys-superset-not-equal",
++        "keys-generated-executed-swap",
++        "keys-bootstrap-absent-with-bundle",
++        "keys-reuse-pool-reorder",
++        "security-weight-zero",
++        "security-weight-overN",
++        "security-weight-change",
++        "security-limitations-order",
++        "security-limitations-count",
++        "security-NI-no-bootstrap",
++        "security-absent-not-dense",
++    ];
+     let values: Value = serde_json::from_str(NEGATIVES).unwrap();
++    let mut seen = [false; 56];
++    let mut counts = [0; 3];
+     for v in values["vectors"].as_array().unwrap() {
++        let name = v["name"].as_str().unwrap();
+         let b = bytes(v["complete_hex"].as_str().unwrap());
+         let base = v["base"].as_str().unwrap();
+         let parsed = WireDescriptor::parse(kind(base), &b);
+-        if v["expected"]
+-            .as_str()
+-            .unwrap()
+-            .starts_with("Reject malformed")
+-        {
+-            assert!(parsed.is_err(), "{}", v["name"]);
+-        } else if let Ok(wire) = parsed {
+-            // These are synthetic retained byte expectations, not checked preparation facts.
+-            assert!(wire.matches_bytes(&literal(base)).is_err(), "{}", v["name"]);
+-        }
++        let (class, index) = if let Some(i) = GRAMMAR_REFUSALS.iter().position(|n| *n == name) {
++            assert!(
++                v["expected"]
++                    .as_str()
++                    .unwrap()
++                    .starts_with("Reject malformed"),
++                "{name}"
++            );
++            assert!(parsed.is_err(), "grammar refusal must not parse: {name}");
++            (0, i)
++        } else if let Some(i) = PARAMETER_REFUSALS.iter().position(|n| *n == name) {
++            assert!(
++                v["expected"].as_str().unwrap().starts_with("Wire may"),
++                "{name}"
++            );
++            assert!(kind(base) == Kind::Parameters, "{name}");
++            assert!(
++                parsed.is_err(),
++                "constructor-invalid parameter must not parse: {name}"
++            );
++            (1, GRAMMAR_REFUSALS.len() + i)
++        } else if let Some(i) = SEMANTIC_MISMATCHES.iter().position(|n| *n == name) {
++            assert!(
++                v["expected"].as_str().unwrap().starts_with("Wire may"),
++                "{name}"
++            );
++            let wire = parsed.unwrap_or_else(|e| panic!("semantic image must parse: {name}: {e}"));
++            // The unchanged expectation is synthetic bytes, never checked preparation facts.
++            assert!(wire.matches_bytes(&literal(base)).is_err(), "{name}");
++            match name {
++                "security-weight-zero" | "security-weight-overN" => {
++                    assert!(wire.validate_security_declarations(16).is_err(), "{name}");
++                }
++                "security-weight-change" => {
++                    assert!(wire.validate_security_declarations(16).is_ok(), "{name}");
++                }
++                _ => {}
++            }
++            (2, GRAMMAR_REFUSALS.len() + PARAMETER_REFUSALS.len() + i)
++        } else {
++            panic!("unclassified frozen negative image: {name}");
++        };
++        assert!(!seen[index], "duplicate frozen negative image: {name}");
++        seen[index] = true;
++        counts[class] += 1;
+     }
++    assert!(
++        seen.into_iter().all(|present| present),
++        "missing frozen negative image"
++    );
++    assert_eq!(counts, [30, 9, 17]);
+ }
++
+ #[test]
+ fn execution_every_proper_prefix_rejected() {
+     for (name, hex) in LITERALS {

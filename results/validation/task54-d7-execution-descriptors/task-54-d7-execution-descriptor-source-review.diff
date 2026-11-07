@@ -1,0 +1,1868 @@
+BASE 7da6d0a6aab3ee38d7641762bcc82a1d2150b39a; current HEAD56d0fb3 adds operational request only. Full seven-Rust-path diff follows;20fixture copies are exact archived reviewed inputs and separately inventoried below.
+diff --git a/crates/ckks-train-bench/src/study_admission.rs b/crates/ckks-train-bench/src/study_admission.rs
+index 453e269..5433759 100644
+--- a/crates/ckks-train-bench/src/study_admission.rs
++++ b/crates/ckks-train-bench/src/study_admission.rs
+@@ -2015,80 +2015,149 @@ fn counts(w: &mut Transcript, c: &OpCounter) -> Result<()> {
+         c.ct_ct_tensor,
+         c.ct_pt_mults,
+         c.rescales,
+         c.sse_switches,
+         c.bootstraps,
+     ] {
+         w.u64(n)?;
+     }
+     Ok(())
+ }
+-fn compact(w: &mut Transcript, c: CompactPlan) -> Result<()> {
+-    for n in [c.d_out, c.d_in, c.batch, c.diags_per_ct, c.lane_shift] {
+-        w.number(n)?;
++// Borrowed physical representation only. No geometry planner or readiness authority.
++pub(crate) struct GeometryBody<'a> {
++    pub(crate) layout: Layout,
++    pub(crate) shapes: &'a [ckks_train_nn::layout::LayerShape],
++    pub(crate) masks: &'a [ckks_train_nn::diagonal_plan::MaskRecipe],
++    pub(crate) transpose: &'a [ckks_train_nn::diagonal_plan::TransposeRecipe],
++    pub(crate) rotations: &'a [i32],
++    pub(crate) compact: Option<&'a ckks_train_nn::trainer_ni::CompactLayout>,
++}
++impl<'a> From<&'a StageGeometry> for GeometryBody<'a> {
++    fn from(g: &'a StageGeometry) -> Self {
++        Self {
++            layout: g.layout(),
++            shapes: g.shapes(),
++            masks: g.mask_recipes(),
++            transpose: g.transpose_recipes(),
++            rotations: g.rotation_steps(),
++            compact: g.compact(),
++        }
++    }
++}
++// The single unchanged P3 geometry field/order body, shared with the new descriptor.
++pub(crate) trait GeometryWriter {
++    type Error;
++    fn raw(&mut self, bytes: &[u8]) -> std::result::Result<(), Self::Error>;
++    fn number(&mut self, n: usize) -> std::result::Result<(), Self::Error>;
++    fn tag(&mut self, n: u8) -> std::result::Result<(), Self::Error> {
++        self.raw(&[n])
++    }
++    fn option_number(&mut self, n: Option<usize>) -> std::result::Result<(), Self::Error> {
++        self.tag(u8::from(n.is_some()))?;
++        if let Some(n) = n {
++            self.number(n)?;
++        }
++        Ok(())
++    }
++    fn steps(&mut self, values: &[i32]) -> std::result::Result<(), Self::Error> {
++        self.number(values.len())?;
++        for n in values {
++            self.raw(&n.to_le_bytes())?;
++        }
++        Ok(())
++    }
++    fn compact(&mut self, c: CompactPlan) -> std::result::Result<(), Self::Error> {
++        for n in [c.d_out, c.d_in, c.batch, c.diags_per_ct, c.lane_shift] {
++            self.number(n)?;
++        }
++        Ok(())
++    }
++}
++impl GeometryWriter for Transcript {
++    type Error = AdmissionIssue;
++    fn raw(&mut self, bytes: &[u8]) -> Result<()> {
++        Transcript::raw(self, bytes)
++    }
++    fn number(&mut self, n: usize) -> Result<()> {
++        Transcript::number(self, n)
+     }
+-    Ok(())
+ }
+ fn encode_geometry(w: &mut Transcript, g: &StageGeometry) -> Result<()> {
+-    let l = g.layout();
++    encode_geometry_body(w, GeometryBody::from(g))
++}
++pub(crate) fn encode_geometry_body<W: GeometryWriter>(
++    w: &mut W,
++    g: GeometryBody<'_>,
++) -> std::result::Result<(), W::Error> {
++    let l = g.layout;
+     for n in [l.slots, l.d, l.batch] {
+         w.number(n)?;
+     }
+-    w.number(g.shapes().len())?;
+-    for s in g.shapes() {
++    w.number(g.shapes.len())?;
++    for s in g.shapes {
+         for n in [s.d_out, s.d_in, s.n_out, s.n_in, s.l, s.m, s.baby, s.giant] {
+             w.number(n)?;
+         }
+     }
+-    w.number(g.mask_recipes().len())?;
+-    for m in g.mask_recipes() {
++    w.number(g.masks.len())?;
++    for m in g.masks {
+         for n in [
+             m.canonical_period,
+             m.gradient_period,
+             m.bias_period,
+             m.lanes,
+         ] {
+             w.number(n)?;
+         }
+-        int_steps(w, &m.reduce_steps)?;
+-        int_steps(w, &m.replication_steps)?;
++        w.steps(&m.reduce_steps)?;
++        w.steps(&m.replication_steps)?;
+         w.tag(u8::from(m.compact_first_period))?;
+     }
+-    w.number(g.transpose_recipes().len())?;
+-    for r in g.transpose_recipes() {
++    w.number(g.transpose.len())?;
++    for r in g.transpose {
+         w.number(r.len())?;
+         for (source, steps) in r {
+             w.number(*source)?;
+-            int_steps(w, steps)?;
++            w.steps(steps)?;
+         }
+     }
+-    int_steps(w, g.rotation_steps())?;
+-    w.tag(u8::from(g.compact().is_some()))?;
+-    if let Some(c) = g.compact() {
++    w.steps(g.rotations)?;
++    w.tag(u8::from(g.compact.is_some()))?;
++    if let Some(c) = g.compact {
+         w.number(c.plans.len())?;
+         for &p in &c.plans {
+-            compact(w, p)?;
++            w.compact(p)?;
+         }
+         w.number(c.containers.len())?;
+         for v in &c.containers {
+             w.option_number(v.layer)?;
+             w.number(v.index)?;
+-            compact(w, v.plan)?;
++            w.compact(v.plan)?;
+         }
+         w.number(c.biases.len())?;
+         for b in &c.biases {
+             w.number(b.container)?;
+             w.number(b.position)?;
+         }
+     }
+     Ok(())
+ }
++#[cfg(test)]
++pub(crate) fn test_geometry_transcript(g: GeometryBody<'_>) -> Result<Vec<u8>> {
++    let mut w = Transcript::new(ReceiptLimits {
++        max_bytes: 2_097_152,
++        max_records: 0,
++    });
++    encode_geometry_body(&mut w, g)?;
++    Ok(w.bytes)
++}
++
+ fn encode_state_labels(w: &mut Transcript, s: StateLabels<'_>) -> Result<()> {
+     for v in [s.weights, s.biases, s.compact] {
+         cts(w, v)?;
+     }
+     w.number(s.velocity.len())?;
+     for &v in s.velocity {
+         w.tag(u8::from(v.is_some()))?;
+         if let Some(v) = v {
+             ct(w, v)?;
+         }
+diff --git a/crates/ckks-train-bench/src/study_client/blocks.rs b/crates/ckks-train-bench/src/study_client/blocks.rs
+index 75f0261..fb73fcf 100644
+--- a/crates/ckks-train-bench/src/study_client/blocks.rs
++++ b/crates/ckks-train-bench/src/study_client/blocks.rs
+@@ -17,23 +17,40 @@ pub(crate) enum BlockPreparationInput<'a> {
+         plan: Arc<crate::study_admission::p5_fixtures::SyntheticBlockPlan>,
+         claim: &'a crate::study_admission::p5_fixtures::SyntheticBlockClaim,
+     },
+ }
+ pub(crate) struct CheckedBlockPreparation<'a> {
+     pub(crate) plan: BlockPlanOwner,
+     descriptions: Vec<Description>,
+     classes: Vec<usize>,
+     parameters: &'a CkksParams,
+     bootstrap_identity: Option<&'a [u8]>,
++    bootstrap_metadata: Option<&'a BootstrapMetadata>,
+     boot_parameters: Option<&'a BootParams>,
+     rotations: Vec<i32>,
+ }
++impl CheckedBlockPreparation<'_> {
++    #[allow(dead_code)]
++    pub(crate) fn descriptor_facts(&self) -> Option<PreparationDescriptorFacts<'_>> {
++        let plan = match &self.plan {
++            BlockPlanOwner::Canonical(p) => p.as_ref(),
++            #[cfg(test)]
++            BlockPlanOwner::Synthetic(_) => return None,
++        };
++        Some(PreparationDescriptorFacts {
++            plan,
++            descriptions: &self.descriptions,
++            parameters: self.parameters,
++            bootstrap: self.bootstrap_metadata,
++        })
++    }
++}
+ /// Closed validation before the first key-material factory; never an admission capability.
+ pub(crate) fn prepare_blocks_then_make<'a, T>(
+     input: BlockPreparationInput<'_>,
+     actual: PlanningParameters<'a>,
+     parts: &[Vec<MicroPart>],
+     factory: impl FnOnce(CheckedBlockPreparation<'a>) -> Result<T>,
+ ) -> CpuPreparationResult<T> {
+     let (plan, descriptions, classes, rotations) = match input {
+         BlockPreparationInput::Canonical {
+             materialized,
+@@ -134,20 +151,21 @@ pub(crate) fn prepare_blocks_then_make<'a, T>(
+             rotations.dedup();
+             (owner, descriptions, plan.classes.clone(), rotations)
+         }
+     };
+     factory(CheckedBlockPreparation {
+         plan,
+         descriptions,
+         classes,
+         parameters: actual.params,
+         bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++        bootstrap_metadata: actual.bootstrap,
+         boot_parameters: actual.boot_params,
+         rotations,
+     })
+     .map_err(CpuPreparationError::He)
+ }
+ pub(crate) fn make_blocks_owned(
+     checked: &CheckedBlockPreparation<'_>,
+     parameters: Arc<CkksParams>,
+     rotations: &[i32],
+     boot: Option<CpuBootstrapDescription>,
+diff --git a/crates/ckks-train-bench/src/study_client.rs b/crates/ckks-train-bench/src/study_client.rs
+index 47375ea..5abce73 100644
+--- a/crates/ckks-train-bench/src/study_client.rs
++++ b/crates/ckks-train-bench/src/study_client.rs
+@@ -92,22 +92,69 @@ pub(crate) enum PreparationInput<'a> {
+     Synthetic {
+         plan: Arc<crate::study_admission::p4_fixtures::SyntheticCpuPlan>,
+         claim: &'a crate::study_admission::p4_fixtures::SyntheticClaim,
+     },
+ }
+ pub(crate) struct CheckedPreparation<'a> {
+     pub(crate) plan: PlanOwner,
+     pub(crate) description: Description,
+     parameters: &'a CkksParams,
+     bootstrap_identity: Option<&'a [u8]>,
++    bootstrap_metadata: Option<&'a BootstrapMetadata>,
+     boot_parameters: Option<&'a BootParams>,
+ }
++// Immutable source projections. Only checked canonical preparation can provide this view.
++// A synthetic plan is deliberately refused even when its bytes happen to match.
++#[allow(dead_code)] // The next retained-route adapter consumes these non-authorizing views.
++pub(crate) struct PreparationDescriptorFacts<'a> {
++    plan: &'a DiagonalPlan,
++    descriptions: &'a [Description],
++    parameters: &'a CkksParams,
++    bootstrap: Option<&'a BootstrapMetadata>,
++}
++#[allow(dead_code)]
++impl<'a> PreparationDescriptorFacts<'a> {
++    pub(crate) fn plan(&self) -> &'a DiagonalPlan {
++        self.plan
++    }
++    pub(crate) fn parameters(&self) -> &'a CkksParams {
++        self.parameters
++    }
++    pub(crate) fn bootstrap(&self) -> Option<&'a BootstrapMetadata> {
++        self.bootstrap
++    }
++    pub(crate) fn stage_count(&self) -> usize {
++        self.descriptions.len()
++    }
++    pub(crate) fn geometry(&self, index: usize) -> &'a ckks_train_nn::diagonal_plan::StageGeometry {
++        &self.descriptions[index].geometry
++    }
++    pub(crate) fn transpose(&self) -> &'a ckks_train_nn::dense::TransposeKeys {
++        &self.descriptions[0].transpose
++    }
++}
++impl CheckedPreparation<'_> {
++    #[allow(dead_code)]
++    pub(crate) fn descriptor_facts(&self) -> Option<PreparationDescriptorFacts<'_>> {
++        let plan = match &self.plan {
++            PlanOwner::Canonical(p) => p.as_ref(),
++            #[cfg(test)]
++            PlanOwner::Synthetic(_) => return None,
++        };
++        Some(PreparationDescriptorFacts {
++            plan,
++            descriptions: std::slice::from_ref(&self.description),
++            parameters: self.parameters,
++            bootstrap: self.bootstrap_metadata,
++        })
++    }
++}
+ // A single private validation-then-factory invocation, shared by real setup and terminal spy.
+ // No callback or digest capability is exported by the public client API.
+ pub(crate) fn prepare_then_make<'a, T>(
+     input: PreparationInput<'_>,
+     actual: PlanningParameters<'a>,
+     actual_partition: &[Vec<MicroPart>],
+     factory: impl FnOnce(CheckedPreparation<'a>) -> Result<T>,
+ ) -> CpuPreparationResult<T> {
+     let checked = match input {
+         PreparationInput::Canonical {
+@@ -166,20 +213,21 @@ pub(crate) fn prepare_then_make<'a, T>(
+                 .collect();
+             let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
+             ensure(
+                 frozen || materialized.metadata().layers.iter().all(|l| l.bias),
+                 "mixed bias policy unsupported",
+             )?;
+             // Clone only this one geometry, never the candidate's placeholder initial states.
+             CheckedPreparation {
+                 parameters: actual.params,
+                 bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                bootstrap_metadata: actual.bootstrap,
+                 boot_parameters: actual.boot_params,
+                 plan: owner,
+                 description: Description {
+                     geometry: candidate.geometries()[0].clone(),
+                     activations,
+                     transpose: request.transpose.clone(),
+                     frozen,
+                 },
+             }
+         }
+@@ -190,20 +238,21 @@ pub(crate) fn prepare_then_make<'a, T>(
+             let owner = PlanOwner::Synthetic(plan.clone());
+             owner.check_shape()?;
+             let activations = if plan.frozen {
+                 vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
+             } else {
+                 vec![DiagonalActivation::Square; 2]
+             };
+             CheckedPreparation {
+                 parameters: actual.params,
+                 bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                bootstrap_metadata: actual.bootstrap,
+                 boot_parameters: actual.boot_params,
+                 plan: owner,
+                 description: Description {
+                     geometry: plan.geometry.clone(),
+                     activations,
+                     transpose: plan.transpose.clone(),
+                     frozen: plan.frozen,
+                 },
+             }
+         }
+diff --git a/crates/ckks-train-bench/src/study_provenance/context.rs b/crates/ckks-train-bench/src/study_provenance/context.rs
+index e1fd56e..c95166b 100644
+--- a/crates/ckks-train-bench/src/study_provenance/context.rs
++++ b/crates/ckks-train-bench/src/study_provenance/context.rs
+@@ -1280,20 +1280,30 @@ impl VerifiedStudyContext {
+             .into_iter()
+             .map(|(p, v)| {
+                 let name = String::from_utf8(p).map_err(|_| ProvenanceError("source UTF8"))?;
+                 match v {
+                     FileValue::Regular(h) => Ok((name, h)),
+                     _ => Err(ProvenanceError("source regular required")),
+                 }
+             })
+             .collect()
+     }
++    // Only the current Train receipt. Borrow the complete approved source Manifest;
++    // the context and caller retain their existing live/source rechecks.
++    #[allow(dead_code)] // Consumed by the next retained ExecutionBinding producer.
++    pub(crate) fn train_source_manifest_bytes(&self) -> Result<&[u8]> {
++        ensure(
++            self.current_role() == ExecutableRole::StudyTrain,
++            "current Train receipt required",
++        )?;
++        Ok(&self.core.receipts[self.core.current].receipt.files[0])
++    }
+     pub(crate) fn source_commit(&self) -> &str {
+         &self.core.approval.commit
+     }
+ }
+ impl BuildFacts<'_> {
+     pub(crate) fn compiler_vv(&self) -> &str {
+         &self.capsule.compiler
+     }
+     pub(crate) fn target(&self) -> &str {
+         &self.capsule.target
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs b/crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs
+new file mode 100644
+index 0000000..02b5f97
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs
+@@ -0,0 +1,503 @@
++//! Pure literal transport tests. No parameters, planners, crypto, native or file I/O.
++use super::execution_descriptors::*;
++use super::{Result, sha256_hex};
++use crate::study_admission::{GeometryBody, MicroPart};
++use ckks_train_ckks::EvalConfig;
++use ckks_train_nn::{
++    compact::CompactPlan,
++    diagonal_plan::MaskRecipe,
++    layout::{LayerShape, Layout},
++    trainer_ni::{BiasSlot, CompactLayout, ContainerSpec},
++};
++use serde_json::Value;
++const INPUTS: &str = include_str!("execution_descriptor_fixtures/inputs.json");
++const NEGATIVES: &str = include_str!("execution_descriptor_fixtures/negative-vectors.json");
++const MANIFEST: &str = include_str!("execution_descriptor_fixtures/manifest.json");
++const LITERALS: [(&str, &str); 14] = [
++    (
++        "parameter_dense",
++        include_str!("execution_descriptor_fixtures/parameter_dense.hex"),
++    ),
++    (
++        "parameter_fixed",
++        include_str!("execution_descriptor_fixtures/parameter_fixed.hex"),
++    ),
++    (
++        "layout_i_single",
++        include_str!("execution_descriptor_fixtures/layout_i_single.hex"),
++    ),
++    (
++        "layout_ni_two",
++        include_str!("execution_descriptor_fixtures/layout_ni_two.hex"),
++    ),
++    (
++        "layout_i_three",
++        include_str!("execution_descriptor_fixtures/layout_i_three.hex"),
++    ),
++    (
++        "keys_i_dedicated",
++        include_str!("execution_descriptor_fixtures/keys_i_dedicated.hex"),
++    ),
++    (
++        "keys_i_reuse",
++        include_str!("execution_descriptor_fixtures/keys_i_reuse.hex"),
++    ),
++    (
++        "keys_ni_dedicated",
++        include_str!("execution_descriptor_fixtures/keys_ni_dedicated.hex"),
++    ),
++    (
++        "keys_ni_reuse",
++        include_str!("execution_descriptor_fixtures/keys_ni_reuse.hex"),
++    ),
++    (
++        "security_i_dense",
++        include_str!("execution_descriptor_fixtures/security_i_dense.hex"),
++    ),
++    (
++        "security_i_fixed",
++        include_str!("execution_descriptor_fixtures/security_i_fixed.hex"),
++    ),
++    (
++        "security_ni_absent",
++        include_str!("execution_descriptor_fixtures/security_ni_absent.hex"),
++    ),
++    (
++        "security_ni_fixed",
++        include_str!("execution_descriptor_fixtures/security_ni_fixed.hex"),
++    ),
++    (
++        "security_ni_dense",
++        include_str!("execution_descriptor_fixtures/security_ni_dense.hex"),
++    ),
++];
++fn bytes(s: &str) -> Vec<u8> {
++    s.trim()
++        .as_bytes()
++        .chunks_exact(2)
++        .map(|c| u8::from_str_radix(std::str::from_utf8(c).unwrap(), 16).unwrap())
++        .collect()
++}
++fn literal(name: &str) -> Vec<u8> {
++    bytes(LITERALS.iter().find(|(n, _)| *n == name).unwrap().1)
++}
++fn fixtures() -> Vec<Value> {
++    serde_json::from_str::<Value>(INPUTS).unwrap()["vectors"]
++        .as_array()
++        .unwrap()
++        .clone()
++}
++fn num(v: &Value) -> usize {
++    usize::try_from(v.as_u64().unwrap()).unwrap()
++}
++fn flag(v: &Value) -> bool {
++    v.as_u64().unwrap() == 1
++}
++fn nums(v: &Value) -> Vec<u64> {
++    v.as_array()
++        .unwrap()
++        .iter()
++        .map(|n| n.as_u64().unwrap())
++        .collect()
++}
++fn steps(v: &Value) -> Vec<i32> {
++    v.as_array()
++        .unwrap()
++        .iter()
++        .map(|n| i32::try_from(n.as_i64().unwrap()).unwrap())
++        .collect()
++}
++fn opt_num(v: &Value) -> Option<usize> {
++    (!v.is_null()).then(|| num(v))
++}
++fn hash(v: &Value) -> Option<&str> {
++    v.as_str()
++}
++fn compact(v: &Value) -> CompactPlan {
++    CompactPlan {
++        d_out: num(&v["d_out"]),
++        d_in: num(&v["d_in"]),
++        batch: num(&v["batch"]),
++        diags_per_ct: num(&v["diags_per_ct"]),
++        lane_shift: num(&v["lane_shift"]),
++    }
++}
++struct LiteralStage {
++    dims: Vec<usize>,
++    layout: Layout,
++    shapes: Vec<LayerShape>,
++    masks: Vec<MaskRecipe>,
++    transpose: Vec<Vec<(usize, Vec<i32>)>>,
++    rotations: Vec<i32>,
++    compact: Option<CompactLayout>,
++}
++impl LiteralStage {
++    fn new(v: &Value) -> Self {
++        Self {
++            dims: nums(&v["dims"]).into_iter().map(|n| n as usize).collect(),
++            layout: Layout {
++                slots: num(&v["slots"]),
++                d: num(&v["d"]),
++                batch: num(&v["batch"]),
++            },
++            shapes: v["shapes"]
++                .as_array()
++                .unwrap()
++                .iter()
++                .map(|s| LayerShape {
++                    d_out: num(&s[0]),
++                    d_in: num(&s[1]),
++                    n_out: num(&s[2]),
++                    n_in: num(&s[3]),
++                    l: num(&s[4]),
++                    m: num(&s[5]),
++                    baby: num(&s[6]),
++                    giant: num(&s[7]),
++                })
++                .collect(),
++            masks: v["masks"]
++                .as_array()
++                .unwrap()
++                .iter()
++                .map(|m| MaskRecipe {
++                    canonical_period: num(&m["canonical_period"]),
++                    gradient_period: num(&m["gradient_period"]),
++                    bias_period: num(&m["bias_period"]),
++                    lanes: num(&m["lanes"]),
++                    reduce_steps: steps(&m["reduce_steps"]),
++                    replication_steps: steps(&m["replication_steps"]),
++                    compact_first_period: flag(&m["compact_first_period"]),
++                })
++                .collect(),
++            transpose: v["transpose"]
++                .as_array()
++                .unwrap()
++                .iter()
++                .map(|r| {
++                    r.as_array()
++                        .unwrap()
++                        .iter()
++                        .map(|s| (num(&s["source"]), steps(&s["steps"])))
++                        .collect()
++                })
++                .collect(),
++            rotations: steps(&v["rotations"]),
++            compact: (!v["compact"].is_null()).then(|| {
++                let c = &v["compact"];
++                CompactLayout {
++                    plans: c["plans"].as_array().unwrap().iter().map(compact).collect(),
++                    containers: c["containers"]
++                        .as_array()
++                        .unwrap()
++                        .iter()
++                        .map(|x| ContainerSpec {
++                            layer: opt_num(&x["layer"]),
++                            index: num(&x["index"]),
++                            plan: compact(&x["plan"]),
++                        })
++                        .collect(),
++                    biases: c["biases"]
++                        .as_array()
++                        .unwrap()
++                        .iter()
++                        .map(|x| BiasSlot {
++                            container: num(&x["container"]),
++                            position: num(&x["position"]),
++                        })
++                        .collect(),
++                }
++            }),
++        }
++    }
++}
++impl GeometryStages for Vec<LiteralStage> {
++    fn len(&self) -> usize {
++        Vec::len(self)
++    }
++    fn stage(&self, i: usize) -> StageFields<'_> {
++        let s = &self[i];
++        StageFields {
++            dims: &s.dims,
++            geometry: GeometryBody {
++                layout: s.layout,
++                shapes: &s.shapes,
++                masks: &s.masks,
++                transpose: &s.transpose,
++                rotations: &s.rotations,
++                compact: s.compact.as_ref(),
++            },
++        }
++    }
++}
++fn encode_fixture(kind: &str, v: &Value) -> Result<Vec<u8>> {
++    match kind {
++        "parameters" => {
++            let (q, p, qb, pb) = (
++                nums(&v["q"]),
++                nums(&v["p"]),
++                nums(&v["q_bits"]),
++                nums(&v["p_bits"]),
++            );
++            ParameterFields {
++                q: &q,
++                p: &p,
++                q_bits: BitSizes::U64(&qb),
++                p_bits: BitSizes::U64(&pb),
++                log_n: v["log_n"].as_u64().unwrap(),
++                scale_bits: v["scale_bits"].as_u64().unwrap(),
++                dnum: v["dnum"].as_u64().unwrap(),
++                main_weight: v["main_weight"].as_u64(),
++            }
++            .encode()
++        }
++        "layout" => {
++            let stages = v["stages"]
++                .as_array()
++                .unwrap()
++                .iter()
++                .map(LiteralStage::new)
++                .collect::<Vec<_>>();
++            let parts = v["parts"]
++                .as_array()
++                .unwrap()
++                .iter()
++                .map(|p| {
++                    p.as_array()
++                        .unwrap()
++                        .iter()
++                        .map(|p| MicroPart {
++                            start: num(&p["start"]),
++                            valid: num(&p["valid"]),
++                        })
++                        .collect()
++                })
++                .collect::<Vec<_>>();
++            LayoutFields {
++                parameter_identity: v["parameter_identity"].as_str().unwrap(),
++                consumption: num(&v["consumption"]) as u8,
++                mode: num(&v["mode"]) as u8,
++                config: EvalConfig {
++                    hoist: flag(&v["eval"]["hoist"]),
++                    bsgs: flag(&v["eval"]["bsgs"]),
++                    lazy_relin: flag(&v["eval"]["lazy_relin"]),
++                },
++                stages: &stages,
++                parts: &parts,
++            }
++            .encode()
++        }
++        "keys" => {
++            let pool = (!v["transpose"].is_null()).then(|| steps(&v["transpose"]));
++            let (training, generated, execution) = (
++                steps(&v["training_rotations"]),
++                steps(&v["bootstrap_generated"]),
++                steps(&v["bootstrap_execution"]),
++            );
++            KeyFields {
++                parameter_identity: v["parameter_identity"].as_str().unwrap(),
++                bootstrap_descriptor: hash(&v["bootstrap_descriptor"]),
++                transpose: pool.as_deref(),
++                training_level: v["training_level"].as_u64().unwrap(),
++                training_rotations: &training,
++                training_relin: flag(&v["training_relin"]),
++                training_conjugation: flag(&v["training_conjugation"]),
++                training_sse: flag(&v["training_sse"]),
++                bootstrap_generated: &generated,
++                bootstrap_execution: &execution,
++                bootstrap_conjugation: flag(&v["bootstrap_conjugation"]),
++                bootstrap_sse: flag(&v["bootstrap_sse"]),
++                separate_bootstrap_bundle: flag(&v["separate_bootstrap_bundle"]),
++                owner_policy: num(&v["owner_policy"]) as u8,
++            }
++            .encode()
++        }
++        "security" => {
++            let requirements = nums(&v["bootstrap_unvalidated"])
++                .into_iter()
++                .map(|n| n as u8)
++                .collect::<Vec<_>>();
++            SecurityFields {
++                registered_policy: num(&v["registered_policy"]) as u8,
++                parameter_identity: v["parameter_identity"].as_str().unwrap(),
++                bootstrap_descriptor: hash(&v["bootstrap_descriptor"]),
++                main: v["main"].as_u64(),
++                ephemeral: (!v["ephemeral"].is_null()).then(|| v["ephemeral"]["weight"].as_u64()),
++                assurance: num(&v["assurance"]) as u8,
++                bootstrap_scope: v["bootstrap_scope"].as_u64().map(|n| n as u8),
++                bootstrap_unvalidated: Requirements::Tags(&requirements),
++            }
++            .encode()
++        }
++        _ => panic!("unknown fixture kind"),
++    }
++}
++fn kind(name: &str) -> Kind {
++    if name.starts_with("parameter") {
++        Kind::Parameters
++    } else if name.starts_with("layout") {
++        Kind::Layout
++    } else if name.starts_with("keys") {
++        Kind::Keys
++    } else {
++        Kind::Security
++    }
++}
++fn positives(k: &str) {
++    let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
++    for f in fixtures().iter().filter(|f| f["kind"] == k) {
++        let name = f["name"].as_str().unwrap();
++        let expected = literal(name);
++        let actual = encode_fixture(k, &f["input"]).unwrap();
++        assert_eq!(actual, expected, "{name}");
++        let view = WireDescriptor::parse(kind(name), &expected).unwrap();
++        assert_eq!(view.canonical_bytes(), actual);
++        assert!(view.matches_bytes(&actual).is_ok());
++        // The digest is an additional frozen check, never the sole byte oracle.
++        let rows = manifest["vectors"].as_array().unwrap();
++        let row = rows.iter().find(|r| r["name"] == name).unwrap();
++        assert_eq!(sha256_hex(&actual), row["sha256"].as_str().unwrap());
++    }
++}
++#[test]
++fn execution_parameter_literal_bytes() {
++    positives("parameters");
++}
++#[test]
++fn execution_layout_literal_bytes() {
++    positives("layout");
++}
++#[test]
++fn execution_key_literal_bytes() {
++    positives("keys");
++}
++#[test]
++fn execution_security_literal_bytes() {
++    positives("security");
++}
++#[test]
++fn execution_complete_negative_images_distinguish_wire_and_binding() {
++    let values: Value = serde_json::from_str(NEGATIVES).unwrap();
++    for v in values["vectors"].as_array().unwrap() {
++        let b = bytes(v["complete_hex"].as_str().unwrap());
++        let base = v["base"].as_str().unwrap();
++        let parsed = WireDescriptor::parse(kind(base), &b);
++        if v["expected"]
++            .as_str()
++            .unwrap()
++            .starts_with("Reject malformed")
++        {
++            assert!(parsed.is_err(), "{}", v["name"]);
++        } else if let Ok(wire) = parsed {
++            // These are synthetic retained byte expectations, not checked preparation facts.
++            assert!(wire.matches_bytes(&literal(base)).is_err(), "{}", v["name"]);
++        }
++    }
++}
++#[test]
++fn execution_every_proper_prefix_rejected() {
++    for (name, hex) in LITERALS {
++        let b = bytes(hex);
++        for n in 0..b.len() {
++            assert!(
++                WireDescriptor::parse(kind(name), &b[..n]).is_err(),
++                "{name}:{n}"
++            );
++        }
++    }
++}
++#[test]
++fn execution_checked_size_and_arithmetic_guards() {
++    for n in [2_097_151, 2_097_152] {
++        assert!(checked_size(n).is_ok());
++    }
++    for n in [2_097_153, u64::MAX] {
++        assert!(checked_size(n).is_err());
++    }
++    assert!(checked_add(u64::MAX, 1).is_err());
++    assert!(checked_mul(u64::MAX, 8).is_err());
++    assert!(checked_usize(4_294_967_296, 32).is_err());
++    assert!(checked_usize(4_294_967_295, 32).is_ok());
++}
++#[test]
++fn execution_synthetic_wire_has_no_registered_policy_authority() {
++    for name in [
++        "security_i_fixed",
++        "security_ni_absent",
++        "security_ni_fixed",
++        "security_ni_dense",
++    ] {
++        let b = literal(name);
++        let wire = WireDescriptor::parse(Kind::Security, &b).unwrap();
++        assert!(wire.validate_security_declarations(16).is_ok());
++        assert!(
++            wire.validate_registered_security_declarations(1 << 16)
++                .is_err(),
++            "{name}"
++        );
++    }
++}
++#[test]
++fn execution_parameter_constructor_invariants_without_construction() {
++    let f = fixtures()
++        .into_iter()
++        .find(|f| f["name"] == "parameter_dense")
++        .unwrap();
++    for (field, value) in [
++        ("log_n", 0),
++        ("log_n", 18),
++        ("dnum", 0),
++        ("dnum", 3),
++        ("scale_bits", 0),
++        ("main_weight", 0),
++        ("main_weight", 17),
++    ] {
++        let mut input = f["input"].clone();
++        input[field] = Value::from(value);
++        assert!(
++            encode_fixture("parameters", &input).is_err(),
++            "{field}:{value}"
++        );
++    }
++    for bits in [0, 1, 61] {
++        let mut input = f["input"].clone();
++        input["q_bits"][0] = Value::from(bits);
++        assert!(encode_fixture("parameters", &input).is_err());
++    }
++    for exponent in [0, 61] {
++        let mut input = f["input"].clone();
++        input["scale_bits"] = Value::from((2f64.powi(exponent)).to_bits());
++        assert!(encode_fixture("parameters", &input).is_err());
++    }
++    let mut input = f["input"].clone();
++    input["scale_bits"] = Value::from((3f64).to_bits());
++    assert!(encode_fixture("parameters", &input).is_err());
++}
++
++// Catches any changed P3 geometry primitive/order, without a geometry planner.
++#[test]
++fn execution_shared_p3_geometry_matches_frozen_layout_slices() {
++    let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
++    for f in fixtures().iter().filter(|f| f["kind"] == "layout") {
++        let name = f["name"].as_str().unwrap();
++        let b = literal(name);
++        let rows = manifest["vectors"].as_array().unwrap();
++        let offsets = &rows.iter().find(|r| r["name"] == name).unwrap()["offsets"];
++        let stages = f["input"]["stages"]
++            .as_array()
++            .unwrap()
++            .iter()
++            .map(LiteralStage::new)
++            .collect::<Vec<_>>();
++        for i in 0..stages.len() {
++            let start = num(&offsets[format!("stages.{i}.slots")]);
++            let end = if i + 1 < stages.len() {
++                num(&offsets[format!("stages.{}.dims.count", i + 1)])
++            } else {
++                num(&offsets["parts.count"])
++            };
++            let bytes =
++                crate::study_admission::test_geometry_transcript(stages.stage(i).geometry).unwrap();
++            assert_eq!(bytes, &b[start..end], "{name}:{i}");
++        }
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+new file mode 100644
+index 0000000..db00798
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+@@ -0,0 +1,900 @@
++//! Four private inner representations. Inspection bytes and source projections are
++//! never a prepared route, admission, live gate, start token or scientific result.
++#![allow(dead_code)] // The real retained pre-key route/ExecutionBinding producer is subsequent work.
++use super::*;
++use crate::study_admission::{
++    Consumption, GeometryBody, GeometryWriter, MicroPart, encode_geometry_body,
++};
++use crate::study_client::PreparationDescriptorFacts;
++use ckks_train_ckks::{
++    CkksParams, EvalConfig,
++    bootstrap::metadata::{SecretDeclaration, UnvalidatedRequirement},
++};
++use ckks_train_nn::dense::TransposeKeys;
++const PARAMETERS: &str = "hekit-study-interactive-parameters-v1";
++const LAYOUT: &str = "hekit-study-diagonal-layout-v1";
++const KEYS: &str = "hekit-study-cpu-diagonal-keys-v1";
++const SECURITY: &str = "hekit-study-main-security-policy-v1";
++#[derive(Clone, Copy, PartialEq, Eq)]
++pub(super) enum Kind {
++    Parameters,
++    Layout,
++    Keys,
++    Security,
++}
++impl Kind {
++    fn domain(self) -> &'static str {
++        match self {
++            Self::Parameters => PARAMETERS,
++            Self::Layout => LAYOUT,
++            Self::Keys => KEYS,
++            Self::Security => SECURITY,
++        }
++    }
++}
++fn valid(ok: bool, path: &str) -> Result<()> {
++    ensure(ok, DocumentErrorCode::CrossLinkMismatch, path)
++}
++pub(super) fn checked_add(a: u64, b: u64) -> Result<u64> {
++    a.checked_add(b)
++        .ok_or_else(|| err(DocumentErrorCode::TooLarge, "execution.add"))
++}
++pub(super) fn checked_mul(a: u64, b: u64) -> Result<u64> {
++    a.checked_mul(b)
++        .ok_or_else(|| err(DocumentErrorCode::TooLarge, "execution.multiply"))
++}
++pub(super) fn checked_usize(n: u64, bits: u32) -> Result<usize> {
++    ensure(
++        bits > 0 && bits <= usize::BITS && (bits == 64 || n < (1u64 << bits)),
++        DocumentErrorCode::TooLarge,
++        "execution.conversion",
++    )?;
++    usize::try_from(n).map_err(|_| err(DocumentErrorCode::TooLarge, "execution.conversion"))
++}
++pub(super) fn checked_size(n: u64) -> Result<usize> {
++    ensure(
++        n <= A_MAX as u64,
++        DocumentErrorCode::TooLarge,
++        "execution.size",
++    )?;
++    checked_usize(n, usize::BITS)
++}
++fn weight(n: Option<u64>, degree: u64) -> Result<()> {
++    valid(n.is_none_or(|n| n > 0 && n <= degree), "execution.weight")
++}
++fn hash_valid(s: &str) -> Result<()> {
++    ensure(
++        s.len() == 64 && lower_hex(s),
++        DocumentErrorCode::BadHex,
++        "execution.hash",
++    )
++}
++// One borrowed size pass, one reserved output pass. No geometry/partition clone,
++// allocation or digest occurs during sizing. Encoder supplies the existing LE,
++// Text/Hash/Bool/Option primitives; every append remains independently bounded.
++struct Writer {
++    length: u64,
++    output: Option<Encoder>,
++}
++impl Writer {
++    fn u64(&mut self, n: u64) -> Result<()> {
++        self.raw(&n.to_le_bytes())
++    }
++    fn text(&mut self, s: &str) -> Result<()> {
++        self.u64(s.len() as u64)?;
++        self.raw(s.as_bytes())
++    }
++    fn hash(&mut self, s: &str) -> Result<()> {
++        hash_valid(s)?;
++        self.text(s)
++    }
++    fn optional_hash(&mut self, s: Option<&str>) -> Result<()> {
++        self.tag(u8::from(s.is_some()))?;
++        if let Some(s) = s {
++            self.hash(s)?;
++        }
++        Ok(())
++    }
++    fn boolean(&mut self, b: bool) -> Result<()> {
++        self.tag(u8::from(b))
++    }
++    fn secret(&mut self, n: Option<u64>) -> Result<()> {
++        self.tag(u8::from(n.is_some()))?;
++        if let Some(n) = n {
++            self.u64(n)?;
++        }
++        Ok(())
++    }
++    fn header(&mut self, k: Kind) -> Result<()> {
++        self.text(ENCODING_VERSION)?;
++        self.text(k.domain())
++    }
++}
++impl GeometryWriter for Writer {
++    type Error = DocumentError;
++    fn raw(&mut self, b: &[u8]) -> Result<()> {
++        self.length = checked_add(self.length, b.len() as u64)?;
++        checked_size(self.length)?;
++        if let Some(e) = &mut self.output {
++            e.append(b, false)?;
++        }
++        Ok(())
++    }
++    fn number(&mut self, n: usize) -> Result<()> {
++        self.u64(u64::try_from(n).map_err(|_| err(DocumentErrorCode::TooLarge, "execution.index"))?)
++    }
++}
++fn encode(kind: Kind, body: impl Fn(&mut Writer) -> Result<()>) -> Result<Vec<u8>> {
++    let mut size = Writer {
++        length: 0,
++        output: None,
++    };
++    size.header(kind)?;
++    body(&mut size)?;
++    let n = checked_size(size.length)?;
++    let mut output = Encoder::new(DocumentLayout::Reference);
++    output
++        .bytes
++        .try_reserve_exact(n)
++        .map_err(|_| err(DocumentErrorCode::TooLarge, "execution.reserve"))?;
++    let mut writer = Writer {
++        length: 0,
++        output: Some(output),
++    };
++    writer.header(kind)?;
++    body(&mut writer)?;
++    valid(writer.length == size.length, "execution.size_changed")?;
++    Ok(writer.output.expect("output pass").bytes)
++}
++#[derive(Clone, Copy)]
++pub(super) enum BitSizes<'a> {
++    U32(&'a [u32]),
++    #[cfg(test)]
++    U64(&'a [u64]),
++}
++impl BitSizes<'_> {
++    fn len(self) -> usize {
++        match self {
++            Self::U32(v) => v.len(),
++            #[cfg(test)]
++            Self::U64(v) => v.len(),
++        }
++    }
++    fn get(self, i: usize) -> u64 {
++        match self {
++            Self::U32(v) => v[i].into(),
++            #[cfg(test)]
++            Self::U64(v) => v[i],
++        }
++    }
++}
++pub(super) struct ParameterFields<'a> {
++    pub(super) q: &'a [u64],
++    pub(super) p: &'a [u64],
++    pub(super) q_bits: BitSizes<'a>,
++    pub(super) p_bits: BitSizes<'a>,
++    pub(super) log_n: u64,
++    pub(super) scale_bits: u64,
++    pub(super) dnum: u64,
++    pub(super) main_weight: Option<u64>,
++}
++impl<'a> ParameterFields<'a> {
++    fn from_params(p: &'a CkksParams) -> Self {
++        Self {
++            q: p.q(),
++            p: p.p(),
++            q_bits: BitSizes::U32(p.q_bits()),
++            p_bits: BitSizes::U32(p.p_bits()),
++            log_n: p.log_n().into(),
++            scale_bits: p.scale().to_bits(),
++            dnum: p.dnum() as u64,
++            main_weight: p.hamming_weight().map(|n| n as u64),
++        }
++    }
++    fn validate(&self) -> Result<()> {
++        use ckks_train_ckks::params::{MAX_LOG_N, MIN_LOG_N};
++        valid(
++            (u64::from(MIN_LOG_N)..=u64::from(MAX_LOG_N)).contains(&self.log_n),
++            "parameters.log_n",
++        )?;
++        valid(
++            !self.q.is_empty()
++                && !self.p.is_empty()
++                && self.q.len() == self.q_bits.len()
++                && self.p.len() == self.p_bits.len(),
++            "parameters.chains",
++        )?;
++        for bits in [self.q_bits, self.p_bits] {
++            for i in 0..bits.len() {
++                valid((2..=60).contains(&bits.get(i)), "parameters.bits")?;
++            }
++        }
++        valid(
++            self.dnum > 0 && (self.q.len() as u64) % self.dnum == 0,
++            "parameters.dnum",
++        )?;
++        scale_valid(self.scale_bits)?;
++        weight(self.main_weight, 1u64 << self.log_n)
++    }
++    pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        self.validate()?;
++        encode(Kind::Parameters, |w| {
++            for v in [self.q, self.p] {
++                w.number(v.len())?;
++                for n in v {
++                    w.u64(*n)?;
++                }
++            }
++            for bits in [self.q_bits, self.p_bits] {
++                w.number(bits.len())?;
++                for i in 0..bits.len() {
++                    w.u64(bits.get(i))?;
++                }
++            }
++            for n in [self.log_n, self.scale_bits, self.dnum] {
++                w.u64(n)?;
++            }
++            w.secret(self.main_weight)
++        })
++    }
++}
++fn scale_valid(bits: u64) -> Result<()> {
++    // Constructor takes an integer exponent1..60; the wire stores VALUE bits.
++    valid(
++        (1..=60).any(|n| (2f64.powi(n)).to_bits() == bits),
++        "parameters.scale_bits",
++    )
++}
++pub(super) struct StageFields<'a> {
++    pub(super) dims: &'a [usize],
++    pub(super) geometry: GeometryBody<'a>,
++}
++pub(super) trait GeometryStages {
++    fn len(&self) -> usize;
++    fn stage(&self, index: usize) -> StageFields<'_>;
++}
++impl GeometryStages for PreparationDescriptorFacts<'_> {
++    fn len(&self) -> usize {
++        self.stage_count()
++    }
++    fn stage(&self, index: usize) -> StageFields<'_> {
++        let g = self.geometry(index);
++        StageFields {
++            dims: g.dims(),
++            geometry: GeometryBody::from(g),
++        }
++    }
++}
++pub(super) struct LayoutFields<'a, S: GeometryStages> {
++    pub(super) parameter_identity: &'a str,
++    pub(super) consumption: u8,
++    pub(super) mode: u8,
++    pub(super) config: EvalConfig,
++    pub(super) stages: &'a S,
++    pub(super) parts: &'a [Vec<MicroPart>],
++}
++impl<S: GeometryStages> LayoutFields<'_, S> {
++    pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        valid(
++            self.consumption <= 1
++                && self.mode <= 1
++                && (1..=3).contains(&self.stages.len())
++                && !self.parts.is_empty(),
++            "layout.tags_shape",
++        )?;
++        let first = self.stages.stage(0).geometry.layout;
++        for i in 0..self.stages.len() {
++            let stage = self.stages.stage(i);
++            let g = &stage.geometry;
++            let l = g.layout;
++            valid(
++                l.slots == first.slots
++                    && l.d == first.d
++                    && l.batch == first.batch
++                    && l.slots.is_power_of_two()
++                    && l.d.is_power_of_two()
++                    && l.batch.is_power_of_two(),
++                "layout.common",
++            )?;
++            let occupied = checked_mul(l.d as u64, l.batch as u64)?;
++            valid(
++                occupied > 0 && (l.slots as u64) % occupied == 0,
++                "layout.occupancy",
++            )?;
++            valid(
++                stage.dims.len() >= 2
++                    && g.shapes.len() == stage.dims.len() - 1
++                    && g.masks.len() == g.shapes.len()
++                    && g.transpose.len() == g.shapes.len(),
++                "layout.cardinality",
++            )?;
++            for (shape, dims) in g.shapes.iter().zip(stage.dims.windows(2)) {
++                valid(
++                    dims[0] > 0 && dims[1] > 0 && shape.d_in == dims[0] && shape.d_out == dims[1],
++                    "layout.dims",
++                )?;
++            }
++        }
++        for parts in self.parts {
++            valid(!parts.is_empty(), "layout.parts")?;
++            let mut end = 0u64;
++            for p in parts {
++                valid(
++                    p.start as u64 == end && p.valid > 0 && p.valid <= first.batch,
++                    "layout.part",
++                )?;
++                end = checked_add(end, p.valid as u64)?;
++            }
++        }
++        encode(Kind::Layout, |w| {
++            w.hash(self.parameter_identity)?;
++            w.tag(self.consumption)?;
++            w.tag(self.mode)?;
++            for b in [self.config.hoist, self.config.bsgs, self.config.lazy_relin] {
++                w.boolean(b)?;
++            }
++            w.number(self.stages.len())?;
++            for i in 0..self.stages.len() {
++                let s = self.stages.stage(i);
++                w.number(s.dims.len())?;
++                for n in s.dims {
++                    w.number(*n)?;
++                }
++                encode_geometry_body(w, s.geometry)?;
++            }
++            w.number(self.parts.len())?;
++            for parts in self.parts {
++                w.number(parts.len())?;
++                for p in parts {
++                    w.number(p.start)?;
++                    w.number(p.valid)?;
++                }
++            }
++            Ok(())
++        })
++    }
++}
++pub(super) struct KeyFields<'a> {
++    pub(super) parameter_identity: &'a str,
++    pub(super) bootstrap_descriptor: Option<&'a str>,
++    pub(super) transpose: Option<&'a [i32]>,
++    pub(super) training_level: u64,
++    pub(super) training_rotations: &'a [i32],
++    pub(super) training_relin: bool,
++    pub(super) training_conjugation: bool,
++    pub(super) training_sse: bool,
++    pub(super) bootstrap_generated: &'a [i32],
++    pub(super) bootstrap_execution: &'a [i32],
++    pub(super) bootstrap_conjugation: bool,
++    pub(super) bootstrap_sse: bool,
++    pub(super) separate_bootstrap_bundle: bool,
++    pub(super) owner_policy: u8,
++}
++impl KeyFields<'_> {
++    pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        valid(self.owner_policy == 0, "keys.owner")?;
++        encode(Kind::Keys, |w| {
++            w.hash(self.parameter_identity)?;
++            w.optional_hash(self.bootstrap_descriptor)?;
++            w.tag(u8::from(self.transpose.is_some()))?;
++            if let Some(pool) = self.transpose {
++                w.steps(pool)?;
++            }
++            w.u64(self.training_level)?;
++            w.steps(self.training_rotations)?;
++            for b in [
++                self.training_relin,
++                self.training_conjugation,
++                self.training_sse,
++            ] {
++                w.boolean(b)?;
++            }
++            w.steps(self.bootstrap_generated)?;
++            w.steps(self.bootstrap_execution)?;
++            for b in [
++                self.bootstrap_conjugation,
++                self.bootstrap_sse,
++                self.separate_bootstrap_bundle,
++            ] {
++                w.boolean(b)?;
++            }
++            w.tag(self.owner_policy)
++        })
++    }
++}
++#[derive(Clone, Copy)]
++pub(super) enum Requirements<'a> {
++    P1(&'a [UnvalidatedRequirement]),
++    #[cfg(test)]
++    Tags(&'a [u8]),
++}
++fn requirement_tag(r: UnvalidatedRequirement) -> u8 {
++    match r {
++        UnvalidatedRequirement::EncodingQOverTwoFeasibility => 0,
++        UnvalidatedRequirement::EvalModInternalScaleUnvalidated => 1,
++        UnvalidatedRequirement::EncryptedInputRange => 2,
++        UnvalidatedRequirement::ApproximationPrecision => 3,
++        UnvalidatedRequirement::ActualSecretContract => 4,
++        UnvalidatedRequirement::KeyBinding => 5,
++        UnvalidatedRequirement::SecurityEstimate => 6,
++        UnvalidatedRequirement::RuntimeMemoryFit => 7,
++        UnvalidatedRequirement::BackendSupport => 8,
++    }
++}
++impl Requirements<'_> {
++    fn len(self) -> usize {
++        match self {
++            Self::P1(v) => v.len(),
++            #[cfg(test)]
++            Self::Tags(v) => v.len(),
++        }
++    }
++    fn get(self, i: usize) -> u8 {
++        match self {
++            Self::P1(v) => requirement_tag(v[i]),
++            #[cfg(test)]
++            Self::Tags(v) => v[i],
++        }
++    }
++}
++pub(super) struct SecurityFields<'a> {
++    pub(super) registered_policy: u8,
++    pub(super) parameter_identity: &'a str,
++    pub(super) bootstrap_descriptor: Option<&'a str>,
++    pub(super) main: Option<u64>,
++    pub(super) ephemeral: Option<Option<u64>>,
++    pub(super) assurance: u8,
++    pub(super) bootstrap_scope: Option<u8>,
++    pub(super) bootstrap_unvalidated: Requirements<'a>,
++}
++impl SecurityFields<'_> {
++    pub(super) fn encode(&self) -> Result<Vec<u8>> {
++        valid(
++            self.registered_policy <= 1
++                && self.assurance == 0
++                && self.bootstrap_scope.is_none_or(|n| n == 0),
++            "security.tags",
++        )?;
++        encode(Kind::Security, |w| {
++            w.tag(self.registered_policy)?;
++            w.hash(self.parameter_identity)?;
++            w.optional_hash(self.bootstrap_descriptor)?;
++            w.secret(self.main)?;
++            w.tag(u8::from(self.ephemeral.is_some()))?;
++            if let Some(s) = self.ephemeral {
++                w.secret(s)?;
++            }
++            w.tag(self.assurance)?;
++            w.tag(u8::from(self.bootstrap_scope.is_some()))?;
++            if let Some(s) = self.bootstrap_scope {
++                w.tag(s)?;
++            }
++            w.number(self.bootstrap_unvalidated.len())?;
++            for i in 0..self.bootstrap_unvalidated.len() {
++                let n = self.bootstrap_unvalidated.get(i);
++                valid(n <= 8, "security.requirement_tag")?;
++                w.tag(n)?;
++            }
++            Ok(())
++        })
++    }
++}
++fn secret_weight(s: SecretDeclaration) -> Option<u64> {
++    match s {
++        SecretDeclaration::DenseTernary => None,
++        SecretDeclaration::FixedWeight(n) => Some(n as u64),
++    }
++}
++// These methods borrow genuine canonical checked preparations. No parser or field
++// DTO can construct PreparationDescriptorFacts, a route, or any live capability.
++impl PreparationDescriptorFacts<'_> {
++    pub(crate) fn interactive_parameter_bytes(&self) -> Result<Vec<u8>> {
++        valid(self.bootstrap().is_none(), "source.interactive_only")?;
++        ParameterFields::from_params(self.parameters()).encode()
++    }
++    fn parameter_hash(&self) -> Result<String> {
++        match self.bootstrap() {
++            Some(b) => Ok(sha256_hex(b.parameter_identity_bytes())),
++            None => Ok(sha256_hex(&self.interactive_parameter_bytes()?)),
++        }
++    }
++    pub(crate) fn physical_layout_bytes(&self) -> Result<Vec<u8>> {
++        let p = self.parameters();
++        valid(self.stage_count() > 0, "source.stages")?;
++        for i in 0..self.stage_count() {
++            valid(
++                self.geometry(i).layout().slots == p.slots()
++                    && self.geometry(i).eval_config() == self.geometry(0).eval_config(),
++                "source.geometry",
++            )?;
++        }
++        let hash = self.parameter_hash()?;
++        LayoutFields {
++            parameter_identity: &hash,
++            consumption: match self.plan().consumption() {
++                Consumption::Full => 0,
++                Consumption::Quick => 1,
++            },
++            mode: u8::from(self.bootstrap().is_some()),
++            config: self.geometry(0).eval_config(),
++            stages: self,
++            parts: self.plan().partitions(),
++        }
++        .encode()
++    }
++    pub(crate) fn cpu_key_policy_bytes(&self) -> Result<Vec<u8>> {
++        let hash = self.parameter_hash()?;
++        let boot = self
++            .bootstrap()
++            .map(|b| sha256_hex(b.descriptor_identity_bytes()));
++        let keys = self.plan().keys();
++        let rotations = keys.training_rotations();
++        let slots = self.parameters().slots();
++        valid(
++            rotations.iter().all(|n| *n > 0 && (*n as usize) < slots)
++                && rotations.windows(2).all(|p| p[0] < p[1]),
++            "source.training_union",
++        )?;
++        // Both directions: no extra key may be smuggled in under a subset check.
++        for i in 0..self.stage_count() {
++            for r in self.geometry(i).rotation_steps() {
++                valid(rotations.binary_search(r).is_ok(), "source.geometry_key")?;
++            }
++        }
++        for r in rotations {
++            valid(
++                (0..self.stage_count()).any(|i| self.geometry(i).rotation_steps().contains(r)),
++                "source.extra_key",
++            )?;
++        }
++        if let Some(b) = self.bootstrap() {
++            valid(
++                keys.bootstrap_generated_rotations() == b.generated_keys().rotation_steps()
++                    && keys.bootstrap_execution_rotations() == b.execution_rotation_steps()
++                    && keys.bootstrap_conjugation() == b.generated_keys().conjugation().is_some()
++                    && keys.bootstrap_sse()
++                        == (b.generated_keys().sse_to_sparse().is_some()
++                            && b.generated_keys().sse_to_main().is_some())
++                    && keys.separate_bootstrap_bundle(),
++                "source.bootstrap_keys",
++            )?;
++        } else {
++            valid(
++                keys.bootstrap_generated_rotations().is_empty()
++                    && keys.bootstrap_execution_rotations().is_empty()
++                    && !keys.bootstrap_conjugation()
++                    && !keys.bootstrap_sse()
++                    && !keys.separate_bootstrap_bundle(),
++                "source.interactive_keys",
++            )?;
++        }
++        let pool = match self.transpose() {
++            TransposeKeys::Dedicated => None,
++            TransposeKeys::Reuse(v) => Some(v.as_slice()),
++        };
++        KeyFields {
++            parameter_identity: &hash,
++            bootstrap_descriptor: boot.as_deref(),
++            transpose: pool,
++            training_level: self.parameters().max_level() as u64,
++            training_rotations: rotations,
++            training_relin: true,
++            training_conjugation: false,
++            training_sse: false,
++            bootstrap_generated: keys.bootstrap_generated_rotations(),
++            bootstrap_execution: keys.bootstrap_execution_rotations(),
++            bootstrap_conjugation: keys.bootstrap_conjugation(),
++            bootstrap_sse: keys.bootstrap_sse(),
++            separate_bootstrap_bundle: keys.separate_bootstrap_bundle(),
++            owner_policy: 0,
++        }
++        .encode()
++    }
++    pub(crate) fn security_declaration_bytes(&self) -> Result<Vec<u8>> {
++        let hash = self.parameter_hash()?;
++        let boot = self
++            .bootstrap()
++            .map(|b| sha256_hex(b.descriptor_identity_bytes()));
++        let main = self.parameters().hamming_weight().map(|n| n as u64);
++        if let Some(b) = self.bootstrap() {
++            valid(
++                secret_weight(b.declared_main_secret()) == main,
++                "source.main_secret",
++            )?;
++        }
++        let bytes=SecurityFields{registered_policy:u8::from(self.bootstrap().is_some()),parameter_identity:&hash,bootstrap_descriptor:boot.as_deref(),main,ephemeral:self.bootstrap().and_then(|b|b.declared_ephemeral_secret()).map(secret_weight),assurance:0,bootstrap_scope:self.bootstrap().map(|b|match b.proof_scope(){ckks_train_ckks::bootstrap::metadata::ProofScope::StructuralCostAndBoundaryScales=>0}),bootstrap_unvalidated:Requirements::P1(self.bootstrap().map_or(&[],|b|b.unvalidated_requirements()))}.encode()?;
++        WireDescriptor::parse(Kind::Security, &bytes)?
++            .validate_registered_security_declarations(self.parameters().n() as u64)?;
++        Ok(bytes)
++    }
++}
++// Allocation-free transport preflight. Lists borrow their encoded ranges; every
++// count is checked against the remaining complete image before entering a loop.
++// It intentionally does NOT grant source/production validity to wire fixtures.
++#[derive(Clone, Copy)]
++pub(super) struct WireDescriptor<'a> {
++    kind: Kind,
++    bytes: &'a [u8],
++}
++impl<'a> WireDescriptor<'a> {
++    pub(super) fn parse(kind: Kind, bytes: &'a [u8]) -> Result<Self> {
++        checked_size(bytes.len() as u64)?;
++        let mut c = Cursor { bytes, offset: 0 };
++        valid(
++            c.text()? == ENCODING_VERSION && c.text()? == kind.domain(),
++            "execution.domain",
++        )?;
++        match kind {
++            Kind::Parameters => c.parameters()?,
++            Kind::Layout => c.layout()?,
++            Kind::Keys => c.keys()?,
++            Kind::Security => {
++                c.security()?;
++            }
++        }
++        valid(c.offset == bytes.len(), "execution.trailing")?;
++        Ok(Self { kind, bytes })
++    }
++    pub(super) fn canonical_bytes(&self) -> &'a [u8] {
++        self.bytes
++    }
++    pub(super) fn matches_bytes(&self, expected: &[u8]) -> Result<()> {
++        WireDescriptor::parse(self.kind, expected)?;
++        valid(self.bytes == expected, "execution.source_mismatch")
++    }
++    pub(super) fn matches_source(&self, source: &PreparationDescriptorFacts<'_>) -> Result<()> {
++        let expected = match self.kind {
++            Kind::Parameters => source.interactive_parameter_bytes()?,
++            Kind::Layout => source.physical_layout_bytes()?,
++            Kind::Keys => source.cpu_key_policy_bytes()?,
++            Kind::Security => source.security_declaration_bytes()?,
++        };
++        self.matches_bytes(&expected)
++    }
++    pub(super) fn validate_security_declarations(&self, n: u64) -> Result<()> {
++        valid(self.kind == Kind::Security, "security.domain")?;
++        let mut c = Cursor {
++            bytes: self.bytes,
++            offset: 0,
++        };
++        c.text()?;
++        c.text()?;
++        let s = c.security()?;
++        weight(s.main, n)?;
++        if let Some(e) = s.ephemeral {
++            weight(e, n)?;
++        }
++        Ok(())
++    }
++    pub(super) fn validate_registered_security_declarations(&self, n: u64) -> Result<()> {
++        self.validate_security_declarations(n)?;
++        let mut c = Cursor {
++            bytes: self.bytes,
++            offset: 0,
++        };
++        c.text()?;
++        c.text()?;
++        let s = c.security()?;
++        valid(n == 1 << 16 && s.main.is_none(), "security.registered_main")?;
++        if s.policy == 0 {
++            valid(
++                !s.bootstrap
++                    && s.ephemeral.is_none()
++                    && s.scope.is_none()
++                    && s.requirements.is_empty(),
++                "security.registered_i",
++            )
++        } else {
++            valid(
++                s.bootstrap
++                    && s.ephemeral
++                        == Some(Some(
++                            ckks_train_ckks::bootstrap::params::N16_EPHEMERAL_HW as u64,
++                        ))
++                    && s.scope == Some(0)
++                    && s.requirements == [0, 1, 2, 3, 4, 5, 6, 7, 8],
++                "security.registered_ni",
++            )
++        }
++    }
++}
++struct SecurityWire<'a> {
++    policy: u8,
++    bootstrap: bool,
++    main: Option<u64>,
++    ephemeral: Option<Option<u64>>,
++    scope: Option<u8>,
++    requirements: &'a [u8],
++}
++struct Cursor<'a> {
++    bytes: &'a [u8],
++    offset: usize,
++}
++impl<'a> Cursor<'a> {
++    fn take(&mut self, n: usize) -> Result<&'a [u8]> {
++        let end = self
++            .offset
++            .checked_add(n)
++            .filter(|n| *n <= self.bytes.len())
++            .ok_or_else(|| err(DocumentErrorCode::OutOfRange, "execution.truncated"))?;
++        let b = &self.bytes[self.offset..end];
++        self.offset = end;
++        Ok(b)
++    }
++    fn byte(&mut self) -> Result<u8> {
++        Ok(self.take(1)?[0])
++    }
++    fn tag(&mut self, max: u8) -> Result<u8> {
++        let b = self.byte()?;
++        ensure(b <= max, DocumentErrorCode::UnsupportedTag, "execution.tag")?;
++        Ok(b)
++    }
++    fn u64(&mut self) -> Result<u64> {
++        let mut b = [0; 8];
++        b.copy_from_slice(self.take(8)?);
++        Ok(u64::from_le_bytes(b))
++    }
++    fn count(&mut self, min: u64) -> Result<usize> {
++        let n = self.u64()?;
++        let need = checked_mul(n, min)?;
++        valid(
++            need <= self.bytes.len().saturating_sub(self.offset) as u64,
++            "execution.count",
++        )?;
++        checked_usize(n, usize::BITS)
++    }
++    fn text(&mut self) -> Result<&'a str> {
++        let n = self.count(1)?;
++        std::str::from_utf8(self.take(n)?)
++            .map_err(|_| err(DocumentErrorCode::OutOfRange, "execution.utf8"))
++    }
++    fn hash(&mut self) -> Result<()> {
++        hash_valid(self.text()?)
++    }
++    fn option<T>(&mut self, f: impl FnOnce(&mut Self) -> Result<T>) -> Result<Option<T>> {
++        match self.tag(1)? {
++            0 => Ok(None),
++            _ => f(self).map(Some),
++        }
++    }
++    fn secret(&mut self) -> Result<Option<u64>> {
++        self.option(Self::u64)
++    }
++    fn hash_option(&mut self) -> Result<bool> {
++        Ok(self.option(Self::hash)?.is_some())
++    }
++    fn fixed(&mut self, count: usize, width: usize) -> Result<&'a [u8]> {
++        let n = count
++            .checked_mul(width)
++            .ok_or_else(|| err(DocumentErrorCode::TooLarge, "execution.multiply"))?;
++        self.take(n)
++    }
++    fn list(&mut self, width: usize) -> Result<&'a [u8]> {
++        let n = self.count(width as u64)?;
++        self.fixed(n, width)
++    }
++    fn parameters(&mut self) -> Result<()> {
++        let q = self.list(8)?;
++        let p = self.list(8)?;
++        let qb = self.list(8)?;
++        let pb = self.list(8)?;
++        let log_n = self.u64()?;
++        let scale = self.u64()?;
++        let dnum = self.u64()?;
++        let main = self.secret()?;
++        valid(
++            !q.is_empty() && !p.is_empty() && q.len() == qb.len() && p.len() == pb.len(),
++            "parameters.chains",
++        )?;
++        valid(
++            (1..=17).contains(&log_n) && dnum > 0 && (q.len() as u64 / 8) % dnum == 0,
++            "parameters.invariants",
++        )?;
++        for chunk in qb.chunks_exact(8).chain(pb.chunks_exact(8)) {
++            let mut b = [0; 8];
++            b.copy_from_slice(chunk);
++            valid((2..=60).contains(&u64::from_le_bytes(b)), "parameters.bits")?;
++        }
++        scale_valid(scale)?;
++        weight(main, 1 << log_n)
++    }
++    fn compact(&mut self) -> Result<()> {
++        self.fixed(5, 8)?;
++        Ok(())
++    }
++    fn geometry(&mut self) -> Result<()> {
++        self.fixed(3, 8)?;
++        self.list(64)?;
++        let masks = self.count(49)?;
++        for _ in 0..masks {
++            self.fixed(4, 8)?;
++            self.list(4)?;
++            self.list(4)?;
++            self.tag(1)?;
++        }
++        let recipes = self.count(8)?;
++        for _ in 0..recipes {
++            let steps = self.count(16)?;
++            for _ in 0..steps {
++                self.u64()?;
++                self.list(4)?;
++            }
++        }
++        self.list(4)?;
++        self.option(|c| {
++            let plans = c.count(40)?;
++            for _ in 0..plans {
++                c.compact()?;
++            }
++            let containers = c.count(49)?;
++            for _ in 0..containers {
++                c.option(Self::u64)?;
++                c.u64()?;
++                c.compact()?;
++            }
++            c.list(16)?;
++            Ok(())
++        })?;
++        Ok(())
++    }
++    fn layout(&mut self) -> Result<()> {
++        self.hash()?;
++        self.tag(1)?;
++        self.tag(1)?;
++        for _ in 0..3 {
++            self.tag(1)?;
++        }
++        let stages = self.count(8)?;
++        valid((1..=3).contains(&stages), "layout.stages")?;
++        for _ in 0..stages {
++            self.list(8)?;
++            self.geometry()?;
++        }
++        let updates = self.count(8)?;
++        valid(updates > 0, "layout.updates")?;
++        for _ in 0..updates {
++            let parts = self.count(16)?;
++            valid(parts > 0, "layout.parts")?;
++            self.fixed(parts, 16)?;
++        }
++        Ok(())
++    }
++    fn keys(&mut self) -> Result<()> {
++        self.hash()?;
++        self.hash_option()?;
++        if self.tag(1)? == 1 {
++            self.list(4)?;
++        }
++        self.u64()?;
++        self.list(4)?;
++        for _ in 0..3 {
++            self.tag(1)?;
++        }
++        self.list(4)?;
++        self.list(4)?;
++        for _ in 0..3 {
++            self.tag(1)?;
++        }
++        self.tag(0)?;
++        Ok(())
++    }
++    fn security(&mut self) -> Result<SecurityWire<'a>> {
++        let policy = self.tag(1)?;
++        self.hash()?;
++        let bootstrap = self.hash_option()?;
++        let main = self.secret()?;
++        let ephemeral = self.option(Self::secret)?;
++        self.tag(0)?;
++        let scope = self.option(|c| c.tag(0))?;
++        let requirements = self.list(1)?;
++        valid(requirements.iter().all(|n| *n <= 8), "security.requirement")?;
++        Ok(SecurityWire {
++            policy,
++            bootstrap,
++            main,
++            ephemeral,
++            scope,
++            requirements,
++        })
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index 116fde0..4804abb 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -1,17 +1,18 @@
+ //! Bounded untrusted document transport. No imported identity is a trusted identity.
+ //!
+ //! Before any VerifiedReference/target, a separately approved reader MUST materialize
+ //! this exact canonical profile/seed, call derive_identities, compare BOTH COMPLETE
+ //! byte arrays exactly (not only hashes), and verify every completion/checkpoint,
+ //! denominator, arithmetic and digest claim against the trusted full plan/data.
+ //! Source/build/session/prefix/state/publication policies remain separate gates.
++mod execution_descriptors;
+ mod producer;
+ mod reader;
+ mod runtime_descriptors;
+ use super::{CONTRACT_VERSION, ENCODING_VERSION, RECEIPT_VERSION};
+ use crate::data::sha256_hex;
+ pub(in crate::study_reference) use producer::{
+     serialize_diagnostic, serialize_failure, serialize_local_quick, serialize_local_quick_f64,
+     serialize_reference,
+ };
+ pub(in crate::study_reference) use reader::verify_reference;
+@@ -1968,10 +1969,13 @@ mod case_provenance;
+ // Placing the adapter here keeps private document DTOs inside this module while
+ // allowing the retained owner to consume its actual rechecked Train capture.
+ impl crate::study_provenance::RecheckedTrainCapture<'_> {
+     pub(crate) fn case_provenance(&self) -> Result<case_provenance::CapturedCaseComponent> {
+         case_provenance::encode_captured_value(producer::captured_case(self)?)
+     }
+ }
+ 
+ #[cfg(test)]
+ mod runtime_descriptor_tests;
++
++#[cfg(test)]
++mod execution_descriptor_tests;
+
+Exact copied fixture inventory (full content available at these paths; no transformations):
+d9d36e8f0ba53fc5659f3c9eebe4b673c34e45f05f83376e70651b78eb1ffc8b  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/README.md == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/README.md
+899b45991113581638a5758bd9bdaec441df768e771fa706a16549faf93b287e  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/SHA256SUMS == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/SHA256SUMS
+8e1bdbea566ebc051a3b3c36d07d16406bb2fbc75f4a62c1d3a5374aa979356c  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/generate.py == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/generate.py
+1f30a3c7665fa184ed0b0e971343c0770f51eabcbb26c5984c934ab312c05b85  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/inputs.json == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/inputs.json
+d993093d2210e53279db5bc6a44380e7ebd787f7eb58f061801752e3c29010ef  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_dedicated.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/keys_i_dedicated.hex
+8340d77d596216ba3d68b8894a9758c6fdea42da300418420dcd22533976241a  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_i_reuse.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/keys_i_reuse.hex
+ec2543b1d824fed9ccd9e7eb0e22fe427a0c0ae04b1be71b4253124c4526b49c  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_dedicated.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/keys_ni_dedicated.hex
+c5d1c62417f79a332df0690de274efad09bbe7cf7cf12e8be78d0bcd49ce0b31  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/keys_ni_reuse.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/keys_ni_reuse.hex
+d4ed1f0762e026a6483f1e71df4aad1bc95e74860ab6cd4b2f873e3a85a20e5c  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_single.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/layout_i_single.hex
+7a91ad819ed0f7d4fe858cdc9d4b604cca079df3b3772601ffdf8bc65492b777  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_i_three.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/layout_i_three.hex
+ce94c7b1613a6ed010d0f4bd6ffe2c8a1c221aa679d76049e85733bfdcfe2e6b  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/layout_ni_two.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/layout_ni_two.hex
+6b983e7d31016756ed5906be1558e0eebcd923d37f5b3f8332dd2e28428e96d7  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/manifest.json == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/manifest.json
+d8c2fcf1e4abf13b271e4a0c1e48af4bbc45506aecc946c5a9e14ed5f7a16a70  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/negative-vectors.json == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/negative-vectors.json
+bb2f659c77068ae1e2fa5ae4c2befe52d3e83897018f083fbaad23db494090d8  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_dense.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/parameter_dense.hex
+f55464bafd17dc40404e13758cdfbad85a94ad34dc63cbb6363239a084af090b  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/parameter_fixed.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/parameter_fixed.hex
+9c5f2bf26e41de319f1b5c82f2fe559742ff626eabdd149476be5ef80f3fbb5e  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_dense.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/security_i_dense.hex
+90b5431d112d0e46cbe66de8a454d07a4ccef53ecc39c8372a5be42d6ca335bf  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_i_fixed.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/security_i_fixed.hex
+4a631472f676da1af8b09d9126075573974a8e94d513f8141eefb83c3cb99987  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_absent.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/security_ni_absent.hex
+e8c49ec91a42be52dd4829644f591c252aae32b377fbf07aaef15b67224c35f4  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_dense.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/security_ni_dense.hex
+b554dfa3958790f6ffad3a33cb38c3325b4eb71e5dfe32c7905f2a921ca7b737  crates/ckks-train-bench/src/study_reference/document/execution_descriptor_fixtures/security_ni_fixed.hex == results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/security_ni_fixed.hex

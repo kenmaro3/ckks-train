@@ -5,6 +5,7 @@
 //! byte arrays exactly (not only hashes), and verify every completion/checkpoint,
 //! denominator, arithmetic and digest claim against the trusted full plan/data.
 //! Source/build/session/prefix/state/publication policies remain separate gates.
+mod execution_descriptors;
 mod producer;
 mod reader;
 mod runtime_descriptors;
@@ -1975,3 +1976,6 @@ impl crate::study_provenance::RecheckedTrainCapture<'_> {
 
 #[cfg(test)]
 mod runtime_descriptor_tests;
+
+#[cfg(test)]
+mod execution_descriptor_tests;

@@ -99,7 +99,54 @@ pub(crate) struct CheckedPreparation<'a> {
     pub(crate) description: Description,
     parameters: &'a CkksParams,
     bootstrap_identity: Option<&'a [u8]>,
+    bootstrap_metadata: Option<&'a BootstrapMetadata>,
     boot_parameters: Option<&'a BootParams>,
+}
+// Immutable source projections. Only checked canonical preparation can provide this view.
+// A synthetic plan is deliberately refused even when its bytes happen to match.
+#[allow(dead_code)] // The next retained-route adapter consumes these non-authorizing views.
+pub(crate) struct PreparationDescriptorFacts<'a> {
+    plan: &'a DiagonalPlan,
+    descriptions: &'a [Description],
+    parameters: &'a CkksParams,
+    bootstrap: Option<&'a BootstrapMetadata>,
+}
+#[allow(dead_code)]
+impl<'a> PreparationDescriptorFacts<'a> {
+    pub(crate) fn plan(&self) -> &'a DiagonalPlan {
+        self.plan
+    }
+    pub(crate) fn parameters(&self) -> &'a CkksParams {
+        self.parameters
+    }
+    pub(crate) fn bootstrap(&self) -> Option<&'a BootstrapMetadata> {
+        self.bootstrap
+    }
+    pub(crate) fn stage_count(&self) -> usize {
+        self.descriptions.len()
+    }
+    pub(crate) fn geometry(&self, index: usize) -> &'a ckks_train_nn::diagonal_plan::StageGeometry {
+        &self.descriptions[index].geometry
+    }
+    pub(crate) fn transpose(&self) -> &'a ckks_train_nn::dense::TransposeKeys {
+        &self.descriptions[0].transpose
+    }
+}
+impl CheckedPreparation<'_> {
+    #[allow(dead_code)]
+    pub(crate) fn descriptor_facts(&self) -> Option<PreparationDescriptorFacts<'_>> {
+        let plan = match &self.plan {
+            PlanOwner::Canonical(p) => p.as_ref(),
+            #[cfg(test)]
+            PlanOwner::Synthetic(_) => return None,
+        };
+        Some(PreparationDescriptorFacts {
+            plan,
+            descriptions: std::slice::from_ref(&self.description),
+            parameters: self.parameters,
+            bootstrap: self.bootstrap_metadata,
+        })
+    }
 }
 // A single private validation-then-factory invocation, shared by real setup and terminal spy.
 // No callback or digest capability is exported by the public client API.
@@ -173,6 +220,7 @@ pub(crate) fn prepare_then_make<'a, T>(
             CheckedPreparation {
                 parameters: actual.params,
                 bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+                bootstrap_metadata: actual.bootstrap,
                 boot_parameters: actual.boot_params,
                 plan: owner,
                 description: Description {
@@ -197,6 +245,7 @@ pub(crate) fn prepare_then_make<'a, T>(
             CheckedPreparation {
                 parameters: actual.params,
                 bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
+                bootstrap_metadata: actual.bootstrap,
                 boot_parameters: actual.boot_params,
                 plan: owner,
                 description: Description {

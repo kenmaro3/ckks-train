@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "--no-run"
+  ],
+  "env": {
+    "CARGO_NET_OFFLINE": "true"
+  },
+  "exit": 0,
+  "elapsed_seconds": 10.676048994064331
+}

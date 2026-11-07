@@ -1,0 +1,19 @@
+{
+  "index": 10,
+  "name": "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048961.231952,
+  "pid": 36970
+}

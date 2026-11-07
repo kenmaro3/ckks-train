@@ -1,0 +1,36 @@
+{
+  "index": 10,
+  "name": "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794048961.231952,
+  "pid": 36970,
+  "exit_code": 0,
+  "end": 1794048961.344337,
+  "named_successes": [
+    "study_reference::document::execution_descriptor_tests::execution_shared_p3_geometry_matches_frozen_layout_slices"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 239,
+  "stdout_sha256": "ec454c78a2b054eb5cb2c6985874fa654f82b5e02fa3bbcd4deb5e67dfd0fb65",
+  "stderr_bytes": 159,
+  "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a"
+}

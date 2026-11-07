@@ -1,0 +1,33 @@
+# D7 ExecutionBinding inner descriptors — source release
+
+RELEASED for one fresh sole source/Cargo writer. BASE 7da6d0a6aab3ee38d7641762bcc82a1d2150b39a. Design ratified in docs/study-execution-design.md after independent FIX1 review28f3cc9a; exact proposal0b4c92c2,19filevectorSUMS899b4599 archived in results/validation/task54-d7-execution-design/. Read that design and its source accounting notes with this brief. No other source writer is active. Read task-54-brief.md first; full Task54 runner remains the requirement. This first source layer removes remaining representation dependencies; the retained CPU route/actual ExecutionBinding producer and post-start owned driver follow in the next source layer. It does not authorize scientific execution or claim the full design is implemented.
+
+## Concrete deliverable
+
+Implement the four exact reviewed private canonical encodings (interactive parameters, diagonal physical layout, CPU key policy, security declarations), using existing document primitives and A_MAX. Reuse unchanged NI P1 parameter/bootstrap and complete P3 trainer bytes. Preserve existing P1/P3/P/R canonical output. Factor the exact P3 geometry writing body only if needed to prevent divergent copies; no semantic planner changes. Add borrowed immutable fact projections from actual existing checked preparations/plan/parameters/P1 as needed, but do not invent readiness from a synthetic transport value. Transport validation and actual-source binding validation are distinct: synthetic wire fixtures can be valid bytes while unsupported by production policy. Test and report those layers separately.
+
+Add only the missing narrow borrowed source-manifest-byte view for the current Train receipt; use the existing source_commit accessor. Reuse approved complete manifest and source commit, not an implementation-only subset or caller revision. Source rechecks remain in place.
+
+The complete production producer requires the retained pre-key preparation/closed route proposed in the design. This package must expose enough narrowly borrowed encoding functions for that real next adapter; it must not create a fake route, StartedHeCase, live gate or completed science result. Keep current run_owned unavailable after existing Case/physical production until the actual preparation and producer are implemented. No runtimepolicy from selector alone. Do not touch GPU/native observers, key allocation, evaluation/training, admission/start/publication or experiment denominator here.
+
+## Source ownership
+
+Private study_reference/document/execution_descriptors.rs and focused execution_descriptor_tests.rs, document.rs wiring, minimal checked preparation borrowed projections in study_client.rs / study_client/blocks.rs, source-manifest view in study_provenance/context.rs. If factoring geometry output is necessary, study_admission.rs encoder helper only; preserve all planning logic/bytes. No changes to dependencies, NN math, bootstrap proof/metadata, public document envelopes/JSON, CLI or server tools. Report a genuine ownership-scope dependency before expanding.
+
+## Before-source/test contract
+
+Copy independently reviewed frozen literal files exactly into a focused test fixture directory before encoder source. Expected bytes/digests never generated from Rust production encoders. Fourteen complete synthetic wire vectors cover all specified structural branches; the accepted package has14 positive/56 complete negative images plus precise prefix/size/arithmetic families. Mutation, truncation, invalid count/tag/order/weight, overflow and A_MAX failures must distinguish wire grammar failures from retained-source semantic mismatches. Equality of newly recomputed digests alone is insufficient. Do not create arbitrary valid-source constructors to accept unsupported synthetic fixtures.
+
+Two-pass checked sizing borrows inputs and rejects overflow/oversize before allocating output. Do not clone geometry to size it. Each list count is bounded by total checked size and source shape/cardinality; no arbitrary new rotation/parameter caps. Parameter source invariants come from current CkksParams::new (MIN_LOG_N=1, MAX_LOG_N=17, nonempty Q/P, bit sizes2..60, scale exponent1..60, dnum positive dividing Q count); serialized scale_bits is IEEE754 value bits, not exponent. Production additionally requires existing exact secure_parameters presets and declared policy. Security fields are declarations only; no pass or numeric estimator claim.
+
+Source phase authorizes tests-first compile RED via cargo test -p ckks-train-bench --lib --features parallel --no-run, then implementation and final no-run, strict clippy --lib --tests --features parallel -- -D warnings, cargo check --lib --no-default-features, cargo check --lib --features parallel,cuda, targeted formatting. No test execution in this phase; root freezes a bounded pure batch after source review. No params/planner/key/Encoder/Bootstrapper/HE/dataset/native/network execution. Report exact test names and fixture/file/constructor/allocation inventory for the subsequent pure batch. Reuse passed tests only when directly relevant to changed shared source.
+
+## Report
+
+Write task-54-d7-execution-descriptor-source-report.md and source-validation/ logs/pins in this ledger. Preserve raw compile failures and exact commands/exits. Include every changed path/hash, independent vector identity, unchanged binding files, source borrowing/visibility, wire-vs-source semantics, bounded test inventory, remaining actual-route/producer/gate gaps. No commit/push/subagents; root independent review and publication. Do not mark Task54 complete.
+
+## Preserved source acceptance obligations
+
+Current design source baseline is d0cf114; BASE7da6d0a adds only accepted design/docs/vectors. Uncommitted results/quadruped/requests.md belongs root for a future read-only observation; do not stage/change it. Preserve original .vscode/ and results/mnist_blocks_{128-64,64}_plain_b48.json.
+
+Author report must distinguish implemented pure wire/source projection from still-missing retained route/producer. Subsequent route phase must enforce setup failure/unused-driver drop order (crypto teardown before live leases) as required by FIX1 review; this representation phase does not construct HeSession. One additive accounting owner and post-start validate_plan_binding workspace belong that subsequent phase; all new codec allocations obey existing A_MAX and checked requested-length sizing now. No budget or domain changes. No new dependencies or external baseline code; license rules remain MIT/Apache-2/BSD/ISC plus approved Unicode character-table exception only.

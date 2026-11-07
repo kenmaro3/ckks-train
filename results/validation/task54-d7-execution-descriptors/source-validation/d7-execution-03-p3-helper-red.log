@@ -1,0 +1,9 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find function `test_geometry_transcript` in module `crate::study_admission`
+   --> crates/ckks-train-bench/src/study_reference/document/execution_descriptor_tests.rs:484:47
+    |
+484 |             let bytes=crate::study_admission::test_geometry_transcript(stages.stage(i).geometry).unwrap();
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^ not found in `crate::study_admission`
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error
