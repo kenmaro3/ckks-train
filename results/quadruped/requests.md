@@ -904,4 +904,4 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261107-1750.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared only; no invocation. Earliest17:50:05JST, same frozen observer, no automatic retry. Latest actual observation remains16:50:04JST339/1000; no current-live claim from this request.
+- **status:** done; SSH exit0, actual17:51:09JST, own chain/queue live, FULL-2 update364 =>365/1000; final JSON absent, queue owner.json only. Exact source/custody archive `raw/R-41-FULL2-OBS-20261107-1750/`; same controller handle58137 retained to terminal, no retry or job changes.

@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1649)。
+最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1750)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -723,3 +723,9 @@ HEを実行する前に、入力・初期値・rate・reference・control・必�
 各実行は156 Engine更新・61 Engine生成・179明示forwardを実際に完走し、失敗を含む累積は312／122／358となる。各698 CHECKは合格、baseline hidden最大絶対値は0.652500000000000080で0.75以内。source／strict Clippy／formatと限定したv2感度検証は合格した。別のempty-phase testと将来のpaired-oracle phaseは未実行である。
 
 P5のkeys／Encoder／evaluator／HEは0であり、暗号学習が3e-5を達成できるかは未検証。複数層のclient／session／packet／retention、canonical D7とdurable start、secure profile、GPU、全行・quick科学実験、P5／Task54／M4／M5全体は未完了である。全登録範囲、full encrypted-block hold、FULL-2の判定条件は維持する。
+
+<a id="latest-evidence-20261107-1750"></a>
+
+## 2026-11-07 17:51 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1750/README.md)では、17:51:09 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は365/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。17:50:05以降の予定枠から1回観測し、同じcontroller handle58137で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は18:51:10 JST以降とする。
