@@ -771,3 +771,11 @@ compile REDから実装し、最終no-run／strict Clippy／逐次CPU・CUDA fea
 選択したテストではdataset生成・学習・HE・実機／native moduleの観測・executor／thread／subprocess生成は行っていない。既存goldenのうち2件だけが同梱fixtureを読んだ。正式なLinux contextを使うphysical captureのpositive integrationは未計測で、Linux限定のhost／thread検証もMacではcompile対象外・未実行である。
 
 runtime-policyのcodecと実情報viewは実装したが、具体的な学習経路の所有権を保証するadapterとproduction runtime-policy生成は未接続である。descriptorのbytes／hashや登録値だけから実行可としない。残りのExecutionBinding、live gate、durable admission／start、科学結果出力と全実験runnerが必要で、Task54／M4／M5全体は未完了。全登録範囲・既存hold・FULL-2の判定条件を維持する。
+
+<a id="latest-evidence-20261107-d7-execution-design"></a>
+
+## 2026-11-07追記: ExecutionBindingと実行開始後の所有権設計
+
+[設計](study-execution-design.md)と[独立レビュー・完全なテスト値](../results/validation/task54-d7-execution-design/README.md)を確定した。実パラメータ、物理配置、鍵の生成・使用方針、秘密鍵分布の宣言を別々のdescriptorへ結び、既存P1／P3／physical／runtimeのbytesを維持する。新しい4形式の14正例・56負例は実装から独立したliteralで、レビューで内容・順序・分岐を確認した。syntheticな形式例であり、実パラメータや安全性の証拠ではない。
+
+実行開始後は所有するdriverを返し、借用するP4／P5 sessionはその固定処理内で生成・破棄する。durable start後・鍵生成前のplan再検証、同じcontext／入力／計画の保持、暗号オブジェクト破棄までの資源lease保持を必須とした。初回レビューの重要2件を修正し、再レビューのSPEC／QUALITYが合格した。設計のみの確定で、4形式の実装、実経路からのExecutionBinding生成、live gate、durable admission／start、科学結果出力は未完了。全登録範囲・既存hold・FULL-2判定条件を維持する。

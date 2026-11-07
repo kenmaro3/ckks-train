@@ -1,0 +1,127 @@
+# D7 ExecutionBinding descriptors and owned CPU continuation
+
+Status: DESIGN RATIFIED after independent FIX1 review (2026-11-07). Source implementation and execution release remain separate.
+
+This is the readable design; the [exact original, fixed proposal and review artifacts](../results/validation/task54-d7-execution-design/) preserve the decision record. The [full experiment matrix](experiment-matrix.md), [target/admission contract](study-target-design.md), and [runtime contract](study-runtime-design.md) remain binding. The four new wire domains and owned-driver handoff below do not clear scientific or resource gates.
+
+The archived author proposal is `0b4c92c2`; independent FIX1 review `28f3cc9a` closes I1 (returned driver ownership and post-start binding validation) and I2 (independent byte vectors before encoder source). Root accepts those changes and freezes the 19 vector artifacts listed by `SHA256SUMS` (`899b4599`). The earlier proposal and review remain in the archive. Current implementation baseline is `d0cf114`; the new design has not yet been implemented.
+
+The implementation must retain resource/user leases until crypto teardown, including unused-driver drop and setup failure. Field drop order must enforce this explicitly; the storage sketch below is not permission to drop the live frame first. Original Minor M1/M2 carry into the source brief: one additive requested-payload accounting owner and reuse of the existing approved commit accessor.
+
+## 1. Concrete package and existing bytes
+
+Build one private CPU preparation/continuation adapter, factoring the existing P4/P5 validation blocks so the SAME checked preparation supplies descriptors and later actual construction. Retain P1/P3 bytes unchanged. Add four narrow inner encodings: interactive parameters, physical layout, key policy and security declarations. Reuse the approved source manifest for implementation identity; a second implementation manifest is unnecessary.
+
+| ExecutionBinding field | Exact source and ownership |
+|---|---|
+| implementation | main_diagonal=0 only for this adapter; CPU Main/BatchedDiagonal exact registration checked by checked_mode; unsupported roles fail |
+| implementation_revision | approved complete source commit via existing context.artifact_context().source_commit(), Text128; no new commit accessor, caller revision or Git invocation |
+| implementation_manifest_sha256 | SHA256 of existing canonical source Manifest bytes in current FrozenReceipt receipt.files[0], equal approval.source/source_manifest_sha256(); retain context/receipt, not a new subset manifest; includes the reviewed adapter source |
+| parameter_identity_sha256 | NI: hash BootstrapMetadata::parameter_identity_bytes() unchanged. I: new I-parameter bytes below; P1's encoding requires BootParams, so cannot truthfully synthesize an I BootstrapMetadata/helper using default bootstrap parameters |
+| bootstrap_descriptor_sha256 | NI: hash exact retained BootstrapMetadata::descriptor_identity_bytes(); I: None; compare actual BootParams to metadata.boot_params() and P3 secure_parameters |
+| layout_plan_sha256 | new physical-layout descriptor from actual checked preparation geometries plus exact plan.partitions(); geometry_identity(metadata) alone omits lanes/slots/parts |
+| trainer_plan_sha256 | hash complete DiagonalPlan::canonical_bytes() unchanged, including canonical bindings, rates, full/consumed schedule, parameters, initial/update/handoff typed metadata; retain same Arc, not full_plan_sha256 or consumed_sha256 alone |
+| eval_config | actual checked geometry.eval_config(), all stages equal; match request/registration and actual Evaluator::with_config input |
+| bootstrap_engine | I none=0; NI CPU host=1, actual make_material Bootstrapper branch; never infer successful construction pre-start |
+| key_policy_sha256 | new exact key descriptor below, derived from checked geometry/plan/P1; factory takes its exact training rotations |
+| security_policy_sha256 | new declaration/policy descriptor below; never a security estimate or passing gate |
+| physical_binding_sha256 | existing candidate RecheckedTrainCapture::physical_descriptor(), same retained live context; actual production physical capture exists |
+| runtime_policy_sha256 | existing ratified bytes, new private producer combines same lease facts with closed PreparedCpuRoute branch; no CLI/PolicySelection-to-readiness conversion |
+
+The source manifest is intentionally broader than the implementation; exact commit plus complete approved source avoids accidental omission of transitive Rust/math/build sources. Existing build/receipt/executable checks still apply. A docs-only HEAD label is not the approved current implementation revision. Parsed or independently recreated equal hashes do not substitute for retained owners.
+
+## 2. Exact new encodings
+
+Each new descriptor starts `Text("hekit-study-reference-encoding-v1"), Text(domain)` and has no self-hash. Existing document primitives: U64 little-endian, Bool one byte0/1, Hash Text64 lowercase SHA256, Bytes U64 length/raw, List U64 count/ordered values, Option00/01. I32 below means four little-endian two's-complement bytes, matching P3 int_steps; never reinterpret P1's eight-byte signed rotation encoding. All new canonical descriptors <=A_MAX=2,097,152 bytes. Two-pass checked length/count accounting before allocation; reject overflow, wrong tags, trailing bytes and mismatches. No new JSON envelope/parser or generic registry.
+
+### Interactive parameters
+
+Domain `hekit-study-interactive-parameters-v1`.
+
+| Exact body order | Source/constraints |
+|---|---|
+| q:List<U64>; p:List<U64>; q_bits:List<U64>; p_bits:List<U64>; log_n:U64; scale_bits:U64; dnum:U64; main_weight:Option<U64> | CkksParams q/p/q_bits/p_bits/log_n/scale().to_bits()/dnum/hamming_weight; each bit vector has corresponding prime count; nonempty chains, finite positive scale, checked constructor invariants; production additionally exact P3 n16_train and main_weight=None |
+
+Lengths bind maximum level (q.len()-1), N=2^log_n and slots=N/2; no inconsistent redundant level field. NI retains all original P1 bootstrap parameters/proof bytes and original domains. Rejected: preset-name hash loses actual primes; copying P1 with invented BootParams lies about I; changing P1 breaks existing identity compatibility. Cost of wrong choice is accepting different cryptographic objects under the same binding.
+
+### Physical layout
+
+Domain `hekit-study-diagonal-layout-v1`.
+
+| Exact body order | Source/constraints |
+|---|---|
+| parameter_identity:Hash; consumption:byte Full0/Quick1; mode:byte I0/NI1; eval:{Bool hoist,bsgs,lazy_relin}; stages:List<Stage>; parts:List<List<Part>> | all from same checked plan/preparation; stages1..3; each Stage in graph order; parts exactly consumed_updates, nonempty |
+| Stage | dims:List<U64>, followed directly by existing P3 encode_geometry body, byte-for-byte unchanged |
+| Part | start:U64, valid:U64; ordered contiguous from zero per update; 1<=valid<=actual layout.batch; sum equals canonical update sample count |
+
+Existing `encode_geometry` body is precisely: slots,d,batch U64; shapes List of eight U64(d_out,d_in,n_out,n_in,l,m,baby,giant); masks List of four U64(canonical_period,gradient_period,bias_period,lanes), reduce_steps List<I32>, replication_steps List<I32>, compact_first_period Bool; transpose List<List<(source U64,steps List<I32>)>>; rotations List<I32>; compact Option containing plans List<Compact>, containers List<(layer Option<U64>,index U64,plan Compact)>, biases List<(container U64,position U64)>. Compact is five U64(d_out,d_in,batch,diags_per_ct,lane_shift). Borrow/factor this encoder without changing old transcript bytes. Stage dims must equal adjacent logical shape dimensions; layouts common, slots=params.slots(), positive powers of two, checked d*batch divides slots; all masks/transpose/compact recipes equal the actual StageGeometry. Preserve ordered rotation chains; never sort them. This is the actual diagonal route's StageGeometry, not unrelated PackedGeometryPlan fabrication. No packed adapter is created.
+
+Architecture, activation, bias, stage graph and state levels already belong to the complete trainer descriptor; layout identity covers physical mapping and consumed partial lanes. Rejected: geometry_identity alone, or the whole trainer digest in both fields, loses the independent physical projection. Derivation of geometries from immutable inputs remains validated, not a digest-only equality check.
+
+### Key policy
+
+Domain `hekit-study-cpu-diagonal-keys-v1`.
+
+| Exact body order | Source/constraints |
+|---|---|
+| parameter_identity:Hash; bootstrap_descriptor:Option<Hash>; transpose:Transpose; training_level:U64; training_rotations:List<I32>; training_relin:Bool; training_conjugation:Bool; training_sse:Bool; bootstrap_generated:List<I32>; bootstrap_execution:List<I32>; bootstrap_conjugation:Bool; bootstrap_sse:Bool; separate_bootstrap_bundle:Bool; owner_policy:byte | Transpose Dedicated00 or Reuse01+List<I32> in exact request pool order; training level params.max_level(); sorted normalized nonzero training union equals plan.keys and every checked geometry requirement; true,false,false training flags; bootstrap lists/bools equal P1/plan KeyManifest; separate bundle equals KeyManifest::separate_bootstrap_bundle(); owner_policy=0 only, meaning one main key generator per case, one training evaluator bundle and separately constructed bootstrap bundle |
+
+I requires bootstrap absent, empty bootstrap lists and false bootstrap flags/separate bundle. NI requires exact P1 descriptor and generated/execution sets separately; neither list substitutes for the other. make_material currently generates public/secret/relin/Galois material from that one main KeyGenerator and separately calls Bootstrapper::new. Factory rotation input must EQUAL the manifest union, strengthening the current subset-only make_owned_fields check on the D7 path. Reuse pool identity and actual transpose chains remain distinct. No secret key bytes, RNG state or public-key hashes are serialized. Rejected: union alone loses reuse and separate bootstrap roles; claiming one shared evaluation bundle misdescribes allocation and security assumptions.
+
+### Security declarations
+
+Domain `hekit-study-main-security-policy-v1`.
+
+| Exact body order | Source/constraints |
+|---|---|
+| registered_policy:byte n16_train0/n16_boot1; parameter_identity:Hash; bootstrap_descriptor:Option<Hash>; main:Secret; ephemeral:Option<Secret>; assurance:byte; bootstrap_scope:Option<byte>; bootstrap_unvalidated:List<byte> | Secret DenseTernary00 or FixedWeight01+U64; actual parameter declaration, and NI P1 declared_main_secret/declared_ephemeral_secret; assurance=0 means declarations_only; NI scope Some(0)=StructuralCostAndBoundaryScales and requirements exactly P1 ordered tags0..8; I scope None/list empty/ephemeral None |
+
+Requirement tags0..8 are exactly P3 encode_params' P1 mapping: encoding-Q/2, EvalMod-internal-scale, encrypted-input-range, approximation-precision, actual-secret, key-binding, security-estimate, runtime-memory, backend-support. Empty I bootstrap list means bootstrap inapplicable, never general security validated. assurance0 explicitly leaves actual-secret/key/security-estimate checks unproved for BOTH modes. Fixed weights must be positive and <=N and equal the actual declarations. Reject sparse-main substitution under current registered policy, changed ephemeral weight or reduced-level substitution even if hashes are recomputed. No numerical security strength or evidence hash is invented. Rejected: policy name alone omits actual secrets; a pass bit creates phantom authority. This descriptor records limitations, while live gate adapters must independently satisfy applicable existing policies.
+
+## 3. Ownership and actual CPU handoff
+
+Add private `study_execution.rs` orchestration and private `study_reference/document/execution_descriptors.rs`; tiny existing-module changes only. Keep P/R candidate encoders frozen except reviewed fixes or a narrowly reviewed producer hook. Add only a borrowed current Train receipt source-manifest-byte view in context.rs; reuse source_commit(). Factor validation into `prepare_canonical` and `prepare_blocks_canonical` returning existing CheckedPreparation/CheckedBlockPreparation; existing prepare_then_make/prepare_blocks_then_make delegate to those functions unchanged semantically. Existing private callback stays internal; no new public callback or plugin framework. Keep array encryption/owned continuation helpers in study_client.rs and its blocks.rs child so private fields and canonical_arrays remain owned there; expose only crate-private borrowed descriptor views and fixed continuation calls to study_execution.rs.
+
+Inside installed `run_owned` frame retain context, canonical materialization, RegisteredCase, immutable request, Arc<CkksParams>, optional CpuBootstrapDescription, same Arc<DiagonalPlan>. Then create private `PreparedCpuRoute<'a> = Single(CheckedPreparation<'a>) | Block(CheckedBlockPreparation<'a>)`, borrowing parameters from those outer locals. Descriptors borrow this route/plan/context or retain bounded immutable bytes. It is explicitly non-authorizing. Keep locals in nested scopes; do not put a self-borrowing context/session/facade in one struct. Seal its fields and keep context lifetime/non-Send marker; codecs accept borrowed fact projections, cannot construct PreparedCpuRoute.
+
+Pre-key work: canonical input capture/recheck, bounded parameters/P1 structural metadata, P3 plan, exact candidate checks, descriptor bytes, target inspection. No KeyGenerator, Encoder, Bootstrapper, encryptor, session or native runtime allocation. Reserve original request allowances before plan hashing. Factor out rather than repeat candidate preparation after start; retain actual checked geometry, never candidate placeholder initial states. PlanOwner/BlockPlanOwner keep the exact canonical Arc; all initial/update labels come from DiagonalPlan.
+
+### I1: returned owned driver and store-borrow transfer
+
+Preserve the ratified signature, with no extra lifetime relation or changed return:
+```rust
+pub fn begin_checked_he<'s, 'c: 's, 'p: 's>(
+    started: StartedHeCase<'s, 'c, 'p>
+) -> Result<HeSession<'c, 'p>, HeStartError>;
+impl<'c, 'p> HeSession<'c, 'p> {
+    // Private fixed consuming method; no callback, allocator permit or retry.
+    fn execute_cpu(self) -> Result<CpuRunOutcome, HeRunError>;
+}
+```
+`HeSession` is an owned driver, NOT a returned CpuDiagonalSession/CpuBlockSession. Its private fields are `live: LiveCaseFrame<'c,'p>` and `setup: CpuOwnedSetup`. These are proposed storage names, not substitute gate capabilities. LiveCaseFrame owns ProcessStamp, actual five gate capabilities/resource-user leases, immutable case/attempt/target/admission/start links/threshold, retained descriptor bytes and Arc<DiagonalPlan>; it borrows context for `'c`, canonical materialization/registered case/request/parameter and bootstrap owners for `'p`. Runtime/pool lease remains owned by that same borrowed Train context. It retains CheckedMaterializedInput<'c> from the existing context check plus owned capture identity snapshots. The existing single-lifetime TrainCapture need not escape its short capture scope or gain an unsafe extended lifetime. No `'c:'p` constraint is introduced.
+
+CpuOwnedSetup owns either Single{StudyClient,CpuEvaluationContext,EncryptedInitialState} or Block{StudyClient,CpuEvaluationContext,EncryptedBlockInitial,BlockEncryptionBinding}. None borrows a sibling field. It never stores a refresher, block facade, P4/P5 session or CheckedPreparation borrowing its own fields. Before begin, the checked route borrows outer `'p` owners; begin consumes it into encrypted initial state. Context, source inputs and params remain outer run_owned locals until the returned driver is consumed/dropped. All live types remain private-field, non-Clone/non-Send/non-Sync/non-deserializable.
+
+Exact begin order: consume genuine StartedHeCase; retain its SAME exclusive store borrow/ActiveAttemptHandles; recheck ProcessStamp, context/runtime/capture, all handles/bytes/links, exact case/plan/parameter/route owners and live gates/resource lease. Explicitly call `study_admission::validate_plan_binding(materialized, registered, &plan, actual_planning_parameters, request)` AFTER durable start and BEFORE keys. This calls canonical_binding and allocates temporary transcript, partitions and identity/row projections; pre-reserve its separately counted peak workspace under the unchanged original ReceiptLimits, release it on return, and count this invocation independently of P2 planner counters. Do not repeat candidate geometry construction.
+
+Move context/input borrows, live leases/stamp and immutable links/descriptors into LiveCaseFrame while store remains exclusively borrowed. Only after this checked transfer may ActiveAttemptHandles close and the store borrow end; there is no store/guard borrow in the returned driver. Immediately recheck the retained frame again before key allocation. Any failure consumes authority, drops state via RAII, preserves durable start/incomplete evidence and returns no token/driver. Create CpuOwnedSetup using the fixed P4/P5 helpers below, then return HeSession. No unsafe, leaks or hidden path reopening. A private recheck(&LiveCaseFrame) calls ProcessStamp::recheck, artifact_context().recheck (including retained runtime), recheck_materialized_input_now against the retained checked input, and actual live gate/resource rechecks at setup allocation/execution boundaries. The frame/leases remain alive through setup, nested execution and drop.
+
+Single setup uses retained CheckedPreparation -> make_owned -> client.encrypt_initial of exact canonical arrays. Block setup uses CheckedBlockPreparation -> make_blocks_owned with exact union -> canonical_arrays/encrypt_block_initial. Factoring preparation avoids rebuilding geometry, but never removes the explicit post-start validate_plan_binding above. Existing private prepare_owned_canonical can delegate to these fixed helpers.
+
+execute_cpu consumes the driver and destructures it into local live/client/evaluation/initial owners. In a nested scope it creates the I same-client refresher (NI uses owned Bootstrapper), then CpuDiagonalSession::new and the fixed sequential encrypt_update/step loop. Block adds local CpuBlockEvaluation::new(&evaluation), then CpuBlockSession::new and encrypt_block_update/step. Recheck the live frame before allocator/update/endpoint entries. Drop borrowed session, then facade/refresher, then owned crypto, then live leases; no borrowed session escapes. run_owned consumes execute_cpu inside the same installed frame; only its non-authoritative outcome may leave dispatch. Result is operational only until the separate scientific publisher exists. Poison stops with partial counters; no retry/rollback. P5 snapshot only immediately after successful update, never origin or poison without a separately reviewed API fix.
+
+Actual live gates and durable admission/start still do not exist. This is the exact required eventual handoff, not permission to declare a fake StartedHeCase. The fixed private setup/run bodies may be implemented disconnected, like today's private factory; begin and the production dispatcher must stay unavailable until genuine capability integration. No codec, selector, ParsedStart or synthetic fixture can manufacture this driver.
+
+CPU runtime producer derives refresh_route0/1 from this closed I/NI continuation and lease actual workers/form/recipe; binds retained P bytes. Pre-start runtime bytes describe this reviewed construction requirement, not an existing Bootstrapper. Post-start actual config/branch/owner checks remain mandatory. CUDA/native/external/matched/packed remain unsupported adapters, never CPU fallbacks.
+
+## 4. Accounting, work inventory and remaining gates
+
+Reuse P1/plan/source bytes by borrow/Arc, charging once; new descriptor Vec payload, digest strings, retained checked geometry nested vectors and duplicated factory arrays must be counted explicitly. Charge checked arithmetic before growth against the ORIGINAL request's retained budget, including plan.charges().combined(); do not silently reset max_bytes or increase it after hashing. New auxiliaries also individually obey A_MAX. Existing plan ReceiptLimits and context/P1 caps remain unchanged; a large existing transcript is not copied into a capped auxiliary field. Count temporary preparation, target verification's independent materialization and later array/key copies separately; requested-payload accounting is not RSS/resource admission. Carry Minor M1 into [accounting/source notes](../results/validation/task54-d7-execution-design/task-54-d7-execution-binding-accounting-source-notes.md): one private additive owner seeded with plan requested-length charges once; additional retained/peak-transient requested payload before reservation; capacities are diagnostic, not the budget or RSS. Materialization/parameters/P1/target verification retain separate bounds; existing ReceiptLimits semantics/bytes remain unchanged. Do not clone geometry/parts to size descriptors; no unobserved diagnostic CT copies become measured full-RSS evidence.
+
+### I2: independent byte oracle before source
+
+The [independent vector package](../results/validation/task54-d7-execution-design/task-54-d7-execution-binding-design-vectors/README.md) freezes14 complete positive transport examples:2 parameter,3 layout,4 key and5 security. inputs.json supplies every literal field; named .hex files contain complete bytes; manifest.json records exact lengths/SHA256/offsets. generate.py is standalone Python stdlib, with no repository encoder imports or constructors. README.md gives the complete digest table and branch coverage. There are56 complete negative byte examples plus exact exhaustive-prefix/A_MAX/checked-arithmetic cases in negative-vectors.json. These are specified rejection expectations, not Rust test results. Unsupported synthetic fixed-main/non-default-ephemeral and Some(DenseTernary) branches are explicitly marked; placeholder hashes and hand-written layout values prove no owned plan/security. All four domains and every named Option/compact/transpose/secret/multistage/partial branch are covered. Existing P1/P3/P/R vectors remain untouched. **Independent review must freeze this vector package BEFORE any hash-producing encoder source.**
+
+Suggested bounded work after that review: (1) pure encoders/accessors against these frozen vectors; (2) preparation factoring/retained accounting, no HE; (3) private concrete CPU continuation and refusal tests; (4) separate real gate/admission/start integration. Freeze test constructor/work inventory before execution, with no broad campaign or automatic HE reruns implied by this design. For one successful preparation with S stages and U consumed updates, existing P3 plus one retained candidate costs 2S geometries, 2S initial-state calls, S*U update calls, (S-1)*U handoffs and one plan wrapper; every extra rejected/repeated planning call needs its own budget. Binding revalidation/encoding work and descriptor allocations remain separately bounded even where existing counters do not charge them. Meaningful tests: every new field/order/tag/length mutation; unchanged existing P1/P3/P/R vectors; distinct physical lanes/parts and transpose choices; equal-hash but different Arc/context/params refusal; different runtime pool/route or source manifest refusal; wrong BootParams/EvalConfig/bootstrap branch; exact rotation union rejection; no early key/Encoder/evaluator/Bootstrapper/session calls on every refusal. Independent vectors must not be generated by production encoders. Synthetic values stay synthetic, never canonical positive evidence.
+
+The genuine dependency is capability construction and durable-start ownership, not a hash cycle: parameter/layout/key/security/runtime descriptors never hash ExecutionBinding or Gates. Existing eight P3 unproved gates, P1 limitations, five live outer Gates, target/admission/start publisher, resource lifetime/recheck and scientific HE metrics/output remain unimplemented by this package. Full encrypted block user hold remains. Source approval for changed implementation is separate from source design; B/same-N/authors unresolved decisions do not prevent ordinary descriptor/CPU adapter development. Preserve all21 profiles, full2680 family rows +20 exact-Iris prospective rows +7 supplement entries and quick268 projections. No new dependencies, external baseline code or license exceptions beyond already approved MIT/Apache2/BSD/ISC plus Unicode tables.
