@@ -794,3 +794,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger package directory `remote-{preflight,receive,create-readback}.{stdout,stderr,meta.json}`; remote newroot pre.json/readback.json/package.tar.part/payload and genuine checkout.
 - **pass criterion:** exact outerpackage hash, ten regular allowlisted members, actual detached commit/tree/exporter/config36/raw8 verification, honest Git config/status/diff, unchanged bounded static sentinels. Controller records early failures even without script JSON; absent success JSON is not success. No existing-tree repair/deletion/overwrite, no target/native/context/capture/scientific work or FULL poll. Preserve partial roots on any failure.
 - **status:** staging verified (2026-11-07T10:54:10.836329+09:00). All3 phases terminal0, exact package hash, detached010bb3c/tree5090787, selected38/raw8 and static24 before/after matched; independent actual review PASS. Exact operational records: raw/R-REB-27/. Controller retains stable-input boolean/hash but not raw before/after stat tuples; no forensic replay claim. Both new roots now exist; do not rerun/reuse. No context/capture/scientific result or job mutation.
+
+
+## R-41-FULL2-OBS-20261107-1148: hourly read-only progress observation
+
+- **purpose:** Check the existing FULL-2 and post-full queue no earlier than11:48JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261107-1148-command.json`, `nice -n 10 /usr/bin/python3.14 -I -B -`; unchanged observer `post-full-observation-20261107-0600.remote.py` SHA25617550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; bounded8KiB tail, one observer, connect90s; retained async controller and exact terminal streams/status. Observation delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under50MiB expected.
+- **output path:** ignored ledger `post-full-observation-20261107-1148.{stdout,stderr,meta.json}`.
+- **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** done; SSH exit0, actual11:49:19 JST, own chain/queue live, FULL-2 update212 =>213/1000, final JSON absent, queue owner.json only. Exact originals archived in `results/quadruped/raw/R-41-FULL2-OBS-20261107-1148/`; no job/queue changes or observer rerun.
