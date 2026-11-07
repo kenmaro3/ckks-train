@@ -1,0 +1,37 @@
+{
+  "index": 24,
+  "name": "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065782.489225,
+  "pid": 58995,
+  "timeout_seconds": 60,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794065782.633,
+  "named_successes": [
+    "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 210,
+  "stdout_sha256": "d41eb6f078b2e0a94bdc4eb336db19108ee437633341527f6ef694b94fc5f7f5",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

@@ -1,0 +1,18 @@
+{
+  "index": 25,
+  "name": "study_reference::target::tests::clock_equalities_allowed_without_interpolation_or_tolerance",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::target::tests::clock_equalities_allowed_without_interpolation_or_tolerance",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065782.761974,
+  "pid": 58997
+}

@@ -1,0 +1,5 @@
+COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--target', 'x86_64-unknown-linux-gnu', '--', '-D', 'warnings']
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.31s
+
+EXIT 0

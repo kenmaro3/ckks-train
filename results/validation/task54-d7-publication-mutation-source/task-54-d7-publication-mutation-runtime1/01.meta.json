@@ -1,0 +1,37 @@
+{
+  "index": 1,
+  "name": "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065772.375287,
+  "pid": 58708,
+  "timeout_seconds": 60,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794065776.89704,
+  "named_successes": [
+    "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 239,
+  "stdout_sha256": "502e89669e3a460d76d4691b087d859319613d598f45987a42089893296cfebb",
+  "stderr_bytes": 262,
+  "stderr_sha256": "1804d781c2b872ecd60f008f784f6535676389811885342733b1e0334c2a5cc1"
+}

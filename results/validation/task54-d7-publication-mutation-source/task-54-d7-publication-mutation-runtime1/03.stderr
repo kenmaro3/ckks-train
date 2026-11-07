@@ -1,0 +1,6 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+thread 'study_provenance::publication::tests::anonymous_contract::anonymous_owned_lifetime_model' panicked at crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs:882:21:
+scripted pre-link unwind
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

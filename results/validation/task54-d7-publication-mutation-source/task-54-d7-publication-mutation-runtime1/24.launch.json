@@ -1,0 +1,18 @@
+{
+  "index": 24,
+  "name": "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065782.489225,
+  "pid": 58995
+}

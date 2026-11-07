@@ -1,0 +1,37 @@
+{
+  "index": 11,
+  "name": "study_provenance::publication::tests::concurrent_synthetic_publishers_get_exactly_one_capability",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::concurrent_synthetic_publishers_get_exactly_one_capability",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065779.219559,
+  "pid": 58929,
+  "timeout_seconds": 60,
+  "timed_out": false,
+  "exit_code": 0,
+  "end": 1794065779.3663318,
+  "named_successes": [
+    "study_provenance::publication::tests::concurrent_synthetic_publishers_get_exactly_one_capability"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 223,
+  "stdout_sha256": "8f9566d7c6bea2706ea4b1c309b721eaee42c6ee4c879ee8df5a44bcd30c824f",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

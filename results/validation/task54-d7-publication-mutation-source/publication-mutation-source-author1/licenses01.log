@@ -1,0 +1,10 @@
+COMMAND ['cargo', 'deny', '--offline', 'check', 'licenses']
+warning[license-not-encountered]: license was not encountered
+   ┌─ /Users/marconi/Documents/research/hekit/deny.toml:13:6
+   │
+13 │     "BSD-3-Clause",
+   │      ━━━━━━━━━━━━ unmatched license allowance
+
+licenses ok
+
+EXIT 0

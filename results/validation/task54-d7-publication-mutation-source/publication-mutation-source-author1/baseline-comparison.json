@@ -1,0 +1,22 @@
+{
+  "changed": {
+    "Cargo.lock": {
+      "baseline": "7250dbf896c207b4e838cabea88c5a4110e46803e3c8e8fe6460f8a7f60c97b1",
+      "current": "e5059c771e93261c6fecf855f7a2d8ab052021f62cadafddbb23c43fa2f216c3"
+    },
+    "crates/ckks-train-bench/Cargo.toml": {
+      "baseline": "189d5d50799949561ccf6ff6696b7f5b89e1aa860d9f88a641abddca9e096d98",
+      "current": "fc698bca60c78aa259180e6cd238514cb9e83bdb780a70e3c0287831b6a438b4"
+    },
+    "crates/ckks-train-bench/src/study_provenance/publication_tests.rs": {
+      "baseline": "10f640a0961da262ddcd15627a5a1c59455b1fddbee7cc5c9a4711b6eff33fd6",
+      "current": "7f604bebbca0fa5ae47f63bac1fa97231d78c6a5affbd3371f866d5e95bfc39f"
+    },
+    "crates/ckks-train-bench/src/study_provenance/publication.rs": {
+      "baseline": "8cfabba4dcf7daae93e90ce40a0bc1bcf13c59c713bb5c9d65964b97a4a2c004",
+      "current": "69a4731e5695d986702e079d7d900bb171cd602d07db3a76951a0bb378d61f47"
+    }
+  },
+  "unchanged": 267,
+  "forbidden_changes": []
+}

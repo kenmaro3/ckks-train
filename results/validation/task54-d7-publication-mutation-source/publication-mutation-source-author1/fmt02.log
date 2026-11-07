@@ -1,0 +1,3 @@
+COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']
+
+EXIT 0

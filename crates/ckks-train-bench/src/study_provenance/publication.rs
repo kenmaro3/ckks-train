@@ -23,22 +23,15 @@ trait Ops {
     fn file_sync(&mut self) -> Result<()>;
     fn link(&mut self) -> Result<()>;
     fn dir_sync(&mut self) -> Result<()>;
-    fn unlink_owned(&mut self) -> Result<()>;
 }
 fn publish_ops(o: &mut impl Ops, b: &[u8]) -> std::result::Result<(), PublishError> {
     o.create().map_err(|_| PublishError::BeforeLink)?;
-    if o.write(b)
+    o.write(b)
         .and_then(|()| o.file_sync())
         .and_then(|()| o.link())
-        .is_err()
-    {
-        let _ = o.unlink_owned();
-        return Err(PublishError::BeforeLink);
-    }
-    o.dir_sync()
-        .and_then(|()| o.unlink_owned())
-        .and_then(|()| o.dir_sync())
-        .map_err(|_| PublishError::VisibleUnconfirmed)
+        .map_err(|_| PublishError::BeforeLink)?;
+    // L returns immediately on syscall success. Everything from here is visible.
+    o.dir_sync().map_err(|_| PublishError::VisibleUnconfirmed)
 }
 fn recover_ops(o: &mut impl Ops) -> Result<()> {
     o.file_sync()?;
@@ -310,14 +303,17 @@ impl Store {
         self.recheck().map_err(|_| PublishError::BeforeLink)?;
         ensure(bytes.len() <= cap, "publication byte cap").map_err(|_| PublishError::BeforeLink)?;
         let name = self.basename(id).map_err(|_| PublishError::BeforeLink)?;
-        let mut o = Native {
-            parent: &self.parent,
-            final_name: name.clone(),
-            temp: None,
-            file: None,
-            id: id.into(),
-        };
+        let mut o = Native::new(&self.parent, name.clone());
         publish_ops(&mut o, bytes)?;
+        o.confirm_final()
+            .and_then(|()| {
+                #[cfg(test)]
+                test_hooks::checkpoint("anchor-check")?;
+                self.recheck()
+            })
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        #[cfg(test)]
+        test_hooks::checkpoint("release").map_err(|_| PublishError::VisibleUnconfirmed)?;
         Ok(DurableBytes {
             file_sha256: sha256_hex(bytes),
             path: self.path.join(name),
@@ -353,13 +349,7 @@ impl Store {
         let bytes = read_file(&mut file, cap)?;
         ensure(sha256_hex(&bytes) == expected, "recovery digest mismatch")?;
         verify(&bytes)?;
-        let mut o = Native {
-            parent: &self.parent,
-            final_name: name.clone(),
-            temp: None,
-            file: Some(file),
-            id: id.into(),
-        };
+        let mut o = Native::recovery(&self.parent, name.clone(), file);
         recover_ops(&mut o)?;
         Ok(DurableBytes {
             file_sha256: expected.into(),
@@ -368,48 +358,70 @@ impl Store {
         })
     }
 }
+#[path = "publication_anonymous.rs"]
+mod anonymous;
+#[cfg(test)]
+#[path = "publication_test_hooks.rs"]
+mod test_hooks;
+
 struct Native<'a> {
     parent: &'a File,
     final_name: String,
-    temp: Option<String>,
     file: Option<File>,
-    id: String,
+    proc_fds: Option<anonymous::ProcFdDirectory>,
+}
+impl<'a> Native<'a> {
+    fn new(parent: &'a File, final_name: String) -> Self {
+        Self {
+            parent,
+            final_name,
+            file: None,
+            proc_fds: None,
+        }
+    }
+    // Recovery uses only file_sync/dir_sync: no proc capture or O_TMPFILE gate.
+    fn recovery(parent: &'a File, final_name: String, file: File) -> Self {
+        Self {
+            parent,
+            final_name,
+            file: Some(file),
+            proc_fds: None,
+        }
+    }
+    fn confirm_final(&self) -> Result<()> {
+        #[cfg(test)]
+        test_hooks::checkpoint("final-check")?;
+        let held = self
+            .file
+            .as_ref()
+            .ok_or(ProvenanceError("owned file absent"))?;
+        let current = openat(
+            self.parent.as_raw_fd(),
+            OsStr::new(&self.final_name),
+            FILE_FLAGS,
+            0,
+        )?;
+        safe_file(&current)?;
+        ensure(inode(&current)? == inode(held)?, "published inode replaced")?;
+        same_publication_mount(mount(self.parent)?, mount(&current)?)
+    }
 }
 impl Ops for Native<'_> {
     fn create(&mut self) -> Result<()> {
-        for counter in 0..64 {
-            let name = format!(".tmp-{}-{counter}", self.id);
-            let c = cstring(name.as_bytes())?;
-            let fd = unsafe {
-                libc::openat(
-                    self.parent.as_raw_fd(),
-                    c.as_ptr(),
-                    libc::O_WRONLY
-                        | libc::O_CREAT
-                        | libc::O_EXCL
-                        | libc::O_NOFOLLOW
-                        | libc::O_CLOEXEC,
-                    0o600,
-                )
-            };
-            if fd >= 0 {
-                self.file = Some(unsafe { File::from_raw_fd(fd) });
-                self.temp = Some(name);
-                // Set the exact mode on OUR newly created inode, independent of
-                // caller umask. Existing directories/files are never chmodded.
-                if unsafe { libc::fchmod(fd, 0o600) } != 0 {
-                    let _ = self.unlink_owned();
-                    return Err(ProvenanceError("temporary mode unavailable"));
-                }
-                return Ok(());
-            }
-            if std::io::Error::last_os_error().raw_os_error() != Some(libc::EEXIST) {
-                return Err(ProvenanceError("temporary create"));
-            }
-        }
-        Err(ProvenanceError("temporary collisions exhausted"))
+        #[cfg(test)]
+        test_hooks::checkpoint("C")?;
+        ensure(
+            self.file.is_none() && self.proc_fds.is_none(),
+            "publication already owns file",
+        )?;
+        let (file, proc_fds) = anonymous::create(self.parent)?;
+        self.file = Some(file);
+        self.proc_fds = Some(proc_fds);
+        Ok(())
     }
     fn write(&mut self, bytes: &[u8]) -> Result<()> {
+        #[cfg(test)]
+        test_hooks::checkpoint("W")?;
         write_complete(
             self.file
                 .as_mut()
@@ -418,6 +430,8 @@ impl Ops for Native<'_> {
         )
     }
     fn file_sync(&mut self) -> Result<()> {
+        #[cfg(test)]
+        test_hooks::checkpoint("F")?;
         self.file
             .as_ref()
             .ok_or(ProvenanceError("owned file absent"))?
@@ -425,65 +439,22 @@ impl Ops for Native<'_> {
         Ok(())
     }
     fn link(&mut self) -> Result<()> {
-        let temp = self
-            .temp
+        #[cfg(test)]
+        test_hooks::checkpoint("L")?;
+        let file = self
+            .file
             .as_ref()
-            .ok_or(ProvenanceError("owned temp absent"))?;
-        let current = openat(self.parent.as_raw_fd(), OsStr::new(temp), FILE_FLAGS, 0)?;
-        ensure(
-            inode(&current)?
-                == inode(
-                    self.file
-                        .as_ref()
-                        .ok_or(ProvenanceError("owned file absent"))?,
-                )?,
-            "owned temp replaced",
-        )?;
-        let from = cstring(
-            self.temp
-                .as_ref()
-                .ok_or(ProvenanceError("owned temp absent"))?
-                .as_bytes(),
-        )?;
-        let to = cstring(self.final_name.as_bytes())?;
-        ensure(
-            unsafe {
-                libc::linkat(
-                    self.parent.as_raw_fd(),
-                    from.as_ptr(),
-                    self.parent.as_raw_fd(),
-                    to.as_ptr(),
-                    0,
-                )
-            } == 0,
-            "no-replace link failed",
-        )
+            .ok_or(ProvenanceError("owned file absent"))?;
+        let proc_fds = self
+            .proc_fds
+            .as_ref()
+            .ok_or(ProvenanceError("proc capture absent"))?;
+        proc_fds.link(file, self.parent, &self.final_name)
     }
     fn dir_sync(&mut self) -> Result<()> {
+        #[cfg(test)]
+        test_hooks::checkpoint("D")?;
         self.parent.sync_all()?;
-        Ok(())
-    }
-    fn unlink_owned(&mut self) -> Result<()> {
-        let name = self
-            .temp
-            .as_ref()
-            .ok_or(ProvenanceError("no temp ownership"))?;
-        let current = openat(self.parent.as_raw_fd(), OsStr::new(name), FILE_FLAGS, 0)?;
-        ensure(
-            inode(&current)?
-                == inode(
-                    self.file
-                        .as_ref()
-                        .ok_or(ProvenanceError("owned temp file absent"))?,
-                )?,
-            "owned temp replaced",
-        )?;
-        let c = cstring(name.as_bytes())?;
-        ensure(
-            unsafe { libc::unlinkat(self.parent.as_raw_fd(), c.as_ptr(), 0) } == 0,
-            "owned temp cleanup failed",
-        )?;
-        self.temp = None;
         Ok(())
     }
 }
@@ -786,16 +757,16 @@ impl TargetStore {
         self.claim_new(guard)
             .map_err(|_| PublishError::BeforeLink)?;
         ensure(bytes.len() <= 7_324_204, "lock byte cap").map_err(|_| PublishError::BeforeLink)?;
-        let mut o = Native {
-            parent: self.anchors.last(),
-            final_name: "target.lock.json".into(),
-            temp: None,
-            file: None,
-            id: "target-lock".into(),
-        };
+        let mut o = Native::new(self.anchors.last(), "target.lock.json".into());
         publish_ops(&mut o, bytes)?;
+        o.confirm_final()
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        #[cfg(test)]
+        test_hooks::checkpoint("anchor-check").map_err(|_| PublishError::VisibleUnconfirmed)?;
         self.check_guard(guard)
             .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        #[cfg(test)]
+        test_hooks::checkpoint("release").map_err(|_| PublishError::VisibleUnconfirmed)?;
         Ok(DurableBytes {
             file_sha256: sha256_hex(bytes),
             path: self.path(),
@@ -827,13 +798,7 @@ impl TargetStore {
             "target changed during recovery",
         )?;
         self.check_guard(guard)?;
-        let mut o = Native {
-            parent: self.anchors.last(),
-            final_name: "target.lock.json".into(),
-            temp: None,
-            file: Some(file),
-            id: "target-lock".into(),
-        };
+        let mut o = Native::recovery(self.anchors.last(), "target.lock.json".into(), file);
         recover_ops(&mut o)?;
         self.check_guard(guard)?;
         let (_, after) = self.read_snapshot()?;

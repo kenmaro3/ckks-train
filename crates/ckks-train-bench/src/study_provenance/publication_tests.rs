@@ -14,7 +14,6 @@ impl Ops for Fake {
         if self.fail == Some("create") {
             return Err(ProvenanceError("injected"));
         }
-        self.temp = true;
         Ok(())
     }
     fn write(&mut self, b: &[u8]) -> Result<()> {
@@ -37,35 +36,20 @@ impl Ops for Fake {
         Ok(())
     }
     fn dir_sync(&mut self) -> Result<()> {
-        let e = if self.temp { "dir_sync1" } else { "dir_sync2" };
-        self.events.push(e);
-        ensure(self.fail != Some(e), "injected")
-    }
-    fn unlink_owned(&mut self) -> Result<()> {
-        self.events.push("unlink");
-        ensure(self.fail != Some("unlink"), "injected")?;
-        self.temp = false;
-        Ok(())
+        self.events.push("dir_sync");
+        ensure(self.fail != Some("dir_sync"), "injected")
     }
 }
 #[test]
 fn every_publication_fault_withholds_capability_and_preserves_final() {
-    for step in [
-        "create",
-        "write",
-        "file_sync",
-        "link",
-        "dir_sync1",
-        "unlink",
-        "dir_sync2",
-    ] {
+    for step in ["create", "write", "file_sync", "link", "dir_sync"] {
         let mut f = Fake {
             fail: Some(step),
             ..Default::default()
         };
         let r = publish_ops(&mut f, b"complete");
         assert!(r.is_err(), "{step}");
-        if ["dir_sync1", "unlink", "dir_sync2"].contains(&step) {
+        if step == "dir_sync" {
             assert!(matches!(r, Err(PublishError::VisibleUnconfirmed)));
             assert_eq!(f.final_bytes, b"complete");
         } else {
@@ -76,15 +60,7 @@ fn every_publication_fault_withholds_capability_and_preserves_final() {
     publish_ops(&mut f, b"complete").unwrap();
     assert_eq!(
         f.events,
-        [
-            "create",
-            "write",
-            "file_sync",
-            "link",
-            "dir_sync1",
-            "unlink",
-            "dir_sync2"
-        ]
+        ["create", "write", "file_sync", "link", "dir_sync"]
     );
     assert!(!f.temp);
 }
@@ -105,8 +81,8 @@ fn recovery_never_cleans_any_temporary_name() {
     };
     recover_ops(&mut f).unwrap();
     assert!(f.temp);
-    assert_eq!(f.events, ["file_sync", "dir_sync1"]);
-    f.fail = Some("dir_sync1");
+    assert_eq!(f.events, ["file_sync", "dir_sync"]);
+    f.fail = Some("dir_sync");
     assert!(recover_ops(&mut f).is_err());
     assert!(f.temp);
 }
@@ -170,11 +146,9 @@ fn concurrent_synthetic_publishers_get_exactly_one_capability() {
         shared: Arc<Mutex<Option<Vec<u8>>>>,
         barrier: Arc<Barrier>,
         bytes: Vec<u8>,
-        temp: bool,
     }
     impl Ops for Race {
         fn create(&mut self) -> Result<()> {
-            self.temp = true;
             Ok(())
         }
         fn write(&mut self, b: &[u8]) -> Result<()> {
@@ -194,11 +168,6 @@ fn concurrent_synthetic_publishers_get_exactly_one_capability() {
         fn dir_sync(&mut self) -> Result<()> {
             Ok(())
         }
-        fn unlink_owned(&mut self) -> Result<()> {
-            assert!(self.temp);
-            self.temp = false;
-            Ok(())
-        }
     }
     let shared = Arc::new(Mutex::new(None));
     let barrier = Arc::new(Barrier::new(2));
@@ -208,7 +177,6 @@ fn concurrent_synthetic_publishers_get_exactly_one_capability() {
                 shared: shared.clone(),
                 barrier: barrier.clone(),
                 bytes: vec![],
-                temp: false,
             };
             std::thread::spawn(move || publish_ops(&mut race, &[i]).is_ok())
         })
@@ -275,6 +243,7 @@ fn target_stamped_read_rejects_byte_identical_inode_replacement() {
 struct SyntheticDirectory {
     path: PathBuf,
     file: File,
+    cleanup: PathBuf,
 }
 impl SyntheticDirectory {
     fn new(label: &str) -> Self {
@@ -286,7 +255,41 @@ impl SyntheticDirectory {
         std::fs::create_dir(&path).unwrap();
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).unwrap();
         let file = File::open(&path).unwrap();
-        Self { path, file }
+        let cleanup = path.clone();
+        Self {
+            path,
+            file,
+            cleanup,
+        }
+    }
+    #[cfg(target_os = "linux")]
+    fn native(label: &str) -> Self {
+        use std::os::unix::fs::PermissionsExt;
+        let root = PathBuf::from(
+            std::env::var_os("HEKIT_PUBLICATION_NATIVE_SCRATCH")
+                .expect("separately authorized native scratch root required"),
+        );
+        let root_fd = File::open(&root).unwrap();
+        safe_directory(&root_fd, true).unwrap();
+        assert_ne!(
+            root_fd.metadata().unwrap().uid(),
+            0,
+            "ordinary unprivileged native account required"
+        );
+        mount(&root_fd).unwrap();
+        let cleanup = root.join(format!("hekit-publication-{label}-{}", std::process::id()));
+        std::fs::create_dir(&cleanup).unwrap();
+        std::fs::set_permissions(&cleanup, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let path = cleanup.join("attempt");
+        std::fs::create_dir(&path).unwrap();
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let file = File::open(&path).unwrap();
+        same_publication_mount(mount(&root_fd).unwrap(), mount(&file).unwrap()).unwrap();
+        Self {
+            path,
+            file,
+            cleanup,
+        }
     }
     fn guard(&self) -> (u64, u64) {
         use std::os::unix::fs::PermissionsExt;
@@ -301,7 +304,7 @@ impl SyntheticDirectory {
 }
 impl Drop for SyntheticDirectory {
     fn drop(&mut self) {
-        std::fs::remove_dir_all(&self.path).unwrap();
+        std::fs::remove_dir_all(&self.cleanup).unwrap();
     }
 }
 #[test]
@@ -360,17 +363,13 @@ fn target_ancestor_and_profile_swaps_reject_through_held_parent() {
     symlink("old", d.path.join(name)).unwrap();
     assert!(check_child(&d.file, &held, name).is_err());
 }
+#[cfg(target_os = "linux")]
 #[test]
+#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
 fn target_native_engine_preserves_unknown_temp_and_does_not_overwrite() {
-    let d = SyntheticDirectory::new("engine");
+    let d = SyntheticDirectory::native("engine");
     std::fs::write(d.path.join(".tmp-target-lock-0"), b"unknown").unwrap();
-    let make = || Native {
-        parent: &d.file,
-        final_name: "target.lock.json".into(),
-        temp: None,
-        file: None,
-        id: "target-lock".into(),
-    };
+    let make = || Native::new(&d.file, "target.lock.json".into());
     publish_ops(&mut make(), b"synthetic target bytes").unwrap();
     assert!(publish_ops(&mut make(), b"replacement").is_err());
     assert_eq!(
@@ -382,26 +381,34 @@ fn target_native_engine_preserves_unknown_temp_and_does_not_overwrite() {
         b"unknown"
     );
 }
+// The old named-temp before-check test is archived verbatim in the author ledger.
+// The migrated publisher owns anonymous O; T is an independent actor sentinel.
+#[cfg(target_os = "linux")]
 #[test]
-fn target_replaced_owned_temp_is_never_unlinked_or_published() {
-    let d = SyntheticDirectory::new("owned-temp");
-    let mut o = Native {
-        parent: &d.file,
-        final_name: "target.lock.json".into(),
-        temp: None,
-        file: None,
-        id: "target-lock".into(),
-    };
+#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+fn target_actor_sentinel_replacement_cannot_redirect_owned_inode() {
+    let d = SyntheticDirectory::native("owned-temp");
+    let p = d.path.join(".tmp-target-lock-0");
+    std::fs::write(&p, b"sentinel").unwrap();
+    let mut o = Native::new(&d.file, "target.lock.json".into());
     o.create().unwrap();
-    o.write(b"owned").unwrap();
+    o.write(b"owned-ok").unwrap();
     o.file_sync().unwrap();
-    let p = d.path.join(o.temp.as_ref().unwrap());
-    std::fs::rename(&p, d.path.join("moved")).unwrap();
-    std::fs::write(&p, b"unknown").unwrap();
-    assert!(o.link().is_err());
-    assert!(o.unlink_owned().is_err());
-    assert_eq!(std::fs::read(p).unwrap(), b"unknown");
-    assert!(!d.path.join("target.lock.json").exists());
+    std::fs::rename(&p, d.path.parent().unwrap().join("moved")).unwrap();
+    std::fs::write(&p, b"foreign!").unwrap();
+    o.link().unwrap();
+    o.dir_sync().unwrap();
+    o.confirm_final().unwrap();
+    drop(o);
+    assert_eq!(std::fs::read(p).unwrap(), b"foreign!");
+    assert_eq!(
+        std::fs::read(d.path.join("target.lock.json")).unwrap(),
+        b"owned-ok"
+    );
+    assert_eq!(
+        std::fs::read(d.path.parent().unwrap().join("moved")).unwrap(),
+        b"sentinel"
+    );
 }
 #[test]
 fn target_fresh_guard_fds_serialize_threads_and_other_profiles_do_not_wait() {
@@ -485,21 +492,20 @@ fn target_guard_rejects_nonempty_multiple_links_and_replaced_inode() {
 #[test]
 fn target_recovery_preserves_linked_owned_orphan_after_postlink_failure() {
     let d = SyntheticDirectory::new("recovery-orphan");
-    let mut o = Native {
-        parent: &d.file,
-        final_name: "target.lock.json".into(),
-        temp: None,
-        file: None,
-        id: "target-lock".into(),
-    };
-    o.create().unwrap();
-    o.write(b"synthetic exact expected bytes").unwrap();
-    o.file_sync().unwrap();
-    o.link().unwrap();
+    use std::os::unix::fs::PermissionsExt;
+    let temp = d.path.join(".tmp-target-lock-0");
+    std::fs::write(&temp, b"synthetic exact expected bytes").unwrap();
+    std::fs::set_permissions(&temp, std::fs::Permissions::from_mode(0o600)).unwrap();
+    std::fs::hard_link(&temp, d.path.join("target.lock.json")).unwrap();
+    let mut o = Native::recovery(
+        &d.file,
+        "target.lock.json".into(),
+        File::open(&temp).unwrap(),
+    );
     let (bytes, _) = read_stamped_at(&d.file, "target.lock.json", 1024).unwrap();
     assert_eq!(bytes, b"synthetic exact expected bytes");
     recover_ops(&mut o).unwrap();
-    assert!(d.path.join(o.temp.as_ref().unwrap()).exists());
+    assert!(temp.exists());
     assert_eq!(
         std::fs::metadata(d.path.join("target.lock.json"))
             .unwrap()
@@ -507,6 +513,7 @@ fn target_recovery_preserves_linked_owned_orphan_after_postlink_failure() {
         2
     );
 }
+#[cfg(target_os = "linux")]
 fn synthetic_guarded_publish(parent: &File, expected: (u64, u64)) -> bool {
     let Ok(_guard) = fresh_guard(parent, expected) else {
         return false;
@@ -514,19 +521,15 @@ fn synthetic_guarded_publish(parent: &File, expected: (u64, u64)) -> bool {
     if profile_empty(parent).is_err() {
         return false;
     }
-    let mut o = Native {
-        parent,
-        final_name: "target.lock.json".into(),
-        temp: None,
-        file: None,
-        id: "target-lock".into(),
-    };
+    let mut o = Native::new(parent, "target.lock.json".into());
     publish_ops(&mut o, b"PRIVATE SYNTHETIC lock bytes").is_ok()
 }
+#[cfg(target_os = "linux")]
 #[test]
+#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
 fn target_independent_thread_handles_publish_exactly_once_under_guard() {
     use std::sync::{Arc, Barrier};
-    let d = SyntheticDirectory::new("thread-race");
+    let d = SyntheticDirectory::native("thread-race");
     let expected = d.guard();
     let barrier = Arc::new(Barrier::new(2));
     let threads = (0..2)
@@ -551,10 +554,10 @@ fn target_independent_thread_handles_publish_exactly_once_under_guard() {
 }
 #[cfg(target_os = "linux")]
 #[test]
+#[ignore = "internal native child; invoke only through separately released exact parent harness"]
 fn target_native_linux_publication_child() {
-    let Some(path) = std::env::var_os("HEKIT_SYNTHETIC_PUBLISH_CHILD") else {
-        return;
-    };
+    let path = std::env::var_os("HEKIT_SYNTHETIC_PUBLISH_CHILD")
+        .expect("native publication child requires its parent fixture");
     let parent = File::open(&path).unwrap();
     let file = openat(
         parent.as_raw_fd(),
@@ -564,24 +567,28 @@ fn target_native_linux_publication_child() {
     )
     .unwrap();
     std::process::exit(
+        // Dedicated nonzero outcomes distinguish a real helper from a harness
+        // selecting zero tests (which exits 0).
         if synthetic_guarded_publish(&parent, inode(&file).unwrap()) {
-            0
+            70
         } else {
-            10
+            71
         },
     );
 }
 #[cfg(target_os = "linux")]
 #[test]
+#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
 fn target_native_linux_processes_publish_exactly_once() {
     use std::process::Command;
-    let d = SyntheticDirectory::new("process-race");
+    let d = SyntheticDirectory::native("process-race");
     d.guard();
     let children = (0..2)
         .map(|_| {
             Command::new(std::env::current_exe().unwrap())
                 .args([
                     "--exact",
+                    "--ignored",
                     "study_provenance::publication::tests::target_native_linux_publication_child",
                     "--test-threads=1",
                 ])
@@ -594,8 +601,8 @@ fn target_native_linux_processes_publish_exactly_once() {
         .into_iter()
         .map(|mut child| child.wait().unwrap().code().unwrap())
         .collect::<Vec<_>>();
-    assert_eq!(statuses.iter().filter(|&&s| s == 0).count(), 1);
-    assert_eq!(statuses.iter().filter(|&&s| s == 10).count(), 1);
+    assert_eq!(statuses.iter().filter(|&&s| s == 70).count(), 1);
+    assert_eq!(statuses.iter().filter(|&&s| s == 71).count(), 1);
     assert_eq!(
         std::fs::read(d.path.join("target.lock.json")).unwrap(),
         b"PRIVATE SYNTHETIC lock bytes"
@@ -702,3 +709,6 @@ fn reader_guard_existing_guard_never_creates_repairs_or_follows_links() {
     symlink("preserved", d.path.join(".profile-guard")).unwrap();
     assert!(existing_profile_guard(&d.file).is_err());
 }
+
+#[path = "publication_anonymous_tests.rs"]
+mod anonymous_contract;

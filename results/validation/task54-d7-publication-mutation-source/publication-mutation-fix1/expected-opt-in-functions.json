@@ -1,0 +1,29 @@
+{
+  "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs": [
+    "publication_native_anonymous_success",
+    "publication_native_no_clobber",
+    "publication_native_postcheck_windows",
+    "publication_native_legacy_prefix",
+    "publication_native_drop",
+    "publication_native_child",
+    "publication_native_visible_uncertain",
+    "publication_native_proc_refusal",
+    "publication_native_final_swap",
+    "shared_anonymous_publication_faults",
+    "shared_anonymous_late_confirmation_faults",
+    "shared_anonymous_no_clobber",
+    "shared_anonymous_postcheck_windows",
+    "shared_legacy_temp_preservation",
+    "anonymous_create_substep_failures",
+    "anonymous_create_refusal",
+    "proc_capture_refusal",
+    "anonymous_success_records_five_operations_and_eight_create_substeps"
+  ],
+  "crates/ckks-train-bench/src/study_provenance/publication_tests.rs": [
+    "target_native_engine_preserves_unknown_temp_and_does_not_overwrite",
+    "target_actor_sentinel_replacement_cannot_redirect_owned_inode",
+    "target_independent_thread_handles_publish_exactly_once_under_guard",
+    "target_native_linux_publication_child",
+    "target_native_linux_processes_publish_exactly_once"
+  ]
+}

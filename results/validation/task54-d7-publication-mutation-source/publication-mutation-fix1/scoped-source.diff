@@ -1,0 +1,274 @@
+--- before-fix1/crates/ckks-train-bench/src/study_provenance/publication_tests.rs
++++ after-fix1/crates/ckks-train-bench/src/study_provenance/publication_tests.rs
+@@ -365,6 +365,7 @@
+ }
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+ fn target_native_engine_preserves_unknown_temp_and_does_not_overwrite() {
+     let d = SyntheticDirectory::native("engine");
+     std::fs::write(d.path.join(".tmp-target-lock-0"), b"unknown").unwrap();
+@@ -384,6 +385,7 @@
+ // The migrated publisher owns anonymous O; T is an independent actor sentinel.
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+ fn target_actor_sentinel_replacement_cannot_redirect_owned_inode() {
+     let d = SyntheticDirectory::native("owned-temp");
+     let p = d.path.join(".tmp-target-lock-0");
+@@ -524,6 +526,7 @@
+ }
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+ fn target_independent_thread_handles_publish_exactly_once_under_guard() {
+     use std::sync::{Arc, Barrier};
+     let d = SyntheticDirectory::native("thread-race");
+@@ -551,10 +554,10 @@
+ }
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "internal native child; invoke only through separately released exact parent harness"]
+ fn target_native_linux_publication_child() {
+-    let Some(path) = std::env::var_os("HEKIT_SYNTHETIC_PUBLISH_CHILD") else {
+-        return;
+-    };
++    let path = std::env::var_os("HEKIT_SYNTHETIC_PUBLISH_CHILD")
++        .expect("native publication child requires its parent fixture");
+     let parent = File::open(&path).unwrap();
+     let file = openat(
+         parent.as_raw_fd(),
+@@ -564,15 +567,18 @@
+     )
+     .unwrap();
+     std::process::exit(
++        // Dedicated nonzero outcomes distinguish a real helper from a harness
++        // selecting zero tests (which exits 0).
+         if synthetic_guarded_publish(&parent, inode(&file).unwrap()) {
+-            0
++            70
+         } else {
+-            10
++            71
+         },
+     );
+ }
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+ fn target_native_linux_processes_publish_exactly_once() {
+     use std::process::Command;
+     let d = SyntheticDirectory::native("process-race");
+@@ -582,6 +588,7 @@
+             Command::new(std::env::current_exe().unwrap())
+                 .args([
+                     "--exact",
++                    "--ignored",
+                     "study_provenance::publication::tests::target_native_linux_publication_child",
+                     "--test-threads=1",
+                 ])
+@@ -594,8 +601,8 @@
+         .into_iter()
+         .map(|mut child| child.wait().unwrap().code().unwrap())
+         .collect::<Vec<_>>();
+-    assert_eq!(statuses.iter().filter(|&&s| s == 0).count(), 1);
+-    assert_eq!(statuses.iter().filter(|&&s| s == 10).count(), 1);
++    assert_eq!(statuses.iter().filter(|&&s| s == 70).count(), 1);
++    assert_eq!(statuses.iter().filter(|&&s| s == 71).count(), 1);
+     assert_eq!(
+         std::fs::read(d.path.join("target.lock.json")).unwrap(),
+         b"PRIVATE SYNTHETIC lock bytes"
+--- before-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
++++ after-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
+@@ -63,6 +63,7 @@
+ 
+ #[cfg(target_os = "linux")]
+ #[test]
++#[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+ fn publication_native_anonymous_success() {
+     let d = SyntheticDirectory::native("anonymous-success");
+     let mut native = Native::new(&d.file, "target.lock.json".into());
+@@ -176,6 +177,7 @@
+     }
+ 
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_no_clobber() {
+         for kind in ["regular", "symlink", "competing"] {
+             let d = SyntheticDirectory::native(&format!("no-clobber-{kind}"));
+@@ -247,6 +249,7 @@
+     }
+ 
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_postcheck_windows() {
+         for cut in [
+             "link",
+@@ -321,6 +324,7 @@
+     }
+ 
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_legacy_prefix() {
+         for count in [1, 64] {
+             let d = SyntheticDirectory::native(&format!("prefix-{count}"));
+@@ -342,6 +346,7 @@
+     }
+ 
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_drop() {
+         for cut in ["unused", "write-progress", "fchmod", "child-exit"] {
+             let d = SyntheticDirectory::native(&format!("drop-{cut}"));
+@@ -368,14 +373,23 @@
+     }
+     fn run_child(d: &SyntheticDirectory, cut: &str) {
+         use std::{process::Command, time::Instant};
++        let expected_code = match cut {
++            "before-link" => 70,
++            "after-link" => 71,
++            _ => panic!("unsupported native child cut"),
++        };
+         let mut child=Command::new(std::env::current_exe().unwrap())
+-            .args(["--exact","study_provenance::publication::tests::anonymous_contract::linux::publication_native_child","--test-threads=1"])
++            .args(["--exact","--ignored","study_provenance::publication::tests::anonymous_contract::linux::publication_native_child","--test-threads=1"])
+             .env("HEKIT_PUBLICATION_CHILD_PATH",&d.path).env("HEKIT_PUBLICATION_CHILD_CUT",cut)
+             .spawn().unwrap();
+         let until = Instant::now() + Duration::from_secs(5);
+         loop {
+             if let Some(status) = child.try_wait().unwrap() {
+-                assert!(status.success());
++                assert_eq!(
++                    status.code(),
++                    Some(expected_code),
++                    "native child did not reach its requested cut"
++                );
+                 break;
+             }
+             if Instant::now() >= until {
+@@ -387,22 +401,31 @@
+         }
+     }
+     #[test]
++    #[ignore = "internal native child; invoke only through separately released exact parent harness"]
+     fn publication_native_child() {
+-        let Some(path) = std::env::var_os("HEKIT_PUBLICATION_CHILD_PATH") else {
+-            return;
++        let path = std::env::var_os("HEKIT_PUBLICATION_CHILD_PATH")
++            .expect("native child requires its parent fixture");
++        let cut = std::env::var("HEKIT_PUBLICATION_CHILD_CUT")
++            .expect("native child requires an explicit cut");
++        let exit_code = match cut.as_str() {
++            "before-link" => 70,
++            "after-link" => 71,
++            _ => panic!("unsupported native child cut"),
+         };
+         let file = File::open(path).unwrap();
+         let mut n = Native::new(&file, FINAL.into());
+         n.create().unwrap();
+         n.write(b"owned-ok").unwrap();
+         n.file_sync().unwrap();
+-        if std::env::var("HEKIT_PUBLICATION_CHILD_CUT").unwrap() == "after-link" {
++        if cut == "after-link" {
+             n.link().unwrap();
+         }
+         // Deliberately bypass Rust destructors: process FD release is a separate observation.
+-        std::process::exit(0);
+-    }
+-    #[test]
++        // Nonzero intentional outcome also rejects a zero-tests-success launch.
++        std::process::exit(exit_code);
++    }
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_visible_uncertain() {
+         for cut in ["dir-sync", "child-exit"] {
+             let d = SyntheticDirectory::native(&format!("visible-{cut}"));
+@@ -428,6 +451,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_proc_refusal() {
+         let d = SyntheticDirectory::native("proc-refusal");
+         // Validates a private ordinary tree, never substitutes it for the fixed /proc root.
+@@ -446,6 +470,7 @@
+         assert!(std::fs::read_dir(&d.path).unwrap().next().is_none());
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn publication_native_final_swap() {
+         let d = SyntheticDirectory::native("final-swap");
+         let caller = Caller::new(&d, 0);
+@@ -524,6 +549,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn shared_anonymous_publication_faults() {
+         for selector in 0..4 {
+             for (fault, expected, visible) in [
+@@ -562,6 +588,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn shared_anonymous_late_confirmation_faults() {
+         for selector in 0..4 {
+             for fault in ["final-check", "anchor-check"] {
+@@ -577,6 +604,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn shared_anonymous_no_clobber() {
+         for selector in 0..4 {
+             let d = SyntheticDirectory::native(&format!("shared-existing-{selector}"));
+@@ -592,6 +620,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn shared_anonymous_postcheck_windows() {
+         for selector in 0..4 {
+             for (cut, fault, expected, visible) in [
+@@ -651,6 +680,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn shared_legacy_temp_preservation() {
+         for name in [
+             "shared.reference.json",
+@@ -684,6 +714,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn anonymous_create_substep_failures() {
+         for (index, fault) in ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"]
+             .into_iter()
+@@ -716,6 +747,7 @@
+         assert!(std::fs::read_dir(&d.path).unwrap().next().is_none());
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn anonymous_create_refusal() {
+         for errno in [
+             libc::EOPNOTSUPP,
+@@ -741,6 +773,7 @@
+         }
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn proc_capture_refusal() {
+         // Scripted safe-call failure positions; no host proc/mount/security changes.
+         for (label, cut, errno) in [
+@@ -789,6 +822,7 @@
+         assert!(std::fs::read_dir(&d.path).unwrap().next().is_none());
+     }
+     #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn anonymous_success_records_five_operations_and_eight_create_substeps() {
+         let d = SyntheticDirectory::native("record-order");
+         let (_scope, events) = record();

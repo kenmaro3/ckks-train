@@ -1,0 +1,338 @@
+[
+  {
+    "filter": "study_provenance::publication::tests::every_publication_fault_withholds_capability_and_preserves_final",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 44,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::competing_publishers_never_replace_first_final",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 68,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::recovery_never_cleans_any_temporary_name",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 75,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::publication_mount_equality_is_not_an_ancestor_requirement",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 90,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::fifo_and_nonregular_reads_fail_without_waiting",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 102,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::short_writes_and_eintr_are_retried_without_losing_bytes",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 116,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::concurrent_synthetic_publishers_get_exactly_one_capability",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 143,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::recovery_file_sync_failure_preserves_temporary_name",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 201,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_stamped_read_rejects_byte_identical_inode_replacement",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 213,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_unknown_entries_block_new_claim_without_removal",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 311,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_nofollow_regular_owner_mode_and_guard_link_count_checks",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 326,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_ancestor_and_profile_swaps_reject_through_held_parent",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 352,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_native_engine_preserves_unknown_temp_and_does_not_overwrite",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 369,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_actor_sentinel_replacement_cannot_redirect_owned_inode",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 389,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_fresh_guard_fds_serialize_threads_and_other_profiles_do_not_wait",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 414,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_native_linux_guard_child",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 437,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_native_linux_separate_process_uses_fresh_flock_description",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 454,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_guard_rejects_nonempty_multiple_links_and_replaced_inode",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 479,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_recovery_preserves_linked_owned_orphan_after_postlink_failure",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 493,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_independent_thread_handles_publish_exactly_once_under_guard",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 530,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_native_linux_publication_child",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 558,
+    "ignored": true,
+    "child_only": true
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_native_linux_processes_publish_exactly_once",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 582,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_directory_creation_never_repairs_an_existing_unsafe_object",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 612,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_open_policy_is_derived_from_the_closed_role",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 631,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_existing_children_never_create_or_repair",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 644,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_existing_guard_never_creates_repairs_or_follows_links",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "line": 675,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 40,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::publication_native_anonymous_success",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 67,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_recovery_has_only_two_sync_operations",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 93,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_non_linux_refuses_without_creating_entries",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 105,
+    "ignored": false,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_no_clobber",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 181,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_postcheck_windows",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 253,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_legacy_prefix",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 328,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_drop",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 350,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_child",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 405,
+    "ignored": true,
+    "child_only": true
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_visible_uncertain",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 429,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_proc_refusal",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 455,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::publication_native_final_swap",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 474,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::shared_anonymous_publication_faults",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 553,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::shared_anonymous_late_confirmation_faults",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 592,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::shared_anonymous_no_clobber",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 608,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::shared_anonymous_postcheck_windows",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 624,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::shared_legacy_temp_preservation",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 684,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::anonymous_create_substep_failures",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 718,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::anonymous_create_refusal",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 751,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::proc_capture_refusal",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 777,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::linux::anonymous_success_records_five_operations_and_eight_create_substeps",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 826,
+    "ignored": true,
+    "child_only": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_owned_lifetime_model",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "line": 859,
+    "ignored": false,
+    "child_only": false
+  }
+]

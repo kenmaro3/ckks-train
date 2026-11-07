@@ -1,0 +1,50 @@
+[
+  {
+    "file": "diff-check01.log",
+    "command": "COMMAND ['git', 'diff', '--check']",
+    "exit": "EXIT 0",
+    "sha256": "5a78a62f029b0cec850c96f886d268a55ae948cb836e81ff3fec6116a2a39661"
+  },
+  {
+    "file": "fmt-check01.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench', '--check']",
+    "exit": "EXIT 0",
+    "sha256": "a6391267161d6c3208b0f531ba1c898be6dd76f3c1af030a5de07e44f8abb09c"
+  },
+  {
+    "file": "fmt01.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "host-no-run01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--lib', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "ec48414ca657a00205d3ca4e20b023863889834529521bad475cbfb225cf5db0"
+  },
+  {
+    "file": "inventory01.log",
+    "command": "COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/build_inventory.py']",
+    "exit": "EXIT 0",
+    "sha256": "eabf9c42ab5c23aa08a787ec2c5759d770a2764e6369887886f132ae09d36a69"
+  },
+  {
+    "file": "linux-clippy01.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--target', 'x86_64-unknown-linux-gnu', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "69369f8a25d4a71fc0ed7d564a19beeb009308071b0f7037d0195cbccf8034f7"
+  },
+  {
+    "file": "selection-green01.log",
+    "command": "COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py']",
+    "exit": "EXIT 0",
+    "sha256": "f54e04c370aa23b99843bc4b0dda91f62321bebf49080079ebf2d9d29eba5e0e"
+  },
+  {
+    "file": "selection-red01.log",
+    "command": "COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py']",
+    "exit": "EXIT 1",
+    "sha256": "98bb2b4e365bc8924c8171c009163dd9c861f8741e726c10000efaa8f34a5ced"
+  }
+]

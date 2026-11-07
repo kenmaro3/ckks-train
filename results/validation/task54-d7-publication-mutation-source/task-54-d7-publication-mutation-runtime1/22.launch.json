@@ -1,0 +1,18 @@
+{
+  "index": 22,
+  "name": "study_provenance::publication::tests::reader_guard_existing_guard_never_creates_repairs_or_follows_links",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::reader_guard_existing_guard_never_creates_repairs_or_follows_links",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065781.977814,
+  "pid": 58991
+}

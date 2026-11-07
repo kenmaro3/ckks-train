@@ -1,0 +1,18 @@
+{
+  "index": 6,
+  "name": "study_provenance::publication::tests::competing_publishers_never_replace_first_final",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::competing_publishers_never_replace_first_final",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065777.9919538,
+  "pid": 58881
+}

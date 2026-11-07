@@ -1,0 +1,6 @@
+
+running 1 test
+test study_reference::target::tests::postlink_clock_or_context_failure_never_returns_even_synthetic_success ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 254 filtered out; finished in 0.00s
+

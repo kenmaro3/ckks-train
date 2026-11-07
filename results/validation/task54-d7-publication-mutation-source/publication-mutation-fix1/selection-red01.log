@@ -1,0 +1,8 @@
+COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py']
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py", line 13, in <module>
+    assert not missing, 'native entrypoints lacking explicit opt-in: '+', '.join(missing)
+           ^^^^^^^^^^^
+AssertionError: native entrypoints lacking explicit opt-in: publication_native_anonymous_success, publication_native_no_clobber, publication_native_postcheck_windows, publication_native_legacy_prefix, publication_native_drop, publication_native_child, publication_native_visible_uncertain, publication_native_proc_refusal, publication_native_final_swap, shared_anonymous_publication_faults, shared_anonymous_late_confirmation_faults, shared_anonymous_no_clobber, shared_anonymous_postcheck_windows, shared_legacy_temp_preservation, anonymous_create_substep_failures, anonymous_create_refusal, proc_capture_refusal, anonymous_success_records_five_operations_and_eight_create_substeps, target_native_engine_preserves_unknown_temp_and_does_not_overwrite, target_actor_sentinel_replacement_cannot_redirect_owned_inode, target_independent_thread_handles_publish_exactly_once_under_guard, target_native_linux_publication_child, target_native_linux_processes_publish_exactly_once
+
+EXIT 1

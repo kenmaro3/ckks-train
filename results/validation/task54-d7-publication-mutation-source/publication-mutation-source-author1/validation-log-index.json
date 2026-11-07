@@ -1,0 +1,170 @@
+[
+  {
+    "file": "borrow-drop01.log",
+    "command": "COMMAND ['rustc', '--edition=2024', '--crate-type=lib', '--emit=metadata', '--out-dir', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-drop.rs']",
+    "exit": "EXIT 1",
+    "sha256": "a02bde737d5b6a88f08fabcb40b871ddeed37eae2e83e3aed42e2c4ca42f8b51"
+  },
+  {
+    "file": "borrow-move01.log",
+    "command": "COMMAND ['rustc', '--edition=2024', '--crate-type=lib', '--emit=metadata', '--out-dir', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-move.rs']",
+    "exit": "EXIT 1",
+    "sha256": "150b85c6cb0449aa217df465c902e91efcc637a8e676f9bb9367d498ecc44474"
+  },
+  {
+    "file": "clippy-host-final01.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "a18dff14f724ebb679bc030839ff196978637f3b537a3c287e22a616db91a1b3"
+  },
+  {
+    "file": "clippy-host01.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "cc5cf6e28660ec25852c28b7005c4f7df930dbb40330189cbc9b22b340f96149"
+  },
+  {
+    "file": "clippy-linux-final01.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--target', 'x86_64-unknown-linux-gnu', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "1a9176cdf2e0760efa6c66b3e66216ca6027fa827fc4a4fbcfbb27e64ca9beb7"
+  },
+  {
+    "file": "clippy-linux-final02.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--all-features', '--target', 'x86_64-unknown-linux-gnu', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "671c99e4565ecb179babd0faff784804da9f2141bc338861d6f3ca5d52b6c833"
+  },
+  {
+    "file": "clippy-linux01.log",
+    "command": "COMMAND ['cargo', 'clippy', '-p', 'ckks-train-bench', '--all-targets', '--target', 'x86_64-unknown-linux-gnu', '--', '-D', 'warnings']",
+    "exit": "EXIT 0",
+    "sha256": "eed351a9b5e574c1b8fe173d774d0bfc232a049a39abdc339c1b2ec6d579177a"
+  },
+  {
+    "file": "dependencies01.log",
+    "command": "COMMAND ['cargo', 'tree', '-p', 'ckks-train-bench', '--target', 'x86_64-unknown-linux-gnu', '-e', 'features', '-i', 'rustix']",
+    "exit": "EXIT 0",
+    "sha256": "be3f9dde8d6c566087a747cc08ba0475b032e4d5ef206f2de1ff9e757627dd1d"
+  },
+  {
+    "file": "diff-check-final01.log",
+    "command": "COMMAND ['git', 'diff', '--check']",
+    "exit": "EXIT 0",
+    "sha256": "5a78a62f029b0cec850c96f886d268a55ae948cb836e81ff3fec6116a2a39661"
+  },
+  {
+    "file": "fmt-check-final01.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench', '--check']",
+    "exit": "EXIT 0",
+    "sha256": "a6391267161d6c3208b0f531ba1c898be6dd76f3c1af030a5de07e44f8abb09c"
+  },
+  {
+    "file": "fmt01.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "fmt02.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "fmt03.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "fmt04.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "fmt05.log",
+    "command": "COMMAND ['cargo', 'fmt', '-p', 'ckks-train-bench']",
+    "exit": "EXIT 0",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "file": "green01-host.log",
+    "command": "COMMAND ['cargo', 'check', '-p', 'ckks-train-bench', '--all-targets']",
+    "exit": "EXIT 0",
+    "sha256": "d35773b72df96f516e68a8e1647e67f6b29bc3efec7ca3820605680efe0077e7"
+  },
+  {
+    "file": "green02-linux.log",
+    "command": "COMMAND ['cargo', 'check', '-p', 'ckks-train-bench', '--all-targets', '--target', 'x86_64-unknown-linux-gnu']",
+    "exit": "EXIT 0",
+    "sha256": "dec89b5d7bbd8760dab97c2588a952731106a2f5da7a9c7b36062a2d8c814865"
+  },
+  {
+    "file": "licenses01.log",
+    "command": "COMMAND ['cargo', 'deny', '--offline', 'check', 'licenses']",
+    "exit": "EXIT 0",
+    "sha256": "619fcae634958318c30769d0188127a3024c1f2aab0d552ba7b7ce05cf6325b6"
+  },
+  {
+    "file": "no-run-cuda-final01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--features', 'cuda', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "98bc61190370c97253a4a5185e8184e650091752f18cfa06f7755c2647cd5179"
+  },
+  {
+    "file": "no-run-cuda01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--features', 'cuda', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "6b7d6667b7df090f65c888b0dae065c120045ae10f3c88b008e2620d693faab0"
+  },
+  {
+    "file": "no-run-default-final01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "0e1479bd406127266b3a1f7c841c78f8ff1894d0200aba863ce0fb41bcf4cb41"
+  },
+  {
+    "file": "no-run-default01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "6433fcc887caf4b26b5aa81a4daebe08ac365472eea05ea21b36ce329be10ec0"
+  },
+  {
+    "file": "no-run-parallel-final01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--features', 'parallel', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "e2ee0f845a2b8d2dda6f0d4e5be36365d9008e9684bbd6d5078ee6964d3e34fc"
+  },
+  {
+    "file": "no-run-parallel01.log",
+    "command": "COMMAND ['cargo', 'test', '-p', 'ckks-train-bench', '--features', 'parallel', '--no-run']",
+    "exit": "EXIT 0",
+    "sha256": "c1b71af33bd54fa3cc67758736a8645f0850361d687be8a71445060f4652f9be"
+  },
+  {
+    "file": "red01-host.log",
+    "command": "COMMAND ['cargo', 'check', '-p', 'ckks-train-bench', '--all-targets']",
+    "exit": "EXIT 101",
+    "sha256": "1d486238be8a302213f84a9241035cd82d54750577f4f93252eb3c2f08a3a620"
+  },
+  {
+    "file": "red02-linux.log",
+    "command": "COMMAND ['cargo', 'check', '-p', 'ckks-train-bench', '--all-targets', '--target', 'x86_64-unknown-linux-gnu']",
+    "exit": "EXIT 101",
+    "sha256": "f360b5e6706d1998e4158df37989b9885ff5f26a2656c0e604cdbb44a7e789e8"
+  },
+  {
+    "file": "targets01.log",
+    "command": "COMMAND ['rustup', 'target', 'list', '--installed']",
+    "exit": "EXIT 0",
+    "sha256": "b4a82b9835394604bcef36cb93ba7bed3a336c08e534e1c2077b6c7023cc86c1"
+  },
+  {
+    "file": "toolchain01.log",
+    "command": "COMMAND ['rustc', '--version', '--verbose']",
+    "exit": "EXIT 0",
+    "sha256": "a9c870859c88875f85e922edd8e409c30adfe4cf078d3b3e5ff436a7b177f238"
+  }
+]

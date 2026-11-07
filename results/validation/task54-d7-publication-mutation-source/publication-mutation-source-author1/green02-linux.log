@@ -1,0 +1,8 @@
+COMMAND ['cargo', 'check', '-p', 'ckks-train-bench', '--all-targets', '--target', 'x86_64-unknown-linux-gnu']
+   Compiling rustix v1.1.6
+    Checking bitflags v2.13.2
+    Checking linux-raw-sys v0.12.1
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.02s
+
+EXIT 0

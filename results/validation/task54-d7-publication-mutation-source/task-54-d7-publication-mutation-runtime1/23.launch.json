@@ -1,0 +1,18 @@
+{
+  "index": 23,
+  "name": "study_reference::target::tests::postlink_clock_or_context_failure_never_returns_even_synthetic_success",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::target::tests::postlink_clock_or_context_failure_never_returns_even_synthetic_success",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065782.238112,
+  "pid": 58993
+}

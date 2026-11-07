@@ -1,0 +1,18 @@
+{
+  "index": 1,
+  "name": "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065772.375287,
+  "pid": 58708
+}

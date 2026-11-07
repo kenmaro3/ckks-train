@@ -1,0 +1,18 @@
+{
+  "index": 16,
+  "name": "study_provenance::publication::tests::target_nofollow_regular_owner_mode_and_guard_link_count_checks",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::target_nofollow_regular_owner_mode_and_guard_link_count_checks",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065780.429039,
+  "pid": 58939
+}

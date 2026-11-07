@@ -1,0 +1,4 @@
+COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py']
+23 scratch-dependent parent/helper entrypoints explicitly ignored; both affected child argv select --exact --ignored.
+
+EXIT 0

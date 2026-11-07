@@ -1,0 +1,18 @@
+{
+  "index": 20,
+  "name": "study_provenance::publication::tests::target_directory_creation_never_repairs_an_existing_unsafe_object",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::target_directory_creation_never_repairs_an_existing_unsafe_object",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065781.497617,
+  "pid": 58987
+}

@@ -1,0 +1,177 @@
+[
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_five_operations_preserve_visibility_boundary",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "body_sha256": "8c5f973079569deae99a31453a621bbb39eccfdec1e01892f4ec317040b9d4e1",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_recovery_has_only_two_sync_operations",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "body_sha256": "17c82d354b31f2846a2987df7dee36ce591897beec304641eb10ff39a340b2be",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_owned_lifetime_model",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "body_sha256": "664958f91c98f38be649c922785ac99034094ed45fe161c700ebdca02b1fb9a6",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::anonymous_contract::anonymous_non_linux_refuses_without_creating_entries",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "body_sha256": "867641d69c3b063154f549c49f26455d7051906c5ee0c3e99f8e9e35fb99a180",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::every_publication_fault_withholds_capability_and_preserves_final",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "601300239f069353e073c11bb4c09b06b5a45cd8dddba381a39bc9e31b4a3ac2",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::competing_publishers_never_replace_first_final",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "5ef49459064688d594d9fc4425e7bbf660488bbe997b10c81003794370473bda",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::recovery_never_cleans_any_temporary_name",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "5e32d7edf9707a4bb4d6fc6038cab8a30469259abc47c33e1524561be1592f4d",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::recovery_file_sync_failure_preserves_temporary_name",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "77b4695b9d0d9a76244cfe6a7c5aceb50b3f76b0d40c94f9dbc4a60e9ece303b",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::publication_mount_equality_is_not_an_ancestor_requirement",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "7eb94c103621aa7f387a9477962621b036ce4a94d447883bb4981871a95a9ac3",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::short_writes_and_eintr_are_retried_without_losing_bytes",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "369fa303319aed07e0c87170205e27f6200a50c7f266cf2c660e333494d89661",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::concurrent_synthetic_publishers_get_exactly_one_capability",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "252174c58c5f36bdc3e71817995d784097f925d785ab072d94ba41d613f4c28d",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_open_policy_is_derived_from_the_closed_role",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "bd2db332182f8bf4dc030eb9e9a59208305eb172addbe33097e072686a1f28a6",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::fifo_and_nonregular_reads_fail_without_waiting",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "213c5864fd9060b3ce44f53ef0e1d26a5481bf9666310b0d5fa25a11f64bafc2",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_stamped_read_rejects_byte_identical_inode_replacement",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "37017f685c60c4314ff66cd9d0c1a8ac41c7f838a35f69418fc832ee603407b4",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_unknown_entries_block_new_claim_without_removal",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "e2770d54673b2bf8d4211969ace8c4258ca36b300c973593278d4b4ef2bbc7e0",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_nofollow_regular_owner_mode_and_guard_link_count_checks",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "48f376a19108ec567e71f5f30c1afd7da6277d3f717d15eeffb1dfe0f9228910",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_ancestor_and_profile_swaps_reject_through_held_parent",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "8b4541b0b5723cfdf241e8de83e1cc1cc4c8607c4c6f8e7e31ddaaf01a68ca1d",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_guard_rejects_nonempty_multiple_links_and_replaced_inode",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "9e1cee59d283cab5b11edfb1f3ea5a431363f07ab86ab6b9513e31ef8520e298",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_recovery_preserves_linked_owned_orphan_after_postlink_failure",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "956a2b9fe05bd2612a41d0f691f865ba6b1929df13f5bae9683abe173ac83955",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::target_directory_creation_never_repairs_an_existing_unsafe_object",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "1093d027950c7a0ed19d9e6442770426735e5fca721925c61e54919543aaa3f2",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_existing_children_never_create_or_repair",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "e537240c5613113241a1b591139659cb2c32f2ad40d09c0af1b32c0426364b31",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_provenance::publication::tests::reader_guard_existing_guard_never_creates_repairs_or_follows_links",
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "body_sha256": "d88619a71e8944d7b359d8e6b91e2f77390c15a7743ea598dac671f52734b8d9",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_reference::target::tests::postlink_clock_or_context_failure_never_returns_even_synthetic_success",
+    "source": "crates/ckks-train-bench/src/study_reference/target_tests.rs",
+    "body_sha256": "6c6fa36f85de0e03d45947fbaf5e363c744dc42a33b80c6ee03bcf5b5a0d9553",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_reference::target::tests::observed_clock_reversal_or_unavailability_is_sticky",
+    "source": "crates/ckks-train-bench/src/study_reference/target_tests.rs",
+    "body_sha256": "e99ea0220aba504c44c080ed4b5fc020d36a63a377cd8962004d1bff0eee1ce6",
+    "body_unchanged": true,
+    "ignored": false
+  },
+  {
+    "filter": "study_reference::target::tests::clock_equalities_allowed_without_interpolation_or_tolerance",
+    "source": "crates/ckks-train-bench/src/study_reference/target_tests.rs",
+    "body_sha256": "19bf891b5364b5eccd0723dcbb97bb73915e1d367698bb3d27689c915c8f1a29",
+    "body_unchanged": true,
+    "ignored": false
+  }
+]

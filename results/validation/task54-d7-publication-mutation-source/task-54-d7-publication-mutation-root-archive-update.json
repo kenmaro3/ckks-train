@@ -1,0 +1,15 @@
+{
+  "kind": "root_archive_bookkeeping_not_source_or_scientific_result",
+  "when": "2026-11-07T15:52:02.367815+00:00",
+  "tool_chunk": "ac1357",
+  "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-archive-copies.json",
+  "before_sha256": "f06957f60c1e58b007b55207276e05cd23abcf62706b2fa06a193bff1129194e",
+  "after_sha256": "062b897fc6a130438ec038a77ed043b28fc01a19e32a4244db4486d5b82ba211",
+  "original_entry_count": 157,
+  "new_entry_count": 194,
+  "additional_entries": 37,
+  "original_archive_bytes_hashes_verified_unchanged": 157,
+  "original_source_report_pointer_updated_to_immutable_before_fix1_snapshot": true,
+  "original_manifest_raw_copy_separately_preserved": false,
+  "explanation": "Root-owned administrative update after author FIX1 handoff. Existing original157 copy hashes/archived bytes verified; old report source pointer updated because current author report was append-only amended. No original evidence source/raw data or source code changed by this bookkeeping action. Prior manifest hash remains in author historical input pins; current manifest is not byte-identical."
+}

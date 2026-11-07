@@ -1,0 +1,18 @@
+{
+  "index": 10,
+  "name": "study_provenance::publication::tests::short_writes_and_eintr_are_retried_without_losing_bytes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::short_writes_and_eintr_are_retried_without_losing_bytes",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065778.981781,
+  "pid": 58889
+}

@@ -1,0 +1,1 @@
+Read-only exploration failures, no source effect: zsh no matches for study_provenance/{target*,reference*,failure*,diagnostic*,publication*}; rg study_reference/store.rs absent; zsh no matches for scripts/check_licenses*. Replaced each with observed exact paths or bounded directory rg. These were discovery errors, not compiler/test failures.

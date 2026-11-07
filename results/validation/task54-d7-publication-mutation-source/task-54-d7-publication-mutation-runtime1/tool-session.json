@@ -1,0 +1,19 @@
+{
+  "kind": "host_unit_validation_tool_custody_not_scientific",
+  "original_session_id": 71344,
+  "launch_chunk": "5b2b38",
+  "intermediate_chunks": [
+    "3b6692"
+  ],
+  "final_chunk": "6e8e17",
+  "controller_exit_code": 0,
+  "launch_invocations": 1,
+  "automatic_retry": false,
+  "selected_filters": 25,
+  "passed_filters": 25,
+  "cargo_exit_zero": 25,
+  "stream_count": 50,
+  "stream_bytes": 9950,
+  "source_pin_count": 646,
+  "input_pin_count": 52
+}

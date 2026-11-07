@@ -1,0 +1,8 @@
+{
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/Cargo.toml": "43d4bcaf19bf857aaa17ada056e7561a50abdcb3201a1722770948ce050c77cb",
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/fs/openat2.rs": "8e2b73aa55bb5a6fa5c74fd022133ec5577a1db2dc3ab0f2b022b44cd08cbf4e",
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/fs/at.rs": "1b1a17f596b2c53e5ea146b56cc845aaa8a605a27c2a9577db1a657c5d05ce6a",
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/fs/fd.rs": "41246b5cd4faaa19b38ec21613fc246c46e1d65e3960d8b5330c367e097e528a",
+  "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/path/dec_int.rs": "9a8d20552acb530d69593f8bee5a6dca2c96a9677e04c7925ad7dd2e23cedf08"
+}

@@ -1,0 +1,4 @@
+COMMAND ['python3', '.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/build_inventory.py']
+Only2 test files changed;5 production/dependency files identical. All25 accepted Mac test bodies/default selection unchanged.48 source filters;23 opt-in, including2 affected child-only entrypoints.
+
+EXIT 0

@@ -1,0 +1,11 @@
+COMMAND ['cargo', 'tree', '-p', 'ckks-train-bench', '--target', 'x86_64-unknown-linux-gnu', '-e', 'features', '-i', 'rustix']
+rustix v1.1.6
+├── rustix feature "alloc"
+│   └── rustix feature "std"
+│       └── ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+│           └── ckks-train-bench feature "default" (command-line)
+├── rustix feature "fs"
+│   └── ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench) (*)
+└── rustix feature "std" (*)
+
+EXIT 0

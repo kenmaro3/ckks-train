@@ -1,0 +1,18 @@
+{
+  "index": 8,
+  "name": "study_provenance::publication::tests::recovery_file_sync_failure_preserves_temporary_name",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::recovery_file_sync_failure_preserves_temporary_name",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065778.4979782,
+  "pid": 58885
+}

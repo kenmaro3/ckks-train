@@ -1,0 +1,972 @@
+[
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/baseline-comparison.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/baseline-comparison.json",
+    "sha256": "190ece86a8fd529e8a7e10135229603be95124d2a0cb86635eff278718f22e3d"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/baseline-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/baseline-pins.json",
+    "sha256": "1eb43127e2335545a0d49ee39a928df089a13fd50cac63fbe3357085c16c8aab"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/baseline-status.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/baseline-status.txt",
+    "sha256": "1bf2ca1bdabbeb14e6c8c73d3c9bda850afc49adfc2196c27b777fe7b302c578"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-drop.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/borrow-drop.rs",
+    "sha256": "3b476f07108fe986ea58d97fc7d457f87740af47f41d6de867a04f96cc56e2cb"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-drop01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/borrow-drop01.log",
+    "sha256": "a02bde737d5b6a88f08fabcb40b871ddeed37eae2e83e3aed42e2c4ca42f8b51"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-move.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/borrow-move.rs",
+    "sha256": "62eade34e01438b645a9fb04874962b3efafaa7313c5a19ec16ceb52906e2662"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/borrow-move01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/borrow-move01.log",
+    "sha256": "150b85c6cb0449aa217df465c902e91efcc637a8e676f9bb9367d498ecc44474"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/clippy-host-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/clippy-host-final01.log",
+    "sha256": "a18dff14f724ebb679bc030839ff196978637f3b537a3c287e22a616db91a1b3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/clippy-host01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/clippy-host01.log",
+    "sha256": "cc5cf6e28660ec25852c28b7005c4f7df930dbb40330189cbc9b22b340f96149"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/clippy-linux-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/clippy-linux-final01.log",
+    "sha256": "1a9176cdf2e0760efa6c66b3e66216ca6027fa827fc4a4fbcfbb27e64ca9beb7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/clippy-linux-final02.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/clippy-linux-final02.log",
+    "sha256": "671c99e4565ecb179babd0faff784804da9f2141bc338861d6f3ca5d52b6c833"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/clippy-linux01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/clippy-linux01.log",
+    "sha256": "eed351a9b5e574c1b8fe173d774d0bfc232a049a39abdc339c1b2ec6d579177a"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/dependencies01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/dependencies01.log",
+    "sha256": "be3f9dde8d6c566087a747cc08ba0475b032e4d5ef206f2de1ff9e757627dd1d"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/dependency-source-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/dependency-source-pins.json",
+    "sha256": "43902dd6fd907c07a2d6fa7132d084619aa66c3d767fb8bb82f03af86c2e679b"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/diff-check-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/diff-check-final01.log",
+    "sha256": "5a78a62f029b0cec850c96f886d268a55ae948cb836e81ff3fec6116a2a39661"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/exact-source-test-filters.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/exact-source-test-filters.json",
+    "sha256": "aa2dd8091135e56083ed81fa7deaee8bad6a0bcf7cb81f4dd754c686b1f58173"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/final-source-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/final-source-pins.json",
+    "sha256": "8e84b9e34b31da35b369a2d0d53f2cbfb1ae65a362f5e6bb2b1760a438982fcd"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/final-status.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/final-status.txt",
+    "sha256": "befff4b5f09c07dcbe01a57736cab821333ed0058945950f1fe2c6fa224766be"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt-check-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt-check-final01.log",
+    "sha256": "a6391267161d6c3208b0f531ba1c898be6dd76f3c1af030a5de07e44f8abb09c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt01.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt02.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt02.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt03.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt03.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt04.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt04.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/fmt05.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/fmt05.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/green01-host.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/green01-host.log",
+    "sha256": "d35773b72df96f516e68a8e1647e67f6b29bc3efec7ca3820605680efe0077e7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/green02-linux.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/green02-linux.log",
+    "sha256": "dec89b5d7bbd8760dab97c2588a952731106a2f5da7a9c7b36062a2d8c814865"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/handoff-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/handoff-pins.json",
+    "sha256": "7f1e76e19a147ca59028d79214c757130ecffb8608c049b5dbf2c8b4ca089b9e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/licenses01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/licenses01.log",
+    "sha256": "619fcae634958318c30769d0188127a3024c1f2aab0d552ba7b7ce05cf6325b6"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-cuda-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-cuda-final01.log",
+    "sha256": "98bc61190370c97253a4a5185e8184e650091752f18cfa06f7755c2647cd5179"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-cuda01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-cuda01.log",
+    "sha256": "6b7d6667b7df090f65c888b0dae065c120045ae10f3c88b008e2620d693faab0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-default-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-default-final01.log",
+    "sha256": "0e1479bd406127266b3a1f7c841c78f8ff1894d0200aba863ce0fb41bcf4cb41"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-default01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-default01.log",
+    "sha256": "6433fcc887caf4b26b5aa81a4daebe08ac365472eea05ea21b36ce329be10ec0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-parallel-final01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-parallel-final01.log",
+    "sha256": "e2ee0f845a2b8d2dda6f0d4e5be36365d9008e9684bbd6d5078ee6964d3e34fc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/no-run-parallel01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/no-run-parallel01.log",
+    "sha256": "c1b71af33bd54fa3cc67758736a8645f0850361d687be8a71445060f4652f9be"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/publication.rs.baseline",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/publication.rs.baseline",
+    "sha256": "8cfabba4dcf7daae93e90ce40a0bc1bcf13c59c713bb5c9d65964b97a4a2c004"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/publication_tests.rs.baseline",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/publication_tests.rs.baseline",
+    "sha256": "10f640a0961da262ddcd15627a5a1c59455b1fddbee7cc5c9a4711b6eff33fd6"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/read-only-command-failures.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/read-only-command-failures.txt",
+    "sha256": "999764dbef255d74df09521d7478a4a7a4347403dccb59188e278e1bbc388ccc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/red01-host.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/red01-host.log",
+    "sha256": "1d486238be8a302213f84a9241035cd82d54750577f4f93252eb3c2f08a3a620"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/red02-linux.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/red02-linux.log",
+    "sha256": "f360b5e6706d1998e4158df37989b9885ff5f26a2656c0e604cdbb44a7e789e8"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/run_logged.py",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/run_logged.py",
+    "sha256": "eabb4b9845c6e70735549d6de18af6f1a2959fecd71468fd11fc64437dfdcad3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/source-review.diff",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/source-review.diff",
+    "sha256": "ab5f82336cadcec4ce8b54d28c5f61e0d3015dc052e4f27e08f5d2d4114f2eaf"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/static-invariants.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/static-invariants.txt",
+    "sha256": "d996713b33e12947d16f75adcf170dde3c97b65afccb3ab18b8fc165c2a3f1c6"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/targets01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/targets01.log",
+    "sha256": "b4a82b9835394604bcef36cb93ba7bed3a336c08e534e1c2077b6c7023cc86c1"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/toolchain01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/toolchain01.log",
+    "sha256": "a9c870859c88875f85e922edd8e409c30adfe4cf078d3b3e5ff436a7b177f238"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/validation-log-index.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/validation-log-index.json",
+    "sha256": "3fa982668352fc14f61e5d3bef2dc65f61d30474d93e9695182b2c82d0ffbe9e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-source-author1/work-inventory.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-source-author1/work-inventory.md",
+    "sha256": "ddb7cbd38baecc208829339ddccbc029da05d78fd42295ffb3c7793a7d3133c0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/01.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/01.launch.json",
+    "sha256": "4ebf819f8f6c2463a5565095eec8e59f57983be6a7f479bcf31d05e63666a206"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/01.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/01.meta.json",
+    "sha256": "78a4de10adccd9061fff9ed0473aec02d3efbfd4357f12f20d68fa3338cb7d73"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/01.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/01.stderr",
+    "sha256": "1804d781c2b872ecd60f008f784f6535676389811885342733b1e0334c2a5cc1"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/01.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/01.stdout",
+    "sha256": "502e89669e3a460d76d4691b087d859319613d598f45987a42089893296cfebb"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/02.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/02.launch.json",
+    "sha256": "9d0fefd069bc1a4a71011652603914f4763510583bb1e86aba7b8877b30e2ba1"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/02.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/02.meta.json",
+    "sha256": "aab925b85a7fc1bb4656aef7d0c22ce75924ebe80122720f6a8e08a934ed4205"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/02.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/02.stderr",
+    "sha256": "dac21304578089a7f1877acee4dd1920e212bf05133a5004d3c1156f922450f2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/02.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/02.stdout",
+    "sha256": "8dd9770226ddc845a6107f0aff2e9a090676e1e1f22b02494bc19ce26c3972f7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/03.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/03.launch.json",
+    "sha256": "6f9f6fc9439ccb1d67219409c7f8fdd40a7dca9c6bbb276b4550dcef2363cef0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/03.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/03.meta.json",
+    "sha256": "029649911b4eb64d16db2e0c0738c61cce856cbf0e1acc636b0e0d7bc6b35be6"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/03.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/03.stderr",
+    "sha256": "de0ace2a7ffe9a351c54cbd930e1e8ed91df7e23ae24270021776a704771cde5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/03.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/03.stdout",
+    "sha256": "71d20bd6dbdef0512f4b620e8f431be1ece3a4528e611b37aec8c103fb948eea"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/04.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/04.launch.json",
+    "sha256": "fcc11d23eae1847465cc09a00b479b1d913e7b96cc31998be54223b7c6e78b25"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/04.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/04.meta.json",
+    "sha256": "61b81827ce55bd05bfe3158743ce4c3bb69a3ee7847a3108394ca6a9d38c6363"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/04.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/04.stderr",
+    "sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/04.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/04.stdout",
+    "sha256": "5fbf7953053323eee40f5f9fd83ea132ece34ad88510bb9602aa3b69ce5c39bb"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/05.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/05.launch.json",
+    "sha256": "8e3486932ebb3a69faa38f5d22b168b7fe6c34689271c9d8c5424591784ca012"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/05.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/05.meta.json",
+    "sha256": "43388343673433340f77ff2de4365f513d87742af8524103ea331a2a67d4cc4e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/05.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/05.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/05.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/05.stdout",
+    "sha256": "14dddab78607aff942b248fcbab8f2264c4012382e9a860b31b3ea3847bfe21c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/06.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/06.launch.json",
+    "sha256": "46a0998734b250bf38527f6ed58a284ffc602c4709c22058573bc20ad742d550"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/06.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/06.meta.json",
+    "sha256": "dbddf40e98ea6e70d4fb2c00f9f09be9b94b61075e1f70d0c38ae1b7c071ec7d"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/06.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/06.stderr",
+    "sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/06.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/06.stdout",
+    "sha256": "3efe99c710289fc860d09e588962a5cb77d37143120d10567f59ea70526f6547"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/07.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/07.launch.json",
+    "sha256": "3679da7aa76318803cb175a136194b33817fe61a925fa622a7cdb6ea3e591dfd"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/07.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/07.meta.json",
+    "sha256": "2e6f7a37cc7c304c615dc7d53ba01a5baf319709a0632f14cb44c182c1666bd1"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/07.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/07.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/07.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/07.stdout",
+    "sha256": "1a5fe0bb36312c4386279d319c6bf22398ea8970bf5b2505b19e109c856000aa"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/08.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/08.launch.json",
+    "sha256": "6ac9ae052cca50d1f66e6a17ecf5920c5b1ec044cad5f754ef8f9a274cd810ba"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/08.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/08.meta.json",
+    "sha256": "995aa2cb1757c090c97c3f4af5b21e2370421a5ee744977ff1beb6f20802826f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/08.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/08.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/08.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/08.stdout",
+    "sha256": "eca8161d513bd2b3e2fcbb25980e067d20a29f39b4864b2d5e2c89a82464b48a"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/09.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/09.launch.json",
+    "sha256": "0ed0316ea47fedd2b5aa9226a3a02da41b88996aad332a773915a3cc2451806f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/09.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/09.meta.json",
+    "sha256": "7e0c454544eaece18ff3503b3f7999c4fb7ea2f76d05f0c42ada29f755973683"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/09.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/09.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/09.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/09.stdout",
+    "sha256": "ccdddc2404ee119290c2d1a399724642405fa8afedbcfddede310bc1b1c3157e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/10.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/10.launch.json",
+    "sha256": "81d05777d49b0c42395b0ccead8fc19af39af1f137dc329b5b0075b314bcd808"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/10.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/10.meta.json",
+    "sha256": "e7325e424e46eb079602950bf3dad2f692c39773e5005f7ed613f79aa9f36d2a"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/10.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/10.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/10.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/10.stdout",
+    "sha256": "164537439bf90960e1aea88cb074a24f7736596aa79fe21d2599116bfff0e9c3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/11.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/11.launch.json",
+    "sha256": "6c1c3ac603e059f2fff3b35be6faaba0414f9cdbfe03ae9f4ef56d31bc2e6253"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/11.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/11.meta.json",
+    "sha256": "d1e534a51b8899a35aeb01d3589d9de6b06dfe86e614a941f8d29741e91d3f07"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/11.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/11.stderr",
+    "sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/11.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/11.stdout",
+    "sha256": "8f9566d7c6bea2706ea4b1c309b721eaee42c6ee4c879ee8df5a44bcd30c824f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/12.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/12.launch.json",
+    "sha256": "e6c1227bf2b101e07eff870987fad1dbb1154f26519ee3b899d6920d11bd4247"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/12.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/12.meta.json",
+    "sha256": "a4aa8c3c41263b18d4e5fefbeaaa0dbddce7181a384d4ebbd312b61e16c104e7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/12.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/12.stderr",
+    "sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/12.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/12.stdout",
+    "sha256": "e21ae1af3eb40c26ff2702b98c02f54fe382a3e696cc720d872b422b044e8e91"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/13.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/13.launch.json",
+    "sha256": "4b4e25c25f484cfa60250bd01d3fb773637726156fd57612f1ea3577f10696a4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/13.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/13.meta.json",
+    "sha256": "12ce531308679317585350d567152a1e17358adc1cd1e7079cb717793436ce86"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/13.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/13.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/13.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/13.stdout",
+    "sha256": "9d62cf96f79ecc58d6bf84334db5c76c0830856f55e6fb6f5c584edfd740aebf"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/14.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/14.launch.json",
+    "sha256": "e5fa6c51b3adea708872673f41614835140cddb39306efe60c0cfe1e95c260f1"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/14.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/14.meta.json",
+    "sha256": "89cdcc9972ef98be922f0da8323217049a12a43704f7dab62e82e535aed94d42"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/14.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/14.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/14.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/14.stdout",
+    "sha256": "539110259b66c885df3374fad55cf2c58f7a5ff865a1047ffc802d914a2d4542"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/15.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/15.launch.json",
+    "sha256": "876583b9353e03eb0cb5d734420d81fe4e8ad6b83bdfd185f83af7b29a4f87c5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/15.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/15.meta.json",
+    "sha256": "9959e734b88f29a1366fd28b6dbe8c2f8fa1f2c81fabb749e04e2014d6f47b76"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/15.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/15.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/15.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/15.stdout",
+    "sha256": "b9390117059411a8517487685ff4133a2830e2d04b9e4d8b557945e6153a85a7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/16.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/16.launch.json",
+    "sha256": "898fc4b8627a0b2da1ccbddc8d4010dfb9c529977cf84c40127d3e9bacf721ca"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/16.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/16.meta.json",
+    "sha256": "c41e50c7bc3d7847ba89ace1a349b489a73978838aea64d5e0f930ceeeeb833b"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/16.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/16.stderr",
+    "sha256": "dac21304578089a7f1877acee4dd1920e212bf05133a5004d3c1156f922450f2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/16.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/16.stdout",
+    "sha256": "abbff9d10142e37bd825aa4cd9fbbbb00668c36be416db019973182ad95d35a7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/17.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/17.launch.json",
+    "sha256": "b0fcb10f1a0ec438ad55cf9648ad87cf9a2c6f331828615e440e12f92b518dfc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/17.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/17.meta.json",
+    "sha256": "6ad42886260e041dd26cfcb62f3b9110730205c0e121c0c8479e8e0254fc26d6"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/17.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/17.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/17.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/17.stdout",
+    "sha256": "dfcdd91bf920a91860ef37ebe967b1da15c2af06863e2ddf4e68b5cce78e650f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/18.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/18.launch.json",
+    "sha256": "4d20448e72e1f771f51f6a8ea288fb8a364cda347e9c98bfe92ec5749d938483"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/18.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/18.meta.json",
+    "sha256": "3712866326d10ece4ef953d0dbab25c7b3570b7fd21986d216a2b74dd14b1f17"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/18.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/18.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/18.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/18.stdout",
+    "sha256": "c27a1935a1dd999eed85c0193defee1b9c2e0b0d9db045c839796883d22edd52"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/19.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/19.launch.json",
+    "sha256": "c09f9a2836b8dae272e2a5cbee405fa025653f03d2f8eee0aa547c62af71edbe"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/19.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/19.meta.json",
+    "sha256": "6a8e3d61374c7a8b78ea9c4250e046e50f7d6950367a783ed41f202eb084b69e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/19.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/19.stderr",
+    "sha256": "dac21304578089a7f1877acee4dd1920e212bf05133a5004d3c1156f922450f2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/19.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/19.stdout",
+    "sha256": "ba88d3cce78bd48d93a055040a34b5ca364b72865ed3f680b92bc55b2b531373"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/20.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/20.launch.json",
+    "sha256": "7d17d59f5ec1deb38ee559dc41780c88a6fdb36d833300891f1d45f56a15eab7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/20.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/20.meta.json",
+    "sha256": "bce0b3b10490e42a779beea4e42165f071ba2585e0ffc19cbaacd54bec493146"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/20.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/20.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/20.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/20.stdout",
+    "sha256": "70bf7f1d3342c8e67cfbe7045eccc43bd1b845f4d8a8110321cd82a524035e44"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/21.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/21.launch.json",
+    "sha256": "9a78648af6c89c70ae697583bd2e24831085f491912d2d7f2d60c4615eb773ec"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/21.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/21.meta.json",
+    "sha256": "336049294841c452f028d57edc8463a1621f076249a1a3510fcc0f20445504cb"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/21.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/21.stderr",
+    "sha256": "dac21304578089a7f1877acee4dd1920e212bf05133a5004d3c1156f922450f2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/21.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/21.stdout",
+    "sha256": "6cf13680115603e3de59fac1b00b401a9da389a74cc083d46f4e179af333cdae"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/22.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/22.launch.json",
+    "sha256": "96d7c77ac29a423115cb5d426f961e2b0c1b040392d3b538ac8f5e1b938adc1e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/22.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/22.meta.json",
+    "sha256": "b6da124a8b495a98f4389a034052b22d8db0b31fbec4883dcb52f58559777dc7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/22.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/22.stderr",
+    "sha256": "a4f7342bc8ba4c831ea3d4e00c3d3e59f53647d5fb53fa95373e2947d51678ab"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/22.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/22.stdout",
+    "sha256": "0f1580a2483126326543c0ff43a58770f00c29e1376ff59e510397346b5d54e2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/23.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/23.launch.json",
+    "sha256": "ce75ac2f536695a07b0ae16a76af3570f6e12fea5601af7295ffc84be6b1d9e7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/23.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/23.meta.json",
+    "sha256": "3ef41d0e847a87ec6e617aa98f0b686e21d2f421cc0a7619b109fb4b64e8977d"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/23.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/23.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/23.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/23.stdout",
+    "sha256": "8ee8339dc09d74ef5c263e2c920a7c34cd29762ba7c9eb372d0e83345c6fd6da"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/24.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/24.launch.json",
+    "sha256": "f4f986e33e34c11ffed54d6f4f18f0f70c6f00a3f67d6bf9ed52b5bbdbf83703"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/24.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/24.meta.json",
+    "sha256": "bf23ba12b8ef91c0004c215a5a6838419cd9aa9b784292ccf43e252b0671c60f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/24.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/24.stderr",
+    "sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/24.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/24.stdout",
+    "sha256": "d41eb6f078b2e0a94bdc4eb336db19108ee437633341527f6ef694b94fc5f7f5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/25.launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/25.launch.json",
+    "sha256": "dd60ced974c04d11ca66de78432546d4165b474206481e70fe465ca2a2ab6899"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/25.meta.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/25.meta.json",
+    "sha256": "2785f7e468bc0150b4e8ca8607237f1418e5dc13f4ff60df20212591778fd021"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/25.stderr",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/25.stderr",
+    "sha256": "8adf3c1a4e8543e6194a5d1e877055b5840f51405e73c600571e484f4a88b67e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/25.stdout",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/25.stdout",
+    "sha256": "c6b25710d15134596f91c41a4962c4a72ba77cdc7170bbf968ed67bfc5cd26cd"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/launch.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/launch.json",
+    "sha256": "0f658689b9e95d479262bcb9ef68a4eb0633623fdb128bc1c96608307b9970dc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/summary.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/summary.json",
+    "sha256": "beccee4db62728ab0586560552c2dab8a801ad1d3276b265423250557b1c7684"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1/tool-session.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1/tool-session.json",
+    "sha256": "5fc89760d860d9dbdbe5de6a542b8585d4fdc3ef577c1cd94762c57fc45f0966"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-source-release.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-source-release.md",
+    "sha256": "a2608546b37d1faa3ac4c47fd74630fdf982198a07cb1c3eda73788b5651d10f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/task-54-d7-publication-mutation-source-report.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-source-report.md",
+    "sha256": "07919aaeb3827893646ef70fbabc68337d86f1662cc93e7cd2bafeaa14350fa5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-source-review.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-source-review.md",
+    "sha256": "42e2b711297904512d345dbf00e7492826461ae855edc7411c32490f5b74e2cc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-source-root-review.diff",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-source-root-review.diff",
+    "sha256": "d1f93e1d027d10fa88048c9697fb145d97c2510623c69f2156361600eb5c3c9c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1-DRAFT.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1-DRAFT.json",
+    "sha256": "ce89c271991590f59891baca29efce2ae2a3e0cc2bddf81392663d93a8c193c0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1-release.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1-release.json",
+    "sha256": "1fad069562b8fa71e1157f32f8c151abe02f851b802ec6e5fa721c80ca5f0e9c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1-controller.py",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1-controller.py",
+    "sha256": "e2144e21bb65a4ab019afed786f0825f35962b0f9bdcdfd4c44f8993791ff9bc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1-report.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1-report.md",
+    "sha256": "51b146256be4229496c37f3796fcb9384d443e0fc0f0f52ae7c748b33fa51c14"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/before-source-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/before-source-pins.json",
+    "sha256": "8e84b9e34b31da35b369a2d0d53f2cbfb1ae65a362f5e6bb2b1760a438982fcd"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/build_inventory.py",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/build_inventory.py",
+    "sha256": "d642af944ca4f7014bf9d878b44102eb6e39d2a33d0aaa35f52230dedd24045c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/check_selection.py",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/check_selection.py",
+    "sha256": "6e7518eb74509bf993f926c23cb9c16a93f12b8acee11f3418a09d5bd8c1ceeb"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/diff-check01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/diff-check01.log",
+    "sha256": "5a78a62f029b0cec850c96f886d268a55ae948cb836e81ff3fec6116a2a39661"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/exact-filter-inventory.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/exact-filter-inventory.json",
+    "sha256": "932775ed9a15351f240db22ad5c0cf4ae16c0bddb5df30bfa55b8deaa1b99b70"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/expected-opt-in-functions.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/expected-opt-in-functions.json",
+    "sha256": "7dec3bb55340d3851e87a8f7b88221811df5dc4192b120210ddd08f083a2a576"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/final-source-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/final-source-pins.json",
+    "sha256": "fc3586cc9b7c9c1b5b420fefe851579463a42442e36e84e096155cea5e0dc94e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/final-status.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/final-status.txt",
+    "sha256": "6e16a0e76aba341018639850de787eb86547e352dcecf701792670dab0fdb24f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/fix1-inventory.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/fix1-inventory.md",
+    "sha256": "30642241afa6fbd4d09c11af826bd0400044a8676de573d01166a799790e8af5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/fmt-check01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/fmt-check01.log",
+    "sha256": "a6391267161d6c3208b0f531ba1c898be6dd76f3c1af030a5de07e44f8abb09c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/fmt01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/fmt01.log",
+    "sha256": "1aaf6b12acb9c88b7261dcb2b8aba2178bea9f82954a596a3feaa6806d472858"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/handoff-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/handoff-pins.json",
+    "sha256": "979a7128a7da954701704dcdc0603692b02a474affe0616e42f86b1858c370fa"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/historical-input-pins.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/historical-input-pins.json",
+    "sha256": "8b070c8ffaade62d3b4edaa9bf5ab1644034dd325a7e7a179e4672452c6f3c49"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/host-no-run01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/host-no-run01.log",
+    "sha256": "ec48414ca657a00205d3ca4e20b023863889834529521bad475cbfb225cf5db0"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/inventory01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/inventory01.log",
+    "sha256": "eabf9c42ab5c23aa08a787ec2c5759d770a2764e6369887886f132ae09d36a69"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/linux-clippy01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/linux-clippy01.log",
+    "sha256": "69369f8a25d4a71fc0ed7d564a19beeb009308071b0f7037d0195cbccf8034f7"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/mac25-applicability.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/mac25-applicability.json",
+    "sha256": "583ed0d586e2388af44d53d9ea94990d9efb66e31c52927686071a8c352f820c"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/preservation-check.txt",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/preservation-check.txt",
+    "sha256": "ae48b14c9e8c8f26ad3055f8f6b80072b196130fd6411f27f44253e86c495cd8"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/run_logged.py",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/run_logged.py",
+    "sha256": "eabb4b9845c6e70735549d6de18af6f1a2959fecd71468fd11fc64437dfdcad3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/scoped-source.diff",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/scoped-source.diff",
+    "sha256": "3a465b75a4f465ac756c7eb6c57e759e7d210dba114b9e7fbb895072f13e390e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/selection-green01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/selection-green01.log",
+    "sha256": "f54e04c370aa23b99843bc4b0dda91f62321bebf49080079ebf2d9d29eba5e0e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/selection-red01.log",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/selection-red01.log",
+    "sha256": "98bb2b4e365bc8924c8171c009163dd9c861f8741e726c10000efaa8f34a5ced"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/source-change-inventory.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/source-change-inventory.json",
+    "sha256": "6ccc47d18d358f81959316e328cfe862efcaa8c626bb785ee0ea3828179fb814"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-fix1/validation-log-index.json",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-fix1/validation-log-index.json",
+    "sha256": "6d19b3e5f9f406588555c33a45a3e10dba6c773f6beec76fd80a3978bd7b4780"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/Cargo.lock",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/Cargo.lock",
+    "sha256": "e5059c771e93261c6fecf855f7a2d8ab052021f62cadafddbb23c43fa2f216c3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/Cargo.toml",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/Cargo.toml",
+    "sha256": "fc698bca60c78aa259180e6cd238514cb9e83bdb780a70e3c0287831b6a438b4"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication.rs",
+    "sha256": "69a4731e5695d986702e079d7d900bb171cd602d07db3a76951a0bb378d61f47"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous.rs",
+    "sha256": "f6e8b4b4938ba3c30741b7d0f9fcc745395250d65abc8e3f4a91898c84c38038"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "sha256": "417b62401fa01ea1d32fc6211b476c259dfcc3f1e90a555d310632e932ccb7c3"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_test_hooks.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_test_hooks.rs",
+    "sha256": "301801b16c8961483fb418d8f48e7f583a33fedf49f8f980ba7b82c6c3f73f6e"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/crates/ckks-train-bench/src/study_provenance/publication_tests.rs",
+    "sha256": "7f604bebbca0fa5ae47f63bac1fa97231d78c6a5affbd3371f866d5e95bfc39f"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/task-54-d7-publication-mutation-runtime1-review.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/task-54-d7-publication-mutation-runtime1-review.md",
+    "sha256": "8d08d149ccf1dd2f81661474f998c3ced62d830b2cf6953df537936960d7c2b2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/task-54-d7-publication-mutation-source-report.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/task-54-d7-publication-mutation-source-report.md",
+    "sha256": "07919aaeb3827893646ef70fbabc68337d86f1662cc93e7cd2bafeaa14350fa5"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/publication-mutation-before-fix1/task-54-d7-publication-mutation-source-review.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/publication-mutation-before-fix1/task-54-d7-publication-mutation-source-review.md",
+    "sha256": "42e2b711297904512d345dbf00e7492826461ae855edc7411c32490f5b74e2cc"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-root-finding-I1.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-root-finding-I1.md",
+    "sha256": "239a7d223e05d2270e9afaa3751d51d1c1cb15cdd1604afbdb4df37db894421a"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-runtime1-review.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-runtime1-review.md",
+    "sha256": "8d08d149ccf1dd2f81661474f998c3ced62d830b2cf6953df537936960d7c2b2"
+  },
+  {
+    "source": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-publication-mutation-source-report.md",
+    "archive": "results/validation/task54-d7-publication-mutation-source/task-54-d7-publication-mutation-source-report-with-fix1.md",
+    "sha256": "068e04ea6c25486e75b4f332b5f724990c1ec2db2db18b37777ba4810c3179d0"
+  }
+]

@@ -1,0 +1,3 @@
+?? .vscode/
+?? results/mnist_blocks_128-64_plain_b48.json
+?? results/mnist_blocks_64_plain_b48.json

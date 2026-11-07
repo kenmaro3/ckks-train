@@ -1,0 +1,18 @@
+{
+  "index": 3,
+  "name": "study_provenance::publication::tests::anonymous_contract::anonymous_owned_lifetime_model",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::tests::anonymous_contract::anonymous_owned_lifetime_model",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794065777.264213,
+  "pid": 58875
+}
