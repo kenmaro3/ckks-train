@@ -361,30 +361,83 @@ pub fn read_npy_f64(path: &Path) -> io::Result<Array2<f64>> {
 
 /// The SHA-256 digest of `data` as 64 lowercase hex characters.
 pub fn sha256_hex(data: &[u8]) -> String {
-    const K: [u32; 64] = [
-        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
-        0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
-        0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
-        0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
-        0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
-        0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
-        0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
-        0xc67178f2,
-    ];
-    let mut h: [u32; 8] = [
-        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-        0x5be0cd19,
-    ];
-    let mut msg = data.to_vec();
-    let bits = (data.len() as u64).wrapping_mul(8);
-    msg.push(0x80);
-    while msg.len() % 64 != 56 {
-        msg.push(0);
+    let mut state = Sha256State::new();
+    state.update(data);
+    state.finish()
+}
+
+// Original compression algorithm, now retaining only one partial block.
+pub(crate) struct Sha256State {
+    h: [u32; 8],
+    block: [u8; 64],
+    used: usize,
+    bytes: u64,
+}
+impl Sha256State {
+    pub(crate) fn new() -> Self {
+        let h = [
+            0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
+            0x5be0cd19,
+        ];
+        Self {
+            h,
+            block: [0; 64],
+            used: 0,
+            bytes: 0,
+        }
     }
-    msg.extend(bits.to_be_bytes());
-    for block in msg.chunks_exact(64) {
+    pub(crate) fn update(&mut self, mut data: &[u8]) {
+        self.bytes = self.bytes.wrapping_add(data.len() as u64);
+        if self.used > 0 {
+            let take = (64 - self.used).min(data.len());
+            self.block[self.used..self.used + take].copy_from_slice(&data[..take]);
+            self.used += take;
+            data = &data[take..];
+            if self.used < 64 {
+                return;
+            }
+            let block = self.block;
+            self.compress(&block);
+            self.used = 0;
+        }
+        let mut chunks = data.chunks_exact(64);
+        for chunk in &mut chunks {
+            self.compress(chunk);
+        }
+        let tail = chunks.remainder();
+        self.block[..tail.len()].copy_from_slice(tail);
+        self.used = tail.len();
+    }
+    pub(crate) fn finish(mut self) -> String {
+        self.block[self.used] = 0x80;
+        self.block[self.used + 1..].fill(0);
+        if self.used >= 56 {
+            let block = self.block;
+            self.compress(&block);
+            self.block = [0; 64];
+        }
+        self.block[56..].copy_from_slice(&self.bytes.wrapping_mul(8).to_be_bytes());
+        let block = self.block;
+        self.compress(&block);
+        self.h.iter().fold(String::with_capacity(64), |mut out, x| {
+            use std::fmt::Write as _;
+            write!(out, "{x:08x}").expect("writing to a String");
+            out
+        })
+    }
+    fn compress(&mut self, block: &[u8]) {
+        const K: [u32; 64] = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
+            0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
+            0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
+            0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+            0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+            0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+            0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
+            0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
+            0xc67178f2,
+        ];
         let mut w = [0u32; 64];
         for (t, c) in block.chunks_exact(4).enumerate() {
             w[t] = u32::from_be_bytes([c[0], c[1], c[2], c[3]]);
@@ -397,7 +450,7 @@ pub fn sha256_hex(data: &[u8]) -> String {
                 .wrapping_add(w[t - 7])
                 .wrapping_add(s1);
         }
-        let mut v = h;
+        let mut v = self.h;
         for t in 0..64 {
             let s1 = v[4].rotate_right(6) ^ v[4].rotate_right(11) ^ v[4].rotate_right(25);
             let ch = (v[4] & v[5]) ^ (!v[4] & v[6]);
@@ -420,15 +473,10 @@ pub fn sha256_hex(data: &[u8]) -> String {
                 v[6],
             ];
         }
-        for (hi, vi) in h.iter_mut().zip(v) {
+        for (hi, vi) in self.h.iter_mut().zip(v) {
             *hi = hi.wrapping_add(vi);
         }
     }
-    h.iter().fold(String::with_capacity(64), |mut out, x| {
-        use std::fmt::Write as _;
-        write!(out, "{x:08x}").expect("writing to a String");
-        out
-    })
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1301,6 +1349,119 @@ mod tests {
             eprintln!("max |ours - ReBoot| = {e:.3e} over {} images", ours.len());
             // ReBoot's arrays are float32.
             assert!(e < 1e-6, "max |ours - ReBoot| = {e}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod streaming_hash_tests {
+    use super::*;
+    // Frozen Python hashlib vectors, independently crosschecked with shasum before implementation.
+    #[test]
+    fn streaming_sha_independent_vectors_and_empty_updates() {
+        let cases = [
+            (
+                0,
+                "cycle_u8_0_through_255",
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ),
+            (
+                1,
+                "cycle_u8_0_through_255",
+                "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+            ),
+            (
+                55,
+                "cycle_u8_0_through_255",
+                "463eb28e72f82e0a96c0a4cc53690c571281131f672aa229e0d45ae59b598b59",
+            ),
+            (
+                56,
+                "cycle_u8_0_through_255",
+                "da2ae4d6b36748f2a318f23e7ab1dfdf45acdc9d049bd80e59de82a60895f562",
+            ),
+            (
+                63,
+                "cycle_u8_0_through_255",
+                "29af2686fd53374a36b0846694cc342177e428d1647515f078784d69cdb9e488",
+            ),
+            (
+                64,
+                "cycle_u8_0_through_255",
+                "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108",
+            ),
+            (
+                65,
+                "cycle_u8_0_through_255",
+                "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+            ),
+            (
+                127,
+                "cycle_u8_0_through_255",
+                "92ca0fa6651ee2f97b884b7246a562fa71250fedefe5ebf270d31c546bfea976",
+            ),
+            (
+                128,
+                "cycle_u8_0_through_255",
+                "471fb943aa23c511f6f72f8d1652d9c880cfa392ad80503120547703e56a2be5",
+            ),
+            (
+                129,
+                "cycle_u8_0_through_255",
+                "5099c6a56203f9687f7d33f4bfdf576d31dc91f6b695ecea38b2770c87631135",
+            ),
+            (
+                1048575,
+                "cycle_u8_0_through_255",
+                "d8222d77ac43a9391cb348ce3a3bb3c0221a4a666e907b5bc77de56a41f37848",
+            ),
+            (
+                1048576,
+                "cycle_u8_0_through_255",
+                "fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83",
+            ),
+            (
+                1048577,
+                "cycle_u8_0_through_255",
+                "607deb6eccbc844880b9d7b523751a4cdba0452727b885c74264bfe1fb7843e2",
+            ),
+            (
+                3,
+                "literal_hex",
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            ),
+            (
+                1000000,
+                "ascii_repeat",
+                "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+            ),
+        ];
+        for (len, kind, expected) in cases {
+            let data: Vec<u8> = match kind {
+                "literal_hex" => b"abc".to_vec(),
+                "ascii_repeat" => vec![b'a'; len],
+                _ => (0..len).map(|n| (n % 256) as u8).collect(),
+            };
+            assert_eq!(sha256_hex(&data), expected);
+            for schedule in [
+                &[1][..],
+                &[7, 31, 64][..],
+                &[55, 56, 63, 64, 65][..],
+                &[1048576][..],
+            ] {
+                let mut h = Sha256State::new();
+                let mut pos = 0;
+                let mut i = 0;
+                h.update(&[]);
+                while pos < data.len() {
+                    let end = (pos + schedule[i % schedule.len()]).min(data.len());
+                    h.update(&data[pos..end]);
+                    h.update(&[]);
+                    pos = end;
+                    i += 1;
+                }
+                assert_eq!(h.finish(), expected, "length={len} schedule={schedule:?}");
+            }
         }
     }
 }

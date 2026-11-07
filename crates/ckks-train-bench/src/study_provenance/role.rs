@@ -6,13 +6,13 @@ use super::{
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum ExecutableRole {
+pub(crate) enum ExecutableRole {
     Reference,
     StudyTrain,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Recipe {
+pub(crate) enum Recipe {
     Reference,
     TrainCpuSerial,
     TrainCpuRayon,
@@ -81,7 +81,7 @@ impl Recipe {
             Self::TrainCudaHost => "cuda-host",
         }
     }
-    pub fn capsule_policy(c: &Capsule) -> Result<Self> {
+    pub(super) fn capsule_policy(c: &Capsule) -> Result<Self> {
         let r = Self::classify(&c.recipe, &c.algorithm)?;
         ensure(
             c.target == TARGET

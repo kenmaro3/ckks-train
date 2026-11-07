@@ -379,3 +379,74 @@ fn reader_guard_materialized_checks_retain_selected_seed_and_context_binding() {
     require_same_context(&*first, &*first).unwrap();
     assert!(require_same_context(&*first, &*second).is_err());
 }
+
+#[test]
+fn train_context_requires_v2_train_recipe_and_exact_runtime() {
+    use super::super::role_tests::literal;
+    let v1 = LocalApproval::decode(&literal("approval_v1_reference")).unwrap();
+    let v2 = LocalApproval::decode(&literal("approval_v2_reference_cpu_serial")).unwrap();
+    for role in [
+        Recipe::TrainCpuSerial,
+        Recipe::TrainCpuRayon,
+        Recipe::TrainCudaHost,
+    ] {
+        assert!(validate_train_selection(&v1, role, role).is_err());
+        validate_train_selection(&v2, role, role).unwrap();
+        assert!(validate_train_selection(&v2, Recipe::Reference, role).is_err());
+        for wrong in [
+            Recipe::TrainCpuSerial,
+            Recipe::TrainCpuRayon,
+            Recipe::TrainCudaHost,
+        ] {
+            if wrong != role {
+                assert!(validate_train_selection(&v2, role, wrong).is_err());
+            }
+        }
+    }
+}
+
+#[test]
+fn train_current_candidate_requires_role_capsule_and_executable() {
+    use super::super::role_tests::literal;
+    for (name, expected) in [
+        ("cpu_serial_receipt", Recipe::TrainCpuSerial),
+        ("cpu_rayon_receipt", Recipe::TrainCpuRayon),
+        ("cuda_host_receipt", Recipe::TrainCudaHost),
+    ] {
+        let receipt = Receipt::decode(&literal(name)).unwrap();
+        assert!(current_candidate(
+            expected,
+            expected,
+            &receipt,
+            &receipt.capsule,
+            &receipt.executable
+        ));
+        assert!(!current_candidate(
+            expected,
+            Recipe::Reference,
+            &receipt,
+            &receipt.capsule,
+            &receipt.executable
+        ));
+        assert!(!current_candidate(
+            expected,
+            expected,
+            &receipt,
+            b"wrong",
+            &receipt.executable
+        ));
+        assert!(!current_candidate(
+            expected,
+            expected,
+            &receipt,
+            &receipt.capsule,
+            b"wrong"
+        ));
+        assert!(!reference_current_candidate(
+            expected,
+            &receipt,
+            &receipt.capsule,
+            &receipt.executable
+        ));
+    }
+}

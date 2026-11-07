@@ -5,12 +5,14 @@
 #![allow(dead_code)] // Foundation getters are consumed by the separately assigned D6c2b.
 mod codec;
 mod context;
+pub(crate) mod process;
 pub(crate) mod publication;
-mod role;
+pub(crate) mod role;
 
 #[allow(unused_imports)]
 pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
-pub use context::{ContextRequest, VerifiedStudyContext};
+pub use context::{ContextRequest, VerifiedStudyContext, VerifiedStudyTrainContext};
+pub(crate) use context::{check_runtime_environment, check_train_preflight};
 
 /// A bounded rejection of unavailable, inconsistent or unsupported evidence.
 #[derive(Debug)]

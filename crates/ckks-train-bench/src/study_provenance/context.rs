@@ -1,6 +1,7 @@
 //! Pinned local trust input, immutable captured facts and exact rechecks.
 use super::role::{ExecutableRole, Recipe};
 use super::{EMBEDDED_CAPSULE, ProvenanceError, Result, codec::*, ensure, publication::read_path};
+use crate::study_runtime::CaseRuntimeLease;
 use crate::{
     data::sha256_hex,
     study_inputs::{MaterializedProfile, SourceDigest},
@@ -86,6 +87,10 @@ struct FrozenReceipt {
 }
 /// Approved local source/build context. This does not establish completed training.
 pub struct VerifiedStudyContext {
+    core: VerifiedContextCore,
+}
+struct VerifiedContextCore {
+    runtime: CurrentRuntime,
     request: ContextRequest,
     approval_bytes: Vec<u8>,
     approval: LocalApproval,
@@ -97,6 +102,110 @@ pub struct VerifiedStudyContext {
     executable_identity: (u64, u64),
     env: Environment,
 }
+// One core owns the sole lease. Neither context can cross an owner frame.
+enum CurrentRuntime {
+    Reference,
+    Train(CaseRuntimeLease),
+}
+impl CurrentRuntime {
+    fn recheck(&self) -> Result<()> {
+        match self {
+            Self::Reference => Ok(()),
+            Self::Train(runtime) => runtime.recheck(),
+        }
+    }
+    fn recipe(&self) -> Recipe {
+        match self {
+            Self::Reference => Recipe::Reference,
+            Self::Train(runtime) => runtime.recipe(),
+        }
+    }
+}
+/// Train context with its exact artifact context and privately retained runtime.
+/// No production context can be moved to another thread or shared with nested tasks.
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+/// fn needs_send<T: Send>() {}
+/// needs_send::<VerifiedStudyTrainContext>();
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+/// fn needs_sync<T: Sync>() {}
+/// needs_sync::<VerifiedStudyTrainContext>();
+/// ```
+/// Reference contexts deliberately share the same non-Send core:
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::VerifiedStudyContext;
+/// fn needs_send<T: Send>() {}
+/// needs_send::<VerifiedStudyContext>();
+/// ```
+/// A named type does not provide an authority constructor:
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+/// let forged = VerifiedStudyTrainContext::default();
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::VerifiedStudyContext;
+/// fn needs_sync<T: Sync>() {}
+/// needs_sync::<VerifiedStudyContext>();
+/// ```
+/// The private dispatcher is not an external arbitrary-closure execution API:
+/// ```compile_fail
+/// use ckks_train_bench::study_runtime::dispatch;
+/// ```
+/// Only a borrowed artifact view is exposed:
+/// ```
+/// use ckks_train_bench::study_provenance::{VerifiedStudyContext, VerifiedStudyTrainContext};
+/// fn artifact(ctx: &VerifiedStudyTrainContext) -> &VerifiedStudyContext {
+///     ctx.artifact_context()
+/// }
+/// ```
+pub struct VerifiedStudyTrainContext {
+    artifact: VerifiedStudyContext,
+}
+impl VerifiedStudyTrainContext {
+    pub(crate) fn load(request: crate::study_runtime::StudyTrainContextRequest) -> Result<Self> {
+        let (locations, runtime) = request.into_parts();
+        Ok(Self {
+            artifact: VerifiedStudyContext::load_current(
+                locations,
+                CurrentRuntime::Train(runtime),
+            )?,
+        })
+    }
+    /// Borrow the exact owned artifact context; reads still recheck its retained runtime.
+    pub fn artifact_context(&self) -> &VerifiedStudyContext {
+        &self.artifact
+    }
+}
+fn validate_train_selection(
+    approval: &LocalApproval,
+    selected: Recipe,
+    runtime: Recipe,
+) -> Result<()> {
+    ensure(
+        matches!(approval.version, ApprovalVersion::V2(_)),
+        "Train context requires approval v2",
+    )?;
+    ensure(
+        selected.role() == ExecutableRole::StudyTrain && selected == runtime,
+        "Train recipe/runtime mismatch",
+    )
+}
+pub(crate) fn check_runtime_environment() -> Result<()> {
+    reject_runtime_keys(std::env::vars_os().map(|x| x.0))
+}
+pub(crate) fn check_train_preflight(recipe: Recipe) -> Result<()> {
+    check_runtime_environment()?;
+    let bytes =
+        EMBEDDED_CAPSULE.ok_or(ProvenanceError("build has no production compile capsule"))?;
+    let capsule = Capsule::decode(bytes)?;
+    ensure(
+        Recipe::capsule_policy(&capsule)? == recipe && recipe.role() == ExecutableRole::StudyTrain,
+        "runtime compile recipe mismatch",
+    )
+}
+
 fn canonical(p: &Path) -> Result<()> {
     ensure(
         p.is_absolute() && p.canonicalize()? == p,
@@ -533,7 +642,16 @@ fn reference_current_candidate(
     embedded: &[u8],
     executable: &[u8],
 ) -> bool {
-    reference_recipe(recipe) && receipt.capsule == embedded && receipt.executable == executable
+    current_candidate(Recipe::Reference, recipe, receipt, embedded, executable)
+}
+fn current_candidate(
+    expected: Recipe,
+    recipe: Recipe,
+    receipt: &Receipt,
+    embedded: &[u8],
+    executable: &[u8],
+) -> bool {
+    recipe == expected && receipt.capsule == embedded && receipt.executable == executable
 }
 fn check_current_binary(r: &Receipt, embedded: &[u8], path: &[u8], hash: &str) -> Result<()> {
     ensure(
@@ -545,12 +663,17 @@ impl VerifiedStudyContext {
     /// Load exact pinned local approval and captured build receipts.
     /// Ordinary builds and unsupported production platforms fail closed.
     pub fn load(request: ContextRequest) -> Result<Self> {
+        Self::load_current(request, CurrentRuntime::Reference)
+    }
+    fn load_current(request: ContextRequest, runtime: CurrentRuntime) -> Result<Self> {
+        runtime.recheck()?;
         let embedded =
             EMBEDDED_CAPSULE.ok_or(ProvenanceError("build has no production compile capsule"))?;
         ensure(
             cfg!(target_os = "linux"),
             "production context requires native Linux",
         )?;
+        check_runtime_environment()?;
         ensure(
             hash_valid(&request.approval_sha256)
                 && !request.receipts.is_empty()
@@ -562,6 +685,13 @@ impl VerifiedStudyContext {
         let approval_bytes = read_path(&request.approval, LIMIT)?;
         let approval = decode_pinned_approval(&approval_bytes, &request.approval_sha256)?;
         approval.policy(&DESIGNS)?;
+        if let CurrentRuntime::Train(lease) = &runtime {
+            validate_train_selection(
+                &approval,
+                Recipe::capsule_policy(&Capsule::decode(embedded)?)?,
+                lease.recipe(),
+            )?;
+        }
         for (name, h) in &approval.designs {
             check_design_digest(h, &sha256_hex(&read_path(&request.root.join(name), LIMIT)?))?;
         }
@@ -618,13 +748,20 @@ impl VerifiedStudyContext {
         let candidates = receipts
             .iter()
             .enumerate()
-            .filter(|(_, r)| {
-                reference_current_candidate(
+            .filter(|(_, r)| match runtime.recipe() {
+                Recipe::Reference => reference_current_candidate(
                     r.role.0,
                     &r.receipt,
                     embedded,
                     executable.as_os_str().as_bytes(),
-                )
+                ),
+                expected => current_candidate(
+                    expected,
+                    r.role.0,
+                    &r.receipt,
+                    embedded,
+                    executable.as_os_str().as_bytes(),
+                ),
             })
             .map(|(i, _)| i)
             .collect::<Vec<_>>();
@@ -640,54 +777,68 @@ impl VerifiedStudyContext {
         canonical(&git)?;
         let m = std::fs::metadata(&executable)?;
         let result = Self {
-            request,
-            approval_bytes,
-            approval,
-            receipts,
-            current,
-            python,
-            git,
-            executable,
-            executable_identity: (m.dev(), m.ino()),
-            env,
+            core: VerifiedContextCore {
+                runtime,
+                request,
+                approval_bytes,
+                approval,
+                receipts,
+                current,
+                python,
+                git,
+                executable,
+                executable_identity: (m.dev(), m.ino()),
+                env,
+            },
         };
         result.recheck()?;
         Ok(result)
     }
     /// Exact approval bytes SHA256 chosen by the local caller.
     pub fn approval_sha256(&self) -> &str {
-        &self.request.approval_sha256
+        &self.core.request.approval_sha256
     }
     /// Exact approved compile-source manifest SHA256.
     pub fn source_manifest_sha256(&self) -> &str {
-        &self.approval.source
+        &self.core.approval.source
     }
     pub(crate) fn approved_design_documents(&self) -> &[(String, String)] {
-        &self.approval.designs
+        &self.core.approval.designs
     }
     pub(crate) fn root(&self) -> &Path {
-        &self.request.root
+        &self.core.request.root
     }
     pub(crate) fn current_receipt_sha256(&self) -> &str {
-        &self.receipts[self.current].hash
+        &self.core.receipts[self.core.current].hash
     }
     pub(crate) fn receipt_for_writer(&self, hash: &str) -> Result<&[u8]> {
-        self.receipts
+        self.core
+            .receipts
             .iter()
             .find(|r| r.hash == hash && reference_recipe(r.role.0))
             .map(|r| r.bytes.as_slice())
             .ok_or(ProvenanceError("writer receipt unavailable in context"))
     }
     fn helper(&self) -> Result<PathBuf> {
-        let helper = self.request.root.join("scripts/study_reference_build.py");
+        let helper = self
+            .core
+            .request
+            .root
+            .join("scripts/study_reference_build.py");
         let support = self
+            .core
             .request
             .root
             .join("scripts/study_reference_build_support.py");
-        let m = Manifest::decode(&self.receipts[self.current].receipt.files[0])?;
-        for p in [&helper, &support] {
+        let m = Manifest::decode(&self.core.receipts[self.core.current].receipt.files[0])?;
+        let role_helper = self
+            .core
+            .request
+            .root
+            .join(self.core.receipts[self.core.current].role.0.helper());
+        for p in [&helper, &support, &role_helper] {
             let rel = p
-                .strip_prefix(&self.request.root)
+                .strip_prefix(&self.core.request.root)
                 .map_err(|_| ProvenanceError("helper root"))?;
             let bytes = read_path(p, LIMIT)?;
             ensure(
@@ -701,15 +852,15 @@ impl VerifiedStudyContext {
         Ok(helper)
     }
     fn command(&self) -> Result<Command> {
-        let mut cmd = Command::new(&self.python);
+        let mut cmd = Command::new(&self.core.python);
         cmd.arg("-B")
             .arg(self.helper()?)
-            .current_dir(&self.request.root)
+            .current_dir(&self.core.request.root)
             .env_clear()
             .stdin(Stdio::null())
             .stderr(Stdio::null())
             .stdout(Stdio::piped());
-        for (k, v) in &self.env.0 {
+        for (k, v) in &self.core.env.0 {
             if let Some(v) = v {
                 cmd.env(k, OsStr::from_bytes(v));
             }
@@ -727,47 +878,51 @@ impl VerifiedStudyContext {
         Ok(s.into())
     }
     pub(crate) fn recheck(&self) -> Result<()> {
-        reject_runtime_keys(std::env::vars_os().map(|x| x.0))?;
+        self.core.runtime.recheck()?;
+        check_runtime_environment()?;
         ensure(
-            read_path(&self.request.approval, LIMIT)? == self.approval_bytes,
+            read_path(&self.core.request.approval, LIMIT)? == self.core.approval_bytes,
             "approval changed",
         )?;
-        for r in &self.receipts {
+        for r in &self.core.receipts {
             ensure(read_path(&r.path, LIMIT)? == r.bytes, "receipt changed")?;
         }
-        let m = std::fs::symlink_metadata(&self.executable)?;
+        let m = std::fs::symlink_metadata(&self.core.executable)?;
         ensure(
             m.is_file()
-                && (m.dev(), m.ino()) == self.executable_identity
-                && std::env::current_exe()? == self.executable,
+                && (m.dev(), m.ino()) == self.core.executable_identity
+                && std::env::current_exe()? == self.core.executable,
             "current executable identity changed",
         )?;
         check_current_binary(
-            &self.receipts[self.current].receipt,
+            &self.core.receipts[self.core.current].receipt,
             EMBEDDED_CAPSULE.ok_or(ProvenanceError("embedded capsule unavailable"))?,
-            self.executable.as_os_str().as_bytes(),
-            &self.hash_file(&self.executable)?,
+            self.core.executable.as_os_str().as_bytes(),
+            &self.hash_file(&self.core.executable)?,
         )?;
         let mut cmd = self.command()?;
         cmd.arg("snapshot")
             .arg("--root")
-            .arg(&self.request.root)
+            .arg(&self.core.request.root)
             .arg("--receipt")
-            .arg(&self.receipts[self.current].path)
+            .arg(&self.core.receipts[self.core.current].path)
             .arg("--git")
-            .arg(&self.git);
+            .arg(&self.core.git);
         ensure(
-            bounded_command(cmd, 65)? == format!("{}\n", self.approval.source).as_bytes(),
+            bounded_command(cmd, 65)? == format!("{}\n", self.core.approval.source).as_bytes(),
             "source/config/Git recheck",
         )?;
-        Ok(())
+        self.core.runtime.recheck()
     }
     pub(crate) fn capture(&self, p: &MaterializedProfile) -> Result<RuntimeCapture> {
         self.require_current_reference()?;
         let checked = self.check_materialized_input_now(p)?;
         let cwd = std::env::current_dir()?;
         canonical(&cwd)?;
-        ensure(cwd == self.request.root, "runtime cwd/source root mismatch")?;
+        ensure(
+            cwd == self.core.request.root,
+            "runtime cwd/source root mismatch",
+        )?;
         Ok(RuntimeCapture {
             contract_hash: checked.facts.contract_hash,
             input_receipt_hash: checked.facts.input_receipt_hash,
@@ -778,7 +933,7 @@ impl VerifiedStudyContext {
             host: Host::observe(),
             executable_start: self.current_build_facts().executable_sha256().into(),
             receipt_file: self.current_receipt_sha256().into(),
-            source: self.approval.source.clone(),
+            source: self.core.approval.source.clone(),
         })
     }
     /// Read-only selected-input validation, independent of Reference capture authority.
@@ -790,7 +945,7 @@ impl VerifiedStudyContext {
         let facts = checked_materialized_facts(
             p,
             self.current_receipt_sha256(),
-            &self.approval.source,
+            &self.core.approval.source,
             |p| self.check_inputs(p),
         )?;
         Ok(CheckedMaterializedInput {
@@ -812,7 +967,7 @@ impl VerifiedStudyContext {
     }
     fn check_inputs(&self, p: &MaterializedProfile) -> Result<()> {
         for source in p.identity().sources() {
-            check_input_source(&self.request.root, source, |path| self.hash_file(path))?;
+            check_input_source(&self.core.request.root, source, |path| self.hash_file(path))?;
         }
         Ok(())
     }
@@ -832,9 +987,12 @@ impl VerifiedStudyContext {
             "capture binding changed",
         )?;
         Ok(RuntimeRecheck {
-            source: self.approval.source.clone(),
+            source: self.core.approval.source.clone(),
             receipt_file: self.current_receipt_sha256().into(),
-            executable_end: self.receipts[self.current].receipt.executable_hash.clone(),
+            executable_end: self.core.receipts[self.core.current]
+                .receipt
+                .executable_hash
+                .clone(),
         })
     }
 }
@@ -983,7 +1141,7 @@ pub(crate) struct Host {
     observed_threads: Observation<u64>,
 }
 impl Host {
-    fn observe() -> Self {
+    pub(crate) fn observe() -> Self {
         fn text(b: &[u8], reason: &'static str) -> Observation<String> {
             match std::str::from_utf8(b) {
                 Ok(s) if !s.is_empty() && s.len() <= 4096 => Observation::Available(s.into()),
@@ -1079,13 +1237,13 @@ pub(crate) struct BuildFacts<'a> {
 }
 impl VerifiedStudyContext {
     pub(super) fn current_role(&self) -> ExecutableRole {
-        self.receipts[self.current].role.0.role()
+        self.core.receipts[self.core.current].role.0.role()
     }
     pub(crate) fn require_current_reference(&self) -> Result<()> {
         require_reference_role(self.current_role())
     }
     fn current_build_facts(&self) -> BuildFacts<'_> {
-        let receipt = &self.receipts[self.current];
+        let receipt = &self.core.receipts[self.core.current];
         BuildFacts {
             capsule: &receipt.capsule,
             receipt,
@@ -1093,6 +1251,7 @@ impl VerifiedStudyContext {
     }
     pub(crate) fn reference_build_facts(&self, receipt_sha256: &str) -> Result<BuildFacts<'_>> {
         let receipt = self
+            .core
             .receipts
             .iter()
             .find(|r| r.hash == receipt_sha256 && reference_recipe(r.role.0))
@@ -1103,7 +1262,7 @@ impl VerifiedStudyContext {
         })
     }
     pub(crate) fn source_files(&self) -> Result<Vec<(String, String)>> {
-        Manifest::decode(&self.receipts[self.current].receipt.files[0])?
+        Manifest::decode(&self.core.receipts[self.core.current].receipt.files[0])?
             .records
             .into_iter()
             .map(|(p, v)| {
@@ -1116,7 +1275,7 @@ impl VerifiedStudyContext {
             .collect()
     }
     pub(crate) fn source_commit(&self) -> &str {
-        &self.approval.commit
+        &self.core.approval.commit
     }
 }
 impl BuildFacts<'_> {
