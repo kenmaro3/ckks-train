@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [計画器P2の実装と限定検証](#latest-evidence-20261107-p2)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1249)。
+最新の実装: [計画器P2の実装と限定検証](#latest-evidence-20261107-p2)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1349)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -654,3 +654,11 @@ FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度
 以前のrole重複・NI観測フック欠落は失敗記録を保持して修正した。追加の純粋回帰例は、到達可能な状態で構造的にはbootstrap不要と判定された後、正確なplaintext scaleの最小値条件に失敗することを示す。これは専用のテスト用パラメータでのInvalidParamsであり、ULP探索失敗や本番設定の不具合を意味しない。先の672軌道・2688遷移の探索で該当例が見つからなかった結果も変更していない。理由・代替案と実行前の判断を検証記録に残した。
 
 今回の合格は選択した小規模CPUケースに限り、全条件の直積、secure profile、精度・学習品質、GPU性能、resource／security判定には広げない。P3の具体的な実行前判定、P4／P5の実行ブリッジ、全行runnerは引き続き未完了である。FULL-2の最新実観測は12:49:42 JSTの238/1000更新のままで、最終精度・後続GPU計測・Task42／M4／M5全体の合格は未確定。全登録範囲とfull encrypted-block campaign holdを維持する。
+
+
+<a id="latest-evidence-20261107-1349"></a>
+## 2026-11-07 13:49 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1349/README.md)では、13:49:44 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は263/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handleで終端まで回収し、再試行やジョブ・キューの変更はしていない。
+
+これは途中経過で、最終精度やTask42／M4の合格を意味しない。次の通常確認は14:49 JST頃とする。context／captureの起動は行わず、既存計時ジョブ終了待ち条件、全登録範囲、full encrypted-block campaign holdを維持する。
