@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
+最新の設計: [取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -1003,3 +1003,11 @@ Linux実機の最小21ケース、追加caller／guard／fork／mount検証と�
 修正後のMacで14件を1件ずつ一度だけ実行し、各1 passed／0 failed／0 ignored、全Cargoと元controller83802がexit0だった。11件の小規模な純粋処理と3件の既存fixture照合であり、28生ログ5504 bytesとsource pinを照合した。最終sourceではall-feature no-run、host／Linux向けstrict検査、fmt／diffも合格。Linux cfgのコンパイル成功を実機実行とは扱わない。
 
 Linux専用5件と既存のnative検証は未実行。保持した同じbytesを実際のtyped materializerへ渡す接続、取得前の本物の物理メモリモデル・容量確認、live gate・開始処理・全行列の実行は未完了である。この合格を物理メモリ適合・暗号学習・RQ1・Task54全体の合格へ拡張しない。
+
+<a id="latest-evidence-20261108-d7-resource-design"></a>
+
+## 2026-11-08追記: 取得前の資源確認設計
+
+[設計・初回指摘・修正・独立再レビュー](../results/validation/task54-d7-resource-design/README.md)を保存し、[資源確認設計](study-resource-design.md)を確定した。管理者によるUnix-rootロックの事前設置は不要とし、既存の信頼済みユーザー領域の共有ロックを使う。最小限の由来情報を先に検証する順序、Python／Gitの補助処理が親より長く残る場合の同じロック保持、Reference／Target単独操作と学習内の操作での同じ資源ownerも明記した。初回4指摘は設計上解消し、仕様・品質の再レビューは合格した。
+
+これは実メモリに収まるという検証ではない。数値を埋めた物理モデル、Linuxでの容量・ロック・子プロセス検証、入力bytesを実際のtyped loaderへ渡す接続は未完了。次に新しい記録形式の独立したliteral vectorsを作り、その後に実装を進める。既存の外側の記録形式・数値ゲート・全実験行列・実行保留は変更しない。
