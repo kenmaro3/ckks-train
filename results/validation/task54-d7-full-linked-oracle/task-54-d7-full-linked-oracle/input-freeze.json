@@ -1,0 +1,9 @@
+{
+  "inputs_sha256": "efda39a33b867e8e8d7e16c749a66fa7b8783994f6c2e766fa82f43c854cea99",
+  "full_grammar_sha256": "0480fb63ec166806a33279eb0020ce00f1f9c53918bc63e989492317dd90ad0c",
+  "preserved_before_sha256": "025c7155e87c80a6161dcf25242915531f20661399c707dec6dcdfd90a925136",
+  "old_full_files": 78,
+  "old_gate_files": 137,
+  "generation_has_not_started": true,
+  "preparation_invocations": 1
+}

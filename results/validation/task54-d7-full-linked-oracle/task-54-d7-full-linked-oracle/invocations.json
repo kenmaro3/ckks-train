@@ -1,0 +1,58 @@
+{
+  "scope": "Author linked-oracle package only; excludes earlier gate-schema and external reviewer commands",
+  "preparation_invocations": 1,
+  "generator_invocations": 2,
+  "verifier_invocations": 3,
+  "generator_failures": 0,
+  "verifier_failures": 0,
+  "production_parser_Cargo_HE_native_registry_materializer_calls": 0,
+  "invocations": [
+    {
+      "sequence": 1,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/prepare_inputs.py",
+      "exit": 0,
+      "purpose": "Freeze inputs before generation",
+      "script_sha256": "ab1e46632f1a8e0f11a044497a5ae418ab9450236b4d5e7238b3814ba3d20b86"
+    },
+    {
+      "sequence": 2,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/generate.py",
+      "exit": 0,
+      "purpose": "Initial generation",
+      "script_sha256": "83928303fe37f7912bbe5bc64dc592cfb7806155ca050e36e1fd134051cd9eb3",
+      "manifest_sha256": "8d3ccc18c4450fe0121c33e467d4cbfb6026c857fb60af7b1674d1e59f4b900a",
+      "archive": "run1-archive.zip"
+    },
+    {
+      "sequence": 3,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/verify.py",
+      "exit": 0,
+      "purpose": "Initial independent verification",
+      "script_sha256": "a74258e839dabad17738282466dfb2a31cdf6e94c383304af90705963ac80279",
+      "archive": "run1-archive.zip"
+    },
+    {
+      "sequence": 4,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/generate.py",
+      "exit": 0,
+      "purpose": "Correct claim text to same claim_id; include seed0 materialized preimage; make dependency graph explicit",
+      "script_sha256": "a279b6d25e357a8a0e61b638d13fe8ba2ae0571942fd9ce5ed049aadbf46c666",
+      "manifest_sha256": "14176a4bd20f326434f3dec8770afed4207537af70664d80c84f82b14e2ef4ef"
+    },
+    {
+      "sequence": 5,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/verify.py",
+      "exit": 0,
+      "purpose": "Verify final bytes plus claim text, applicability, resource arithmetic and graph",
+      "script_sha256": "25a6acbfb3334e2ee7de79cbe2701ff36acd4a9c56e53af16c165a964798b815"
+    },
+    {
+      "sequence": 6,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-full-linked-oracle/verify.py",
+      "exit": 0,
+      "purpose": "Tighten reference raw cap to existing 70492488 and check lock/reference outer budgets; no byte regeneration",
+      "script_sha256": "8971f64d1b516c032aa67912014f33a6c29d73753c6cfe7dadbe456e344816d5"
+    }
+  ],
+  "administrative_note": "One apply_patch rejected an unmatched verification-log context before any mutation or script invocation; a corrected patch succeeded. Read-only inspections/archive/report/pin creation are not generator/verifier runs. Per-run generation-log counts1, not cumulative2."
+}

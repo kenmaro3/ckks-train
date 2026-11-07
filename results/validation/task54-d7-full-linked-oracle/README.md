@@ -1,0 +1,9 @@
+# Coherent independent Full evidence/admission/start oracle
+
+Accepted as a private synthetic fixture family after independent SPEC/QUALITY PASS. The [report](task-54-d7-full-linked-oracle-report.md) and [review](task-54-d7-full-linked-oracle-review.md) define the scope and limitations. The nested package and all four surrounding ledger files are exact preserved copies; existing Full and gate-schema oracles remain unchanged.
+
+The package contains 98 canonical records,21 canonical-document JSON transports,147 graph nodes and225 retained FileRef occurrences. Initial A, Retry B without prior start and Retry C with prior start are separate selected history snapshots for one synthetic CPU interactive Full case. They are not one live filesystem history. Six negatives distinguish integrity, exact-file links and target/policy consistency. Three C1 negatives recompute all dependent hashes while changing only the prior lock/reference/policy claim, requiring both prior and current checks against the same retained target.
+
+The review independently checked bytes, schema, links, arithmetic, preserved inputs and the earlier generation archive. Author history is preparation1/generator2/verifier3; reviewer inline inspections and their four corrected inspection errors are separately reported. No production codec/test/reader/gate/native/HE run occurred. Fictional input and role stubs are not valid genuine materializer/report/currentness/resource evidence. Future tests must exercise the actual C1 composition; merely rejecting synthetic domains is insufficient.
+
+The nested scripts preserve their original ledger-relative paths and history; this archive does not automatically rerun or regenerate them. SHA256SUMS covers every other archive file, including this README. Native custody, actual gates and the full study remain pending.

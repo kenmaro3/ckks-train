@@ -1,0 +1,53 @@
+# Accepted independent Full grammar tables, copied for standalone use.
+# Original oracle SHA256: 19641d75971acf7e70c891ca381516a261a17148eb5719f6ce53375b4f56d3cb
+#!/usr/bin/env python3
+"""Original stdlib table encoder; no project code imported, read, or executed."""
+import argparse, copy, hashlib, json, math, pathlib, struct
+ROOT = pathlib.Path(__file__).resolve().parent
+ENC = 'hekit-study-reference-encoding-v1'
+C, R, A = 2613526, 31584142, 2097152
+T = lambda n: ('text', n)
+E = lambda *names: ('enum', dict(zip(names, range(len(names)))))
+O = lambda typ: ('option', typ)
+L = lambda typ, n: ('list', typ, n)
+S = lambda **fields: ('record', list(fields.items()))
+U, B, H, G, F = ('u64',), ('bool',), ('hash',), ('git',), ('f64',)
+BY = lambda n: ('bytes', n)
+Accuracy = ('accuracy',)
+Target = ('target',)
+Observation = lambda typ: ('observation', typ)
+Raw = S(encoding=E('unix_bytes'), bytes=BY(4096))
+SourceFile = S(path=T(4096), sha256=H)
+Build = S(compiler_vv=T(16384), target=T(4096), host=T(4096), profile=T(4096), opt_level=T(4096), debug=B, features=L(T(4096),64), package_version=T(4096), cargo_lock_sha256=H, source_manifest_sha256=H, config_manifest_sha256=H, build_environment_sha256=H, recipe_version=T(4096), receipt_file_sha256=H)
+Source = S(root=Raw, commit=Observation(G), tracked=E('clean','dirty','unavailable'), untracked=E('clean','dirty','unavailable'), manifest=L(SourceFile,512))
+Executable = S(path=Raw, start_sha256=H, end_sha256=H)
+Invocation = S(argv=L(Raw,256), cwd=Raw)
+Host = S(cpu_model=Observation(T(4096)), os=Observation(T(4096)), hostname=Observation(T(4096)), available_cpus=Observation(U), process_id=Observation(U), observed_threads=Observation(U), execution_threads=U)
+ThreadEnvironment = L(S(key=T(4096),value=Observation(T(4096))),7)
+Recheck = S(source_manifest_sha256=H,build_receipt_file_sha256=H)
+Provenance = S(schema=T(4096),build=Build,source=Source,executable=Executable,invocation=Invocation,host=Host,thread_environment=ThreadEnvironment,recheck=Recheck)
+CaseProvenance = S(schema=T(4096),role=('enum',{'study_train':1}),build=Build,source=Source,executable=Executable,invocation=Invocation,host=Host,thread_environment=ThreadEnvironment,recheck=Recheck)
+Captured = lambda typ: ('captured',typ)
+Endpoint = S(completed_updates=U,processed_samples=U,crossed_logical_boundaries=L(U,400),exact_logical_boundary=B,interval_updates=U,interval_samples=U,observation=Accuracy,update_elapsed_ns=Observation(U),evaluation_elapsed_ns=Observation(U))
+CompletionFields = dict(origin_completed_updates=U,origin_processed_samples=U,planned_updates=U,actual_updates=U,planned_samples=U,actual_samples=U,planned_dropped_samples=U,actual_dropped_samples=U,full_plan_sha256=H,consumed_plan_sha256=H,final_endpoint_index=U)
+Completion = S(**CompletionFields,final_endpoint=Endpoint,final_state_sha256=H)
+Identity = lambda cap: S(schema=T(4096),encoding=T(4096),canonical_bytes=BY(cap),sha256=H)
+Link = S(file_sha256=H,payload_sha256=H)
+Policy = S(scientific_revision=G,scientific_sha256=H,registry_sha256=H,portable_lock_sha256=H,design_documents=L(SourceFile,5),approval_sha256=H)
+Writer = S(api_version=T(128),algorithm_revision=T(128))
+Clock = S(wall_source=E('unix_system_time'),unix_ns=U,monotonic_source=E('std_instant'),elapsed_since_operation_start_ns=U)
+Integrity = ('integrity',)
+Eval = S(hoist=B,bsgs=B,lazy_relin=B)
+Case = S(registry_sha256=H,origin=E('family','supplement'),registration_id=T(128),profile_id=T(128),seed=U,scope=E('full'),role=E('main','baseline_a','baseline_b','baseline_c','main_ablation'),backend=E('cpu','cuda','external_cpu'),mode=E('interactive','noninteractive'),placement=E('client_refresh','when_needed','after_update','after_activation','upstream_verified'),packing=E('batched_diagonal','row_2020','diagonal_2020','alternating_reboot_row_column','official_upstream'),security_policy=E('n16_train','n16_boot','seal_2020','upstream_verified','reduced_level_supplement'),logical_batch=U,eval_config=O(Eval))
+Execution = S(implementation=E('main_diagonal','matched_row2020','matched_diagonal2020','packed_c','external_b'),implementation_revision=T(128),implementation_manifest_sha256=H,parameter_identity_sha256=H,bootstrap_descriptor_sha256=O(H),layout_plan_sha256=H,trainer_plan_sha256=H,eval_config=Eval,bootstrap_engine=E('none','host','native_cuda','upstream'),key_policy_sha256=H,security_policy_sha256=H,physical_binding_sha256=H,runtime_policy_sha256=H)
+Gate = S(policy_revision=T(128),evidence_sha256=H)
+Gates = S(inputs=Gate,implementation=Gate,layout=Gate,resource=Gate,user=Gate)
+Predecessor = S(attempt_id=T(128),admission=Link,start=O(Link))
+Common = dict(schema=T(4096),kind=E('target_lock','he_admission','he_start'),status=E('complete'),writer=Writer,synthetic=B,campaign_id=T(128),profile_id=T(128),lock_id=H,policy=Policy)
+ReferenceProjection = S(run_id=T(128),schema=T(4096),kind=E('full_fp32_final'),link=Link,seed=U,seed_receipt_sha256=H,materialized_sha256=H,writer_capsule_sha256=H,start_unix_ns=U,completion_unix_ns=U,completion=Completion,final_observation=Accuracy)
+Lock = S(**Common,contract=Identity(C),reference=ReferenceProjection,algorithm=T(128),target=Target,created=Clock,provenance=Captured(Provenance),integrity=Integrity)
+Admission = S(**Common,lock=Link,reference=Link,contract=Identity(C),selected_input=S(seed=U,materialized_sha256=H,seed_receipt=Identity(R)),case=Case,case_id=H,execution=Execution,execution_binding_sha256=H,attempt_id=T(128),predecessor=O(Predecessor),gates=Gates,gates_sha256=H,admitted=Clock,provenance=Captured(CaseProvenance),integrity=Integrity)
+Start = S(**Common,lock=Link,reference=Link,case_id=H,execution_binding_sha256=H,seed=U,seed_receipt_sha256=H,materialized_sha256=H,attempt_id=T(128),admission=Link,started=Clock,provenance=Captured(CaseProvenance),integrity=Integrity)
+Timing = S(wall_source=E('unix_system_time'),start_unix_ns=U,end_unix_ns=U,monotonic_source=E('std_instant'),scope=E('after_materialization','includes_materialization'),end_to_end_ns=U,setup_ns=Observation(U),update_ns=Observation(U),evaluation_ns=Observation(U),finalization_ns=Observation(U))
+Reference = S(schema=T(4096),kind=E('full_fp32_final'),status=E('complete'),run_id=T(128),writer=Writer,synthetic=B,identity=S(profile_id=T(128),seed=U,materialized_sha256=H,contract=Identity(C),seed_receipt=Identity(R)),arithmetic=S(dtype=('enum',{'f32':32,'f64':64}),accumulation=E('scalar_f32','scalar_f64'),cast=E('f64_to_f32_once','canonical_f64'),reduction=T(1024),classification=T(1024)),completion=S(**CompletionFields,final_state_sha256=H),endpoints=L(Endpoint,400),final_observation=Accuracy,timing=Timing,provenance=Captured(Provenance),integrity=Integrity)
+SCHEMAS={'reference':Reference,'lock':Lock,'admission':Admission,'start':Start}

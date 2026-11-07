@@ -1,0 +1,14 @@
+{
+  "classification": "SYNTHETIC FULL INTEGRATION ORACLE; NO LIVE CAPABILITY OR SCIENTIFIC RESULT",
+  "generator_invocations_this_run": 1,
+  "exit": 0,
+  "records": 98,
+  "evidence_records": 45,
+  "negative_cases": 6,
+  "old_files_preserved": 215,
+  "input_freeze_sha256": "21afca6142a287f10fc6e6d7398c3dae72d547ccbc7b7d4ed6a7fe9226d40caa",
+  "manifest_sha256": "14176a4bd20f326434f3dec8770afed4207537af70664d80c84f82b14e2ef4ef",
+  "project_encoder_imports": 0,
+  "production_parser_calls": 0,
+  "native_HE_Cargo_registry_materializer_calls": 0
+}

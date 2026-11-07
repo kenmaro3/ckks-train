@@ -1,0 +1,39 @@
+{
+  "classification": "INDEPENDENT SYNTHETIC CONSISTENCY AND C1 ORACLE CHECKS ONLY",
+  "exit": 0,
+  "records": 98,
+  "primitive_spans": 7660,
+  "json_canonical_rebuilds": 21,
+  "evidence_admission_links": 45,
+  "retained_file_refs": 225,
+  "start_admission_links": 9,
+  "dependency_nodes_including_retained": 147,
+  "c1_results": [
+    {
+      "mutation": "lock",
+      "self_integrity": "valid",
+      "predecessor_only": "passes",
+      "current_same_target": "passes",
+      "prior_same_target": "rejects lock",
+      "production_parser_or_gate_executed": false
+    },
+    {
+      "mutation": "reference",
+      "self_integrity": "valid",
+      "predecessor_only": "passes",
+      "current_same_target": "passes",
+      "prior_same_target": "rejects reference",
+      "production_parser_or_gate_executed": false
+    },
+    {
+      "mutation": "policy",
+      "self_integrity": "valid",
+      "predecessor_only": "passes",
+      "current_same_target": "passes",
+      "prior_same_target": "rejects policy",
+      "production_parser_or_gate_executed": false
+    }
+  ],
+  "old_files_unchanged": 215,
+  "production_parser_native_HE_Cargo_calls": 0
+}

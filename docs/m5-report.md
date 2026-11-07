@@ -688,4 +688,12 @@ Linux 5.6のopenat2 APIと対応filesystemが必要になり、利用できな�
 
 これは修正方式の合格であり、実装上の問題の解消や実機合格ではない。ソース修正、共有経路の回帰検査、利用可能な各mountでの非特権Linux検証はこれから行う。暗号学的検証・計測・全実験の条件は変更していない。
 
+<a id="latest-evidence-20261107-d7-full-linked-oracle"></a>
+
+## 2026-11-07追記: Full記録を結ぶ独立テスト値
+
+[一貫したFullテスト値と独立レビュー](../results/validation/task54-d7-full-linked-oracle/README.md)を保存した。単一の合成CPU対話ケースについて、初回・前回startなしのRetry・前回startありのRetryを別々の履歴として構成し、五つの証拠、admission、start、reference、lockの関係を確認した。98 canonicalレコード、21 JSON記録、225 FileRefの実バイトとリンクを独立に照合し、SPEC／QUALITYレビューは合格した。
+
+六つの負例のうち三つは前回のlock／reference／policyだけを変え、関連ハッシュと現在のpredecessorリンクも再計算している。現在分のtarget確認とハッシュ整合だけでは拒否できず、前回分も同じtarget／policyに照合する必要がある。これは実readerのC1検証に使うテスト値であり、その処理を実行した合格ではない。既存215 fixtureと初回生成の記録は保持した。入力・検証報告・容量観測等は明示した架空データで、実gate・メモリ適合・科学的結果を裏付けない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

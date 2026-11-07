@@ -1,0 +1,886 @@
+{
+  "classification": "SYNTHETIC FULL INTEGRATION ORACLE; NO LIVE CAPABILITY OR SCIENTIFIC RESULT",
+  "records": {
+    "aux/registered-case": [],
+    "aux/execution": [],
+    "aux/lock-id": [],
+    "reference": [],
+    "lock": [
+      "reference"
+    ],
+    "aux/request": [],
+    "aux/consumption": [
+      "aux/request",
+      "aux/execution"
+    ],
+    "A/authority.scope": [],
+    "A/authority.current": [
+      "A/authority.scope"
+    ],
+    "A/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "A/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "A/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "aux/request"
+    ],
+    "A/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/A/claim-record.txt"
+    ],
+    "A/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/authority.scope",
+      "A/authority.current",
+      "retained/A/authority.scope.bin",
+      "retained/A/authority.current.bin"
+    ],
+    "A/gates": [
+      "A/inputs.evidence",
+      "A/implementation.evidence",
+      "A/layout.evidence",
+      "A/resource.evidence",
+      "A/user.evidence"
+    ],
+    "A/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "A/gates",
+      "A/inputs.evidence",
+      "A/implementation.evidence",
+      "A/layout.evidence",
+      "A/resource.evidence",
+      "A/user.evidence"
+    ],
+    "A/start": [
+      "A/admission"
+    ],
+    "B/authority.scope": [
+      "A/admission"
+    ],
+    "B/authority.current": [
+      "B/authority.scope"
+    ],
+    "B/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "B/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "B/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "aux/request"
+    ],
+    "B/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/B/claim-record.txt"
+    ],
+    "B/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "B/authority.scope",
+      "B/authority.current",
+      "retained/B/authority.scope.bin",
+      "retained/B/authority.current.bin"
+    ],
+    "B/gates": [
+      "B/inputs.evidence",
+      "B/implementation.evidence",
+      "B/layout.evidence",
+      "B/resource.evidence",
+      "B/user.evidence"
+    ],
+    "B/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "B/gates",
+      "A/admission",
+      "B/inputs.evidence",
+      "B/implementation.evidence",
+      "B/layout.evidence",
+      "B/resource.evidence",
+      "B/user.evidence"
+    ],
+    "B/start": [
+      "B/admission"
+    ],
+    "C/authority.scope": [
+      "A/admission",
+      "A/start"
+    ],
+    "C/authority.current": [
+      "C/authority.scope"
+    ],
+    "C/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "A/start",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "C/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "A/start",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "C/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "A/start",
+      "aux/request"
+    ],
+    "C/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "A/start",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/C/claim-record.txt"
+    ],
+    "C/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "A/admission",
+      "A/start",
+      "C/authority.scope",
+      "C/authority.current",
+      "retained/C/authority.scope.bin",
+      "retained/C/authority.current.bin"
+    ],
+    "C/gates": [
+      "C/inputs.evidence",
+      "C/implementation.evidence",
+      "C/layout.evidence",
+      "C/resource.evidence",
+      "C/user.evidence"
+    ],
+    "C/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "C/gates",
+      "A/admission",
+      "A/start",
+      "C/inputs.evidence",
+      "C/implementation.evidence",
+      "C/layout.evidence",
+      "C/resource.evidence",
+      "C/user.evidence"
+    ],
+    "C/start": [
+      "C/admission"
+    ],
+    "negative/c1-prior-lock/A/authority.scope": [],
+    "negative/c1-prior-lock/A/authority.current": [
+      "negative/c1-prior-lock/A/authority.scope"
+    ],
+    "negative/c1-prior-lock/A/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-lock/A/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-lock/A/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "aux/request"
+    ],
+    "negative/c1-prior-lock/A/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-lock/A/claim-record.txt"
+    ],
+    "negative/c1-prior-lock/A/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/authority.scope",
+      "negative/c1-prior-lock/A/authority.current",
+      "retained/negative/c1-prior-lock/A/authority.scope.bin",
+      "retained/negative/c1-prior-lock/A/authority.current.bin"
+    ],
+    "negative/c1-prior-lock/A/gates": [
+      "negative/c1-prior-lock/A/inputs.evidence",
+      "negative/c1-prior-lock/A/implementation.evidence",
+      "negative/c1-prior-lock/A/layout.evidence",
+      "negative/c1-prior-lock/A/resource.evidence",
+      "negative/c1-prior-lock/A/user.evidence"
+    ],
+    "negative/c1-prior-lock/A/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-lock/A/gates",
+      "negative/c1-prior-lock/A/inputs.evidence",
+      "negative/c1-prior-lock/A/implementation.evidence",
+      "negative/c1-prior-lock/A/layout.evidence",
+      "negative/c1-prior-lock/A/resource.evidence",
+      "negative/c1-prior-lock/A/user.evidence"
+    ],
+    "negative/c1-prior-lock/A/start": [
+      "negative/c1-prior-lock/A/admission"
+    ],
+    "negative/c1-prior-lock/B/authority.scope": [
+      "negative/c1-prior-lock/A/admission"
+    ],
+    "negative/c1-prior-lock/B/authority.current": [
+      "negative/c1-prior-lock/B/authority.scope"
+    ],
+    "negative/c1-prior-lock/B/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/admission",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-lock/B/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/admission",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-lock/B/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/admission",
+      "aux/request"
+    ],
+    "negative/c1-prior-lock/B/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/admission",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-lock/B/claim-record.txt"
+    ],
+    "negative/c1-prior-lock/B/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-lock/A/admission",
+      "negative/c1-prior-lock/B/authority.scope",
+      "negative/c1-prior-lock/B/authority.current",
+      "retained/negative/c1-prior-lock/B/authority.scope.bin",
+      "retained/negative/c1-prior-lock/B/authority.current.bin"
+    ],
+    "negative/c1-prior-lock/B/gates": [
+      "negative/c1-prior-lock/B/inputs.evidence",
+      "negative/c1-prior-lock/B/implementation.evidence",
+      "negative/c1-prior-lock/B/layout.evidence",
+      "negative/c1-prior-lock/B/resource.evidence",
+      "negative/c1-prior-lock/B/user.evidence"
+    ],
+    "negative/c1-prior-lock/B/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-lock/B/gates",
+      "negative/c1-prior-lock/A/admission",
+      "negative/c1-prior-lock/B/inputs.evidence",
+      "negative/c1-prior-lock/B/implementation.evidence",
+      "negative/c1-prior-lock/B/layout.evidence",
+      "negative/c1-prior-lock/B/resource.evidence",
+      "negative/c1-prior-lock/B/user.evidence"
+    ],
+    "negative/c1-prior-lock/B/start": [
+      "negative/c1-prior-lock/B/admission"
+    ],
+    "negative/c1-prior-reference/A/authority.scope": [],
+    "negative/c1-prior-reference/A/authority.current": [
+      "negative/c1-prior-reference/A/authority.scope"
+    ],
+    "negative/c1-prior-reference/A/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-reference/A/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-reference/A/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "aux/request"
+    ],
+    "negative/c1-prior-reference/A/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-reference/A/claim-record.txt"
+    ],
+    "negative/c1-prior-reference/A/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/authority.scope",
+      "negative/c1-prior-reference/A/authority.current",
+      "retained/negative/c1-prior-reference/A/authority.scope.bin",
+      "retained/negative/c1-prior-reference/A/authority.current.bin"
+    ],
+    "negative/c1-prior-reference/A/gates": [
+      "negative/c1-prior-reference/A/inputs.evidence",
+      "negative/c1-prior-reference/A/implementation.evidence",
+      "negative/c1-prior-reference/A/layout.evidence",
+      "negative/c1-prior-reference/A/resource.evidence",
+      "negative/c1-prior-reference/A/user.evidence"
+    ],
+    "negative/c1-prior-reference/A/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-reference/A/gates",
+      "negative/c1-prior-reference/A/inputs.evidence",
+      "negative/c1-prior-reference/A/implementation.evidence",
+      "negative/c1-prior-reference/A/layout.evidence",
+      "negative/c1-prior-reference/A/resource.evidence",
+      "negative/c1-prior-reference/A/user.evidence"
+    ],
+    "negative/c1-prior-reference/A/start": [
+      "negative/c1-prior-reference/A/admission"
+    ],
+    "negative/c1-prior-reference/B/authority.scope": [
+      "negative/c1-prior-reference/A/admission"
+    ],
+    "negative/c1-prior-reference/B/authority.current": [
+      "negative/c1-prior-reference/B/authority.scope"
+    ],
+    "negative/c1-prior-reference/B/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/admission",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-reference/B/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/admission",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-reference/B/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/admission",
+      "aux/request"
+    ],
+    "negative/c1-prior-reference/B/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/admission",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-reference/B/claim-record.txt"
+    ],
+    "negative/c1-prior-reference/B/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-reference/A/admission",
+      "negative/c1-prior-reference/B/authority.scope",
+      "negative/c1-prior-reference/B/authority.current",
+      "retained/negative/c1-prior-reference/B/authority.scope.bin",
+      "retained/negative/c1-prior-reference/B/authority.current.bin"
+    ],
+    "negative/c1-prior-reference/B/gates": [
+      "negative/c1-prior-reference/B/inputs.evidence",
+      "negative/c1-prior-reference/B/implementation.evidence",
+      "negative/c1-prior-reference/B/layout.evidence",
+      "negative/c1-prior-reference/B/resource.evidence",
+      "negative/c1-prior-reference/B/user.evidence"
+    ],
+    "negative/c1-prior-reference/B/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-reference/B/gates",
+      "negative/c1-prior-reference/A/admission",
+      "negative/c1-prior-reference/B/inputs.evidence",
+      "negative/c1-prior-reference/B/implementation.evidence",
+      "negative/c1-prior-reference/B/layout.evidence",
+      "negative/c1-prior-reference/B/resource.evidence",
+      "negative/c1-prior-reference/B/user.evidence"
+    ],
+    "negative/c1-prior-reference/B/start": [
+      "negative/c1-prior-reference/B/admission"
+    ],
+    "negative/c1-prior-policy/A/authority.scope": [],
+    "negative/c1-prior-policy/A/authority.current": [
+      "negative/c1-prior-policy/A/authority.scope"
+    ],
+    "negative/c1-prior-policy/A/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-policy/A/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-policy/A/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "aux/request"
+    ],
+    "negative/c1-prior-policy/A/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-policy/A/claim-record.txt"
+    ],
+    "negative/c1-prior-policy/A/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/authority.scope",
+      "negative/c1-prior-policy/A/authority.current",
+      "retained/negative/c1-prior-policy/A/authority.scope.bin",
+      "retained/negative/c1-prior-policy/A/authority.current.bin"
+    ],
+    "negative/c1-prior-policy/A/gates": [
+      "negative/c1-prior-policy/A/inputs.evidence",
+      "negative/c1-prior-policy/A/implementation.evidence",
+      "negative/c1-prior-policy/A/layout.evidence",
+      "negative/c1-prior-policy/A/resource.evidence",
+      "negative/c1-prior-policy/A/user.evidence"
+    ],
+    "negative/c1-prior-policy/A/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-policy/A/gates",
+      "negative/c1-prior-policy/A/inputs.evidence",
+      "negative/c1-prior-policy/A/implementation.evidence",
+      "negative/c1-prior-policy/A/layout.evidence",
+      "negative/c1-prior-policy/A/resource.evidence",
+      "negative/c1-prior-policy/A/user.evidence"
+    ],
+    "negative/c1-prior-policy/A/start": [
+      "negative/c1-prior-policy/A/admission"
+    ],
+    "negative/c1-prior-policy/B/authority.scope": [
+      "negative/c1-prior-policy/A/admission"
+    ],
+    "negative/c1-prior-policy/B/authority.current": [
+      "negative/c1-prior-policy/B/authority.scope"
+    ],
+    "negative/c1-prior-policy/B/inputs.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/admission",
+      "retained/synthetic/data.tsv",
+      "retained/synthetic/initial.tsv",
+      "retained/synthetic/order.tsv"
+    ],
+    "negative/c1-prior-policy/B/implementation.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/admission",
+      "retained/synthetic/full.kat-report.txt",
+      "retained/synthetic/kat-command.txt",
+      "retained/synthetic/source-manifest.txt",
+      "retained/synthetic/kat-policy.txt",
+      "retained/synthetic/security-policy.txt",
+      "retained/synthetic/security-parameters.txt",
+      "retained/synthetic/estimator-source.txt",
+      "retained/synthetic/security-environment.txt",
+      "retained/synthetic/security-command.txt",
+      "retained/synthetic/security-model_config.txt",
+      "retained/synthetic/security-main-problem.txt",
+      "retained/synthetic/security-main-bdgl16_raw.txt",
+      "retained/synthetic/security-main-matzov_raw.txt"
+    ],
+    "negative/c1-prior-policy/B/layout.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/admission",
+      "aux/request"
+    ],
+    "negative/c1-prior-policy/B/resource.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/admission",
+      "retained/synthetic/full.resource-model.txt",
+      "retained/synthetic/full.resource-validation.txt",
+      "retained/synthetic/cgroup-limit_raw.txt",
+      "retained/synthetic/cgroup-current_raw.txt",
+      "retained/synthetic/host_raw.txt",
+      "retained/synthetic/disk_raw.txt",
+      "retained/negative/c1-prior-policy/B/claim-record.txt"
+    ],
+    "negative/c1-prior-policy/B/user.evidence": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "aux/consumption",
+      "negative/c1-prior-policy/A/admission",
+      "negative/c1-prior-policy/B/authority.scope",
+      "negative/c1-prior-policy/B/authority.current",
+      "retained/negative/c1-prior-policy/B/authority.scope.bin",
+      "retained/negative/c1-prior-policy/B/authority.current.bin"
+    ],
+    "negative/c1-prior-policy/B/gates": [
+      "negative/c1-prior-policy/B/inputs.evidence",
+      "negative/c1-prior-policy/B/implementation.evidence",
+      "negative/c1-prior-policy/B/layout.evidence",
+      "negative/c1-prior-policy/B/resource.evidence",
+      "negative/c1-prior-policy/B/user.evidence"
+    ],
+    "negative/c1-prior-policy/B/admission": [
+      "reference",
+      "lock",
+      "aux/execution",
+      "aux/registered-case",
+      "negative/c1-prior-policy/B/gates",
+      "negative/c1-prior-policy/A/admission",
+      "negative/c1-prior-policy/B/inputs.evidence",
+      "negative/c1-prior-policy/B/implementation.evidence",
+      "negative/c1-prior-policy/B/layout.evidence",
+      "negative/c1-prior-policy/B/resource.evidence",
+      "negative/c1-prior-policy/B/user.evidence"
+    ],
+    "negative/c1-prior-policy/B/start": [
+      "negative/c1-prior-policy/B/admission"
+    ],
+    "negative/start-wrong-payload-link": [
+      "B/admission"
+    ]
+  },
+  "history_snapshots": {
+    "Initial": [
+      "A/admission",
+      "A/start"
+    ],
+    "Retry_no_prior_start": [
+      "A/admission",
+      "B/admission",
+      "B/start"
+    ],
+    "Retry_with_prior_start": [
+      "A/admission",
+      "A/start",
+      "C/admission",
+      "C/start"
+    ]
+  },
+  "note": "B admission45/start46 precede A start50. C admission60 follows it. These are different inspected history snapshots, not one static predecessor-absence assertion."
+}
