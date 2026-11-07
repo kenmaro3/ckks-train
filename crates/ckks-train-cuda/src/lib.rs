@@ -91,6 +91,8 @@ mod keyswitch;
 #[cfg(feature = "cuda")]
 mod poly;
 #[cfg(feature = "cuda")]
+mod runtime_observation;
+#[cfg(feature = "cuda")]
 pub mod testing;
 
 #[cfg(feature = "cuda")]
@@ -103,6 +105,10 @@ pub use evaluator::CudaEvaluator;
 pub use keyswitch::{DeviceKsk, KskPurpose};
 #[cfg(feature = "cuda")]
 pub use poly::{DevicePlaintext, DevicePoly};
+#[cfg(feature = "cuda")]
+pub use runtime_observation::{
+    CudaExportedFunction, CudaLibraryKind, CudaPhysicalIdentity, CudaRuntimeObservation,
+};
 
 /// Source of the NTT kernels, compiled at run time with NVRTC.
 pub const NTT_KERNEL_SRC: &str = include_str!("../kernels/ntt.cu");

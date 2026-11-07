@@ -14,11 +14,15 @@ use cudarc::driver::{
     CudaContext, CudaFunction, CudaSlice, CudaStream, LaunchConfig, PinnedHostSlice, PushKernelArg,
     result, sys,
 };
-use cudarc::nvrtc::{CompileOptions, compile_ptx_with_opts};
+use cudarc::nvrtc::compile_ptx_with_opts;
 
 use crate::basis::PrimeTable;
 use crate::plan::NttPlan;
 use crate::poly::{DevicePlaintext, DevicePoly};
+use crate::runtime_observation::{
+    CudaPhysicalIdentity, compile_option_projection, created_device_identity,
+    kernel_compile_options,
+};
 use crate::tables::HostNttTables;
 use crate::{BASIS_KERNEL_SRC, KEYSWITCH_KERNEL_SRC, NTT_KERNEL_SRC, POINTWISE_KERNEL_SRC};
 
@@ -308,11 +312,7 @@ impl CudaDevice {
             // forbid contraction, and this keeps a future plain `f += y * w` from being fused
             // into an FMA (which differs from the CPU near rounding ties; the near-tie tests
             // catch it). The other kernels have no floating point, so it costs nothing.
-            let opts = CompileOptions {
-                options: vec![format!("--gpu-architecture=compute_{major}{minor}")],
-                fmad: Some(false),
-                ..Default::default()
-            };
+            let opts = kernel_compile_options(major, minor);
             let module = |src: &str, file: &str| {
                 let ptx = compile_ptx_with_opts(src, opts.clone())
                     .map_err(|e| dev_err(&format!("NVRTC compilation of kernels/{file}"), e))?;
@@ -398,6 +398,23 @@ impl CudaDevice {
     /// The device ordinal.
     pub fn ordinal(&self) -> usize {
         self.ctx.ordinal()
+    }
+
+    /// Queries immutable physical identity from this context's actual device handle.
+    /// Refuses a capability change from the value used for kernel compilation.
+    /// This creates no context, kernel program or device allocation.
+    pub fn physical_identity(&self) -> Result<CudaPhysicalIdentity> {
+        created_device_identity(
+            self.ctx.ordinal(),
+            self.ctx.cu_device(),
+            self.compute_capability,
+        )
+    }
+
+    /// Flags requested when this device was created, in pinned NVRTC rendering order.
+    /// These are intended flags, not a PTX or successful-JIT evidence record.
+    pub fn intended_compile_options(&self) -> [String; 2] {
+        compile_option_projection(self.compute_capability.0, self.compute_capability.1)
     }
 
     /// The parameter set the tables were built for.
