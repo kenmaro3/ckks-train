@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -793,5 +793,13 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 [検証データ・実行記録・独立レビュー](../results/validation/task54-d7-resource-oracle/README.md)を保存した。架空の正常例はJSON26件とbootstrap2件、不正な記録はJSON67件とbootstrap9件。別に、所有者・祖先階層・算術などを説明する私有の例が不正9件・正常5件ある。これらを実機やRust実装のテスト件数へ含めない。
 
 初回の検証器は学習ケースに埋め込まれた実験一覧のハッシュとの関係を見落としていた。直接確認で発見し、元の131ファイルを保存したうえで、架空の一覧bytesを一致させ、関係の検査と不一致例を追加した。修正後の85拒否理由は期待と一致し、独立レビューも仕様・品質とも合格した。全264ファイル・1,108,805 bytesを照合済み。これは形式の検証データの合格であり、実モデル・容量・所有権・native動作・研究ゲートの合格ではない。次にRustの読取処理へ接続する。
+
+<a id="latest-evidence-20261108-0258"></a>
+
+## 2026-11-08 02:58 JST追記: FULL-2の定期確認
+
+実際の確認時刻は2026-11-08T02:58:24.687887+09:00。R-41-FULL-2はupdate590（0始まり）、完了591/1000更新、ログ上のelapsed85006秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新585〜590は各1415 KS・4 bootstrapで予測一致、最終結果JSONはなく、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0257/README.md)を保存した。
+
+予定時刻以降に実時刻・pins・未起動を確認して一度だけ起動し、元controller76337のterminal0とSSH exit0まで回収した。job再起動・queue変更・追加計測はない。次の通常確認は2026-11-08T03:58:25+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

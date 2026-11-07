@@ -1,0 +1,31 @@
+{
+  "earliest_jst": "2026-11-08T02:57:38+09:00",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 /usr/bin/python3.14 -I -B -"
+  ],
+  "source_path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/post-full-observation-20261107-0600.remote.py",
+  "source_sha256": "17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243",
+  "request_id": "R-41-FULL2-OBS-20261108-0257"
+}
