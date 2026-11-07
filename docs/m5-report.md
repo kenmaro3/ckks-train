@@ -353,4 +353,15 @@ exporter用の正規checkout候補は存在せず、歴史producer出力の実ha
 
 CaseProvenanceの独立literal fixturesはレビュー後に採用し、固定codecとthin Train入口の実装を開始した。実測に結び付いたcapture／admission／全行runnerは依然として未完了。FULL-2の最新実観測は09:47:06 JSTの162/1000更新で、R26から後続GPUキューの進捗を推測しない。全登録範囲・campaign holdを維持する。
 
+<a id="latest-evidence-20261107-case-inputs"></a>
+## 2026-11-07追記: CaseProvenanceのcodec・入口と入力原本の準備
+
+CaseProvenanceの固定codecとthin `study_train` 入口を実装し、独立sourceレビューで仕様・品質とも合格した。6つの正例の完全なバイト列と67の負例、明示的なruntime／worker指定、raw OS path、登録条件の選択と拒否経路を確認した。Referenceの既存形式は変更していない。serial／parallel／CUDA-featureの限定テスト、既存Reference関連58件、privacy doctestsとstrict Clippyも保存ログで合格している。構成間で重なるテストを合算せず、CUDA-feature検証を実GPU測定とは扱わない。
+
+今回の入口は実runtime／context／登録条件を確認した後、未実装の実行依存を明示して終了する。実測に結び付いた `capture_case`／`recheck_case`、具体的な実行条件・gate・admission／durable start／HE開始、全行runnerは未完了である。2,680 family行、20 Iris行、7 supplementの登録と未解決項目を保持する。次の実装対象は、既存の暗号演算と一致する学習前のレベル・スケール・演算回数計画である。
+
+ReBoot再現用のMNIST gzip原本4点を既存の配布元からMacの隔離領域に取得し、exporterの固定SHA-256との完全一致を確認した。既存の未圧縮4点も含む計8点（66,544,770 bytes）は、読取り前後のファイル識別情報と全体hashが一致した。これはローカル入力の保全確認で、科学測定結果ではない。サーバーの既存データは変更しておらず、新しい正規checkoutと専用入力rootの準備を進める。追加helperの限定sourceレビューは合格したが、実context／capture・全package／native内容の確認は未完了である。
+
+FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度・GPU計測・Task42／M4／M5全体の合格は未確定で、既存キューとfull encrypted-block campaign holdを維持する。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
