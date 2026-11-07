@@ -625,3 +625,10 @@ FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度
 原因は、こちらの期待値への換算ミスである。R27のfull stat mode 33204は0o100664で、permission bitsは今回と同じ0664となる。過去記録と今回のpath・size・hash・uid・device・inode・正規化したpermissionの7項目は一致し、権限が変更されたという証拠はない。誤った0644解釈を含む元の準備・レビュー・依頼記録を改変せず、独立診断レビューで明示的に訂正した。
 
 診断はsidecar・directory・証拠ファイル不在の確認に進んでいないため、readback合格や現在の不在を示すものではない。再試行、chmod、入力修復、context／capture、ジョブ変更は行っていない。元の一回限りの実行記録を保持し、実記録に一致する期待値と新しい固定ローカル記録名の限定修正を進める。修正コードの独立レビュー後に、別途具体的な配置操作を判断する。Task42／M4／M5の全体合格、全登録範囲とfull encrypted-block campaign holdは変えていない。
+
+<a id="latest-evidence-20261107-1249"></a>
+## 2026-11-07 12:49 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1249/README.md)では、12:49:42 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は238/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handleで終端まで回収し、再試行やジョブ・キューの変更はしていない。
+
+これは途中経過で、最終精度やTask42／M4の合格を意味しない。次の通常確認は13:49 JST頃とする。全登録範囲とfull encrypted-block campaign holdを維持する。

@@ -819,3 +819,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `task-54-linux-context1-{deploy,readback}.{launch.json,stdout,stderr,meta.json}`; only remote newfile is `context1-release.json`309421B/mode0600.
 - **pass criterion:** actual terminal/complete streams, exclusive sidecar bytes/hash and preserved program/exporter/directory identities; independent readback must join them. Operational evidence only; no context or scientific pass inferred.
 - **status:** deploy failed before any sidecar write (actual files empty, first2preservedprograms verified, generic immutable-input drift at exporter). Exact terminal1/complete streams preserved; no retry. Separate read-only diagnostic using unchanged reviewed readback completed with exit1 at12:29:07JST under `task-54-linux-context1-diagnostic1.*`. Correction: R27 fullmode33204 normalizes to436/0664, matching diagnostic436; the expected0644 was a conversion error, not observed permission drift. Seven comparable fields match. Diagnostic did not reach sidecar/directory/absence gates. Originals plus superseding review are retained in `raw/R-REB-28/`; normal readback/invoke and all recovery remote phases remain unreleased.
+
+## R-41-FULL2-OBS-20261107-1249: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than12:49JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261107-1249-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, bounded8KiB tail, connect90s; retained async controller and terminal streams. Observation delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261107-1249.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** done; SSH exit0, actual12:49:42 JST, own chain/queue live, FULL-2 update237 =>238/1000; final JSON absent, queue owner.json only. Exact source/custody archive `raw/R-41-FULL2-OBS-20261107-1249/`; no retry or job changes.
