@@ -256,3 +256,12 @@ This decision does not prove that HE can meet4e-4. Later HE validation must inde
 NIの係数照合は公開getterの現在rate・reference・momentum・gradient係数と、既存のNiOptimizerヘルパーによるreference係数に限定する。内部のkappaやmask定数を直接観測したとは主張しない。新しい観測APIの追加はこの接続には不要と判断し、同じ式をbench側に複製しない。全更新の数値・状態・分岐・演算回数の照合は維持する。
 
 最初のP4実行は、鍵生成前の合成plan作成で停止した。単一更新rate0.04・明示reference0.08に、本番の「全予定rateの最大値とreferenceが一致する」検査を適用していたためである。本番の検査は変更せず、privateな合成fixtureでは既存のrate-field encoderを使って明示referenceを結合する。架空の将来更新を追加する案やreferenceを下げる案は、固定した検証条件を変えるため採用しない。失敗ログを保持し、修正後の実行を別に検証する。
+
+
+## 13. P5複数層接続の事前検証裁定（2026-11-07）
+
+P4で接続した既存trainerを、既存BlockMlp／BlockTrainer／BlockNiTrainerへ組み合わせる。P4の単一段packet契約を維持し、別のprivate block packet／plan ownerを使う。clientの秘密情報は既存StudyClient内に保持し、child moduleから必要な暗号化処理を共有する。設定・key materialの共通化は既存検査の抽出に限定し、新しい学習漸化式や汎用Plan frameworkは導入しない。Iの層間出力はbench側のboundary refresher recorderで観測する案を選ぶ。代替のNN保存領域・getter追加は既存学習APIを広げるため、必要性が実装から示されるまでは採らない。NIは既存のhandoff出力とAAのcanonical activationを使用する。
+
+最初に、暗号計算を伴わない独立したF64感度検証を実装する。候補は固定した2段／3段の4系列で、既存Engine::trainとforwardを使い、local headの誤使用、更新後hiddenの誤使用、local update欠落、schedule／tail／micro内row再開の誤り、stage targetの局所性を検査する。候補配列とrateは実行前に固定する。比較許容誤差はP4と同じI=1e-5／NI=4e-4、必要な識別距離もP4と同じ各許容誤差の8倍以上を要求する。mapの2倍超案は最低限の識別余地にとどまるため選ばず、既存の8倍基準を維持する。baseline old hiddenの絶対値0.75以下、全値finite、凍結biasの厳密な0も事前条件とする。これは小規模fixtureの診断基準であり、本番の精度・security・range基準の変更ではない。
+
+この純粋計算の検証と、後のHE検証を別の実行に分ける。提案上限は純粋計算で156回の実Engine更新・61 Engine生成・179回の明示的forwardで、source reviewで実際の呼出しに照合してから実行する。失敗した候補を隠したり、HEへ進んだり、自動探索・許容誤差緩和はしない。失敗時は数値と原因を保持し、変更理由・代替案を記録して再検討する。後続のHE matrix案は40更新成功＋2途中失敗、I／WN／AU／AA、stage別C/P・label、full／partial／unequal micro、reference／schedule、handoffの旧重み表現・AA再利用、全七計数・状態・retentionを対象とするが、まだ実行しない。full登録範囲、canonical D7開始条件、secure profileとfull encrypted-block campaignの未達・保留を維持する。
