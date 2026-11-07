@@ -1,0 +1,531 @@
+{
+  "kind": "source_comparison_not_test_or_applicability_acceptance",
+  "historical_commit": "ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f",
+  "current_commit": "263c830e3568ccfa4bbec6bc746c08a4971aa197",
+  "scope": "tracked core/ckks/nn source/tests and Cargo.toml; not whole executable or dependencies",
+  "normalization": "only exact rename.sh hekit crate names and identifiers; no whitespace or algorithm normalization",
+  "rows": [
+    {
+      "old": "crates/hekit-ckks/Cargo.toml",
+      "current": "crates/ckks-train-ckks/Cargo.toml",
+      "state": "changed-after-rename",
+      "old_sha256": "6823ba20d6e93765f8f8828bd2902bdafc16073c6530f47844e2faaa45a31c8c",
+      "normalized_old_sha256": "0c51abcc76b8ad7c71fa8fef6fa86ff750933fe904cb0fcecfa9d0e572ff5341",
+      "current_sha256": "d8e09543a609f4e7411d5c2f07fd67ba35ea774529fc646b00334ab4a0c1286a"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/bootstrapper.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "c6354c527dbba043a1fcc09657b97b0cd3cba361b2fea0717f37e2c22b9f79c7",
+      "normalized_old_sha256": "a5de95369ea5acf8b4b1644baa2632613f3271350b160c0b12fd399dc449b65e",
+      "current_sha256": "11dfc9ce01dda64bf63481f4f7feb109019f0302af327ca00587459e3adbd770"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/evalmod.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/evalmod.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "3fcbc766e87cb7497db48cd0248ffd10c0543db99206a3a11c577da85dd38ab7",
+      "normalized_old_sha256": "d8d512bdd83df6b712302a23261caf9b4394db8c6198d5620e485795ba6adcd4",
+      "current_sha256": "02e7d5a8c026846b8e10ec0b9cc6d0329e679403859ceeff8a23f3948e0089d6"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/linear.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/linear.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "d12efd1b1bf35a6fae60d10ed91f9f344364896e7b740a46d670ebcf369ad1c7",
+      "normalized_old_sha256": "5a7713e61b550b95d35a8e5a7e6346c11d12316ba106a22bd93c65120f5655ff",
+      "current_sha256": "4778e8c95885962a3318ec7e72a01f58c704b662ee86b55eda6d55f14c58cf78"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/mod.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/mod.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "4ba6fa247c55bb5e515fffe0d88ef15b0dc29214ee3169c52709326c1e3b5b9b",
+      "normalized_old_sha256": "4ba6fa247c55bb5e515fffe0d88ef15b0dc29214ee3169c52709326c1e3b5b9b",
+      "current_sha256": "7eef2082d536511ac59e978dc181a5e4c51b70ee5863fd57c5691779c1789978"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/modraise.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/modraise.rs",
+      "state": "rename-only",
+      "old_sha256": "c83b1ab4e206fc8f4178c91fb000aa1ab4a2fc72267c764a58feaf9ca9241ac1",
+      "normalized_old_sha256": "5680cf2d146cd78091d3b1989bd1689feaa8fdad72a520554990e7f305da0f24",
+      "current_sha256": "5680cf2d146cd78091d3b1989bd1689feaa8fdad72a520554990e7f305da0f24"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/params.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/params.rs",
+      "state": "rename-only",
+      "old_sha256": "67f90a4c094c83043cca2b13afe23d089947aefd607f4108add06f850794f93c",
+      "normalized_old_sha256": "963b97fda06647e53e59eb6aab54f1909246d92adbd7621b1f683170e1f83f3b",
+      "current_sha256": "963b97fda06647e53e59eb6aab54f1909246d92adbd7621b1f683170e1f83f3b"
+    },
+    {
+      "old": "crates/hekit-ckks/src/bootstrap/poly.rs",
+      "current": "crates/ckks-train-ckks/src/bootstrap/poly.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "2c461cd522b96e5227f267bc543baab9c956c8f068283d7ec4d0d457c267af94",
+      "normalized_old_sha256": "bebd394fce186e1f9a3ef98d5966034fbb78bf636b0622c90b77cecfad663aec",
+      "current_sha256": "22006eb00246186ee60e22ccd0717aa293aaad6b8fbfe1a361ae5422207c8a49"
+    },
+    {
+      "old": "crates/hekit-ckks/src/ciphertext.rs",
+      "current": "crates/ckks-train-ckks/src/ciphertext.rs",
+      "state": "rename-only",
+      "old_sha256": "9524016dadfcc5d1354b0fdff5ca3ba590b2bfcbab4fe845289d7c7ade03af23",
+      "normalized_old_sha256": "315e3193cf26c4cf23a32e571f7e3fe9d05be9c24b43b2f6a22d6f7e0cc2ab9b",
+      "current_sha256": "315e3193cf26c4cf23a32e571f7e3fe9d05be9c24b43b2f6a22d6f7e0cc2ab9b"
+    },
+    {
+      "old": "crates/hekit-ckks/src/counter.rs",
+      "current": "crates/ckks-train-ckks/src/counter.rs",
+      "state": "rename-only",
+      "old_sha256": "b8552cf17cef8873080a28c3c9a31df8258556e2957116e0dea9ee6f99c45142",
+      "normalized_old_sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4",
+      "current_sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4"
+    },
+    {
+      "old": "crates/hekit-ckks/src/encoder.rs",
+      "current": "crates/ckks-train-ckks/src/encoder.rs",
+      "state": "rename-only",
+      "old_sha256": "7b27e1082af94fd6555a5ea9bd2bc6feb3b3cd61cfbfb7748d92bb4fc1b165f0",
+      "normalized_old_sha256": "ff806dcb15118efd20330acd3e748a17089109ebf56fc9da86f979ce6aca5962",
+      "current_sha256": "ff806dcb15118efd20330acd3e748a17089109ebf56fc9da86f979ce6aca5962"
+    },
+    {
+      "old": "crates/hekit-ckks/src/encrypt.rs",
+      "current": "crates/ckks-train-ckks/src/encrypt.rs",
+      "state": "rename-only",
+      "old_sha256": "723cc1005301a2fb76960f1f7fabd70d03b612a2ff112e38fc7c159a9f2c01cb",
+      "normalized_old_sha256": "f67bebda7c8087c77e4d6151a47d602177d4c016c44100ea86121156c0add8a6",
+      "current_sha256": "f67bebda7c8087c77e4d6151a47d602177d4c016c44100ea86121156c0add8a6"
+    },
+    {
+      "old": "crates/hekit-ckks/src/evaluator.rs",
+      "current": "crates/ckks-train-ckks/src/evaluator.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "ea66697d3c092c10d74cfe6a3e48676f62f47833c06247fb6ffffdd767240e67",
+      "normalized_old_sha256": "add9f5edab4cce856bd1deb4195394382840931db9188cef071fc055ff8591bf",
+      "current_sha256": "bd5bb8eda962e3815363d42c2482b0bb5b7448bb506caa84b6ac22c0001198b8"
+    },
+    {
+      "old": "crates/hekit-ckks/src/keys.rs",
+      "current": "crates/ckks-train-ckks/src/keys.rs",
+      "state": "rename-only",
+      "old_sha256": "8dd927eea696ad02ba44f7d0f6b61e5e1d11c4b8ff1ceaf8921a5d34cb10dbac",
+      "normalized_old_sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317",
+      "current_sha256": "4dce50aa02d0f964ea5a96ddf96beefaeb9719fccc7b6da587057f33264d1317"
+    },
+    {
+      "old": "crates/hekit-ckks/src/keyswitch.rs",
+      "current": "crates/ckks-train-ckks/src/keyswitch.rs",
+      "state": "rename-only",
+      "old_sha256": "fec235f64cf947479f853429771775099ae969c90aeb8314960dad901cef78df",
+      "normalized_old_sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441",
+      "current_sha256": "e85433a279d657ec82841d4f66d949c760db3cacb6d8b5d8652980d389487441"
+    },
+    {
+      "old": "crates/hekit-ckks/src/lib.rs",
+      "current": "crates/ckks-train-ckks/src/lib.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "b966f9697f522572afd9d413bbfb9b60b0fcf1e9c23ed394afe2589fe6283740",
+      "normalized_old_sha256": "2c1f2886391ea15c19614a0f4051b9e0c227a325dd3a4923578f9f7d5c98a20c",
+      "current_sha256": "5c10991dfeafcf56df164ba3a97bf658c8fdf1372681774e4d83158191d0dbaf"
+    },
+    {
+      "old": "crates/hekit-ckks/src/linalg.rs",
+      "current": "crates/ckks-train-ckks/src/linalg.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "35ede5597a706bdcd3d23601594ff280efceaf10ed3ebcbb01b5e66171f8c2e4",
+      "normalized_old_sha256": "08ec4d2f6bfbfaf1883740044d3707b03b36e87aea210af785e8804026c45285",
+      "current_sha256": "4eef1dccf8b651c1d536ab6da9f323b6aa4e3a9bc7c0d70b7560bb25c241db01"
+    },
+    {
+      "old": "crates/hekit-ckks/src/ops.rs",
+      "current": "crates/ckks-train-ckks/src/ops.rs",
+      "state": "rename-only",
+      "old_sha256": "54df0f262234de512bb69642ac3502cbb2497381f163330062f589d9bdf7cf6e",
+      "normalized_old_sha256": "cdb65fd5e1ee86d01c9fca84335a72855b20d84a1d5df73cef8f8bedd5097923",
+      "current_sha256": "cdb65fd5e1ee86d01c9fca84335a72855b20d84a1d5df73cef8f8bedd5097923"
+    },
+    {
+      "old": "crates/hekit-ckks/src/par.rs",
+      "current": "crates/ckks-train-ckks/src/par.rs",
+      "state": "byte-identical",
+      "old_sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df",
+      "normalized_old_sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df",
+      "current_sha256": "704132ab09c987317ce7d24dafadb58f4172d1f0bdbd81b46f643853678808df"
+    },
+    {
+      "old": "crates/hekit-ckks/src/params.rs",
+      "current": "crates/ckks-train-ckks/src/params.rs",
+      "state": "rename-only",
+      "old_sha256": "043c61d1b30382f0186e2433ce7da71891f51aeeba8e040d5d1466f8811b894a",
+      "normalized_old_sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596",
+      "current_sha256": "74611aa303a1d3bbebb21f196d23a66fe0fa74c73bc5015d1ee0816ff5487596"
+    },
+    {
+      "old": "crates/hekit-ckks/src/plaintext.rs",
+      "current": "crates/ckks-train-ckks/src/plaintext.rs",
+      "state": "rename-only",
+      "old_sha256": "9db342f83f277415f4933c46ac5a1a52978154a724ca79be8982c915dfc68296",
+      "normalized_old_sha256": "575798a761b606fad2638d9fcbad2c5e74d4fc3a2542547e7b879db6333a91ea",
+      "current_sha256": "575798a761b606fad2638d9fcbad2c5e74d4fc3a2542547e7b879db6333a91ea"
+    },
+    {
+      "old": "crates/hekit-ckks/src/precision.rs",
+      "current": "crates/ckks-train-ckks/src/precision.rs",
+      "state": "rename-only",
+      "old_sha256": "e375dfcc0ef4ec0fe4c23b8c910569ed2f6b2d776cbe83a448e40b8b42c371f8",
+      "normalized_old_sha256": "7bdbc8a2a99803e06183696fd22dcfece9d67268ced39b62594f792bfeb19f3b",
+      "current_sha256": "7bdbc8a2a99803e06183696fd22dcfece9d67268ced39b62594f792bfeb19f3b"
+    },
+    {
+      "old": "crates/hekit-ckks/src/seal_compat.rs",
+      "current": "crates/ckks-train-ckks/src/seal_compat.rs",
+      "state": "rename-only",
+      "old_sha256": "82710532c27ffeb6db672b8804b2125aa8794ef848ce1d433ad8c85594be8cb6",
+      "normalized_old_sha256": "bf7d8673a6957b256c972bbe9e510ad9afac553f9c214aa7d1454a6e086da72b",
+      "current_sha256": "bf7d8673a6957b256c972bbe9e510ad9afac553f9c214aa7d1454a6e086da72b"
+    },
+    {
+      "old": "crates/hekit-ckks/tests/precision.rs",
+      "current": "crates/ckks-train-ckks/tests/precision.rs",
+      "state": "rename-only",
+      "old_sha256": "eb667094eff8936a14c542b9d4bf305410952b36633486dd7e9771de38e3187e",
+      "normalized_old_sha256": "6837cb281ff23629a69d665bed8ccd684ad9fc251d3da47da570171ba8e8b632",
+      "current_sha256": "6837cb281ff23629a69d665bed8ccd684ad9fc251d3da47da570171ba8e8b632"
+    },
+    {
+      "old": "crates/hekit-ckks/tests/seal_kat.rs",
+      "current": "crates/ckks-train-ckks/tests/seal_kat.rs",
+      "state": "rename-only",
+      "old_sha256": "8f90cf30e78f4e09c3cbf153b86cafd16c5595c0540421289297c10a3c825032",
+      "normalized_old_sha256": "8686ad83eefaf3b8a205c4da3f40c18307199a9bd9f5b3615bf49503617f775c",
+      "current_sha256": "8686ad83eefaf3b8a205c4da3f40c18307199a9bd9f5b3615bf49503617f775c"
+    },
+    {
+      "old": "crates/hekit-core/Cargo.toml",
+      "current": "crates/ckks-train-core/Cargo.toml",
+      "state": "changed-after-rename",
+      "old_sha256": "d5c7eb4479aa5feb5f2c8fa338ebbc7a939cf7658820a1b9e560de7ae9e050e7",
+      "normalized_old_sha256": "f2b60871e70ef41ce4ced63a735bae45d0d6d60d10359c27ab087ae86b90521b",
+      "current_sha256": "16754894b66cc238efeb14393dd1eaa1f52b5fe2b0ee4cfc07b4035004efae80"
+    },
+    {
+      "old": "crates/hekit-core/src/baseconv.rs",
+      "current": "crates/ckks-train-core/src/baseconv.rs",
+      "state": "byte-identical",
+      "old_sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc",
+      "normalized_old_sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc",
+      "current_sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc"
+    },
+    {
+      "old": "crates/hekit-core/src/error.rs",
+      "current": "crates/ckks-train-core/src/error.rs",
+      "state": "byte-identical",
+      "old_sha256": "d5bcb70e1f9701c0f33c77a6932db92790fa479f3eab24396bb5615bb747fbb6",
+      "normalized_old_sha256": "d5bcb70e1f9701c0f33c77a6932db92790fa479f3eab24396bb5615bb747fbb6",
+      "current_sha256": "d5bcb70e1f9701c0f33c77a6932db92790fa479f3eab24396bb5615bb747fbb6"
+    },
+    {
+      "old": "crates/hekit-core/src/lib.rs",
+      "current": "crates/ckks-train-core/src/lib.rs",
+      "state": "rename-only",
+      "old_sha256": "4f3ed78a9b47812d18d9c8af50b9831355720643d29545716cbdc40a8465201c",
+      "normalized_old_sha256": "60fcfdf76771b9af04585b833096e37c09b0e41e574a1eb61a713b551a3b556b",
+      "current_sha256": "60fcfdf76771b9af04585b833096e37c09b0e41e574a1eb61a713b551a3b556b"
+    },
+    {
+      "old": "crates/hekit-core/src/modulus.rs",
+      "current": "crates/ckks-train-core/src/modulus.rs",
+      "state": "byte-identical",
+      "old_sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b",
+      "normalized_old_sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b",
+      "current_sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b"
+    },
+    {
+      "old": "crates/hekit-core/src/ntt.rs",
+      "current": "crates/ckks-train-core/src/ntt.rs",
+      "state": "byte-identical",
+      "old_sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318",
+      "normalized_old_sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318",
+      "current_sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318"
+    },
+    {
+      "old": "crates/hekit-core/src/poly.rs",
+      "current": "crates/ckks-train-core/src/poly.rs",
+      "state": "byte-identical",
+      "old_sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92",
+      "normalized_old_sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92",
+      "current_sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92"
+    },
+    {
+      "old": "crates/hekit-core/src/primes.rs",
+      "current": "crates/ckks-train-core/src/primes.rs",
+      "state": "rename-only",
+      "old_sha256": "b3359503a568498ce7e28ac8b7fc6abd96b50283b2a8f18ed9af451b38f84663",
+      "normalized_old_sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee",
+      "current_sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee"
+    },
+    {
+      "old": "crates/hekit-core/src/rns.rs",
+      "current": "crates/ckks-train-core/src/rns.rs",
+      "state": "byte-identical",
+      "old_sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397",
+      "normalized_old_sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397",
+      "current_sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397"
+    },
+    {
+      "old": "crates/hekit-core/src/sampler.rs",
+      "current": "crates/ckks-train-core/src/sampler.rs",
+      "state": "byte-identical",
+      "old_sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89",
+      "normalized_old_sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89",
+      "current_sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89"
+    },
+    {
+      "old": "crates/hekit-core/tests/modulus_prop.rs",
+      "current": "crates/ckks-train-core/tests/modulus_prop.rs",
+      "state": "rename-only",
+      "old_sha256": "2803f7053c912a68a0ebeed4a821818c569c7ab18dacadaacd08d7abd86fbb0b",
+      "normalized_old_sha256": "09ca11b5310b60effa7b2865167b2b48f8ab0ba69b6b63f4ba5ce3eb425de132",
+      "current_sha256": "09ca11b5310b60effa7b2865167b2b48f8ab0ba69b6b63f4ba5ce3eb425de132"
+    },
+    {
+      "old": "crates/hekit-nn/Cargo.toml",
+      "current": "crates/ckks-train-nn/Cargo.toml",
+      "state": "changed-after-rename",
+      "old_sha256": "f46d22a6f59cc26993627b868501d0fa601488f6b24a67ec1db15bbd434c2e2a",
+      "normalized_old_sha256": "ce36b8fe522a9c1786d61c5581443479c27e6005f193579993860ca133bb6c66",
+      "current_sha256": "db40d8c8c8e7739195edc7f8fccb3596ea24f3090235d1f972115e107d9eacfb"
+    },
+    {
+      "old": "crates/hekit-nn/src/activation.rs",
+      "current": "crates/ckks-train-nn/src/activation.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "a10b2276e89059b1fbc98f19f73b4fd9bad28e97231d6b76f1797d40e9aa9b3f",
+      "normalized_old_sha256": "9ae8cc219438ab3e2b7e988df0e240da4431fcd45fb93be36b72e032c835d183",
+      "current_sha256": "10c76cd71ea109ae46262d01fdf3ae30ce3717e9f22c74a8c13e2f8cc092c1e5"
+    },
+    {
+      "old": "crates/hekit-nn/src/compact.rs",
+      "current": "crates/ckks-train-nn/src/compact.rs",
+      "state": "rename-only",
+      "old_sha256": "86f3be64b504f804b7434db248aa94a1952a37a0948047f15544e803a4ecbf3d",
+      "normalized_old_sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f",
+      "current_sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f"
+    },
+    {
+      "old": "crates/hekit-nn/src/dense.rs",
+      "current": "crates/ckks-train-nn/src/dense.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "bdbfc9c2aa95acd57e69f951a33b3c55a0807d2cbd06a213f6cf08f5c710a09f",
+      "normalized_old_sha256": "70c9821efe9347442d762727fde854050ce454b755b535e3150b81ba914386ba",
+      "current_sha256": "b7e919813b63412de759d42779c69f481a8f133c61c6d999473e49a2fb3a2fa2"
+    },
+    {
+      "old": "crates/hekit-nn/src/layout.rs",
+      "current": "crates/ckks-train-nn/src/layout.rs",
+      "state": "rename-only",
+      "old_sha256": "05e9f637075f220630e9cbc5ef25a4a77f3689dbd8a4a63968357f961c834841",
+      "normalized_old_sha256": "267c0cf711a0051dbad0f49c43a1408f3a5c2a3efcd47eccb0d2829d09def56a",
+      "current_sha256": "267c0cf711a0051dbad0f49c43a1408f3a5c2a3efcd47eccb0d2829d09def56a"
+    },
+    {
+      "old": "crates/hekit-nn/src/layout_reboot.rs",
+      "current": "crates/ckks-train-nn/src/layout_reboot.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "fd1f15a16e664030ef4c696e4c190c144ca539cdb6c7df5540b5b5d0491d9207",
+      "normalized_old_sha256": "0877808768f5becadfdedbbb00dcbafae17f4f4aa11026e2eacc4a1b21831943",
+      "current_sha256": "753448fd0e4a520aac9eb148cdb1b9a43e7072b5b87ee66fe23796a95dd193a6"
+    },
+    {
+      "old": "crates/hekit-nn/src/lib.rs",
+      "current": "crates/ckks-train-nn/src/lib.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "14c6b33edc39d0143f31584c9fa8e9e7b3e7b11cb0ba6643a5589a7cec00a694",
+      "normalized_old_sha256": "8ebd06c88a862668e407876d7976d7f9962e79de4710e08b99f076eaffc12b27",
+      "current_sha256": "abe8c9f1775208f91fabeeb60a459eb2468d1426349dd0903e8290fba2044ff8"
+    },
+    {
+      "old": "crates/hekit-nn/src/loss.rs",
+      "current": "crates/ckks-train-nn/src/loss.rs",
+      "state": "rename-only",
+      "old_sha256": "8047377a27fd4bd4335314884f5572dea0536455c0dbc8aec2c33c7c77a928ef",
+      "normalized_old_sha256": "aca0d2785cb2d7ff68077acb901678144230fd4ba3bc58ab69459f5654bb63f6",
+      "current_sha256": "aca0d2785cb2d7ff68077acb901678144230fd4ba3bc58ab69459f5654bb63f6"
+    },
+    {
+      "old": "crates/hekit-nn/src/optim.rs",
+      "current": "crates/ckks-train-nn/src/optim.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "cc6eb0b8eab013c33e8de0df30f2e14788bc88b3fb707dbe288f5d3ac7bce3c5",
+      "normalized_old_sha256": "fb0a36aa3ce9c4de60fed40999ab051c36334017de436f479a4104098822b789",
+      "current_sha256": "7f99d28585c0656f0faa00b87d9808b4c52cda1ce0d99de877b39bcffe74bcfe"
+    },
+    {
+      "old": "crates/hekit-nn/src/refresh.rs",
+      "current": "crates/ckks-train-nn/src/refresh.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "5c8151998138f55e54b3adbc065be65dc28f3f8fb4f5610c2661b37c22223a7c",
+      "normalized_old_sha256": "0953b8ba0dfe2ea424caf4458530f5e181338427c2c35380d33576f2466558c5",
+      "current_sha256": "073cb769cfc4e6d15c833dfd8b40610fabca856dd04322cd4b0a609916b45cb4"
+    },
+    {
+      "old": "crates/hekit-nn/src/sim.rs",
+      "current": "crates/ckks-train-nn/src/sim.rs",
+      "state": "rename-only",
+      "old_sha256": "3f84b12674e41f836c8846f0be39d74d4d1ca44519b7adae8bb3f3d510fdb31d",
+      "normalized_old_sha256": "58754e346d42bad3e242bb43b8a3d2ab413bc295bca64a9cc88ab29864ec88e1",
+      "current_sha256": "58754e346d42bad3e242bb43b8a3d2ab413bc295bca64a9cc88ab29864ec88e1"
+    },
+    {
+      "old": "crates/hekit-nn/src/trainer.rs",
+      "current": "crates/ckks-train-nn/src/trainer.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "83bbd6e5805224370b4e1ccd44326a64805347b2052da23c7e7ffbc8c0ec8491",
+      "normalized_old_sha256": "5e7110aa2842758eba868d9f9e16fd813e9e1a34ff2bf884e061b7247bf4c50f",
+      "current_sha256": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930"
+    },
+    {
+      "old": "crates/hekit-nn/src/trainer_ni.rs",
+      "current": "crates/ckks-train-nn/src/trainer_ni.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "aba70db12de952be2a9db7503e8e4a79023b1a985ad83ab6c4a8e603560d4bd1",
+      "normalized_old_sha256": "275e756801cff6ddf1aa144ce32646760fcc7654b6a60e0d13a79dc8fd6624c2",
+      "current_sha256": "8b218cccd0106e8a925c8cc3be8a328864e04dfba91f059a63b86021250a3dbe"
+    },
+    {
+      "old": "crates/hekit-nn/tests/ablation.rs",
+      "current": "crates/ckks-train-nn/tests/ablation.rs",
+      "state": "rename-only",
+      "old_sha256": "81bf6b235033dbf4c0a82fa970dcfa3cc9c746bb9cbae69c2cc8e87ac8f23f4f",
+      "normalized_old_sha256": "e75505a091721c5d5ecf4f6fd7a0ba9bf590b63679d7058126619b94fd865f1d",
+      "current_sha256": "e75505a091721c5d5ecf4f6fd7a0ba9bf590b63679d7058126619b94fd865f1d"
+    },
+    {
+      "old": "crates/hekit-nn/tests/activation.rs",
+      "current": "crates/ckks-train-nn/tests/activation.rs",
+      "state": "rename-only",
+      "old_sha256": "91fac9e0850235becede45b3e1c9a027a2a1038f03dacfaef17bc4c718c0a920",
+      "normalized_old_sha256": "f6461f62b8db2443eef63127df02b4320146212b995470c89225be58349fef06",
+      "current_sha256": "f6461f62b8db2443eef63127df02b4320146212b995470c89225be58349fef06"
+    },
+    {
+      "old": "crates/hekit-nn/tests/backward.rs",
+      "current": "crates/ckks-train-nn/tests/backward.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "eaaf132f8f74c2e5aa2aef941e4cabcbdc02c5ab7970d59babef1b9a2f167f45",
+      "normalized_old_sha256": "41867ec29ae8aa029366a9eb81d57db5d60bfd8802aca43734bd1ac7c69e3179",
+      "current_sha256": "11979e92b655d73c08d2a3ee92cd19abfe935a17ff573614a10ba5db8cdbd30a"
+    },
+    {
+      "old": "crates/hekit-nn/tests/compact.rs",
+      "current": "crates/ckks-train-nn/tests/compact.rs",
+      "state": "rename-only",
+      "old_sha256": "cb3ebb989d5d3906eaf9496e86b2a2350408f3bec1b184b5b4eafafeb6ad3d54",
+      "normalized_old_sha256": "ed4643f7dc084edf46af41ca251874dac4ad01f982bb3514193974ecc0d6b204",
+      "current_sha256": "ed4643f7dc084edf46af41ca251874dac4ad01f982bb3514193974ecc0d6b204"
+    },
+    {
+      "old": "crates/hekit-nn/tests/dense.rs",
+      "current": "crates/ckks-train-nn/tests/dense.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "f8ef9169c32095bd95c27a13201b3b35c45866b557f7569541592b0c3ef3d80c",
+      "normalized_old_sha256": "fe1838ddd9eb0dd025b0d30a34d35e566b757aba822a91508a1eebbb138d8679",
+      "current_sha256": "8be4b759881feb3ac438ab3ec49ba79186bceb438e49db9ca40175ace5c5e5bb"
+    },
+    {
+      "old": "crates/hekit-nn/tests/grad.rs",
+      "current": "crates/ckks-train-nn/tests/grad.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "a1a23f75533e272c7bdbd2c99852edb97561bd763d731b916825a46d0f33e3bc",
+      "normalized_old_sha256": "e3f0a5a8f14c9533b67d5030b1823249fff6fdbc559c01dac53f24da55913d18",
+      "current_sha256": "30d38c7fdd5f63715069bb0c3bfe52f0ddc00328e6516e4e7dffa6d1709e220c"
+    },
+    {
+      "old": "crates/hekit-nn/tests/identity.rs",
+      "current": "crates/ckks-train-nn/tests/identity.rs",
+      "state": "rename-only",
+      "old_sha256": "cdea01f095a984d1f68a1ec032c6a92a447daa9fe8dfd4009ba5bcc8f3f0698d",
+      "normalized_old_sha256": "1b415b991943b2c45b85e95f2483063fc45cdb4ed9df06c897e92faab61dbc7d",
+      "current_sha256": "1b415b991943b2c45b85e95f2483063fc45cdb4ed9df06c897e92faab61dbc7d"
+    },
+    {
+      "old": "crates/hekit-nn/tests/layout_reboot.rs",
+      "current": "crates/ckks-train-nn/tests/layout_reboot.rs",
+      "state": "rename-only",
+      "old_sha256": "11ec40423c3b1a89f1acf0b2bd002b23f43855a554f3d289a79f1411e903dbd8",
+      "normalized_old_sha256": "0aa7c653e1a087a37905d7a4c583bb203c1e937907df9569b2ba3dd5a273440b",
+      "current_sha256": "0aa7c653e1a087a37905d7a4c583bb203c1e937907df9569b2ba3dd5a273440b"
+    },
+    {
+      "old": "crates/hekit-nn/tests/layout_sim.rs",
+      "current": "crates/ckks-train-nn/tests/layout_sim.rs",
+      "state": "rename-only",
+      "old_sha256": "632a929de686006eca84e01f8caf919161a24187dd0e8a03c0ab868a9c936148",
+      "normalized_old_sha256": "ab48ce19271eb4ac448a420cb7482d10286efecdfbf55722c6bf1b21876ff02a",
+      "current_sha256": "ab48ce19271eb4ac448a420cb7482d10286efecdfbf55722c6bf1b21876ff02a"
+    },
+    {
+      "old": "crates/hekit-nn/tests/trainer.rs",
+      "current": "crates/ckks-train-nn/tests/trainer.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "ea1b5d4030f37288e6a47f823b42e2b60360cb39e4749240045d1c61defaf5af",
+      "normalized_old_sha256": "5e9002facec4281d753a3f70fb8bd70c838283c9dff515f41388c7aa132b9eb9",
+      "current_sha256": "f8af771491dd56e04cb61b05d32bcca597c3bf4e67c9f0c81ad512e17f614120"
+    },
+    {
+      "old": "crates/hekit-nn/tests/trainer_ni.rs",
+      "current": "crates/ckks-train-nn/tests/trainer_ni.rs",
+      "state": "changed-after-rename",
+      "old_sha256": "3a986382fd3a709afbc5eb470481772698b676df4ede9f6edeb98397383a5c15",
+      "normalized_old_sha256": "eba13c20ac6f551b4ac6b2175f414fb920561207d57cc601340370046a392d39",
+      "current_sha256": "de237a1b0f0b8a67e520412419e62f75b56387ec87995eaf933ccfa24e60257c"
+    }
+  ],
+  "current_additions": [
+    "crates/ckks-train-ckks/src/bootstrap/metadata.rs",
+    "crates/ckks-train-ckks/src/metadata.rs",
+    "crates/ckks-train-ckks/tests/bootstrap_metadata.rs",
+    "crates/ckks-train-ckks/tests/metadata.rs",
+    "crates/ckks-train-nn/src/block.rs",
+    "crates/ckks-train-nn/src/diagonal_plan.rs",
+    "crates/ckks-train-nn/src/diagonal_plan_tests.rs",
+    "crates/ckks-train-nn/src/packed_training/block.rs",
+    "crates/ckks-train-nn/src/packed_training/dag.rs",
+    "crates/ckks-train-nn/src/packed_training/mod.rs",
+    "crates/ckks-train-nn/src/packed_training/ops.rs",
+    "crates/ckks-train-nn/src/packed_training/optimizer.rs",
+    "crates/ckks-train-nn/src/packed_training/plan.rs",
+    "crates/ckks-train-nn/src/packed_training/refresh.rs",
+    "crates/ckks-train-nn/src/packed_training/stage.rs",
+    "crates/ckks-train-nn/src/packed_training/trainer.rs",
+    "crates/ckks-train-nn/src/packed_training/types.rs",
+    "crates/ckks-train-nn/tests/block.rs",
+    "crates/ckks-train-nn/tests/block_profile.rs",
+    "crates/ckks-train-nn/tests/diagonal_plan.rs",
+    "crates/ckks-train-nn/tests/packed_blocks.rs",
+    "crates/ckks-train-nn/tests/packed_blocks_helpers/fixture.rs",
+    "crates/ckks-train-nn/tests/packed_blocks_helpers/mod.rs",
+    "crates/ckks-train-nn/tests/packed_blocks_helpers/primary.rs",
+    "crates/ckks-train-nn/tests/packed_layout.rs",
+    "crates/ckks-train-nn/tests/packed_ni_calibration.rs",
+    "crates/ckks-train-nn/tests/packed_ni_helpers/mod.rs",
+    "crates/ckks-train-nn/tests/packed_ni_helpers/primary.rs",
+    "crates/ckks-train-nn/tests/packed_ni_helpers/trace_ops.rs",
+    "crates/ckks-train-nn/tests/packed_optimizer.rs",
+    "crates/ckks-train-nn/tests/packed_plan.rs",
+    "crates/ckks-train-nn/tests/packed_refresh.rs",
+    "crates/ckks-train-nn/tests/packed_training.rs",
+    "crates/ckks-train-nn/tests/packed_training_ni.rs",
+    "crates/ckks-train-nn/tests/study_microbatch.rs"
+  ],
+  "counts": {
+    "changed-after-rename": 24,
+    "rename-only": 28,
+    "byte-identical": 8
+  }
+}

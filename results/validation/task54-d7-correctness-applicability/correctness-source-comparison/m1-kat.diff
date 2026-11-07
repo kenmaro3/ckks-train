@@ -1,0 +1,3010 @@
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/Cargo.toml
+@@ -1,16 +1,25 @@
+ [package]
+ name = "ckks-train-ckks"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-ckks (temporary name)"
++repository.workspace = true
++description = "RNS-CKKS homomorphic encryption with hybrid key switching, hoisted rotations, BSGS matrix-vector products and SSE bootstrapping (ckks-train)"
++readme = "README.md"
++keywords = ["ckks", "fhe", "homomorphic", "bootstrapping", "encryption"]
++categories = ["cryptography", "mathematics"]
+ 
+ [dependencies]
+-ckks-train-core = { path = "../ckks-train-core" }
++ckks-train-core = { path = "../ckks-train-core", version = "1.0.0" }
+ ndarray = "0.16"
+ num-complex = "0.4"
++rayon = { version = "1.10", optional = true }
++
++[features]
++# Data parallelism with rayon (src/par.rs). Off by default: results are bit-identical either
++# way, and the default build keeps the single-threaded timings of M1 and M2.
++parallel = ["dep:rayon"]
+ 
+ [dev-dependencies]
+ criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+@@ -20,3 +29,8 @@
+ [[bench]]
+ name = "rotate"
+ harness = false
++
++[[bench]]
++name = "bootstrap"
++harness = false
++required-features = ["parallel"]
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/counter.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/counter.rs
+@@ -15,19 +15,27 @@
+ //! * `relins`: each [`Evaluator::relinearize`](crate::Evaluator::relinearize) (so each `mul`).
+ //! * `ct_ct_tensor`: each [`Evaluator::mul_no_relin`](crate::Evaluator::mul_no_relin) (so
+ //!   each `mul`).
+-//! * `ct_pt_mults`: each [`Evaluator::mul_plain`](crate::Evaluator::mul_plain).
++//! * `ct_pt_mults`: each [`Evaluator::mul_plain`](crate::Evaluator::mul_plain),
++//!   [`Evaluator::mul_plain_to_scale`](crate::Evaluator::mul_plain_to_scale) and
++//!   [`Evaluator::mul_scalar`](crate::Evaluator::mul_scalar).
+ //! * `rescales`: each [`Evaluator::rescale`](crate::Evaluator::rescale).
+-//! * `bootstraps`: none yet (no bootstrapping in M1).
++//! * `sse_switches`: the key switches of the sparse-secret encapsulation, 2 per
++//!   [`Evaluator::mod_raise`](crate::Evaluator::mod_raise) (to the ephemeral key at level 0
++//!   and back at the top level).
++//! * `bootstraps`: each [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap),
++//!   which also adds every operation it performs to the other fields.
+ //!
+ //! Failed operations (any `Err`) count nothing. Composite operations count their parts:
+ //! `mul` is one `ct_ct_tensor` plus one `relin`; `matvec_plain` adds `d` `ct_pt_mults`;
+-//! `matvec_enc` adds `d` `ct_ct_tensor` and `giant` `relins`. A rescale that is part of the
++//! `matvec_enc` adds `d` `ct_ct_tensor` and `giant` `relins` (with the default
++//! [`EvalConfig`](crate::ops::EvalConfig); the ablation flags change the rotations and
++//! relinearizations of the products, see [`crate::ops`]). A rescale that is part of the
+ //! caller's pipeline (the matvec results are returned unrescaled) is counted only when the
+ //! caller calls [`Evaluator::rescale`](crate::Evaluator::rescale).
+ //!
+-//! [`OpCounter::key_switches`] sums the key-switching operations (`rotations + relins +
+-//! bootstraps * BOOT_KS_EQUIV`); [`Evaluator::reset_counter`](crate::Evaluator::reset_counter)
+-//! zeroes the counts.
++//! [`OpCounter::key_switches`] sums the key-switching operations (`rotations + relins`; a
++//! bootstrap's key switches are already in those fields, see there);
++//! [`Evaluator::reset_counter`](crate::Evaluator::reset_counter) zeroes the counts.
+ 
+ /// Operation counts; see the [module docs](self) for what increments each field.
+ #[derive(Default, Clone, Debug, PartialEq)]
+@@ -42,19 +50,70 @@
+     pub ct_pt_mults: u64,
+     /// Rescales.
+     pub rescales: u64,
++    /// Sparse-secret-encapsulation key switches (2 per `mod_raise`).
++    pub sse_switches: u64,
+     /// Bootstraps.
+     pub bootstraps: u64,
+ }
+ 
+-/// Key switches charged per bootstrap in [`OpCounter::key_switches`]. `0` until bootstrapping
+-/// exists (M3); at that point it is set to the number of key switches one bootstrap performs.
+-pub const BOOT_KS_EQUIV: u64 = 0;
+-
+ impl OpCounter {
+-    /// Total key switches, the dominant cost of CKKS: `rotations + relins + bootstraps *
+-    /// `[`BOOT_KS_EQUIV`]. Conjugations are included in `rotations`.
++    /// Total key switches, the dominant cost of CKKS: `rotations + relins + sse_switches`.
++    /// Conjugations are included in `rotations`.
++    ///
++    /// **Bootstraps are not charged separately.**
++    /// [`Bootstrapper::bootstrap`](crate::bootstrap::Bootstrapper::bootstrap) adds every
++    /// operation it performs to the caller's counter (its rotations, conjugations and
++    /// relinearizations, and the two `sse_switches` of the mod-raise)
++    /// and increments `bootstraps` by one. So a measured counter already contains the key
++    /// switches of its bootstraps, and `bootstraps` is only the number of them. Where
++    /// bootstraps are planned rather than run (a simulator or a cost model counting `b`
++    /// bootstraps), add `b *`
++    /// [`Bootstrapper::key_switches_per_boot`](crate::bootstrap::Bootstrapper::key_switches_per_boot):
++    /// the planned count of one bootstrap, which the tests check against a measured one
++    /// (`docs/bootstrap.md` §11 has the n16_boot value). There is no global constant, because
++    /// the count depends on the bootstrap parameters (M1 and M2 had `BOOT_KS_EQUIV = 0`,
++    /// removed in Task 38).
+     pub fn key_switches(&self) -> u64 {
+-        self.rotations + self.relins + self.bootstraps * BOOT_KS_EQUIV
++        self.rotations + self.relins + self.sse_switches
++    }
++}
++
++impl std::ops::AddAssign<&OpCounter> for OpCounter {
++    /// Field-by-field sum (merging the counts of a sub-computation).
++    fn add_assign(&mut self, rhs: &OpCounter) {
++        self.rotations += rhs.rotations;
++        self.relins += rhs.relins;
++        self.ct_ct_tensor += rhs.ct_ct_tensor;
++        self.ct_pt_mults += rhs.ct_pt_mults;
++        self.rescales += rhs.rescales;
++        self.sse_switches += rhs.sse_switches;
++        self.bootstraps += rhs.bootstraps;
++    }
++}
++
++impl std::ops::Sub for &OpCounter {
++    type Output = OpCounter;
++
++    /// Field-by-field difference `self - rhs` (the counts between two snapshots).
++    ///
++    /// # Panics
++    /// In every build (not only with debug assertions), if a field of `rhs` exceeds that of
++    /// `self`: snapshots in the wrong order, or of two different counters.
++    fn sub(self, rhs: &OpCounter) -> OpCounter {
++        let d = |a: u64, b: u64, field: &str| {
++            a.checked_sub(b).unwrap_or_else(|| {
++                panic!("OpCounter subtraction: {field} {b} exceeds {a} (snapshots out of order?)")
++            })
++        };
++        OpCounter {
++            rotations: d(self.rotations, rhs.rotations, "rotations"),
++            relins: d(self.relins, rhs.relins, "relins"),
++            ct_ct_tensor: d(self.ct_ct_tensor, rhs.ct_ct_tensor, "ct_ct_tensor"),
++            ct_pt_mults: d(self.ct_pt_mults, rhs.ct_pt_mults, "ct_pt_mults"),
++            rescales: d(self.rescales, rhs.rescales, "rescales"),
++            sse_switches: d(self.sse_switches, rhs.sse_switches, "sse_switches"),
++            bootstraps: d(self.bootstraps, rhs.bootstraps, "bootstraps"),
++        }
+     }
+ }
+ 
+@@ -118,12 +177,31 @@
+         let c = OpCounter {
+             rotations: 5,
+             relins: 3,
++            sse_switches: 4,
+             bootstraps: 2,
+             ..Default::default()
+         };
+-        assert_eq!(c.key_switches(), 8 + 2 * BOOT_KS_EQUIV);
+-        assert_eq!(BOOT_KS_EQUIV, 0, "0 until bootstrapping lands in M3");
++        // Bootstraps add their own key switches to the fields; none are charged on top.
++        assert_eq!(c.key_switches(), 12);
+         assert_eq!(OpCounter::default().key_switches(), 0);
++        let mut d = c.clone();
++        d += &c;
++        assert_eq!(
++            (d.rotations, d.relins, d.sse_switches, d.bootstraps),
++            (10, 6, 8, 4)
++        );
++        assert_eq!(&d - &c, c);
++    }
++
++    /// Review m1: a subtraction of snapshots in the wrong order panics in every build.
++    #[test]
++    #[should_panic(expected = "OpCounter subtraction: relins 3 exceeds 0")]
++    fn subtraction_out_of_order_panics() {
++        let later = OpCounter {
++            relins: 3,
++            ..Default::default()
++        };
++        let _ = &OpCounter::default() - &later;
+     }
+ 
+     #[test]
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/evaluator.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/evaluator.rs
+@@ -46,9 +46,14 @@
+ //!   `params.scale()`;
+ //! * add ciphertexts only when they have the same history (same multiplications and the
+ //!   same rescaled primes), e.g. the terms of one BSGS sum ([`crate::linalg`]);
+-//! * a scalar multiplication that feeds an addition must take the target scale (M2's
+-//!   `mul_scalar` in Task 28): choose the plaintext scale `s_t * q_l / s_ct` so that after
+-//!   the rescale the result has exactly the scale `s_t` of the other operand.
++//! * a scalar multiplication that feeds an addition must take the target scale:
++//!   [`Evaluator::mul_scalar`]`(ct, value, s_t)` encodes the constant at the plaintext scale
++//!   `~ s_t * q_l / s_ct` and labels the product so that after the rescale the result has
++//!   exactly the scale `s_t` of the other operand; [`Evaluator::mul_plain_to_scale`] does the
++//!   same for a plaintext vector (a mask with a folded constant) encoded at
++//!   [`Evaluator::target_plain_scale`]. [`Evaluator::exact_product_scale`] says when a target
++//!   is reachable (always for power-of-two targets and for scales rescaled from the same
++//!   level).
+ //!
+ //! [`SCALE_TOLERANCE`] stays at the plan's `2^-10`; check `a.scale() == b.scale()` yourself
+ //! where exactness matters.
+@@ -81,6 +86,7 @@
+     GaloisKey, GaloisKeys, KskKey, QpPoly, RelinKey, conjugation_elt, galois_elt, truncated,
+ };
+ use crate::keyswitch::{apply_key, decompose, key_switch};
++use crate::ops::EvalConfig;
+ use crate::params::CkksParams;
+ use crate::plaintext::Plaintext;
+ 
+@@ -89,16 +95,46 @@
+ /// difference in accuracy (see the [module docs](self)).
+ pub const SCALE_TOLERANCE: f64 = 1.0 / 1024.0;
+ 
++/// Ulps searched on each side of `target * q` by [`Evaluator::exact_product_scale`] (any
++/// solution lies within about 2).
++const LABEL_SEARCH_ULPS: u64 = 8;
++
++/// Bound on the integer constant of [`Evaluator::mul_scalar`], `2^62`.
++const MAX_SCALAR_INT: f64 = 4_611_686_018_427_387_904.0;
++
++/// Smallest plaintext scale [`Evaluator::mul_scalar`] and [`Evaluator::mul_plain_to_scale`]
++/// accept, `2^20`: below it the constant (or mask) is rounded to fewer than about 20 bits
++/// (absolute error up to `1 / (2 s_p)` per unit of message), silently.
++pub const MIN_PLAIN_SCALE: f64 = 1_048_576.0;
++
++/// `InvalidParams` if the plaintext scale `sp` is below [`MIN_PLAIN_SCALE`].
++pub(crate) fn check_plain_scale(sp: f64) -> Result<()> {
++    if sp < MIN_PLAIN_SCALE {
++        return Err(HekitError::InvalidParams(format!(
++            "plaintext scale {sp:e} is below 2^20: the target scale is too small for this \
++             ciphertext's scale and level (the constant would be rounded to a few bits)"
++        )));
++    }
++    Ok(())
++}
++
+ /// Evaluates arithmetic on ciphertexts with optional relinearization and Galois keys, and
+ /// counts the expensive operations it performs ([`Evaluator::counter`]).
+ ///
+-/// `Clone` copies the keys and the current counts into an independent counter. `Debug`
++/// The [`EvalConfig`] ablation flags ([`Evaluator::with_config`]; default all on) choose
++/// between the optimised and the naive form of [`Evaluator::hoisted_rotate`],
++/// [`Evaluator::matvec_plain`] and [`Evaluator::matvec_enc`] (see [`crate::ops`]); every
++/// other operation ignores them. The generic interface is [`crate::ops::HeOps`].
++///
++/// The keys are held behind `Arc`s: `Clone` shares them (no key copy; one n16_train key is
++/// about 302 MB) and copies the current counts into an independent counter. `Debug`
+ /// prints a summary (ring degree, top level, which keys are present, the counts), not the
+ /// keys.
+ pub struct Evaluator {
+     params: Arc<CkksParams>,
+-    relin: Option<RelinKey>,
+-    galois: Option<GaloisKeys>,
++    relin: Option<Arc<RelinKey>>,
++    galois: Option<Arc<GaloisKeys>>,
++    config: EvalConfig,
+     counter: Mutex<OpCounter>,
+ }
+ 
+@@ -110,9 +146,10 @@
+             .field("relin_key", &self.relin.is_some())
+             .field(
+                 "galois_keys",
+-                &self.galois.as_ref().map_or(0, GaloisKeys::len),
++                &self.galois.as_deref().map_or(0, GaloisKeys::len),
+             )
+             .field("counter", &self.counter())
++            .field("config", &self.config)
+             .finish()
+     }
+ }
+@@ -121,8 +158,9 @@
+     fn clone(&self) -> Evaluator {
+         Evaluator {
+             params: Arc::clone(&self.params),
+-            relin: self.relin.clone(),
+-            galois: self.galois.clone(),
++            relin: self.relin.as_ref().map(Arc::clone),
++            galois: self.galois.as_ref().map(Arc::clone),
++            config: self.config,
+             counter: Mutex::new(self.counter()),
+         }
+     }
+@@ -137,18 +175,61 @@
+ impl Evaluator {
+     /// An evaluator for `params`. `relin` is needed by [`Evaluator::relinearize`] and
+     /// [`Evaluator::mul`]; `galois` by the rotations and conjugation. The keys must have been
+-    /// generated for `params` (the same `Arc`): checked when a key is used.
++    /// generated for `params` (the same `Arc`): checked when a key is used. The ablation
++    /// flags are the default ([`EvalConfig::default`], all optimisations on).
+     pub fn new(
+         params: Arc<CkksParams>,
+         relin: Option<RelinKey>,
+         galois: Option<GaloisKeys>,
+     ) -> Evaluator {
++        Evaluator::with_config(params, relin, galois, EvalConfig::default())
++    }
++
++    /// [`Evaluator::new`] with the ablation flags `config` (RQ3; see [`crate::ops`] for the
++    /// code paths each flag changes). The flags change costs, never the message: every
++    /// configuration computes the same values up to the CKKS noise (bit-identical for
++    /// `hoist`, see [`Evaluator::hoisted_rotate`]).
++    pub fn with_config(
++        params: Arc<CkksParams>,
++        relin: Option<RelinKey>,
++        galois: Option<GaloisKeys>,
++        config: EvalConfig,
++    ) -> Evaluator {
++        Evaluator {
++            params,
++            relin: relin.map(Arc::new),
++            galois: galois.map(Arc::new),
++            config,
++            counter: Mutex::new(OpCounter::default()),
++        }
++    }
++
++    /// An evaluator that shares the `Arc`ed keys (no key copy) with a fresh counter: the
++    /// bootstrapper runs on the caller's relinearization key and its own Galois keys. Its
++    /// flags are always the default (bootstrapping is not part of the RQ3 ablation; its
++    /// planned cost [`crate::bootstrap::Bootstrapper::cost_per_boot`] assumes them).
++    pub(crate) fn with_shared_keys(
++        params: Arc<CkksParams>,
++        relin: Option<Arc<RelinKey>>,
++        galois: Option<Arc<GaloisKeys>>,
++    ) -> Evaluator {
+         Evaluator {
+             params,
+             relin,
+             galois,
++            config: EvalConfig::default(),
+             counter: Mutex::new(OpCounter::default()),
+         }
++    }
++
++    /// The ablation flags of this evaluator.
++    pub fn config(&self) -> &EvalConfig {
++        &self.config
++    }
++
++    /// The shared relinearization key, if any (see [`Evaluator::with_shared_keys`]).
++    pub(crate) fn relin_key_shared(&self) -> Option<&Arc<RelinKey>> {
++        self.relin.as_ref()
+     }
+ 
+     /// A snapshot of the operation counts so far (see [`crate::counter`]).
+@@ -165,7 +246,7 @@
+     }
+ 
+     /// Applies `f` to the counter (called after an operation succeeded).
+-    fn count(&self, f: impl FnOnce(&mut OpCounter)) {
++    pub(crate) fn count(&self, f: impl FnOnce(&mut OpCounter)) {
+         f(&mut self.counter.lock().unwrap_or_else(PoisonError::into_inner));
+     }
+ 
+@@ -176,12 +257,12 @@
+ 
+     /// The relinearization key, if any.
+     pub fn relin_key(&self) -> Option<&RelinKey> {
+-        self.relin.as_ref()
++        self.relin.as_deref()
+     }
+ 
+     /// The Galois keys, if any.
+     pub fn galois_keys(&self) -> Option<&GaloisKeys> {
+-        self.galois.as_ref()
++        self.galois.as_deref()
+     }
+ 
+     /// `a + b` (same level, scales within [`SCALE_TOLERANCE`]; the result has `a`'s scale,
+@@ -223,6 +304,115 @@
+         let mut c = a.polys().to_vec();
+         c.iter_mut().for_each(|x| x.mul_assign(p.poly()));
+         let r = Ciphertext::new(c, a.scale() * p.scale())?;
++        self.count(|c| c.ct_pt_mults += 1);
++        Ok(r)
++    }
++
++    /// The pre-rescale scale label `L` at `level` whose [`Evaluator::rescale`] gives exactly
++    /// `target_scale`: an f64 with `L / q_level == target_scale` in f64 arithmetic (the
++    /// division `rescale` performs), the one nearest `target_scale * q_level`. Products
++    /// labelled `L` ([`Evaluator::mul_scalar`], [`Evaluator::mul_plain_to_scale`]) land
++    /// exactly on `target_scale` after the caller's rescale, so they can be added to an
++    /// operand of that scale with no relabelling (the exact-scale path of the
++    /// [module docs](self)).
++    ///
++    /// Such an `L` exists whenever `target_scale * q_level` is exactly representable (e.g. a
++    /// power-of-two target such as `Delta`, or `Delta` times a small integer) and whenever
++    /// `target_scale` is itself the scale of a ciphertext rescaled from `level` (`L` is then
++    /// that ciphertext's pre-rescale scale). For an arbitrary target it can fail to exist
++    /// (about 11% of random 53-bit mantissas with 40-bit primes): the f64 grid of `L` near
++    /// `target * q` is coarser than `q` times the grid near `target`. No rescale from `level`
++    /// can produce such a target; that is `ScaleMismatch`.
++    ///
++    /// Errors: `InvalidParams` if `level > max_level` or `target_scale` is not positive and
++    /// finite (or `target_scale * q_level` overflows); `NoLevelsLeft` at level 0 (nothing to
++    /// rescale by); `ScaleMismatch` if no such `L` exists.
++    pub fn exact_product_scale(&self, level: usize, target_scale: f64) -> Result<f64> {
++        exact_product_scale(&self.params, level, target_scale)
++    }
++
++    /// The plaintext scale for [`Evaluator::mul_plain_to_scale`] of `ct` to `target_scale`:
++    /// `L / ct.scale()` with `L = exact_product_scale(ct.level(), target_scale)`, i.e.
++    /// `~ target_scale * q_l / ct.scale()`. Encode the plaintext at exactly this scale.
++    ///
++    /// Errors as [`Evaluator::exact_product_scale`], and `InvalidParams` if the scale is below
++    /// [`MIN_PLAIN_SCALE`] (`2^20`; [`Evaluator::mul_plain_to_scale`] would reject it, so this
++    /// fails before anything is encoded).
++    pub fn target_plain_scale(&self, ct: &Ciphertext, target_scale: f64) -> Result<f64> {
++        let sp = self.exact_product_scale(ct.level(), target_scale)? / ct.scale();
++        check_plain_scale(sp)?;
++        Ok(sp)
++    }
++
++    /// `ct * value` for a real constant, **pre-rescale**, labelled so that the caller's
++    /// [`Evaluator::rescale`] gives exactly `target_scale` (M1 §7 ruling, Task 28).
++    ///
++    /// The constant is encoded at the plaintext scale `s_p = L / ct.scale()`
++    /// (`~ target_scale * q_l / ct.scale()`, `L` from [`Evaluator::exact_product_scale`]) as
++    /// the integer `k = round(value * s_p)`, a constant polynomial: every component is
++    /// multiplied by `k` (no NTT, no encoder). The result has the level of `ct`, its
++    /// component count (2 or 3), and scale `L`, so `rescale` returns level `l - 1` with scale
++    /// exactly `target_scale` and message `value * m` up to `|k / s_p - value| <= 1 / (2 s_p)`
++    /// (about `2^-41` for `s_p ~ 2^40`) times `|m|`, plus the rescale noise. The label `L`
++    /// instead of the f64 product `ct.scale() * s_p` differs by at most one rounding
++    /// (relative `2^-52`), far below the integer rounding of `k`.
++    ///
++    /// Counts one `ct_pt_mults` (like [`Evaluator::mul_plain`]); costs the level of the
++    /// caller's rescale. To fold a constant into an existing product at no level, multiply it
++    /// into that product's plaintext instead (`docs/layout.md` §3).
++    ///
++    /// Errors: `InvalidParams` if `ct` is not over this evaluator's basis, `value` is not
++    /// finite, the plaintext scale `s_p` is below [`MIN_PLAIN_SCALE`] (`2^20`: the constant
++    /// would keep fewer than about 20 bits), or `|k| >= 2^62`; and those of [`Evaluator::exact_product_scale`]
++    /// (`NoLevelsLeft` at level 0, `ScaleMismatch` for a target no rescale from this level
++    /// can reach). Failures count nothing.
++    pub fn mul_scalar(&self, ct: &Ciphertext, value: f64, target_scale: f64) -> Result<Ciphertext> {
++        self.check_basis(ct.polys())?;
++        let (label, _, k) =
++            scalar_product_parts(&self.params, ct.level(), ct.scale(), value, target_scale)?;
++        let mut c = ct.polys().to_vec();
++        for p in &mut c {
++            p.mul_scalar_assign(k.abs() as u64);
++            if k < 0.0 {
++                p.neg();
++            }
++        }
++        let r = Ciphertext::new(c, label)?;
++        self.count(|c| c.ct_pt_mults += 1);
++        Ok(r)
++    }
++
++    /// `a * p` (same level), **pre-rescale**, labelled so that the caller's
++    /// [`Evaluator::rescale`] gives exactly `target_scale`: the vector analogue of
++    /// [`Evaluator::mul_scalar`] for masks with folded constants. `p` must be encoded at
++    /// exactly [`Evaluator::target_plain_scale`]`(a, target_scale)`; the product is labelled
++    /// `L = exact_product_scale(a.level(), target_scale)` instead of the f64 product
++    /// `a.scale() * p.scale()`, from which it differs by at most one rounding (relative
++    /// `2^-52`, far below the plaintext's own encoding rounding).
++    ///
++    /// Counts one `ct_pt_mults`.
++    ///
++    /// Errors: `InvalidParams` for operands not over this evaluator's basis, or if the target
++    /// plaintext scale is below [`MIN_PLAIN_SCALE`] (`2^20`); `LevelMismatch` unless
++    /// `p.level() == a.level()`; those of [`Evaluator::exact_product_scale`]; and
++    /// `ScaleMismatch` if `p.scale()` is not exactly the target plaintext scale.
++    pub fn mul_plain_to_scale(
++        &self,
++        a: &Ciphertext,
++        p: &Plaintext,
++        target_scale: f64,
++    ) -> Result<Ciphertext> {
++        self.check_basis(a.polys())?;
++        self.check_basis(std::slice::from_ref(p.poly()))?;
++        check_level(a.level(), p.level())?;
++        let label = self.exact_product_scale(a.level(), target_scale)?;
++        check_plain_scale(label / a.scale())?;
++        if p.scale() != label / a.scale() {
++            return Err(HekitError::ScaleMismatch);
++        }
++        let mut c = a.polys().to_vec();
++        c.iter_mut().for_each(|x| x.mul_assign(p.poly()));
++        let r = Ciphertext::new(c, label)?;
+         self.count(|c| c.ct_pt_mults += 1);
+         Ok(r)
+     }
+@@ -278,7 +468,7 @@
+ 
+     /// The relinearization key, validated against this evaluator's bases.
+     pub(crate) fn relin_key_checked(&self) -> Result<&RelinKey> {
+-        let rk = self.relin.as_ref().ok_or_else(|| {
++        let rk = self.relin.as_deref().ok_or_else(|| {
+             HekitError::InvalidParams("evaluator has no relinearization key".into())
+         })?;
+         self.check_key_basis(rk.key())?;
+@@ -375,8 +565,18 @@
+     /// Results are in the order of `steps`; steps that are multiples of `slots` give copies
+     /// of `ct`, and repeated steps are allowed. Every key is looked up before any work, so a
+     /// missing key fails fast. Errors as [`Evaluator::rotate`].
++    ///
++    /// With [`EvalConfig::hoist`] off (the RQ3 ablation) every step is an individual
++    /// [`Evaluator::rotate`] (its own decomposition): the same results, bit for bit (see
++    /// above), and the same counts; only the cost differs.
+     pub fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Result<Vec<Ciphertext>> {
+         self.check_galois_input(ct)?;
++        if !self.config.hoist {
++            self.check_rotation_keys(steps)?;
++            return crate::par::map_slice(steps, |&s| self.rotate(ct, s))
++                .into_iter()
++                .collect();
++        }
+         let keys = steps
+             .iter()
+             .map(|&s| {
+@@ -392,20 +592,20 @@
+             Vec::new()
+         };
+         let nontrivial = keys.iter().filter(|k| k.is_some()).count() as u64;
+-        let out = keys
+-            .into_iter()
+-            .map(|k| match k {
+-                None => Ok(ct.clone()),
+-                Some((elt, gk)) => {
+-                    let rotated: Vec<QpPoly> = digits
+-                        .iter()
+-                        .map(|d| QpPoly::new(d.q().automorphism(elt), d.p().automorphism(elt)))
+-                        .collect();
+-                    let (kb, ka) = apply_key(&self.params, &rotated, gk.key());
+-                    finish_galois(ct, elt, kb, ka)
+-                }
+-            })
+-            .collect::<Result<Vec<_>>>()?;
++        // The steps are independent (in parallel with the `parallel` feature, crate::par).
++        let out = crate::par::map_slice(&keys, |k| match *k {
++            None => Ok(ct.clone()),
++            Some((elt, gk)) => {
++                let rotated: Vec<QpPoly> = digits
++                    .iter()
++                    .map(|d| QpPoly::new(d.q().automorphism(elt), d.p().automorphism(elt)))
++                    .collect();
++                let (kb, ka) = apply_key(&self.params, &rotated, gk.key());
++                finish_galois(ct, elt, kb, ka)
++            }
++        })
++        .into_iter()
++        .collect::<Result<Vec<_>>>()?;
+         self.count(|c| c.rotations += nontrivial);
+         Ok(out)
+     }
+@@ -422,6 +622,13 @@
+         Ok(())
+     }
+ 
++    /// `Ok` when a valid conjugation key exists, else the error [`Evaluator::conjugate`]
++    /// would return.
++    pub(crate) fn check_conjugation_key(&self) -> Result<()> {
++        self.galois_key(conjugation_elt(self.params.n()))
++            .map(|_| ())
++    }
++
+     /// The Galois element of a rotation by `steps`, or `None` for a multiple of `slots`.
+     fn rotation_elt(&self, steps: i32) -> Option<u64> {
+         let slots = self.params.slots() as i64;
+@@ -450,7 +657,7 @@
+         }
+         let gk = self
+             .galois
+-            .as_ref()
++            .as_deref()
+             .and_then(|g| g.get_elt(elt))
+             .ok_or_else(|| HekitError::InvalidParams("missing galois key".into()))?;
+         self.check_key_basis(gk.key())?;
+@@ -525,6 +732,68 @@
+             ))
+         }
+     }
++}
++
++/// [`Evaluator::exact_product_scale`] for `params` (shared with [`crate::ops::HeOps`]).
++pub(crate) fn exact_product_scale(
++    params: &CkksParams,
++    level: usize,
++    target_scale: f64,
++) -> Result<f64> {
++    if level > params.max_level() {
++        return Err(HekitError::InvalidParams(format!(
++            "level {level} exceeds max_level {}",
++            params.max_level()
++        )));
++    }
++    if !(target_scale.is_finite() && target_scale > 0.0) {
++        return Err(HekitError::InvalidParams(format!(
++            "target scale {target_scale} must be positive and finite"
++        )));
++    }
++    if level == 0 {
++        return Err(HekitError::NoLevelsLeft);
++    }
++    let q = params.q()[level] as f64;
++    let l0 = target_scale * q;
++    if !l0.is_finite() {
++        return Err(HekitError::InvalidParams(format!(
++            "target scale {target_scale:e} times q_{level} overflows"
++        )));
++    }
++    // Any solution lies within about 2 ulps of l0 (the f64 grid near l0 is at most twice
++    // as coarse as q times the grid near the target); search nearest first.
++    let bits = l0.to_bits();
++    (0..=LABEL_SEARCH_ULPS)
++        .flat_map(|k| [bits + k, bits - k])
++        .map(f64::from_bits)
++        .find(|&l| l / q == target_scale)
++        .ok_or(HekitError::ScaleMismatch)
++}
++
++/// Legacy scalar label/rounding checks, shared without tightening nonfinite intermediates.
++pub(crate) fn scalar_product_parts(
++    params: &CkksParams,
++    level: usize,
++    source_scale: f64,
++    value: f64,
++    target_scale: f64,
++) -> Result<(f64, f64, f64)> {
++    if !value.is_finite() {
++        return Err(HekitError::InvalidParams(format!(
++            "scalar {value} must be finite"
++        )));
++    }
++    let label = exact_product_scale(params, level, target_scale)?;
++    check_plain_scale(label / source_scale)?;
++    let k = (value * (label / source_scale)).round();
++    if k.abs() >= MAX_SCALAR_INT {
++        return Err(HekitError::InvalidParams(format!(
++            "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
++            label / source_scale
++        )));
++    }
++    Ok((label, label / source_scale, k))
+ }
+ 
+ /// `(sigma_elt(c0) + kb, ka)` with the scale of `ct`.
+@@ -1289,6 +1558,26 @@
+         ));
+     }
+ 
++    /// `Clone` shares the keys (the same allocation, no copy) and starts an independent
++    /// counter from the current counts.
++    #[test]
++    fn clone_shares_keys_and_splits_the_counter() {
++        let ctx = small();
++        let e = ctx.eval.clone();
++        let c = e.clone();
++        assert!(std::ptr::eq(e.relin_key().unwrap(), c.relin_key().unwrap()));
++        assert!(std::ptr::eq(
++            e.galois_keys().unwrap(),
++            c.galois_keys().unwrap()
++        ));
++        let before = e.counter();
++        let mut r = rng(70);
++        let a = ctx.encrypt(&rand_vals(71, 8), 2, &mut r);
++        c.mul(&a, &a).unwrap();
++        assert_eq!(e.counter(), before, "the clone counts on its own");
++        assert_eq!(c.counter().relins, before.relins + 1);
++    }
++
+     /// `mul` reports operand errors (level mismatch, level 0, component count) before a
+     /// missing relinearization key.
+     #[test]
+@@ -1310,4 +1599,251 @@
+             Err(HekitError::InvalidParams(_))
+         ));
+     }
++
++    // ---------------------------------------------------------------------------------------
++    // Task 28: scalar and mask multiplications with a target scale.
++    // ---------------------------------------------------------------------------------------
++
++    /// The next / previous positive f64.
++    fn ulp_step(x: f64, k: i64) -> f64 {
++        f64::from_bits((x.to_bits() as i64 + k) as u64)
++    }
++
++    /// `mul_scalar(ct, value, t)` followed by the caller's `rescale` has exactly scale `t` and
++    /// decrypts to `value * m`: for a power-of-two target (fresh weights at `Delta`) and for a
++    /// target that is itself a rescale output (`z^2 + z`: align `z` with `z^2`), so the
++    /// result adds to the other operand without any relabelling.
++    #[test]
++    fn mul_scalar_hits_target_scale_exactly() {
++        let ctx = seal();
++        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
++        let mut r = rng(60);
++        let top = ctx.params.max_level();
++        let v = rand_vals(61, ctx.params.slots());
++        let a = ctx.encrypt(&v, top, &mut r);
++        // z^2 at top - 1 with the scale Delta^2 / q_top.
++        let sq = e.rescale(&e.mul(&a, &a).unwrap()).unwrap();
++        let delta = ctx.params.scale();
++        for (target, what) in [
++            (delta, "Delta"),
++            (sq.scale(), "rescaled"),
++            (delta * 1.5, "1.5 Delta"),
++        ] {
++            for value in [1.0, 0.5, -1.25, 1e-3, 0.0125, 3.0] {
++                e.reset_counter();
++                let p = e.mul_scalar(&a, value, target).unwrap();
++                assert_eq!(e.counter().ct_pt_mults, 1, "counted as ct-pt");
++                assert_eq!(e.counter().rescales, 0, "result is pre-rescale");
++                assert_eq!((p.level(), p.len()), (top, 2));
++                assert_eq!(p.scale(), e.exact_product_scale(top, target).unwrap());
++                let res = e.rescale(&p).unwrap();
++                assert_eq!(res.level(), top - 1);
++                assert_eq!(res.scale(), target, "{what}: exact target scale");
++                let want: Vec<f64> = v.iter().map(|x| value * x).collect();
++                let err = max_err(&ctx.decrypt(&res), &want);
++                assert!(err < 2f64.powi(-22), "{what} x {value}: {err:e}");
++            }
++        }
++        // z^2 + z with exactly equal scales (no tolerance relabel).
++        let z = e
++            .rescale(&e.mul_scalar(&a, 1.0, sq.scale()).unwrap())
++            .unwrap();
++        assert_eq!(z.scale(), sq.scale());
++        let sum = e.add(&sq, &z).unwrap();
++        let want: Vec<f64> = v.iter().map(|x| x * x + x).collect();
++        assert!(max_err(&ctx.decrypt(&sum), &want) < 2f64.powi(-20));
++        // 3-component input and a lower level work too.
++        let t3 = e.mul_no_relin(&a, &a).unwrap();
++        let p3 = e.mul_scalar(&t3, 2.0, sq.scale() * delta).unwrap();
++        assert_eq!(e.rescale(&p3).unwrap().scale(), sq.scale() * delta);
++        let low = ctx.encrypt(&v, 2, &mut r);
++        let pl = e
++            .rescale(&e.mul_scalar(&low, -0.75, delta).unwrap())
++            .unwrap();
++        assert_eq!((pl.level(), pl.scale()), (1, delta));
++        let want: Vec<f64> = v.iter().map(|x| -0.75 * x).collect();
++        assert!(max_err(&ctx.decrypt(&pl), &want) < 2f64.powi(-22));
++    }
++
++    /// The label search is exact and complete: when `exact_product_scale` succeeds,
++    /// `L / q_l == target`; when it fails (`ScaleMismatch`), no f64 near `target * q_l`
++    /// divides to `target` (no rescale from that level reaches it). With NTT primes close to
++    /// `2^40` unreachable targets are rare (the f64 grids nearly align); 20-bit primes
++    /// (`q = 2^20 - c 2^13`) make them common enough to exercise the error.
++    #[test]
++    fn exact_product_scale_search() {
++        let coarse = CkksParams::new(12, &[60, 20, 20], &[60], 20, 3).unwrap();
++        for (params, samples) in [(CkksParams::seal_2020(), 4000), (coarse, 4000)] {
++            let params = Arc::new(params);
++            let e = Evaluator::new(Arc::clone(&params), None, None);
++            let (mut hit, mut miss) = (0, 0);
++            let base = 1.37 * params.scale();
++            for level in 1..=params.max_level() {
++                let q = params.q()[level] as f64;
++                for k in 0..samples / params.max_level() as i64 {
++                    let t = ulp_step(base, k * 7919);
++                    let brute = (-16..=16).any(|j| ulp_step(t * q, j) / q == t);
++                    match e.exact_product_scale(level, t) {
++                        Ok(l) => {
++                            assert_eq!(l / q, t);
++                            assert!((l - t * q).abs() <= 4.0 * (ulp_step(l, 1) - l));
++                            assert!(brute);
++                            hit += 1;
++                        }
++                        Err(err) => {
++                            assert_eq!(err, HekitError::ScaleMismatch);
++                            assert!(!brute, "missed a label for {t:e}");
++                            miss += 1;
++                            let mut zero = RnsPoly::zero(params.basis_q(), level);
++                            zero.to_ntt();
++                            let a =
++                                Ciphertext::new(vec![zero.clone(), zero], params.scale()).unwrap();
++                            assert_eq!(
++                                e.mul_scalar(&a, 1.0, t).unwrap_err(),
++                                HekitError::ScaleMismatch
++                            );
++                        }
++                    }
++                }
++            }
++            eprintln!(
++                "log q = {:?}: {hit} reachable, {miss} unreachable targets",
++                params.q_bits()
++            );
++            assert!(hit > 0);
++            if params.q_bits()[1] == 20 {
++                assert!(miss > 0, "unreachable targets occur with coarse primes");
++            }
++            // Power-of-two targets are always reachable (t * q_l is exact).
++            for lv in 1..=params.max_level() {
++                for b in 20..=90 {
++                    let t = 2f64.powi(b);
++                    let q = params.q()[lv] as f64;
++                    assert_eq!(e.exact_product_scale(lv, t).unwrap(), t * q);
++                }
++            }
++        }
++    }
++
++    #[test]
++    fn mul_scalar_errors() {
++        let ctx = small();
++        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
++        let mut r = rng(63);
++        let v = rand_vals(64, 8);
++        let a = ctx.encrypt(&v, 2, &mut r);
++        let z = ctx.encrypt(&v, 0, &mut r);
++        let delta = ctx.params.scale();
++        e.reset_counter();
++        assert_eq!(
++            e.mul_scalar(&z, 1.0, delta).unwrap_err(),
++            HekitError::NoLevelsLeft
++        );
++        for bad in [f64::NAN, f64::INFINITY] {
++            assert!(matches!(
++                e.mul_scalar(&a, bad, delta),
++                Err(HekitError::InvalidParams(_))
++            ));
++        }
++        for bad in [0.0, -delta, f64::NAN, f64::INFINITY] {
++            assert!(matches!(
++                e.mul_scalar(&a, 1.0, bad),
++                Err(HekitError::InvalidParams(_))
++            ));
++        }
++        // A constant whose integer does not fit 62 bits.
++        assert!(matches!(
++            e.mul_scalar(&a, 1e9, delta * 1e9),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert!(matches!(
++            e.exact_product_scale(ctx.params.max_level() + 1, delta),
++            Err(HekitError::InvalidParams(_))
++        ));
++        let other = Ctx::new(small_params(), 65);
++        let f = other.encrypt(&v, 2, &mut r);
++        assert!(matches!(
++            e.mul_scalar(&f, 1.0, delta),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert_eq!(e.counter(), OpCounter::default(), "failures count nothing");
++    }
++
++    /// A plaintext scale below `2^20` (a target scale far below the ciphertext's scale
++    /// divided by `q_l`) would round the constant / mask to a few bits: `InvalidParams`, for
++    /// `mul_scalar`, `mul_plain_to_scale` and `target_plain_scale` alike, counting nothing.
++    #[test]
++    fn small_plaintext_scale_is_rejected() {
++        let ctx = small();
++        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
++        let mut r = rng(68);
++        let v = rand_vals(69, 8);
++        let a = ctx.encrypt(&v, 2, &mut r);
++        let q = ctx.params.q()[2] as f64;
++        e.reset_counter();
++        // Target t gives s_p = t * q / a.scale(); a.scale() = Delta.
++        let delta = ctx.params.scale();
++        let tiny = delta * 2f64.powi(19) / q; // s_p ~ 2^19
++        assert!(matches!(
++            e.mul_scalar(&a, 0.5, tiny),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert!(matches!(
++            e.target_plain_scale(&a, tiny),
++            Err(HekitError::InvalidParams(_))
++        ));
++        let sp = e.exact_product_scale(2, tiny).unwrap() / a.scale();
++        assert!(sp < 2f64.powi(20));
++        let pt = ctx.enc.encode(&v, sp, 2).unwrap();
++        assert!(matches!(
++            e.mul_plain_to_scale(&a, &pt, tiny),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert_eq!(e.counter(), OpCounter::default(), "failures count nothing");
++        // Just above the bound is accepted.
++        let ok = delta * 2f64.powi(21) / q; // s_p ~ 2^21
++        assert!(e.target_plain_scale(&a, ok).unwrap() >= 2f64.powi(20));
++        assert!(e.mul_scalar(&a, 0.5, ok).is_ok());
++    }
++
++    /// `mul_plain_to_scale` with a plaintext encoded at `target_plain_scale` gives exactly the
++    /// target after the rescale (a lane mask with a folded constant), and rejects any other
++    /// plaintext scale.
++    #[test]
++    fn mul_plain_to_scale_is_exact() {
++        let ctx = seal();
++        let e = &ctx.eval.clone(); // own counter (the shared context runs tests in parallel)
++        let mut r = rng(66);
++        let slots = ctx.params.slots();
++        let v = rand_vals(67, slots);
++        let a = ctx.encrypt(&v, 5, &mut r);
++        let sq = e.rescale(&e.mul(&a, &a).unwrap()).unwrap(); // level 4, scale ~ Delta^2/q
++        let mask: Vec<f64> = (0..slots)
++            .map(|s| if s % 8 == 0 { 0.0125 } else { 0.0 })
++            .collect();
++        for target in [ctx.params.scale(), a.scale() * 1.25] {
++            let sp = e.target_plain_scale(&sq, target).unwrap();
++            assert_eq!(sp, e.exact_product_scale(4, target).unwrap() / sq.scale());
++            let pt = ctx.enc.encode(&mask, sp, 4).unwrap();
++            e.reset_counter();
++            let p = e.mul_plain_to_scale(&sq, &pt, target).unwrap();
++            assert_eq!(e.counter().ct_pt_mults, 1);
++            let res = e.rescale(&p).unwrap();
++            assert_eq!((res.level(), res.scale()), (3, target));
++            let want: Vec<f64> = v.iter().zip(&mask).map(|(x, m)| x * x * m).collect();
++            let err = max_err(&ctx.decrypt(&res), &want);
++            assert!(err < 2f64.powi(-22), "{err:e}");
++            // Any other plaintext scale is rejected (use mul_plain for free scales).
++            let off = ctx.enc.encode(&mask, sp * (1.0 + 1e-12), 4).unwrap();
++            assert_eq!(
++                e.mul_plain_to_scale(&sq, &off, target).unwrap_err(),
++                HekitError::ScaleMismatch
++            );
++            let low = ctx.enc.encode(&mask, sp, 3).unwrap();
++            assert_eq!(
++                e.mul_plain_to_scale(&sq, &low, target).unwrap_err(),
++                HekitError::LevelMismatch
++            );
++        }
++    }
+ }
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/keys.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/keys.rs
+@@ -305,6 +305,14 @@
+     /// Number of distinct Galois keys.
+     pub fn len(&self) -> usize {
+         self.keys.len()
++    }
++
++    /// Every key, in increasing order of Galois element (e.g. for a device backend that
++    /// uploads all of them).
++    pub fn iter(&self) -> impl Iterator<Item = &GaloisKey> {
++        let mut elts: Vec<u64> = self.keys.keys().copied().collect();
++        elts.sort_unstable();
++        elts.into_iter().map(|e| &self.keys[&e])
+     }
+ 
+     /// `true` when no key was generated.
+@@ -414,65 +422,203 @@
+         self.galois_key(conjugation_elt(self.params.n()))
+     }
+ 
++    /// Sparse-secret encapsulation keys (Bossuat, Troncoso-Pastoriza, Hubaux, ACNS 2022;
++    /// controller ruling R-M3-9) for a fresh ephemeral ternary secret `s'` with exactly
++    /// `hamming_weight` nonzero coefficients (see [`SseKeys`]). `s'` itself is dropped: only
++    /// the two switching keys are kept.
++    ///
++    /// This advances the generator's random stream, so keys generated afterwards differ from
++    /// those of the same seed without the call: fix the generation order where key-derived
++    /// values are pinned (review m9).
++    ///
++    /// Errors with `InvalidParams` unless `1 <= hamming_weight <= N`.
++    pub fn sse_keys(&mut self, hamming_weight: usize) -> Result<SseKeys> {
++        self.sse_keys_with_secret(hamming_weight).map(|(k, _)| k)
++    }
++
++    /// [`KeyGenerator::sse_keys`] and the ephemeral secret (for the noise tests).
++    pub(crate) fn sse_keys_with_secret(
++        &mut self,
++        hamming_weight: usize,
++    ) -> Result<(SseKeys, SecretKey)> {
++        let n = self.params.n();
++        if hamming_weight == 0 || hamming_weight > n {
++            return Err(HekitError::InvalidParams(format!(
++                "ephemeral Hamming weight {hamming_weight} must be in 1..=N = {n}"
++            )));
++        }
++        let top = self.params.max_level();
++        let s = self
++            .rng
++            .ternary_poly(self.params.basis_q(), top, Some(hamming_weight));
++        let sparse = small_qp(self.params.basis_p(), s);
++        // s -> s': RLWE samples under s' modulo q_0 * P, one part (the level-0 digit).
++        let to_sparse = ksk_under(&mut self.rng, &self.params, &sparse, &self.sk.0.q, 0);
++        // s' -> s: a standard key modulo Q * P.
++        let to_dense = ksk_under(&mut self.rng, &self.params, &self.sk.0, &sparse.q, top);
++        Ok((
++            SseKeys {
++                hamming_weight,
++                to_sparse,
++                to_dense,
++            },
++            SecretKey(sparse),
++        ))
++    }
++
+     /// An RLWE sample `(b, a) = (-a s + e, a)` over `Q * P` (NTT form).
+     fn rlwe_sample(&mut self) -> (QpPoly, QpPoly) {
+-        let (bq, bp) = (self.params.basis_q(), self.params.basis_p());
+-        let mut aq = self.rng.uniform_poly(bq, bq.len() - 1);
+-        let mut ap = self.rng.uniform_poly(bp, bp.len() - 1);
+-        aq.to_ntt();
+-        ap.to_ntt();
+-        let e = self.rng.gaussian_poly(bq, bq.len() - 1, ERROR_STD_DEV);
+-        let e = small_qp(bp, e);
+-        let b = [(&aq, &self.sk.0.q, &e.q), (&ap, &self.sk.0.p, &e.p)].map(|(a, s, e)| {
+-            let mut b = a.clone();
+-            b.mul_assign(s);
+-            b.neg();
+-            b.add_assign(e);
+-            b
+-        });
+-        let [b_q, b_p] = b;
+-        (QpPoly::new(b_q, b_p), QpPoly::new(aq, ap))
++        let top = self.params.max_level();
++        rlwe_sample_under(&mut self.rng, &self.params, &self.sk.0, top)
+     }
+ 
+     /// The hybrid key-switching key from `s_prime` (NTT form, `Q` part at level `L`) to `s`:
+     /// part `j` is an RLWE sample with `[P]_{q_i} * s'_i` added to limb `i` of `b`'s `Q`
+     /// part for every prime `i` of digit `j` (module docs).
+     fn ksk(&mut self, s_prime: &RnsPoly) -> KskKey {
+-        let basis_q = Arc::clone(self.params.basis_q());
+-        assert!(
+-            s_prime.is_ntt_form() && s_prime.level() + 1 == basis_q.len(),
+-            "source key must be in NTT form over all data primes"
+-        );
+-        let (n, alpha) = (basis_q.n(), self.params.alpha());
+-        let specials = self.params.p().to_vec();
+-        let mut parts = Vec::with_capacity(self.params.dnum());
+-        for j in 0..self.params.dnum() {
+-            let (b, a) = self.rlwe_sample();
+-            let digit = j * alpha..(j + 1) * alpha;
+-            let limbs = basis_q
+-                .moduli()
+-                .iter()
+-                .enumerate()
+-                .map(|(i, m)| {
+-                    if digit.contains(&i) {
+-                        let q = m.value();
+-                        let p_mod = specials.iter().fold(1 % q, |acc, &p| m.mul(acc, p % q));
+-                        let s = m.shoup(p_mod);
+-                        s_prime.limbs()[i]
+-                            .iter()
+-                            .map(|&x| m.mul_shoup(x, &s))
+-                            .collect()
+-                    } else {
+-                        vec![0u64; n]
+-                    }
+-                })
+-                .collect();
+-            let gadget = RnsPoly::from_limbs(&basis_q, limbs, true).expect("reduced limbs");
+-            let (mut b_q, b_p) = b.into_parts();
+-            b_q.add_assign(&gadget);
+-            parts.push((QpPoly::new(b_q, b_p), a));
+-        }
+-        KskKey { parts }
++        let top = self.params.max_level();
++        ksk_under(&mut self.rng, &self.params, &self.sk.0, s_prime, top)
++    }
++}
++
++/// An RLWE sample `(b, a) = (-a t + e, a)` under the secret `target` modulo `Q_level * P`
++/// (NTT form; the `Q` parts have `level + 1` limbs).
++fn rlwe_sample_under(
++    rng: &mut Rng,
++    params: &CkksParams,
++    target: &QpPoly,
++    level: usize,
++) -> (QpPoly, QpPoly) {
++    let (bq, bp) = (params.basis_q(), params.basis_p());
++    let mut aq = rng.uniform_poly(bq, level);
++    let mut ap = rng.uniform_poly(bp, bp.len() - 1);
++    aq.to_ntt();
++    ap.to_ntt();
++    let e = rng.gaussian_poly(bq, level, ERROR_STD_DEV);
++    let e = small_qp(bp, e);
++    let truncated_q;
++    let tq = if level == target.q.level() {
++        &target.q
++    } else {
++        truncated_q = truncated(&target.q, level);
++        &truncated_q
++    };
++    let b = [(&aq, tq, &e.q), (&ap, &target.p, &e.p)].map(|(a, s, e)| {
++        let mut b = a.clone();
++        b.mul_assign(s);
++        b.neg();
++        b.add_assign(e);
++        b
++    });
++    let [b_q, b_p] = b;
++    (QpPoly::new(b_q, b_p), QpPoly::new(aq, ap))
++}
++
++/// The key-switching key from `s_prime` (NTT form over all data primes) to `target` modulo
++/// `Q_level * P`: the parts of the digits that start at or below `level` (all `dnum` for
++/// `level = L`), each an RLWE sample under `target` with `Q` parts at `level` and the gadget
++/// `[P]_{q_i} * s'_i` on the digit's limbs `i <= level` (module docs). A key truncated this
++/// way switches exactly the polynomials of level `<= level`.
++fn ksk_under(
++    rng: &mut Rng,
++    params: &CkksParams,
++    target: &QpPoly,
++    s_prime: &RnsPoly,
++    level: usize,
++) -> KskKey {
++    let basis_q = Arc::clone(params.basis_q());
++    assert!(
++        s_prime.is_ntt_form() && s_prime.level() + 1 == basis_q.len(),
++        "source key must be in NTT form over all data primes"
++    );
++    assert!(level < basis_q.len(), "level {level} above max_level");
++    let (n, alpha) = (basis_q.n(), params.alpha());
++    let specials = params.p();
++    let parts_count = level / alpha + 1;
++    let mut parts = Vec::with_capacity(parts_count);
++    for j in 0..parts_count {
++        let (b, a) = rlwe_sample_under(rng, params, target, level);
++        let digit = j * alpha..(j + 1) * alpha;
++        let limbs = basis_q.moduli()[..=level]
++            .iter()
++            .enumerate()
++            .map(|(i, m)| {
++                if digit.contains(&i) {
++                    let q = m.value();
++                    let p_mod = specials.iter().fold(1 % q, |acc, &p| m.mul(acc, p % q));
++                    let s = m.shoup(p_mod);
++                    s_prime.limbs()[i]
++                        .iter()
++                        .map(|&x| m.mul_shoup(x, &s))
++                        .collect()
++                } else {
++                    vec![0u64; n]
++                }
++            })
++            .collect();
++        let gadget = RnsPoly::from_limbs(&basis_q, limbs, true).expect("reduced limbs");
++        let (mut b_q, b_p) = b.into_parts();
++        b_q.add_assign(&gadget);
++        parts.push((QpPoly::new(b_q, b_p), a));
++    }
++    KskKey { parts }
++}
++
++/// The two switching keys of sparse-secret encapsulation (SSE; Bossuat, Troncoso-Pastoriza,
++/// Hubaux, ACNS 2022), used by [`Evaluator::mod_raise`](crate::Evaluator::mod_raise):
++///
++/// * `to_sparse`: from the main key `s` to an ephemeral ternary key `s'` of Hamming weight
++///   `h'` ([`SseKeys::hamming_weight`]), **modulo `q_0 * P` only** (one part: the level-0
++///   digit, `Q` parts with one limb). It switches level-0 ciphertexts only; its RLWE samples
++///   are under the sparse `s'` with modulus `q_0 P` (log 294 for n16_boot), the instance
++///   docs/bootstrap.md §8 (b) gives to the security estimate.
++/// * `to_dense`: from `s'` back to `s`, a standard key modulo `Q * P` (`dnum` parts, RLWE
++///   under the dense main key).
++///
++/// The mod-raise runs under `s'`, so the overflow `I` has `sigma_I = sqrt((h' + 1) / 12)`
++/// instead of `sqrt((N/2 + 1) / 12)` (docs/bootstrap.md §3). Task 38's bootstrapping keys
++/// embed this struct. `Debug` prints the shape only.
++#[derive(Clone)]
++pub struct SseKeys {
++    hamming_weight: usize,
++    to_sparse: KskKey,
++    to_dense: KskKey,
++}
++
++impl std::fmt::Debug for SseKeys {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        f.debug_struct("SseKeys")
++            .field("hamming_weight", &self.hamming_weight)
++            .field("to_sparse_parts", &self.to_sparse.dnum())
++            .field("to_dense_parts", &self.to_dense.dnum())
++            .finish()
++    }
++}
++
++impl SseKeys {
++    /// Assembles keys from parts (tests of the shape checks).
++    #[cfg(test)]
++    pub(crate) fn from_parts(hamming_weight: usize, to_sparse: KskKey, to_dense: KskKey) -> Self {
++        SseKeys {
++            hamming_weight,
++            to_sparse,
++            to_dense,
++        }
++    }
++
++    /// The Hamming weight `h'` of the ephemeral key.
++    pub fn hamming_weight(&self) -> usize {
++        self.hamming_weight
++    }
++
++    /// The key from `s` to `s'` modulo `q_0 * P` (one part, level-0 `Q` parts).
++    pub fn to_sparse(&self) -> &KskKey {
++        &self.to_sparse
++    }
++
++    /// The key from `s'` to `s` modulo `Q * P` (`dnum` parts).
++    pub fn to_dense(&self) -> &KskKey {
++        &self.to_dense
+     }
+ }
+ 
+@@ -517,6 +663,24 @@
+     use super::*;
+     use crate::encrypt::{Decryptor, Encryptor};
+     use crate::{Ciphertext, Encoder};
++
++    /// `GaloisKeys::iter` lists every key once, by increasing element (Task 47: device
++    /// uploads enumerate the keys).
++    #[test]
++    fn galois_keys_iter() {
++        let p = Arc::new(CkksParams::new(10, &[50, 40], &[50], 40, 2).unwrap());
++        let mut kg = KeyGenerator::new(Arc::clone(&p), rng(7)).unwrap();
++        let mut gks = kg.galois_keys(&[3, 1, 2, 1 + 512]);
++        gks.insert(kg.conjugation_key());
++        let elts: Vec<u64> = gks.iter().map(GaloisKey::elt).collect();
++        assert_eq!(elts.len(), gks.len());
++        assert_eq!(elts.len(), 4); // 1 and 1 + N/2 share a key
++        assert!(elts.windows(2).all(|w| w[0] < w[1]));
++        for s in [1, 2, 3] {
++            assert!(elts.contains(&galois_elt(p.n(), s)));
++        }
++        assert!(elts.contains(&conjugation_elt(p.n())));
++    }
+ 
+     fn rng(seed: u8) -> Rng {
+         Rng::from_seed([seed; 32])
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/keyswitch.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/keyswitch.rs
+@@ -106,9 +106,10 @@
+     let l = poly.level();
+     assert!(l <= params.max_level(), "level {l} above max_level");
+     let bp = params.basis_p();
+-    digit_ranges(params, l)
+-        .into_iter()
+-        .map(|digit| match lift {
++    // The digits are independent (in parallel with the `parallel` feature, crate::par).
++    crate::par::map_slice(&digit_ranges(params, l), |digit| {
++        let digit = digit.clone();
++        match lift {
+             Lift::Exact => lift_digit_exact(poly, digit, bp),
+             Lift::CenteredFast => {
+                 let (q, p) = poly.mod_up_digit_centered(digit, bp);
+@@ -118,8 +119,8 @@
+                 let (q, p) = poly.mod_up_digit(digit, bp);
+                 QpPoly::new(q, p)
+             }
+-        })
+-        .collect()
++        }
++    })
+ }
+ 
+ /// The exact centered lift of the digit `digit` of `poly` (NTT form) to `Q_l * P`: the
+@@ -254,51 +255,52 @@
+     // u128 sums of the products, reduced once per coefficient as hi * [2^64]_m + lo via two
+     // Shoup products, which accept any u64). Each product is <= (m - 1)^2, so the sum fits
+     // in u128 when digits.len() * (m - 1)^2 <= u128::MAX (>= 256 digits for 60-bit primes).
+-    let inner = |basis: &Arc<RnsBasis>, limbs: usize, pick: &dyn Fn(&QpPoly) -> &RnsPoly| {
+-        let n = params.n();
+-        let (mut out_b, mut out_a) = (Vec::with_capacity(limbs), Vec::with_capacity(limbs));
+-        let (mut acc_b, mut acc_a) = (vec![0u128; n], vec![0u128; n]);
+-        for (i, m) in basis.moduli()[..limbs].iter().enumerate() {
+-            let max = (m.value() - 1) as u128;
+-            assert!(
+-                (digits.len() as u128) <= u128::MAX / (max * max).max(1),
+-                "too many digits for lazy reduction"
+-            );
+-            acc_b.fill(0);
+-            acc_a.fill(0);
+-            for (d, (b, a)) in digits.iter().zip(parts) {
+-                let (dl, bl, al) = (
+-                    &pick(d).limbs()[i],
+-                    &pick(b).limbs()[i],
+-                    &pick(a).limbs()[i],
++    // The limbs are independent (in parallel with the `parallel` feature, crate::par).
++    let inner =
++        |basis: &Arc<RnsBasis>, limbs: usize, pick: &(dyn Fn(&QpPoly) -> &RnsPoly + Sync)| {
++            let n = params.n();
++            let per_limb = |i: usize| {
++                let m = &basis.moduli()[i];
++                let max = (m.value() - 1) as u128;
++                assert!(
++                    (digits.len() as u128) <= u128::MAX / (max * max).max(1),
++                    "too many digits for lazy reduction"
+                 );
+-                for ((xb, xa), (&x, (&yb, &ya))) in acc_b
+-                    .iter_mut()
+-                    .zip(acc_a.iter_mut())
+-                    .zip(dl.iter().zip(bl.iter().zip(al)))
+-                {
+-                    *xb += x as u128 * yb as u128;
+-                    *xa += x as u128 * ya as u128;
++                let (mut acc_b, mut acc_a) = (vec![0u128; n], vec![0u128; n]);
++                for (d, (b, a)) in digits.iter().zip(parts) {
++                    let (dl, bl, al) = (
++                        &pick(d).limbs()[i],
++                        &pick(b).limbs()[i],
++                        &pick(a).limbs()[i],
++                    );
++                    for ((xb, xa), (&x, (&yb, &ya))) in acc_b
++                        .iter_mut()
++                        .zip(acc_a.iter_mut())
++                        .zip(dl.iter().zip(bl.iter().zip(al)))
++                    {
++                        *xb += x as u128 * yb as u128;
++                        *xa += x as u128 * ya as u128;
++                    }
+                 }
+-            }
+-            let two64 = m.shoup(((1u128 << 64) % m.value() as u128) as u64);
+-            let one = m.shoup(1);
+-            let reduce = |acc: &[u128]| -> Vec<u64> {
+-                acc.iter()
+-                    .map(|&s| {
+-                        m.add(
+-                            m.mul_shoup((s >> 64) as u64, &two64),
+-                            m.mul_shoup(s as u64, &one),
+-                        )
+-                    })
+-                    .collect()
++                let two64 = m.shoup(((1u128 << 64) % m.value() as u128) as u64);
++                let one = m.shoup(1);
++                let reduce = |acc: &[u128]| -> Vec<u64> {
++                    acc.iter()
++                        .map(|&s| {
++                            m.add(
++                                m.mul_shoup((s >> 64) as u64, &two64),
++                                m.mul_shoup(s as u64, &one),
++                            )
++                        })
++                        .collect()
++                };
++                (reduce(&acc_b), reduce(&acc_a))
+             };
+-            out_b.push(reduce(&acc_b));
+-            out_a.push(reduce(&acc_a));
+-        }
+-        let wrap = |limbs| RnsPoly::from_limbs(basis, limbs, true).expect("reduced limbs");
+-        (wrap(out_b), wrap(out_a))
+-    };
++            let (out_b, out_a): (Vec<_>, Vec<_>) =
++                crate::par::map_range(limbs, per_limb).into_iter().unzip();
++            let wrap = |limbs| RnsPoly::from_limbs(basis, limbs, true).expect("reduced limbs");
++            (wrap(out_b), wrap(out_a))
++        };
+     let (mut bq, mut aq) = inner(basis_q, l + 1, &|x: &QpPoly| x.q());
+     let (bp, ap) = inner(basis_p, basis_p.len(), &|x: &QpPoly| x.p());
+     bq.mod_down(&bp);
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/lib.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/lib.rs
+@@ -1,6 +1,7 @@
+ //! ckks-train-ckks: RNS-CKKS scheme built on ckks-train-core (temporary crate name).
+ #![deny(missing_docs)]
+ 
++pub mod bootstrap;
+ pub mod ciphertext;
+ pub mod counter;
+ pub mod encoder;
+@@ -9,6 +10,9 @@
+ pub mod keys;
+ pub mod keyswitch;
+ pub mod linalg;
++pub mod metadata;
++pub mod ops;
++mod par;
+ pub mod params;
+ pub mod plaintext;
+ pub mod precision;
+@@ -20,10 +24,12 @@
+ pub use encrypt::{Decryptor, Encryptor};
+ pub use evaluator::Evaluator;
+ pub use keys::{
+-    GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey,
++    GaloisKey, GaloisKeys, KeyGenerator, KskKey, PublicKey, QpPoly, RelinKey, SecretKey, SseKeys,
+ };
+ pub use linalg::{
+-    DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_split, diagonals_from_matrix,
++    DiagonalEntry, Diagonals, bsgs_rotation_steps, bsgs_rotation_steps_with_offset, bsgs_split,
++    diagonals_from_matrix,
+ };
++pub use ops::{BootstrapOps, EvalConfig, HeCiphertext, HeOps, HostBootstrapper};
+ pub use params::CkksParams;
+ pub use plaintext::Plaintext;
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/linalg.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/linalg.rs
+@@ -36,6 +36,15 @@
+ //! [`bsgs_rotation_steps`]`(d, stride)` (`k2 * s` for `k2 in 1..baby` and `g * k1 * s` for
+ //! `k1 in 1..giant`).
+ //!
++//! # Offsets (diagonals of negative index)
++//!
++//! A sparse matrix whose nonzero diagonals are `i * stride` for `i` in a window
++//! `offset..offset + d` around 0 (the merged butterfly stages of the bootstrapping DFT,
++//! [`crate::bootstrap::linear`]) uses an `offset` in `-d < offset <= 0`: entry
++//! `k1 * baby + k2` is then diagonal `offset + g k1 + k2` rotated by `-(offset + g k1) s`, and
++//! the giant steps are `(offset + g k1) * s` (a zero giant step costs no rotation), see
++//! [`bsgs_rotation_steps_with_offset`]. `offset = 0` is the layout above.
++//!
+ //! # Levels and scales
+ //!
+ //! All entries are encoded (or encrypted) at one `scale` and `level`; that level must equal
+@@ -54,6 +63,7 @@
+ //! product returns its error without having counted anything ([`crate::counter`]).
+ 
+ use ndarray::Array2;
++use num_complex::Complex64;
+ 
+ use ckks_train_core::error::{HekitError, Result};
+ use ckks_train_core::sampler::Rng;
+@@ -62,18 +72,15 @@
+ use crate::encoder::Encoder;
+ use crate::encrypt::Encryptor;
+ use crate::evaluator::Evaluator;
++use crate::ops::HeOps;
+ use crate::plaintext::Plaintext;
+ 
+-mod sealed {
+-    pub trait Sealed {}
+-    impl Sealed for crate::plaintext::Plaintext {}
+-    impl Sealed for crate::ciphertext::Ciphertext {}
+-}
+-
+-/// An entry type of [`Diagonals`] usable by the products: [`Plaintext`] or [`Ciphertext`]
+-/// (sealed). Gives the level, scale and slot count that [`Diagonals::from_prerotated`] and
+-/// the products validate.
+-pub trait DiagonalEntry: sealed::Sealed {
++/// The metadata of an entry type of [`Diagonals`]: its level, scale and slot count, which
++/// [`Diagonals::from_prerotated`] and the products validate. Implemented by [`Plaintext`] and
++/// [`Ciphertext`], and by the device types of other backends
++/// ([`crate::ops::HeOps::Ct`] / [`crate::ops::HeOps::Pt`]); not sealed since Task 43, so a
++/// backend crate can implement it.
++pub trait DiagonalEntry {
+     /// The level of the entry.
+     fn level(&self) -> usize;
+     /// The scale of the entry.
+@@ -120,6 +127,7 @@
+     baby: usize,
+     giant: usize,
+     stride: usize,
++    offset: i64,
+     entries: Vec<T>,
+ }
+ 
+@@ -143,6 +151,13 @@
+     /// packed per block of `d * stride` slots); 1 for the classic replicated layout.
+     pub fn stride(&self) -> usize {
+         self.stride
++    }
++
++    /// The diagonal index of entry 0, in `-d < offset <= 0` (0 except for
++    /// [`Diagonals::from_prerotated_with_offset`] and [`Diagonals::encode_complex`]; see the
++    /// [module docs](self)).
++    pub fn offset(&self) -> i64 {
++        self.offset
+     }
+ 
+     /// The `d` pre-rotated diagonals, `entries[k1 * baby + k2]`.
+@@ -173,14 +188,33 @@
+             baby: self.baby,
+             giant: self.giant,
+             stride: self.stride,
++            offset: self.offset,
+             entries: self.entries.iter().map(f).collect::<Result<Vec<_>>>()?,
+         })
+     }
+ 
++    /// [`Diagonals::try_map`] by value: `f` takes each entry (e.g. a move to another backend);
++    /// `d`, the split, the stride and the offset are kept.
++    pub fn try_map_owned<U>(self, f: impl FnMut(T) -> Result<U>) -> Result<Diagonals<U>> {
++        Ok(Diagonals {
++            d: self.d,
++            baby: self.baby,
++            giant: self.giant,
++            stride: self.stride,
++            offset: self.offset,
++            entries: self
++                .entries
++                .into_iter()
++                .map(f)
++                .collect::<Result<Vec<_>>>()?,
++        })
++    }
++
+     /// The rotation steps whose Galois keys the products need:
+-    /// [`bsgs_rotation_steps`]`(d, stride)`.
++    /// [`bsgs_rotation_steps_with_offset`]`(d, stride, offset)` (that is
++    /// [`bsgs_rotation_steps`]`(d, stride)` for offset 0).
+     pub fn rotation_steps(&self) -> Vec<i32> {
+-        bsgs_rotation_steps(self.d, self.stride)
++        bsgs_rotation_steps_with_offset(self.d, self.stride, self.offset)
+     }
+ }
+ 
+@@ -194,6 +228,20 @@
+     /// entries are not all at one level; `ScaleMismatch` if their scales are not all
+     /// exactly equal.
+     pub fn from_prerotated(d: usize, stride: usize, entries: Vec<T>) -> Result<Diagonals<T>> {
++        Self::from_prerotated_with_offset(d, stride, 0, entries)
++    }
++
++    /// [`Diagonals::from_prerotated`] for diagonals `offset..offset + d` (see the
++    /// [module docs](self)): `entries[k1 * baby + k2]` = `rot(diag_{offset + g k1 + k2},
++    /// -(offset + g k1) stride)`. Errors as [`Diagonals::from_prerotated`], and
++    /// `InvalidParams` unless `-d < offset <= 0`.
++    pub fn from_prerotated_with_offset(
++        d: usize,
++        stride: usize,
++        offset: i64,
++        entries: Vec<T>,
++    ) -> Result<Diagonals<T>> {
++        check_offset(d, offset)?;
+         if !d.is_power_of_two() || entries.len() != d {
+             return Err(HekitError::InvalidParams(format!(
+                 "{} entries for d = {d} (d must be a power of two, one entry per diagonal)",
+@@ -208,6 +256,7 @@
+             baby,
+             giant,
+             stride,
++            offset,
+             entries,
+         })
+     }
+@@ -230,7 +279,7 @@
+         scale: f64,
+         level: usize,
+     ) -> Result<Diagonals<Plaintext>> {
+-        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride)?;
++        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, 0)?;
+         let entries = pre
+             .iter()
+             .map(|v| encoder.encode(v, scale, level))
+@@ -240,8 +289,92 @@
+             baby,
+             giant,
+             stride,
++            offset: 0,
+             entries,
+         })
++    }
++
++    /// Complex diagonals `offset..offset + d` (`diagonals[i]` is diagonal `offset + i`: slot
++    /// `t` multiplies `x[(t + (offset + i) stride) mod slots]`), pre-rotated and encoded with
++    /// [`Encoder::encode_complex`] at `scale` and `level` (see the [module docs](self)).
++    ///
++    /// Errors as [`Diagonals::<Plaintext>::encode`], and `InvalidParams` unless
++    /// `-d < offset <= 0`.
++    pub fn encode_complex(
++        encoder: &Encoder,
++        diagonals: &[Vec<Complex64>],
++        stride: usize,
++        offset: i64,
++        scale: f64,
++        level: usize,
++    ) -> Result<Diagonals<Plaintext>> {
++        check_offset(diagonals.len(), offset)?;
++        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, offset)?;
++        let entries = pre
++            .iter()
++            .map(|v| encoder.encode_complex(v, scale, level))
++            .collect::<Result<Vec<_>>>()?;
++        Ok(Diagonals {
++            d: diagonals.len(),
++            baby,
++            giant,
++            stride,
++            offset,
++            entries,
++        })
++    }
++}
++
++impl Diagonals<Option<Plaintext>> {
++    /// [`Diagonals::<Plaintext>::encode_complex`] that stores no plaintext for an all-zero
++    /// (pre-rotated) diagonal: such entries are `None`. Used by the bootstrapping DFT stages
++    /// ([`crate::bootstrap::linear`]), where about one diagonal in six is zero (at n16_boot a
++    /// plaintext at the CoeffToSlot levels is 16 MB). Errors as `encode_complex`, and
++    /// `InvalidParams` if every diagonal is zero.
++    pub fn encode_complex_sparse(
++        encoder: &Encoder,
++        diagonals: &[Vec<Complex64>],
++        stride: usize,
++        offset: i64,
++        scale: f64,
++        level: usize,
++    ) -> Result<Diagonals<Option<Plaintext>>> {
++        check_offset(diagonals.len(), offset)?;
++        let (baby, giant, pre) = prerotated(diagonals, encoder.params().slots(), stride, offset)?;
++        let zero = Complex64::new(0.0, 0.0);
++        let entries = pre
++            .iter()
++            .map(|v| {
++                if v.iter().all(|&x| x == zero) {
++                    Ok(None)
++                } else {
++                    encoder.encode_complex(v, scale, level).map(Some)
++                }
++            })
++            .collect::<Result<Vec<_>>>()?;
++        if entries.iter().all(Option::is_none) {
++            return Err(HekitError::InvalidParams(
++                "every diagonal is zero (nothing to encode)".into(),
++            ));
++        }
++        Ok(Diagonals {
++            d: diagonals.len(),
++            baby,
++            giant,
++            stride,
++            offset,
++            entries,
++        })
++    }
++
++    /// The common scale of the encoded entries (`None` if every entry is `None`).
++    pub fn plain_scale(&self) -> Option<f64> {
++        self.entries.iter().flatten().next().map(Plaintext::scale)
++    }
++
++    /// The number of encoded (nonzero) entries.
++    pub fn nonzero(&self) -> usize {
++        self.entries.iter().flatten().count()
+     }
+ }
+ 
+@@ -261,17 +394,20 @@
+         let pts = Diagonals::<Plaintext>::encode(encoder, diagonals, stride, scale, level)?;
+         pts.try_map(|p| Ok(encryptor.encrypt(p, rng)))
+     }
+-
+-    /// Every entry switched down to `level` ([`Evaluator::mod_switch_to_level`]: primes
+-    /// dropped, scale unchanged), e.g. to multiply an `x` that has been rescaled.
++}
++
++impl<C> Diagonals<C> {
++    /// Every entry switched down to `level` ([`HeOps::mod_switch_to_level`]: primes dropped,
++    /// scale unchanged), e.g. to multiply an `x` that has been rescaled. Generic over the
++    /// backend since Task 43 (`C` = [`Ciphertext`] for the CPU [`Evaluator`]).
+     ///
+     /// Errors as [`Evaluator::mod_switch_to_level`] (`InvalidParams` for `level` above the
+     /// entries' level or entries not over `eval`'s basis).
+-    pub fn mod_switch_to_level(
++    pub fn mod_switch_to_level<E: HeOps<Ct = C>>(
+         &self,
+-        eval: &Evaluator,
++        eval: &E,
+         level: usize,
+-    ) -> Result<Diagonals<Ciphertext>> {
++    ) -> Result<Diagonals<C>> {
+         self.try_map(|ct| eval.mod_switch_to_level(ct, level))
+     }
+ }
+@@ -295,18 +431,61 @@
+ /// # Panics
+ /// If `d` is not a power of two, `stride == 0`, or `d * stride` exceeds `i32::MAX`.
+ pub fn bsgs_rotation_steps(d: usize, stride: usize) -> Vec<i32> {
+-    let (baby, giant) = bsgs_split(d);
++    bsgs_rotation_steps_iter(d, stride).collect()
++}
++
++// Eager validation retains the public panic order; no throwaway Vec is constructed.
++fn rotation_shape(d: usize, stride: usize) -> (usize, usize) {
++    let shape = bsgs_split(d);
+     assert!(stride > 0, "stride must be positive");
+     assert!(
+         d.checked_mul(stride)
+             .is_some_and(|n| n <= i32::MAX as usize),
+         "d * stride = {d} * {stride} overflows a rotation step"
+     );
++    shape
++}
++
++/// Allocation-free offset-zero steps, with the same eager validation as the public helper.
++pub(crate) fn bsgs_rotation_steps_iter(d: usize, stride: usize) -> impl Iterator<Item = i32> {
++    let (baby, giant) = rotation_shape(d, stride);
+     (1..baby)
+-        .map(|k2| k2 * stride)
+-        .chain((1..giant).map(|k1| baby * k1 * stride))
++        .map(move |k2| k2 * stride)
++        .chain((1..giant).map(move |k1| baby * k1 * stride))
+         .map(|s| s as i32)
+-        .collect()
++}
++
++/// [`bsgs_rotation_steps`] for diagonals `offset..offset + d` (`-d < offset <= 0`, see the
++/// [module docs](self)): the baby steps `k2 * stride` for `k2 = 1, ..., baby - 1`, then the
++/// nonzero giant steps `(offset + baby * k1) * stride` for `k1 = 0, ..., giant - 1` (negative
++/// for the diagonals left of 0). `offset = 0` gives [`bsgs_rotation_steps`].
++///
++/// # Panics
++/// As [`bsgs_rotation_steps`], and unless `-d < offset <= 0`.
++pub fn bsgs_rotation_steps_with_offset(d: usize, stride: usize, offset: i64) -> Vec<i32> {
++    bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect()
++}
++
++/// Allocation-free full-shape steps. Metadata calls only after typed shape preflight.
++pub(crate) fn bsgs_rotation_steps_with_offset_iter(
++    d: usize,
++    stride: usize,
++    offset: i64,
++) -> impl Iterator<Item = i32> {
++    assert!(
++        check_offset(d, offset).is_ok(),
++        "offset {offset} outside -d < offset <= 0 for d = {d}"
++    );
++    let (baby, giant) = rotation_shape(d, stride);
++    let s = stride as i64;
++    (1..baby as i64)
++        .map(move |k2| k2 * s)
++        .chain(
++            (0..giant as i64)
++                .map(move |k1| (offset + baby as i64 * k1) * s)
++                .filter(|&g| g != 0),
++        )
++        .map(|v| v as i32)
+ }
+ 
+ /// The `d` generalized diagonals of the square matrix `w` laid out for `slots` slots with
+@@ -350,6 +529,17 @@
+     }
+ }
+ 
++/// `InvalidParams` unless `-d < offset <= 0`.
++fn check_offset(d: usize, offset: i64) -> Result<()> {
++    if offset <= 0 && offset > -(d as i64) {
++        Ok(())
++    } else {
++        Err(HekitError::InvalidParams(format!(
++            "diagonal offset {offset} outside -d < offset <= 0 for d = {d}"
++        )))
++    }
++}
++
+ /// `LevelMismatch` / `ScaleMismatch` unless all entries share one level and one scale
+ /// (exactly).
+ fn check_entries<T: DiagonalEntry>(entries: &[T]) -> Result<()> {
+@@ -366,12 +556,14 @@
+ }
+ 
+ /// Checks `diagonals` and returns `(baby, giant, pre)` with `pre[k1 * baby + k2]` =
+-/// `rot(diagonals[g k1 + k2], -g k1 stride)` (`g = baby`, rotation over all `slots`).
+-fn prerotated(
+-    diagonals: &[Vec<f64>],
++/// `rot(diagonals[g k1 + k2], -(offset + g k1) stride)` (`g = baby`, rotation over all
++/// `slots`; `diagonals[i]` is diagonal `offset + i`).
++fn prerotated<V: Copy>(
++    diagonals: &[Vec<V>],
+     slots: usize,
+     stride: usize,
+-) -> Result<(usize, usize, Vec<Vec<f64>>)> {
++    offset: i64,
++) -> Result<(usize, usize, Vec<Vec<V>>)> {
+     let d = diagonals.len();
+     if !d.is_power_of_two() {
+         return Err(HekitError::InvalidParams(format!(
+@@ -388,7 +580,8 @@
+     let (baby, giant) = bsgs_split(d);
+     let mut pre = Vec::with_capacity(d);
+     for k1 in 0..giant {
+-        let shift = (baby * k1 * stride) % slots;
++        let shift = ((offset + (baby * k1) as i64) * stride as i64).rem_euclid(slots as i64);
++        let shift = shift as usize;
+         for k2 in 0..baby {
+             let v = &diagonals[baby * k1 + k2];
+             // rot(v, -shift)[j] = v[(j - shift) mod slots].
+@@ -402,8 +595,10 @@
+     /// `W x` for plaintext diagonals of `W` (BSGS, see the [module docs](crate::linalg)).
+     ///
+     /// Costs `d` [`Evaluator::mul_plain`], `baby + giant - 2` rotations (`baby - 1` of them
+-    /// hoisted) and no relinearization. Returns the unrescaled product: level `x.level()`,
+-    /// scale `x.scale() * entry scale`.
++    /// hoisted; one more giant rotation for an offset that is not a multiple of `baby`) and no
++    /// relinearization. With [`crate::ops::EvalConfig::bsgs`] off: `d - 1` rotations (offset
++    /// 0); with `hoist` off the baby rotations are individual (same count). Returns the
++    /// unrescaled product: level `x.level()`, scale `x.scale() * entry scale`.
+     ///
+     /// Errors, all reported before any work: `InvalidParams` if `x` is not a 2-component
+     /// ciphertext over this evaluator's basis, an entry is not over it, `d * stride` does
+@@ -416,7 +611,13 @@
+             self.check_basis(std::slice::from_ref(p.poly()))?;
+         }
+         self.check_bsgs(diag, x)?;
+-        self.bsgs(diag, x, |w, xr| self.mul_plain(xr, w), Ok)
++        self.bsgs(
++            &[(diag, x)],
++            self.config().bsgs,
++            |_| false,
++            |w, xr| self.mul_plain(xr, w),
++            Ok,
++        )
+     }
+ 
+     /// `W x` for encrypted diagonals of `W` (BSGS, see the [module docs](crate::linalg)).
+@@ -425,7 +626,11 @@
+     /// degree 2 and relinearized once before the giant rotation: `d` tensor products, `giant`
+     /// relinearizations (one per giant step, including step 0) and `baby + giant - 2`
+     /// rotations (`baby - 1` of them hoisted). Returns the unrescaled product: 2 components,
+-    /// level `x.level()`, scale `x.scale() * entry scale`.
++    /// level `x.level()`, scale `x.scale() * entry scale`. Those are the default flags; the
++    /// counts under [`crate::ops::EvalConfig`] are
++    /// [`EvalConfig::matvec_rotations`](crate::ops::EvalConfig::matvec_rotations) and
++    /// [`EvalConfig::matvec_enc_relins`](crate::ops::EvalConfig::matvec_enc_relins) (`lazy_relin`
++    /// off: one [`Evaluator::mul`] per product).
+     ///
+     /// Errors, all reported before any work: those of [`Evaluator::matvec_plain`] (with
+     /// entries that must also be 2-component ciphertexts), `NoLevelsLeft` at level 0, and
+@@ -440,12 +645,23 @@
+             return Err(HekitError::NoLevelsLeft);
+         }
+         self.relin_key_checked()?;
+-        self.bsgs(
+-            diag,
+-            x,
+-            |w, xr| self.mul_no_relin(w, xr),
+-            |ct| self.relinearize(&ct),
+-        )
++        if self.config().lazy_relin {
++            self.bsgs(
++                &[(diag, x)],
++                self.config().bsgs,
++                |_| false,
++                |w, xr| self.mul_no_relin(w, xr),
++                |ct| self.relinearize(&ct),
++            )
++        } else {
++            self.bsgs(
++                &[(diag, x)],
++                self.config().bsgs,
++                |_| false,
++                |w, xr| self.mul(w, xr),
++                Ok,
++            )
++        }
+     }
+ 
+     /// The checks shared by both products: entry levels (`== x.level()`) and scales, the
+@@ -459,41 +675,221 @@
+         self.check_rotation_keys(&diag.rotation_steps())
+     }
+ 
+-    /// `sum_{k1} rot(finish(sum_{k2} mul(entries[k1 baby + k2], rot(x, k2 s))), g k1 s)`.
+-    /// The callers have validated everything, so no step fails part-way.
+-    fn bsgs<T>(
++    /// `sum_t W_t x_t` for several plaintext-diagonal products of one shape, with the giant
++    /// rotations shared: per giant step the baby products of every term are summed before the
++    /// one giant rotation. Entries that are the zero polynomial (all limbs 0, e.g. the masked
++    /// half of a parity-split matrix) are skipped, and so is a baby rotation of `x_t` that no
++    /// nonzero entry of term `t` uses. Used by the two-input stages of
++    /// [`crate::bootstrap::linear`].
++    ///
++    /// Costs one [`Evaluator::mul_plain`] per nonzero entry, at most
++    /// `terms.len() * (baby - 1)` hoisted baby rotations and at most `giant - 1` giant
++    /// rotations (a giant step whose entries are all zero, or whose shift is 0, costs none).
++    /// Returns the unrescaled sum: level and scale of each `x_t.scale() * entry scale`.
++    ///
++    /// Errors, all before any work: those of [`Evaluator::matvec_plain`] for every term;
++    /// `InvalidParams` if `terms` is empty or the diagonals differ in `d`, `stride` or
++    /// `offset`; `LevelMismatch` if the `x_t` differ in level; `ScaleMismatch` unless every
++    /// `x_t` has exactly the scale of `x_0` and every entry exactly the scale of the first
++    /// term's entries (so all products have one scale).
++    pub fn matvec_plain_sum(
+         &self,
+-        diag: &Diagonals<T>,
+-        x: &Ciphertext,
+-        mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext>,
+-        finish: impl Fn(Ciphertext) -> Result<Ciphertext>,
++        terms: &[(&Diagonals<Plaintext>, &Ciphertext)],
+     ) -> Result<Ciphertext> {
+-        let (baby, giant, stride) = (diag.baby, diag.giant, diag.stride);
+-        let baby_steps: Vec<i32> = (0..baby).map(|k2| (k2 * stride) as i32).collect();
+-        // Step 0 is a copy (no key switch, not counted).
+-        let xs = self.hoisted_rotate(x, &baby_steps)?;
++        let Some(&(d0, x0)) = terms.first() else {
++            return Err(HekitError::InvalidParams(
++                "matvec_plain_sum needs at least one term".into(),
++            ));
++        };
++        for &(diag, x) in terms {
++            self.check_galois_input(x)?;
++            for p in diag.entries() {
++                self.check_basis(std::slice::from_ref(p.poly()))?;
++            }
++            if (diag.d, diag.stride, diag.offset) != (d0.d, d0.stride, d0.offset) {
++                return Err(HekitError::InvalidParams(
++                    "matvec_plain_sum terms must share d, stride and offset".into(),
++                ));
++            }
++            if x.level() != x0.level() {
++                return Err(HekitError::LevelMismatch);
++            }
++            self.check_bsgs(diag, x)?;
++            if x.scale() != x0.scale() || diag.entries[0].scale() != d0.entries[0].scale() {
++                return Err(HekitError::ScaleMismatch);
++            }
++        }
++        self.bsgs(
++            terms,
++            self.config().bsgs,
++            is_zero_plaintext,
++            |w, xr| self.mul_plain(xr, w),
++            Ok,
++        )
++    }
++
++    /// [`Evaluator::matvec_plain_sum`] for diagonals whose zero entries are not stored
++    /// ([`Diagonals::<Option<Plaintext>>::encode_complex_sparse`]): `None` entries are
++    /// skipped exactly as zero plaintexts are there, with the same costs and result.
++    ///
++    /// Errors, all before any work: `InvalidParams` if `terms` is empty, an `x_t` is not a
++    /// 2-component ciphertext over this evaluator's basis, an entry is not over the basis,
++    /// the diagonals differ in `d`, `stride` or `offset`, the stride does not fit, a term has
++    /// no entry at all, or a Galois key is missing; `LevelMismatch` if the `x_t` or the
++    /// entries differ in level; `ScaleMismatch` unless every `x_t` has exactly the scale of
++    /// `x_0` and every entry exactly one common scale.
++    pub fn matvec_plain_sum_sparse(
++        &self,
++        terms: &[(&Diagonals<Option<Plaintext>>, &Ciphertext)],
++    ) -> Result<Ciphertext> {
++        let Some(&(d0, x0)) = terms.first() else {
++            return Err(HekitError::InvalidParams(
++                "matvec_plain_sum_sparse needs at least one term".into(),
++            ));
++        };
++        let sp = d0.plain_scale();
++        for &(diag, x) in terms {
++            self.check_galois_input(x)?;
++            if (diag.d, diag.stride, diag.offset) != (d0.d, d0.stride, d0.offset) {
++                return Err(HekitError::InvalidParams(
++                    "matvec_plain_sum_sparse terms must share d, stride and offset".into(),
++                ));
++            }
++            if diag.nonzero() == 0 {
++                return Err(HekitError::InvalidParams(
++                    "a term of matvec_plain_sum_sparse has no nonzero diagonal".into(),
++                ));
++            }
++            for p in diag.entries.iter().flatten() {
++                self.check_basis(std::slice::from_ref(p.poly()))?;
++                if p.level() != x.level() {
++                    return Err(HekitError::LevelMismatch);
++                }
++                if Some(p.scale()) != sp {
++                    return Err(HekitError::ScaleMismatch);
++                }
++            }
++            if x.level() != x0.level() {
++                return Err(HekitError::LevelMismatch);
++            }
++            if x.scale() != x0.scale() {
++                return Err(HekitError::ScaleMismatch);
++            }
++            check_stride(diag.d(), diag.stride(), self.params().slots())?;
++            self.check_rotation_keys(&diag.rotation_steps())?;
++        }
++        self.bsgs(
++            terms,
++            self.config().bsgs,
++            Option::is_none,
++            |w, xr| self.mul_plain(xr, w.as_ref().expect("skipped if None")),
++            Ok,
++        )
++    }
++
++    /// `sum_{k1} rot(finish(sum_t sum_{k2} mul(entries_t[k1 baby + k2], rot(x_t, k2 s))),
++    /// (offset + g k1) s)`, skipping the entries for which `skip` holds (and the baby
++    /// rotations and giant blocks only they would use). All terms share one shape. The
++    /// callers have validated everything, so no step fails part-way.
++    ///
++    /// With `share_giant == false` ([`crate::ops::EvalConfig::bsgs`] off, the RQ3 ablation)
++    /// the giant rotation is not shared: every kept product with a nonzero giant shift is finished and
++    /// rotated on its own, `rot(finish(mul(entry, rot(x_t, k2 s))), (offset + g k1) s)`, and
++    /// only the products of a zero shift are summed before one `finish`. Same keys, same
++    /// value; for `offset = 0` and no skipped entry that is `d - 1` rotations (`baby - 1`
++    /// baby, `d - baby` product rotations) instead of `baby + giant - 2`.
++    fn bsgs<T: Sync>(
++        &self,
++        terms: &[(&Diagonals<T>, &Ciphertext)],
++        share_giant: bool,
++        skip: impl Fn(&T) -> bool + Sync + Send,
++        mul: impl Fn(&T, &Ciphertext) -> Result<Ciphertext> + Sync + Send,
++        finish: impl Fn(Ciphertext) -> Result<Ciphertext> + Sync + Send,
++    ) -> Result<Ciphertext> {
++        let first = terms[0].0;
++        let (baby, giant, stride, offset) = (first.baby, first.giant, first.stride, first.offset);
++        // xs[t][k2] = rot(x_t, k2 s) for the baby steps that a kept entry of term t uses.
++        let mut xs: Vec<Vec<Option<Ciphertext>>> = Vec::with_capacity(terms.len());
++        for &(diag, x) in terms {
++            let used: Vec<usize> = (0..baby)
++                .filter(|&k2| (0..giant).any(|k1| !skip(&diag.entries[k1 * baby + k2])))
++                .collect();
++            let steps: Vec<i32> = used.iter().map(|&k2| (k2 * stride) as i32).collect();
++            // Step 0 is a copy (no key switch, not counted).
++            let rotated = self.hoisted_rotate(x, &steps)?;
++            let mut row = vec![None; baby];
++            for (k2, ct) in used.into_iter().zip(rotated) {
++                row[k2] = Some(ct);
++            }
++            xs.push(row);
++        }
++        // The giant-step blocks are independent (in parallel with the `parallel` feature,
++        // crate::par); they are summed in their sequential order, so the result is the same.
++        let block = |k1: usize| -> Result<Option<Ciphertext>> {
++            let shift = (offset + (baby * k1) as i64) * stride as i64;
++            if !share_giant && shift != 0 {
++                // Naive: one finish and one giant rotation per product.
++                let mut sum: Option<Ciphertext> = None;
++                for (&(diag, _), xr) in terms.iter().zip(&xs) {
++                    let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
++                    for (w, xk) in row.iter().zip(xr) {
++                        if skip(w) {
++                            continue;
++                        }
++                        let t = finish(mul(w, xk.as_ref().expect("rotated for a kept entry"))?)?;
++                        let t = self.rotate(&t, shift as i32)?;
++                        sum = Some(match sum {
++                            None => t,
++                            Some(s) => self.add(&s, &t)?,
++                        });
++                    }
++                }
++                return Ok(sum);
++            }
++            let mut inner: Option<Ciphertext> = None;
++            for (&(diag, _), xr) in terms.iter().zip(&xs) {
++                let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
++                for (w, xk) in row.iter().zip(xr) {
++                    if skip(w) {
++                        continue;
++                    }
++                    let t = mul(w, xk.as_ref().expect("rotated for a kept entry"))?;
++                    inner = Some(match inner {
++                        None => t,
++                        Some(s) => self.add(&s, &t)?,
++                    });
++                }
++            }
++            let Some(inner) = inner else {
++                return Ok(None);
++            };
++            let mut block = finish(inner)?;
++            if shift != 0 {
++                block = self.rotate(&block, shift as i32)?;
++            }
++            Ok(Some(block))
++        };
+         let mut acc: Option<Ciphertext> = None;
+-        for k1 in 0..giant {
+-            let row = &diag.entries[k1 * baby..(k1 + 1) * baby];
+-            let mut inner: Option<Ciphertext> = None;
+-            for (w, xr) in row.iter().zip(&xs) {
+-                let t = mul(w, xr)?;
+-                inner = Some(match inner {
+-                    None => t,
+-                    Some(s) => self.add(&s, &t)?,
+-                });
+-            }
+-            let mut block = finish(inner.expect("baby >= 1"))?;
+-            if k1 > 0 {
+-                block = self.rotate(&block, (baby * k1 * stride) as i32)?;
+-            }
++        for block in crate::par::map_range(giant, block) {
++            let Some(block) = block? else {
++                continue;
++            };
+             acc = Some(match acc {
+                 None => block,
+                 Some(s) => self.add(&s, &block)?,
+             });
+         }
+-        Ok(acc.expect("giant >= 1"))
+-    }
++        match acc {
++            Some(a) => Ok(a),
++            // Every entry skipped: the zero product, from entry 0 (zero) times x_0.
++            None => mul(&first.entries[0], terms[0].1),
++        }
++    }
++}
++
++/// `true` when every limb of `p` is zero (the encoding of the zero vector).
++fn is_zero_plaintext(p: &Plaintext) -> bool {
++    p.poly().limbs().iter().all(|l| l.iter().all(|&v| v == 0))
+ }
+ 
+ #[cfg(test)]
+@@ -534,6 +930,7 @@
+             ct_ct_tensor: b.ct_ct_tensor - a.ct_ct_tensor,
+             ct_pt_mults: b.ct_pt_mults - a.ct_pt_mults,
+             rescales: b.rescales - a.rescales,
++            sse_switches: b.sse_switches - a.sse_switches,
+             bootstraps: b.bootstraps - a.bootstraps,
+         }
+     }
+@@ -575,6 +972,158 @@
+         // Strided: baby k2 * stride, giant g * k1 * stride.
+         assert_eq!(bsgs_rotation_steps(16, 8), vec![8, 16, 24, 32, 64, 96]);
+         assert_eq!(bsgs_rotation_steps(1, 4), Vec::<i32>::new());
++    }
++
++    /// Offset layouts: baby steps as before, giant steps `(offset + g k1) * stride` without
++    /// the zero one.
++    #[test]
++    fn offset_rotation_steps() {
++        assert_eq!(
++            bsgs_rotation_steps_with_offset(16, 1, 0),
++            bsgs_rotation_steps(16, 1)
++        );
++        assert_eq!(
++            bsgs_rotation_steps_with_offset(16, 1, -8),
++            vec![1, 2, 3, -8, -4, 4]
++        );
++        assert_eq!(
++            bsgs_rotation_steps_with_offset(32, 128, -16),
++            vec![128, 256, 384, 512, 640, 768, 896, -2048, -1024, 1024]
++        );
++        // An offset that is not a multiple of the baby step keeps every giant step.
++        assert_eq!(bsgs_rotation_steps_with_offset(4, 2, -1), vec![2, -2, 2]);
++        assert!(std::panic::catch_unwind(|| bsgs_rotation_steps_with_offset(16, 1, 1)).is_err());
++        assert!(std::panic::catch_unwind(|| bsgs_rotation_steps_with_offset(16, 1, -16)).is_err());
++    }
++
++    /// The BSGS identity with an offset, in the clear: `y[t] = sum_i diag_i[t] x[t + (offset
++    /// + i) s]`.
++    #[test]
++    fn bsgs_identity_with_offset_in_the_clear() {
++        let mut r = rng(40);
++        for (d, slots, stride, offset) in [(16, 64, 1, -8), (8, 64, 4, -4), (4, 16, 2, -3)] {
++            let diags: Vec<Vec<f64>> = (0..d).map(|_| rand_vals(&mut r, slots)).collect();
++            let x = rand_vals(&mut r, slots);
++            let (baby, giant, pre) = prerotated(&diags, slots, stride, offset).unwrap();
++            let mut y = vec![0.0; slots];
++            for k1 in 0..giant {
++                let mut inner = vec![0.0; slots];
++                for k2 in 0..baby {
++                    let xk = rot(&x, (k2 * stride) as i64);
++                    for j in 0..slots {
++                        inner[j] += pre[k1 * baby + k2][j] * xk[j];
++                    }
++                }
++                let shift = (offset + (baby * k1) as i64) * stride as i64;
++                for (yj, v) in y.iter_mut().zip(rot(&inner, shift)) {
++                    *yj += v;
++                }
++            }
++            for (t, yt) in y.iter().enumerate() {
++                let want: f64 = (0..d)
++                    .map(|i| {
++                        let src = (t as i64 + (offset + i as i64) * stride as i64)
++                            .rem_euclid(slots as i64) as usize;
++                        diags[i][t] * x[src]
++                    })
++                    .sum();
++                assert!((yt - want).abs() < 1e-12, "d {d} offset {offset} slot {t}");
++            }
++        }
++    }
++
++    /// Complex offset diagonals through `matvec_plain`, and `matvec_plain_sum` of two terms
++    /// in which the zero entries (and the baby rotations only they use) are skipped.
++    #[test]
++    fn offset_and_sum_products() {
++        let (d, offset) = (8usize, -4i64);
++        let steps = bsgs_rotation_steps_with_offset(d, 1, offset);
++        let c = ctx_with(small(), &steps, false, 41);
++        let (slots, top, s) = (c.params.slots(), c.params.max_level(), c.params.scale());
++        let mut r = rng(42);
++        let cplx = |r: &mut Rng| -> Vec<Complex64> {
++            let (a, b) = (rand_vals(r, slots), rand_vals(r, slots));
++            a.into_iter()
++                .zip(b)
++                .map(|(x, y)| Complex64::new(x, y))
++                .collect()
++        };
++        let da: Vec<Vec<Complex64>> = (0..d).map(|_| cplx(&mut r)).collect();
++        // Term b: only the even diagonals are nonzero.
++        let db: Vec<Vec<Complex64>> = (0..d)
++            .map(|i| {
++                if i % 2 == 0 {
++                    cplx(&mut r)
++                } else {
++                    vec![Complex64::new(0.0, 0.0); slots]
++                }
++            })
++            .collect();
++        let (xa, xb) = (rand_vals(&mut r, slots), rand_vals(&mut r, slots));
++        let enc_x =
++            |v: &[f64], r: &mut Rng| c.encryptor.encrypt(&c.enc.encode(v, s, top).unwrap(), r);
++        let (ca, cb) = (enc_x(&xa, &mut r), enc_x(&xb, &mut r));
++        let pa = Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, offset, s, top).unwrap();
++        let pb = Diagonals::<Plaintext>::encode_complex(&c.enc, &db, 1, offset, s, top).unwrap();
++        assert_eq!((pa.offset(), pa.rotation_steps()), (offset, steps.clone()));
++        let want = |diags: &[Vec<Complex64>], x: &[f64], t: usize| -> Complex64 {
++            (0..d)
++                .map(|i| {
++                    let src = (t as i64 + offset + i as i64).rem_euclid(slots as i64) as usize;
++                    diags[i][t] * x[src]
++                })
++                .sum()
++        };
++        let before = c.eval.counter();
++        let ya = c.eval.matvec_plain(&pa, &ca).unwrap();
++        let ops = delta(&before, &c.eval.counter());
++        // baby 4, giant 2: 3 baby + 1 giant (shift -4; shift 0 is free).
++        assert_eq!((ops.rotations, ops.ct_pt_mults), (4, 8));
++        let got = c
++            .enc
++            .decode_complex(&c.dec.decrypt(&c.eval.rescale(&ya).unwrap()));
++        let err = (0..slots)
++            .map(|t| (got[t] - want(&da, &xa, t)).norm())
++            .fold(0.0, f64::max);
++        assert!(err < 2f64.powi(-15), "offset matvec_plain {err:e}");
++
++        let before = c.eval.counter();
++        let y = c.eval.matvec_plain_sum(&[(&pa, &ca), (&pb, &cb)]).unwrap();
++        let ops = delta(&before, &c.eval.counter());
++        // Term a: 3 baby rotations, term b: only k2 = 2 (k2 = 0 is a copy); 1 shared giant.
++        assert_eq!((ops.rotations, ops.ct_pt_mults), (3 + 1 + 1, 8 + 4));
++        let got = c
++            .enc
++            .decode_complex(&c.dec.decrypt(&c.eval.rescale(&y).unwrap()));
++        let err = (0..slots)
++            .map(|t| (got[t] - want(&da, &xa, t) - want(&db, &xb, t)).norm())
++            .fold(0.0, f64::max);
++        assert!(err < 2f64.powi(-15), "matvec_plain_sum {err:e}");
++
++        // Mismatched terms fail before any work.
++        let before = c.eval.counter();
++        let p0 = Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, 0, s, top).unwrap();
++        assert!(matches!(
++            c.eval.matvec_plain_sum(&[(&pa, &ca), (&p0, &cb)]),
++            Err(HekitError::InvalidParams(_))
++        ));
++        let p2 =
++            Diagonals::<Plaintext>::encode_complex(&c.enc, &db, 1, offset, 2.0 * s, top).unwrap();
++        assert_eq!(
++            c.eval
++                .matvec_plain_sum(&[(&pa, &ca), (&p2, &cb)])
++                .unwrap_err(),
++            HekitError::ScaleMismatch
++        );
++        assert!(matches!(
++            c.eval.matvec_plain_sum(&[]),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert!(matches!(
++            Diagonals::<Plaintext>::encode_complex(&c.enc, &da, 1, 1, s, top),
++            Err(HekitError::InvalidParams(_))
++        ));
++        assert_eq!(c.eval.counter(), before);
+     }
+ 
+     #[test]
+@@ -629,7 +1178,7 @@
+             let xs: Vec<Vec<f64>> = (0..stride).map(|_| rand_vals(&mut r, d)).collect();
+             let xr = pack(&xs, slots);
+             let diags = diagonals_from_matrix(&w, slots, stride);
+-            let (baby, giant, pre) = prerotated(&diags, slots, stride).unwrap();
++            let (baby, giant, pre) = prerotated(&diags, slots, stride, 0).unwrap();
+             let mut y = vec![0.0; slots];
+             for k1 in 0..giant {
+                 let mut inner = vec![0.0; slots];
+@@ -776,6 +1325,127 @@
+     #[test]
+     fn matvec_d16() {
+         check_matvec(16, 1, 19);
++    }
++
++    /// The limbs of every component (bit-exact comparison).
++    fn bits(c: &Ciphertext) -> Vec<Vec<Vec<u64>>> {
++        c.polys().iter().map(|p| p.limbs().to_vec()).collect()
++    }
++
++    /// Task 43: the RQ3 ablation flags on `matvec_enc` / `matvec_plain` (d = 16, baby =
++    /// giant = 4). Every one of the 8 configurations decodes within 2^-20 of the default; all
++    /// off costs `d - 1` rotations and `d` relins; the counts of every combination follow
++    /// the documented rule; hoisting changes nothing but the cost (bit-identical results).
++    #[test]
++    fn ablation_flags_matvec_d16() {
++        use crate::ops::EvalConfig;
++        let d = 16;
++        let c = ctx(small(), d, 1, 23);
++        let (slots, top, delta_s) = (c.params.slots(), c.params.max_level(), c.params.scale());
++        let (baby, giant) = bsgs_split(d);
++        let mut r = rng(124);
++        let w = rand_matrix(&mut r, d);
++        let x = rand_vals(&mut r, d);
++        let diags = diagonals_from_matrix(&w, slots, 1);
++        let ct_x = c.encryptor.encrypt(
++            &c.enc.encode(&pack(&[x], slots), delta_s, top).unwrap(),
++            &mut r,
++        );
++        let cdiag =
++            Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, delta_s, top, &mut r)
++                .unwrap();
++        let pdiag = Diagonals::<Plaintext>::encode(&c.enc, &diags, 1, delta_s, top).unwrap();
++        let run = |cfg: EvalConfig| {
++            let e = Evaluator::with_config(
++                Arc::clone(&c.params),
++                c.eval.relin_key().cloned(),
++                c.eval.galois_keys().cloned(),
++                cfg,
++            );
++            let ye = e.matvec_enc(&cdiag, &ct_x).unwrap();
++            let enc_ops = e.counter();
++            e.reset_counter();
++            let yp = e.matvec_plain(&pdiag, &ct_x).unwrap();
++            let plain_ops = e.counter();
++            assert_eq!(
++                (ye.len(), ye.level(), ye.scale()),
++                (2, top, delta_s * delta_s)
++            );
++            assert_eq!(yp.scale(), delta_s * delta_s);
++            let dec = |y: &Ciphertext| c.enc.decode(&c.dec.decrypt(&e.rescale(y).unwrap()));
++            (dec(&ye), dec(&yp), enc_ops, plain_ops)
++        };
++        let (ref_e, ref_p, _, _) = run(EvalConfig::default());
++        for cfg in EvalConfig::all() {
++            let (ge, gp, oe, op) = run(cfg);
++            let err_e = ge
++                .iter()
++                .zip(&ref_e)
++                .map(|(a, b)| (a - b).abs())
++                .fold(0.0, f64::max);
++            let err_p = gp
++                .iter()
++                .zip(&ref_p)
++                .map(|(a, b)| (a - b).abs())
++                .fold(0.0, f64::max);
++            eprintln!(
++                "{cfg:?}: enc {oe:?} (vs default 2^{:.1}), plain rotations {} (2^{:.1})",
++                err_e.log2(),
++                op.rotations,
++                err_p.log2()
++            );
++            assert!(err_e < 2f64.powi(-20), "{cfg:?} enc {err_e:e}");
++            assert!(err_p < 2f64.powi(-20), "{cfg:?} plain {err_p:e}");
++            let rot = if cfg.bsgs { baby + giant - 2 } else { d - 1 } as u64;
++            let relins = match (cfg.bsgs, cfg.lazy_relin) {
++                (_, false) => d,
++                (true, true) => giant,
++                (false, true) => 1 + d - baby,
++            } as u64;
++            assert_eq!(
++                (oe.rotations, oe.relins, oe.ct_ct_tensor),
++                (rot, relins, d as u64)
++            );
++            assert_eq!(
++                (op.rotations, op.relins, op.ct_pt_mults),
++                (rot, 0, d as u64)
++            );
++            assert_eq!(
++                (cfg.matvec_rotations(d), cfg.matvec_enc_relins(d)),
++                (rot, relins)
++            );
++        }
++        // The brief's case: all off.
++        let (_, _, oe, _) = run(EvalConfig::NAIVE);
++        assert_eq!((oe.rotations, oe.relins), (d as u64 - 1, d as u64));
++
++        // hoist only: bit-identical to the default (the hoisted rotation is exact).
++        let no_hoist = EvalConfig {
++            hoist: false,
++            ..EvalConfig::default()
++        };
++        let e0 = &c.eval;
++        let e1 = Evaluator::with_config(
++            Arc::clone(&c.params),
++            c.eval.relin_key().cloned(),
++            c.eval.galois_keys().cloned(),
++            no_hoist,
++        );
++        let a = e0.matvec_enc(&cdiag, &ct_x).unwrap();
++        let b = e1.matvec_enc(&cdiag, &ct_x).unwrap();
++        assert_eq!(bits(&a), bits(&b));
++        let steps = bsgs_rotation_steps(d, 1);
++        let h0 = e0.hoisted_rotate(&ct_x, &steps).unwrap();
++        let before = e1.counter();
++        let h1 = e1.hoisted_rotate(&ct_x, &steps).unwrap();
++        assert_eq!(delta(&before, &e1.counter()).rotations, steps.len() as u64);
++        for (p, q) in h0.iter().zip(&h1) {
++            assert_eq!(bits(p), bits(q));
++        }
++        // A missing key fails before any work in the naive path too.
++        let before = e1.counter();
++        assert!(e1.hoisted_rotate(&ct_x, &[1, 5]).is_err());
++        assert_eq!(e1.counter(), before);
+     }
+ 
+     /// d = 32: baby 8, giant 4 (not a square split).
+@@ -981,7 +1651,7 @@
+         let diags = diagonals_from_matrix(&w, slots, 1);
+         let ce = Diagonals::<Ciphertext>::encrypt(&c.enc, &c.encryptor, &diags, 1, s, top, &mut r)
+             .unwrap();
+-        let (_, _, pre) = prerotated(&diags, slots, 1).unwrap();
++        let (_, _, pre) = prerotated(&diags, slots, 1, 0).unwrap();
+         let dec: Diagonals<Vec<f64>> = ce
+             .try_map(|ct| Ok(c.enc.decode(&c.dec.decrypt(ct))))
+             .unwrap();
+@@ -1026,3 +1696,62 @@
+         assert!(err < 2f64.powi(-15), "level-1 matvec_enc error {err:e}");
+     }
+ }
++
++#[cfg(test)]
++mod bootstrap_metadata_iterator_tests {
++    use super::*;
++    #[test]
++    fn iterator_preserves_full_shape_order_and_wrap_literals() {
++        for (d, stride, offset, expected) in [
++            (16, 1, 0, vec![1, 2, 3, 4, 8, 12]),
++            (16, 2, -8, vec![2, 4, 6, -16, -8, 8]),
++            (8, 3, -4, vec![3, 6, 9, -12]),
++            (2, 1, 0, vec![1]),
++            (1, 1, 0, vec![]),
++        ] {
++            assert_eq!(
++                bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect::<Vec<_>>(),
++                expected
++            );
++            assert_eq!(bsgs_rotation_steps_with_offset(d, stride, offset), expected);
++            if offset == 0 {
++                assert_eq!(
++                    bsgs_rotation_steps_iter(d, stride).collect::<Vec<_>>(),
++                    expected
++                );
++                assert_eq!(bsgs_rotation_steps(d, stride), expected);
++            }
++        }
++        let normalized = bsgs_rotation_steps_with_offset_iter(16, 2, -8)
++            .map(|s| s.rem_euclid(32))
++            .collect::<Vec<_>>();
++        assert_eq!(normalized, [2, 4, 6, 16, 24, 8]);
++    }
++    #[test]
++    fn iterators_validate_eagerly_in_legacy_panic_order() {
++        for (d, stride, offset, expected) in [
++            (3, 0, 1, "offset"),
++            (3, 0, 0, "power of two"),
++            (4, 0, 0, "stride must be positive"),
++            (4, usize::MAX, 0, "overflows a rotation step"),
++            (4, 1, -4, "offset"),
++        ] {
++            for iterator in [false, true] {
++                let panic = std::panic::catch_unwind(|| {
++                    if iterator {
++                        let _unused = bsgs_rotation_steps_with_offset_iter(d, stride, offset);
++                    } else {
++                        bsgs_rotation_steps_with_offset(d, stride, offset);
++                    }
++                })
++                .unwrap_err();
++                let message = panic
++                    .downcast_ref::<String>()
++                    .map(String::as_str)
++                    .or_else(|| panic.downcast_ref::<&str>().copied())
++                    .unwrap();
++                assert!(message.contains(expected), "{message}");
++            }
++        }
++    }
++}
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-ckks/src/params.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/params.rs
+@@ -19,6 +19,43 @@
+ /// `n16_train` digit count (confirmed by Task 22, >= 141 bits, see docs/security.md;
+ /// rule for adjustments: dnum | q.len(), k = ceil(max_digit_bits / 58)).
+ pub const N16_TRAIN_DNUM: usize = 8;
++
++/// `n16_boot` compute levels above the base (42-bit primes, levels 1..=16), see
++/// docs/bootstrap.md §1 (chain of rulings R-M3-7, R-M3-8).
++pub const N16_BOOT_COMPUTE_LEVELS: usize = 16;
++/// `n16_boot` SlotToCoeff levels (34-bit primes, levels 17..=20).
++pub const N16_BOOT_STOC_LEVELS: usize = 4;
++/// `n16_boot` EvalMod levels (58-bit primes, levels 21..=27): degree-127 Chebyshev, no double
++/// angle, which needs the level-optimal evaluation (ruling R-M3-8). Fallback if Task 37 cannot
++/// fit 7 levels: the e8dbe3e chain (EvalMod 8, compute 15, log PQ 1748), docs/bootstrap.md §5.
++pub const N16_BOOT_EVALMOD_LEVELS: usize = 7;
++/// `n16_boot` CoeffToSlot levels (56-bit primes, levels 28..=31): CoeffToSlot works on values of
++/// size about K q_0, so the rounding of its plaintext diagonals needs large primes
++/// (docs/bootstrap.md §6).
++pub const N16_BOOT_CTOS_LEVELS: usize = 4;
++/// `n16_boot` special-prime count (60-bit each: log P = 240 exceeds the largest digit, 4 x 58 =
++/// 232, by 8 bits, so the key-error term of the EvalMod digits is negligible; ruling R-M3-5).
++/// Named like [`N16_TRAIN_K`]; not to be confused with the EvalMod interval `K`
++/// (`BootParams::k_intervals`).
++pub const N16_BOOT_K: usize = 4;
++/// `n16_boot` digit count (32 q primes, 4 per digit).
++pub const N16_BOOT_DNUM: usize = 8;
++/// Main-key Hamming weight of [`CkksParams::n16_boot_sparse`] (ruling R-M3-10). An alternative
++/// only: see docs/security.md for its estimate and whether it may be used.
++pub const N16_BOOT_SPARSE_HW: usize = 192;
++
++/// Bit sizes `(q_bits, p_bits)` of `n16_boot`: q from level 0 up is
++/// `[54, 42 x 16 (compute), 34 x 4 (SlotToCoeff), 58 x 7 (EvalMod), 56 x 4 (CoeffToSlot)]`,
++/// p is `[60 x 4]`; log PQ = 1732. The 54-bit base gives q_0 / Delta = 2^12
++/// (docs/bootstrap.md §1, §6).
++pub fn n16_boot_bits() -> (Vec<u32>, Vec<u32>) {
++    let mut q = vec![54];
++    q.extend(vec![42; N16_BOOT_COMPUTE_LEVELS]);
++    q.extend(vec![34; N16_BOOT_STOC_LEVELS]);
++    q.extend(vec![58; N16_BOOT_EVALMOD_LEVELS]);
++    q.extend(vec![56; N16_BOOT_CTOS_LEVELS]);
++    (q, vec![60; N16_BOOT_K])
++}
+ 
+ /// CKKS parameters: ring degree, RNS moduli Q (data) and P (special), scale, key-switch digits.
+ #[derive(Clone, Debug)]
+@@ -135,6 +172,42 @@
+         Self::new(16, &q_bits, &p_bits, 42, N16_TRAIN_DNUM).expect("n16_train preset is valid")
+     }
+ 
++    /// Bootstrapping preset: N = 2^16, q and p from [`n16_boot_bits`] (32 q primes, max level
++    /// 31, log PQ = 1732), scale 2^42, dnum 8, dense ternary secret. Per-level scales come from
++    /// [`CkksParams::scale_at`]. Level design and precision analysis: `docs/bootstrap.md`.
++    /// Security (Task 39, `docs/security.md`): 131.5 bits under BDGL16 and 129.3 under MATZOV
++    /// at log PQ 1732. The SSE key s -> s' (h' = 32, modulus q_0 P) is at least 133.8 / 134.2
++    /// (numerical-MITM grid minimum of the dual MITM hybrid).
++    pub fn n16_boot() -> CkksParams {
++        let (q_bits, p_bits) = n16_boot_bits();
++        Self::new(16, &q_bits, &p_bits, 42, N16_BOOT_DNUM).expect("n16_boot preset is valid")
++    }
++
++    /// Sparse-main-key variant of [`CkksParams::n16_boot`] (ruling R-M3-10): the same chain
++    /// (log PQ = 1732, dnum 8), with a ternary main key of exactly [`N16_BOOT_SPARSE_HW`] = 192
++    /// nonzero coefficients. Bootstrapping still uses sparse-secret encapsulation with
++    /// h' = 32, so `BootParams::default_n16()` (K = 13) applies unchanged. **An alternative
++    /// only**: its lattice estimate (docs/security.md) decides whether it may be used.
++    pub fn n16_boot_sparse() -> CkksParams {
++        Self::n16_boot().with_hamming_weight(N16_BOOT_SPARSE_HW)
++    }
++
++    /// **Insecure toy parameters, for tests only** (N = 2^5 gives no security at all): the
++    /// `n16_boot` band layout in miniature for the bootstrapping tests, with `log_slots` 4
++    /// (16 full slots). q from level 0 up is `[54, 42 (compute), 34 x 4 (SlotToCoeff),
++    /// 58 x 2 (EvalMod), 56 x 4 (CoeffToSlot)]` (max level 11), p = `[60]`, scale 2^42,
++    /// dnum 12 (one prime per digit, every digit below p), dense ternary secret.
++    /// `BootParams::default_n16` does not fit it: tests build their own `BootParams` (four
++    /// CoeffToSlot, two EvalMod and four SlotToCoeff levels, an ephemeral weight and `K` for
++    /// N = 2^5) and pass it through `BootParams::validate`.
++    pub fn test_tiny() -> CkksParams {
++        let mut q_bits = vec![54, 42];
++        q_bits.extend([34; 4]);
++        q_bits.extend([58; 2]);
++        q_bits.extend([56; 4]);
++        Self::new(5, &q_bits, &[60], 42, 12).expect("test_tiny preset is valid")
++    }
++
+     /// Returns a copy with a ternary secret-key Hamming weight (validated `<= N` by KeyGenerator).
+     pub fn with_hamming_weight(mut self, h: usize) -> CkksParams {
+         self.hamming_weight = Some(h);
+@@ -184,6 +257,30 @@
+     /// Default scale Delta.
+     pub fn scale(&self) -> f64 {
+         self.scale
++    }
++    /// Nominal default scale at `level`: `2^(bits of q_level)` for `level >= 1`, and the preset
++    /// scale [`CkksParams::scale`] at level 0. It is the scale a ciphertext-ciphertext product
++    /// keeps when it is rescaled by `q_level`, so it is the working scale of the compute band
++    /// (2^42) and of the `n16_boot` EvalMod band (2^58). It is **not** an invariant of the
++    /// bootstrap bands: in CoeffToSlot and SlotToCoeff the ciphertext is multiplied only by
++    /// plaintext diagonals and carries its own scale (about 2^54 to 2^58 in CoeffToSlot against
++    /// a nominal 2^56, about 2^46 to 2^42 in SlotToCoeff against a nominal 2^34; docs/bootstrap.md
++    /// §2), and exact scales differ from these powers of two by the prime / 2^bits ratios.
++    /// For single-size presets it equals `scale()` at every level.
++    ///
++    /// # Panics
++    /// If `level > max_level()`.
++    pub fn scale_at(&self, level: usize) -> f64 {
++        assert!(
++            level <= self.max_level(),
++            "level {level} above max_level {}",
++            self.max_level()
++        );
++        if level == 0 {
++            self.scale
++        } else {
++            (self.q_bits[level] as f64).exp2()
++        }
+     }
+     /// Number of key-switching digits.
+     pub fn dnum(&self) -> usize {
+@@ -260,7 +357,11 @@
+ 
+     #[test]
+     fn all_primes_distinct_and_ntt_friendly() {
+-        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
++        for p in [
++            CkksParams::seal_2020(),
++            CkksParams::n16_train(),
++            CkksParams::n16_boot(),
++        ] {
+             let all: Vec<u64> = p.q().iter().chain(p.p()).copied().collect();
+             for (i, a) in all.iter().enumerate() {
+                 assert!(!all[..i].contains(a));
+@@ -288,7 +389,11 @@
+ 
+     #[test]
+     fn digit_bits_within_log_p() {
+-        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
++        for p in [
++            CkksParams::seal_2020(),
++            CkksParams::n16_train(),
++            CkksParams::n16_boot(),
++        ] {
+             // Nominal bit sizes: exact log2 sums of equal-size primes differ by ~1e-11.
+             let log_p: u32 = p.p_bits().iter().sum();
+             for d in p.q_bits().chunks(p.alpha()) {
+@@ -297,6 +402,99 @@
+                     "digit {d:?} > log P {log_p}"
+                 );
+             }
++        }
++    }
++
++    #[test]
++    fn n16_boot_shape() {
++        let p = CkksParams::n16_boot();
++        assert_eq!(p.n(), 1 << 16);
++        assert_eq!(p.max_level(), 31);
++        assert!((p.log_pq() - 1732.0).abs() <= 2.0, "{}", p.log_pq());
++        assert!(p.log_pq() <= 1750.0, "{}", p.log_pq());
++        assert_eq!((p.dnum(), p.alpha(), p.p().len()), (8, 4, 4));
++        assert_eq!(p.scale(), 2f64.powi(42));
++        assert_eq!(p.hamming_weight(), None);
++    }
++
++    /// Same chain as `n16_boot`, only the main-key weight differs.
++    #[test]
++    fn n16_boot_sparse_shape() {
++        let s = CkksParams::n16_boot_sparse();
++        let d = CkksParams::n16_boot();
++        assert_eq!(s.hamming_weight(), Some(192));
++        assert_eq!(s.q(), d.q());
++        assert_eq!(s.p(), d.p());
++        assert_eq!((s.dnum(), s.scale()), (d.dnum(), d.scale()));
++        assert_eq!(s.log_pq(), d.log_pq());
++    }
++
++    /// Level i is a ciphertext over primes 0..=i; the bands from the bottom are base, compute,
++    /// SlotToCoeff, EvalMod, CoeffToSlot (docs/bootstrap.md §1).
++    #[test]
++    fn n16_boot_bands() {
++        let p = CkksParams::n16_boot();
++        let q = p.q_bits();
++        assert_eq!(q[0], 54);
++        assert!(q[1..=16].iter().all(|&b| b == 42), "compute band");
++        assert!(q[17..=20].iter().all(|&b| b == 34), "SlotToCoeff band");
++        assert!(q[21..=27].iter().all(|&b| b == 58), "EvalMod band");
++        assert!(q[28..=31].iter().all(|&b| b == 56), "CoeffToSlot band");
++        assert_eq!(p.p_bits(), &[60; 4]);
++    }
++
++    #[test]
++    fn n16_boot_scale_at() {
++        let p = CkksParams::n16_boot();
++        assert_eq!(p.scale_at(0), 2f64.powi(42));
++        assert_eq!(p.scale_at(24), 2f64.powi(58));
++        assert_eq!(p.scale_at(31), 2f64.powi(56));
++        for l in 1..=16 {
++            assert_eq!(p.scale_at(l), 2f64.powi(42), "level {l}");
++        }
++        for l in 17..=20 {
++            assert_eq!(p.scale_at(l), 2f64.powi(34), "level {l}");
++        }
++        for l in 21..=27 {
++            assert_eq!(p.scale_at(l), 2f64.powi(58), "level {l}");
++        }
++        for l in 28..=31 {
++            assert_eq!(p.scale_at(l), 2f64.powi(56), "level {l}");
++        }
++    }
++
++    /// For the single-size presets `scale_at` is the default scale at every level.
++    #[test]
++    fn scale_at_is_default_scale_for_uniform_presets() {
++        for p in [CkksParams::seal_2020(), CkksParams::n16_train()] {
++            for l in 0..=p.max_level() {
++                assert_eq!(p.scale_at(l), p.scale(), "level {l}");
++            }
++        }
++    }
++
++    #[test]
++    #[should_panic(expected = "level 32 above max_level 31")]
++    fn scale_at_above_max_level_panics() {
++        CkksParams::n16_boot().scale_at(32);
++    }
++
++    #[test]
++    fn n16_boot_rejects_dnum_7() {
++        let (q_bits, p_bits) = n16_boot_bits();
++        assert_eq!(q_bits.len(), 32);
++        assert!(CkksParams::new(16, &q_bits, &p_bits, 42, 7).is_err());
++    }
++
++    /// Exact (not nominal) digit sizes: every digit, including the all-58-bit EvalMod digit
++    /// (q_24..q_27), is at least 8 bits below log P = 4 x 60.
++    #[test]
++    fn n16_boot_digits_below_p_exactly() {
++        let p = CkksParams::n16_boot();
++        let log_p: f64 = p.p().iter().map(|&m| (m as f64).log2()).sum();
++        for d in p.q().chunks(p.alpha()) {
++            let bits: f64 = d.iter().map(|&m| (m as f64).log2()).sum();
++            assert!(bits <= log_p - 7.99, "digit {bits} vs log P {log_p}");
+         }
+     }
+ 
+@@ -314,6 +512,20 @@
+     }
+ 
+     #[test]
++    fn test_tiny_shape() {
++        let p = CkksParams::test_tiny();
++        assert_eq!((p.n(), p.slots(), p.max_level()), (32, 16, 11));
++        assert_eq!(
++            p.q_bits(),
++            &[54, 42, 34, 34, 34, 34, 58, 58, 56, 56, 56, 56]
++        );
++        assert_eq!((p.dnum(), p.alpha(), p.p_bits()), (12, 1, &[60][..]));
++        assert_eq!(p.scale(), 2f64.powi(42));
++        assert_eq!(p.scale_at(1), p.scale());
++        assert_eq!(p.scale_at(7), 2f64.powi(58));
++    }
++
++    #[test]
+     fn hamming_weight_builder() {
+         let p = CkksParams::new(4, &[30, 20], &[30], 20, 1)
+             .unwrap()
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-core/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-core/Cargo.toml
+@@ -1,11 +1,14 @@
+ [package]
+ name = "ckks-train-core"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-core (temporary name)"
++repository.workspace = true
++description = "RNS arithmetic, NTT and sampling primitives of ckks-train, an RNS-CKKS library for encrypted neural-network training"
++readme = "README.md"
++keywords = ["fhe", "rns", "ntt", "lattice", "homomorphic"]
++categories = ["cryptography", "mathematics"]
+ 
+ [dependencies]
+ rand_chacha = "0.9"
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-core/src/baseconv.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-core/src/baseconv.rs
+@@ -127,6 +127,18 @@
+             q_hat_inv,
+             q_hat_mod_p,
+         }
++    }
++
++    /// The precomputed `(Q / q_j)^{-1} mod q_j`, one per source modulus (in order). Exposed
++    /// for backends that evaluate the conversion elsewhere (the CUDA kernels).
++    pub fn q_hat_inv(&self) -> &[u64] {
++        &self.q_hat_inv
++    }
++
++    /// The precomputed `(Q / q_j) mod p_t`: one row per target modulus `p_t`, one entry per
++    /// source modulus `q_j`.
++    pub fn q_hat_mod_to(&self) -> &[Vec<u64>] {
++        &self.q_hat_mod_p
+     }
+ 
+     /// Converts residues over `from` (one slice per source modulus, in order, all of the
+@@ -633,6 +645,29 @@
+         );
+     }
+ 
++    /// The exposed constants are `(Q/q_j)^{-1} mod q_j` and `(Q/q_j) mod p_t`.
++    #[test]
++    fn exposed_constants() {
++        let from = ntt_primes(30, 16, 3).unwrap();
++        let to = ntt_primes(45, 16, 2).unwrap();
++        let bc = BaseConverter::new(&from, &to);
++        let q_hat = |j: usize, m: u64| {
++            from.iter()
++                .enumerate()
++                .filter(|&(i, _)| i != j)
++                .fold(1u128, |acc, (_, &q)| acc * q as u128 % m as u128) as u64
++        };
++        assert_eq!(bc.q_hat_inv().len(), 3);
++        for (j, (&qj, &inv)) in from.iter().zip(bc.q_hat_inv()).enumerate() {
++            assert_eq!(q_hat(j, qj) as u128 * inv as u128 % qj as u128, 1);
++        }
++        assert_eq!(bc.q_hat_mod_to().len(), 2);
++        for (row, &p) in bc.q_hat_mod_to().iter().zip(&to) {
++            let want: Vec<u64> = (0..3).map(|j| q_hat(j, p)).collect();
++            assert_eq!(row, &want);
++        }
++    }
++
+     /// `convert_exact` returns `[x]_Q` itself (no overflow multiple) for random `x in [0, Q)`
+     /// over 1, 2 and 3 source primes; for `k >= 2`, within `2^-40 * Q` of 0 or `Q` it may be
+     /// off by `Q`, while `k = 1` is always exact.
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-core/src/error.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-core/src/error.rs
+@@ -15,6 +15,9 @@
+     NoLevelsLeft,
+     /// Decoding failed.
+     Decode(String),
++    /// A GPU / device backend failed (no driver or device, bad ordinal, out of device memory,
++    /// kernel compilation or launch failure, ...). Backends return this instead of panicking.
++    Device(String),
+ }
+ 
+ impl fmt::Display for HekitError {
+@@ -25,6 +28,7 @@
+             HekitError::LevelMismatch => write!(f, "level mismatch"),
+             HekitError::NoLevelsLeft => write!(f, "no levels left"),
+             HekitError::Decode(m) => write!(f, "decode error: {m}"),
++            HekitError::Device(m) => write!(f, "device error: {m}"),
+         }
+     }
+ }
+@@ -33,3 +37,14 @@
+ 
+ /// Result alias using [`HekitError`].
+ pub type Result<T> = std::result::Result<T, HekitError>;
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn device_error_display() {
++        let e = HekitError::Device("out of memory".into());
++        assert_eq!(e.to_string(), "device error: out of memory");
++    }
++}
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-core/src/poly.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-core/src/poly.rs
+@@ -281,6 +281,68 @@
+             ntt_form: self.ntt_form,
+         }
+     }
++
++    /// The mod-raise of bootstrapping: a level-0 polynomial lifted to `level` over the same
++    /// basis by its **centered** representative.
++    ///
++    /// Each coefficient `x` of limb 0 (a residue mod `q_0`) is read as the integer `x_c` in
++    /// `[-(q_0 - 1)/2, (q_0 - 1)/2]` (the brief's `[-q_0/2, q_0/2)`; `q_0` is odd) and stored
++    /// as `x_c mod q_i` in every limb `i <= level`. So the result is the integer polynomial
++    /// with the smallest coefficients that is congruent to `self` mod `q_0`; for a ciphertext
++    /// component this is what makes the overflow `I` of `c_0 + c_1 s = m + q_0 I` small (and
++    /// zero-mean). The form is kept: an NTT-form input is lifted from its coefficient form and
++    /// returned in NTT form. `level = 0` returns a copy.
++    ///
++    /// # Panics
++    /// If `self` is not at level 0 or `level >= basis.len()`.
++    pub fn raise_from_level0(&self, level: usize) -> RnsPoly {
++        assert_eq!(
++            self.level(),
++            0,
++            "raise_from_level0 needs a level-0 polynomial"
++        );
++        assert!(
++            level < self.basis.len(),
++            "level {level} out of range for a basis of {} primes",
++            self.basis.len()
++        );
++        let moduli = self.basis.moduli();
++        let q0 = moduli[0].value();
++        let mut src = self.limbs[0].clone();
++        if self.ntt_form {
++            self.basis.ntt_tables()[0].inverse(&mut src);
++        }
++        let half = q0 / 2; // (q0 - 1) / 2: residues above it are negative.
++        let mut limbs = Vec::with_capacity(level + 1);
++        for (i, m) in moduli[..=level].iter().enumerate() {
++            let q = m.value();
++            if i == 0 {
++                // Limb 0 is unchanged (no NTT round trip, review m8).
++                limbs.push(self.limbs[0].clone());
++                continue;
++            }
++            let mut a: Vec<u64> = src
++                .iter()
++                .map(|&x| {
++                    if x > half {
++                        let r = (q0 - x) % q;
++                        if r == 0 { 0 } else { q - r }
++                    } else {
++                        x % q
++                    }
++                })
++                .collect();
++            if self.ntt_form {
++                self.basis.ntt_tables()[i].forward(&mut a);
++            }
++            limbs.push(a);
++        }
++        RnsPoly {
++            basis: Arc::clone(&self.basis),
++            limbs,
++            ntt_form: self.ntt_form,
++        }
++    }
+ }
+ 
+ #[cfg(test)]
+@@ -681,4 +743,64 @@
+             assert_eq!(lhs.limbs(), rhs.limbs(), "g={g}");
+         }
+     }
++
++    /// `raise_from_level0` stores the centered representative of every `q_0` residue in
++    /// every limb, in both forms (with the extreme residues `0`, `(q_0 - 1)/2`,
++    /// `(q_0 + 1)/2` and `q_0 - 1`).
++    #[test]
++    fn raise_from_level0_is_the_centered_lift() {
++        let n = 64;
++        let b = basis(n, 4);
++        let q0 = b.moduli()[0].value();
++        let mut rng = ChaCha20Rng::seed_from_u64(31);
++        let mut p = rand_poly(&b, 0, &mut rng);
++        {
++            let l = &mut p.limbs_mut()[0];
++            l[0] = 0;
++            l[1] = q0 / 2;
++            l[2] = q0 / 2 + 1;
++            l[3] = q0 - 1;
++        }
++        let want: Vec<i128> = p.limbs()[0]
++            .iter()
++            .map(|&x| {
++                if x > q0 / 2 {
++                    x as i128 - q0 as i128
++                } else {
++                    x as i128
++                }
++            })
++            .collect();
++        assert_eq!(want[2], -((q0 / 2) as i128));
++        for level in 0..4 {
++            let r = p.raise_from_level0(level);
++            assert_eq!((r.level(), r.is_ntt_form()), (level, false));
++            for (limb, m) in r.limbs().iter().zip(b.moduli()) {
++                let q = m.value() as i128;
++                for (&got, &w) in limb.iter().zip(&want) {
++                    assert_eq!(got as i128, w.rem_euclid(q));
++                }
++            }
++            let mut pn = p.clone();
++            pn.to_ntt();
++            let mut rn = pn.raise_from_level0(level);
++            assert!(rn.is_ntt_form());
++            rn.to_coeff();
++            assert_eq!(rn.limbs(), r.limbs());
++        }
++    }
++
++    #[test]
++    #[should_panic(expected = "level-0")]
++    fn raise_from_level0_needs_level_0() {
++        let b = basis(16, 3);
++        RnsPoly::zero(&b, 1).raise_from_level0(2);
++    }
++
++    #[test]
++    #[should_panic(expected = "out of range")]
++    fn raise_from_level0_rejects_a_level_above_the_basis() {
++        let b = basis(16, 3);
++        RnsPoly::zero(&b, 0).raise_from_level0(3);
++    }
+ }
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-nn/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/Cargo.toml
+@@ -1,10 +1,16 @@
+ [package]
+ name = "ckks-train-nn"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-nn (temporary name)"
++repository.workspace = true
++description = "Encrypted MLP training on RNS-CKKS, interactive and non-interactive (bootstrapping), for ckks-train"
++readme = "README.md"
++keywords = ["ckks", "fhe", "neural-network", "privacy", "machine-learning"]
++categories = ["cryptography", "science"]
+ 
+ [dependencies]
++ckks-train-core = { path = "../ckks-train-core", version = "1.0.0" }
++ckks-train-ckks = { path = "../ckks-train-ckks", version = "1.0.0" }
++ndarray = "0.16"
+--- 37f9502281576edb96afde41f42843f6d917161f:crates/hekit-nn/src/lib.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/lib.rs
+@@ -1,2 +1,17 @@
+ //! ckks-train-nn: encrypted neural-network training on ckks-train-ckks (temporary crate name).
+ #![deny(missing_docs)]
++
++pub mod activation;
++pub mod block;
++pub mod compact;
++pub mod dense;
++pub mod diagonal_plan;
++pub mod layout;
++pub mod layout_reboot;
++pub mod loss;
++pub mod optim;
++pub mod packed_training;
++pub mod refresh;
++pub mod sim;
++pub mod trainer;
++pub mod trainer_ni;

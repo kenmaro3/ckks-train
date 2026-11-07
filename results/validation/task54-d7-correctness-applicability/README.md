@@ -1,0 +1,9 @@
+# Historical correctness source applicability — bounded review
+
+[Independent source review](task-54-d7-correctness-source-applicability-review.md) analyzes committed263c830 against historical M1 KAT37f9502 and legacy FULL1 producerff2c2eb. Root read the complete review. The two complete rename-normalized diffs and exact source hash inventories are retained; only the project's package/import renaming is normalized. This is read-only evidence analysis, not a test execution, a complete executable equivalence claim, a new acceptance policy, or an implementation-gate PASS.
+
+The review identifies continuity in directly exercised M1 arithmetic and the inspected legacy CPU NI route. Imported SEAL relinearized/rotated ciphertexts do not test our own key-switch/relinearization/rotation implementation. Separate basic precision, secure-n16 bootstrap/three-update criteria and FULL1 outcomes retain their different scopes and original thresholds. New interactive/packed/block/configuration routes do not inherit FULL1 coverage merely from shared arithmetic leaves.
+
+Actual exercised historical logs/non-skip/reverse-verifier evidence, parameters, route/constructor order, inputs and complete build/dependency/toolchain lineage remain necessary for a machine-consumed prerequisite. No arithmetic defect was identified in the inspected continuity paths; no blanket rerun was authorized. Source analysis neither discards historical measurements because paths changed nor promotes them into prospective D7 records.
+
+Seven source/report files are byte-exact ledger copies, including the earlier map whose pins are its historical snapshot. SHA256SUMS covers all other archive files. Current source writer changes are outside this fixed263c830 comparison. No Cargo/test/HE/native/SSH/estimator ran for the comparison or review. Full matrix, scientific/security/resource thresholds, holds and baseline restrictions remain unchanged.

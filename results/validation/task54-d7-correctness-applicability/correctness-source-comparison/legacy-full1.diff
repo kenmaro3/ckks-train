@@ -1,0 +1,4949 @@
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/Cargo.toml
+@@ -1,14 +1,17 @@
+ [package]
+ name = "ckks-train-ckks"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-ckks (temporary name)"
++repository.workspace = true
++description = "RNS-CKKS homomorphic encryption with hybrid key switching, hoisted rotations, BSGS matrix-vector products and SSE bootstrapping (ckks-train)"
++readme = "README.md"
++keywords = ["ckks", "fhe", "homomorphic", "bootstrapping", "encryption"]
++categories = ["cryptography", "mathematics"]
+ 
+ [dependencies]
+-ckks-train-core = { path = "../ckks-train-core" }
++ckks-train-core = { path = "../ckks-train-core", version = "1.0.0" }
+ ndarray = "0.16"
+ num-complex = "0.4"
+ rayon = { version = "1.10", optional = true }
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/bootstrap/bootstrapper.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/bootstrap/bootstrapper.rs
+@@ -213,6 +213,30 @@
+     }
+ }
+ 
++/// Pure specifications shared with checked root-free metadata; caller validates bands.
++pub(crate) fn stage_specs(params: &CkksParams, bp: &BootParams) -> (StageSpec, StageSpec) {
++    let top = params.max_level();
++    let q0 = params.q()[0] as f64;
++    let k = bp.k_intervals as f64;
++    let evalmod_scale = params.scale_at(top - bp.ctos_levels);
++    (
++        StageSpec {
++            direction: Direction::CoeffToSlot,
++            start_level: top,
++            input_scale: q0,
++            output_scale: evalmod_scale,
++            factor: Complex64::new(1.0 / k, 0.0),
++        },
++        StageSpec {
++            direction: Direction::SlotToCoeff,
++            start_level: levels_after_boot(params, bp) + bp.stoc_levels,
++            input_scale: evalmod_scale * params.scale() / q0,
++            output_scale: params.scale(),
++            factor: Complex64::new(1.0 / (2.0 * PI), 0.0),
++        },
++    )
++}
++
+ impl Bootstrapper {
+     /// Encodes the stages of `bp` with `encoder` and generates the [`BootstrapKeys`] with
+     /// `kg`; all three must be over `params` (the same `Arc`). The bootstrap also needs the
+@@ -241,33 +265,11 @@
+         }
+         check_boot_params(&params, &bp)?;
+         let (cts, stc) = stages(&bp)?;
+-        let top = params.max_level();
+-        let q0 = params.q()[0] as f64;
+-        let k = bp.k_intervals as f64;
+-        let evalmod_scale = params.scale_at(top - bp.ctos_levels);
+-        let ctos = encode_stages(
+-            &cts,
+-            encoder,
+-            &StageSpec {
+-                direction: Direction::CoeffToSlot,
+-                start_level: top,
+-                input_scale: q0,
+-                output_scale: evalmod_scale,
+-                factor: Complex64::new(1.0 / k, 0.0),
+-            },
+-        )?;
+-        let stoc_input_scale = evalmod_scale * params.scale() / q0;
+-        let stoc = encode_stages(
+-            &stc,
+-            encoder,
+-            &StageSpec {
+-                direction: Direction::SlotToCoeff,
+-                start_level: levels_after_boot(&params, &bp) + bp.stoc_levels,
+-                input_scale: stoc_input_scale,
+-                output_scale: params.scale(),
+-                factor: Complex64::new(1.0 / (2.0 * PI), 0.0),
+-            },
+-        )?;
++        let (ctos_spec, stoc_spec) = stage_specs(&params, &bp);
++        let evalmod_scale = ctos_spec.output_scale;
++        let stoc_input_scale = stoc_spec.input_scale;
++        let ctos = encode_stages(&cts, encoder, &ctos_spec)?;
++        let stoc = encode_stages(&stc, encoder, &stoc_spec)?;
+         let keys = BootstrapKeys::generate(kg, &bp)?;
+         let mut cost = transforms_cost(&ctos, params.slots());
+         let em = evalmod_cost(&bp);
+@@ -286,6 +288,21 @@
+             stoc_input_scale,
+             cost,
+         })
++    }
++
++    /// The exact shared parameter object used to encode and generate this bootstrap.
++    pub fn params(&self) -> &Arc<CkksParams> {
++        &self.params
++    }
++
++    /// Encoded CoeffToSlot stages, available for device upload without re-encoding.
++    pub fn coeff_to_slot_stages(&self) -> &[LinearTransform] {
++        &self.ctos
++    }
++
++    /// Encoded SlotToCoeff stages, available for device upload without re-encoding.
++    pub fn slot_to_coeff_stages(&self) -> &[LinearTransform] {
++        &self.stoc
+     }
+ 
+     /// The bootstrap parameters.
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/bootstrap/evalmod.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/bootstrap/evalmod.rs
+@@ -30,10 +30,12 @@
+ use ckks_train_core::error::{HekitError, Result};
+ 
+ use crate::bootstrap::params::BootParams;
++use crate::bootstrap::poly::{BootstrapArithmetic, eval_chebyshev_to_scale};
+ use crate::bootstrap::poly::{chebyshev_coeffs, chebyshev_cost, chebyshev_depth, double_angle};
+ use crate::ciphertext::Ciphertext;
+ use crate::counter::OpCounter;
+ use crate::evaluator::Evaluator;
++use crate::linalg::DiagonalEntry;
+ 
+ /// The Chebyshev coefficients EvalMod evaluates for `bp` on `y` in `[-1, 1]`: for `r = 0`
+ /// the interpolant of degree `bp.cheb_degree` of `sin(2 pi K y)` with the even coefficients
+@@ -47,20 +49,37 @@
+         bp.k_intervals > 0 && bp.cheb_degree > 0,
+         "k_intervals and cheb_degree must be positive"
+     );
++    let mut c = chebyshev_coeffs(|y| evalmod_function(bp, y), -1.0, 1.0, bp.cheb_degree);
++    evalmod_parity(bp, &mut c);
++    c
++}
++fn evalmod_function(bp: &BootParams, y: f64) -> f64 {
+     let k = bp.k_intervals as f64;
+     if bp.double_angle == 0 {
+-        let mut c = chebyshev_coeffs(|y| (2.0 * PI * k * y).sin(), -1.0, 1.0, bp.cheb_degree);
+-        c.iter_mut().step_by(2).for_each(|v| *v = 0.0);
+-        c
++        (2.0 * PI * k * y).sin()
+     } else {
+         let div = (1u64 << bp.double_angle) as f64;
+-        chebyshev_coeffs(
+-            |y| (2.0 * PI * (k * y - 0.25) / div).cos(),
+-            -1.0,
+-            1.0,
+-            bp.cheb_degree,
+-        )
+-    }
++        (2.0 * PI * (k * y - 0.25) / div).cos()
++    }
++}
++fn evalmod_parity(bp: &BootParams, c: &mut [f64]) {
++    if bp.double_angle == 0 {
++        c.iter_mut().step_by(2).for_each(|v| *v = 0.0);
++    }
++}
++pub(crate) fn evalmod_coeffs_checked(
++    bp: &BootParams,
++    budget: &mut super::metadata::Budget,
++) -> super::metadata::MetaResult<Vec<f64>> {
++    let mut c = super::poly::chebyshev_coeffs_checked(
++        |y| evalmod_function(bp, y),
++        -1.0,
++        1.0,
++        bp.cheb_degree,
++        budget,
++    )?;
++    evalmod_parity(bp, &mut c);
++    Ok(c)
+ }
+ 
+ /// The operations [`Evaluator::eval_mod`] performs for `bp` on one ciphertext, as counter
+@@ -120,52 +139,90 @@
+     /// `NoLevelsLeft` if `ct.level()` is below the depth; `ScaleMismatch` if a planned
+     /// scale is unreachable.
+     pub fn eval_mod(&self, ct: &Ciphertext, bp: &BootParams) -> Result<Ciphertext> {
+-        if bp.k_intervals == 0 || bp.cheb_degree == 0 {
+-            return Err(HekitError::InvalidParams(
+-                "k_intervals and cheb_degree must be positive".into(),
+-            ));
++        eval_mod(self, ct, bp)
++    }
++}
++
++/// Backend-neutral EvalMod; the same algorithm and scale checks as [`Evaluator::eval_mod`].
++pub fn eval_mod<E: BootstrapArithmetic>(ev: &E, ct: &E::Ct, bp: &BootParams) -> Result<E::Ct> {
++    if bp.k_intervals == 0 || bp.cheb_degree == 0 {
++        return Err(HekitError::InvalidParams(
++            "k_intervals and cheb_degree must be positive".into(),
++        ));
++    }
++    let depth = bp.evalmod_depth();
++    if depth > bp.evalmod_levels {
++        return Err(HekitError::InvalidParams(format!(
++            "EvalMod depth {depth} exceeds evalmod_levels {}",
++            bp.evalmod_levels
++        )));
++    }
++    ev.check_boot_input(ct)?;
++    if ct.level() < depth {
++        return Err(HekitError::NoLevelsLeft);
++    }
++    // Planned scales, backwards from the output: the double angle at level l takes
++    // t_{i-1} to t_i; its square is labelled sigma_i = exact label of t_i at l.
++    let r = bp.double_angle;
++    let mut targets = vec![ct.scale(); r + 1];
++    plan_double_angle_targets(
++        ct.level(),
++        chebyshev_depth(bp.cheb_degree),
++        ct.scale(),
++        &mut targets,
++        |level, target| ev.exact_product_scale(level, target),
++        false,
++    )
++    .map_err(|error| match error {
++        TargetPlanError::Source(source) => source,
++        TargetPlanError::Unreachable { .. } | TargetPlanError::NonFiniteSeed { .. } => {
++            HekitError::ScaleMismatch
+         }
+-        let depth = bp.evalmod_depth();
+-        if depth > bp.evalmod_levels {
+-            return Err(HekitError::InvalidParams(format!(
+-                "EvalMod depth {depth} exceeds evalmod_levels {}",
+-                bp.evalmod_levels
+-            )));
++    })?;
++    let coeffs = evalmod_coeffs(bp);
++    let mut c = eval_chebyshev_to_scale(ev, ct, &coeffs, -1.0, 1.0, targets[0])?;
++    for &t in &targets[1..] {
++        c = double_angle(ev, &c, t)?;
++    }
++    debug_assert_eq!(c.level(), ct.level() - depth);
++    Ok(c)
++}
++
++#[derive(Debug)]
++pub(crate) enum TargetPlanError<E> {
++    Source(E),
++    Unreachable { level: usize },
++    NonFiniteSeed { level: usize },
++}
++
++/// Shared backward boundary planning; target buffer is supplied by the caller.
++/// The callback owns the finite-domain guards; legacy runtime keeps its prior domain.
++pub(crate) fn plan_double_angle_targets<E>(
++    input_level: usize,
++    cheb_depth: usize,
++    scale: f64,
++    targets: &mut [f64],
++    mut exact: impl FnMut(usize, f64) -> std::result::Result<f64, E>,
++    strict_finite: bool,
++) -> std::result::Result<(), TargetPlanError<E>> {
++    let cheb_out = input_level - cheb_depth;
++    targets.fill(scale);
++    for i in (1..targets.len()).rev() {
++        let level = cheb_out - (i - 1);
++        let sigma = exact(level, targets[i]).map_err(TargetPlanError::Source)?;
++        let seed = (2.0 * sigma).sqrt();
++        if strict_finite && !seed.is_finite() {
++            return Err(TargetPlanError::NonFiniteSeed { level });
+         }
+-        self.check_galois_input(ct)?;
+-        self.relin_key_checked()?;
+-        if ct.level() < depth {
+-            return Err(HekitError::NoLevelsLeft);
+-        }
+-        // Planned scales, backwards from the output: the double angle at level l takes
+-        // t_{i-1} to t_i; its square is labelled sigma_i = exact label of t_i at l.
+-        let r = bp.double_angle;
+-        let cheb_out = ct.level() - chebyshev_depth(bp.cheb_degree);
+-        let mut targets = vec![ct.scale(); r + 1];
+-        for i in (1..=r).rev() {
+-            let level = cheb_out - (i - 1);
+-            let sigma = self.exact_product_scale(level, targets[i])?;
+-            targets[i - 1] = reachable_near(self, level + 1, (2.0 * sigma).sqrt())?;
+-        }
+-        let coeffs = evalmod_coeffs(bp);
+-        let mut c = self.eval_chebyshev_to_scale(ct, &coeffs, -1.0, 1.0, targets[0])?;
+-        for &t in &targets[1..] {
+-            c = double_angle(self, &c, t)?;
+-        }
+-        debug_assert_eq!(c.level(), ct.level() - depth);
+-        Ok(c)
+-    }
+-}
+-
+-/// The f64 nearest `scale` (within 16 ulps) that a rescale from `level` reaches exactly
+-/// ([`Evaluator::exact_product_scale`]), else `ScaleMismatch`.
+-fn reachable_near(eval: &Evaluator, level: usize, scale: f64) -> Result<f64> {
+-    let bits = scale.to_bits();
+-    (0..=16u64)
+-        .flat_map(|k| [bits + k, bits - k])
+-        .map(f64::from_bits)
+-        .find(|&s| eval.exact_product_scale(level, s).is_ok())
+-        .ok_or(HekitError::ScaleMismatch)
++        let bits = seed.to_bits();
++        // Same nearest-first 0,+1,-1,...,+16,-16 order (including duplicate zero).
++        targets[i - 1] = (0..=16u64)
++            .flat_map(|k| [bits + k, bits - k])
++            .map(f64::from_bits)
++            .find(|&s| exact(level + 1, s).is_ok())
++            .ok_or(TargetPlanError::Unreachable { level: level + 1 })?;
++    }
++    Ok(())
+ }
+ 
+ #[cfg(test)]
+@@ -410,3 +467,66 @@
+         assert!((v - want).abs() < 1e-3);
+     }
+ }
++
++#[cfg(test)]
++mod metadata_target_tests {
++    use super::*;
++    #[test]
++    fn boundary_search_preserves_nearest_order_and_context() {
++        let mut targets = [0.0; 2];
++        let mut seen = Vec::new();
++        let seed = 2f64.sqrt().to_bits();
++        plan_double_angle_targets(
++            4,
++            2,
++            1.0,
++            &mut targets,
++            |level, target| {
++                if level == 2 {
++                    return Ok::<_, HekitError>(1.0);
++                }
++                seen.push(target.to_bits());
++                if target.to_bits() == seed - 16 {
++                    Ok(1.0)
++                } else {
++                    Err(HekitError::ScaleMismatch)
++                }
++            },
++            true,
++        )
++        .unwrap();
++        assert_eq!(
++            seen,
++            (0..=16u64)
++                .flat_map(|k| [seed + k, seed - k])
++                .collect::<Vec<_>>()
++        );
++        assert_eq!(targets[0].to_bits(), seed - 16);
++        let error = plan_double_angle_targets(
++            4,
++            2,
++            1.0,
++            &mut targets,
++            |level, _| {
++                if level == 2 {
++                    Ok::<_, HekitError>(1.0)
++                } else {
++                    Err(HekitError::ScaleMismatch)
++                }
++            },
++            true,
++        )
++        .unwrap_err();
++        assert!(matches!(error, TargetPlanError::Unreachable { level: 3 }));
++        let error = plan_double_angle_targets(
++            4,
++            2,
++            1.0,
++            &mut targets,
++            |_, _| Ok::<_, HekitError>(f64::MAX),
++            true,
++        )
++        .unwrap_err();
++        assert!(matches!(error, TargetPlanError::NonFiniteSeed { level: 2 }));
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/bootstrap/linear.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/bootstrap/linear.rs
+@@ -83,10 +83,10 @@
+ /// The BSGS layout of one stage: diagonals `offset..offset + d` at slot distance `stride`
+ /// (see [`crate::linalg`]).
+ #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+-struct Shape {
+-    d: usize,
+-    stride: usize,
+-    offset: i64,
++pub(crate) struct Shape {
++    pub(crate) d: usize,
++    pub(crate) stride: usize,
++    pub(crate) offset: i64,
+ }
+ 
+ impl DiagMatrix {
+@@ -251,39 +251,7 @@
+     /// that reaches diagonal 0 costs no rotation). If no window below `m` fits (the offsets
+     /// wrap around), `d = m` and `offset = 0`.
+     fn shape(&self) -> Shape {
+-        let nonzero: Vec<usize> = self.diags.keys().copied().filter(|&o| o != 0).collect();
+-        let Some(tz) = nonzero.iter().map(|o| o.trailing_zeros()).min() else {
+-            return Shape {
+-                d: 1,
+-                stride: 1,
+-                offset: 0,
+-            };
+-        };
+-        let stride = 1usize << tz;
+-        let m = (self.n / stride) as i64;
+-        let ks: Vec<i64> = self
+-            .diags
+-            .keys()
+-            .map(|&o| {
+-                let k = (o / stride) as i64;
+-                if k > m / 2 { k - m } else { k }
+-            })
+-            .collect();
+-        let (kmin, kmax) = (*ks.iter().min().unwrap(), *ks.iter().max().unwrap());
+-        let mut d = ((kmax - kmin + 1) as usize).next_power_of_two();
+-        while (d as i64) < m {
+-            let g = bsgs_split(d).0 as i64;
+-            let offset = (kmin.div_euclid(g) * g).min(0);
+-            if offset > -(d as i64) && offset + d as i64 > kmax {
+-                return Shape { d, stride, offset };
+-            }
+-            d *= 2;
+-        }
+-        Shape {
+-            d: m as usize,
+-            stride,
+-            offset: 0,
+-        }
++        shape_from_offsets(self.n, self.diags.keys().copied())
+     }
+ 
+     /// The diagonals `offset .. offset + d` of `shape` as slot vectors (zero where not
+@@ -310,14 +278,55 @@
+     }
+ }
+ 
++/// Same stored-key layout used by runtime matrices and root-free metadata.
++/// Caller guarantees nonempty normalized offsets and a power-of-two slot count.
++pub(crate) fn shape_from_offsets(n: usize, offsets: impl Iterator<Item = usize> + Clone) -> Shape {
++    let Some(tz) = offsets
++        .clone()
++        .filter(|&o| o != 0)
++        .map(|o| o.trailing_zeros())
++        .min()
++    else {
++        return Shape {
++            d: 1,
++            stride: 1,
++            offset: 0,
++        };
++    };
++    let stride = 1usize << tz;
++    let m = (n / stride) as i64;
++    let mut kmin = i64::MAX;
++    let mut kmax = i64::MIN;
++    for o in offsets {
++        let k = (o / stride) as i64;
++        let k = if k > m / 2 { k - m } else { k };
++        kmin = kmin.min(k);
++        kmax = kmax.max(k);
++    }
++    let mut d = ((kmax - kmin + 1) as usize).next_power_of_two();
++    while (d as i64) < m {
++        let g = bsgs_split(d).0 as i64;
++        let offset = (kmin.div_euclid(g) * g).min(0);
++        if offset > -(d as i64) && offset + d as i64 > kmax {
++            return Shape { d, stride, offset };
++        }
++        d *= 2;
++    }
++    Shape {
++        d: m as usize,
++        stride,
++        offset: 0,
++    }
++}
++
+ /// `e^(2 pi i k / m)`.
+-fn root(k: usize, m: usize) -> Complex64 {
++pub(crate) fn root(k: usize, m: usize) -> Complex64 {
+     let (s, c) = (2.0 * std::f64::consts::PI * k as f64 / m as f64).sin_cos();
+     Complex64::new(c, s)
+ }
+ 
+ /// `b^e mod m`.
+-fn pow_mod(b: usize, mut e: usize, m: usize) -> usize {
++pub(crate) fn pow_mod(b: usize, mut e: usize, m: usize) -> usize {
+     let (mut base, mut acc) = (b % m, 1 % m);
+     while e > 0 {
+         if e & 1 == 1 {
+@@ -370,10 +379,13 @@
+         (1..=log_slots as usize).contains(&levels),
+         "levels {levels} outside 1..={log_slots}"
+     );
++    stage_radices_iter(log_slots, levels).collect()
++}
++
++/// Allocation-free radix order; caller checks the same domain as stage_radices.
++pub(crate) fn stage_radices_iter(log_slots: u32, levels: usize) -> impl Iterator<Item = u32> {
+     let (base, extra) = (log_slots / levels as u32, log_slots as usize % levels);
+-    (0..levels)
+-        .map(|k| base + u32::from(k >= levels - extra))
+-        .collect()
++    (0..levels).map(move |k| base + u32::from(k >= levels - extra))
+ }
+ 
+ /// The `2^log_slots`-point special DFT `U''` (generator `-3`, bit-reversed layout; see the
+@@ -506,13 +518,7 @@
+     if l == 0 {
+         return Err(HekitError::InvalidParams("no stages".into()));
+     }
+-    if !(factor.re.is_finite() && factor.im.is_finite() && factor.norm() > 0.0) {
+-        return Err(HekitError::InvalidParams(format!(
+-            "factor {factor} must be finite and nonzero"
+-        )));
+-    }
+-    let mag = Complex64::new(factor.norm().powf(1.0 / l as f64), 0.0);
+-    let phase = factor / factor.norm();
++    let (mag, phase) = folded_factors(factor, l)?;
+     // The stages that rho() must move C_o through: all but the distance-1 group.
+     let others = match direction {
+         Direction::CoeffToSlot => &stages[..l - 1],
+@@ -549,19 +555,29 @@
+     })
+ }
+ 
++/// Preserve the generic runtime complex-factor domain and exact operation order.
++pub(crate) fn folded_factors(factor: Complex64, l: usize) -> Result<(Complex64, Complex64)> {
++    if !(factor.re.is_finite() && factor.im.is_finite() && factor.norm() > 0.0) {
++        return Err(HekitError::InvalidParams(format!(
++            "factor {factor} must be finite and nonzero"
++        )));
++    }
++    let mag = Complex64::new(factor.norm().powf(1.0 / l as f64), 0.0);
++    let phase = factor / factor.norm();
++    Ok((mag, phase))
++}
++
+ /// The scale targets after each of `l` stages: powers of two on the geometric path from
+ /// `input` to `output`, and exactly `output` after the last.
+-fn scale_path(input: f64, output: f64, l: usize) -> Vec<f64> {
++pub(crate) fn scale_path(input: f64, output: f64, l: usize) -> impl Iterator<Item = f64> {
+     let (a, b) = (input.log2(), output.log2());
+-    (1..=l)
+-        .map(|k| {
+-            if k == l {
+-                output
+-            } else {
+-                (a + (b - a) * k as f64 / l as f64).round().exp2()
+-            }
+-        })
+-        .collect()
++    (1..=l).map(move |k| {
++        if k == l {
++            output
++        } else {
++            (a + (b - a) * k as f64 / l as f64).round().exp2()
++        }
++    })
+ }
+ 
+ /// Adapts `stages` to hekit's slot order, folds `spec.factor` in, and encodes stage `k` at
+@@ -638,10 +654,7 @@
+ fn diagonal_scales(eval: &Evaluator, spec: &StageSpec, l: usize) -> Result<Vec<(f64, f64)>> {
+     let mut s_in = spec.input_scale;
+     let mut out = Vec::with_capacity(l);
+-    for (k, target) in scale_path(spec.input_scale, spec.output_scale, l)
+-        .into_iter()
+-        .enumerate()
+-    {
++    for (k, target) in scale_path(spec.input_scale, spec.output_scale, l).enumerate() {
+         let level = spec.start_level - k;
+         let sp = eval.exact_product_scale(level, target)? / s_in;
+         if sp < MIN_PLAIN_SCALE {
+@@ -665,38 +678,80 @@
+ /// of a bootstrap; the tests check it against the evaluator's counter.
+ pub fn transforms_cost(stages: &[LinearTransform], slots: usize) -> OpCounter {
+     let mut c = OpCounter::default();
+-    let nontrivial = |step: i64| step.rem_euclid(slots as i64) != 0;
+     for lt in stages {
+-        let terms: Vec<&Diagonals<Option<Plaintext>>> =
+-            std::iter::once(&lt.diags).chain(&lt.second).collect();
+-        let (baby, giant) = (lt.diags.baby(), lt.diags.giant());
+-        let (stride, offset) = (lt.diags.stride() as i64, lt.diags.offset());
+-        let kept = |t: &Diagonals<Option<Plaintext>>, k1: usize, k2: usize| {
+-            t.entries()[k1 * baby + k2].is_some()
++        let shape = Shape {
++            d: lt.diags.entries().len(),
++            stride: lt.diags.stride(),
++            offset: lt.diags.offset(),
+         };
+-        for t in &terms {
+-            c.ct_pt_mults += t.nonzero() as u64;
+-            c.rotations += (1..baby)
+-                .filter(|&k2| nontrivial(k2 as i64 * stride))
+-                .filter(|&k2| (0..giant).any(|k1| kept(t, k1, k2)))
+-                .count() as u64;
+-        }
+-        c.rotations += (0..giant)
+-            .filter(|&k1| nontrivial((offset + (baby * k1) as i64) * stride))
+-            .filter(|&k1| terms.iter().any(|t| (0..baby).any(|k2| kept(t, k1, k2))))
+-            .count() as u64;
++        let terms = 1 + usize::from(lt.second.is_some());
++        let stage = sparse_transform_cost(
++            shape,
++            slots,
++            terms,
++            |term, i| {
++                if term == 0 {
++                    lt.diags.entries()[i].is_some()
++                } else {
++                    lt.second.as_ref().expect("second term").entries()[i].is_some()
++                }
++            },
++            |_, _| {},
++        )
++        .expect("encoded transform counts fit u64");
++        crate::bootstrap::metadata::checked_merge(&mut c, &stage).expect("encoded counts fit u64");
+         if lt.direction == Direction::CoeffToSlot && lt.second.is_some() {
+-            c.rotations += 1;
+-        }
+-        c.rescales += 1;
++            crate::bootstrap::metadata::increment(&mut c.rotations, 1)
++                .expect("encoded counts fit u64");
++        }
+     }
+     if stages
+         .first()
+         .is_some_and(|lt| lt.direction == Direction::CoeffToSlot)
+     {
+-        c.rotations += 1;
++        crate::bootstrap::metadata::increment(&mut c.rotations, 1).expect("encoded counts fit u64");
+     }
+     c
++}
++
++/// `Some(term)` visits a baby rotation of that term; `None` a shared giant rotation.
++/// Shape comes from validated metadata or an existing encoded Diagonals object.
++pub(crate) fn sparse_transform_cost(
++    shape: Shape,
++    slots: usize,
++    terms: usize,
++    kept: impl Fn(usize, usize) -> bool,
++    mut visit: impl FnMut(Option<usize>, i32),
++) -> crate::bootstrap::metadata::MetaResult<OpCounter> {
++    use crate::bootstrap::metadata::increment;
++    let (baby, giant) = bsgs_split(shape.d);
++    let norm = |step: i64| step.rem_euclid(slots as i64) as i32;
++    let mut c = OpCounter {
++        rescales: 1,
++        ..OpCounter::default()
++    };
++    for term in 0..terms {
++        for i in 0..shape.d {
++            if kept(term, i) {
++                increment(&mut c.ct_pt_mults, 1)?;
++            }
++        }
++        for j in 1..baby {
++            let step = norm(j as i64 * shape.stride as i64);
++            if step != 0 && (0..giant).any(|k| kept(term, k * baby + j)) {
++                increment(&mut c.rotations, 1)?;
++                visit(Some(term), step);
++            }
++        }
++    }
++    for k in 0..giant {
++        let step = norm((shape.offset + (baby * k) as i64) * shape.stride as i64);
++        if step != 0 && (0..terms).any(|term| (0..baby).any(|j| kept(term, k * baby + j))) {
++            increment(&mut c.rotations, 1)?;
++            visit(None, step);
++        }
++    }
++    Ok(c)
+ }
+ 
+ impl Evaluator {
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/bootstrap/mod.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/bootstrap/mod.rs
+@@ -11,6 +11,7 @@
+ pub mod bootstrapper;
+ pub mod evalmod;
+ pub mod linear;
++pub mod metadata;
+ pub mod modraise;
+ pub mod params;
+ pub mod poly;
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/bootstrap/poly.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/bootstrap/poly.rs
+@@ -51,7 +51,7 @@
+ //! leading branch (the top coefficients) the bound is tight and the recursion splits down to
+ //! degree 1; elsewhere there is a level of slack and the leaves have degree up to `2^s - 1`.
+ 
+-use std::collections::{BTreeMap, BTreeSet};
++use std::collections::BTreeMap;
+ use std::f64::consts::PI;
+ 
+ use ckks_train_core::error::{HekitError, Result};
+@@ -60,6 +60,8 @@
+ use crate::ciphertext::Ciphertext;
+ use crate::counter::OpCounter;
+ use crate::evaluator::{Evaluator, MIN_PLAIN_SCALE};
++use crate::linalg::DiagonalEntry;
++use crate::ops::{HeCiphertext, HeOps};
+ 
+ /// Largest magnitude of an integer constant ([`mul_const_to`], [`add_const`]): `2^126`,
+ /// so that it fits an `i128`.
+@@ -86,22 +88,64 @@
+         "interval [{a}, {b}] must be finite with a < b"
+     );
+     let n = degree + 1;
+-    let theta: Vec<f64> = (0..n).map(|k| PI * (k as f64 + 0.5) / n as f64).collect();
+-    let fx: Vec<f64> = theta
+-        .iter()
+-        .map(|&t| f(0.5 * (b - a) * t.cos() + 0.5 * (a + b)))
+-        .collect();
+-    (0..n)
+-        .map(|j| {
+-            let s: f64 = theta
+-                .iter()
+-                .zip(&fx)
+-                .map(|(&t, &v)| v * (j as f64 * t).cos())
+-                .sum();
+-            let c = 2.0 * s / n as f64;
+-            if j == 0 { c / 2.0 } else { c }
+-        })
+-        .collect()
++    let mut theta = vec![0.0; n];
++    let mut fx = vec![0.0; n];
++    let mut output = vec![0.0; n];
++    interpolation_fill(f, a, b, &mut theta, &mut fx, &mut output);
++    output
++}
++
++/// Shared scalar arithmetic, preserving the original iterator sum/order exactly.
++fn interpolation_fill(
++    f: impl Fn(f64) -> f64,
++    a: f64,
++    b: f64,
++    theta: &mut [f64],
++    fx: &mut [f64],
++    output: &mut [f64],
++) {
++    let n = theta.len();
++    for (k, t) in theta.iter_mut().enumerate() {
++        *t = PI * (k as f64 + 0.5) / n as f64;
++    }
++    for (&t, v) in theta.iter().zip(fx.iter_mut()) {
++        *v = f(0.5 * (b - a) * t.cos() + 0.5 * (a + b));
++    }
++    for (j, c) in output.iter_mut().enumerate() {
++        let s: f64 = theta
++            .iter()
++            .zip(fx.iter())
++            .map(|(&t, &v)| v * (j as f64 * t).cos())
++            .sum();
++        let value = 2.0 * s / n as f64;
++        *c = if j == 0 { value / 2.0 } else { value };
++    }
++}
++
++pub(crate) fn chebyshev_coeffs_checked(
++    f: impl Fn(f64) -> f64,
++    a: f64,
++    b: f64,
++    degree: usize,
++    budget: &mut super::metadata::Budget,
++) -> super::metadata::MetaResult<Vec<f64>> {
++    let n = degree
++        .checked_add(1)
++        .ok_or_else(|| super::metadata::overflow("coefficient length"))?;
++    let mut theta = budget.zeros(n)?;
++    let mut fx = budget.zeros(n)?;
++    let mut output = budget.zeros(n)?;
++    interpolation_fill(f, a, b, &mut theta, &mut fx, &mut output);
++    for (kind, values) in [
++        ("interpolation theta", &theta),
++        ("interpolation function", &fx),
++        ("interpolation coefficient", &output),
++    ] {
++        for (i, &v) in values.iter().enumerate() {
++            super::metadata::finite(v, kind, Some(i))?;
++        }
++    }
++    Ok(output)
+ }
+ 
+ /// `sum_j coeffs[j] T_j(y)` at `y = (2x - a - b) / (b - a)` (Clenshaw's recurrence): the
+@@ -154,84 +198,122 @@
+ /// If `coeffs` has fewer than two entries (degree 0, which the evaluation refuses).
+ pub fn chebyshev_cost(coeffs: &[f64], a: f64, b: f64) -> OpCounter {
+     assert!(coeffs.len() >= 2, "chebyshev_cost needs degree >= 1");
++    let mut budget = super::metadata::Budget::new(u64::MAX, u64::MAX);
++    cost_checked(coeffs, a, b, &mut budget, false).expect("polynomial count allocation/arithmetic")
++}
++
++pub(crate) fn chebyshev_cost_checked(
++    coeffs: &[f64],
++    a: f64,
++    b: f64,
++    budget: &mut super::metadata::Budget,
++) -> super::metadata::MetaResult<OpCounter> {
++    cost_checked(coeffs, a, b, budget, true)
++}
++fn cost_checked(
++    coeffs: &[f64],
++    a: f64,
++    b: f64,
++    budget: &mut super::metadata::Budget,
++    finite_domain: bool,
++) -> super::metadata::MetaResult<OpCounter> {
++    use super::metadata::increment;
+     let depth = chebyshev_depth(coeffs.len() - 1);
++    let mut powers = budget.vec(coeffs.len(), "polynomial power cache")?;
++    powers.resize(coeffs.len(), false);
++    powers[1] = true;
+     let mut sim = CostSim {
+         top: depth,
+         baby: 1 << optimal_split(depth),
+-        powers: BTreeSet::from([1]),
++        powers,
+         cost: OpCounter::default(),
++        budget,
++        finite_domain,
+     };
+     if a != -1.0 || b != 1.0 {
+-        sim.cost.ct_pt_mults += 1;
+-        sim.cost.rescales += 1;
+-    }
+-    if sim.rec(coeffs, 1) == Some(3) {
+-        sim.cost.relins += 1;
+-    }
+-    sim.cost.rescales += 1;
+-    sim.cost
+-}
+-
+-/// [`Cheb`] without ciphertexts: the same recursion on degrees and levels, counting what
+-/// [`Cheb`] counts. `top` is the level of `T_1` (any value works: only `top - tl` matters).
+-struct CostSim {
++        increment(&mut sim.cost.ct_pt_mults, 1)?;
++        increment(&mut sim.cost.rescales, 1)?;
++    }
++    if sim.rec(coeffs, 1)? == Some(3) {
++        increment(&mut sim.cost.relins, 1)?;
++    }
++    increment(&mut sim.cost.rescales, 1)?;
++    Ok(sim.cost)
++}
++
++/// Same zero-sensitive recursion and lazy component-count decisions as Cheb.
++struct CostSim<'a> {
+     top: usize,
+     baby: usize,
+-    powers: BTreeSet<usize>,
++    powers: Vec<bool>,
+     cost: OpCounter,
+-}
+-
+-impl CostSim {
+-    /// [`Cheb::ensure`]: one product, relinearization and rescale per new power, plus an
+-    /// integer constant for `T_(a-b)` when `a != b`.
+-    fn ensure(&mut self, i: usize) {
+-        if self.powers.contains(&i) {
+-            return;
++    budget: &'a mut super::metadata::Budget,
++    finite_domain: bool,
++}
++impl CostSim<'_> {
++    fn ensure(&mut self, i: usize) -> super::metadata::MetaResult<()> {
++        use super::metadata::increment;
++        self.budget.fuel(1)?;
++        if self.powers[i] {
++            return Ok(());
+         }
+         let a = 1usize << (ceil_log2(i) - 1);
+         let (b, c) = (i - a, 2 * a - i);
+-        self.ensure(a);
+-        self.ensure(b);
++        self.ensure(a)?;
++        self.ensure(b)?;
+         if c > 0 {
+-            self.ensure(c);
+-            self.cost.ct_pt_mults += 1;
+-        }
+-        self.cost.ct_ct_tensor += 1;
+-        self.cost.relins += 1;
+-        self.cost.rescales += 1;
+-        self.powers.insert(i);
+-    }
+-
+-    /// [`Cheb::rec`]: the component count of the result (2 or 3), `None` for zero.
+-    fn rec(&mut self, p: &[f64], tl: usize) -> Option<usize> {
+-        let m = p.iter().rposition(|&c| c != 0.0)?;
++            self.ensure(c)?;
++            increment(&mut self.cost.ct_pt_mults, 1)?;
++        }
++        increment(&mut self.cost.ct_ct_tensor, 1)?;
++        increment(&mut self.cost.relins, 1)?;
++        increment(&mut self.cost.rescales, 1)?;
++        self.powers[i] = true;
++        Ok(())
++    }
++    fn rec(&mut self, p: &[f64], tl: usize) -> super::metadata::MetaResult<Option<usize>> {
++        use super::metadata::increment;
++        self.budget.fuel(p.len())?;
++        let Some(m) = p.iter().rposition(|&c| c != 0.0) else {
++            return Ok(None);
++        };
+         let p = &p[..=m];
+         if m == 0 || (m < self.baby && tl + ceil_log2(m) <= self.top) {
+             for (i, &c) in p.iter().enumerate().skip(1) {
+                 if c != 0.0 {
+-                    self.ensure(i);
+-                    self.cost.ct_pt_mults += 1;
++                    self.ensure(i)?;
++                    increment(&mut self.cost.ct_pt_mults, 1)?;
+                 }
+             }
+-            return Some(2);
++            return Ok(Some(2));
+         }
+         let k = 1usize << (usize::BITS - 1 - m.leading_zeros());
+-        let (q, r) = split_coeffs(p, k);
+-        self.ensure(k);
+-        let qres = self.rec(&q, tl + 1);
+-        let rres = self.rec(&r, tl);
+-        let prod = qres.map(|len| {
++        self.budget.fuel(p.len())?;
++        let mut q = self.budget.zeros(m - k + 1)?;
++        let mut r = self.budget.zeros(k)?;
++        split_fill(p, k, &mut q, &mut r);
++        if self.finite_domain {
++            for (i, &v) in q.iter().chain(&r).enumerate() {
++                super::metadata::finite(v, "split coefficient", Some(i))?;
++            }
++        }
++        self.ensure(k)?;
++        let qres = self.rec(&q, tl + 1)?;
++        let rres = self.rec(&r, tl)?;
++        let prod = if let Some(len) = qres {
+             if len == 3 {
+-                self.cost.relins += 1;
++                increment(&mut self.cost.relins, 1)?;
+             }
+-            self.cost.rescales += 1;
+-            self.cost.ct_ct_tensor += 1;
+-            3
+-        });
+-        match (prod, rres) {
++            increment(&mut self.cost.rescales, 1)?;
++            increment(&mut self.cost.ct_ct_tensor, 1)?;
++            Some(3)
++        } else {
++            None
++        };
++        Ok(match (prod, rres) {
+             (None, r) => r,
+             (Some(a), r) => Some(a.max(r.unwrap_or(0))),
+-        }
++        })
+     }
+ }
+ 
+@@ -241,14 +323,20 @@
+ fn split_coeffs(p: &[f64], k: usize) -> (Vec<f64>, Vec<f64>) {
+     let m = p.len() - 1;
+     debug_assert!(k <= m && m < 2 * k, "split of degree {m} at {k}");
+-    let mut r = p[..k].to_vec();
++    let mut r = vec![0.0; k];
+     let mut q = vec![0.0; m - k + 1];
++    split_fill(p, k, &mut q, &mut r);
++    (q, r)
++}
++
++/// One actual split arithmetic path for HE recursion, legacy cost and metadata.
++fn split_fill(p: &[f64], k: usize, q: &mut [f64], r: &mut [f64]) {
++    r.copy_from_slice(&p[..k]);
+     q[0] = p[k];
+-    for i in k + 1..=m {
++    for i in k + 1..p.len() {
+         q[i - k] = 2.0 * p[i];
+         r[2 * k - i] -= p[i];
+     }
+-    (q, r)
+ }
+ 
+ /// `ceil(log2(m))` for `m >= 1`.
+@@ -262,7 +350,7 @@
+ }
+ 
+ /// The integer `round(v)` as `i128`, `InvalidParams` beyond `2^126` or for non-finite `v`.
+-fn to_int(v: f64) -> Result<i128> {
++pub fn rounded_constant(v: f64) -> Result<i128> {
+     let r = v.round();
+     if !(r.is_finite() && r.abs() < MAX_CONST) {
+         return Err(HekitError::InvalidParams(format!(
+@@ -307,7 +395,7 @@
+             ct.scale()
+         )));
+     }
+-    let k = to_int(value * ratio)?;
++    let k = rounded_constant(value * ratio)?;
+     let c = ct.polys().iter().map(|p| mul_int(p, k)).collect();
+     let r = Ciphertext::new(c, product_scale)?;
+     eval.count(|c| c.ct_pt_mults += 1);
+@@ -317,7 +405,7 @@
+ /// `ct + value`: adds the integer `round(value * ct.scale())` to `c_0` (in NTT form a
+ /// constant polynomial is the same constant at every evaluation point). No noise, no level.
+ fn add_const(ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
+-    let k = to_int(value * ct.scale())?;
++    let k = rounded_constant(value * ct.scale())?;
+     let mut c = ct.polys().to_vec();
+     let p0 = &c[0];
+     let basis = p0.basis();
+@@ -338,7 +426,7 @@
+ /// every addition of the evaluation is exact in scale by construction, and this keeps
+ /// [`SCALE_TOLERANCE`](crate::evaluator::SCALE_TOLERANCE) from silently relabelling after a
+ /// future change (review m3).
+-fn add_exact(eval: &Evaluator, a: &Ciphertext, b: &Ciphertext, sub: bool) -> Result<Ciphertext> {
++fn add_exact<E: HeOps>(eval: &E, a: &E::Ct, b: &E::Ct, sub: bool) -> Result<E::Ct> {
+     if a.scale() != b.scale() {
+         return Err(HekitError::ScaleMismatch);
+     }
+@@ -353,23 +441,58 @@
+ }
+ 
+ /// `ct` relabelled to `scale`, which must be within [`RELABEL_TOL`] of its scale.
+-fn relabel(ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
++fn relabel<E: BootstrapArithmetic>(ev: &E, ct: E::Ct, scale: f64) -> Result<E::Ct> {
+     if ((ct.scale() - scale) / scale).abs() > RELABEL_TOL {
+         return Err(HekitError::ScaleMismatch);
+     }
+-    Ciphertext::new(ct.into_polys(), scale)
++    ev.boot_relabel(ct, scale)
++}
++
++/// Extra arithmetic needed by the shared level-optimal bootstrap polynomial executor.
++/// Implementations must preserve exact scale labels and the CPU integer rounding rules.
++pub trait BootstrapArithmetic: HeOps {
++    /// Check ownership, two components and a usable relinearization key before work.
++    fn check_boot_input(&self, ct: &Self::Ct) -> Result<()>;
++    /// Integer constant product with the exact requested label, counted once.
++    fn boot_mul_const(&self, ct: &Self::Ct, value: f64, scale: f64) -> Result<Self::Ct>;
++    /// Add a rounded integer constant, without a level or operation count.
++    fn boot_add_const(&self, ct: &Self::Ct, value: f64) -> Result<Self::Ct>;
++    /// Trivial zero encryption with two components.
++    fn boot_zero(&self, level: usize, scale: f64) -> Result<Self::Ct>;
++    /// Change only the scale label (the caller validates the numerical justification).
++    fn boot_relabel(&self, ct: Self::Ct, scale: f64) -> Result<Self::Ct>;
++}
++
++impl BootstrapArithmetic for Evaluator {
++    fn check_boot_input(&self, ct: &Ciphertext) -> Result<()> {
++        self.check_galois_input(ct)?;
++        self.relin_key_checked()?;
++        Ok(())
++    }
++    fn boot_mul_const(&self, ct: &Ciphertext, value: f64, scale: f64) -> Result<Ciphertext> {
++        mul_const_to(self, ct, value, scale)
++    }
++    fn boot_add_const(&self, ct: &Ciphertext, value: f64) -> Result<Ciphertext> {
++        add_const(ct, value)
++    }
++    fn boot_zero(&self, level: usize, scale: f64) -> Result<Ciphertext> {
++        zero_ct(self, level, scale)
++    }
++    fn boot_relabel(&self, ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
++        Ciphertext::new(ct.into_polys(), scale)
++    }
+ }
+ 
+ /// The state of one evaluation: the evaluator, the level `L` of `T_1`, the baby-step bound
+ /// `2^s` and the power basis computed so far.
+-struct Cheb<'e> {
+-    eval: &'e Evaluator,
++struct Cheb<'e, E: BootstrapArithmetic> {
++    eval: &'e E,
+     top: usize,
+     baby: usize,
+-    powers: BTreeMap<usize, Ciphertext>,
+-}
+-
+-impl Cheb<'_> {
++    powers: BTreeMap<usize, E::Ct>,
++}
++
++impl<E: BootstrapArithmetic> Cheb<'_, E> {
+     /// Computes `T_i` (and what it needs) if absent: `T_i = 2 T_a T_b - T_{a-b}` at level
+     /// `L - ceil(log2 i)` (module docs). The product is relinearized and doubled (added to
+     /// itself: relabelling it with half its scale would double the message for free but halve
+@@ -396,10 +519,10 @@
+         let prod = ev.relinearize(&ev.mul_no_relin(&ta, &tb)?)?;
+         let prod = add_exact(ev, &prod, &prod, false)?;
+         let prod = if c == 0 {
+-            add_const(&prod, -1.0)?
++            ev.boot_add_const(&prod, -1.0)?
+         } else {
+             let tc = ev.mod_switch_to_level(&self.powers[&c], l)?;
+-            add_exact(ev, &prod, &mul_const_to(ev, &tc, 1.0, prod.scale())?, true)?
++            add_exact(ev, &prod, &ev.boot_mul_const(&tc, 1.0, prod.scale())?, true)?
+         };
+         let t = ev.rescale(&prod)?;
+         debug_assert_eq!(t.level() + ceil_log2(i), self.top);
+@@ -409,7 +532,7 @@
+ 
+     /// `sum_i p_i T_i` at level `tl` with the exact scale `ts`, unrescaled (module docs);
+     /// `None` for the zero polynomial.
+-    fn rec(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Option<Ciphertext>> {
++    fn rec(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Option<E::Ct>> {
+         let Some(m) = p.iter().rposition(|&c| c != 0.0) else {
+             return Ok(None);
+         };
+@@ -429,14 +552,14 @@
+         let prod = match qres {
+             None => None,
+             Some(qc) => {
+-                let qc = if qc.len() == 3 {
++                let qc = if qc.size() == 3 {
+                     ev.relinearize(&qc)?
+                 } else {
+                     qc
+                 };
+                 let qc = ev.rescale(&qc)?;
+                 let tp = ev.mod_switch_to_level(&self.powers[&k], tl)?;
+-                Some(relabel(ev.mul_no_relin(&qc, &tp)?, ts)?)
++                Some(relabel(ev, ev.mul_no_relin(&qc, &tp)?, ts)?)
+             }
+         };
+         Ok(match (prod, rres) {
+@@ -447,15 +570,15 @@
+     }
+ 
+     /// The leaf `sum_{i >= 1} k_i T_i + round(p_0 ts)` at level `tl`, scale `ts`.
+-    fn leaf(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<Ciphertext> {
+-        let mut acc: Option<Ciphertext> = None;
++    fn leaf(&mut self, p: &[f64], tl: usize, ts: f64) -> Result<E::Ct> {
++        let mut acc: Option<E::Ct> = None;
+         for (i, &c) in p.iter().enumerate().skip(1) {
+             if c == 0.0 {
+                 continue;
+             }
+             self.ensure(i)?;
+             let t = self.eval.mod_switch_to_level(&self.powers[&i], tl)?;
+-            let term = mul_const_to(self.eval, &t, c, ts)?;
++            let term = self.eval.boot_mul_const(&t, c, ts)?;
+             acc = Some(match acc {
+                 None => term,
+                 Some(s) => add_exact(self.eval, &s, &term, false)?,
+@@ -463,10 +586,10 @@
+         }
+         let acc = match acc {
+             Some(a) => a,
+-            None => zero_ct(self.eval, tl, ts)?,
++            None => self.eval.boot_zero(tl, ts)?,
+         };
+         if p[0] != 0.0 {
+-            add_const(&acc, p[0])
++            self.eval.boot_add_const(&acc, p[0])
+         } else {
+             Ok(acc)
+         }
+@@ -523,58 +646,70 @@
+         b: f64,
+         target_scale: f64,
+     ) -> Result<Ciphertext> {
+-        let bad = |m: String| Err(HekitError::InvalidParams(m));
+-        self.check_galois_input(ct)?;
+-        self.relin_key_checked()?;
+-        if coeffs.len() < 2 {
+-            return bad("eval_chebyshev needs degree >= 1 (two coefficients or more)".into());
+-        }
+-        if let Some(c) = coeffs.iter().find(|c| !c.is_finite()) {
+-            return bad(format!("non-finite Chebyshev coefficient {c}"));
+-        }
+-        if !(a.is_finite() && b.is_finite() && a < b) {
+-            return bad(format!("interval [{a}, {b}] must be finite with a < b"));
+-        }
+-        if !(target_scale.is_finite() && target_scale > 0.0) {
+-            return bad(format!(
+-                "target scale {target_scale} must be positive and finite"
+-            ));
+-        }
+-        let affine = a != -1.0 || b != 1.0;
+-        let depth = chebyshev_depth(coeffs.len() - 1);
+-        if ct.level() < depth + affine as usize {
+-            return Err(HekitError::NoLevelsLeft);
+-        }
+-        let x = if affine {
+-            // y = alpha x + beta at exactly ct.scale(), one level.
+-            let (alpha, beta) = (2.0 / (b - a), -(a + b) / (b - a));
+-            let y = self.rescale(&self.mul_scalar(ct, alpha, ct.scale())?)?;
+-            add_const(&y, beta)?
+-        } else {
+-            ct.clone()
+-        };
+-        let top = x.level();
+-        let tl = top + 1 - depth;
+-        let label = self.exact_product_scale(tl, target_scale)?;
+-        let mut cheb = Cheb {
+-            eval: self,
+-            top,
+-            baby: 1 << optimal_split(depth),
+-            powers: BTreeMap::from([(1, x)]),
+-        };
+-        let res = match cheb.rec(coeffs, tl, label)? {
+-            Some(c) => c,
+-            None => zero_ct(self, tl, label)?,
+-        };
+-        let res = if res.len() == 3 {
+-            self.relinearize(&res)?
+-        } else {
+-            res
+-        };
+-        let out = self.rescale(&res)?;
+-        debug_assert_eq!(out.scale(), target_scale);
+-        Ok(out)
+-    }
++        eval_chebyshev_to_scale(self, ct, coeffs, a, b, target_scale)
++    }
++}
++
++/// Backend-neutral execution of [`Evaluator::eval_chebyshev_to_scale`], with identical
++/// recursion, scale labels, integer rounding and counts.
++pub fn eval_chebyshev_to_scale<E: BootstrapArithmetic>(
++    ev: &E,
++    ct: &E::Ct,
++    coeffs: &[f64],
++    a: f64,
++    b: f64,
++    target_scale: f64,
++) -> Result<E::Ct> {
++    let bad = |m: String| Err(HekitError::InvalidParams(m));
++    ev.check_boot_input(ct)?;
++    if coeffs.len() < 2 {
++        return bad("eval_chebyshev needs degree >= 1 (two coefficients or more)".into());
++    }
++    if let Some(c) = coeffs.iter().find(|c| !c.is_finite()) {
++        return bad(format!("non-finite Chebyshev coefficient {c}"));
++    }
++    if !(a.is_finite() && b.is_finite() && a < b) {
++        return bad(format!("interval [{a}, {b}] must be finite with a < b"));
++    }
++    if !(target_scale.is_finite() && target_scale > 0.0) {
++        return bad(format!(
++            "target scale {target_scale} must be positive and finite"
++        ));
++    }
++    let affine = a != -1.0 || b != 1.0;
++    let depth = chebyshev_depth(coeffs.len() - 1);
++    if ct.level() < depth + affine as usize {
++        return Err(HekitError::NoLevelsLeft);
++    }
++    let x = if affine {
++        // y = alpha x + beta at exactly ct.scale(), one level.
++        let (alpha, beta) = (2.0 / (b - a), -(a + b) / (b - a));
++        let y = ev.rescale(&ev.mul_scalar(ct, alpha, ct.scale())?)?;
++        ev.boot_add_const(&y, beta)?
++    } else {
++        ct.clone()
++    };
++    let top = x.level();
++    let tl = top + 1 - depth;
++    let label = ev.exact_product_scale(tl, target_scale)?;
++    let mut cheb = Cheb {
++        eval: ev,
++        top,
++        baby: 1 << optimal_split(depth),
++        powers: BTreeMap::from([(1, x)]),
++    };
++    let res = match cheb.rec(coeffs, tl, label)? {
++        Some(c) => c,
++        None => ev.boot_zero(tl, label)?,
++    };
++    let res = if res.size() == 3 {
++        ev.relinearize(&res)?
++    } else {
++        res
++    };
++    let out = ev.rescale(&res)?;
++    debug_assert_eq!(out.scale(), target_scale);
++    Ok(out)
+ }
+ 
+ /// The double-angle step `c <- 2 c^2 - 1` at the level of `c`, landing exactly on
+@@ -583,14 +718,18 @@
+ /// caller (a relative relabelling error of a few `2^-52`; more than `2^-40` is
+ /// `ScaleMismatch`). The relabel doubles the message; then `1` is subtracted at that scale
+ /// and the result rescaled. One level.
+-pub(crate) fn double_angle(eval: &Evaluator, c: &Ciphertext, out_scale: f64) -> Result<Ciphertext> {
++pub(crate) fn double_angle<E: BootstrapArithmetic>(
++    eval: &E,
++    c: &E::Ct,
++    out_scale: f64,
++) -> Result<E::Ct> {
+     let sigma = eval.exact_product_scale(c.level(), out_scale)?;
+     let sq = eval.relinearize(&eval.mul_no_relin(c, c)?)?;
+     if ((sq.scale() / 2.0 - sigma) / sigma).abs() > 2f64.powi(-40) {
+         return Err(HekitError::ScaleMismatch);
+     }
+-    let sq = Ciphertext::new(sq.into_polys(), sigma)?;
+-    eval.rescale(&add_const(&sq, -1.0)?)
++    let sq = eval.boot_relabel(sq, sigma)?;
++    eval.rescale(&eval.boot_add_const(&sq, -1.0)?)
+ }
+ 
+ #[cfg(test)]
+@@ -916,3 +1055,47 @@
+         );
+     }
+ }
++
++#[cfg(test)]
++mod metadata_cost_tests {
++    use super::*;
++    use crate::bootstrap::metadata::{BootstrapMetadataError, Budget};
++    #[test]
++    fn zero_sensitive_split_and_declared_length_literals() {
++        for (p, expected) in [
++            (vec![1.0, 0.0, 0.0, 0.0], (0, 0, 0, 1)),
++            (vec![0.0, 1.0, 0.0, 0.0], (0, 0, 1, 1)),
++            (vec![0.0, 0.0, 1.0, 0.0], (2, 2, 0, 3)),
++            (vec![0.0, 1.0, 0.0, 1.0], (2, 2, 1, 3)),
++            (vec![0.0, 2.0, 0.0, 1.0], (2, 2, 2, 3)),
++        ] {
++            let c =
++                chebyshev_cost_checked(&p, -1.0, 1.0, &mut Budget::new(1 << 20, 1 << 20)).unwrap();
++            assert_eq!(
++                (c.ct_ct_tensor, c.relins, c.ct_pt_mults, c.rescales),
++                expected,
++                "{p:?}"
++            );
++            assert_eq!(chebyshev_depth(p.len() - 1), 2);
++        }
++        let (q, r) = split_coeffs(&[0.0, 1.0, 0.0, 1.0], 2);
++        assert_eq!(q, [0.0, 2.0]);
++        assert_eq!(r, [0.0, 0.0]);
++    }
++    #[test]
++    fn checked_split_rejects_actual_nonfinite_intermediates() {
++        let result = chebyshev_cost_checked(
++            &[0.0, 0.0, 0.0, f64::MAX],
++            -1.0,
++            1.0,
++            &mut Budget::new(1 << 20, 1 << 20),
++        );
++        assert!(matches!(
++            result,
++            Err(BootstrapMetadataError::NonFiniteIntermediate {
++                operation: "split coefficient",
++                ..
++            })
++        ));
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/evaluator.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/evaluator.rs
+@@ -368,20 +368,8 @@
+     /// can reach). Failures count nothing.
+     pub fn mul_scalar(&self, ct: &Ciphertext, value: f64, target_scale: f64) -> Result<Ciphertext> {
+         self.check_basis(ct.polys())?;
+-        if !value.is_finite() {
+-            return Err(HekitError::InvalidParams(format!(
+-                "scalar {value} must be finite"
+-            )));
+-        }
+-        let label = self.exact_product_scale(ct.level(), target_scale)?;
+-        check_plain_scale(label / ct.scale())?;
+-        let k = (value * (label / ct.scale())).round();
+-        if k.abs() >= MAX_SCALAR_INT {
+-            return Err(HekitError::InvalidParams(format!(
+-                "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
+-                label / ct.scale()
+-            )));
+-        }
++        let (label, _, k) =
++            scalar_product_parts(&self.params, ct.level(), ct.scale(), value, target_scale)?;
+         let mut c = ct.polys().to_vec();
+         for p in &mut c {
+             p.mul_scalar_assign(k.abs() as u64);
+@@ -781,6 +769,31 @@
+         .map(f64::from_bits)
+         .find(|&l| l / q == target_scale)
+         .ok_or(HekitError::ScaleMismatch)
++}
++
++/// Legacy scalar label/rounding checks, shared without tightening nonfinite intermediates.
++pub(crate) fn scalar_product_parts(
++    params: &CkksParams,
++    level: usize,
++    source_scale: f64,
++    value: f64,
++    target_scale: f64,
++) -> Result<(f64, f64, f64)> {
++    if !value.is_finite() {
++        return Err(HekitError::InvalidParams(format!(
++            "scalar {value} must be finite"
++        )));
++    }
++    let label = exact_product_scale(params, level, target_scale)?;
++    check_plain_scale(label / source_scale)?;
++    let k = (value * (label / source_scale)).round();
++    if k.abs() >= MAX_SCALAR_INT {
++        return Err(HekitError::InvalidParams(format!(
++            "scalar {value:e} at plaintext scale {:e} is the integer {k:e} >= 2^62",
++            label / source_scale
++        )));
++    }
++    Ok((label, label / source_scale, k))
+ }
+ 
+ /// `(sigma_elt(c0) + kb, ka)` with the scale of `ct`.
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/lib.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/lib.rs
+@@ -10,6 +10,7 @@
+ pub mod keys;
+ pub mod keyswitch;
+ pub mod linalg;
++pub mod metadata;
+ pub mod ops;
+ mod par;
+ pub mod params;
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-ckks/src/linalg.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-ckks/src/linalg.rs
+@@ -431,18 +431,28 @@
+ /// # Panics
+ /// If `d` is not a power of two, `stride == 0`, or `d * stride` exceeds `i32::MAX`.
+ pub fn bsgs_rotation_steps(d: usize, stride: usize) -> Vec<i32> {
+-    let (baby, giant) = bsgs_split(d);
++    bsgs_rotation_steps_iter(d, stride).collect()
++}
++
++// Eager validation retains the public panic order; no throwaway Vec is constructed.
++fn rotation_shape(d: usize, stride: usize) -> (usize, usize) {
++    let shape = bsgs_split(d);
+     assert!(stride > 0, "stride must be positive");
+     assert!(
+         d.checked_mul(stride)
+             .is_some_and(|n| n <= i32::MAX as usize),
+         "d * stride = {d} * {stride} overflows a rotation step"
+     );
++    shape
++}
++
++/// Allocation-free offset-zero steps, with the same eager validation as the public helper.
++pub(crate) fn bsgs_rotation_steps_iter(d: usize, stride: usize) -> impl Iterator<Item = i32> {
++    let (baby, giant) = rotation_shape(d, stride);
+     (1..baby)
+-        .map(|k2| k2 * stride)
+-        .chain((1..giant).map(|k1| baby * k1 * stride))
++        .map(move |k2| k2 * stride)
++        .chain((1..giant).map(move |k1| baby * k1 * stride))
+         .map(|s| s as i32)
+-        .collect()
+ }
+ 
+ /// [`bsgs_rotation_steps`] for diagonals `offset..offset + d` (`-d < offset <= 0`, see the
+@@ -453,23 +463,29 @@
+ /// # Panics
+ /// As [`bsgs_rotation_steps`], and unless `-d < offset <= 0`.
+ pub fn bsgs_rotation_steps_with_offset(d: usize, stride: usize, offset: i64) -> Vec<i32> {
++    bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect()
++}
++
++/// Allocation-free full-shape steps. Metadata calls only after typed shape preflight.
++pub(crate) fn bsgs_rotation_steps_with_offset_iter(
++    d: usize,
++    stride: usize,
++    offset: i64,
++) -> impl Iterator<Item = i32> {
+     assert!(
+         check_offset(d, offset).is_ok(),
+         "offset {offset} outside -d < offset <= 0 for d = {d}"
+     );
+-    // Validates d and stride (same panics as the offset-0 steps).
+-    bsgs_rotation_steps(d, stride);
+-    let (baby, giant) = bsgs_split(d);
++    let (baby, giant) = rotation_shape(d, stride);
+     let s = stride as i64;
+     (1..baby as i64)
+-        .map(|k2| k2 * s)
++        .map(move |k2| k2 * s)
+         .chain(
+             (0..giant as i64)
+-                .map(|k1| (offset + baby as i64 * k1) * s)
++                .map(move |k1| (offset + baby as i64 * k1) * s)
+                 .filter(|&g| g != 0),
+         )
+         .map(|v| v as i32)
+-        .collect()
+ }
+ 
+ /// The `d` generalized diagonals of the square matrix `w` laid out for `slots` slots with
+@@ -1680,3 +1696,62 @@
+         assert!(err < 2f64.powi(-15), "level-1 matvec_enc error {err:e}");
+     }
+ }
++
++#[cfg(test)]
++mod bootstrap_metadata_iterator_tests {
++    use super::*;
++    #[test]
++    fn iterator_preserves_full_shape_order_and_wrap_literals() {
++        for (d, stride, offset, expected) in [
++            (16, 1, 0, vec![1, 2, 3, 4, 8, 12]),
++            (16, 2, -8, vec![2, 4, 6, -16, -8, 8]),
++            (8, 3, -4, vec![3, 6, 9, -12]),
++            (2, 1, 0, vec![1]),
++            (1, 1, 0, vec![]),
++        ] {
++            assert_eq!(
++                bsgs_rotation_steps_with_offset_iter(d, stride, offset).collect::<Vec<_>>(),
++                expected
++            );
++            assert_eq!(bsgs_rotation_steps_with_offset(d, stride, offset), expected);
++            if offset == 0 {
++                assert_eq!(
++                    bsgs_rotation_steps_iter(d, stride).collect::<Vec<_>>(),
++                    expected
++                );
++                assert_eq!(bsgs_rotation_steps(d, stride), expected);
++            }
++        }
++        let normalized = bsgs_rotation_steps_with_offset_iter(16, 2, -8)
++            .map(|s| s.rem_euclid(32))
++            .collect::<Vec<_>>();
++        assert_eq!(normalized, [2, 4, 6, 16, 24, 8]);
++    }
++    #[test]
++    fn iterators_validate_eagerly_in_legacy_panic_order() {
++        for (d, stride, offset, expected) in [
++            (3, 0, 1, "offset"),
++            (3, 0, 0, "power of two"),
++            (4, 0, 0, "stride must be positive"),
++            (4, usize::MAX, 0, "overflows a rotation step"),
++            (4, 1, -4, "offset"),
++        ] {
++            for iterator in [false, true] {
++                let panic = std::panic::catch_unwind(|| {
++                    if iterator {
++                        let _unused = bsgs_rotation_steps_with_offset_iter(d, stride, offset);
++                    } else {
++                        bsgs_rotation_steps_with_offset(d, stride, offset);
++                    }
++                })
++                .unwrap_err();
++                let message = panic
++                    .downcast_ref::<String>()
++                    .map(String::as_str)
++                    .or_else(|| panic.downcast_ref::<&str>().copied())
++                    .unwrap();
++                assert!(message.contains(expected), "{message}");
++            }
++        }
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-core/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-core/Cargo.toml
+@@ -1,11 +1,14 @@
+ [package]
+ name = "ckks-train-core"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-core (temporary name)"
++repository.workspace = true
++description = "RNS arithmetic, NTT and sampling primitives of ckks-train, an RNS-CKKS library for encrypted neural-network training"
++readme = "README.md"
++keywords = ["fhe", "rns", "ntt", "lattice", "homomorphic"]
++categories = ["cryptography", "mathematics"]
+ 
+ [dependencies]
+ rand_chacha = "0.9"
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/Cargo.toml [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/Cargo.toml
+@@ -1,13 +1,16 @@
+ [package]
+ name = "ckks-train-nn"
+-version = "0.0.0"
++version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+ license.workspace = true
+-publish = false
+-description = "ckks-train-nn (temporary name)"
++repository.workspace = true
++description = "Encrypted MLP training on RNS-CKKS, interactive and non-interactive (bootstrapping), for ckks-train"
++readme = "README.md"
++keywords = ["ckks", "fhe", "neural-network", "privacy", "machine-learning"]
++categories = ["cryptography", "science"]
+ 
+ [dependencies]
+-ckks-train-core = { path = "../ckks-train-core" }
+-ckks-train-ckks = { path = "../ckks-train-ckks" }
++ckks-train-core = { path = "../ckks-train-core", version = "1.0.0" }
++ckks-train-ckks = { path = "../ckks-train-ckks", version = "1.0.0" }
+ ndarray = "0.16"
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/activation.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/activation.rs
+@@ -176,6 +176,11 @@
+     ev.params().q()[level] as f64
+ }
+ 
++/// Shared ordinary multiply label expression; deliberately not exact-target search.
++pub(crate) fn ordinary_plain_scale(q: f64, source: f64, target: f64) -> f64 {
++    target * q / source
++}
++
+ /// `rescale(ct * v)` with `v` encoded so that the result has scale `target` (see the module
+ /// docs). One level.
+ fn mul_to<E: HeOps>(ev: &E, enc: &Encoder, ct: &E::Ct, v: &[f64], target: f64) -> Result<E::Ct> {
+@@ -183,7 +188,11 @@
+     if l == 0 {
+         return Err(HekitError::NoLevelsLeft);
+     }
+-    let pt = ev.upload_pt_owned(enc.encode(v, target * q_at(ev, l) / ct.scale(), l)?)?;
++    let pt = ev.upload_pt_owned(enc.encode(
++        v,
++        ordinary_plain_scale(q_at(ev, l), ct.scale(), target),
++        l,
++    )?)?;
+     ev.rescale(&ev.mul_plain(ct, &pt)?)
+ }
+ 
+@@ -525,3 +534,45 @@
+ 
+     shape_methods!();
+ }
++
++#[cfg(test)]
++mod p2_helpers {
++    use super::*;
++    use crate::diagonal_plan::tests::context;
++    #[test]
++    fn p2_ordinary_label_order() {
++        crate::diagonal_plan::tests::reserve_helper_calls(6);
++        let c = context(false);
++        let ev = c.ev.fork();
++        let z = c.encrypt_at(7, c.p.scale() * 1.125, 0.125);
++        let q = c.p.q()[7] as f64;
++        let before = ev.counter();
++        let square = Square.forward(&ev, &c.enc, &z).unwrap();
++        assert_eq!(
++            square.scale().to_bits(),
++            ((z.scale() * z.scale()) / q).to_bits()
++        );
++        let poly = PolyRelu2.forward(&ev, &c.enc, &z).unwrap();
++        assert_eq!(poly.scale().to_bits(), square.scale().to_bits());
++        for act in [&Square as &dyn Activation, &PolyRelu2 as &dyn Activation] {
++            let s = act
++                .derivative_factor_at(&ev, &c.enc, &z, 1., None, None)
++                .unwrap();
++            let sp = ordinary_plain_scale(q, z.scale(), z.scale());
++            assert_eq!(
++                (s.level(), s.scale().to_bits()),
++                (6, ((z.scale() * sp) / q).to_bits())
++            );
++        }
++        let mask = vec![1.; c.p.slots()];
++        let d = crate::trainer::constant_dz(&ev, &c.enc, &z, 1., &mask, true).unwrap();
++        assert_eq!(d.scale().to_bits(), z.scale().to_bits());
++        let p = crate::trainer::constant_dz(&ev, &c.enc, &z, 1., &mask, false).unwrap();
++        assert_eq!((p.level(), p.scale().to_bits()), (6, z.scale().to_bits()));
++        let got = &ev.counter() - &before;
++        assert_eq!(
++            (got.ct_ct_tensor, got.relins, got.ct_pt_mults, got.rescales),
++            (2, 2, 4, 6)
++        );
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/dense.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/dense.rs
+@@ -53,7 +53,9 @@
+ #[cfg(doc)]
+ use ckks_train_ckks::Evaluator;
+ use ckks_train_ckks::linalg::{Diagonals, bsgs_rotation_steps};
+-use ckks_train_ckks::{Ciphertext, Decryptor, DiagonalEntry, Encoder, Encryptor, HeCiphertext, HeOps};
++use ckks_train_ckks::{
++    Ciphertext, Decryptor, DiagonalEntry, Encoder, Encryptor, HeCiphertext, HeOps,
++};
+ use ckks_train_core::error::{HekitError, Result};
+ use ckks_train_core::sampler::Rng;
+ use ndarray::Array2;
+@@ -903,18 +905,34 @@
+     target: f64,
+     layout: &Layout,
+ ) -> Result<E::Ct> {
++    Ok(batch_sum_consts(ev, v, &[mask], target, layout)?.remove(0))
++}
++
++/// Share the reduction while each folded constant gets its own mask and replication.
++fn batch_sum_consts<E: HeOps>(
++    ev: &E,
++    v: &E::Ct,
++    masks: &[&E::Pt],
++    target: f64,
++    layout: &Layout,
++) -> Result<Vec<E::Ct>> {
+     let (reduce, replicate) = lane_steps(layout);
+     let mut v = v.clone();
+     for s in reduce {
+         let r = ev.rotate(&v, s)?;
+         v = ev.add(&v, &r)?;
+     }
+-    let mut v = ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?;
+-    for s in replicate {
+-        let r = ev.rotate(&v, s)?;
+-        v = ev.add(&v, &r)?;
+-    }
+-    Ok(v)
++    masks
++        .iter()
++        .map(|mask| {
++            let mut out = ev.rescale(&ev.mul_plain_to_scale(&v, mask, target)?)?;
++            for &s in &replicate {
++                let r = ev.rotate(&out, s)?;
++                out = ev.add(&out, &r)?;
++            }
++            Ok(out)
++        })
++        .collect()
+ }
+ 
+ /// `c * lane0_mask` encoded at `scale` and `level`.
+@@ -1001,6 +1019,30 @@
+         layout: &Layout,
+         c: f64,
+     ) -> Result<Diagonals<C>> {
++        Ok(self
++            .weight_grad_scaled_consts(ev, delta, a_prev, layout, &[c])?
++            .remove(0))
++    }
++
++    /// [`Dense::weight_grad_scaled`] for several folded constants. Products, input
++    /// rotations and batch reductions are shared. Each additional constant costs `m`
++    /// ct-pt products, `m` rescales and `m log2(B)` replication rotations, with no extra
++    /// level, tensor product or relinearization. Every output has the fully replicated
++    /// weight layout, exact weight scale and the single-gradient output level.
++    ///
++    /// Errors as [`Dense::weight_grad_scaled`], plus `InvalidParams` for no constants.
++    /// All constants and original input requirements are checked before evaluator work.
++    pub fn weight_grad_scaled_consts<E: HeOps<Ct = C>>(
++        &self,
++        ev: &E,
++        delta: &C,
++        a_prev: &C,
++        layout: &Layout,
++        cs: &[f64],
++    ) -> Result<Vec<Diagonals<C>>> {
++        if cs.is_empty() {
++            return Err(HekitError::InvalidParams("no gradient constant".into()));
++        }
+         let sh = self.w.shape(layout)?;
+         check_slots(layout, ev.params().slots())?;
+         self.w.check_batch(layout)?;
+@@ -1022,7 +1064,11 @@
+         let prod_scale = delta.scale() * a_prev.scale() / ev.params().q()[level] as f64;
+         let target = self.w.scale();
+         let mask_scale = ev.exact_product_scale(level - 1, target)? / prod_scale;
+-        let mask = lane0_plaintext(ev, layout, c, mask_scale, level - 1)?;
++        let masks = cs
++            .iter()
++            .map(|&c| lane0_plaintext(ev, layout, c, mask_scale, level - 1))
++            .collect::<Result<Vec<_>>>()?;
++        let mask_refs = masks.iter().collect::<Vec<_>>();
+ 
+         let b = layout.batch;
+         let delta = ev.mod_switch_to_level(delta, level)?;
+@@ -1033,13 +1079,18 @@
+             .collect();
+         let a_rot = ev.hoisted_rotate(&a, &a_steps)?;
+         let d_rot = ev.hoisted_rotate(&delta, &d_steps)?;
+-        let entries = (0..sh.m)
+-            .map(|e| {
+-                let p = ev.rescale(&ev.mul(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?)?;
+-                batch_sum(ev, &p, &mask, target, layout)
+-            })
+-            .collect::<Result<Vec<_>>>()?;
+-        Diagonals::from_prerotated(sh.m, b, entries)
++        let mut entries: Vec<Vec<C>> = cs.iter().map(|_| Vec::with_capacity(sh.m)).collect();
++        for e in 0..sh.m {
++            let p = ev.rescale(&ev.mul(&d_rot[e / sh.baby], &a_rot[e % sh.baby])?)?;
++            let values = batch_sum_consts(ev, &p, &mask_refs, target, layout)?;
++            for (out, value) in entries.iter_mut().zip(values) {
++                out.push(value);
++            }
++        }
++        entries
++            .into_iter()
++            .map(|es| Diagonals::from_prerotated(sh.m, b, es))
++            .collect()
+     }
+ 
+     /// The bias gradient `sum_b delta_b / batch` in canonical form (every lane):
+@@ -1330,3 +1381,36 @@
+         ev.rescale(&ev.mul_plain_to_scale(&v, &mask, target_scale)?)
+     }
+ }
++
++#[cfg(test)]
++mod p2_helpers {
++    use super::*;
++    use crate::diagonal_plan::tests::{context, rng};
++    #[test]
++    fn p2_reduced_micro_metadata_rejection() {
++        crate::diagonal_plan::tests::reserve_helper_calls(2);
++        let c = context(false);
++        let ev = c.ev.fork();
++        let dense = Dense::encrypt_at(
++            &Array2::zeros((4, 2)),
++            &[0.; 4],
++            &c.layout,
++            c.p.scale(),
++            9,
++            &c.encrypt,
++            &c.enc,
++            &mut rng(52),
++        )
++        .unwrap();
++        let d = c.encrypt_at(5, c.p.scale(), 0.125);
++        let a = c.encrypt_at(6, c.p.scale(), 0.125);
++        for (level, scale) in [(5, c.p.scale()), (6, c.p.scale() * 2.)] {
++            let other = c.encrypt_at(level, scale, 0.125);
++            let before = ev.counter();
++            let r =
++                dense.weight_grad_reduced_consts(&ev, &[&d, &d], &[&a, &other], &c.layout, &[0.01]);
++            assert!(matches!(r, Err(HekitError::InvalidParams(_))));
++            assert_eq!(before, ev.counter());
++        }
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/layout_reboot.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/layout_reboot.rs
+@@ -328,6 +328,57 @@
+         }
+         let ps = ev.target_plain_scale(m, target_scale)?;
+         self.expand_unchecked(ev, enc, m.clone(), mask_value, target_scale, ps)
++    }
++
++    /// Opt-in eq. 5 with only the first `valid_rows` retained before replication.
++    /// The valid-row mask and `factor` share the existing one ct-pt/rescale, so depth and
++    /// rotation counts equal `expand_to_scale`. Legacy wrappers retain their all-row behavior.
++    /// Context, keys, rows, levels, factor and encoding are checked before counted work.
++    pub fn expand_valid_to_scale<E: HeOps>(
++        &self,
++        ev: &E,
++        enc: &Encoder,
++        m: &E::Ct,
++        valid_rows: usize,
++        factor: f64,
++        target_scale: f64,
++    ) -> Result<E::Ct> {
++        self.check(ev, &self.expand_steps(), m.level(), 1)?;
++        if valid_rows == 0
++            || valid_rows > self.r
++            || !factor.is_finite()
++            || !std::sync::Arc::ptr_eq(enc.params(), ev.params())
++            || !ev.owns(m)
++            || m.slots() != self.slots()
++            || ckks_train_ckks::HeCiphertext::size(m) != 2
++            || !m.scale().is_finite()
++            || m.scale() <= 0.0
++        {
++            return invalid("invalid masked-expand rows, factor or ciphertext context".into());
++        }
++        let ps = ev.target_plain_scale(m, target_scale)?;
++        if !ps.is_finite() || ps <= 0.0 {
++            return invalid("invalid masked-expand plaintext scale".into());
++        }
++        let mask: Vec<f64> = (0..self.slots())
++            .map(|s| {
++                if s % self.c == 0 && s / self.c < valid_rows {
++                    factor
++                } else {
++                    0.0
++                }
++            })
++            .collect();
++        let pt = ev.upload_pt_owned(enc.encode(&mask, ps, m.level())?)?;
++        let mut u = m.clone();
++        for e in (0..log2(self.c)).rev() {
++            u = ev.add(&u, &ev.rotate(&u, 1 << e)?)?;
++        }
++        let mut out = ev.rescale(&ev.mul_plain_to_scale(&u, &pt, target_scale)?)?;
++        for e in 0..log2(self.c) {
++            out = ev.add(&out, &ev.rotate(&out, -(1 << e))?)?;
++        }
++        Ok(out)
+     }
+ 
+     /// RE-Matmul (§4.2.1): `z_rep = row_sum(x_exp (.) w_row)`, the **repeated** `x W` for `x`
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/lib.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/lib.rs
+@@ -2,12 +2,15 @@
+ #![deny(missing_docs)]
+ 
+ pub mod activation;
++pub mod block;
+ pub mod compact;
+ pub mod dense;
++pub mod diagonal_plan;
+ pub mod layout;
+ pub mod layout_reboot;
+ pub mod loss;
+ pub mod optim;
++pub mod packed_training;
+ pub mod refresh;
+ pub mod sim;
+ pub mod trainer;
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/optim.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/optim.rs
+@@ -13,11 +13,20 @@
+ //! (`Dense::weight_grad_scaled` targets `W.scale()`), and:
+ //!
+ //! - [`Sgd`]: `grad_scale = lr`, `W' = W - dw` (subtractions only).
+-//! - [`Nag`]: `grad_scale = lr (1 + mu)`, and with the scaled velocity `U = lr (1 + mu) V`
++//! - [`Nag`] at constant rate: `grad_scale = lr (1 + mu)`, with velocity `U = lr (1 + mu) V`
+ //!   (`h = dw`): `U' = mu U + h`, `W' = W - h - (mu^2 / (1 + mu)) U`. The two scalar
+ //!   multiplications act on `U` only ([`ckks_train_ckks::Evaluator::mul_scalar`] with the exact
+ //!   target scale), which sits at least one level above `h`, so `W'` and `U'` land at `h`'s
+ //!   level: no level on the critical path.
++//!
++//! Scheduled NAG fixes `U = r (1 + mu) V` at reference rate `r`. When `lr != r`, a second
++//! gradient `h_ref = r (1 + mu) g` feeds `U' = mu U + h_ref`, and the weight's scalar is
++//! `(mu^2 / (1 + mu)) * (lr / r)`. [`Optimizer::reference_grad_scale`] and
++//! [`Optimizer::step_with_reference_gradient`] expose this branch. The trainer shares
++//! products/reductions with [`Dense::weight_grad_scaled_consts`](crate::dense::Dense::weight_grad_scaled_consts):
++//! each extra replicated gradient costs `m` ct-pt, `m` rescales and `m log2(B)` rotations,
++//! but no extra depth. Configure `r` as the schedule maximum using [`Nag::set_lr_reference`]
++//! before initialization; later rates must be positive and at most `r`.
+ //!
+ //! The updated weights keep their packed, pre-rotated, replicated layout and their exact
+ //! scale, so the next [`crate::dense::Dense::forward`] needs no repacking (only levels: the
+@@ -28,6 +37,9 @@
+ //! `W' = W - lr (1 + mu) g - lr mu^2 V`, which is the `U` form above. Weight decay and bias
+ //! momentum are not part of this API (biases are updated by `b - db` with
+ //! [`crate::dense::Dense::bias_grad_scaled`]).
++
++#[cfg(test)]
++use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
+ 
+ use ckks_train_ckks::{Ciphertext, DiagonalEntry, Diagonals, Evaluator, HeCiphertext, HeOps};
+ use ckks_train_core::error::{HekitError, Result};
+@@ -40,6 +52,13 @@
+     /// plaintext of the gradient computation, see the [module docs](self)): pass
+     /// `grad_scale() / n` as `c` to [`crate::dense::Dense::weight_grad_scaled`].
+     fn grad_scale(&self) -> f64;
++
++    /// An additional folded gradient constant for a fixed-basis optimizer state.
++    /// The default needs only [`Optimizer::grad_scale`]. The trainer queries every layer
++    /// before forward work, so configuration errors leave the entire step untouched.
++    fn reference_grad_scale(&self) -> Result<Option<f64>> {
++        Ok(None)
++    }
+ 
+     /// Updates `w` in place with the folded gradient `dw = grad_scale() * dW` (as returned by
+     /// [`crate::dense::Dense::weight_grad_scaled`]): the result is at `dw`'s level with
+@@ -51,6 +70,38 @@
+     /// `ScaleMismatch` unless every scale equals `w.scale()` exactly; and the optimizer's own
+     /// checks.
+     fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()>;
++
++    /// Update with an optional second gradient at [`Optimizer::reference_grad_scale`].
++    /// Both gradients have the same shape, level and exact scale. The default preserves
++    /// the legacy update for `None` and rejects an unsupported extra gradient before work.
++    fn step_with_reference_gradient(
++        &mut self,
++        ev: &E,
++        w: &mut EncWeights<E::Ct>,
++        dw: &Diagonals<E::Ct>,
++        reference: Option<&Diagonals<E::Ct>>,
++    ) -> Result<()> {
++        if reference.is_some() {
++            return Err(HekitError::InvalidParams(
++                "optimizer does not accept a reference gradient".into(),
++            ));
++        }
++        self.step(ev, w, dw)
++    }
++}
++
++pub(crate) fn check_lr(lr: f64) -> Result<()> {
++    if !(lr.is_finite() && lr > 0.0) {
++        return Err(HekitError::InvalidParams(format!(
++            "learning rate {lr} must be finite and positive"
++        )));
++    }
++    Ok(())
++}
++
++/// Shared exact evaluation order for the scaled-velocity NAG coefficient.
++pub(crate) fn nag_kappa(momentum: f64, rate_factor: f64) -> f64 {
++    momentum * momentum / (1.0 + momentum) * rate_factor
+ }
+ 
+ /// The checks shared by the optimizers: shape, uniform level and scale of `dw`, `w` at or
+@@ -92,6 +143,14 @@
+ }
+ 
+ impl Sgd {
++    /// Changes the rate of following updates. Rejects nonfinite/nonpositive rates without
++    /// changing this optimizer; SGD has no velocity or reference-rate ceiling.
++    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
++        check_lr(lr)?;
++        self.lr = lr;
++        Ok(())
++    }
++
+     /// The gradient constant `lr` ([`Optimizer::grad_scale`]; inherent so that it needs no
+     /// evaluator type).
+     pub fn grad_scale(&self) -> f64 {
+@@ -123,9 +182,11 @@
+ /// Nesterov accelerated gradient for one layer (one instance per layer: it holds that layer's
+ /// velocity), in the scaled-velocity form of the [module docs](self):
+ /// [`Optimizer::grad_scale`] `= lr (1 + mu)`, `U' = mu U + h`,
+-/// `W' = W - h - (mu^2 / (1 + mu)) U` with `h` the folded gradient.
++/// `W' = W - h - (mu^2 / (1 + mu)) U` at the reference rate, with `h` the folded gradient.
++/// For changing rates use the additional reference gradient and scaled momentum contribution
++/// described in the module docs. `step` rejects a required missing reference gradient.
+ ///
+-/// The first step (no velocity) is `U' = h`, `W' = W - h` (subtractions only). Later steps
++/// The first step (no velocity) is `U' = h_ref`, `W' = W - h` (subtractions only). Later steps
+ /// cost `2 m` [`Evaluator::mul_scalar`] (counted as ct-pt) and `2 m` rescales on `U`, which
+ /// must be at least one level above `h` (`LevelMismatch` otherwise): `U'` lands at `h`'s
+ /// level, like `W'`, so the client must refresh the velocity together with the weights
+@@ -135,11 +196,19 @@
+ /// the CPU constructor, [`Nag::new_for`] the one for any backend).
+ #[derive(Debug, Clone)]
+ pub struct Nag<C = Ciphertext> {
+-    /// The learning rate.
++    /// Current learning rate. Prefer [`Nag::set_lr`], which validates it before assignment.
++    /// Direct field writes are checked by the reference-gradient query and update.
+     pub lr: f64,
+-    /// The momentum `mu`.
++    /// The momentum `mu`. Changing it after velocity initialization is unsupported and is
++    /// rejected by the next query/update, even when the ciphertext state was taken out.
+     pub momentum: f64,
+     velocity: Option<Diagonals<C>>,
++    lr_reference: f64,
++    basis_momentum: Option<f64>,
++    #[cfg(test)]
++    pub(crate) observer: Option<ObservationHandle>,
++    #[cfg(test)]
++    pub(crate) observer_layer: Option<usize>,
+ }
+ 
+ impl Nag {
+@@ -157,24 +226,106 @@
+             lr,
+             momentum,
+             velocity: None,
+-        }
+-    }
+-
+-    /// The scaled velocity `U = lr (1 + mu) V` (pre-rotated diagonals in the weights' layout
++            lr_reference: lr,
++            basis_momentum: None,
++            #[cfg(test)]
++            observer: None,
++            #[cfg(test)]
++            observer_layer: None,
++        }
++    }
++
++    /// The scaled velocity `U = lr_reference (1 + mu) V` (pre-rotated diagonals in the weights' layout
+     /// and scale), `None` before the first step.
+     pub fn velocity(&self) -> Option<&Diagonals<C>> {
+         self.velocity.as_ref()
+     }
+ 
+     /// Replaces the velocity, e.g. by a client-refreshed copy at the top level. It must have
+-    /// the weights' shape and scale; checked at the next [`Optimizer::step`].
++    /// the weights' shape and scale; checked at the next update. Supplied values must use
++    /// the existing reference-rate/momentum basis (or the current basis for the first supply).
++    /// Removing state does not unlock its basis; encrypted values cannot be inspected here.
+     pub fn set_velocity(&mut self, velocity: Option<Diagonals<C>>) {
++        if velocity.is_some() && self.basis_momentum.is_none() {
++            self.basis_momentum = Some(self.momentum);
++        }
+         self.velocity = velocity;
+     }
+ 
+     /// Takes the velocity out (e.g. to refresh it), leaving `None`.
+     pub fn take_velocity(&mut self) -> Option<Diagonals<C>> {
+         self.velocity.take()
++    }
++
++    /// Changes the current rate, retaining the fixed-basis velocity. The rate must be
++    /// finite, positive and at most [`Nag::lr_reference`]. Invalid factors or a changed
++    /// momentum basis also fail before mutation. Configure the schedule maximum first.
++    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
++        self.validate_rate(lr)?;
++        self.lr = lr;
++        Ok(())
++    }
++
++    /// Sets the velocity's reference rate before its first initialization/supply. It must
++    /// be finite, positive and at least the current rate, with finite positive folded
++    /// gradient factors. Taking or clearing velocity does not permit a later basis change.
++    pub fn set_lr_reference(&mut self, lr_reference: f64) -> Result<()> {
++        if self.basis_momentum.is_some() {
++            return Err(HekitError::InvalidParams(
++                "reference learning rate is locked after velocity initialization".into(),
++            ));
++        }
++        self.check_config(self.lr, lr_reference)?;
++        self.lr_reference = lr_reference;
++        Ok(())
++    }
++
++    /// The immutable reference rate of initialized velocity; initially the constructor rate.
++    pub fn lr_reference(&self) -> f64 {
++        self.lr_reference
++    }
++
++    pub(crate) fn validate_rate(&self, lr: f64) -> Result<()> {
++        self.check_config(lr, self.lr_reference)
++    }
++
++    fn check_config(&self, lr: f64, reference: f64) -> Result<()> {
++        check_lr(lr)?;
++        check_lr(reference)?;
++        if lr > reference {
++            return Err(HekitError::InvalidParams(format!(
++                "learning rate {lr} above velocity reference {reference}"
++            )));
++        }
++        let mu = self.momentum;
++        if self.basis_momentum.is_some_and(|basis| basis != mu) {
++            return Err(HekitError::InvalidParams(
++                "momentum differs from initialized velocity basis".into(),
++            ));
++        }
++        let current_factor = lr * (1.0 + mu);
++        let reference_factor = reference * (1.0 + mu);
++        let kappa = mu * mu / (1.0 + mu);
++        if !(mu.is_finite()
++            && kappa.is_finite()
++            && current_factor.is_finite()
++            && current_factor > 0.0
++            && reference_factor.is_finite()
++            && reference_factor > 0.0
++            && lr / reference != 0.0)
++        {
++            return Err(HekitError::InvalidParams(
++                "NAG rate and momentum must give finite usable folded factors".into(),
++            ));
++        }
++        Ok(())
++    }
++
++    /// The extra reference-rate gradient constant, when current and reference rates differ.
++    /// Validates rate/factor/basis metadata even when no second gradient is needed.
++    pub fn reference_grad_scale(&self) -> Result<Option<f64>> {
++        self.validate_rate(self.lr)?;
++        Ok((self.lr != self.lr_reference).then_some(self.lr_reference * (1.0 + self.momentum)))
+     }
+ }
+ 
+@@ -196,11 +347,63 @@
+         Nag::grad_scale(self)
+     }
+ 
++    fn reference_grad_scale(&self) -> Result<Option<f64>> {
++        Nag::reference_grad_scale(self)
++    }
++
+     fn step(&mut self, ev: &E, w: &mut EncWeights<E::Ct>, dw: &Diagonals<E::Ct>) -> Result<()> {
++        self.step_with_reference_gradient(ev, w, dw, None)
++    }
++
++    fn step_with_reference_gradient(
++        &mut self,
++        ev: &E,
++        w: &mut EncWeights<E::Ct>,
++        dw: &Diagonals<E::Ct>,
++        reference: Option<&Diagonals<E::Ct>>,
++    ) -> Result<()> {
++        let needs_reference = self.reference_grad_scale()?.is_some();
++        if needs_reference != reference.is_some() {
++            return Err(HekitError::InvalidParams(
++                "NAG reference gradient presence must match current/reference rate difference"
++                    .into(),
++            ));
++        }
+         let level = check_update(w, dw)?;
++        let h_ref = reference.unwrap_or(dw);
++        if check_update(w, h_ref)? != level {
++            return Err(HekitError::LevelMismatch);
++        }
+         let mu = self.momentum;
+-        let kappa = mu * mu / (1.0 + mu);
++        let factor = if needs_reference {
++            self.lr / self.lr_reference
++        } else {
++            1.0
++        };
++        let kappa = nag_kappa(mu, factor);
++        #[cfg(test)]
++        {
++            observation::coefficient(self.observer.as_ref(), "mu", self.observer_layer, 0, mu);
++            observation::coefficient(
++                self.observer.as_ref(),
++                "kappa",
++                self.observer_layer,
++                0,
++                kappa,
++            );
++        }
+         let target = w.scale();
++        if let Some(u) = &self.velocity {
++            w.check_same_shape(u)?;
++            check_uniform(u)?;
++            if u.entries()[0].level() <= level {
++                return Err(HekitError::LevelMismatch);
++            }
++            if u.entries()[0].scale() != target {
++                return Err(HekitError::ScaleMismatch);
++            }
++            ev.exact_product_scale(level + 1, target)?;
++        }
+         let ws = weights_at(ev, w, level)?;
+         let (w_new, u_new) = match &self.velocity {
+             None => {
+@@ -209,38 +412,59 @@
+                     .zip(dw.entries())
+                     .map(|(we, h)| ev.sub(we, h))
+                     .collect::<Result<Vec<_>>>()?;
+-                (w_new, dw.entries().to_vec())
++                (w_new, h_ref.entries().to_vec())
+             }
+             Some(u) => {
+-                w.check_same_shape(u)?;
+-                check_uniform(u)?;
+-                if u.entries()[0].level() <= level {
+-                    return Err(HekitError::LevelMismatch);
+-                }
+-                if u.entries()[0].scale() != target {
+-                    return Err(HekitError::ScaleMismatch);
+-                }
+-                if !(mu.is_finite() && kappa.is_finite()) {
+-                    return Err(HekitError::InvalidParams(format!(
+-                        "momentum {mu} gives a non-finite factor"
+-                    )));
+-                }
+-                // The target is reachable from level + 1 (checked before any work).
+-                ev.exact_product_scale(level + 1, target)?;
+                 let mut w_new = Vec::with_capacity(ws.len());
+                 let mut u_new = Vec::with_capacity(ws.len());
+-                for ((we, h), ue) in ws.iter().zip(dw.entries()).zip(u.entries()) {
++                #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
++                for (_position, (((we, h), ue), hr)) in ws
++                    .iter()
++                    .zip(dw.entries())
++                    .zip(u.entries())
++                    .zip(h_ref.entries())
++                    .enumerate()
++                {
+                     let ue = ev.mod_switch_to_level(ue, level + 1)?;
+                     let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, target)?)?;
+                     let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, target)?)?;
++                    #[cfg(test)]
++                    {
++                        observation::value(
++                            self.observer.as_ref(),
++                            "mu_velocity",
++                            None,
++                            self.observer_layer,
++                            _position,
++                            &mu_u,
++                        );
++                        observation::value(
++                            self.observer.as_ref(),
++                            "kappa_velocity",
++                            None,
++                            self.observer_layer,
++                            _position,
++                            &k_u,
++                        );
++                    }
+                     w_new.push(ev.sub(&ev.sub(we, h)?, &k_u)?);
+-                    u_new.push(ev.add(&mu_u, h)?);
++                    u_new.push(ev.add(&mu_u, hr)?);
+                 }
+                 (w_new, u_new)
+             }
+         };
++        let new_velocity = diags_like(dw, u_new)?;
+         w.set_diagonals(diags_like(dw, w_new)?)?;
+-        self.velocity = Some(diags_like(dw, u_new)?);
++        #[cfg(test)]
++        observation::values(
++            self.observer.as_ref(),
++            "velocity_updated",
++            None,
++            self.observer_layer,
++            new_velocity.entries(),
++        );
++        self.velocity = Some(new_velocity);
++        self.basis_momentum = Some(mu);
+         Ok(())
+     }
+ }
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/refresh.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/refresh.rs
+@@ -103,6 +103,9 @@
+     rng: Rng,
+     refreshed: u64,
+     block: Option<usize>,
++    /// The level of every fresh ciphertext (`max_level` unless
++    /// [`ClientRefresher::with_output_level`] lowered it).
++    level: usize,
+ }
+ 
+ impl std::fmt::Debug for ClientRefresher {
+@@ -113,6 +116,7 @@
+             .field("max_level", &self.encoder.params().max_level())
+             .field("refreshed", &self.refreshed)
+             .field("block", &self.block)
++            .field("level", &self.level)
+             .finish()
+     }
+ }
+@@ -121,6 +125,7 @@
+     /// A client with the decryptor (secret key), an encryptor and an encoder of one parameter
+     /// set (share one `Arc<CkksParams>`), and its own randomness (`rng`, ChaCha20).
+     pub fn new(dec: Decryptor, enc: Encryptor, encoder: Encoder, rng: Rng) -> ClientRefresher {
++        let level = encoder.params().max_level();
+         ClientRefresher {
+             dec,
+             enc,
+@@ -128,7 +133,28 @@
+             rng,
+             refreshed: 0,
+             block: None,
+-        }
++            level,
++        }
++    }
++
++    /// Encrypts every refreshed ciphertext on `level` instead of the top level (Task 48): a
++    /// level-capped interactive run, whose network starts on `level`
++    /// ([`crate::trainer::Mlp::encrypt_at`], [`crate::trainer::Mlp::batch_spec_at`]) so that
++    /// a device backend needs its keys only for the levels `<= level` (much smaller device
++    /// keys). The client encrypts with the same public key and parameters; a ciphertext on a
++    /// lower level is what the top-level one becomes after dropping limbs, so this changes no
++    /// security property, only how many levels a step may use ([`Refresher::output_level`]).
++    ///
++    /// Errors: `InvalidParams` for `level > max_level`.
++    pub fn with_output_level(mut self, level: usize) -> Result<ClientRefresher> {
++        let max = self.encoder.params().max_level();
++        if level > max {
++            return Err(HekitError::InvalidParams(format!(
++                "refresh level {level} above max_level {max}"
++            )));
++        }
++        self.level = level;
++        Ok(self)
+     }
+ 
+     /// [`Refresher::bind_layout`] as a builder: re-lays the canonical form of `layout` on
+@@ -175,7 +201,7 @@
+         if let Some(bk) = self.block {
+             average_blocks(&mut values, bk);
+         }
+-        let pt = self.encoder.encode(&values, scale, params.max_level())?;
++        let pt = self.encoder.encode(&values, scale, self.level)?;
+         let fresh = self.enc.encrypt(&pt, &mut self.rng);
+         self.refreshed += 1;
+         Ok(fresh)
+@@ -225,9 +251,10 @@
+         Ok(())
+     }
+ 
+-    /// The top level, `max_level`: the client encrypts afresh.
++    /// The top level, `max_level`: the client encrypts afresh (or the level set with
++    /// [`ClientRefresher::with_output_level`]).
+     fn output_level(&self) -> usize {
+-        self.encoder.params().max_level()
++        self.level
+     }
+ }
+ 
+@@ -345,8 +372,12 @@
+ /// trainer's [`crate::trainer::EpochLog`] and `key_switches()` include them: the totals are
+ /// those of the native refresher on `E`. [`HostRefresher::new`] merges nothing (right for a
+ /// [`ClientRefresher`], which performs no evaluator operation). The host evaluator must not
+-/// be `E` itself (for a CPU `E`, use a [`HeOps::fork`]) and must not be used by another
+-/// thread during a refresh.
++/// be `E` itself (its counts would be merged twice; for a CPU `E`, use a [`HeOps::fork`]):
++/// a refresh with `E` as its host is `InvalidParams` before any work, checked by address, as
++/// in [`ckks_train_ckks::HostBootstrapper`]. It must not be used by another thread during a
++/// refresh (the merged counts are the difference of its counter around the refresh). The
++/// counts are merged only after the upload of the refreshed ciphertext succeeded: a failed
++/// refresh or upload counts nothing on `E` (Task 48, Task 43 review N1/N2).
+ pub struct HostRefresher<'e, E: HeOps, R: Refresher<Evaluator>> {
+     ev: &'e E,
+     inner: R,
+@@ -397,17 +428,38 @@
+ }
+ 
+ impl<E: HeOps, R: Refresher<Evaluator>> Refresher<E> for HostRefresher<'_, E, R> {
+-    /// `upload(inner.refresh(download(ct)))`, merging the host evaluator's counts (if any).
+-    ///
+-    /// Errors: those of the transfers and of the host refresher.
++    /// `upload(inner.refresh(download(ct)))`, merging the host evaluator's counts (if any)
++    /// after the upload succeeded.
++    ///
++    /// Errors: `InvalidParams` when the host evaluator of [`HostRefresher::counting`] is `E`
++    /// itself (its counts would be merged twice; nothing is done); those of the transfers and
++    /// of the host refresher (nothing is counted on `E`).
+     fn refresh(&mut self, ct: &E::Ct) -> Result<E::Ct> {
++        let is_self = |h: &Evaluator| {
++            std::ptr::eq(
++                self.ev as *const E as *const u8,
++                h as *const Evaluator as *const u8,
++            )
++        };
++        if self.host.is_some_and(is_self) {
++            return Err(HekitError::InvalidParams(
++                "HostRefresher: the host evaluator must not be the backend evaluator itself \
++                 (its counts would be merged twice); pass a fork"
++                    .into(),
++            ));
++        }
+         let host_ct = self.ev.download_ct(ct)?;
+         let before = self.host.map(Evaluator::counter);
+-        let fresh = self.inner.refresh(&host_ct);
+-        if let (Some(h), Some(b)) = (self.host, before) {
+-            self.ev.add_counts(&(&h.counter() - &b));
+-        }
+-        self.ev.upload_ct_owned(fresh?)
++        let fresh = self.inner.refresh(&host_ct)?;
++        let delta = match (self.host, before) {
++            (Some(h), Some(b)) => Some(&h.counter() - &b),
++            _ => None,
++        };
++        let up = self.ev.upload_ct_owned(fresh)?;
++        if let Some(d) = delta {
++            self.ev.add_counts(&d);
++        }
++        Ok(up)
+     }
+ 
+     /// The host refresher's [`Refresher::bind_layout`].
+@@ -509,4 +561,235 @@
+         }
+         assert_eq!(ev.counter(), before);
+     }
+-}
++
++    /// A CPU backend whose uploads fail on demand (Task 48, Task 43 review N2): every other
++    /// operation is the wrapped [`Evaluator`]'s.
++    struct FlakyUpload {
++        inner: Evaluator,
++        fail: std::cell::Cell<bool>,
++    }
++
++    impl HeOps for FlakyUpload {
++        type Ct = Ciphertext;
++        type Pt = ckks_train_ckks::Plaintext;
++        fn params(&self) -> &Arc<CkksParams> {
++            HeOps::params(&self.inner)
++        }
++        fn config(&self) -> &ckks_train_ckks::EvalConfig {
++            HeOps::config(&self.inner)
++        }
++        fn counter(&self) -> ckks_train_ckks::OpCounter {
++            HeOps::counter(&self.inner)
++        }
++        fn reset_counter(&self) {
++            HeOps::reset_counter(&self.inner)
++        }
++        fn add_counts(&self, counts: &ckks_train_ckks::OpCounter) {
++            self.inner.add_counts(counts)
++        }
++        fn fork(&self) -> FlakyUpload {
++            FlakyUpload {
++                inner: self.inner.fork(),
++                fail: std::cell::Cell::new(self.fail.get()),
++            }
++        }
++        fn has_relin_key(&self) -> bool {
++            HeOps::has_relin_key(&self.inner)
++        }
++        fn has_galois_key(&self, step: i32) -> bool {
++            HeOps::has_galois_key(&self.inner, step)
++        }
++        fn owns(&self, ct: &Ciphertext) -> bool {
++            HeOps::owns(&self.inner, ct)
++        }
++        fn upload_ct(&self, ct: &Ciphertext) -> Result<Ciphertext> {
++            if self.fail.get() {
++                return Err(HekitError::Device("injected upload failure".into()));
++            }
++            self.inner.upload_ct(ct)
++        }
++        fn download_ct(&self, ct: &Ciphertext) -> Result<Ciphertext> {
++            self.inner.download_ct(ct)
++        }
++        fn upload_pt(&self, pt: &ckks_train_ckks::Plaintext) -> Result<ckks_train_ckks::Plaintext> {
++            self.inner.upload_pt(pt)
++        }
++        fn add(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::add(&self.inner, a, b)
++        }
++        fn sub(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::sub(&self.inner, a, b)
++        }
++        fn negate(&self, a: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::negate(&self.inner, a)
++        }
++        fn add_plain(&self, a: &Ciphertext, p: &ckks_train_ckks::Plaintext) -> Result<Ciphertext> {
++            HeOps::add_plain(&self.inner, a, p)
++        }
++        fn mul_plain(&self, a: &Ciphertext, p: &ckks_train_ckks::Plaintext) -> Result<Ciphertext> {
++            HeOps::mul_plain(&self.inner, a, p)
++        }
++        fn mul_scalar(&self, ct: &Ciphertext, v: f64, t: f64) -> Result<Ciphertext> {
++            HeOps::mul_scalar(&self.inner, ct, v, t)
++        }
++        fn mul_plain_to_scale(
++            &self,
++            a: &Ciphertext,
++            p: &ckks_train_ckks::Plaintext,
++            t: f64,
++        ) -> Result<Ciphertext> {
++            HeOps::mul_plain_to_scale(&self.inner, a, p, t)
++        }
++        fn mul_no_relin(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::mul_no_relin(&self.inner, a, b)
++        }
++        fn relinearize(&self, ct: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::relinearize(&self.inner, ct)
++        }
++        fn mul(&self, a: &Ciphertext, b: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::mul(&self.inner, a, b)
++        }
++        fn rescale(&self, ct: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::rescale(&self.inner, ct)
++        }
++        fn mod_switch_to_level(&self, ct: &Ciphertext, level: usize) -> Result<Ciphertext> {
++            HeOps::mod_switch_to_level(&self.inner, ct, level)
++        }
++        fn relabel(&self, ct: Ciphertext, scale: f64) -> Result<Ciphertext> {
++            HeOps::relabel(&self.inner, ct, scale)
++        }
++        fn rotate(&self, ct: &Ciphertext, steps: i32) -> Result<Ciphertext> {
++            HeOps::rotate(&self.inner, ct, steps)
++        }
++        fn conjugate(&self, ct: &Ciphertext) -> Result<Ciphertext> {
++            HeOps::conjugate(&self.inner, ct)
++        }
++        fn hoisted_rotate(&self, ct: &Ciphertext, steps: &[i32]) -> Result<Vec<Ciphertext>> {
++            HeOps::hoisted_rotate(&self.inner, ct, steps)
++        }
++        fn matvec_plain(
++            &self,
++            diag: &ckks_train_ckks::Diagonals<ckks_train_ckks::Plaintext>,
++            x: &Ciphertext,
++        ) -> Result<Ciphertext> {
++            HeOps::matvec_plain(&self.inner, diag, x)
++        }
++        fn matvec_enc(
++            &self,
++            diag: &ckks_train_ckks::Diagonals<Ciphertext>,
++            x: &Ciphertext,
++        ) -> Result<Ciphertext> {
++            HeOps::matvec_enc(&self.inner, diag, x)
++        }
++    }
++
++    /// The miniature bootstrapping fixture: params, keys, a bootstrapper, an evaluator with
++    /// the relinearization key, and a level-3 ciphertext at `Delta`.
++    struct Boot {
++        params: Arc<CkksParams>,
++        bs: Bootstrapper,
++        ev: Evaluator,
++        ct: Ciphertext,
++    }
++
++    fn boot_fixture(seed: u8) -> Boot {
++        let params = Arc::new(mini());
++        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(seed)).unwrap();
++        let encoder = Encoder::new(Arc::clone(&params));
++        let bp = BootParams {
++            log_slots: 9,
++            ..BootParams::default_n16()
++        };
++        let bs = Bootstrapper::new(Arc::clone(&params), bp, &encoder, &mut kg).unwrap();
++        let ev = Evaluator::new(Arc::clone(&params), Some(kg.relin_key()), None);
++        let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
++        let mut r = rng(seed.wrapping_add(1));
++        let m: Vec<f64> = (0..params.slots())
++            .map(|_| ((r.next_u64() >> 11) as f64 * 2f64.powi(-53)) - 0.5)
++            .collect();
++        let ct = enc.encrypt(&encoder.encode(&m, params.scale(), 3).unwrap(), &mut r);
++        Boot { params, bs, ev, ct }
++    }
++
++    /// Task 48 (Task 43 review N1): `HostRefresher::counting` refuses the backend evaluator
++    /// itself as its host (its counts would be merged twice): `InvalidParams` before any work,
++    /// nothing counted. A fork as host works and merges exactly the host's delta.
++    #[test]
++    fn host_refresher_refuses_the_backend_as_host() {
++        let f = boot_fixture(31);
++        let ev = f.ev.fork();
++        let mut same = HostRefresher::counting(&ev, BootstrapRefresher::new(&f.bs, &ev), &ev);
++        let r = Refresher::<Evaluator>::refresh(&mut same, &f.ct);
++        assert!(matches!(r, Err(HekitError::InvalidParams(_))), "{r:?}");
++        assert_eq!(ev.counter(), ckks_train_ckks::OpCounter::default());
++
++        let host = ev.fork();
++        let mut ok = HostRefresher::counting(&ev, BootstrapRefresher::new(&f.bs, &host), &host);
++        let out = Refresher::<Evaluator>::refresh(&mut ok, &f.ct).unwrap();
++        assert_eq!(out.level(), f.bs.output_level());
++        assert_eq!(ev.counter(), host.counter());
++        assert_eq!(ev.counter().bootstraps, 1);
++    }
++
++    /// Task 48 (Task 43 review N2): the host's counts are merged only after the upload of the
++    /// refreshed ciphertext succeeded; a failed upload counts nothing on the backend.
++    #[test]
++    fn host_refresher_merges_counts_only_after_the_upload() {
++        let f = boot_fixture(41);
++        let w = FlakyUpload {
++            inner: f.ev.fork(),
++            fail: std::cell::Cell::new(true),
++        };
++        let host = f.ev.fork();
++        let mut rf = HostRefresher::counting(&w, BootstrapRefresher::new(&f.bs, &host), &host);
++        let r = rf.refresh(&f.ct);
++        assert!(matches!(r, Err(HekitError::Device(_))), "{r:?}");
++        assert_eq!(w.counter(), ckks_train_ckks::OpCounter::default());
++        assert_eq!(host.counter().bootstraps, 1, "the host did the work");
++        w.fail.set(false);
++        let before = host.counter();
++        let out = rf.refresh(&f.ct).unwrap();
++        assert_eq!(w.counter(), &host.counter() - &before);
++        assert_eq!(w.counter().bootstraps, 1);
++        assert_eq!(
++            (out.level(), out.scale()),
++            (f.bs.output_level(), f.ct.scale())
++        );
++        assert_eq!(f.params.slots(), 512);
++    }
++
++    /// Task 48: a client refresh on a chosen output level (level-capped interactive runs):
++    /// the fresh ciphertext lands on that level at the exact input scale, with the message;
++    /// a level above `max_level` is refused.
++    #[test]
++    fn client_refresher_on_a_lower_output_level() {
++        let params = Arc::new(mini());
++        let mut kg = KeyGenerator::new(Arc::clone(&params), rng(51)).unwrap();
++        let encoder = Encoder::new(Arc::clone(&params));
++        let enc = Encryptor::new(Arc::clone(&params), kg.public_key());
++        let dec = Decryptor::new(Arc::clone(&params), kg.secret_key());
++        let client = || {
++            ClientRefresher::new(
++                dec.clone(),
++                enc.clone(),
++                Encoder::new(Arc::clone(&params)),
++                rng(52),
++            )
++        };
++        assert!(matches!(
++            client().with_output_level(params.max_level() + 1),
++            Err(HekitError::InvalidParams(_))
++        ));
++        let mut rf = client().with_output_level(5).unwrap();
++        assert_eq!(rf.output_level(), 5);
++        assert_eq!(client().output_level(), params.max_level());
++        let mut r = rng(53);
++        let m: Vec<f64> = (0..params.slots()).map(|i| (i % 7) as f64 / 8.0).collect();
++        let scale = params.scale() * (1.0 + 2f64.powi(-12));
++        let ct = enc.encrypt(&encoder.encode(&m, scale, 1).unwrap(), &mut r);
++        let out = rf.refresh(&ct).unwrap();
++        assert_eq!((out.level(), out.scale()), (5, scale));
++        let bits = precision_bits(&m, &encoder.decode(&dec.decrypt(&out)));
++        assert!(bits >= 20.0, "{bits}");
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/trainer.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/trainer.rs
+@@ -2,8 +2,8 @@
+ //!
+ //! # One training step ([`Trainer::train_batch`])
+ //!
+-//! The op sequence is [`crate::sim::sim_train_step_sgd`]'s, op for op (the counters are
+-//! equal; tested), generalised to any [`Activation`] and [`LayerOptimizer`]:
++//! The default SGD op sequence is [`crate::sim::sim_train_step_sgd`]'s, op for op (the
++//! counters are equal; tested), generalised to any [`Activation`] and [`LayerOptimizer`]:
+ //!
+ //! 1. forward, per layer: `z = Dense::forward(a)`, `a' = act.forward(z)`;
+ //! 2. loss gradient `delta_L = a_L - y` ([`Mse::grad`]: `y` must be encrypted at exactly
+@@ -21,7 +21,10 @@
+ //!      first: fewer limbs to key-switch) and `delta_{l-1} = Dense::backward_input(dz)`;
+ //!    - `dW = Dense::weight_grad_scaled(dz, a_{l-1}, c)` with `c = grad_scale / n` folded into
+ //!      the lane-0 mask (no level; [`crate::optim`] module docs), and the bias gradient
+-//!      `Dense::bias_grad_scaled(dz, c_b)` with `c_b = bias_grad_scale / n`;
++//!      `Dense::bias_grad_scaled(dz, c_b)` with `c_b = bias_grad_scale / n` (zero for
++//!      [`Trainer::with_frozen_biases`]). Scheduled NAG additionally uses a reference-rate
++//!      gradient from shared products/reduction when current rate differs from reference:
++//!      `m` extra ct-pt products, `m` rescales and `m log2(B)` rotations, no extra depth;
+ //! 4. the optimizer steps (`W' = W - dW` for SGD; NAG's scaled-velocity form) and
+ //!    `b' = b - db`; all at exactly the old scales;
+ //! 5. the refresh: every weight diagonal, every bias and every optimizer state (the NAG
+@@ -33,10 +36,12 @@
+ //! `W1'` lands on level 0 before the refresh ([`Trainer::trace`] records the level of every
+ //! value, labelled as the simulator's level table). No `seal_2020_l10` is needed.
+ //!
++//! [`Trainer::set_lr`] validates every optimizer before committing any rate change.
+ //! Errors in steps 1–3 (levels, scales, keys, shapes) leave the network and the optimizer
+-//! states unchanged: nothing is written before all gradients exist. The optimizer steps only
+-//! fail on their own input checks (which the gradients of step 3 satisfy by construction);
+-//! a refresh failure (a client error) leaves the network updated but not refreshed.
++//! states unchanged: nothing is written before all gradients exist. An optimizer error can
++//! leave earlier optimizers updated while the network is still uncommitted; there is no
++//! cross-optimizer rollback. A refresh failure can leave a partially refreshed updated
++//! network. Rate-change validation is atomic independently of these training-step errors.
+ //!
+ //! # Deviations from the brief's interface
+ //!
+@@ -68,6 +73,9 @@
+ //! layer but the first (the first layer has no backward pass). With
+ //! [`TransposeKeys::Reuse`]`(`[`mlp_key_pool`]`)` the transpose adds no key at all.
+ 
++#[cfg(test)]
++use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
++
+ use std::sync::Arc;
+ use std::time::Instant;
+ 
+@@ -87,13 +95,55 @@
+ };
+ use crate::layout::{Layout, pack_activations, unpack_activations};
+ use crate::loss::Mse;
+-use crate::optim::{Nag, Optimizer, Sgd};
++use crate::optim::{Nag, Optimizer, Sgd, check_lr};
+ use crate::refresh::Refresher;
+ use crate::sim::valid_lane_mask;
+ 
+ // ---------------------------------------------------------------------------------------------
+ // Optimizers per layer.
+ // ---------------------------------------------------------------------------------------------
++
++/// Borrowed read-only configuration and encrypted state of a supported layer optimizer.
++/// No ciphertext or metadata is copied and custom optimizers default to unsupported.
++pub struct OptimizerView<'a, C> {
++    lr: f64,
++    reference: Option<f64>,
++    momentum: Option<f64>,
++    weight_factor: f64,
++    bias_factor: f64,
++    reference_factor: Option<f64>,
++    velocity: Option<&'a Diagonals<C>>,
++}
++impl<C> OptimizerView<'_, C> {
++    /// Actual raw current rate.
++    pub fn lr(&self) -> f64 {
++        self.lr
++    }
++    /// Actual fixed reference, if the optimizer has one.
++    pub fn reference(&self) -> Option<f64> {
++        self.reference
++    }
++    /// Actual momentum, if supported by this optimizer.
++    pub fn momentum(&self) -> Option<f64> {
++        self.momentum
++    }
++    /// Existing optimizer's current folded weight-gradient factor.
++    pub fn weight_factor(&self) -> f64 {
++        self.weight_factor
++    }
++    /// Existing optimizer's bias-gradient factor, before a trainer's bias-free mask.
++    pub fn bias_factor(&self) -> f64 {
++        self.bias_factor
++    }
++    /// Existing validated optional reference-gradient query.
++    pub fn reference_factor(&self) -> Option<f64> {
++        self.reference_factor
++    }
++    /// Borrowed actual encrypted scaled velocity, absent before its initialization.
++    pub fn velocity(&self) -> Option<&Diagonals<C>> {
++        self.velocity
++    }
++}
+ 
+ /// An [`Optimizer`] as the trainer uses it: one instance per layer.
+ pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
+@@ -102,13 +152,56 @@
+     /// [`Sgd`] and [`Nag`]: `lr` (biases take plain SGD steps, Task 28).
+     fn bias_grad_scale(&self) -> f64;
+ 
++    /// Borrowed diagnostics. Unsupported is an error, never an absent SGD state.
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        Err(HekitError::InvalidParams(
++            "layer optimizer diagnostics unsupported".into(),
++        ))
++    }
++
+     /// Refreshes the optimizer's encrypted state (e.g. the NAG velocity, which lands on the
+     /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
+     /// of ciphertexts refreshed. On an error the state is unchanged.
+     fn refresh_state(&mut self, refresher: &mut dyn Refresher<E>) -> Result<usize>;
++
++    /// Read-only rate-change validation. Defaults to unsupported so existing custom
++    /// optimizers remain usable without silently claiming schedule support.
++    /// Implement together with [`LayerOptimizer::apply_lr`].
++    fn validate_lr(&self, _lr: f64) -> Result<()> {
++        Err(HekitError::InvalidParams(
++            "layer optimizer does not support learning-rate changes".into(),
++        ))
++    }
++
++    /// Infallible commit of a rate accepted by [`LayerOptimizer::validate_lr`].
++    /// The trainer validates every optimizer before calling this on any layer. An opt-in
++    /// custom implementation must assign the validated value without failure or panic and
++    /// without resetting state. The default is unreachable through the trainer's setter
++    /// because default validation always rejects; callers must not bypass validation.
++    fn apply_lr(&mut self, _lr: f64) {}
+ }
+ 
+ impl<E: HeOps> LayerOptimizer<E> for Sgd {
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        Ok(OptimizerView {
++            lr: self.lr,
++            reference: None,
++            momentum: None,
++            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
++            bias_factor: Sgd::bias_grad_scale(self),
++            reference_factor: <Self as Optimizer<E>>::reference_grad_scale(self)?,
++            velocity: None,
++        })
++    }
++
++    fn validate_lr(&self, lr: f64) -> Result<()> {
++        check_lr(lr)
++    }
++
++    fn apply_lr(&mut self, lr: f64) {
++        self.lr = lr;
++    }
++
+     fn bias_grad_scale(&self) -> f64 {
+         Sgd::bias_grad_scale(self)
+     }
+@@ -120,6 +213,28 @@
+ }
+ 
+ impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        // This existing query validates the locked reference/momentum basis.
++        let reference_factor = <Self as Optimizer<E>>::reference_grad_scale(self)?;
++        Ok(OptimizerView {
++            lr: self.lr,
++            reference: Some(self.lr_reference()),
++            momentum: Some(self.momentum),
++            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
++            bias_factor: Nag::bias_grad_scale(self),
++            reference_factor,
++            velocity: self.velocity(),
++        })
++    }
++
++    fn validate_lr(&self, lr: f64) -> Result<()> {
++        Nag::validate_rate(self, lr)
++    }
++
++    fn apply_lr(&mut self, lr: f64) {
++        self.lr = lr;
++    }
++
+     fn bias_grad_scale(&self) -> f64 {
+         Nag::bias_grad_scale(self)
+     }
+@@ -137,6 +252,14 @@
+         let fresh = Diagonals::from_prerotated(u.d(), u.stride(), entries)?;
+         let n = fresh.entries().len();
+         self.set_velocity(Some(fresh));
++        #[cfg(test)]
++        observation::values(
++            self.observer.as_ref(),
++            "velocity_refreshed",
++            None,
++            self.observer_layer,
++            self.velocity().unwrap().entries(),
++        );
+         Ok(n)
+     }
+ }
+@@ -525,7 +648,7 @@
+ }
+ 
+ /// `a = act(a W^T + b)` over host layers (see [`Mlp::predict_plain`]).
+-fn predict_layers<'l, E: HeOps + 'l>(
++pub(crate) fn predict_layers<'l, E: HeOps + 'l>(
+     layers: impl Iterator<Item = (&'l Dense, &'l dyn Activation<E>)>,
+     dec: &Decryptor,
+     encoder: &Encoder,
+@@ -588,6 +711,9 @@
+     trace: Vec<(String, usize)>,
+     refreshes: usize,
+     refresh_seconds: f64,
++    frozen_biases: bool,
++    #[cfg(test)]
++    pub(crate) observer: Option<ObservationHandle>,
+     /// One entry per finished epoch.
+     pub log: Vec<EpochLog>,
+ }
+@@ -595,6 +721,42 @@
+ /// `after - before`, field by field.
+ fn counter_delta(before: &OpCounter, after: &OpCounter) -> OpCounter {
+     after - before
++}
++
++/// Contributions retain old exact weight/bias scales; their levels may differ by microbatch.
++struct LayerGradient<C> {
++    layer: usize,
++    dw: Diagonals<C>,
++    reference: Option<Diagonals<C>>,
++    db: C,
++}
++
++fn add_gradient_ct<E: HeOps>(ev: &E, a: &E::Ct, b: &E::Ct) -> Result<E::Ct> {
++    if a.scale() != b.scale() {
++        return Err(HekitError::ScaleMismatch);
++    }
++    let level = a.level().min(b.level());
++    ev.add(
++        &ev.mod_switch_to_level(a, level)?,
++        &ev.mod_switch_to_level(b, level)?,
++    )
++}
++
++fn add_gradient_diagonals<E: HeOps>(
++    ev: &E,
++    a: &Diagonals<E::Ct>,
++    b: &Diagonals<E::Ct>,
++) -> Result<Diagonals<E::Ct>> {
++    if a.d() != b.d() || a.stride() != b.stride() {
++        return Err(HekitError::InvalidParams("gradient shapes differ".into()));
++    }
++    let entries = a
++        .entries()
++        .iter()
++        .zip(b.entries())
++        .map(|(a, b)| add_gradient_ct(ev, a, b))
++        .collect::<Result<Vec<_>>>()?;
++    Diagonals::from_prerotated(a.d(), a.stride(), entries)
+ }
+ 
+ /// [`Dense::bias_grad_scaled`]; if the bias's scale is not reachable by a rescale from
+@@ -605,11 +767,18 @@
+     dz: &E::Ct,
+     layout: &Layout,
+     c: f64,
++    #[cfg(test)] observer: Option<&ObservationHandle>,
+ ) -> Result<E::Ct> {
+-    match dense.bias_grad_scaled(ev, dz, layout, c) {
++    let first = dense.bias_grad_scaled(ev, dz, layout, c);
++    #[cfg(test)]
++    observation::attempt(observer, "bias_gradient", dz, dense.b.scale(), &first);
++    match first {
+         Err(HekitError::ScaleMismatch) if dz.level() >= 2 => {
+             let lower = ev.mod_switch_to_level(dz, dz.level() - 1)?;
+-            dense.bias_grad_scaled(ev, &lower, layout, c)
++            let result = dense.bias_grad_scaled(ev, &lower, layout, c);
++            #[cfg(test)]
++            observation::attempt(observer, "bias_gradient", &lower, dense.b.scale(), &result);
++            result
+         }
+         r => r,
+     }
+@@ -674,6 +843,9 @@
+             trace: Vec::new(),
+             refreshes: 0,
+             refresh_seconds: 0.0,
++            frozen_biases: false,
++            #[cfg(test)]
++            observer: None,
+             log: Vec::new(),
+         })
+     }
+@@ -685,6 +857,52 @@
+         self
+     }
+ 
++    /// Checked borrowed diagnostics for one optimizer, with no evaluator work.
++    pub fn optimizer_view(&self, layer: usize) -> Result<OptimizerView<'_, E::Ct>> {
++        self.optims
++            .get(layer)
++            .ok_or_else(|| {
++                HekitError::InvalidParams(format!("optimizer layer {layer} out of bounds"))
++            })?
++            .diagnostic_view()
++    }
++
++    /// Sets the rate of subsequent updates without clearing optimizer state. Every layer
++    /// is validated before any rate is committed: malformed rates, NAG reference ceilings,
++    /// or unsupported custom optimizers leave the entire rate set unchanged. NAG reference
++    /// maxima must be configured on each optimizer before constructing the trainer.
++    pub fn set_lr(&mut self, lr: f64) -> Result<()> {
++        self.validate_lr(lr)?;
++        self.apply_validated_lr(lr);
++        Ok(())
++    }
++
++    /// Read-only validation of a rate against every layer. No evaluator work or mutation.
++    /// Used by block composition to validate all stages before committing any rate.
++    pub fn validate_lr(&self, lr: f64) -> Result<()> {
++        check_lr(lr)?;
++        for opt in &self.optims {
++            opt.validate_lr(lr)?;
++        }
++        Ok(())
++    }
++
++    /// Caller must first validate this rate against every participating trainer.
++    pub(crate) fn apply_validated_lr(&mut self, lr: f64) {
++        for opt in &mut self.optims {
++            opt.apply_lr(lr);
++        }
++    }
++
++    /// Keeps the initialized bias values by folding a zero coefficient into their gradient.
++    /// Initialize biases as zero for a bias-free profile. Like NI, the bias operations and
++    /// refreshes remain, preserving counts/levels; decoded values are approximate CKKS.
++    /// The default is to train biases using the optimizer's bias-gradient scale.
++    pub fn with_frozen_biases(mut self) -> Trainer<'a, E> {
++        self.frozen_biases = true;
++        self
++    }
++
+     /// The layout.
+     pub fn layout(&self) -> &Layout {
+         &self.layout
+@@ -693,7 +911,9 @@
+     /// The levels of the last successful step **before** the refresh, labelled as
+     /// [`crate::sim::SimStep::depths`] (`z{l}`, `a{l}`, `delta{L}`, `s{l}`, `dz{l}`,
+     /// `delta{l-1}`, `W{l}'`, `b{l}'`; 1-based layers). On seal_2020's Task 30 network every
+-    /// entry equals `max_level - depth`, and `W1'` is on level 0.
++    /// entry equals `max_level - depth`, and `W1'` is on level 0. For multiple microbatches,
++    /// forward/backward labels carry the zero-based `micro{index}/` prefix; updated weights
++    /// and biases retain their ordinary labels and show the accumulated update levels.
+     pub fn trace(&self) -> &[(String, usize)] {
+         &self.trace
+     }
+@@ -723,12 +943,14 @@
+     /// factor (0 extra levels). Afterwards every weight, bias and optimizer state is on
+     /// [`Trainer::refresh_level`] at its old exact scale.
+     ///
+-    /// Errors, reported before anything is written (the network and the optimizers are
+-    /// unchanged): `InvalidParams` if the network is empty, there is not one optimizer per
++    /// Input and gradient errors, before network/optimizer writes: `InvalidParams` if the
++    /// network is empty, there is not one optimizer per
+     /// layer, the shapes do not chain, `n_valid` is not in `1..=batch`, or a key is missing;
+     /// `ScaleMismatch` if `y` is not at the output's exact scale; `NoLevelsLeft` if the step
+-    /// does not fit the levels; and the errors of the layer operations. After the updates,
+-    /// the refresher's errors.
++    /// does not fit the levels; and the errors of the layer operations. NAG configuration
++    /// errors are checked before forward work. An optimizer failure may leave earlier
++    /// optimizer states updated (the network is committed only after all optimizers succeed).
++    /// A subsequent refresher failure may leave the updated network partially refreshed.
+     pub fn train_batch_valid(
+         &mut self,
+         mlp: &mut Mlp<E>,
+@@ -736,6 +958,65 @@
+         y: &E::Ct,
+         n_valid: usize,
+     ) -> Result<()> {
++        self.train_step_valid(mlp, &[(x, y, n_valid)])
++    }
++
++    /// [`Trainer::train_batch_valid`], returning the step's hidden activations: the outputs
++    /// of the activations of layers `1 .. L - 1` (1-based; the inputs of layers `2 .. L`),
++    /// computed by the forward pass from the weights **before** the update, at their own
++    /// levels and scales. A block of [`crate::block::BlockMlp`] hands the first one to the
++    /// next stage (Task 52).
++    ///
++    /// Errors as [`Trainer::train_batch_valid`].
++    pub fn train_batch_valid_with_hidden(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        x: &E::Ct,
++        y: &E::Ct,
++        n_valid: usize,
++    ) -> Result<Vec<E::Ct>> {
++        let mut hidden = self.train_step_valid_with_hidden(mlp, &[(x, y, n_valid)])?;
++        Ok(hidden.pop().expect("one microbatch"))
++    }
++
++    /// One logical update over a nonempty ordered list of microbatches. Every `x` and `y`
++    /// follows the network's [`BatchSpec`]; the first `n_valid` lanes are samples. All passes
++    /// use the same pre-update weights. Gradients are normalized by the checked sum of valid
++    /// samples, then each optimizer is updated once and all state is refreshed once.
++    ///
++    /// Empty lists, invalid counts, count overflow and optimizer configuration errors are
++    /// rejected before forward work. Collection errors leave network/optimizer state intact
++    /// but may advance counters. Later optimizer/refresh failures have the same partial-write
++    /// contract as [`Trainer::train_batch_valid`]. No hidden activations are retained.
++    pub fn train_step_valid(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        batches: &[(&E::Ct, &E::Ct, usize)],
++    ) -> Result<()> {
++        self.step_valid(mlp, batches, false).map(|_| ())
++    }
++
++    /// [`Trainer::train_step_valid`], returning owned activations `[micro][hidden layer]`
++    /// in input order, excluding the input and final output. Every activation uses the
++    /// weights **before** this logical update and keeps its forward level/scale; these are
++    /// not refreshed. The slice is borrowed only for the call; returned ciphertexts do not
++    /// borrow the inputs or trainer. A one-layer network returns an empty vector per micro.
++    ///
++    /// Errors and state guarantees are those of [`Trainer::train_step_valid`].
++    pub fn train_step_valid_with_hidden(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        batches: &[(&E::Ct, &E::Ct, usize)],
++    ) -> Result<Vec<Vec<E::Ct>>> {
++        self.step_valid(mlp, batches, true)
++    }
++
++    fn step_valid(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        batches: &[(&E::Ct, &E::Ct, usize)],
++        keep_hidden: bool,
++    ) -> Result<Vec<Vec<E::Ct>>> {
+         let n_layers = mlp.layers.len();
+         if n_layers == 0 || self.optims.len() != n_layers {
+             return Err(HekitError::InvalidParams(format!(
+@@ -743,12 +1024,20 @@
+                 self.optims.len()
+             )));
+         }
+-        if n_valid == 0 || n_valid > self.layout.batch {
+-            return Err(HekitError::InvalidParams(format!(
+-                "{n_valid} valid samples for a batch of {}",
+-                self.layout.batch
+-            )));
+-        }
++        if batches.is_empty() {
++            return Err(HekitError::InvalidParams("no microbatches".into()));
++        }
++        let total = batches.iter().try_fold(0usize, |sum, &(_, _, n)| {
++            if n == 0 || n > self.layout.batch {
++                return Err(HekitError::InvalidParams(format!(
++                    "{n} valid samples for a batch of {}",
++                    self.layout.batch
++                )));
++            }
++            sum.checked_add(n).ok_or_else(|| {
++                HekitError::InvalidParams("total valid sample count overflows usize".into())
++            })
++        })?;
+         if mlp
+             .layers
+             .windows(2)
+@@ -758,77 +1047,338 @@
+                 "layer shapes do not chain".into(),
+             ));
+         }
++        // Read-only configuration/coefficients for every layer, before any counted work.
++        let coefficients = self
++            .optims
++            .iter()
++            .map(|opt| {
++                let reference = opt.reference_grad_scale()?.map(|c| c / total as f64);
++                let current = opt.grad_scale() / total as f64;
++                let bias = if self.frozen_biases {
++                    0.0
++                } else {
++                    opt.bias_grad_scale() / total as f64
++                };
++                if !current.is_finite()
++                    || !bias.is_finite()
++                    || reference.is_some_and(|c| !c.is_finite())
++                {
++                    return Err(HekitError::InvalidParams(
++                        "nonfinite folded gradient coefficient".into(),
++                    ));
++                }
++                Ok((current, reference, bias))
++            })
++            .collect::<Result<Vec<_>>>()?;
++        #[cfg(test)]
++        for (i, (current, reference, bias)) in coefficients.iter().enumerate() {
++            observation::coefficient(self.observer.as_ref(), "current", Some(i), 0, *current);
++            observation::coefficient(self.observer.as_ref(), "bias", Some(i), 0, *bias);
++            if let Some(reference) = reference {
++                observation::coefficient(
++                    self.observer.as_ref(),
++                    "reference",
++                    Some(i),
++                    0,
++                    *reference,
++                );
++            }
++        }
+         let ev = self.ev;
+         let enc = &self.encoder;
+         let layout = &self.layout;
+-        let mut trace: Vec<(String, usize)> = Vec::new();
+-
+-        // 1. Forward. acts[i] is the input of layer i.
+-        let mut acts = vec![x.clone()];
+-        let mut zs = Vec::with_capacity(n_layers);
+-        for (i, (dense, act)) in mlp.layers.iter().enumerate() {
+-            let z = dense.forward(ev, &acts[i], layout)?;
+-            trace.push((format!("z{}", i + 1), z.level()));
+-            let a = act.forward(ev, enc, &z)?;
+-            trace.push((format!("a{}", i + 1), a.level()));
+-            zs.push(z);
+-            acts.push(a);
+-        }
+-
+-        // 2. Loss gradient.
+-        let mut delta = Mse.grad(ev, &acts[n_layers], y)?;
+-        trace.push((format!("delta{n_layers}"), delta.level()));
+-
+-        // 3. Backward and gradients, top down; nothing is written yet.
+-        let mask = valid_lane_mask(layout, n_valid);
+-        let n = n_valid as f64;
+-        let mut updates = Vec::with_capacity(n_layers);
+-        for i in (0..n_layers).rev() {
+-            let ln = i + 1;
+-            let (dense, act) = &mlp.layers[i];
+-            let dz = match act.constant_derivative() {
+-                Some(k) => constant_dz(ev, enc, &delta, k, &mask, n_valid == layout.batch)?,
+-                None => {
+-                    let s = act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
+-                    trace.push((format!("s{ln}"), s.level()));
+-                    let lv = s.level().min(delta.level());
+-                    ev.rescale(&ev.mul(
+-                        &ev.mod_switch_to_level(&delta, lv)?,
+-                        &ev.mod_switch_to_level(&s, lv)?,
+-                    )?)?
++        let mut trace = Vec::new();
++        let mut updates: Vec<LayerGradient<E::Ct>> = Vec::new();
++        let mut new_biases = Vec::with_capacity(n_layers);
++        let mut hidden = Vec::new();
++        for (micro, &(x, y, n_valid)) in batches.iter().enumerate() {
++            let label = |s: String| {
++                if batches.len() == 1 {
++                    s
++                } else {
++                    format!("micro{micro}/{s}")
+                 }
+             };
+-            trace.push((format!("dz{ln}"), dz.level()));
+-            let next = if i > 0 {
+-                let w = &dense.w;
+-                let low = EncWeights::from_diagonals(
+-                    w.diagonals().mod_switch_to_level(ev, dz.level())?,
+-                    w.d_out(),
+-                    w.d_in(),
++            #[cfg(test)]
++            {
++                observation::value(
++                    self.observer.as_ref(),
++                    "entry_input",
++                    Some(micro),
++                    None,
++                    0,
++                    x,
++                );
++                observation::value(
++                    self.observer.as_ref(),
++                    "entry_target",
++                    Some(micro),
++                    None,
++                    0,
++                    y,
++                );
++            }
++            // 1. Forward. acts[i] is the input of layer i.
++            let mut acts = vec![x.clone()];
++            let mut zs = Vec::with_capacity(n_layers);
++            for (i, (dense, act)) in mlp.layers.iter().enumerate() {
++                #[cfg(test)]
++                observation::value(
++                    self.observer.as_ref(),
++                    "input",
++                    Some(micro),
++                    Some(i),
++                    0,
++                    &acts[i],
++                );
++                let z = dense.forward(ev, &acts[i], layout)?;
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "z", Some(micro), Some(i), 0, &z);
++                trace.push((label(format!("z{}", i + 1)), z.level()));
++                let a = act.forward(ev, enc, &z)?;
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "a", Some(micro), Some(i), 0, &a);
++                trace.push((label(format!("a{}", i + 1)), a.level()));
++                zs.push(z);
++                acts.push(a);
++            }
++
++            // 2. Loss gradient.
++            #[cfg(test)]
++            observation::value(
++                self.observer.as_ref(),
++                "aligned_target",
++                Some(micro),
++                Some(n_layers - 1),
++                0,
++                y,
++            );
++            let mut delta = Mse.grad(ev, &acts[n_layers], y)?;
++            #[cfg(test)]
++            observation::value(
++                self.observer.as_ref(),
++                "loss_delta",
++                Some(micro),
++                Some(n_layers - 1),
++                0,
++                &delta,
++            );
++            trace.push((label(format!("delta{n_layers}")), delta.level()));
++
++            // 3. Backward and gradients, top down; nothing is written yet.
++            let mask = valid_lane_mask(layout, n_valid);
++            let mut contributions = Vec::with_capacity(n_layers);
++            for i in (0..n_layers).rev() {
++                let ln = i + 1;
++                let (dense, act) = &mlp.layers[i];
++                let dz = match act.constant_derivative() {
++                    Some(k) => constant_dz(ev, enc, &delta, k, &mask, n_valid == layout.batch)?,
++                    None => {
++                        let s =
++                            act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
++                        #[cfg(test)]
++                        observation::value(
++                            self.observer.as_ref(),
++                            "s",
++                            Some(micro),
++                            Some(i),
++                            0,
++                            &s,
++                        );
++                        trace.push((label(format!("s{ln}")), s.level()));
++                        let lv = s.level().min(delta.level());
++                        ev.rescale(&ev.mul(
++                            &ev.mod_switch_to_level(&delta, lv)?,
++                            &ev.mod_switch_to_level(&s, lv)?,
++                        )?)?
++                    }
++                };
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "dz", Some(micro), Some(i), 0, &dz);
++                trace.push((label(format!("dz{ln}")), dz.level()));
++                let next = if i > 0 {
++                    let w = &dense.w;
++                    let low = EncWeights::from_diagonals(
++                        w.diagonals().mod_switch_to_level(ev, dz.level())?,
++                        w.d_out(),
++                        w.d_in(),
++                        layout,
++                    )?;
++                    let wt = low.transpose_with(ev, layout, &self.transpose_keys)?;
++                    #[cfg(test)]
++                    observation::values(
++                        self.observer.as_ref(),
++                        "transpose",
++                        Some(micro),
++                        Some(i),
++                        wt.diagonals().entries(),
++                    );
++                    let v = dense.backward_input(ev, &dz, &wt, layout)?;
++                    #[cfg(test)]
++                    observation::value(
++                        self.observer.as_ref(),
++                        "backward_delta",
++                        Some(micro),
++                        Some(i),
++                        0,
++                        &v,
++                    );
++                    trace.push((label(format!("delta{i}")), v.level()));
++                    Some(v)
++                } else {
++                    None
++                };
++                let (c, c_ref, c_b) = coefficients[i];
++                let (dw, reference) = if let Some(c_ref) = c_ref {
++                    let mut gs =
++                        dense.weight_grad_scaled_consts(ev, &dz, &acts[i], layout, &[c, c_ref])?;
++                    let reference = gs.pop().expect("two gradient constants");
++                    (gs.pop().expect("two gradient constants"), Some(reference))
++                } else {
++                    (
++                        dense.weight_grad_scaled(ev, &dz, &acts[i], layout, c)?,
++                        None,
++                    )
++                };
++                #[cfg(test)]
++                observation::scope(self.observer.as_ref(), Some(micro), Some(i));
++                let db = bias_grad(
++                    ev,
++                    dense,
++                    &dz,
+                     layout,
++                    c_b,
++                    #[cfg(test)]
++                    self.observer.as_ref(),
+                 )?;
+-                let wt = low.transpose_with(ev, layout, &self.transpose_keys)?;
+-                let v = dense.backward_input(ev, &dz, &wt, layout)?;
+-                trace.push((format!("delta{i}"), v.level()));
+-                Some(v)
++                #[cfg(test)]
++                {
++                    observation::values(
++                        self.observer.as_ref(),
++                        "gradient",
++                        Some(micro),
++                        Some(i),
++                        dw.entries(),
++                    );
++                    if let Some(r) = &reference {
++                        observation::values(
++                            self.observer.as_ref(),
++                            "reference_gradient",
++                            Some(micro),
++                            Some(i),
++                            r.entries(),
++                        );
++                    }
++                    observation::value(
++                        self.observer.as_ref(),
++                        "bias_gradient",
++                        Some(micro),
++                        Some(i),
++                        0,
++                        &db,
++                    );
++                }
++                if batches.len() == 1 {
++                    // Preserve the legacy singleton primitive order, including bias subtraction.
++                    new_biases.push(ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?);
++                }
++                contributions.push(LayerGradient {
++                    layer: i,
++                    dw,
++                    reference,
++                    db,
++                });
++                if let Some(v) = next {
++                    delta = v;
++                }
++            }
++
++            if updates.is_empty() {
++                updates = contributions;
+             } else {
+-                None
+-            };
+-            let opt = &self.optims[i];
+-            let dw = dense.weight_grad_scaled(ev, &dz, &acts[i], layout, opt.grad_scale() / n)?;
+-            let db = bias_grad(ev, dense, &dz, layout, opt.bias_grad_scale() / n)?;
+-            let b_new = ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?;
+-            updates.push((i, dw, b_new));
+-            if let Some(v) = next {
+-                delta = v;
++                for (sum, part) in updates.iter_mut().zip(contributions) {
++                    sum.dw = add_gradient_diagonals(ev, &sum.dw, &part.dw)?;
++                    if let (Some(a), Some(b)) = (&sum.reference, &part.reference) {
++                        sum.reference = Some(add_gradient_diagonals(ev, a, b)?);
++                    }
++                    sum.db = add_gradient_ct(ev, &sum.db, &part.db)?;
++                }
+             }
+-        }
+-
+-        // 4. Optimizer steps (on copies), then commit.
++            #[cfg(test)]
++            for gradient in &updates {
++                observation::values(
++                    self.observer.as_ref(),
++                    "accumulated_gradient",
++                    Some(micro),
++                    Some(gradient.layer),
++                    gradient.dw.entries(),
++                );
++                if let Some(r) = &gradient.reference {
++                    observation::values(
++                        self.observer.as_ref(),
++                        "accumulated_reference",
++                        Some(micro),
++                        Some(gradient.layer),
++                        r.entries(),
++                    );
++                }
++                observation::value(
++                    self.observer.as_ref(),
++                    "accumulated_bias",
++                    Some(micro),
++                    Some(gradient.layer),
++                    0,
++                    &gradient.db,
++                );
++            }
++            if keep_hidden {
++                acts.truncate(n_layers);
++                hidden.push(acts.split_off(1));
++            }
++        }
++
++        // Prepare every bias before optimizer writes, including fallible level alignment.
++        if batches.len() > 1 {
++            for gradient in &updates {
++                let b = &mlp.layers[gradient.layer].0.b;
++                new_biases.push(ev.sub(
++                    &ev.mod_switch_to_level(b, gradient.db.level())?,
++                    &gradient.db,
++                )?);
++            }
++        }
++        // All contributions and new biases exist before the first optimizer/state write.
+         let mut new_layers = Vec::with_capacity(n_layers);
+-        for (i, dw, b_new) in updates {
++        for (
++            LayerGradient {
++                layer: i,
++                dw,
++                reference,
++                ..
++            },
++            b_new,
++        ) in updates.into_iter().zip(new_biases)
++        {
+             let mut w = mlp.layers[i].0.w.clone();
+-            self.optims[i].step(ev, &mut w, &dw)?;
++            self.optims[i].step_with_reference_gradient(ev, &mut w, &dw, reference.as_ref())?;
++            #[cfg(test)]
++            {
++                observation::values(
++                    self.observer.as_ref(),
++                    "weight_updated",
++                    None,
++                    Some(i),
++                    w.diagonals().entries(),
++                );
++                observation::value(
++                    self.observer.as_ref(),
++                    "bias_updated",
++                    None,
++                    Some(i),
++                    0,
++                    &b_new,
++                );
++            }
+             trace.push((format!("W{}'", i + 1), w.level()));
+             trace.push((format!("b{}'", i + 1), b_new.level()));
+             new_layers.push((i, w, b_new));
+@@ -838,9 +1388,8 @@
+             mlp.layers[i].0.b = b;
+         }
+         self.trace = trace;
+-
+-        // 5. Refresh everything the next step consumes.
+-        self.refresh_all(mlp)
++        self.refresh_all(mlp)?;
++        Ok(hidden)
+     }
+ 
+     /// Refreshes every weight diagonal, bias and optimizer state.
+@@ -849,7 +1398,14 @@
+         let r = self.refresher.as_mut();
+         let mut count = 0;
+         let result = (|| -> Result<()> {
+-            for ((dense, _), opt) in mlp.layers.iter_mut().zip(self.optims.iter_mut()) {
++            // The index is used only by test observation; iteration order is unchanged.
++            #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
++            for (_layer_index, ((dense, _), opt)) in mlp
++                .layers
++                .iter_mut()
++                .zip(self.optims.iter_mut())
++                .enumerate()
++            {
+                 let w = &dense.w;
+                 let entries = w
+                     .diagonals()
+@@ -864,6 +1420,24 @@
+                 dense.b = r.refresh(&dense.b)?;
+                 count += 1;
+                 count += opt.refresh_state(r)?;
++                #[cfg(test)]
++                {
++                    observation::values(
++                        self.observer.as_ref(),
++                        "weight_refreshed",
++                        None,
++                        Some(_layer_index),
++                        dense.w.diagonals().entries(),
++                    );
++                    observation::value(
++                        self.observer.as_ref(),
++                        "bias_refreshed",
++                        None,
++                        Some(_layer_index),
++                        0,
++                        &dense.b,
++                    );
++                }
+             }
+             Ok(())
+         })();
+@@ -927,3 +1501,71 @@
+         Ok(log)
+     }
+ }
++
++#[cfg(test)]
++mod p2_helpers {
++    use super::*;
++    use crate::diagonal_plan::tests::{coarse, rng};
++    use std::{cell::RefCell, rc::Rc};
++    #[test]
++    fn p2_bias_retry_witnesses() {
++        crate::diagonal_plan::tests::reserve_helper_calls(2);
++        let c = coarse();
++        let ev = c.ev.fork();
++        let sink = Rc::new(RefCell::new(observation::Recorder::default()));
++        for (bits, ok) in [
++            (0x4135_eb85_1ebf_b0df, true),
++            (0x4135_eb85_1ec1_0524, false),
++        ] {
++            let target = f64::from_bits(bits);
++            let dense = Dense::encrypt_at(
++                &Array2::zeros((2, 2)),
++                &[0., 0.],
++                &c.layout,
++                target / c.p.scale(),
++                2,
++                &c.encrypt,
++                &c.enc,
++                &mut rng(52),
++            )
++            .unwrap();
++            assert_eq!(dense.b.scale().to_bits(), bits);
++            let dz = c.encrypt_at(2, c.p.scale(), 0.125);
++            sink.borrow_mut().attempts.clear();
++            let before = ev.counter();
++            let r = bias_grad(&ev, &dense, &dz, &c.layout, 0.125, Some(&sink));
++            assert_eq!(r.is_ok(), ok);
++            if let Ok(out) = r {
++                assert_eq!((out.level(), out.scale().to_bits()), (0, bits));
++            }
++            let expected = if ok {
++                OpCounter {
++                    rotations: 6,
++                    ct_pt_mults: 1,
++                    rescales: 1,
++                    ..Default::default()
++                }
++            } else {
++                OpCounter::default()
++            };
++            assert_eq!(&ev.counter() - &before, expected);
++            let attempts = &sink.borrow().attempts;
++            assert_eq!(attempts.len(), 2);
++            assert_eq!((attempts[0].source_level, attempts[1].source_level), (2, 1));
++            assert!(
++                attempts
++                    .iter()
++                    .all(|a| a.source_scale_bits == c.p.scale().to_bits() && a.target_bits == bits)
++            );
++            assert_eq!(attempts[0].error, Some(HekitError::ScaleMismatch));
++            assert_eq!(
++                attempts[1].error,
++                if ok {
++                    None
++                } else {
++                    Some(HekitError::ScaleMismatch)
++                }
++            );
++        }
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/src/trainer_ni.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/src/trainer_ni.rs
+@@ -63,6 +63,9 @@
+ //! ([`Dense::weight_grad_reduced`]); [`predict_update`] follows the evaluator's flags
+ //! ([`predict_update_with`]).
+ 
++#[cfg(test)]
++use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
++
+ use std::sync::Arc;
+ use std::time::Instant;
+ 
+@@ -493,10 +496,10 @@
+ 
+ /// What the level arithmetic needs of an activation.
+ #[derive(Debug, Clone, Copy)]
+-struct ActMeta {
+-    depth: i64,
+-    dderiv: i64,
+-    constant: Option<f64>,
++pub(crate) struct ActMeta {
++    pub(crate) depth: i64,
++    pub(crate) dderiv: i64,
++    pub(crate) constant: Option<f64>,
+ }
+ 
+ fn metas<E: HeOps>(mlp: &Mlp<E>) -> Vec<ActMeta> {
+@@ -516,22 +519,22 @@
+ 
+ /// The levels of one step (signed: a negative level means the step does not fit).
+ #[derive(Debug, Clone)]
+-struct Pass {
++pub(crate) struct Pass {
+     /// `(label, level)` of every value, as [`NonInteractiveTrainer::trace`].
+-    trace: Vec<(String, i64)>,
++    pub(crate) trace: Vec<(String, i64)>,
+     /// Input level of every layer's forward (after alignment).
+-    inputs: Vec<i64>,
++    pub(crate) inputs: Vec<i64>,
+     /// Level of every layer's compact weight gradient.
+-    h: Vec<i64>,
++    pub(crate) h: Vec<i64>,
+     /// Level of every layer's bias gradient.
+-    hb: Vec<i64>,
++    pub(crate) hb: Vec<i64>,
+     /// The lowest level of the step.
+-    min: i64,
++    pub(crate) min: i64,
+ }
+ 
+ /// The level of every value of one step, op for op the trainer's: weights of layer `l` at
+ /// `w[l]`, its bias at `b[l]`, the input batch at `x`, a bootstrap output at `boot`.
+-fn pass_levels(
++pub(crate) fn pass_levels(
+     meta: &[ActMeta],
+     boot_acts: bool,
+     w: &[i64],
+@@ -615,7 +618,17 @@
+ /// [`NonInteractiveTrainer::new`] requires `levels_per_iter` to be at most the levels left
+ /// after a bootstrap and an unpack (`output_level - 1`, 15 on n16_boot).
+ pub fn levels_per_iter<E: HeOps>(mlp: &Mlp<E>, placement: BootPlacement) -> usize {
+-    let meta = metas(mlp);
++    let acts: Vec<&dyn Activation<E>> = mlp.layers.iter().map(|(_, a)| a.as_ref()).collect();
++    levels_per_iter_of(&acts, placement)
++}
++
++/// [`levels_per_iter`] of a network with the activations `acts` (one per layer; the level count
++/// does not depend on the dimensions), without an encrypted network (e.g. for a plan).
++pub fn levels_per_iter_of<E: HeOps>(
++    acts: &[&dyn Activation<E>],
++    placement: BootPlacement,
++) -> usize {
++    let meta = metas_of(acts);
+     const BIG: i64 = 1 << 30;
+     let n = meta.len();
+     let p = pass_levels(
+@@ -632,15 +645,15 @@
+ 
+ /// The level state between steps (signed for the feasibility arithmetic).
+ #[derive(Debug, Clone)]
+-struct LevelState {
++pub(crate) struct LevelState {
+     /// Unpacked weights per layer.
+-    w: Vec<i64>,
++    pub(crate) w: Vec<i64>,
+     /// Extracted bias per layer.
+-    b: Vec<i64>,
++    pub(crate) b: Vec<i64>,
+     /// Compact weights per container.
+-    c: Vec<i64>,
++    pub(crate) c: Vec<i64>,
+     /// Velocity per container.
+-    u: Vec<Option<i64>>,
++    pub(crate) u: Vec<Option<i64>>,
+ }
+ 
+ /// The container levels after the update of `pass` from `st` (NAG lands `W'` and `U'` on the
+@@ -669,7 +682,7 @@
+ 
+ /// The unpacked levels from container levels `c`: each layer's weights one below the lowest
+ /// of its containers, each bias one below its container.
+-fn unpacked(cl: &CompactLayout, c: &[i64]) -> (Vec<i64>, Vec<i64>) {
++pub(crate) fn unpacked(cl: &CompactLayout, c: &[i64]) -> (Vec<i64>, Vec<i64>) {
+     let w = (0..cl.plans.len())
+         .map(|l| cl.layer_containers(l).map(|i| c[i]).min().expect("one") - 1)
+         .collect();
+@@ -952,7 +965,7 @@
+ /// `Some(true)` a full batch; `Some(false)` or `None` (unknown) a partial one, which costs one
+ /// more level at a linear output layer ([`crate::activation::Activation::constant_derivative`]),
+ /// so an unknown next step is planned conservatively.
+-fn must_boot(
++pub(crate) fn must_boot(
+     meta: &[ActMeta],
+     placement: BootPlacement,
+     next: &LevelState,
+@@ -1075,6 +1088,8 @@
+     lr_ref: f64,
+     /// Whether the last update used a second gradient mask (its lr differed from `lr_ref`).
+     last_rescaled: bool,
++    #[cfg(test)]
++    pub(crate) observer: Option<ObservationHandle>,
+     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
+     /// time, `batches` the updates).
+     pub log: Vec<EpochLog>,
+@@ -1317,6 +1332,8 @@
+             frozen_biases: false,
+             lr_ref: optim.lr(),
+             last_rescaled: false,
++            #[cfg(test)]
++            observer: None,
+             log: Vec::new(),
+         };
+         let st = t.level_state(mlp);
+@@ -1348,6 +1365,13 @@
+     ///
+     /// Errors (`InvalidParams`): `lr` not finite and positive, or (NAG) above the reference lr.
+     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
++        self.validate_lr(lr)?;
++        self.apply_validated_lr(lr);
++        Ok(())
++    }
++
++    /// Read-only checks of [`NonInteractiveTrainer::set_lr`], for atomic block settings.
++    pub fn validate_lr(&self, lr: f64) -> Result<()> {
+         if !(lr.is_finite() && lr > 0.0) {
+             return Err(HekitError::InvalidParams(format!(
+                 "learning rate {lr} must be finite and positive"
+@@ -1360,8 +1384,12 @@
+                 self.lr_ref
+             )));
+         }
++        Ok(())
++    }
++
++    /// Caller must validate every participating trainer before any commit.
++    pub(crate) fn apply_validated_lr(&mut self, lr: f64) {
+         self.optim = self.optim.with_lr(lr);
+-        Ok(())
+     }
+ 
+     /// Sets the reference lr of the stored velocity (e.g. the schedule's maximum), before the
+@@ -1370,6 +1398,13 @@
+     /// Errors (`InvalidParams`): `lr_ref` not finite and positive, below the current lr, or a
+     /// velocity already exists.
+     pub fn set_lr_reference(&mut self, lr_ref: f64) -> Result<()> {
++        self.validate_lr_reference(lr_ref)?;
++        self.apply_validated_lr_reference(lr_ref);
++        Ok(())
++    }
++
++    /// Read-only checks of [`NonInteractiveTrainer::set_lr_reference`].
++    pub fn validate_lr_reference(&self, lr_ref: f64) -> Result<()> {
+         if !(lr_ref.is_finite() && lr_ref > 0.0) || lr_ref < self.optim.lr() {
+             return Err(HekitError::InvalidParams(format!(
+                 "reference lr {lr_ref} must be finite, positive and at least the lr {}",
+@@ -1381,8 +1416,12 @@
+                 "the reference lr can only be set before the first update".into(),
+             ));
+         }
++        Ok(())
++    }
++
++    /// Caller must validate every participating trainer before any commit.
++    pub(crate) fn apply_validated_lr_reference(&mut self, lr_ref: f64) {
+         self.lr_ref = lr_ref;
+-        Ok(())
+     }
+ 
+     /// The velocity's reference lr.
+@@ -1627,6 +1666,30 @@
+         mlp: &mut Mlp<E>,
+         batches: &[(&E::Ct, &E::Ct, usize)],
+     ) -> Result<()> {
++        self.step(mlp, batches, false).map(|_| ())
++    }
++
++    /// [`NonInteractiveTrainer::train_step_valid`], returning the update's hidden activations:
++    /// per micro-batch the outputs of the activations of layers `1 .. L - 1` (1-based), from
++    /// the forward pass with the weights **before** the update, at their own levels and scales
++    /// (not the bootstrapped copies of [`BootPlacement::AfterActivation`]). A block of
++    /// [`crate::block::BlockMlp`] hands the first one to the next stage (Task 52).
++    ///
++    /// Errors as [`NonInteractiveTrainer::train_step_valid`].
++    pub fn train_step_valid_with_hidden(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        batches: &[(&E::Ct, &E::Ct, usize)],
++    ) -> Result<Vec<Vec<E::Ct>>> {
++        self.step(mlp, batches, true)
++    }
++
++    fn step(
++        &mut self,
++        mlp: &mut Mlp<E>,
++        batches: &[(&E::Ct, &E::Ct, usize)],
++        keep_hidden: bool,
++    ) -> Result<Vec<Vec<E::Ct>>> {
+         let n_layers = mlp.layers.len();
+         if batches.is_empty() {
+             return Err(HekitError::InvalidParams("no micro-batches".into()));
+@@ -1667,7 +1730,21 @@
+         // 1. Forward per micro-batch. acts[mb][l] is the input of layer l.
+         let mut acts: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
+         let mut zs: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
+-        for (mb, (x, _, _)) in batches.iter().enumerate() {
++        let mut hidden: Vec<Vec<E::Ct>> = Vec::new();
++        for (mb, (x, _y, _)) in batches.iter().enumerate() {
++            #[cfg(test)]
++            {
++                observation::value(self.observer.as_ref(), "entry_input", Some(mb), None, 0, *x);
++                observation::value(
++                    self.observer.as_ref(),
++                    "entry_target",
++                    Some(mb),
++                    None,
++                    0,
++                    *_y,
++                );
++            }
++            let mut h_mb = Vec::new();
+             let mut a_in = Vec::with_capacity(n_layers + 1);
+             let mut z_mb = Vec::with_capacity(n_layers);
+             let mut prev = (*x).clone();
+@@ -1677,17 +1754,44 @@
+                 if l == 0 {
+                     a_in.push(input.clone());
+                 }
++                #[cfg(test)]
++                observation::value(
++                    self.observer.as_ref(),
++                    "input",
++                    Some(mb),
++                    Some(l),
++                    0,
++                    &input,
++                );
+                 let z = dense.forward(ev, &input, &layout)?;
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "z", Some(mb), Some(l), 0, &z);
+                 let a = act.forward(ev, enc, &z)?;
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "a", Some(mb), Some(l), 0, &a);
+                 if mb == 0 {
+                     trace.push((format!("z{}", l + 1), z.level()));
+                     trace.push((format!("a{}", l + 1), a.level()));
+                 }
+                 z_mb.push(z);
++                if keep_hidden && l + 1 < n_layers {
++                    h_mb.push(a.clone());
++                }
+                 if boot_acts && l + 1 < n_layers {
+                     let a1 = ev.rescale(&ev.mul_scalar(&a, 1.0, delta_scale)?)?;
++                    #[cfg(test)]
++                    observation::value(
++                        self.observer.as_ref(),
++                        "a_to_delta",
++                        Some(mb),
++                        Some(l),
++                        0,
++                        &a1,
++                    );
+                     let t0 = Instant::now();
+                     let ab = self.bs.bootstrap(ev, &ev.mod_switch_to_level(&a1, 0)?)?;
++                    #[cfg(test)]
++                    observation::value(self.observer.as_ref(), "a_boot", Some(mb), Some(l), 0, &ab);
+                     t_boot += t0.elapsed().as_secs_f64();
+                     act_boots += 1;
+                     if mb == 0 {
+@@ -1703,6 +1807,9 @@
+             }
+             acts.push(a_in);
+             zs.push(z_mb);
++            if keep_hidden {
++                hidden.push(h_mb);
++            }
+         }
+ 
+         // 2. Loss gradients (y brought to the output's exact scale if a lazy step starts low).
+@@ -1710,7 +1817,25 @@
+         for (mb, (_, y, _)) in batches.iter().enumerate() {
+             let out = &acts[mb][n_layers];
+             let y = align_target(ev, y, out)?;
++            #[cfg(test)]
++            observation::value(
++                self.observer.as_ref(),
++                "aligned_target",
++                Some(mb),
++                Some(n_layers - 1),
++                0,
++                &y,
++            );
+             deltas.push(Mse.grad(ev, out, &y)?);
++            #[cfg(test)]
++            observation::value(
++                self.observer.as_ref(),
++                "loss_delta",
++                Some(mb),
++                Some(n_layers - 1),
++                0,
++                deltas.last().unwrap(),
++            );
+         }
+         trace.push((format!("delta{n_layers}"), deltas[0].level()));
+ 
+@@ -1723,6 +1848,11 @@
+         } else {
+             self.optim.bias_grad_scale() / n
+         };
++        #[cfg(test)]
++        for i in 0..n_layers {
++            observation::coefficient(self.observer.as_ref(), "current", Some(i), 0, c_w);
++            observation::coefficient(self.observer.as_ref(), "bias", Some(i), 0, c_b);
++        }
+         let masks: Vec<Vec<f64>> = batches
+             .iter()
+             .map(|b| valid_lane_mask(&layout, b.2))
+@@ -1747,6 +1877,8 @@
+                             Some(&masks[mb]),
+                             None,
+                         )?;
++                        #[cfg(test)]
++                        observation::value(self.observer.as_ref(), "s", Some(mb), Some(i), 0, &s);
+                         if mb == 0 {
+                             trace.push((format!("s{ln}"), s.level()));
+                         }
+@@ -1757,6 +1889,8 @@
+                         )?)?
+                     }
+                 };
++                #[cfg(test)]
++                observation::value(self.observer.as_ref(), "dz", Some(mb), Some(i), 0, &dz);
+                 dzs.push(dz);
+             }
+             // Partial and full micro-batches can differ by one level at a linear layer.
+@@ -1765,6 +1899,17 @@
+                 .iter()
+                 .map(|d| ev.mod_switch_to_level(d, low))
+                 .collect::<Result<Vec<_>>>()?;
++            #[cfg(test)]
++            for (mb, d) in dzs.iter().enumerate() {
++                observation::value(
++                    self.observer.as_ref(),
++                    "dz_aligned",
++                    Some(mb),
++                    Some(i),
++                    0,
++                    d,
++                );
++            }
+             trace.push((format!("dz{ln}"), dzs[0].level()));
+             if i > 0 {
+                 let w = &dense.w;
+@@ -1775,9 +1920,29 @@
+                     &layout,
+                 )?;
+                 let wt = lowered.transpose_with(ev, &layout, &self.transpose_keys)?;
++                #[cfg(test)]
++                observation::values(
++                    self.observer.as_ref(),
++                    "transpose",
++                    None,
++                    Some(i),
++                    wt.diagonals().entries(),
++                );
+                 let mut next = Vec::with_capacity(batches.len());
+-                for dz in &dzs {
+-                    next.push(dense.backward_input(ev, dz, &wt, &layout)?);
++                // The index is used only by test observation.
++                #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
++                for (_mb, dz) in dzs.iter().enumerate() {
++                    let value = dense.backward_input(ev, dz, &wt, &layout)?;
++                    #[cfg(test)]
++                    observation::value(
++                        self.observer.as_ref(),
++                        "backward_delta",
++                        Some(_mb),
++                        Some(i),
++                        0,
++                        &value,
++                    );
++                    next.push(value);
+                 }
+                 trace.push((format!("delta{i}"), next[0].level()));
+                 deltas = next;
+@@ -1788,6 +1953,8 @@
+             // differs from it (NAG only; docs/layout.md §7.1).
+             let hw = if rescale {
+                 let c_ref = self.optim.with_lr(self.lr_ref).grad_scale() / n;
++                #[cfg(test)]
++                observation::coefficient(self.observer.as_ref(), "reference", Some(i), 0, c_ref);
+                 let mut gs = dense.weight_grad_reduced_consts(
+                     ev,
+                     &dz_refs,
+@@ -1797,12 +1964,33 @@
+                 )?;
+                 let g_ref = gs.pop().expect("two");
+                 let g = gs.pop().expect("two");
++                #[cfg(test)]
++                {
++                    observation::values(self.observer.as_ref(), "gradient", None, Some(i), &g);
++                    observation::values(
++                        self.observer.as_ref(),
++                        "reference_gradient",
++                        None,
++                        Some(i),
++                        &g_ref,
++                    );
++                }
+                 h_w_ref[i] = Some(compact_shift(ev, &g_ref, &self.cl.plans[i])?);
+                 compact_shift(ev, &g, &self.cl.plans[i])?
+             } else {
+                 let g = dense.weight_grad_reduced(ev, &dz_refs, &a_refs, &layout, c_w)?;
++                #[cfg(test)]
++                observation::values(self.observer.as_ref(), "gradient", None, Some(i), &g);
+                 compact_shift(ev, &g, &self.cl.plans[i])?
+             };
++            #[cfg(test)]
++            observation::values(
++                self.observer.as_ref(),
++                "compact_gradient",
++                None,
++                Some(i),
++                &hw,
++            );
+             trace.push((format!("h{ln}"), hw[0].level()));
+             let slot = self.cl.biases[i];
+             let bplan = *self.cl.bias_plan(i);
+@@ -1814,8 +2002,37 @@
+                 bplan.diag_len(),
+                 delta_scale,
+             )?;
++            #[cfg(test)]
++            observation::value(
++                self.observer.as_ref(),
++                "bias_gradient",
++                None,
++                Some(i),
++                0,
++                &gb,
++            );
+             let gb = ev.rotate(&gb, -(bplan.offset(slot.position) as i32))?;
+             trace.push((format!("hb{ln}"), gb.level()));
++            #[cfg(test)]
++            {
++                observation::value(
++                    self.observer.as_ref(),
++                    "compact_bias_gradient",
++                    None,
++                    Some(i),
++                    0,
++                    &gb,
++                );
++                if let Some(r) = &h_w_ref[i] {
++                    observation::values(
++                        self.observer.as_ref(),
++                        "compact_reference",
++                        None,
++                        Some(i),
++                        r,
++                    );
++                }
++            }
+             h_w[i] = hw;
+             h_b[i] = Some(gb);
+         }
+@@ -1890,6 +2107,8 @@
+             let slot = self.cl.biases[l];
+             let plan = self.cl.containers[slot.container].plan;
+             let need = next_pass.inputs[l].max(0) as usize;
++            #[cfg(test)]
++            observation::scope(self.observer.as_ref(), None, Some(l));
+             new_b.push(extract_bias(
+                 ev,
+                 &weights[slot.container],
+@@ -1897,9 +2116,29 @@
+                 slot.position,
+                 scales[l] * w_scales[l],
+                 need,
++                #[cfg(test)]
++                self.observer.as_ref(),
+             )?);
+         }
+ 
++        #[cfg(test)]
++        for l in 0..n_layers {
++            observation::values(
++                self.observer.as_ref(),
++                "weight_unpacked",
++                None,
++                Some(l),
++                new_w[l].diagonals().entries(),
++            );
++            observation::value(
++                self.observer.as_ref(),
++                "bias_extracted",
++                None,
++                Some(l),
++                0,
++                &new_b[l],
++            );
++        }
+         // Commit.
+         for (l, (w, b)) in new_w.into_iter().zip(new_b).enumerate() {
+             let layer = &mut mlp.layers[l].0;
+@@ -1923,7 +2162,7 @@
+             Vec::new()
+         };
+         self.trace = trace;
+-        Ok(())
++        Ok(hidden)
+     }
+ 
+     /// The optimizer on every container (see the [module docs](self)): per container the level
+@@ -1995,10 +2234,46 @@
+                             // s = lr / lr_ref <= 1 of it, folded into kappa (no extra op or level;
+                             // s = 1 exactly at the reference lr, so the products are
+                             // bit-identical to the constant-lr trainer).
+-                            let kappa = mu * mu / (1.0 + mu) * s_lr;
++                            let kappa = crate::optim::nag_kappa(mu, s_lr);
++                            #[cfg(test)]
++                            {
++                                observation::coefficient(
++                                    self.observer.as_ref(),
++                                    "mu",
++                                    spec.layer,
++                                    c,
++                                    mu,
++                                );
++                                observation::coefficient(
++                                    self.observer.as_ref(),
++                                    "kappa",
++                                    spec.layer,
++                                    c,
++                                    kappa,
++                                );
++                            }
+                             let ue = ev.mod_switch_to_level(u, lv + 1)?;
+                             let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, delta)?)?;
+                             let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, delta)?)?;
++                            #[cfg(test)]
++                            {
++                                observation::value(
++                                    self.observer.as_ref(),
++                                    "mu_velocity",
++                                    None,
++                                    spec.layer,
++                                    c,
++                                    &mu_u,
++                                );
++                                observation::value(
++                                    self.observer.as_ref(),
++                                    "kappa_velocity",
++                                    None,
++                                    spec.layer,
++                                    c,
++                                    &k_u,
++                                );
++                            }
+                             w_new = ev.sub(&w_new, &k_u)?;
+                             ev.add(&mu_u, &h)?
+                         }
+@@ -2006,6 +2281,27 @@
+                 }
+                 _ => None,
+             };
++            #[cfg(test)]
++            {
++                observation::value(
++                    self.observer.as_ref(),
++                    "container_updated",
++                    None,
++                    spec.layer,
++                    c,
++                    &w_new,
++                );
++                if let Some(v) = &u_new {
++                    observation::value(
++                        self.observer.as_ref(),
++                        "container_velocity",
++                        None,
++                        spec.layer,
++                        c,
++                        v,
++                    );
++                }
++            }
+             weights.push(w_new);
+             velocity.push(u_new);
+         }
+@@ -2097,11 +2393,15 @@
+     t: usize,
+     target: f64,
+     need: usize,
++    #[cfg(test)] observer: Option<&ObservationHandle>,
+ ) -> Result<E::Ct> {
+     let mut level = ct.level();
+     loop {
+         let src = ev.mod_switch_to_level(ct, level)?;
+-        match compact_extract(ev, &src, plan, t, target) {
++        let result = compact_extract(ev, &src, plan, t, target);
++        #[cfg(test)]
++        observation::attempt(observer, "bias_extracted", &src, target, &result);
++        match result {
+             Err(HekitError::ScaleMismatch) if level > need + 1 => level -= 1,
+             r => return r,
+         }
+@@ -2192,3 +2492,89 @@
+         assert_eq!(p2.min, 0);
+     }
+ }
++
++#[cfg(test)]
++mod p2_helpers {
++    use super::*;
++    use crate::diagonal_plan::tests::{coarse, context};
++    use std::{cell::RefCell, rc::Rc};
++    #[test]
++    fn p2_bias_extract_retry_witnesses() {
++        crate::diagonal_plan::tests::reserve_helper_calls(2);
++        let c = coarse();
++        let ev = c.ev.fork();
++        let sink = Rc::new(RefCell::new(observation::Recorder::default()));
++        let plan = CompactPlan::for_layer(&c.layout, 2, 2);
++        for (bits, ok) in [
++            (0x4135_eb85_1ebf_b0df, true),
++            (0x4135_eb85_1ec1_0524, false),
++        ] {
++            let src = c.encrypt_at(2, c.p.scale(), 0.125);
++            sink.borrow_mut().attempts.clear();
++            let before = ev.counter();
++            let r = extract_bias(&ev, &src, &plan, 0, f64::from_bits(bits), 0, Some(&sink));
++            assert_eq!(r.is_ok(), ok);
++            if let Ok(out) = r {
++                assert_eq!((out.level(), out.scale().to_bits()), (0, bits));
++            }
++            let expected = if ok {
++                ckks_train_ckks::OpCounter {
++                    rotations: 10,
++                    ct_pt_mults: 1,
++                    rescales: 1,
++                    ..Default::default()
++                }
++            } else {
++                Default::default()
++            };
++            assert_eq!(&ev.counter() - &before, expected);
++            let a = &sink.borrow().attempts;
++            assert_eq!(a.len(), 2);
++            assert_eq!((a[0].source_level, a[1].source_level), (2, 1));
++            assert!(
++                a.iter()
++                    .all(|a| a.source_scale_bits == c.p.scale().to_bits() && a.target_bits == bits)
++            );
++            assert_eq!(a[0].error, Some(HekitError::ScaleMismatch));
++            assert_eq!(
++                a[1].error,
++                if ok {
++                    None
++                } else {
++                    Some(HekitError::ScaleMismatch)
++                }
++            );
++        }
++    }
++    #[test]
++    fn p2_target_alignment_witnesses() {
++        crate::diagonal_plan::tests::reserve_helper_calls(3);
++        let c = context(false);
++        let ev = c.ev.fork();
++        let out = c.encrypt_at(3, c.p.scale(), 0.125);
++        for (level, scale, ok, work) in [
++            (4, c.p.scale(), true, false),
++            (4, c.p.scale() * 2., true, true),
++            (3, c.p.scale() * 2., false, false),
++        ] {
++            let y = c.encrypt_at(level, scale, 0.125);
++            let before = ev.counter();
++            let r = align_target(&ev, &y, &out);
++            assert_eq!(r.is_ok(), ok);
++            if let Ok(r) = r {
++                assert_eq!(r.scale().to_bits(), out.scale().to_bits());
++                assert_eq!(r.level(), if work { 3 } else { 4 })
++            }
++            let expected = if work {
++                ckks_train_ckks::OpCounter {
++                    ct_pt_mults: 1,
++                    rescales: 1,
++                    ..Default::default()
++                }
++            } else {
++                Default::default()
++            };
++            assert_eq!(&ev.counter() - &before, expected);
++        }
++    }
++}
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/tests/backward.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/tests/backward.rs
+@@ -10,7 +10,9 @@
+ use std::collections::BTreeSet;
+ use std::sync::Arc;
+ 
+-use ckks_train_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
++use ckks_train_ckks::{
++    CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter,
++};
+ use ckks_train_core::error::HekitError;
+ use ckks_train_core::sampler::Rng;
+ use ckks_train_nn::dense::{
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/tests/dense.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/tests/dense.rs
+@@ -6,11 +6,15 @@
+ 
+ use std::sync::Arc;
+ 
+-use ckks_train_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
++use ckks_train_ckks::{
++    CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter,
++};
+ use ckks_train_core::error::HekitError;
+ use ckks_train_core::sampler::Rng;
+ use ckks_train_nn::dense::{Dense, EncWeights, encrypt_bias, forward_rotation_steps};
+-use ckks_train_nn::layout::{LayerShape, Layout, pack_activations, pack_bias, pack_weight_diagonals};
++use ckks_train_nn::layout::{
++    LayerShape, Layout, pack_activations, pack_bias, pack_weight_diagonals,
++};
+ use ckks_train_nn::sim::{SimCounter, sim_dense_forward};
+ use ndarray::Array2;
+ 
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/tests/grad.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/tests/grad.rs
+@@ -418,6 +418,191 @@
+     assert_eq!(layer.w.level(), 2);
+ }
+ 
++/// A rate change must not reinterpret the velocity already stored by NAG.
++#[test]
++fn nag_changing_rate_keeps_the_original_velocity_basis() {
++    let params = CkksParams::seal_2020();
++    let layout = Layout::new(params.slots(), 8, 8).unwrap();
++    let c = ctx(&grad_rotation_steps(2, 8, &layout), 71);
++    let mut r = rng(171);
++    let (mut want, _, mut layer) = random_layer(&c, 2, 8, &layout, &mut r);
++    let mut v = Array2::<f64>::zeros((2, 8));
++    let mut nag = Nag::new(0.04, 0.9);
++    nag.set_lr_reference(0.08).unwrap();
++    for (&lr, level) in [0.04, 0.00008, 0.02, 0.08].iter().zip([9, 7, 5, 3]) {
++        if level == 5 {
++            nag.lr = lr; // Valid legacy public field writes use the same fixed basis.
++        } else {
++            nag.set_lr(lr).unwrap();
++        }
++        let delta = rand_mat(&mut r, 8, 2, 1.0);
++        let a = rand_mat(&mut r, 8, 8, 1.0);
++        let dc = c.encrypt(
++            &pack_activations(&delta, &layout),
++            c.params.scale(),
++            level,
++            &mut r,
++        );
++        let ac = c.encrypt(
++            &pack_activations(&a, &layout),
++            c.params.scale(),
++            level,
++            &mut r,
++        );
++        let mut constants = vec![nag.grad_scale() / 8.0];
++        if let Some(c_ref) = nag.reference_grad_scale().unwrap() {
++            constants.push(c_ref / 8.0);
++        }
++        let hs = layer
++            .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &constants)
++            .unwrap();
++        let before = c.ev.counter();
++        nag.step_with_reference_gradient(&c.ev, &mut layer.w, &hs[0], hs.get(1))
++            .unwrap();
++        let count = &c.ev.counter() - &before;
++        let products = if level == 9 {
++            0
++        } else {
++            2 * hs[0].entries().len() as u64
++        };
++        assert_eq!(count.ct_pt_mults, products);
++        assert_eq!(count.rescales, products);
++        assert_eq!(layer.w.level(), level - 2);
++        let g = delta.t().dot(&a) / 8.0;
++        v = 0.9 * &v + &g;
++        want = &want - &(lr * (&g + 0.9 * &v));
++        let error = mat_diff(&layer.w.decrypt(&c.dec, &c.encoder, &layout), &want);
++        assert!(
++            error <= TOL,
++            "lr={lr}, changing-rate weight error {error:e}"
++        );
++        let u = EncWeights::from_diagonals(nag.velocity().unwrap().clone(), 2, 8, &layout).unwrap();
++        assert!(mat_diff(&u.decrypt(&c.dec, &c.encoder, &layout), &(0.08 * 1.9 * &v)) <= TOL);
++        assert!(
++            nag.set_lr_reference(0.1).is_err(),
++            "basis locked after update"
++        );
++    }
++    let state_before = c.decrypt_diags(nag.velocity().unwrap());
++    let before = c.ev.counter();
++    for lr in [0.0, -0.01, f64::NAN, f64::INFINITY, 0.09] {
++        assert!(nag.set_lr(lr).is_err());
++        assert_eq!(nag.lr, 0.08);
++        assert_eq!(c.decrypt_diags(nag.velocity().unwrap()), state_before);
++    }
++    assert_eq!(c.ev.counter(), before);
++    let state = nag.take_velocity();
++    assert!(
++        nag.set_lr_reference(0.1).is_err(),
++        "taking state cannot unlock its basis"
++    );
++    nag.momentum = 0.8;
++    assert!(nag.reference_grad_scale().is_err());
++    assert!(nag.set_lr(0.02).is_err());
++    let dw = layer.w.diagonals().clone();
++    assert!(matches!(
++        nag.step(&c.ev, &mut layer.w, &dw),
++        Err(HekitError::InvalidParams(_))
++    ));
++    assert_eq!(c.ev.counter(), before);
++    nag.momentum = 0.9;
++    nag.set_velocity(state);
++    assert!(nag.reference_grad_scale().is_ok());
++}
++
++#[test]
++fn two_gradient_constants_share_products_and_reduction() {
++    for batch in [1, 8] {
++        let params = CkksParams::seal_2020();
++        let layout = Layout::new(params.slots(), 8, batch).unwrap();
++        let c = ctx(&grad_rotation_steps(2, 8, &layout), 72);
++        let mut r = rng(172);
++        let (_, _, layer) = random_layer(&c, 2, 8, &layout, &mut r);
++        let d = rand_mat(&mut r, batch, 2, 1.0);
++        let a = rand_mat(&mut r, batch, 8, 1.0);
++        let dc = c.encrypt(&pack_activations(&d, &layout), c.params.scale(), 7, &mut r);
++        let ac = c.encrypt(&pack_activations(&a, &layout), c.params.scale(), 7, &mut r);
++        let before = c.ev.counter();
++        let h = layer
++            .weight_grad_scaled(&c.ev, &dc, &ac, &layout, 0.03)
++            .unwrap();
++        let single = &c.ev.counter() - &before;
++        let href = layer
++            .weight_grad_scaled(&c.ev, &dc, &ac, &layout, 0.12)
++            .unwrap();
++        let before = c.ev.counter();
++        let both = layer
++            .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &[0.03, 0.12])
++            .unwrap();
++        let mut expected = single;
++        let m = h.entries().len() as u64;
++        expected.ct_pt_mults += m;
++        expected.rescales += m;
++        expected.rotations += m * layout.log_batch() as u64;
++        assert_eq!(&c.ev.counter() - &before, expected);
++        for (actual, wanted) in both.iter().zip([&h, &href]) {
++            assert_eq!(c.decrypt_diags(actual), c.decrypt_diags(wanted));
++            assert!(
++                actual
++                    .entries()
++                    .iter()
++                    .all(|ct| ct.level() == 5 && ct.scale() == layer.w.scale())
++            );
++        }
++        for constants in [vec![], vec![0.03, f64::NAN], vec![f64::INFINITY]] {
++            let before = c.ev.counter();
++            assert!(
++                layer
++                    .weight_grad_scaled_consts(&c.ev, &dc, &ac, &layout, &constants)
++                    .is_err()
++            );
++            assert_eq!(c.ev.counter(), before);
++        }
++        let mut nag = Nag::new(0.03, 0.9);
++        nag.set_lr_reference(0.12).unwrap();
++        let mut w = layer.w.clone();
++        let before = c.ev.counter();
++        assert!(
++            nag.step(&c.ev, &mut w, &h).is_err(),
++            "missing reference must not silently use h"
++        );
++        let low = href.mod_switch_to_level(&c.ev, 4).unwrap();
++        assert!(
++            nag.step_with_reference_gradient(&c.ev, &mut w, &h, Some(&low))
++                .is_err()
++        );
++        assert_eq!(c.ev.counter(), before);
++        assert!(nag.velocity().is_none());
++        assert_eq!(
++            c.decrypt_diags(w.diagonals()),
++            c.decrypt_diags(layer.w.diagonals())
++        );
++    }
++}
++
++#[test]
++fn checked_rates_preserve_configuration_on_errors() {
++    let mut nag = Nag::new(0.04, 0.9);
++    let mut sgd = Sgd { lr: 0.04 };
++    for lr in [0.0, -0.1, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
++        assert!(nag.set_lr(lr).is_err());
++        assert!(nag.set_lr_reference(lr).is_err());
++        assert!(sgd.set_lr(lr).is_err());
++        assert_eq!(nag.lr, 0.04);
++        assert_eq!(nag.lr_reference(), 0.04);
++        assert_eq!(sgd.lr, 0.04);
++    }
++    assert!(nag.set_lr(0.08).is_err());
++    assert!(nag.set_lr_reference(0.02).is_err());
++    nag.set_lr_reference(0.08).unwrap();
++    nag.set_lr(0.08).unwrap();
++    sgd.set_lr(0.8).unwrap();
++    assert_eq!(sgd.grad_scale(), 0.8);
++    assert_eq!(nag.reference_grad_scale().unwrap(), None);
++    nag.lr = f64::NAN;
++    assert!(nag.reference_grad_scale().is_err());
++}
++
+ /// Errors are reported before any homomorphic work (the counter does not move).
+ #[test]
+ fn errors_before_work() {
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/tests/trainer.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/tests/trainer.rs
+@@ -17,7 +17,9 @@
+ use std::sync::Arc;
+ use std::time::Instant;
+ 
+-use ckks_train_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
++use ckks_train_ckks::{
++    CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter,
++};
+ use ckks_train_core::error::HekitError;
+ use ckks_train_core::sampler::Rng;
+ use ckks_train_nn::activation::{Activation, Poly, PolyRelu2, Square};
+@@ -421,6 +423,284 @@
+     }
+     // Weights, biases and both velocities: (4 + 1 + 4) + (2 + 1 + 2) per step after the first.
+     assert_eq!(trainer.refreshes(), 2 * 14);
++}
++
++#[derive(Debug, PartialEq)]
++struct ProfileRun {
++    decoded: Vec<Vec<f64>>,
++    counts: Vec<OpCounter>,
++    traces: Vec<Vec<(String, usize)>>,
++    refreshes: usize,
++}
++
++fn run_interactive_profile(c: &Ctx, rates: &[f64], set_each: bool, frozen: bool) -> ProfileRun {
++    let mut r = rng(175);
++    let mut want = random_net(&mut r);
++    for l in &mut want {
++        l.b.fill(0.0);
++    }
++    let initial = want.clone();
++    let mut v = want
++        .iter()
++        .map(|l| Array2::zeros(l.w.dim()))
++        .collect::<Vec<_>>();
++    let mut mlp = encrypt_mlp(c, &want, &mut r);
++    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
++    let optims = (0..want.len())
++        .map(|_| {
++            let mut opt = Nag::new(rates[0], 0.9);
++            opt.set_lr_reference(0.08).unwrap();
++            Box::new(opt) as Box<dyn LayerOptimizer>
++        })
++        .collect();
++    let mut trainer = Trainer::new(&c.ev, Box::new(c.client(76)), optims, c.layout).unwrap();
++    if frozen {
++        trainer = trainer.with_frozen_biases();
++    }
++    let mut counts = Vec::new();
++    let mut traces = Vec::new();
++    for (i, &lr) in rates.iter().enumerate() {
++        if set_each {
++            trainer.set_lr(lr).unwrap();
++        }
++        let n = if i == 1 { 5 } else { 8 };
++        let x = rand_mat(&mut r, n, 4, 1.0);
++        let y = rand_mat(&mut r, n, 2, 1.0);
++        let (xc, yc) = spec
++            .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
++            .unwrap();
++        let before = c.ev.counter();
++        trainer.train_batch_valid(&mut mlp, &xc, &yc, n).unwrap();
++        counts.push(&c.ev.counter() - &before);
++        traces.push(trainer.trace().to_vec());
++        nag_reference(&mut want, &mut v, &x, &y, lr, 0.9);
++        if frozen {
++            for l in &mut want {
++                l.b.fill(0.0);
++            }
++        }
++        let got = decrypt_layers(c, &mlp);
++        assert_close(&format!("scheduled interactive step {i}"), &got, &want);
++        if frozen {
++            assert!(got.iter().flat_map(|l| &l.b).all(|b| b.abs() <= TOL));
++        }
++    }
++    let got = decrypt_layers(c, &mlp);
++    let learned = layer_errors(&got, &initial)
++        .iter()
++        .map(|(w, _)| *w)
++        .fold(0.0, f64::max);
++    let roundoff = layer_errors(&got, &want)
++        .iter()
++        .map(|(w, _)| *w)
++        .fold(0.0, f64::max);
++    assert!(
++        learned > 100.0 * roundoff && learned > 1e-7,
++        "weight change {learned:e} must dominate CKKS error {roundoff:e}"
++    );
++    let decoded = mlp
++        .layers
++        .iter()
++        .flat_map(|(d, _)| {
++            d.w.diagonals()
++                .entries()
++                .iter()
++                .chain(std::iter::once(&d.b))
++                .map(|ct| c.encoder.decode(&c.dec.decrypt(ct)))
++        })
++        .collect();
++    ProfileRun {
++        decoded,
++        counts,
++        traces,
++        refreshes: trainer.refreshes(),
++    }
++}
++
++#[test]
++fn interactive_schedule_frozen_biases_and_exact_extra_costs() {
++    let params = CkksParams::seal_2020();
++    let layout = Layout::new(params.slots(), 8, 8).unwrap();
++    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
++    let c = ctx(&steps, 75);
++    let rates = [0.04, 0.00008, 0.02, 0.08];
++    let scheduled = run_interactive_profile(&c, &rates, true, true);
++    let flat = run_interactive_profile(&c, &[0.08; 4], false, true);
++    let train_bias = run_interactive_profile(&c, &rates, true, false);
++    assert_eq!(
++        scheduled.counts, train_bias.counts,
++        "freezing changes no operations"
++    );
++    assert_eq!(scheduled.traces, train_bias.traces);
++    assert_eq!(
++        scheduled.traces, flat.traces,
++        "the extra branch costs no depth"
++    );
++    assert_eq!(scheduled.refreshes, flat.refreshes);
++    assert_eq!(scheduled.refreshes, 4 * 14);
++    for (i, (actual, base)) in scheduled.counts.iter().zip(&flat.counts).enumerate() {
++        let mut expected = base.clone();
++        if rates[i] != 0.08 {
++            expected.ct_pt_mults += 6;
++            expected.rescales += 6;
++            expected.rotations += 18;
++        }
++        assert_eq!(actual, &expected, "scheduled step {i}");
++    }
++    assert_ne!(
++        scheduled.decoded, flat.decoded,
++        "the schedule affects the model"
++    );
++    assert_ne!(
++        scheduled.decoded, train_bias.decoded,
++        "default bias training remains active"
++    );
++}
++
++#[test]
++fn constant_rate_setter_is_bit_identical_to_legacy_training() {
++    let params = CkksParams::seal_2020();
++    let layout = Layout::new(params.slots(), 8, 8).unwrap();
++    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
++    let c = ctx(&steps, 77);
++    assert_eq!(
++        run_interactive_profile(&c, &[0.08; 3], false, false),
++        run_interactive_profile(&c, &[0.08; 3], true, false)
++    );
++}
++
++#[test]
++fn trainer_rate_validation_is_atomic_and_old_custom_optimizers_still_work() {
++    use ckks_train_ckks::Diagonals;
++    use ckks_train_core::error::Result;
++    use ckks_train_nn::dense::EncWeights;
++    use ckks_train_nn::optim::Optimizer;
++    use std::cell::Cell;
++    use std::rc::Rc;
++
++    struct Observed(Rc<Cell<f64>>);
++    impl Optimizer for Observed {
++        fn grad_scale(&self) -> f64 {
++            self.0.get()
++        }
++        fn step(
++            &mut self,
++            ev: &Evaluator,
++            w: &mut EncWeights,
++            dw: &Diagonals<ckks_train_ckks::Ciphertext>,
++        ) -> Result<()> {
++            Sgd { lr: self.0.get() }.step(ev, w, dw)
++        }
++    }
++    impl LayerOptimizer for Observed {
++        fn bias_grad_scale(&self) -> f64 {
++            self.0.get()
++        }
++        fn refresh_state(&mut self, _: &mut dyn Refresher) -> Result<usize> {
++            Ok(0)
++        }
++        fn validate_lr(&self, lr: f64) -> Result<()> {
++            Sgd { lr: self.0.get() }.set_lr(lr)
++        }
++        fn apply_lr(&mut self, lr: f64) {
++            self.0.set(lr);
++        }
++    }
++    // This implements precisely the old requirements, with no new methods.
++    struct Legacy(Sgd);
++    impl Optimizer for Legacy {
++        fn grad_scale(&self) -> f64 {
++            self.0.grad_scale()
++        }
++        fn step(
++            &mut self,
++            ev: &Evaluator,
++            w: &mut EncWeights,
++            dw: &Diagonals<ckks_train_ckks::Ciphertext>,
++        ) -> Result<()> {
++            self.0.step(ev, w, dw)
++        }
++    }
++    impl LayerOptimizer for Legacy {
++        fn bias_grad_scale(&self) -> f64 {
++            self.0.bias_grad_scale()
++        }
++        fn refresh_state(&mut self, _: &mut dyn Refresher) -> Result<usize> {
++            Ok(0)
++        }
++    }
++    let params = CkksParams::seal_2020();
++    let layout = Layout::new(params.slots(), 8, 8).unwrap();
++    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
++    let c = ctx(&steps, 78);
++    let observed = Rc::new(Cell::new(0.04));
++    let optims: Vec<Box<dyn LayerOptimizer>> = vec![
++        Box::new(Observed(observed.clone())),
++        Box::new(Legacy(Sgd { lr: 0.04 })),
++    ];
++    let mut t = Trainer::new(&c.ev, Box::new(c.client(79)), optims, c.layout).unwrap();
++    for lr in [0.0, -0.1, f64::NAN, f64::INFINITY, 0.08] {
++        let before = c.ev.counter();
++        assert!(t.set_lr(lr).is_err());
++        assert_eq!(
++            observed.get(),
++            0.04,
++            "later validation failure cannot commit earlier rates"
++        );
++        assert_eq!(c.ev.counter(), before);
++    }
++    let mut r = rng(178);
++    let net = random_net(&mut r);
++    let mut mlp = encrypt_mlp(&c, &net, &mut r);
++    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
++    let x = rand_mat(&mut r, 8, 4, 1.0);
++    let y = rand_mat(&mut r, 8, 2, 1.0);
++    let (xc, yc) = spec
++        .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
++        .unwrap();
++    t.train_batch(&mut mlp, &xc, &yc).unwrap();
++    assert_close(
++        "legacy custom training",
++        &decrypt_layers(&c, &mlp),
++        &sim_train_step_sgd(&net, &x, &y, 0.04, &layout).layers,
++    );
++
++    let optims: Vec<Box<dyn LayerOptimizer>> = vec![
++        Box::new(Observed(observed.clone())),
++        Box::new(Nag::new(0.04, 0.9)),
++    ];
++    let mut t = Trainer::new(&c.ev, Box::new(c.client(79)), optims, c.layout).unwrap();
++    assert!(
++        t.set_lr(0.08).is_err(),
++        "later NAG ceiling fails atomically"
++    );
++    assert_eq!(observed.get(), 0.04);
++    t.set_lr(0.02).unwrap();
++    assert_eq!(observed.get(), 0.02);
++}
++
++#[test]
++fn interactive_sgd_schedule_matches_independent_updates() {
++    let params = CkksParams::seal_2020();
++    let layout = Layout::new(params.slots(), 8, 8).unwrap();
++    let steps = mlp_rotation_steps(&DIMS, &layout, &TransposeKeys::Dedicated).unwrap();
++    let c = ctx(&steps, 80);
++    let mut r = rng(180);
++    let mut want = random_net(&mut r);
++    let mut mlp = encrypt_mlp(&c, &want, &mut r);
++    let spec = mlp.batch_spec(&c.ev, &c.encoder).unwrap();
++    let mut t = Trainer::new(&c.ev, Box::new(c.client(81)), sgd_optims(0.04), c.layout).unwrap();
++    for lr in [0.04, 0.01, 0.08] {
++        t.set_lr(lr).unwrap();
++        let x = rand_mat(&mut r, 8, 4, 1.0);
++        let y = rand_mat(&mut r, 8, 2, 1.0);
++        let (xc, yc) = spec
++            .encrypt(&c.enc, &c.encoder, &c.layout, &x, &y, &mut r)
++            .unwrap();
++        t.train_batch(&mut mlp, &xc, &yc).unwrap();
++        want = sim_train_step_sgd(&want, &x, &y, lr, &layout).layers;
++        assert_close("SGD schedule", &decrypt_layers(&c, &mlp), &want);
++    }
+ }
+ 
+ /// `ClientRefresher` restores the top level at the ciphertext's exact scale and keeps the
+--- ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f:crates/hekit-nn/tests/trainer_ni.rs [rename-normalized]
++++ 263c830e3568ccfa4bbec6bc746c08a4971aa197:crates/ckks-train-nn/tests/trainer_ni.rs
+@@ -21,7 +21,9 @@
+ 
+ use ckks_train_ckks::bootstrap::{BootParams, Bootstrapper};
+ use ckks_train_ckks::keys::SecretKey;
+-use ckks_train_ckks::{CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter};
++use ckks_train_ckks::{
++    CkksParams, Decryptor, Encoder, Encryptor, Evaluator, KeyGenerator, OpCounter,
++};
+ use ckks_train_core::error::HekitError;
+ use ckks_train_core::sampler::Rng;
+ use ckks_train_nn::activation::{Activation, Identity, Poly, PolyRelu2};

@@ -662,4 +662,12 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 実際の確認時刻は2026-11-07T22:55:47.322074+09:00。R-41-FULL-2はupdate491（0始まり）、完了492/1000更新、ログ上のelapsed70424秒だった。同じ所有者・開始時刻のchain／queueは稼働中で、直近6更新は各1369 KS・4 bootstrap、予測一致。最終結果JSONはなく、queueはowner.jsonのみ。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2255/README.md)を保存した。最初のローカルcontroller呼出しは予定時刻前のassertionでexit1となり、SSHも出力ファイル作成も行っていない。時刻・未作成パスを再確認後、SSH観測を1回実行し、同じhandle93239のterminal0まで回収した。remote retryやjob／queue変更はない。次回の通常確認は23:55:48JST以降。最終精度・RQ1・後続計測の判定は未確定のままである。
 
+<a id="latest-evidence-20261107-d7-correctness-applicability"></a>
+
+## 2026-11-07追記: 既存の正当性検証と現行ソースの対応
+
+[既存検証の適用範囲とソース比較](../results/validation/task54-d7-correctness-applicability/README.md)を保存した。固定commit263c830とM1 KAT時点／FULL-1 producerを、crate名の置換だけ正規化して独立に比較した。M1で直接実行した算術と、従来のCPU非対話経路には演算の継続性が認められる。一方、SEALが作った回転・relinearize済み暗号文を読み込む検査は、自作の鍵切替処理を実行した証拠ではない。基本精度、secure-n16 bootstrap、3更新訓練、FULL-1の最終結果は別の条件・範囲として保持する。
+
+これはソースの限定的な適用範囲レビューで、新しい測定や実gateの合格ではない。実際に省略されずに実行された元検証、現行の経路・入力・構成とbuildの対応が必要であり、新しい対話・packed・block経路へ一括適用しない。調べた継続経路に算術欠陥は見つからず、改名を理由に既存結果を破棄したり、全条件を再実行したりする判断も行っていない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
