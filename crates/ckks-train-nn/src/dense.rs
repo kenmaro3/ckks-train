@@ -1381,3 +1381,36 @@ impl<C: HeCiphertext + Clone> Dense<C> {
         ev.rescale(&ev.mul_plain_to_scale(&v, &mask, target_scale)?)
     }
 }
+
+#[cfg(test)]
+mod p2_helpers {
+    use super::*;
+    use crate::diagonal_plan::tests::{context, rng};
+    #[test]
+    fn p2_reduced_micro_metadata_rejection() {
+        crate::diagonal_plan::tests::reserve_helper_calls(2);
+        let c = context(false);
+        let ev = c.ev.fork();
+        let dense = Dense::encrypt_at(
+            &Array2::zeros((4, 2)),
+            &[0.; 4],
+            &c.layout,
+            c.p.scale(),
+            9,
+            &c.encrypt,
+            &c.enc,
+            &mut rng(52),
+        )
+        .unwrap();
+        let d = c.encrypt_at(5, c.p.scale(), 0.125);
+        let a = c.encrypt_at(6, c.p.scale(), 0.125);
+        for (level, scale) in [(5, c.p.scale()), (6, c.p.scale() * 2.)] {
+            let other = c.encrypt_at(level, scale, 0.125);
+            let before = ev.counter();
+            let r =
+                dense.weight_grad_reduced_consts(&ev, &[&d, &d], &[&a, &other], &c.layout, &[0.01]);
+            assert!(matches!(r, Err(HekitError::InvalidParams(_))));
+            assert_eq!(before, ev.counter());
+        }
+    }
+}

@@ -1,0 +1,84 @@
+{
+  "scope": "ONE pure exploration only; no constructor/proof/update has run for this candidate",
+  "log_n": 8,
+  "q_bits": [
+    31,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    34,
+    34,
+    34,
+    34,
+    58,
+    58,
+    58,
+    58,
+    58,
+    58,
+    58,
+    56,
+    56,
+    56,
+    56
+  ],
+  "p_bits": [
+    60,
+    60,
+    60,
+    60
+  ],
+  "scale_bits": 19,
+  "dnum": 8,
+  "boot": "BootParams::default_n16 with log_slots7; actual DftSupportProof; BootstrapMetadata::new_with_verified_support",
+  "mode": "NonInteractive(WhenNeeded)",
+  "layout": {
+    "slots": 128,
+    "d": 16,
+    "batch": 8
+  },
+  "dims": [
+    2,
+    4,
+    4
+  ],
+  "activations": [
+    "Identity",
+    "Identity"
+  ],
+  "transpose": "Dedicated",
+  "EvalConfig": "OPTIMIZED",
+  "optimizer": {
+    "kind": "Sgd",
+    "lr": 0.08
+  },
+  "bias": "Active",
+  "update": {
+    "n_valid": [
+      8
+    ],
+    "total_valid": 8,
+    "rate": 0.08,
+    "next_full": true,
+    "x_y": "exact unchanged initial StageState::batch metadata"
+  },
+  "gate": "all q[1..=16] >= 3*Delta/2 and < 2^20",
+  "max_exploration_parameter_constructors": 1,
+  "max_exploration_proofs_and_descriptors": 1,
+  "max_exploration_initial_states": 1,
+  "max_exploration_updates": 1,
+  "failure_policy": "constructor/gate/proof/earlier failure or policy mismatch: preserve UNMET/STOP/no fallback"
+}

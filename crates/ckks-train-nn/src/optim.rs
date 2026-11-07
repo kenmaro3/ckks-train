@@ -38,6 +38,9 @@
 //! momentum are not part of this API (biases are updated by `b - db` with
 //! [`crate::dense::Dense::bias_grad_scaled`]).
 
+#[cfg(test)]
+use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
+
 use ckks_train_ckks::{Ciphertext, DiagonalEntry, Diagonals, Evaluator, HeCiphertext, HeOps};
 use ckks_train_core::error::{HekitError, Result};
 
@@ -94,6 +97,11 @@ pub(crate) fn check_lr(lr: f64) -> Result<()> {
         )));
     }
     Ok(())
+}
+
+/// Shared exact evaluation order for the scaled-velocity NAG coefficient.
+pub(crate) fn nag_kappa(momentum: f64, rate_factor: f64) -> f64 {
+    momentum * momentum / (1.0 + momentum) * rate_factor
 }
 
 /// The checks shared by the optimizers: shape, uniform level and scale of `dw`, `w` at or
@@ -197,6 +205,10 @@ pub struct Nag<C = Ciphertext> {
     velocity: Option<Diagonals<C>>,
     lr_reference: f64,
     basis_momentum: Option<f64>,
+    #[cfg(test)]
+    pub(crate) observer: Option<ObservationHandle>,
+    #[cfg(test)]
+    pub(crate) observer_layer: Option<usize>,
 }
 
 impl Nag {
@@ -216,6 +228,10 @@ impl<C> Nag<C> {
             velocity: None,
             lr_reference: lr,
             basis_momentum: None,
+            #[cfg(test)]
+            observer: None,
+            #[cfg(test)]
+            observer_layer: None,
         }
     }
 
@@ -364,7 +380,18 @@ impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
         } else {
             1.0
         };
-        let kappa = mu * mu / (1.0 + mu) * factor;
+        let kappa = nag_kappa(mu, factor);
+        #[cfg(test)]
+        {
+            observation::coefficient(self.observer.as_ref(), "mu", self.observer_layer, 0, mu);
+            observation::coefficient(
+                self.observer.as_ref(),
+                "kappa",
+                self.observer_layer,
+                0,
+                kappa,
+            );
+        }
         let target = w.scale();
         if let Some(u) = &self.velocity {
             w.check_same_shape(u)?;
@@ -390,15 +417,36 @@ impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
             Some(u) => {
                 let mut w_new = Vec::with_capacity(ws.len());
                 let mut u_new = Vec::with_capacity(ws.len());
-                for (((we, h), ue), hr) in ws
+                #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
+                for (_position, (((we, h), ue), hr)) in ws
                     .iter()
                     .zip(dw.entries())
                     .zip(u.entries())
                     .zip(h_ref.entries())
+                    .enumerate()
                 {
                     let ue = ev.mod_switch_to_level(ue, level + 1)?;
                     let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, target)?)?;
                     let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, target)?)?;
+                    #[cfg(test)]
+                    {
+                        observation::value(
+                            self.observer.as_ref(),
+                            "mu_velocity",
+                            None,
+                            self.observer_layer,
+                            _position,
+                            &mu_u,
+                        );
+                        observation::value(
+                            self.observer.as_ref(),
+                            "kappa_velocity",
+                            None,
+                            self.observer_layer,
+                            _position,
+                            &k_u,
+                        );
+                    }
                     w_new.push(ev.sub(&ev.sub(we, h)?, &k_u)?);
                     u_new.push(ev.add(&mu_u, hr)?);
                 }
@@ -407,6 +455,14 @@ impl<E: HeOps> Optimizer<E> for Nag<E::Ct> {
         };
         let new_velocity = diags_like(dw, u_new)?;
         w.set_diagonals(diags_like(dw, w_new)?)?;
+        #[cfg(test)]
+        observation::values(
+            self.observer.as_ref(),
+            "velocity_updated",
+            None,
+            self.observer_layer,
+            new_velocity.entries(),
+        );
         self.velocity = Some(new_velocity);
         self.basis_momentum = Some(mu);
         Ok(())

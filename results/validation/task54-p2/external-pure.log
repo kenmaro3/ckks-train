@@ -1,0 +1,22 @@
+DISK_FREE_BYTES 68630401024
+COMMAND ["cargo", "test", "-p", "ckks-train-nn", "--test", "diagonal_plan", "--", "--test-threads=1"]
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.08s
+     Running tests/diagonal_plan.rs (target/debug/deps/diagonal_plan-c74f454cf8a3cf13)
+
+running 13 tests
+test p2_all21_registered_geometry_and_params ... ok
+test p2_all_configs_and_reuse_chains_are_explicit ... ok
+test p2_arithmetic_parameter_and_rate_rejections_are_typed ... ok
+test p2_bias_only_container_never_acquires_velocity ... ok
+test p2_first_reference_and_heterogeneous_inputs_are_distinct_branches ... ok
+test p2_geometry_is_checked_and_keeps_logical_class_width ... ok
+test p2_initial_labels_use_actual_primes_and_preserve_bias_products ... ok
+test p2_interactive_schedule_carries_reference_velocity_and_seven_counts ... ok
+test p2_invalid_partition_and_identity_fail_before_transition ... ok
+test p2_ni_all_classes_placements_and_carried_schedule ... ok
+test p2_ni_predictor_and_counter_projection_all_eight_configs ... ok
+test p2_one_valid_tail_keeps_denominator_order_and_partial_identity_work ... ok
+test p2_raw_entries_remain_distinct_when_alignment_merges_labels ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+

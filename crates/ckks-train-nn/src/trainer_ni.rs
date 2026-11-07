@@ -63,6 +63,9 @@
 //! ([`Dense::weight_grad_reduced`]); [`predict_update`] follows the evaluator's flags
 //! ([`predict_update_with`]).
 
+#[cfg(test)]
+use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
+
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -493,10 +496,10 @@ impl CompactState {
 
 /// What the level arithmetic needs of an activation.
 #[derive(Debug, Clone, Copy)]
-struct ActMeta {
-    depth: i64,
-    dderiv: i64,
-    constant: Option<f64>,
+pub(crate) struct ActMeta {
+    pub(crate) depth: i64,
+    pub(crate) dderiv: i64,
+    pub(crate) constant: Option<f64>,
 }
 
 fn metas<E: HeOps>(mlp: &Mlp<E>) -> Vec<ActMeta> {
@@ -516,22 +519,22 @@ fn metas_of<E: HeOps>(acts: &[&dyn Activation<E>]) -> Vec<ActMeta> {
 
 /// The levels of one step (signed: a negative level means the step does not fit).
 #[derive(Debug, Clone)]
-struct Pass {
+pub(crate) struct Pass {
     /// `(label, level)` of every value, as [`NonInteractiveTrainer::trace`].
-    trace: Vec<(String, i64)>,
+    pub(crate) trace: Vec<(String, i64)>,
     /// Input level of every layer's forward (after alignment).
-    inputs: Vec<i64>,
+    pub(crate) inputs: Vec<i64>,
     /// Level of every layer's compact weight gradient.
-    h: Vec<i64>,
+    pub(crate) h: Vec<i64>,
     /// Level of every layer's bias gradient.
-    hb: Vec<i64>,
+    pub(crate) hb: Vec<i64>,
     /// The lowest level of the step.
-    min: i64,
+    pub(crate) min: i64,
 }
 
 /// The level of every value of one step, op for op the trainer's: weights of layer `l` at
 /// `w[l]`, its bias at `b[l]`, the input batch at `x`, a bootstrap output at `boot`.
-fn pass_levels(
+pub(crate) fn pass_levels(
     meta: &[ActMeta],
     boot_acts: bool,
     w: &[i64],
@@ -642,15 +645,15 @@ pub fn levels_per_iter_of<E: HeOps>(
 
 /// The level state between steps (signed for the feasibility arithmetic).
 #[derive(Debug, Clone)]
-struct LevelState {
+pub(crate) struct LevelState {
     /// Unpacked weights per layer.
-    w: Vec<i64>,
+    pub(crate) w: Vec<i64>,
     /// Extracted bias per layer.
-    b: Vec<i64>,
+    pub(crate) b: Vec<i64>,
     /// Compact weights per container.
-    c: Vec<i64>,
+    pub(crate) c: Vec<i64>,
     /// Velocity per container.
-    u: Vec<Option<i64>>,
+    pub(crate) u: Vec<Option<i64>>,
 }
 
 /// The container levels after the update of `pass` from `st` (NAG lands `W'` and `U'` on the
@@ -679,7 +682,7 @@ fn update_levels(cl: &CompactLayout, st: &LevelState, pass: &Pass, nag: bool) ->
 
 /// The unpacked levels from container levels `c`: each layer's weights one below the lowest
 /// of its containers, each bias one below its container.
-fn unpacked(cl: &CompactLayout, c: &[i64]) -> (Vec<i64>, Vec<i64>) {
+pub(crate) fn unpacked(cl: &CompactLayout, c: &[i64]) -> (Vec<i64>, Vec<i64>) {
     let w = (0..cl.plans.len())
         .map(|l| cl.layer_containers(l).map(|i| c[i]).min().expect("one") - 1)
         .collect();
@@ -962,7 +965,7 @@ pub fn ref_shift_rotations(dims: &[usize], layout: &Layout) -> Result<u64> {
 /// `Some(true)` a full batch; `Some(false)` or `None` (unknown) a partial one, which costs one
 /// more level at a linear output layer ([`crate::activation::Activation::constant_derivative`]),
 /// so an unknown next step is planned conservatively.
-fn must_boot(
+pub(crate) fn must_boot(
     meta: &[ActMeta],
     placement: BootPlacement,
     next: &LevelState,
@@ -1085,6 +1088,8 @@ pub struct NonInteractiveTrainer<'a, E: HeOps = Evaluator, B: BootstrapOps<E> = 
     lr_ref: f64,
     /// Whether the last update used a second gradient mask (its lr differed from `lr_ref`).
     last_rescaled: bool,
+    #[cfg(test)]
+    pub(crate) observer: Option<ObservationHandle>,
     /// One entry per finished epoch (`refreshes` counts bootstraps, `refresh_seconds` their
     /// time, `batches` the updates).
     pub log: Vec<EpochLog>,
@@ -1327,6 +1332,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             frozen_biases: false,
             lr_ref: optim.lr(),
             last_rescaled: false,
+            #[cfg(test)]
+            observer: None,
             log: Vec::new(),
         };
         let st = t.level_state(mlp);
@@ -1724,7 +1731,19 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         let mut acts: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
         let mut zs: Vec<Vec<E::Ct>> = Vec::with_capacity(batches.len());
         let mut hidden: Vec<Vec<E::Ct>> = Vec::new();
-        for (mb, (x, _, _)) in batches.iter().enumerate() {
+        for (mb, (x, _y, _)) in batches.iter().enumerate() {
+            #[cfg(test)]
+            {
+                observation::value(self.observer.as_ref(), "entry_input", Some(mb), None, 0, *x);
+                observation::value(
+                    self.observer.as_ref(),
+                    "entry_target",
+                    Some(mb),
+                    None,
+                    0,
+                    *_y,
+                );
+            }
             let mut h_mb = Vec::new();
             let mut a_in = Vec::with_capacity(n_layers + 1);
             let mut z_mb = Vec::with_capacity(n_layers);
@@ -1735,8 +1754,21 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 if l == 0 {
                     a_in.push(input.clone());
                 }
+                #[cfg(test)]
+                observation::value(
+                    self.observer.as_ref(),
+                    "input",
+                    Some(mb),
+                    Some(l),
+                    0,
+                    &input,
+                );
                 let z = dense.forward(ev, &input, &layout)?;
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "z", Some(mb), Some(l), 0, &z);
                 let a = act.forward(ev, enc, &z)?;
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "a", Some(mb), Some(l), 0, &a);
                 if mb == 0 {
                     trace.push((format!("z{}", l + 1), z.level()));
                     trace.push((format!("a{}", l + 1), a.level()));
@@ -1747,8 +1779,19 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 }
                 if boot_acts && l + 1 < n_layers {
                     let a1 = ev.rescale(&ev.mul_scalar(&a, 1.0, delta_scale)?)?;
+                    #[cfg(test)]
+                    observation::value(
+                        self.observer.as_ref(),
+                        "a_to_delta",
+                        Some(mb),
+                        Some(l),
+                        0,
+                        &a1,
+                    );
                     let t0 = Instant::now();
                     let ab = self.bs.bootstrap(ev, &ev.mod_switch_to_level(&a1, 0)?)?;
+                    #[cfg(test)]
+                    observation::value(self.observer.as_ref(), "a_boot", Some(mb), Some(l), 0, &ab);
                     t_boot += t0.elapsed().as_secs_f64();
                     act_boots += 1;
                     if mb == 0 {
@@ -1774,7 +1817,25 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         for (mb, (_, y, _)) in batches.iter().enumerate() {
             let out = &acts[mb][n_layers];
             let y = align_target(ev, y, out)?;
+            #[cfg(test)]
+            observation::value(
+                self.observer.as_ref(),
+                "aligned_target",
+                Some(mb),
+                Some(n_layers - 1),
+                0,
+                &y,
+            );
             deltas.push(Mse.grad(ev, out, &y)?);
+            #[cfg(test)]
+            observation::value(
+                self.observer.as_ref(),
+                "loss_delta",
+                Some(mb),
+                Some(n_layers - 1),
+                0,
+                deltas.last().unwrap(),
+            );
         }
         trace.push((format!("delta{n_layers}"), deltas[0].level()));
 
@@ -1787,6 +1848,11 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
         } else {
             self.optim.bias_grad_scale() / n
         };
+        #[cfg(test)]
+        for i in 0..n_layers {
+            observation::coefficient(self.observer.as_ref(), "current", Some(i), 0, c_w);
+            observation::coefficient(self.observer.as_ref(), "bias", Some(i), 0, c_b);
+        }
         let masks: Vec<Vec<f64>> = batches
             .iter()
             .map(|b| valid_lane_mask(&layout, b.2))
@@ -1811,6 +1877,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                             Some(&masks[mb]),
                             None,
                         )?;
+                        #[cfg(test)]
+                        observation::value(self.observer.as_ref(), "s", Some(mb), Some(i), 0, &s);
                         if mb == 0 {
                             trace.push((format!("s{ln}"), s.level()));
                         }
@@ -1821,6 +1889,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                         )?)?
                     }
                 };
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "dz", Some(mb), Some(i), 0, &dz);
                 dzs.push(dz);
             }
             // Partial and full micro-batches can differ by one level at a linear layer.
@@ -1829,6 +1899,17 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 .iter()
                 .map(|d| ev.mod_switch_to_level(d, low))
                 .collect::<Result<Vec<_>>>()?;
+            #[cfg(test)]
+            for (mb, d) in dzs.iter().enumerate() {
+                observation::value(
+                    self.observer.as_ref(),
+                    "dz_aligned",
+                    Some(mb),
+                    Some(i),
+                    0,
+                    d,
+                );
+            }
             trace.push((format!("dz{ln}"), dzs[0].level()));
             if i > 0 {
                 let w = &dense.w;
@@ -1839,9 +1920,29 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                     &layout,
                 )?;
                 let wt = lowered.transpose_with(ev, &layout, &self.transpose_keys)?;
+                #[cfg(test)]
+                observation::values(
+                    self.observer.as_ref(),
+                    "transpose",
+                    None,
+                    Some(i),
+                    wt.diagonals().entries(),
+                );
                 let mut next = Vec::with_capacity(batches.len());
-                for dz in &dzs {
-                    next.push(dense.backward_input(ev, dz, &wt, &layout)?);
+                // The index is used only by test observation.
+                #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
+                for (_mb, dz) in dzs.iter().enumerate() {
+                    let value = dense.backward_input(ev, dz, &wt, &layout)?;
+                    #[cfg(test)]
+                    observation::value(
+                        self.observer.as_ref(),
+                        "backward_delta",
+                        Some(_mb),
+                        Some(i),
+                        0,
+                        &value,
+                    );
+                    next.push(value);
                 }
                 trace.push((format!("delta{i}"), next[0].level()));
                 deltas = next;
@@ -1852,6 +1953,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             // differs from it (NAG only; docs/layout.md §7.1).
             let hw = if rescale {
                 let c_ref = self.optim.with_lr(self.lr_ref).grad_scale() / n;
+                #[cfg(test)]
+                observation::coefficient(self.observer.as_ref(), "reference", Some(i), 0, c_ref);
                 let mut gs = dense.weight_grad_reduced_consts(
                     ev,
                     &dz_refs,
@@ -1861,12 +1964,33 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 )?;
                 let g_ref = gs.pop().expect("two");
                 let g = gs.pop().expect("two");
+                #[cfg(test)]
+                {
+                    observation::values(self.observer.as_ref(), "gradient", None, Some(i), &g);
+                    observation::values(
+                        self.observer.as_ref(),
+                        "reference_gradient",
+                        None,
+                        Some(i),
+                        &g_ref,
+                    );
+                }
                 h_w_ref[i] = Some(compact_shift(ev, &g_ref, &self.cl.plans[i])?);
                 compact_shift(ev, &g, &self.cl.plans[i])?
             } else {
                 let g = dense.weight_grad_reduced(ev, &dz_refs, &a_refs, &layout, c_w)?;
+                #[cfg(test)]
+                observation::values(self.observer.as_ref(), "gradient", None, Some(i), &g);
                 compact_shift(ev, &g, &self.cl.plans[i])?
             };
+            #[cfg(test)]
+            observation::values(
+                self.observer.as_ref(),
+                "compact_gradient",
+                None,
+                Some(i),
+                &hw,
+            );
             trace.push((format!("h{ln}"), hw[0].level()));
             let slot = self.cl.biases[i];
             let bplan = *self.cl.bias_plan(i);
@@ -1878,8 +2002,37 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 bplan.diag_len(),
                 delta_scale,
             )?;
+            #[cfg(test)]
+            observation::value(
+                self.observer.as_ref(),
+                "bias_gradient",
+                None,
+                Some(i),
+                0,
+                &gb,
+            );
             let gb = ev.rotate(&gb, -(bplan.offset(slot.position) as i32))?;
             trace.push((format!("hb{ln}"), gb.level()));
+            #[cfg(test)]
+            {
+                observation::value(
+                    self.observer.as_ref(),
+                    "compact_bias_gradient",
+                    None,
+                    Some(i),
+                    0,
+                    &gb,
+                );
+                if let Some(r) = &h_w_ref[i] {
+                    observation::values(
+                        self.observer.as_ref(),
+                        "compact_reference",
+                        None,
+                        Some(i),
+                        r,
+                    );
+                }
+            }
             h_w[i] = hw;
             h_b[i] = Some(gb);
         }
@@ -1954,6 +2107,8 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
             let slot = self.cl.biases[l];
             let plan = self.cl.containers[slot.container].plan;
             let need = next_pass.inputs[l].max(0) as usize;
+            #[cfg(test)]
+            observation::scope(self.observer.as_ref(), None, Some(l));
             new_b.push(extract_bias(
                 ev,
                 &weights[slot.container],
@@ -1961,9 +2116,29 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 slot.position,
                 scales[l] * w_scales[l],
                 need,
+                #[cfg(test)]
+                self.observer.as_ref(),
             )?);
         }
 
+        #[cfg(test)]
+        for l in 0..n_layers {
+            observation::values(
+                self.observer.as_ref(),
+                "weight_unpacked",
+                None,
+                Some(l),
+                new_w[l].diagonals().entries(),
+            );
+            observation::value(
+                self.observer.as_ref(),
+                "bias_extracted",
+                None,
+                Some(l),
+                0,
+                &new_b[l],
+            );
+        }
         // Commit.
         for (l, (w, b)) in new_w.into_iter().zip(new_b).enumerate() {
             let layer = &mut mlp.layers[l].0;
@@ -2059,10 +2234,46 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                             // s = lr / lr_ref <= 1 of it, folded into kappa (no extra op or level;
                             // s = 1 exactly at the reference lr, so the products are
                             // bit-identical to the constant-lr trainer).
-                            let kappa = mu * mu / (1.0 + mu) * s_lr;
+                            let kappa = crate::optim::nag_kappa(mu, s_lr);
+                            #[cfg(test)]
+                            {
+                                observation::coefficient(
+                                    self.observer.as_ref(),
+                                    "mu",
+                                    spec.layer,
+                                    c,
+                                    mu,
+                                );
+                                observation::coefficient(
+                                    self.observer.as_ref(),
+                                    "kappa",
+                                    spec.layer,
+                                    c,
+                                    kappa,
+                                );
+                            }
                             let ue = ev.mod_switch_to_level(u, lv + 1)?;
                             let mu_u = ev.rescale(&ev.mul_scalar(&ue, mu, delta)?)?;
                             let k_u = ev.rescale(&ev.mul_scalar(&ue, kappa, delta)?)?;
+                            #[cfg(test)]
+                            {
+                                observation::value(
+                                    self.observer.as_ref(),
+                                    "mu_velocity",
+                                    None,
+                                    spec.layer,
+                                    c,
+                                    &mu_u,
+                                );
+                                observation::value(
+                                    self.observer.as_ref(),
+                                    "kappa_velocity",
+                                    None,
+                                    spec.layer,
+                                    c,
+                                    &k_u,
+                                );
+                            }
                             w_new = ev.sub(&w_new, &k_u)?;
                             ev.add(&mu_u, &h)?
                         }
@@ -2070,6 +2281,27 @@ impl<'a, E: HeOps, B: BootstrapOps<E>> NonInteractiveTrainer<'a, E, B> {
                 }
                 _ => None,
             };
+            #[cfg(test)]
+            {
+                observation::value(
+                    self.observer.as_ref(),
+                    "container_updated",
+                    None,
+                    spec.layer,
+                    c,
+                    &w_new,
+                );
+                if let Some(v) = &u_new {
+                    observation::value(
+                        self.observer.as_ref(),
+                        "container_velocity",
+                        None,
+                        spec.layer,
+                        c,
+                        v,
+                    );
+                }
+            }
             weights.push(w_new);
             velocity.push(u_new);
         }
@@ -2161,11 +2393,15 @@ fn extract_bias<E: HeOps>(
     t: usize,
     target: f64,
     need: usize,
+    #[cfg(test)] observer: Option<&ObservationHandle>,
 ) -> Result<E::Ct> {
     let mut level = ct.level();
     loop {
         let src = ev.mod_switch_to_level(ct, level)?;
-        match compact_extract(ev, &src, plan, t, target) {
+        let result = compact_extract(ev, &src, plan, t, target);
+        #[cfg(test)]
+        observation::attempt(observer, "bias_extracted", &src, target, &result);
+        match result {
             Err(HekitError::ScaleMismatch) if level > need + 1 => level -= 1,
             r => return r,
         }
@@ -2254,5 +2490,91 @@ mod tests {
         assert_eq!((w.clone(), b.clone()), (vec![7, 8], vec![8, 8]));
         let p2 = pass_levels(&meta, false, &w, &b, 15, 16, true);
         assert_eq!(p2.min, 0);
+    }
+}
+
+#[cfg(test)]
+mod p2_helpers {
+    use super::*;
+    use crate::diagonal_plan::tests::{coarse, context};
+    use std::{cell::RefCell, rc::Rc};
+    #[test]
+    fn p2_bias_extract_retry_witnesses() {
+        crate::diagonal_plan::tests::reserve_helper_calls(2);
+        let c = coarse();
+        let ev = c.ev.fork();
+        let sink = Rc::new(RefCell::new(observation::Recorder::default()));
+        let plan = CompactPlan::for_layer(&c.layout, 2, 2);
+        for (bits, ok) in [
+            (0x4135_eb85_1ebf_b0df, true),
+            (0x4135_eb85_1ec1_0524, false),
+        ] {
+            let src = c.encrypt_at(2, c.p.scale(), 0.125);
+            sink.borrow_mut().attempts.clear();
+            let before = ev.counter();
+            let r = extract_bias(&ev, &src, &plan, 0, f64::from_bits(bits), 0, Some(&sink));
+            assert_eq!(r.is_ok(), ok);
+            if let Ok(out) = r {
+                assert_eq!((out.level(), out.scale().to_bits()), (0, bits));
+            }
+            let expected = if ok {
+                ckks_train_ckks::OpCounter {
+                    rotations: 10,
+                    ct_pt_mults: 1,
+                    rescales: 1,
+                    ..Default::default()
+                }
+            } else {
+                Default::default()
+            };
+            assert_eq!(&ev.counter() - &before, expected);
+            let a = &sink.borrow().attempts;
+            assert_eq!(a.len(), 2);
+            assert_eq!((a[0].source_level, a[1].source_level), (2, 1));
+            assert!(
+                a.iter()
+                    .all(|a| a.source_scale_bits == c.p.scale().to_bits() && a.target_bits == bits)
+            );
+            assert_eq!(a[0].error, Some(HekitError::ScaleMismatch));
+            assert_eq!(
+                a[1].error,
+                if ok {
+                    None
+                } else {
+                    Some(HekitError::ScaleMismatch)
+                }
+            );
+        }
+    }
+    #[test]
+    fn p2_target_alignment_witnesses() {
+        crate::diagonal_plan::tests::reserve_helper_calls(3);
+        let c = context(false);
+        let ev = c.ev.fork();
+        let out = c.encrypt_at(3, c.p.scale(), 0.125);
+        for (level, scale, ok, work) in [
+            (4, c.p.scale(), true, false),
+            (4, c.p.scale() * 2., true, true),
+            (3, c.p.scale() * 2., false, false),
+        ] {
+            let y = c.encrypt_at(level, scale, 0.125);
+            let before = ev.counter();
+            let r = align_target(&ev, &y, &out);
+            assert_eq!(r.is_ok(), ok);
+            if let Ok(r) = r {
+                assert_eq!(r.scale().to_bits(), out.scale().to_bits());
+                assert_eq!(r.level(), if work { 3 } else { 4 })
+            }
+            let expected = if work {
+                ckks_train_ckks::OpCounter {
+                    ct_pt_mults: 1,
+                    rescales: 1,
+                    ..Default::default()
+                }
+            } else {
+                Default::default()
+            };
+            assert_eq!(&ev.counter() - &before, expected);
+        }
     }
 }

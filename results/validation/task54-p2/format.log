@@ -1,0 +1,2 @@
+DISK_FREE_BYTES 68628787200
+COMMAND ["rustfmt", "--check", "--edition", "2024", "crates/ckks-train-nn/src/diagonal_plan_tests.rs"]

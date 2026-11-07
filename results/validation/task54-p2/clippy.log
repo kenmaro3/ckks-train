@@ -1,0 +1,4 @@
+DISK_FREE_BYTES 68629405696
+COMMAND ["cargo", "clippy", "-p", "ckks-train-nn", "--lib", "--tests", "--no-deps", "--", "-D", "warnings"]
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.82s

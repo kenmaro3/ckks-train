@@ -176,6 +176,11 @@ fn q_at<E: HeOps>(ev: &E, level: usize) -> f64 {
     ev.params().q()[level] as f64
 }
 
+/// Shared ordinary multiply label expression; deliberately not exact-target search.
+pub(crate) fn ordinary_plain_scale(q: f64, source: f64, target: f64) -> f64 {
+    target * q / source
+}
+
 /// `rescale(ct * v)` with `v` encoded so that the result has scale `target` (see the module
 /// docs). One level.
 fn mul_to<E: HeOps>(ev: &E, enc: &Encoder, ct: &E::Ct, v: &[f64], target: f64) -> Result<E::Ct> {
@@ -183,7 +188,11 @@ fn mul_to<E: HeOps>(ev: &E, enc: &Encoder, ct: &E::Ct, v: &[f64], target: f64) -
     if l == 0 {
         return Err(HekitError::NoLevelsLeft);
     }
-    let pt = ev.upload_pt_owned(enc.encode(v, target * q_at(ev, l) / ct.scale(), l)?)?;
+    let pt = ev.upload_pt_owned(enc.encode(
+        v,
+        ordinary_plain_scale(q_at(ev, l), ct.scale(), target),
+        l,
+    )?)?;
     ev.rescale(&ev.mul_plain(ct, &pt)?)
 }
 
@@ -524,4 +533,46 @@ impl<E: HeOps> Activation<E> for Poly {
     }
 
     shape_methods!();
+}
+
+#[cfg(test)]
+mod p2_helpers {
+    use super::*;
+    use crate::diagonal_plan::tests::context;
+    #[test]
+    fn p2_ordinary_label_order() {
+        crate::diagonal_plan::tests::reserve_helper_calls(6);
+        let c = context(false);
+        let ev = c.ev.fork();
+        let z = c.encrypt_at(7, c.p.scale() * 1.125, 0.125);
+        let q = c.p.q()[7] as f64;
+        let before = ev.counter();
+        let square = Square.forward(&ev, &c.enc, &z).unwrap();
+        assert_eq!(
+            square.scale().to_bits(),
+            ((z.scale() * z.scale()) / q).to_bits()
+        );
+        let poly = PolyRelu2.forward(&ev, &c.enc, &z).unwrap();
+        assert_eq!(poly.scale().to_bits(), square.scale().to_bits());
+        for act in [&Square as &dyn Activation, &PolyRelu2 as &dyn Activation] {
+            let s = act
+                .derivative_factor_at(&ev, &c.enc, &z, 1., None, None)
+                .unwrap();
+            let sp = ordinary_plain_scale(q, z.scale(), z.scale());
+            assert_eq!(
+                (s.level(), s.scale().to_bits()),
+                (6, ((z.scale() * sp) / q).to_bits())
+            );
+        }
+        let mask = vec![1.; c.p.slots()];
+        let d = crate::trainer::constant_dz(&ev, &c.enc, &z, 1., &mask, true).unwrap();
+        assert_eq!(d.scale().to_bits(), z.scale().to_bits());
+        let p = crate::trainer::constant_dz(&ev, &c.enc, &z, 1., &mask, false).unwrap();
+        assert_eq!((p.level(), p.scale().to_bits()), (6, z.scale().to_bits()));
+        let got = &ev.counter() - &before;
+        assert_eq!(
+            (got.ct_ct_tensor, got.relins, got.ct_pt_mults, got.rescales),
+            (2, 2, 4, 6)
+        );
+    }
 }

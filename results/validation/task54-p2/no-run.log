@@ -1,0 +1,4 @@
+DISK_FREE_BYTES 68629417984
+COMMAND ["cargo", "test", "-p", "ckks-train-nn", "--lib", "p2_runtime_", "--no-run"]
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.07s
+  Executable unittests src/lib.rs (target/debug/deps/ckks_train_nn-325aeb85a36628ba)

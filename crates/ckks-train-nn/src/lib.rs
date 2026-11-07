@@ -5,6 +5,7 @@ pub mod activation;
 pub mod block;
 pub mod compact;
 pub mod dense;
+pub mod diagonal_plan;
 pub mod layout;
 pub mod layout_reboot;
 pub mod loss;

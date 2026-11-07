@@ -1,0 +1,26 @@
+DISK_FREE_BYTES 68638998528
+COMMAND ["cargo", "test", "-p", "ckks-train-nn", "--lib", "p2_pure", "--", "--test-threads=1"]
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+    Finished `test` profile [optimized + debuginfo] target(s) in 4.64s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_nn-325aeb85a36628ba)
+
+running 16 tests
+test diagonal_plan::pure_tests::p2_pure_exact_retry_controls_and_prework_failure_counts ... ok
+test diagonal_plan::pure_tests::p2_pure_mse_rounding_boundary_keeps_existing_runtime_rule ... ok
+test diagonal_plan::pure_tests::p2_pure_retry_witnesses_frozen_before_he ... ok
+test diagonal_plan::pure_tests::p2_pure_scalar_errors_have_prime_and_scale_context ... ok
+test diagonal_plan::tests::p2_pure_coefficient_branch_and_container_positions_are_exact ... ok
+test diagonal_plan::tests::p2_pure_comparator_rejects_missing_duplicate_and_wrong_positions ... ok
+test diagonal_plan::tests::p2_pure_comparator_requires_coefficients_retries_and_prefresh_values ... ok
+test diagonal_plan::tests::p2_pure_entry_receipt_is_required_separately ... ok
+test diagonal_plan::tests::p2_pure_lookup_rejects_ambiguous_role - should panic ... ok
+test diagonal_plan::tests::p2_pure_lookup_rejects_missing_role - should panic ... ok
+test diagonal_plan::tests::p2_pure_loss_backward_role_identity ... ok
+test diagonal_plan::tests::p2_pure_missing_container_is_not_equality ... ok
+test diagonal_plan::tests::p2_pure_missing_retry_is_not_equality ... ok
+test diagonal_plan::tests::p2_pure_nested_state_and_handoff_cardinality ... ok
+test diagonal_plan::tests::p2_pure_receipt_vector_multiplicities_and_entry_roles ... ok
+test diagonal_plan::tests::p2_pure_structural_no_boot_then_exact_plain_minimum ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.09s
+

@@ -1,0 +1,15 @@
+# P2 strengthened-observation bounded runtime release
+
+Root read F1/F2/one-valid source scoped review317be5bfec45ebae524a3a28a217a6bfbf46113f715a2153f1658d17bca6b054 and complete final F3 scoped reviewb0d52342d7aa02eb5f988701e84fd459564c1b146ec8b98ec2eac7c004cecec3, both SPEC/QUALITY PASS for their correction scopes. F3 actual pure minimum-scale witness is addressed; it is not a registered-profile/ULP failure. Root read report8074b99e... and independently verified current source/evidence/baseline39pins. Current full source manifest38632c88d948ab8783d223127019cb47310e105e3e4ffaf6b0c75416403e8850 remains binding. Full nine-source patch260847bytes/SHAea96647caaec0553413c126c1741cc20561fb12c7e690ba669348730aee68865 is retained.
+
+Ruling: the observation comparator materially strengthened F1/F2 identities/cardinalities and raw entry checks, so older runtime PASS does not establish these assertions. Execute the existing complete eight-function p2_runtime_ matrix exactly once. This repeats only the covering matrix necessary for changed assertions, not calibration, pure discovery, unrelated tests, helper calibration or original unchanged regressions. Source arithmetic/parameters/matrix/guards remain unchanged. Failures must remain actual failures and halt future work for diagnosis, not trigger automatic rerun/relaxation.
+
+Authorize original NN author sole Cargo slot with all nine sources frozen. Exact command:
+
+cargo test -p ckks-train-nn --lib p2_runtime_ -- --test-threads=1 --nocapture
+
+Use existing target only, CARGO_INCREMENTAL=0,CARGO_BUILD_JOBS=8,RAYON_NUM_THREADS=8, runtime testthreads1, actual availabledisk>=805306368B before launch. Verify all nine source manifest pins immediately before and after. Preserve new exclusive task-54-p2-strengthened-runtime raw/controller records containing exactargv/PIDs/times/sourcepins/disk/terminal/streamsha. Monitor same live tool/controller handle until terminal; observation timeout is not permission to restart.
+
+The retained runtime-selection JSON names exactly8 functions: Iclass6,Isequence8,Ifirstref4,NIclass18,NIsequence24,NIfirstref12,EvalConfiggrid16,oldhiddenblock11 =99stage calls. Existing per-process stage99/bootstrap266 guards unchanged. No helper or unchanged-regression test selected. Historical actual totals140stage15helper294bootstrap (250raw+44source/assertion-derived) remain separate; prospective cumulative ceiling239stage15helper560bootstrap. This bound is not a measured execution count. Report actual stage reservations/logical rows/boots with hashes after terminal; never convert the ceiling to observed values.
+
+No other test command, helper, discovery, n16 secure run, primary training, GPU, broadworkspace/release build, new target, source edit, dependency/preset/tolerance/algorithm/guard change, Git/network/SSH/subagent allowed. All source frozen through execution. P2 acceptance still requires retained actual evidence and independent outcome review after this run; source PASS alone is insufficient. P3/P4/P5 and full encrypted-block/scientific holds remain.

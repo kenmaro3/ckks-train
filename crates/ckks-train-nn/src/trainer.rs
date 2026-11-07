@@ -73,6 +73,9 @@
 //! layer but the first (the first layer has no backward pass). With
 //! [`TransposeKeys::Reuse`]`(`[`mlp_key_pool`]`)` the transpose adds no key at all.
 
+#[cfg(test)]
+use crate::diagonal_plan::observation::{self, Handle as ObservationHandle};
+
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -174,6 +177,14 @@ impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
         let fresh = Diagonals::from_prerotated(u.d(), u.stride(), entries)?;
         let n = fresh.entries().len();
         self.set_velocity(Some(fresh));
+        #[cfg(test)]
+        observation::values(
+            self.observer.as_ref(),
+            "velocity_refreshed",
+            None,
+            self.observer_layer,
+            self.velocity().unwrap().entries(),
+        );
         Ok(n)
     }
 }
@@ -626,6 +637,8 @@ pub struct Trainer<'a, E: HeOps = Evaluator> {
     refreshes: usize,
     refresh_seconds: f64,
     frozen_biases: bool,
+    #[cfg(test)]
+    pub(crate) observer: Option<ObservationHandle>,
     /// One entry per finished epoch.
     pub log: Vec<EpochLog>,
 }
@@ -679,11 +692,18 @@ fn bias_grad<E: HeOps>(
     dz: &E::Ct,
     layout: &Layout,
     c: f64,
+    #[cfg(test)] observer: Option<&ObservationHandle>,
 ) -> Result<E::Ct> {
-    match dense.bias_grad_scaled(ev, dz, layout, c) {
+    let first = dense.bias_grad_scaled(ev, dz, layout, c);
+    #[cfg(test)]
+    observation::attempt(observer, "bias_gradient", dz, dense.b.scale(), &first);
+    match first {
         Err(HekitError::ScaleMismatch) if dz.level() >= 2 => {
             let lower = ev.mod_switch_to_level(dz, dz.level() - 1)?;
-            dense.bias_grad_scaled(ev, &lower, layout, c)
+            let result = dense.bias_grad_scaled(ev, &lower, layout, c);
+            #[cfg(test)]
+            observation::attempt(observer, "bias_gradient", &lower, dense.b.scale(), &result);
+            result
         }
         r => r,
     }
@@ -749,6 +769,8 @@ impl<'a, E: HeOps> Trainer<'a, E> {
             refreshes: 0,
             refresh_seconds: 0.0,
             frozen_biases: false,
+            #[cfg(test)]
+            observer: None,
             log: Vec::new(),
         })
     }
@@ -963,6 +985,20 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 Ok((current, reference, bias))
             })
             .collect::<Result<Vec<_>>>()?;
+        #[cfg(test)]
+        for (i, (current, reference, bias)) in coefficients.iter().enumerate() {
+            observation::coefficient(self.observer.as_ref(), "current", Some(i), 0, *current);
+            observation::coefficient(self.observer.as_ref(), "bias", Some(i), 0, *bias);
+            if let Some(reference) = reference {
+                observation::coefficient(
+                    self.observer.as_ref(),
+                    "reference",
+                    Some(i),
+                    0,
+                    *reference,
+                );
+            }
+        }
         let ev = self.ev;
         let enc = &self.encoder;
         let layout = &self.layout;
@@ -978,20 +1014,70 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                     format!("micro{micro}/{s}")
                 }
             };
+            #[cfg(test)]
+            {
+                observation::value(
+                    self.observer.as_ref(),
+                    "entry_input",
+                    Some(micro),
+                    None,
+                    0,
+                    x,
+                );
+                observation::value(
+                    self.observer.as_ref(),
+                    "entry_target",
+                    Some(micro),
+                    None,
+                    0,
+                    y,
+                );
+            }
             // 1. Forward. acts[i] is the input of layer i.
             let mut acts = vec![x.clone()];
             let mut zs = Vec::with_capacity(n_layers);
             for (i, (dense, act)) in mlp.layers.iter().enumerate() {
+                #[cfg(test)]
+                observation::value(
+                    self.observer.as_ref(),
+                    "input",
+                    Some(micro),
+                    Some(i),
+                    0,
+                    &acts[i],
+                );
                 let z = dense.forward(ev, &acts[i], layout)?;
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "z", Some(micro), Some(i), 0, &z);
                 trace.push((label(format!("z{}", i + 1)), z.level()));
                 let a = act.forward(ev, enc, &z)?;
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "a", Some(micro), Some(i), 0, &a);
                 trace.push((label(format!("a{}", i + 1)), a.level()));
                 zs.push(z);
                 acts.push(a);
             }
 
             // 2. Loss gradient.
+            #[cfg(test)]
+            observation::value(
+                self.observer.as_ref(),
+                "aligned_target",
+                Some(micro),
+                Some(n_layers - 1),
+                0,
+                y,
+            );
             let mut delta = Mse.grad(ev, &acts[n_layers], y)?;
+            #[cfg(test)]
+            observation::value(
+                self.observer.as_ref(),
+                "loss_delta",
+                Some(micro),
+                Some(n_layers - 1),
+                0,
+                &delta,
+            );
             trace.push((label(format!("delta{n_layers}")), delta.level()));
 
             // 3. Backward and gradients, top down; nothing is written yet.
@@ -1005,6 +1091,15 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                     None => {
                         let s =
                             act.derivative_factor_at(ev, enc, &zs[i], 1.0, Some(&mask), None)?;
+                        #[cfg(test)]
+                        observation::value(
+                            self.observer.as_ref(),
+                            "s",
+                            Some(micro),
+                            Some(i),
+                            0,
+                            &s,
+                        );
                         trace.push((label(format!("s{ln}")), s.level()));
                         let lv = s.level().min(delta.level());
                         ev.rescale(&ev.mul(
@@ -1013,6 +1108,8 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                         )?)?
                     }
                 };
+                #[cfg(test)]
+                observation::value(self.observer.as_ref(), "dz", Some(micro), Some(i), 0, &dz);
                 trace.push((label(format!("dz{ln}")), dz.level()));
                 let next = if i > 0 {
                     let w = &dense.w;
@@ -1023,7 +1120,24 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                         layout,
                     )?;
                     let wt = low.transpose_with(ev, layout, &self.transpose_keys)?;
+                    #[cfg(test)]
+                    observation::values(
+                        self.observer.as_ref(),
+                        "transpose",
+                        Some(micro),
+                        Some(i),
+                        wt.diagonals().entries(),
+                    );
                     let v = dense.backward_input(ev, &dz, &wt, layout)?;
+                    #[cfg(test)]
+                    observation::value(
+                        self.observer.as_ref(),
+                        "backward_delta",
+                        Some(micro),
+                        Some(i),
+                        0,
+                        &v,
+                    );
                     trace.push((label(format!("delta{i}")), v.level()));
                     Some(v)
                 } else {
@@ -1041,7 +1155,44 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                         None,
                     )
                 };
-                let db = bias_grad(ev, dense, &dz, layout, c_b)?;
+                #[cfg(test)]
+                observation::scope(self.observer.as_ref(), Some(micro), Some(i));
+                let db = bias_grad(
+                    ev,
+                    dense,
+                    &dz,
+                    layout,
+                    c_b,
+                    #[cfg(test)]
+                    self.observer.as_ref(),
+                )?;
+                #[cfg(test)]
+                {
+                    observation::values(
+                        self.observer.as_ref(),
+                        "gradient",
+                        Some(micro),
+                        Some(i),
+                        dw.entries(),
+                    );
+                    if let Some(r) = &reference {
+                        observation::values(
+                            self.observer.as_ref(),
+                            "reference_gradient",
+                            Some(micro),
+                            Some(i),
+                            r.entries(),
+                        );
+                    }
+                    observation::value(
+                        self.observer.as_ref(),
+                        "bias_gradient",
+                        Some(micro),
+                        Some(i),
+                        0,
+                        &db,
+                    );
+                }
                 if batches.len() == 1 {
                     // Preserve the legacy singleton primitive order, including bias subtraction.
                     new_biases.push(ev.sub(&ev.mod_switch_to_level(&dense.b, db.level())?, &db)?);
@@ -1067,6 +1218,33 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                     }
                     sum.db = add_gradient_ct(ev, &sum.db, &part.db)?;
                 }
+            }
+            #[cfg(test)]
+            for gradient in &updates {
+                observation::values(
+                    self.observer.as_ref(),
+                    "accumulated_gradient",
+                    Some(micro),
+                    Some(gradient.layer),
+                    gradient.dw.entries(),
+                );
+                if let Some(r) = &gradient.reference {
+                    observation::values(
+                        self.observer.as_ref(),
+                        "accumulated_reference",
+                        Some(micro),
+                        Some(gradient.layer),
+                        r.entries(),
+                    );
+                }
+                observation::value(
+                    self.observer.as_ref(),
+                    "accumulated_bias",
+                    Some(micro),
+                    Some(gradient.layer),
+                    0,
+                    &gradient.db,
+                );
             }
             if keep_hidden {
                 acts.truncate(n_layers);
@@ -1098,6 +1276,24 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         {
             let mut w = mlp.layers[i].0.w.clone();
             self.optims[i].step_with_reference_gradient(ev, &mut w, &dw, reference.as_ref())?;
+            #[cfg(test)]
+            {
+                observation::values(
+                    self.observer.as_ref(),
+                    "weight_updated",
+                    None,
+                    Some(i),
+                    w.diagonals().entries(),
+                );
+                observation::value(
+                    self.observer.as_ref(),
+                    "bias_updated",
+                    None,
+                    Some(i),
+                    0,
+                    &b_new,
+                );
+            }
             trace.push((format!("W{}'", i + 1), w.level()));
             trace.push((format!("b{}'", i + 1), b_new.level()));
             new_layers.push((i, w, b_new));
@@ -1117,7 +1313,14 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         let r = self.refresher.as_mut();
         let mut count = 0;
         let result = (|| -> Result<()> {
-            for ((dense, _), opt) in mlp.layers.iter_mut().zip(self.optims.iter_mut()) {
+            // The index is used only by test observation; iteration order is unchanged.
+            #[cfg_attr(not(test), allow(clippy::unused_enumerate_index))]
+            for (_layer_index, ((dense, _), opt)) in mlp
+                .layers
+                .iter_mut()
+                .zip(self.optims.iter_mut())
+                .enumerate()
+            {
                 let w = &dense.w;
                 let entries = w
                     .diagonals()
@@ -1132,6 +1335,24 @@ impl<'a, E: HeOps> Trainer<'a, E> {
                 dense.b = r.refresh(&dense.b)?;
                 count += 1;
                 count += opt.refresh_state(r)?;
+                #[cfg(test)]
+                {
+                    observation::values(
+                        self.observer.as_ref(),
+                        "weight_refreshed",
+                        None,
+                        Some(_layer_index),
+                        dense.w.diagonals().entries(),
+                    );
+                    observation::value(
+                        self.observer.as_ref(),
+                        "bias_refreshed",
+                        None,
+                        Some(_layer_index),
+                        0,
+                        &dense.b,
+                    );
+                }
             }
             Ok(())
         })();
@@ -1193,5 +1414,73 @@ impl<'a, E: HeOps> Trainer<'a, E> {
         };
         self.log.push(log.clone());
         Ok(log)
+    }
+}
+
+#[cfg(test)]
+mod p2_helpers {
+    use super::*;
+    use crate::diagonal_plan::tests::{coarse, rng};
+    use std::{cell::RefCell, rc::Rc};
+    #[test]
+    fn p2_bias_retry_witnesses() {
+        crate::diagonal_plan::tests::reserve_helper_calls(2);
+        let c = coarse();
+        let ev = c.ev.fork();
+        let sink = Rc::new(RefCell::new(observation::Recorder::default()));
+        for (bits, ok) in [
+            (0x4135_eb85_1ebf_b0df, true),
+            (0x4135_eb85_1ec1_0524, false),
+        ] {
+            let target = f64::from_bits(bits);
+            let dense = Dense::encrypt_at(
+                &Array2::zeros((2, 2)),
+                &[0., 0.],
+                &c.layout,
+                target / c.p.scale(),
+                2,
+                &c.encrypt,
+                &c.enc,
+                &mut rng(52),
+            )
+            .unwrap();
+            assert_eq!(dense.b.scale().to_bits(), bits);
+            let dz = c.encrypt_at(2, c.p.scale(), 0.125);
+            sink.borrow_mut().attempts.clear();
+            let before = ev.counter();
+            let r = bias_grad(&ev, &dense, &dz, &c.layout, 0.125, Some(&sink));
+            assert_eq!(r.is_ok(), ok);
+            if let Ok(out) = r {
+                assert_eq!((out.level(), out.scale().to_bits()), (0, bits));
+            }
+            let expected = if ok {
+                OpCounter {
+                    rotations: 6,
+                    ct_pt_mults: 1,
+                    rescales: 1,
+                    ..Default::default()
+                }
+            } else {
+                OpCounter::default()
+            };
+            assert_eq!(&ev.counter() - &before, expected);
+            let attempts = &sink.borrow().attempts;
+            assert_eq!(attempts.len(), 2);
+            assert_eq!((attempts[0].source_level, attempts[1].source_level), (2, 1));
+            assert!(
+                attempts
+                    .iter()
+                    .all(|a| a.source_scale_bits == c.p.scale().to_bits() && a.target_bits == bits)
+            );
+            assert_eq!(attempts[0].error, Some(HekitError::ScaleMismatch));
+            assert_eq!(
+                attempts[1].error,
+                if ok {
+                    None
+                } else {
+                    Some(HekitError::ScaleMismatch)
+                }
+            );
+        }
     }
 }
