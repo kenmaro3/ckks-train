@@ -1,0 +1,15 @@
+{
+  "kind": "operational_observation_tool_custody_not_scientific_result",
+  "original_session_id": 15684,
+  "launch_chunk": "fb7261",
+  "intermediate_chunks": [
+    "97e91e"
+  ],
+  "final_chunk": "ae5997",
+  "controller_exit_code": 0,
+  "ssh_exit_code": 0,
+  "invocations": 1,
+  "automatic_retry": false,
+  "eligible_clock_utc": "2026-11-07 15:56:24 UTC",
+  "preflight_before_eligibility_did_not_invoke": true
+}
