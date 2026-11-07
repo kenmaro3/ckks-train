@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
+最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -835,3 +835,11 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 追加の3 exactテストは一度ずつ実行して全件合格し、Cargo子プロセスは3件ともexit0だった。対象は鍵生成前の拒否、canonical ownerの保持、コピー計上の境界である。rootの呼出しラッパーがtool session情報を出力しなかったため、親controllerの終了コードは未観測として残す。元のcontroller PIDはその後不在、3件の結果・生ログ・完全summaryを保持し、491入力pinとraw hashを再確認した。再実行はしていない。
 
 暗号処理の成功経路・破棄・I／NI学習ループは未実行であり、実行開始権限も付与しない。入力生成内部を含むtest3の乱数初期化12回、各テストのNTT表生成72／36／72個、P1のscalar root検証65,535個は実際の処理として区別する。既存P4／P5数学処理は変更していない。残りは実runtime／ExecutionBinding、明示request、実gate・durable start・科学結果publisherと全実験で、productionのMissingExecutionDependencyを維持する。Task54／M4／M5全体、資源適合や学習精度の合格ではない。
+
+<a id="latest-evidence-20261107-d7-live-gates"></a>
+
+## 2026-11-07追記: 実行開始条件とFull／Quickの設計
+
+[実行開始条件の設計](study-gates-design.md)を、独立FIX1レビュー合格後に確定した。既存の正当性・セキュリティ条件を維持し、開始前の前提、鍵生成後の構成確認、精度・速度等の実測結果を区別する。本実験の結果を本実験の開始条件にする循環は作らない。Fullは実際のtarget／reference／thresholdを必須とし、Quickは別の運用identityと2更新分の消費を保持する。QuickからFullの実行権限へ変換できない閉じた分岐で、初回レビューの重要指摘を解消した。
+
+同一contextの識別と独立したlifetime、五つの実gate、durable startからCPU所有者への移譲を具体化した。既存user権限を記録するだけで新たな一律確認は要求しない。evidence sidecarの保存・途中失敗・復旧規則はprotocol実装前の必須事項として残す。設計の確定であり、gate／durable startの実装・実測ではない。科学しきい値、既存hold、全実験範囲は変更しない。

@@ -608,4 +608,10 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 暗号処理の成功経路・破棄・I／NI学習ループは未実行であり、実行開始権限も付与しない。入力生成内部を含むtest3の乱数初期化12回、各テストのNTT表生成72／36／72個、P1のscalar root検証65,535個は実際の処理として区別する。既存P4／P5数学処理は変更していない。残りは実runtime／ExecutionBinding、明示request、実gate・durable start・科学結果publisherと全実験で、productionのMissingExecutionDependencyを維持する。Task54／M4／M5全体、資源適合や学習精度の合格ではない。
 
+## 2026-11-07追記: 実行開始条件とFull／Quickの設計
+
+[実行開始条件の設計](study-gates-design.md)を、独立FIX1レビュー合格後に確定した。既存の正当性・セキュリティ条件を維持し、開始前の前提、鍵生成後の構成確認、精度・速度等の実測結果を区別する。本実験の結果を本実験の開始条件にする循環は作らない。Fullは実際のtarget／reference／thresholdを必須とし、Quickは別の運用identityと2更新分の消費を保持する。QuickからFullの実行権限へ変換できない閉じた分岐で、初回レビューの重要指摘を解消した。
+
+同一contextの識別と独立したlifetime、五つの実gate、durable startからCPU所有者への移譲を具体化した。既存user権限を記録するだけで新たな一律確認は要求しない。evidence sidecarの保存・途中失敗・復旧規則はprotocol実装前の必須事項として残す。設計の確定であり、gate／durable startの実装・実測ではない。科学しきい値、既存hold、全実験範囲は変更しない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
