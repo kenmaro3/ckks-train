@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [metadata停止箇所の特定](#latest-evidence-20261107-r25)。
+最新の追記: [Train runtime／contextの統合](#latest-evidence-20261107-runtime)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-r25)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-runtime)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -560,3 +560,14 @@ CUDA観測APIに続くTrain runtime／contextの実装を開始した。serial C
 限定修正FIX2は独立sourceレビューに合格した。[R25の元運用記録](../results/quadruped/observations/R-REB-25/README.md)では、09:50:13 JSTのmetadata専用確認がexit1／未完了となり、停止候補を保持できた。対象はmatplotlib-3.11.2のMETADATA（80264 bytes、元記録に実hashあり）で、Licenseフィールドが物理171行目で累積8219 bytesとなり、据え置いた8192 bytes上限を超えた。8219は停止時の長さであり、License全体の長さではない。本文・値は出力していない。
 
 metadataの読取りは550058 bytes、source／smallは0。失敗前の部分inventoryと原因を保存し、context／captureや後続collectorには進んでいない。R24の欠落情報を過去にさかのぼって補完せず、今回の観測と分ける。上限の自動変更や成功扱いはせず、実際の形式に基づく次の扱いを理由・代替案とともに検討する。FULL-2の最新実観測は09:47:06 JSTの162/1000更新のままで、GPU計測待ち・全登録範囲・campaign holdを維持する。
+
+<a id="latest-evidence-20261107-runtime"></a>
+## 2026-11-07追記: Train runtime／contextの統合
+
+`5e763f0`で、serial CPU・専用Rayon pool・CUDA hostの3構成を保持するprivate runtimeとTrain contextを統合した。現在のprocess／thread／poolを再確認し、CUDA側の観測APIと保持したnative module fileを照合する。Linux限定ProcessStampと、既存SHA-256のstreaming化も含む11ファイルの変更で、独立sourceレビューは仕様・品質とも合格、指摘事項なしだった。
+
+保存した実行ログでは、各構成のprovenance限定47件、Reference関連52件、専用pool・module fileの拒否例、独立SHA期待値、7doctests、拒否理由を照合した7つのrustc compile negative、3構成のstrict Clippy、formatが合格した。構成間で同じテストを含むため件数を単純合算しない。途中で検出したReference拒否順序の回帰は修正し、失敗ログも保存した。Macの限定検証であり、実LinuxのTrain公開読取り／書込み拒否統合とfork確認、実GPU観測／JITは未計測。
+
+現時点のdispatcherはcontext確認後にMissingExecutionDependencyを返す。CaseProvenance、具体的な実行条件の記録・admission／durable start・HE開始／checkpoint・全行runnerはまだ未完了で、この統合を科学実験の実行成功とは扱わない。CaseProvenanceの独立literal fixturesは準備・レビュー中。ReBoot側はR25の観測を根拠に、長い非選択headerを既存file上限内の形式情報として記録する修正を進める。物理行8192／選択値256と既存read/output上限は保持するが、非選択headerの一律logical8192拒否は変更する。理由と代替案は実装前に記録した。
+
+FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度／GPU実測／Task42・M4・M5の全体判定、全登録範囲、campaign holdは変えていない。
