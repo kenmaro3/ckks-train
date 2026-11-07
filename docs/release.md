@@ -180,3 +180,9 @@ At Unix1793930954.5309272, the read-only key-auth observation recorded FULL-1 up
 Root subsequently verified queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` / [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) **completed/success, all six jobs success**: fmt, test, deny, research-tools, cuda-check and clippy. The renamed SHA09202cf's earlier success remains a separate record. This replaces the current pending claim for 4b1c499; it does not validate later commits, GPU measurements or a research gate. No publication occurred.
 
 Evidence retained in the ledger: `post-full-followup-observation.stdout` (SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`) and `task-post-full-ci.json` (SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`). Root supplied the administrative CI run/SHA mapping. Original research JSON is unchanged.
+
+## 9. rustix selected-MIT notice (2026-11-08)
+
+THIRD_PARTY_NOTICES now records the MIT alternative selected for rustix1.1.6 and reproduces its complete pinned LICENSE-MIT text. Commit71d3f09 added the direct Linux std/fs edge to ckks-train-bench with default features disabled; the locked version/checksum already existed. Bench remains publish=false. Existing notices, dependency versions/features, deny policy and the Unicode-table-only exception are unchanged by this documentation update.
+
+The [candidate and independent review](../results/validation/task55-rustix-notice/README.md) passed exact byte/manifest/history checks. This is repository notice preparation, not a new package build, final-SHA CI result, native Linux validation or registry publication. The latest source and distribution contents still require final release verification once implementation is complete.

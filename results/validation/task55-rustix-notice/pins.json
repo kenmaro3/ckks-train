@@ -1,0 +1,7 @@
+{
+  "base_notice_sha256": "618469340d937d6a88145a7a1f6e618220917f2624917830335a050ed3af9ba9",
+  "candidate_sha256": "202a73802ec729312bd431da05c2b976a2544e61cbc245b227c8d6962555c711",
+  "source_license_path": "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/LICENSE-MIT",
+  "source_license_sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+  "production_dependency_commit": "71d3f0937741a4ff8d156b36540332ea82203d3c"
+}

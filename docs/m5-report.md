@@ -746,4 +746,8 @@ Linux実機の最小21ケース、追加caller／guard／fork／mount検証と�
 
 予定時刻の前には起動せず、実時刻を再確認後に1回だけ起動した。元controller session15684のterminal0とSSH exit0まで回収し、job再起動・queue変更・追加計測はしていない。次の通常確認は2026-11-08T01:56:43+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
 
+## 2026-11-08追記: rustixのライセンス通知
+
+共有保存処理で直接利用するrustix1.1.6について、選択済みのMITライセンスと原文をTHIRD_PARTY_NOTICESへ追加した。[独立レビュー](../results/validation/task55-rustix-notice/README.md)で、原文1023 bytes・既存noticeの不変・依存設定・追加commit・benchのpublish=falseを確認した。依存や許可例外の追加変更はない。文書整備の合格であり、新しい配布パッケージ・最終CI・公開の合格ではない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

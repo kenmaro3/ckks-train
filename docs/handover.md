@@ -987,3 +987,7 @@ Linux実機の最小21ケース、追加caller／guard／fork／mount検証と�
 実際の確認時刻は2026-11-08T00:56:42.573914+09:00。R-41-FULL-2はupdate541（0始まり）、完了542/1000更新、ログ上のelapsed77766秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新536〜541は各1415 KS・4 bootstrapで予測一致、最終結果JSONはなく、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0056/README.md)を保存した。
 
 予定時刻の前には起動せず、実時刻を再確認後に1回だけ起動した。元controller session15684のterminal0とSSH exit0まで回収し、job再起動・queue変更・追加計測はしていない。次の通常確認は2026-11-08T01:56:43+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
+
+## 2026-11-08追記: rustixのライセンス通知
+
+共有保存処理で直接利用するrustix1.1.6について、選択済みのMITライセンスと原文をTHIRD_PARTY_NOTICESへ追加した。[独立レビュー](../results/validation/task55-rustix-notice/README.md)で、原文1023 bytes・既存noticeの不変・依存設定・追加commit・benchのpublish=falseを確認した。依存や許可例外の追加変更はない。文書整備の合格であり、新しい配布パッケージ・最終CI・公開の合格ではない。

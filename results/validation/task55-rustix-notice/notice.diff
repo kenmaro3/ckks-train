@@ -1,0 +1,59 @@
+--- a/THIRD_PARTY_NOTICES
++++ b/THIRD_PARTY_NOTICES
+@@ -100,16 +100,56 @@
+ They are listed so the license set stays visible.
+ 
+ - libloading 0.8 (https://github.com/nagisa/rust_libloading), ISC License. Pulled in by
+   cudarc for dynamic loading of the CUDA driver/NVRTC in crates/ckks-train-cuda (feature `cuda`
+   only). ISC is an OSI-approved permissive license equivalent to MIT; accepted by planner
+   ruling on 2026-11-05.
+ 
+ 
++rustix 1.1.6 (MIT license alternative)
++--------------------------------------
++
++Source: https://github.com/bytecodealliance/rustix (crate version 1.1.6).
++ckks-train selects the MIT alternative for this dependency. The Linux-only
++ckks-train-bench dependency enables std/fs with default features disabled and
++uses safe filesystem APIs for anonymous-file publication and retained descriptors.
++The crate version was already present in Cargo.lock; the direct dependency edge
++was added in commit 71d3f0937741a4ff8d156b36540332ea82203d3c.
++No rustix implementation source is copied into this repository.
++ckks-train-bench remains publish=false; this notice records the repository's
++dependency choice and does not claim a crates.io release or a tested binary package.
++
++The following text is reproduced verbatim from rustix 1.1.6 LICENSE-MIT:
++
++    Permission is hereby granted, free of charge, to any
++    person obtaining a copy of this software and associated
++    documentation files (the "Software"), to deal in the
++    Software without restriction, including without
++    limitation the rights to use, copy, modify, merge,
++    publish, distribute, sublicense, and/or sell copies of
++    the Software, and to permit persons to whom the Software
++    is furnished to do so, subject to the following
++    conditions:
++
++    The above copyright notice and this permission notice
++    shall be included in all copies or substantial portions
++    of the Software.
++
++    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
++    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
++    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
++    SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
++    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
++    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
++    IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++    DEALINGS IN THE SOFTWARE.
++
++
+ Unicode character data (scoped dependency exception)
+ ----------------------------------------------------
+ 
+ The transitive dependency unicode-ident 1.0.27 declares
+ (MIT OR Apache-2.0) AND Unicode-3.0. Its character-property data adds the
+ Unicode-3.0 requirement. The user approved this Unicode-table-only exception
+ on 2026-11-06. deny.toml restricts it to unicode-ident =1.0.27; it does not
+ allow Unicode-3.0 for other crates or versions. The library itself remains MIT.
