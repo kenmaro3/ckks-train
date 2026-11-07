@@ -1,0 +1,194 @@
+# Task54 D7 exact-inode publication mutation prerequisite
+
+Status: design proposal only, 2026-11-07. Independent SPEC/QUALITY review and root ratification must precede source. No production code, manifest, public document or historical vector is changed by this artifact. All tests below are obligations, not executed results.
+
+## 1. Decision and scope, before implementation
+
+Replace the **shared Native publisher**, including Reference/Diagnostic/Failure/Target and future D7 callers, with an anonymous-inode publisher: create an `O_TMPFILE` inode relative to the held publication parent, retain its sole owned Rust File, finish permissions/write/fsync, and publish that exact inode by `linkat` through a held, verified procfs FD directory with `AT_SYMLINK_FOLLOW`. Failure cleanup is dropping the owned File, never a directory-entry mutation. No named temporary entry is created or removed by the new publisher. Final publication remains no-clobber.
+
+Do not use `AT_EMPTY_PATH`: Linux documents a CAP_DAC_READ_SEARCH requirement. The documented procfs alternative avoids that requirement. Do not acquire capabilities, change process permissions, mount anything, or fall back to the vulnerable named-temp algorithm. A host without the required working mechanisms is unsupported for new publication; it may still inspect/recover existing records through the unchanged safe read/recovery paths. [Linux link(2)](https://man7.org/linux/man-pages/man2/link.2.html)
+
+This is a small shared internal migration, **not** a second D7-only publisher. Leaving Reference/Target on the identified defective mutation path would give the dependent Full pipeline inconsistent custody guarantees. Preserving their behavior means retaining canonical bytes, caps, final names, no-clobber semantics, before-link/visible-uncertain error meaning, source/role/guard checks and recovery permissions; it does not mean preserving the unsafe internal path operations or their exact call counts. The broader validation cost is explicit in §§6–8.
+
+Concrete costs/risks to ratify before source:
+
+* The selected verified procfs capture below uses `openat2`, adding a Linux 5.6-or-later API requirement (actual syscall support is checked, not inferred from a version string). Seccomp/procfs restrictions may refuse publication on otherwise supported ext4/XFS. There is no compatibility fallback in this package.
+* Add a Linux-target direct normal dependency on already-locked rustix 1.1.6, with `default-features = false`, `features = ["std", "fs"]`, version `=1.1.6`. This **is a dependency-graph/source-approval change**, even though no new version or package is proposed. Select its MIT license alternative. The lockfile's bench dependency edge will change; do not promise an unchanged Cargo.lock. No Cargo invocation happened here.
+* New publications leave no named temporary forensic remnant. A crashed pre-link publication can still leave its already-created named attempt and prior finals; the frozen orphan/Initial rules remain. Old named remnants remain recognized and preserved.
+* If FD ownership or procfs identity is implemented incorrectly, the old substitution problem could reappear under a different pathname. Retention and procfs validation below are mandatory, not optimizations. If the final link succeeds and a later check fails, the final must remain and the error must be visible-uncertain.
+* This closes the six temp-mutation races. It does not prevent an actor with directory write authority from subsequently deleting/replacing finals, nor does it make checks of mutable source/context globally atomic. Existing held-parent/final/source/process rechecks still bound those claims. A hostile kernel, privileged mount injection or arbitrary in-process raw-FD close/dup2 is not solved by this protocol; the existing noncooperating **named-entry** replacement actor remains fully in scope and need not honor flock.
+
+## 2. Inputs inspected and actual API basis
+
+Read task-54-brief.md first, then the entire mutation brief, custody inventory including §7 FIX1, original independent inventory review, FIX1 review, ratified custody proposal, current publication.rs/publication_tests.rs and manifests. The accepted inventory is `9276aabb55edc10e11e0191e87d807ebb354b1fce8335242b2bf19aa13978aa5`; its FIX1 review explicitly does not declare native safety achieved.
+
+Read-only source pins:
+
+| File | SHA256 |
+|---|---|
+| `crates/ckks-train-bench/src/study_provenance/publication.rs` | `8cfabba4dcf7daae93e90ce40a0bc1bcf13c59c713bb5c9d65964b97a4a2c004` |
+| `crates/ckks-train-bench/src/study_provenance/publication_tests.rs` | `10f640a0961da262ddcd15627a5a1c59455b1fddbee7cc5c9a4711b6eff33fd6` |
+| `crates/ckks-train-bench/Cargo.toml` | `189d5d50799949561ccf6ff6696b7f5b89e1aa860d9f88a641abddca9e096d98` |
+| `Cargo.lock` | `7250dbf896c207b4e838cabea88c5a4110e46803e3c8e8fe6460f8a7f60c97b1` |
+
+The current bench directly depends on libc, not rustix. Cargo.lock already has rustix 1.1.6 through tempfile; its checksum is `e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa`. Locally installed crate source was read, not built. Its safe APIs include `fs::openat`, `openat2`, `fchmod`, `fstatfs`, `linkat`, typed `OFlags::TMPFILE`/`AtFlags::SYMLINK_FOLLOW`, and `path::DecInt::from_fd`. It returns OwnedFd convertible safely to File. rustix declares MSRV 1.65, below workspace 1.85, and an MIT license alternative. This is API/manifest compatibility inspection, not a compiler result. [rustix 1.1.6 manifest](https://raw.githubusercontent.com/bytecodealliance/rustix/v1.1.6/Cargo.toml), [safe at APIs](https://github.com/bytecodealliance/rustix/blob/v1.1.6/src/fs/at.rs), [safe openat2](https://raw.githubusercontent.com/bytecodealliance/rustix/v1.1.6/src/fs/openat2.rs)
+
+Place new Linux anonymous/procfs helpers in a small private child module with `#![forbid(unsafe_code)]`; no new unsafe block, raw-FD ownership constructor, manual close, libc::syscall, C shim or copied external implementation. Existing parent-module unsafe code is retained historical source, not relabeled safe Rust or audited away. The dependency itself and std necessarily contain OS-level unsafe implementation; “zero new unsafe” means this project's new helper code. No vendored kernel/man-page code is copied. Legacy anchoring/mount/guard helpers remain separate, with their existing review obligations.
+
+## 3. Exact owned state and OS sequence
+
+Use the existing private `Native<'a>`/`publish_ops` rather than a public configurable framework. Native continues borrowing its held parent and receiving a validated closed final selector (or existing validated Reference run-id derivation); new state is `file: Option<File>` plus a private `ProcFdDirectory` held for publication. Remove `temp` and publication-time suffix/id selection; retain old temp-id constants **only for legacy inventory recognition**. Recovery constructs a reader/sync-only Native or the unchanged minimal recovery adapter with its existing File, with no procfs capture and no anonymous creation. `recover_ops` remains file fsync then directory fsync. Do not force the new publisher's availability gate onto recovery.
+
+The new five logical Ops are C=create, W=write_complete, F=file_sync, L=link_owned, D=dir_sync. `publish_ops` performs C,W,F,L,D in that order; it has no `unlink_owned` operation and no extra directory sync. A local Native owns its File throughout the call and all required post-publication checks. Drop closes it on every exit. Explicit test lifetime events are counted separately from Ops.
+
+### C: fixed procfs capture and anonymous creation
+
+Preserve all current caller checks before C: role/cap/selector validation, private supported mount, anchors, guard, source/context, eligibility and relevant D7 gates. No Full creation becomes legal merely because this lower-level helper exists. Capture procfs for each publication invocation, not a deserializable/global cached authority:
+
+1. `rustix::fs::open("/proc", RDONLY|DIRECTORY|NOFOLLOW|CLOEXEC, Mode::empty())`; require directory and `fstatfs(...).f_type == PROC_SUPER_MAGIC`. `/proc` is fixed internal text, never supplied by evidence, CLI, environment or a configurable proc root. An ordinary fake tree or symlink fails. Retain the verified proc root until capture completes.
+2. `openat2(&proc_root, "self/fd", RDONLY|DIRECTORY|NOFOLLOW|CLOEXEC, Mode::empty(), BENEATH|NO_XDEV|NO_MAGICLINKS)`. Do **not** add NO_SYMLINKS: the kernel's `self` is an ordinary relative symlink to this process. Require returned directory and procfs type as well. Keep the resulting owned FD for L. BENEATH prevents escape, NO_XDEV excludes bind/submount diversion during this capture, and NO_MAGICLINKS rejects unexpected magic-link traversal. No path under the publication directory participates. Any error is refusal, not a retry with weaker flags. [openat2(2)](https://man7.org/linux/man-pages/man2/openat2.2.html), [statfs(2)](https://man7.org/linux/man-pages/man2/fstatfs.2.html), [kernel self-link implementation, v6.12](https://raw.githubusercontent.com/torvalds/linux/v6.12/fs/proc/self.c)
+3. Recheck same live process/origin before use; a retained proc-FD directory cannot be inherited and used by a different/forked caller as authority. D7 keeps its full ProcessStamp/context/thread checks; shared Native additionally stores the creating `std::process::id()` and refuses a changed process at L. PID alone is not a replacement for D7's stronger origin checks.
+4. `openat(&held_parent, ".", TMPFILE|RDWR|CLOEXEC|NOFOLLOW, mode0600)` returns OwnedFd; immediately convert by the safe `File::from(owned_fd)` and retain it. No O_CREAT, no O_EXCL and no initial named link. O_EXCL would prohibit the later publication. Mode is set exactly by `rustix::fs::fchmod(&file, mode0600)` on that FD, then validate regular type, effective UID, exact0600, zero initial link count, and existing same-publication-device/mount checks. A restrictive umask is handled only on our anonymous inode; never chmod a path-reopened object.
+5. As a fail-closed consistency check, follow this FD's decimal entry through the held proc-FD directory with safe `openat` (RDONLY|NONBLOCK|CLOEXEC, intentionally without NOFOLLOW here), compare its dev/ino with the retained File, validate regular/UID/mode/mount, then drop this temporary read FD. This is a binding check, not the mutation-safety proof. The retained original File remains open; no decimal component escapes the private scope. Normal peak C ownership is proc root + proc-FD dir + original File + one checked read FD; drop proc root after successful capture. Fixed path text/decimal formatting is bounded and does not load evidence.
+
+Linux documents O_TMPFILE creation of an unnamed regular inode, disposal at last FD close without a link, linkability when O_EXCL is absent, and ext4/XFS support (XFS since 3.15). For this stricter capture implementation, working openat2 is additionally required. O_TMPFILE unsupported/readonly/quota/permission errors refuse C; never turn EINVAL/EOPNOTSUPP/EISDIR/ENOENT into named creation. An inode created before a later C failure is closed by RAII, with zero pathname cleanup. [open(2), O_TMPFILE](https://man7.org/linux/man-pages/man2/open.2.html)
+
+### W/F/L/D and the visibility boundary
+
+W uses the existing `write_complete`/write_all handling. F uses `File::sync_all()` on exactly the owned File after mode and complete bytes are established. No truncate, reopen-for-write or cloned writable descriptor is needed.
+
+L keeps an immutable borrow of that File and the held proc-FD directory for the **entire syscall**, derives `DecInt::from_fd(&file)` at the call site, and executes the safe rustix `linkat(&proc_fds, decimal_fd, &held_parent, final_name, AtFlags::SYMLINK_FOLLOW)`. The source is the kernel's FD link, not the printed readlink target (which must never be parsed/reopened). Destination is the existing single validated basename relative to the retained parent. No AT_EMPTY_PATH and no follow of a caller-selected source symlink. Success must return Ok immediately: no fallible metadata/clock/context operation may be bundled after the successful link but returned as an L error. No link retry/reconciliation through another path after an error. Existing destination of any type is never overwritten. [link(2)](https://man7.org/linux/man-pages/man2/link.2.html)
+
+D fsyncs the same held parent. After successful L, all D/final-identity/anchor/source/context/clock failures map to VisibleUnconfirmed. Retain the original File until post-publication identity verification: the final opened nofollow through the held parent must be regular, same dev/ino and appropriate owner/mode/mount; D7 additionally retains/compares exact bounded bytes as already ratified. Preserve all existing outer source/clock confirmations. The shared Store path needs the same small final-identity/anchor confirmation before returning DurableBytes; TargetStore retains its guard confirmation as well. These post-D checks are explicit logical checks **outside** the five Ops count; they cannot roll back a final or claim BeforeLink. No sync/validation after linking is hidden inside L.
+
+The durability sequence is mode/write → file fsync → final link → parent fsync → late validation. There is no temp unlink and thus no second namespace mutation requiring a second parent fsync. Required directory-creation/ancestor syncs and recovery's ordered multi-file/ancestor syncs remain unchanged. fsync(file) alone is insufficient for the directory entry; dropping File is not a durability operation. Successful syscalls are the software durability boundary, not power-loss testing or a guarantee against lying/failing storage. [fsync(2)](https://man7.org/linux/man-pages/man2/fsync.2.html)
+
+### Ownership, cleanup and proof boundary
+
+OwnedFd/File stays exclusively owned until L completes and post-publication checks finish. No into_raw_fd, from_raw_fd, mem::forget, descriptor handoff, dup2/close-on-raw-number, concurrent mutable access or public raw-FD-taking constructor is added. Merely formatting an integer does not pin it; the live owned File borrow does. Rust's owned descriptor closes on drop; safely converting ownership does not create a second closer. [Rust OwnedFd](https://doc.rust-lang.org/std/os/fd/struct.OwnedFd.html)
+
+On fchmod/write/fsync/atomic-link failure or a caller drop before L, the only cleanup is dropping the owned anonymous File and proc handles. No final was created by this invocation; earlier sidecars/attempt directories remain. Drop does not retry close or inspect/remove any temp/final name. Std File drop does not report close errors, so do not invent a fallible “cleanup succeeded” receipt or a cleanup-fault syscall. After L the final survives File drop, including D failure, late failure, panic/unwind or lost caller. Process exit closes remaining descriptors; abort/fork/leaked references may extend anonymous-inode lifetime until the last reference closes, without creating a named temp or granting a live receipt. CLOEXEC limits exec inheritance, but does not make fork inheritance impossible; forked use is refused by origin checks. No instantaneous storage-reclamation claim is made. [close(2)](https://man7.org/linux/man-pages/man2/close.2.html)
+
+The relevant kernel lookup resolves a proc FD link to the referenced open File's path, not to an attacker-substitutable temp pathname. This is the reason the design closes the race; the extra inode comparison is only a diagnostic check. Kernel proc FD entries are generated from the task FD table, not regular directory entries that the named-entry actor can rename/create. A retained proc directory also avoids later resolution of `/proc/self/fd` prefixes. [kernel proc_fd_link / proc_lookupfd_common, v6.12](https://raw.githubusercontent.com/torvalds/linux/v6.12/fs/proc/fd.c)
+
+Proc access can be denied; `/proc/pid/fd` also has documented main-thread-lifetime limitations. Refuse if capture/binding/link fails. Do not claim procfs is always available, reset dumpability, weaken security settings or accept a fabricated alternate tree. An actor replacing a normal T entry remains unrestricted; it simply has no effect on the descriptor-bound source and cannot cause a cleanup unlink that no longer exists. [proc_pid_fd(5)](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html)
+
+## 4. Six required schedules and their new assertions
+
+Keep FIX1's six old-source exposure schedules as an archived deterministic model, clearly labeled vulnerable historical behavior. They are not a remaining production algorithm. For the migrated publisher retain the same 6×15 = **90 safety scenarios** at corresponding mutation/lifetime cuts, using an actor-owned legacy T sentinel initially pointing to X, actor rename T→M outside the selected attempt then create T→R with bytes `foreign!`. O is the anonymous owned inode; T never points to O in production. A literal rename of a nonexistent publisher-owned T cannot be pretended to succeed. This change in fixture representation is precisely why the race is removed, not exclusion of the actor. Track O/X/R and F/T/M separately.
+
+| Existing suffix under `d7_custody_c04_postcheck_` | New equivalent cut and trace | Required observable state |
+|---|---|---|
+| `link` | After proc-entry consistency check, immediately before descriptor-source link; C,W,F,L,D (5) | F→O with exact bytes; T→R and M→X untouched. L cannot publish R |
+| `unlink_postlink` | After D, immediately before File release (former postlink cleanup); C,W,F,L,D (5) | F→O survives; T→R and M→X untouched; no unlink issued |
+| `unlink_write_cleanup` | W fails before progress, actor then File drop; C,W! (2) | F absent; O released; T/M unchanged by publisher |
+| `unlink_file_sync_cleanup` | W complete, F fails, actor then drop; C,W,F! (3) | F absent; O released; T/M unchanged by publisher |
+| `unlink_link_cleanup` | L atomically fails (scripted ENOSPC), actor then drop; C,W,F,L! (4) | F absent; O released; T/M unchanged by publisher |
+| `unlink_fchmod_cleanup` | C owns O, fchmod fails, actor before internal RAII release; C! (1) | F absent; O released without any mode assertion after failed chmod; T/M unchanged by publisher |
+
+The actor still performs rename1/create1 in every case; publisher unlinkat/rename calls are **zero**. Native L calls1 in rows1,2,5 and0 otherwise; only row5's call fails. All successful original inode links remain subject to later namespace/context checks before a live result. The tests exercise primitive identity preservation separately from attempt inventory: an unsafe/unknown replacement may additionally cause higher-level refusal, but cannot be credited for protecting a pathname mutation.
+
+## 5. Legacy behavior retained, alternatives rejected
+
+Recognize the exact historical `.tmp-<id>-0..63` grammar, caps, safety checks and unknown-entry rejection. Preserve all old named remnants, including temp/final hardlinks; no final-file nlink1 restriction is introduced. Recovery still reads/verifies only finals, can resync exact records and never adopts, promotes, unlinks or edits temps. Full profile-empty/claim_new continues rejecting any existing remnant/case/unknown entry; a lower-level no-clobber publisher does not bypass that policy. A complete uncertain old admission with safe temps may still become only the ratified verified Retry predecessor, never resumed live authority. The old `temporary_cleanup_not_performed()` recovery flag retains its existing meaning; do not invent evidence of a historical cleanup from anonymous new publication.
+
+Rejected alternatives, with cost if chosen incorrectly:
+
+| Alternative | Reason rejected |
+|---|---|
+| Repeat inode check immediately before link/unlink, or rely on profile flock | Same check-to-use gap; noncooperating actor can publish/remove replacement |
+| `linkat(fd, "", ..., AT_EMPTY_PATH)` | Capability requirement defeats unprivileged constraint; no capability probing/acquisition fallback |
+| Retain named temp, publish from its FD, never clean names | FD source helps linking while the inode still has a name, but actor unlink can make a normal zero-link inode un-linkable; new permanent named leftovers and collision exhaustion change every invocation. Does not need to be introduced when anonymous creation is supported |
+| Named temp unlink-on-open; renameat/renameat2 NOREPLACE; exchange then inspect | Unlink/rename still selects a name, or moves a foreign object before validation. No inode-conditional delete is supplied |
+| `std::fs::hard_link` on a proc FD pathname | Does not request the needed Linux linkat symlink-follow semantics; std alone is not the selected API |
+| tempfile convenience helper or silent named fallback | Cannot assume anonymous-only/linkable semantics, correct held-parent/procfs custody, or no fallback from a convenience name |
+| D7-only new adapter, old Native retained in production | Leaves Reference/Target dependencies exposed and creates two incompatible safety contracts |
+| Direct libc/new unsafe wrapper | Existing dependency would save the manifest edge, but violates the selected zero-new-unsafe helper constraint; safe already-locked rustix is available |
+| Bare `/proc/self/fd/N` freshly resolved at L | Unnecessary mutable prefix resolution; hold verified proc directory instead |
+| Plain proc directory walk with only post-open metadata checks | Smaller kernel API floor but weaker mount-diversion exclusion during capture; selected openat2 makes this requirement explicit. Older/restricted kernels remain unsupported, not silently weaker |
+
+This package does not alter scientific policy, Full/Quick event formats, evidence bytes, thresholds, C/R/A/K, legacy goldens, target-before-start, Initial/Retry authority, Quick initial-only/lost-end rules or all21/full2680+20+7/quick268. No generalized scheduler, syscall framework, cleanup service or approval service is proposed.
+
+## 6. Exact revised operation/fault inventory
+
+The following is a proposed **delta** to inventory9276aabb, to ratify before editing that inventory/source. Existing C01/C02/C03 eligibility, reads, gates and all unaffected C06–C10 cases remain. No old pass count is reused as new validation.
+
+### Five-operation primitive
+
+For each15 D7 branch-selector instances, `d7_custody_c04_publish_faults` becomes five failure positions plus success = **90**, replacing120 seven-stage cases:
+
+| Fault | Trace / Ops count | Error and current final |
+|---|---|---|
+| C | C! /1 | BeforeLink, absent; any internally acquired O drops |
+| W | C,W! /2 | BeforeLink, absent; O drops |
+| F | C,W,F! /3 | BeforeLink, absent; O drops |
+| L | C,W,F,L! /4 | BeforeLink, no new final; existing final preserved |
+| D | C,W,F,L,D! /5 | VisibleUnconfirmed, exact owned final remains |
+| none | C,W,F,L,D /5 | primitive durable result; no named temp |
+
+Drop is one owned-file release when creation reached O, zero otherwise, not an Ops call. No final deletion is permitted on any row. Late post-D final/anchor/source/context/clock failure cannot be injected as L failure.
+
+* Replace45 pre-link **cleanup-fault** cases with `d7_custody_c04_drop_preserves_names`: each15 × W/F/L failure =45; count2/3/4, release once, preserve all actor-owned legacy entries, zero path mutation. Do not simulate a nonexistent unlink fault or report a close error from File::drop.
+* Retain15 final-exists cases, now4 Ops and one drop; retain45 post-return identity/context/clock cases, now5 Ops and no live capability. Add shared final/anchor post-D checks:4 old caller kinds ×2 faults =8 before-return uncertain cases.
+* Retain60 short-write scripts and exact underlying Write counts8/1/2/7 for14-byte `complete bytes`; successful P5, failed W P2. write_all is still one W, not one syscall.
+* Replace975 create-collision cases with exactly975 `legacy_prefix_unmodified` cases:15 × occupied prefixes k=0..64. Each allowed primitive run creates one anonymous inode, opens **zero** temp names, succeeds in5 Ops if final absent, preserves all k entries. k64 is no longer collision exhaustion. This tests the low-level primitive, not Target claim_new, which still refuses preexisting remnants. Retain canonical name recognition960 and invalid146 inventory cases unchanged.
+* Replace30 collision-loop non-EEXIST cases with `anonymous_create_refusal`:15 × {EOPNOTSUPP,ENOSPC}=30; C1, anonymous-create attempt1, no named fallback/cleanup. Add15×{EROFS,EACCES,EINVAL,ENOENT}=60 refusal cases, also C1.
+* Replace60 old create-mode cases with15×{fchmod failure,mode validation failure,success,actor T replacement just before fchmod-failure drop}=60. C1 on failure, successful remainder P5; chmod only O, internal pathname cleanup0.
+* Retain30 old before-check swap slots as15×{before L binding check,before post-D release}=30 actor-sentinel cases. Now the correct inode can still be published and R preserved; they are no longer tests expecting a renamed owned T. Preserve old vulnerable-model expectations only in the historical fixture/model, not in the production-native assertions.
+* Retain the90 six-schedule scenarios in §4 with the stated new counts/states.
+* New `proc_capture_refusal` fixed scenarios: missing /proc; /proc symlink; nonproc fake tree; openat2 ENOSYS; openat2 EPERM; BENEATH rejection; NO_XDEV rejection; unexpected magic link; returned nonproc directory; decimal entry unavailable; decimal wrong inode; changed process before L =12 cases. First11 stop in C with no final, last stops at L after C/W/F (4 Ops). Any anonymous inode already acquired drops once. These are scripted safe-API failures, not permission-changing native tests.
+* New `owned_fd_lifetime` fixed cases: normal success; W/F/L failure; D failure; pre-L unused-owner drop; unwind before L; lost caller after L =8. Assert owned release exactly once, no numeric-FD reuse while borrowed, no path cleanup. Add2 compile-fail cases for moving/dropping owned File while its link-call borrow is live; these are about private helper borrowing, not public live-gate construction.
+
+### C-internal fault positions, counted separately
+
+Use fixed private test checkpoints, not a configurable production OS framework. C records eight **logical substeps**: c1 open proc root; c2 validate root; c3 openat2 self/fd; c4 validate FD directory; c5 create anonymous File; c6 fchmod; c7 validate O metadata/mount; c8 follow/compare proc entry. Each can contain documented helper reads; they are not asserted single syscalls. Inject failure once at each c1..c8 ×15 =120 cases. Exactly j C-substep calls through failed j, outer Ops1, later steps0. Owned release0 for c1..c5 failure-before-acquisition;1 for c6..c8. Additional internal c5 success/then injected return failure uses RAII release1, never an unowned raw integer. This one extra c5 ownership-transfer scenario is shared, not15 hidden extra cases. Successful C has8 substeps and no suffix loop. Existing mount-read counts remain separately bounded by their current helper caps.
+
+### Baseline and cuts
+
+P means the new five Ops; logical R/H/G/D(directory) counts from inventory stay unchanged. ENTER P6=30 Ops (was42), START P1=5 (was7), END P1=5. Full ENTER+START P7=35 (was49), R29; Quick with END P8=40 (was56), R44 or51 including BEGIN. BEGIN P0 unchanged. C08 successful winner ENTER30; W-failing winner2 (was3); loser0. Quick lost-caller/no-end P7=35 rather than49; successful/end-failure-outcome P8=40. No hidden cleanup operation is added to these totals.
+
+C05 file crash cuts become15×5×before/after =**150**, replacing210; directory cuts64/failures32 remain. Before C: no O/final; after C/W/F: anonymous O only while process/FD lives, no named current temp; after L: final O visible but parent sync unconfirmed; after D: software durability observed, still no live result if caller is lost. Add fixed C-substep ownership cuts before/after c5 and c6 (4 per selector=60), to prove RAII handling without claiming those are extra P stages. Process death and unwind are distinct observations; no fake disk model is called power-loss proof. Historical temp-only/linked-temp state classification cases remain inspection fixtures, although the new writer no longer generates them.
+
+## 7. Shared legacy validation contract
+
+Add `shared_anonymous_publication_faults`:4 old caller selectors {Reference,Diagnostic,Failure,Target} × six rows of the five-op table =24; `shared_anonymous_postcheck_windows`:4×six schedules =24; `shared_anonymous_no_clobber`:4; `shared_legacy_temp_preservation`:4×prefix k0..64 =260 low-level cases. Use fixed synthetic IDs and bounded payloads, never actual evidence/gates. All existing higher-level Reference/Target codec, role, source confirmation, fresh-flock and recovery tests remain required, with named-temp fixture setup decoupled from new Native.
+
+Concrete old test disposition:
+
+* `every_publication_fault_withholds_capability_and_preserves_final`: update to5 failures/5-call success, preserve no-live and final preservation semantics. `competing_publishers_never_replace_first_final` and concurrent synthetic publisher checks keep their invariant.
+* `recovery_never_cleans_any_temporary_name` and `recovery_file_sync_failure_preserves_temporary_name`: retain explicit historical temp in Fake; recover still two operations, file then dir. Do not infer directory-sync numbering from presence/absence of a temp anymore.
+* `target_native_engine_preserves_unknown_temp_and_does_not_overwrite`: retain the unknown/legacy sentinel and no-overwrite assertion, anonymous creation has no suffix search.
+* `target_replaced_owned_temp_is_never_unlinked_or_published`: retain its prior before-check behavior as a labeled old-source model/archived test evidence; migrated native test uses §4 actor sentinel and requires F=O/R preserved. Never falsely say a new owned named temp exists or retain a disabled test as passing coverage.
+* `target_recovery_preserves_linked_owned_orphan_after_postlink_failure`: construct an explicit test-owned historical final/temp hardlink pair with safe fixture operations, then exercise unchanged recovery; nlink2 and bytes remain. Separately test new D-failure leaves final-only, with no invented named orphan.
+* Fresh guard FD/thread/process, guard swap, directory owner/mode/no-repair, Target ExistingTrain/Reference policy, unknown-profile claim refusal, stamped final replacement, mount equality and short-write tests remain required. Native anonymous positives are Linux ext4/XFS only; macOS refusal is not an anonymous-publication pass. Pure legacy-read fixtures can remain portable.
+
+All production call sites switch together; no accepted source package may route only new D7 finals through the safe engine while retaining the old mutation implementation for other writers. Existing native tests may use a private scratch fixture seam but may not turn this into a live evidence/gate factory.
+
+## 8. Minimum bounded native proof plan — separate release
+
+No native operation was performed for this proposal. After source review and a separately bounded native release, run the following on an already-authorized **private scratch directory** on an actually observed supported mount, never user records. No sudo/capability/mount change, SSH, HE, campaign, P1, generator or real gates are required by this proof plan. If only ext4 is available, record XFS as unverified; do not create/mount a filesystem merely to fill coverage. To claim both filesystem families verified, repeat the same bounded package on one existing mount of each.
+
+Record kernel, mount type/device/mount ID and options, effective uid/capability observation, dependency/source/test-binary pins, proc capture outcome and exact filter/case list. Running as a privileged process is not evidence that the no-capability route works; use an ordinary already-unprivileged account without changing capabilities. Lack of one is a blocked native prerequisite, not permission escalation.
+
+Each scenario uses8-byte O=`owned-ok`, R=`foreign!`, at most64×8-byte legacy sentinels, no large files, one process pair at a time. Use IPC/barriers at the exact cuts, bounded timeout only as a failure bound, no timing-only success inference. Minimum named cases per filesystem:
+
+| Filter | Exact bounded cases and evidence |
+|---|---|
+| `publication_native_anonymous_success` |1: no directory temp before L, O regular0600 on held mount, final dev/ino=O, bytes exact, file/parent sync order, zero unlink/rename |
+| `publication_native_no_clobber` |3: existing regular final, symlink final, two publishers with a before-L barrier; preserve first/existing entry, exactly one competing final; losing O closes |
+| `publication_native_postcheck_windows` |6 schedules from §4, two coordinated actors, one8-byte control each; record O/X/R/F/T/M, proof that T/M unchanged by publisher |
+| `publication_native_legacy_prefix` |2: suffix0 and all64 occupied; no temp-name open/write/unlink, no exhaustion, preserve exact bytes |
+| `publication_native_drop` |4: unused pre-link owner drop; injected write failure after progress; injected fchmod-error control; child exit before L. Observe no named temp/final, no path cleanup; resource reclamation limited to visible/reference observations |
+| `publication_native_visible_uncertain` |2: injected D error after real link; child exit after L before D; final preserved, never live success/end, verified finals recover without temp cleanup |
+| `publication_native_proc_refusal` |2: private fake-proc-tree capture fixture rejected; injected ENOSYS from safe capture seam with zero named fallback. These do not claim the host's real /proc was disabled |
+| `publication_native_final_swap` |1: replace final after real L/before late check; late check rejects uncertain, publisher does not unlink replacement or original moved final |
+
+Total **21 cases per supported mount**, no unbounded stress loop. Include existing fresh-flock/guard/fork/mount native obligations from custody C08 as separate retained tests; these21 replace neither them nor genuine gate-to-begin lineage. The native mode/write/sync errors that cannot safely be provoked without host changes use explicit test-only injection at the documented safe-call boundary and are labeled injected, not observed OS failures. A real failing I/O fixture is not required for this minimal package. Capture syscall/order instrumentation through a private recorder if ptrace/strace is unavailable; do not ask for tracing privileges and do not claim injected logs are independent kernel tracing.
+
+Native exact-inode linking/no-path-cleanup evidence plus pure deterministic fault tests supports this mutation prerequisite only. It does not establish power-loss survival, real scientific gate applicability, Full/Quick completion, resource fit, GPU performance or restored authority after crash. Hardware/storage durability remains bounded by the successful fsync contract and separate evidence.
+
+## 9. Completion and unresolved acceptance points
+
+This proposal resolves the design choice with a documented unprivileged mechanism and concrete safe Rust route; implementation/native acceptance remains pending. Ratification must explicitly accept the shared scope, direct rustix dependency/feature edge, openat2 support floor and five-Ops/collision-test refinement. If the accepted deployment cannot satisfy the capture requirement, report unsupported and revisit this exact design; do not silently introduce a weaker fallback. No scientific scope/authority change follows.
+
+Read-only source/primary-document inspection and this ledger write only. No Cargo/compiler/tests/--list/runtime/native/SSH/HE/generator/real gate calls, source/public-doc edits, exploit/race actions, subagents, commit or push. The concurrent codec writer's unrelated files were not modified. Existing license policy, holds and full goal/all21/full2680+20+7/quick268 remain.
