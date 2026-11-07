@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0701)。
+最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0802)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -1141,3 +1141,9 @@ canonical prepare_datasetでは先行読込のbytesをまだ破棄して再取�
 ## 2026-11-08 07:09 JST: CI未起動の確認
 
 a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcompleted/failureだったが、全ジョブのstepは0件だった。各checkのannotationは、支払い失敗または利用上限による未起動を示している。どちらの課金条件かはAPIから区別できない。[全ジョブの一次記録とSHA対応](../results/validation/ci-20261108-0709/README.md)を保存した。コードのテスト結果は得られておらず、以前のSHAのCI合格を引き継がない。課金設定・支払い・workflowの変更や再実行は行っていない。ローカルの実装・検証は継続できるが、最終公開候補のCI検証は未達として残す。
+
+<a id="latest-evidence-20261108-0802"></a>
+
+## 2026-11-08 08:02 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T08:02:26.316859+09:00。FULL-2はupdate710（0始まり）＝**711/1000更新**、ログ内elapsed103283s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0801/README.md)。0801は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T09:02:27+09:00以降のR-41-FULL2-OBS-20261108-0902として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
