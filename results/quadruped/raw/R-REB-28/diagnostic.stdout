@@ -1,0 +1,42 @@
+{
+  "kind": "context_sidecar_readback_not_scientific_result",
+  "observed_unix": 1794022147.8327446,
+  "nice": 10,
+  "uid": 1000,
+  "deployment_files": [
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-prelaunch-v1.py",
+      "bytes": 7044,
+      "sha256": "c63287a05a19a9743a2eabf316aba4bf4de35ff78aff5be4f0c4914bdbc14ff0",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309264
+    },
+    {
+      "path": "/home/kmihara/hekit-runs/task54-launch/v2/task-54-exporter-linux-launch-v1.py",
+      "bytes": 29357,
+      "sha256": "17164fd9ab47db3d566b82aea0c9ac24955132c21b363d444f98700ec3ac019c",
+      "uid": 1000,
+      "mode": 384,
+      "device": 66311,
+      "inode": 36309265
+    },
+    {
+      "path": "/home/kmihara/hekit-exporter-010bb3c-task54-v1/tools/export_reboot_block_seed_inputs.py",
+      "bytes": 61243,
+      "sha256": "0d8eaff394f2c0fa53c2cdd4f6cb130e4255f80c0f9ed13ff185b1da2ec733ce",
+      "uid": 1000,
+      "mode": 436,
+      "device": 66311,
+      "inode": 36310811
+    }
+  ],
+  "deployment_directories": [],
+  "status": "failed_partial",
+  "error": {
+    "type": "RuntimeError",
+    "message": "deployment identity drift"
+  },
+  "finished_unix": 1794022147.833066
+}

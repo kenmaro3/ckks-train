@@ -1,0 +1,110 @@
+{
+  "kind": "context1_transport_frozen_preparation_not_action_release",
+  "candidate_sha256": "6137e3df2fe20a27147a54e3b385406aa11957ed9065cd251e6818c7e1940d8e",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 /usr/bin/python3.14 -I -B -"
+  ],
+  "sources": {
+    "deploy": {
+      "name": "task-54-linux-context1-deploy.py",
+      "bytes": 417819,
+      "sha256": "f0e747cd7c99b92cee6b3dedcf3b9499b059fdc000bc6330b27a5219cb9ef523"
+    },
+    "readback": {
+      "name": "task-54-linux-context1-readback.py",
+      "bytes": 3305,
+      "sha256": "efac95957b5b7a6d02d44a5cc4fea8122a1f7d7569066eba5ea472fcde06cb75"
+    },
+    "invoke": {
+      "name": "task-54-linux-context1-invoke.py",
+      "bytes": 7754,
+      "sha256": "721ba884db49410dc41158c61d15172ff5b2f255e8ef20a7f4b5442ef4aa32d0"
+    },
+    "collect": {
+      "name": "task-54-linux-context1-collect.py",
+      "bytes": 2327,
+      "sha256": "b886eb5a8d2adc889db46b86b6e1533fe484a7e7097e7be5c9c2e5780c8fc2de"
+    }
+  },
+  "controller_sha256": "c5c4e8d428d0895cf8f1220a285eb20848e4fb39d95fcb6b8dad52eedd7224bd",
+  "source_input": "exact pinned wrapper bytes on SSH stdin",
+  "observation_deadline_seconds": 2100,
+  "limits_bytes": {
+    "invoke_stdout": 1048576,
+    "invoke_stderr": 33554432,
+    "collect_stdout": 104857600,
+    "collect_stderr": 33554432,
+    "parent_raw": 33554432,
+    "child_raw": 8388608,
+    "context_raw": 33554432
+  },
+  "collection_memory_planning_bytes": 1073741824,
+  "maximum_base64_characters": 100663300,
+  "wrapper_allowance_bytes": 65536,
+  "outer_envelope_planning_bytes": 100728836,
+  "authority": "Preparation only. Independent source review and separately concrete root action release required. Full timed-job gate required before invoke; no automatic phase chaining or retry.",
+  "local_controller_argv_template": [
+    "python3",
+    "-I",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-controller.py",
+    "run",
+    "<one of deploy/readback/invoke/collect>",
+    "--action-release",
+    "<root-selected concrete action-release file>",
+    "--action-release-sha256",
+    "<root-selected exact SHA256>",
+    "--command-manifest-sha256",
+    "<this manifest SHA256>"
+  ],
+  "future_local_receipts": [
+    "task-54-linux-context1-{phase}.launch.json",
+    "task-54-linux-context1-{phase}.stdout",
+    "task-54-linux-context1-{phase}.stderr",
+    "task-54-linux-context1-{phase}.meta.json",
+    "task-54-linux-context1-{phase}.cutoff.json (only cutoff)"
+  ],
+  "decode_argv_template": [
+    "python3",
+    "-I",
+    "-B",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-controller.py",
+    "decode",
+    "--stdout",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-collect.stdout",
+    "--prefix",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-linux-context1-decoded"
+  ],
+  "readback_join_required": "Join all four identity records with deploy sidecar and preserved_inputs; join directory observations to R21/R27. No invocation until a separate release.",
+  "after_decode_review_required": [
+    "parent.child_evidence_sha256 equals exact child hash",
+    "both release bindings equal accepted candidate",
+    "purpose context and expected status/terminal/streams/cleanup",
+    "independent actual context content review; parent does not hash context"
+  ],
+  "producer_bound": false,
+  "peak_memory_measured": false,
+  "remote_terminal_on_cutoff": "unknown; local SSH kill only; separately authorized read-only recovery; never reinvoke"
+}

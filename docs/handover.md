@@ -616,3 +616,12 @@ FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1148/README.md)では、11:49:19 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は213/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1148は依頼時刻のラベルで、実観測時刻とは区別する。完了したcontroller記録を回収し、監視を再実行せず、ジョブ・キューも変更していない。
 
 学習前の計画器と実暗号演算の比較テストでは、loss deltaとbackward deltaが同じ観測名を使う不具合を検出した。純粋テストで再現後、識別名を分け、重複を明示的に拒否する修正を行った。静的検査は合格したが、11:54:35 JSTに限定再実行は3件合格・5件失敗で終了した。5件はいずれもNIのbias gradient中間値を記録するフックの欠落を検出したもので、後続の2回帰テストは未実行である。最初の失敗記録を保持し、計画器全体の合格とは扱わない。FULL-2の最終精度、後続GPU計測、Task42／M4／M5の全体判定は未確定である。全登録範囲とfull encrypted-block campaign holdを維持する。
+
+<a id="latest-evidence-20261107-r28"></a>
+## 2026-11-07 12:29 JST追記: 配置停止と権限解釈の訂正
+
+[R28の運用記録](../results/quadruped/raw/R-REB-28/README.md)では、12:26:02 JSTのsidecar配置がexit1で停止した。既存2プログラムの照合後、exporterの期待属性と一致しないとして停止し、レビューした処理順序からsidecar書込みには未到達と確認した。12:29:07 JSTの別途許可した読取り専用診断もexit1で、exporterの実permission値436（0664）を保持した。
+
+原因は、こちらの期待値への換算ミスである。R27のfull stat mode 33204は0o100664で、permission bitsは今回と同じ0664となる。過去記録と今回のpath・size・hash・uid・device・inode・正規化したpermissionの7項目は一致し、権限が変更されたという証拠はない。誤った0644解釈を含む元の準備・レビュー・依頼記録を改変せず、独立診断レビューで明示的に訂正した。
+
+診断はsidecar・directory・証拠ファイル不在の確認に進んでいないため、readback合格や現在の不在を示すものではない。再試行、chmod、入力修復、context／capture、ジョブ変更は行っていない。元の一回限りの実行記録を保持し、実記録に一致する期待値と新しい固定ローカル記録名の限定修正を進める。修正コードの独立レビュー後に、別途具体的な配置操作を判断する。Task42／M4／M5の全体合格、全登録範囲とfull encrypted-block campaign holdは変えていない。

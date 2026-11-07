@@ -807,3 +807,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261107-1148.{stdout,stderr,meta.json}`.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
 - **status:** done; SSH exit0, actual11:49:19 JST, own chain/queue live, FULL-2 update212 =>213/1000, final JSON absent, queue owner.json only. Exact originals archived in `results/quadruped/raw/R-41-FULL2-OBS-20261107-1148/`; no job/queue changes or observer rerun.
+
+## R-REB-28-CONTEXT1-SIDECAR: fixed configuration deployment and independent readback
+
+- **purpose:** Add only the accepted context1 sidecar to existing v2, then separately read back exact identities. No target/context startup or package hashing; full timed-job gate remains.
+- **commit to sync:** none; fixed candidate6137e3df... and immutable v2 programs/exporter from retained R27.
+- **working dir:** existing `/home/kmihara/hekit-runs/task54-launch/v2`; do not recreate it or either R27 root.
+- **command:** phase-specific retained local controller `task-54-linux-context1-controller.py run deploy` with concrete deploy action-release hash and command-manifest SHA998005c6307e81430ede5ff94b934f627eb11c1f52b07ff99cfea779db173dbf; exact key-only SSH / `nice -n 10 /usr/bin/python3.14 -I -B -` stdin script. Readback requires its own release after actual deploy success.
+- **expected duration:** seconds after connection; one thread, retained background custody,2100s observation cutoff (not remote termination guarantee), no retry/automatic phase chaining.
+- **GPU memory need:**0. **RAM need:** under128MiB expected for this small deployment/readback, unmeasured.
+- **output path:** ignored ledger `task-54-linux-context1-{deploy,readback}.{launch.json,stdout,stderr,meta.json}`; only remote newfile is `context1-release.json`309421B/mode0600.
+- **pass criterion:** actual terminal/complete streams, exclusive sidecar bytes/hash and preserved program/exporter/directory identities; independent readback must join them. Operational evidence only; no context or scientific pass inferred.
+- **status:** deploy failed before any sidecar write (actual files empty, first2preservedprograms verified, generic immutable-input drift at exporter). Exact terminal1/complete streams preserved; no retry. Separate read-only diagnostic using unchanged reviewed readback completed with exit1 at12:29:07JST under `task-54-linux-context1-diagnostic1.*`. Correction: R27 fullmode33204 normalizes to436/0664, matching diagnostic436; the expected0644 was a conversion error, not observed permission drift. Seven comparable fields match. Diagnostic did not reach sidecar/directory/absence gates. Originals plus superseding review are retained in `raw/R-REB-28/`; normal readback/invoke and all recovery remote phases remain unreleased.
