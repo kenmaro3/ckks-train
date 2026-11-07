@@ -1,0 +1,11 @@
+{
+  "kind": "operational_tool_receipt_not_scientific",
+  "original_session": 94881,
+  "launch_chunk": "676d84",
+  "terminal_chunk": "86141b",
+  "terminal_exit": 0,
+  "eligible_clock_checked_utc": "2026-11-07 14:55:48 UTC",
+  "local_invocations": 1,
+  "remote_invocations": 1,
+  "retry": false
+}

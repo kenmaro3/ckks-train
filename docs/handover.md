@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2255)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2355)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -933,3 +933,11 @@ Linux 5.6のopenat2 APIと対応filesystemが必要になり、利用できな�
 [一貫したFullテスト値と独立レビュー](../results/validation/task54-d7-full-linked-oracle/README.md)を保存した。単一の合成CPU対話ケースについて、初回・前回startなしのRetry・前回startありのRetryを別々の履歴として構成し、五つの証拠、admission、start、reference、lockの関係を確認した。98 canonicalレコード、21 JSON記録、225 FileRefの実バイトとリンクを独立に照合し、SPEC／QUALITYレビューは合格した。
 
 六つの負例のうち三つは前回のlock／reference／policyだけを変え、関連ハッシュと現在のpredecessorリンクも再計算している。現在分のtarget確認とハッシュ整合だけでは拒否できず、前回分も同じtarget／policyに照合する必要がある。これは実readerのC1検証に使うテスト値であり、その処理を実行した合格ではない。既存215 fixtureと初回生成の記録は保持した。入力・検証報告・容量観測等は明示した架空データで、実gate・メモリ適合・科学的結果を裏付けない。
+
+<a id="latest-evidence-20261107-2355"></a>
+
+## 2026-11-07 23:56 JST追記: FULL-2の定期確認
+
+実際の確認時刻は2026-11-07T23:56:11.936978+09:00。R-41-FULL-2はupdate516（0始まり）、完了517/1000更新、ログ上のelapsed74080秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新511〜516は各1415 KS・4 bootstrap、予測一致で、前回の直近6更新の1369 KSとは区別して記録する。最終結果JSONはなく、queueはowner.jsonのみ。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2355/README.md)を保存した。
+
+予定時刻を確認後に1回だけ起動し、元controller session94881のterminal0とSSH exit0まで回収した。job再起動、queue変更、追加計測は行っていない。次の通常確認は2026-11-08T00:56:12+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
