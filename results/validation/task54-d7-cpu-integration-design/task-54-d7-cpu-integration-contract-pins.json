@@ -1,0 +1,313 @@
+{
+  "schema": "task54-d7-cpu-integration-contract-pins-v1",
+  "status": "phase1_closed_proposal_awaiting_root_independent_review",
+  "base": "bb0ab8add24b4974a3f14bbeb9a63791b2b81e01",
+  "accepted_dataset_seam": "d5a2ecce6515aee7eb02e3dc6964cf4ebb1342c0",
+  "contract": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract.md",
+    "bytes": 32927,
+    "sha256": "3742f3c6041adc8cd94a729f42a231a475d42c9c891eca031d798837dbb7e22f"
+  },
+  "scope": "Phase1 ledger-only; no source/test/native/HE/server/network execution or subagents",
+  "selected_cases": [
+    {
+      "origin": "family",
+      "registration_id": "main_i",
+      "profile_id": "iris__emlp1",
+      "seed": 0,
+      "scope": "full",
+      "backend": "cpu",
+      "mode": "interactive",
+      "placement": "client_refresh",
+      "packing": "batched_diagonal",
+      "security": "n16_train"
+    },
+    {
+      "origin": "family",
+      "registration_id": "main_ni",
+      "profile_id": "iris__emlp1",
+      "seed": 0,
+      "scope": "full",
+      "backend": "cpu",
+      "mode": "noninteractive",
+      "placement": "when_needed",
+      "packing": "batched_diagonal",
+      "security": "n16_boot"
+    }
+  ],
+  "quick": "same Full registrations; Consumption::Quick; two updates; target-free",
+  "resource_policy": "d7-resource-observed-rss-v1",
+  "resource_evidence_domain": "hekit-study-resource-observed-evidence-v1",
+  "rss_limit_kib": 94371840,
+  "sample_interval_ns": 10000000000,
+  "term_grace_ns": 5000000000,
+  "mechanism": "linux-pidfd-broker-v1",
+  "remaining_factual_gaps": [
+    "Final v2 executable/source/build/helper and applicable correctness/security evidence",
+    "Trusted current host/namespace/authority anchors",
+    "Native pidfd/subreaper/inherited flock/EOF/helper no-descendant and sampling behavior",
+    "Per-mount native publication and actual capacity/storage/quota observations",
+    "Real secure registered Quick I/NI and Full Reference/Target facts after release"
+  ],
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract.md",
+      "bytes": 32927,
+      "sha256": "3742f3c6041adc8cd94a729f42a231a475d42c9c891eca031d798837dbb7e22f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-brief.md",
+      "bytes": 7511,
+      "sha256": "7f7f0020e3779d80af56aae85796b891bdf0badd36bebced6ad73107aa49a3e7"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-fidelity-review.md",
+      "bytes": 23234,
+      "sha256": "3982b72b1f9b9cf36b9d28ea71c2af91a2052de5fbd67365bc5d4eb3db306719"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-fidelity-audit.md",
+      "bytes": 24912,
+      "sha256": "53bd112a1855c86ebc4198f1e8f3345acc70d94fb0699d6592d50120d5f988d5"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-producer-proposal.md",
+      "bytes": 65108,
+      "sha256": "e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
+      "bytes": 1032,
+      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb"
+    },
+    {
+      "path": "docs/study-resource-design.md",
+      "bytes": 7815,
+      "sha256": "18e4a1280db6ea6e5b9e338658e46128a171b16137e0b5ee0b9eaf3d85cc7a72"
+    },
+    {
+      "path": "docs/study-gates-design.md",
+      "bytes": 23764,
+      "sha256": "c3765313cfe117c7f0b0fd936913d5d45f2b190c1937e5272c1c113dc7a2d6cf"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 20584,
+      "sha256": "e5059c771e93261c6fecf855f7a2d8ab052021f62cadafddbb23c43fa2f216c3"
+    },
+    {
+      "path": "crates/ckks-train-bench/Cargo.toml",
+      "bytes": 1640,
+      "sha256": "fc698bca60c78aa259180e6cd238514cb9e83bdb780a70e3c0287831b6a438b4"
+    },
+    {
+      "path": "crates/ckks-train-bench/configs/experiment_matrix.json",
+      "bytes": 96937,
+      "sha256": "164dbc67fddb87bed814bfa9bcbad1f97508a4a2de265b7a8ca899d8fab1b4cc"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/registered_case.rs",
+      "bytes": 24488,
+      "sha256": "4ce1738959718d23e6265c2ae17f4d4507a30ed0260fb13bc965affa26067404"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile.rs",
+      "bytes": 79141,
+      "sha256": "eaaf3ad085f1a347b664099f720a1ad2fb068ada66939baf60c3c6bbefe3670f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_inputs.rs",
+      "bytes": 66327,
+      "sha256": "fd641f27fc454ad85eb3c1ef67db759459a1ad22dc2a42dff15373c9650063a9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/data.rs",
+      "bytes": 61527,
+      "sha256": "d9c3e97d2ae37bf22d5a960fd5b4997235bdff4bd4db0f0a82e2be697685fa94"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/profile_data.rs",
+      "bytes": 32199,
+      "sha256": "046206dba711343487bf9a40d41b124e0a65eb5bbfc684838d6b77224152de14"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_run.rs",
+      "bytes": 12769,
+      "sha256": "37276613969cb0164b9e44f335a8baad34ac9d56e70ecd3a24e181323b9d0645"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "bytes": 15808,
+      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/bin/study_train.rs",
+      "bytes": 340,
+      "sha256": "4fe66a2c40efb0b883f28c03a96a485835c3d726457910fc622a50979983c252"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution.rs",
+      "bytes": 29051,
+      "sha256": "7aea7dc643cac55926935f4264e18f5bc480dfd8c5beee4f24771f33f8f6ff6a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution/cpu_continuation.rs",
+      "bytes": 21387,
+      "sha256": "f6695959663fd1fcff206d6e04f4092154d7ed68344bb9aa58339fcdfce82e67"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_diagonal.rs",
+      "bytes": 42002,
+      "sha256": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client.rs",
+      "bytes": 42402,
+      "sha256": "f043916ef3801c2c4c3bafa122f0d4dd5980a748f4f83926f792cd137ce4ec0d"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_plain.rs",
+      "bytes": 41051,
+      "sha256": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission.rs",
+      "bytes": 145973,
+      "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/context.rs",
+      "bytes": 52987,
+      "sha256": "31454576d90d557ef1950d3b45e4d404a4630fc29b862d5fa6fd3e3360263aa3"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/role.rs",
+      "bytes": 3438,
+      "sha256": "e9fa80564d313adc1ab4a74b1696fc6d00fe8a87628ec714941635b492d9ad91"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "bytes": 16272,
+      "sha256": "40af834576a44452d712f33e88ec3a4a8b1675b6933d54cfef44f63125dbb7fe"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+      "bytes": 22789,
+      "sha256": "a591f3618d3e3c736a86dcea95bb8e5b8948180615c6a6a043e7f09d3f002590"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+      "bytes": 23187,
+      "sha256": "444b46d5546127486c419b568c119975ab7a519485b68d2103441a00d88d8cbb"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/admission.rs",
+      "bytes": 32968,
+      "sha256": "d140e6879af76174ab6d1f226143d9454052b915c6872625f56a7510a2387cb0"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/publication.rs",
+      "bytes": 13782,
+      "sha256": "721abcd70ec014b413999baeaa5a53219d1d6d36e3e0dc131cb733c8693d7598"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "bytes": 23993,
+      "sha256": "ccb13e42286c80bf609ae6d2e05b7e9f059e664a22e3ad4e1acb20bd8620b69b"
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/counter.rs",
+      "bytes": 11531,
+      "sha256": "addb89fb91a2ab3de202c139a947dba42f0af82eeff4b51f4fd03d3bed3ed7f4"
+    },
+    {
+      "path": "scripts/study_reference_build.py",
+      "bytes": 15034,
+      "sha256": "0986d606c7965239364e8c75d35794d33c63e755237afff4c6b75d668da8518c"
+    },
+    {
+      "path": "scripts/study_reference_build_support.py",
+      "bytes": 53059,
+      "sha256": "3f71b0aeb0afcf5fba7f9f4d6c850f99b4b57d4f54c53d191524b0caeb0b6227"
+    },
+    {
+      "path": "scripts/study_train_build.py",
+      "bytes": 809,
+      "sha256": "9e5c3e282516ac97e27872fb91b8a0e6dadc2282dfbe446f1d3a297bbc5751de"
+    },
+    {
+      "path": "scripts/run_all.sh",
+      "bytes": 31788,
+      "sha256": "3275b307152b5d0e1d016a0c30db21ba8a27eed73fccebbcddf5bd11c25f86d5"
+    },
+    {
+      "path": "tools/paper_tables.py",
+      "bytes": 49859,
+      "sha256": "ea83f834af20e7a21eb460d38dae91e862cf24b31eae63e89d6be98ecbbcac37"
+    },
+    {
+      "path": "tools/tables.py",
+      "bytes": 198,
+      "sha256": "f6075d51843cd9c9e16b1521f4c7722356d568808af2d5895ffbe4225e8851e7"
+    },
+    {
+      "path": "/Users/marconi/Documents/research/plans/2026-11-04-he-training-research-plan.md",
+      "bytes": 28191,
+      "sha256": "2872931846f37465192e76b6e5daf8f23625ed225b480b44853de0762eefb5a9"
+    },
+    {
+      "path": "/Users/marconi/Documents/research/plans/2026-11-04-he-training-implementation-plan.md",
+      "bytes": 46160,
+      "sha256": "c7b2948f14a71e59a33a590e2366c42d6f6354cd5f052f354338238a9e5a49f4"
+    },
+    {
+      "path": "/Users/marconi/Documents/research/plans/2026-11-04-he-training-implementation-plan-m3-m5.md",
+      "bytes": 40894,
+      "sha256": "899e538aaa608317776f89d25f332ec2f7f3452d82a8681d6b852f0d267e714b"
+    },
+    {
+      "path": "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/process/pidfd.rs",
+      "bytes": 1297,
+      "sha256": "ce9c52d7f8a3d79a285f070a2a8c0536a84a7e31a8dcb0d76def1078ed6f0726"
+    },
+    {
+      "path": "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/process/prctl.rs",
+      "bytes": 36103,
+      "sha256": "493da650e869e098c34390c2e9b9be8dfd7cfdfdf0139bbdae1f86639c5d9e92"
+    },
+    {
+      "path": "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/process/wait.rs",
+      "bytes": 16120,
+      "sha256": "6e9763df5e56390c55aa8028851f20391b104e93016fa0acacaf6063063576f6"
+    },
+    {
+      "path": "/Users/marconi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.6/src/event/poll.rs",
+      "bytes": 1878,
+      "sha256": "0b3244e1e9c4b2fd17d699ad3ee0af999807836980791e889942b7c710faaa05"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/session.rs",
+      "bytes": 37209,
+      "sha256": "2d9fc63bb16d20ad9d23f9dac12deb8319d401e51439069663cc00cbf072b1a5"
+    },
+    {
+      "path": "docs/study-target-design.md",
+      "bytes": 64230,
+      "sha256": "4e241ed52d4abffd0b0a8765a159d776c04bfd88f17cfb4d1b66b109a54c171f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-proposal.md",
+      "bytes": 39493,
+      "sha256": "1e54707536ee52c481cfa789c308d9f4605f096a1a720649c2eebe7a1dc6f50b"
+    }
+  ],
+  "scientific_json": {
+    "producer": "same started study_train executable",
+    "schema": "hekit-study-cpu-result-json-v1",
+    "attempt_file": "scientific.result.json",
+    "export": "results/study-cpu-<export_id>.json",
+    "table_reader": "tools/paper_tables.py",
+    "completion": "exact canonical/JSON/export equality and worker/supervisor terminal closure"
+  },
+  "time_to_target_basis": "cumulative_update_ns; excludes paired FP32/setup/diagnostics/publication; pipeline elapsed separate"
+}

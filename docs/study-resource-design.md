@@ -2,6 +2,8 @@
 
 Status: DESIGN RATIFIED, 2026-11-08. Root accepts proposal `e72b99a7` after full read and independent scoped SPEC/QUALITY PASS `2474c2f7`. The [proposal, initial findings, FIX1 and dependency map](../results/validation/task54-d7-resource-design/README.md) preserve the exact decision. No physical model, native behavior or positive execution gate is validated by this design acceptance.
 
+2026-11-08追記: 新しいCPU実行経路は[実容量の観測とRSS監視の設計](study-resource-operational-design.md)を採用する。§2の全22区分の物理上限証明は、その新versionでは実行前提としない。下記の静的モデル・形式は履歴として保持し、新しい監視値を旧Requirementsへ入れない。入力保持、同じowner、協調ロック、Full/Quick・数値・暗号学的条件は新しい契約でも維持する。実装と実機検証は未完了。
+
 One private resource owner must precede context expansion, canonical input acquisition and typed materialization. Train and nested reference/target operations share it. Standalone reference read, recovery, snapshot and target operations use their actual preparation-only work selection, without inventing an HE request. Large verified snapshots remain inside the resource lifetime. The existing caller-supplied input and the independently reconstructed reference/selected-seed receipts still must agree.
 
 ## 1. Ordinary-user cooperative exclusion

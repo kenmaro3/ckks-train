@@ -1,0 +1,110 @@
+{
+  "schema": "task54-d7-cpu-integration-contract-fix2-pins-v1",
+  "status": "phase1_fix2_closed_proposal_awaiting_scoped_r1n_review",
+  "base": "bb0ab8add24b4974a3f14bbeb9a63791b2b81e01",
+  "phase2_released": false,
+  "contract": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix2.md",
+    "bytes": 48850,
+    "sha256": "7f1f4b3ed796735a09a44ccc033a26dd517bac21390c404229050869c12244f6"
+  },
+  "diff_against_fix1": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix2.diff",
+    "bytes": 18437,
+    "sha256": "b70130e6cf054fa325f02114c7193ce3064a5aa58354a557b1ac8745590daaaf"
+  },
+  "prior_contract": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.md",
+    "bytes": 41451,
+    "sha256": "26f4bf6a38ee39901b9abfc3725487499df2dcb518811897b4759449a894b5ca"
+  },
+  "prior_diff": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.diff",
+    "bytes": 21881,
+    "sha256": "63e8648b123ba365c0838fccc20648c2a2cbcd279b8fa2709a0f22daef5915da"
+  },
+  "prior_pins": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1-pins.json",
+    "bytes": 5205,
+    "sha256": "e6e1231dba1b8dcb49bfd4349cab712a45c9e8aafbe07f5b4adbeaf259dd3d0f"
+  },
+  "review": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1-review.md",
+    "bytes": 9227,
+    "sha256": "d932f44e81fd7098f1be576e0d4a60c02f38a16c9ad050dfd551216a2ed6d158"
+  },
+  "correction": "R1-N immutable root operation versus closed private same-owner child graph; no new claim/admission/lock/permit",
+  "preserved": {
+    "requested_work_max_bytes": 4096,
+    "train_request_body_bytes": 62,
+    "resource_overlap": "serial0",
+    "fix1_inventory_count": 32,
+    "W15": "wrong ROOT invocation or out-of-subtree rejection",
+    "unaffected_architecture": true
+  },
+  "closed_edges": [
+    "Preparation3 -> ReferenceSnapshot2",
+    "Preparation4 -> ReferenceSnapshot2",
+    "Preparation5 root -> ReferenceSnapshot2 acquisition -> lock_target consumption",
+    "FullTrain -> TargetRead3 -> ReferenceSnapshot2"
+  ],
+  "quick_preparation_edges": [],
+  "added_future_tests": {
+    "positive": [
+      "N01 read_target -> snapshot",
+      "N02 recover_lock -> snapshot",
+      "N03 lock_target root -> snapshot -> consumption",
+      "N04 main_ni FullTrain -> Target -> Reference"
+    ],
+    "negative": [
+      "N05 prohibited child3 -> 1",
+      "N06 foreign-owner snapshot",
+      "N07 main_ni Quick -> target"
+    ],
+    "count": 7,
+    "executed": false
+  },
+  "change_scope": "Only new fix2 contract, diff and pins; original/FIX1 artifacts unchanged. No source/tests/Cargo/project helpers/native/SSH/network/commits/push/subagents.",
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix2.md",
+      "bytes": 48850,
+      "sha256": "7f1f4b3ed796735a09a44ccc033a26dd517bac21390c404229050869c12244f6"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix2.diff",
+      "bytes": 18437,
+      "sha256": "b70130e6cf054fa325f02114c7193ce3064a5aa58354a557b1ac8745590daaaf"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.md",
+      "bytes": 41451,
+      "sha256": "26f4bf6a38ee39901b9abfc3725487499df2dcb518811897b4759449a894b5ca"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.diff",
+      "bytes": 21881,
+      "sha256": "63e8648b123ba365c0838fccc20648c2a2cbcd279b8fa2709a0f22daef5915da"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1-pins.json",
+      "bytes": 5205,
+      "sha256": "e6e1231dba1b8dcb49bfd4349cab712a45c9e8aafbe07f5b4adbeaf259dd3d0f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1-review.md",
+      "bytes": 9227,
+      "sha256": "d932f44e81fd7098f1be576e0d4a60c02f38a16c9ad050dfd551216a2ed6d158"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "bytes": 23993,
+      "sha256": "ccb13e42286c80bf609ae6d2e05b7e9f059e664a22e3ad4e1acb20bd8620b69b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/publication.rs",
+      "bytes": 13782,
+      "sha256": "721abcd70ec014b413999baeaa5a53219d1d6d36e3e0dc131cb733c8693d7598"
+    }
+  ]
+}

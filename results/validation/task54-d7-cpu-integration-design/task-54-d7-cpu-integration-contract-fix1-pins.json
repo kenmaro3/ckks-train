@@ -1,0 +1,117 @@
+{
+  "schema": "task54-d7-cpu-integration-contract-fix1-pins-v1",
+  "status": "phase1_fix1_closed_proposal_awaiting_scoped_independent_rereview",
+  "base": "bb0ab8add24b4974a3f14bbeb9a63791b2b81e01",
+  "phase2_released": false,
+  "contract": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.md",
+    "bytes": 41451,
+    "sha256": "26f4bf6a38ee39901b9abfc3725487499df2dcb518811897b4759449a894b5ca"
+  },
+  "diff": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.diff",
+    "bytes": 21881,
+    "sha256": "63e8648b123ba365c0838fccc20648c2a2cbcd279b8fa2709a0f22daef5915da"
+  },
+  "original_contract": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract.md",
+    "bytes": 32927,
+    "sha256": "3742f3c6041adc8cd94a729f42a231a475d42c9c891eca031d798837dbb7e22f"
+  },
+  "original_pins": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-pins.json",
+    "bytes": 12238,
+    "sha256": "e6465cce5fef7c84315a67eb820465f8a54c909481ddda0130c4a5abc39358dd"
+  },
+  "independent_review": {
+    "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-review.md",
+    "bytes": 12901,
+    "sha256": "1339bb802038ab6e06d3f2ec3e6d500b71a69de2f5b8b72a3b82fe60288612a2"
+  },
+  "corrections": {
+    "R1": "Bounded non-authorizing RequestedWork before expansion; actual registry/request binding after claim durability and before gates/start",
+    "R2": "Fixed serial0 semantic; selected UserScope overlap equality in CurrentEvidenceBundle and live producers; no explicit_overlap1 reinterpretation"
+  },
+  "requested_work": {
+    "domain": "hekit-study-resource-requested-work-v1",
+    "max_bytes": 4096,
+    "train_request_body_bytes": 62,
+    "preparation_operations": 6,
+    "seed_count_min": 1,
+    "seed_count_max": 10
+  },
+  "finite_future_inventory": {
+    "ids": "W01-W24 and O01-O08",
+    "total": 32,
+    "requested_work_positive": 10,
+    "binding_and_value_negative": 6,
+    "grammar_negative": 6,
+    "order_cases": 2,
+    "serial_overlap_positive": 4,
+    "wrong_overlap_negative": 4,
+    "executed": false
+  },
+  "change_scope": "Only new fix1 contract, diff and pins. Original contract/pins and all source unchanged. No tests/Cargo/project helpers/native/HE/server/network/commits/push/subagents.",
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.md",
+      "bytes": 41451,
+      "sha256": "26f4bf6a38ee39901b9abfc3725487499df2dcb518811897b4759449a894b5ca"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-fix1.diff",
+      "bytes": 21881,
+      "sha256": "63e8648b123ba365c0838fccc20648c2a2cbcd279b8fa2709a0f22daef5915da"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract.md",
+      "bytes": 32927,
+      "sha256": "3742f3c6041adc8cd94a729f42a231a475d42c9c891eca031d798837dbb7e22f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-pins.json",
+      "bytes": 12238,
+      "sha256": "e6465cce5fef7c84315a67eb820465f8a54c909481ddda0130c4a5abc39358dd"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-contract-review.md",
+      "bytes": 12901,
+      "sha256": "1339bb802038ab6e06d3f2ec3e6d500b71a69de2f5b8b72a3b82fe60288612a2"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-integration-brief.md",
+      "bytes": 7511,
+      "sha256": "7f7f0020e3779d80af56aae85796b891bdf0badd36bebced6ad73107aa49a3e7"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-proposal.md",
+      "bytes": 39493,
+      "sha256": "1e54707536ee52c481cfa789c308d9f4605f096a1a720649c2eebe7a1dc6f50b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "bytes": 16272,
+      "sha256": "40af834576a44452d712f33e88ec3a4a8b1675b6933d54cfef44f63125dbb7fe"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs",
+      "bytes": 14266,
+      "sha256": "3d39848107d2db079b97a1ab2c725c98ff7cc16bdd1df827908f0b1ee9ce4387"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission.rs",
+      "bytes": 145973,
+      "sha256": "04bf7081481b868956406fbbd9392937c21d96a7411509ee657e9cf42f5b0f25"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/registered_case.rs",
+      "bytes": 24488,
+      "sha256": "4ce1738959718d23e6265c2ae17f4d4507a30ed0260fb13bc965affa26067404"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "bytes": 15808,
+      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95"
+    }
+  ]
+}

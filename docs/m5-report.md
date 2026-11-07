@@ -838,4 +838,14 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 
 canonical prepare_datasetでは先行読込のbytesをまだ破棄して再取得しているため、保持した入力・資源owner・seed/order/schedule・Reference／Targetへの接続は未完了。wrapperの生bytes同時保持も資源計上に必要である。Task54全体・実学習・メモリ適合の合格ではない。
 
+<a id="latest-evidence-20261108-d7-cpu-integration-design"></a>
+
+## 2026-11-08追記: CPU学習から結果保存までの接続設計
+
+[新しい資源条件とCPU統合設計](study-resource-operational-design.md)を、理由・代替案と[元資料・独立レビュー](../results/validation/task54-d7-cpu-integration-design/README.md)付きで採用した。既存の90GiB・10秒間隔のRSS監視を別versionの実行条件にし、物理メモリ上限の証明やRAM予約とは呼ばない。旧形式は履歴として保持し、数値・暗号学的ゲートは変更しない。
+
+最初の接続対象は登録済みIris/eMLP-1/seed0のCPU I/NIで、run_allから最終モデル評価・FP32比較・実行ファイル生成JSON・表生成までを含む。レビューで入力展開前の要求記録の生成順序、逐次実行の認可一致、同じownerの内部Target/Reference呼び出しを修正した。QuickはTargetを持たず、比較用FP32の計算時間はHEのtime-to-targetへ含めない。
+
+仕様・品質の設計レビューは合格した。コード、39件の追加W/O/N検査とその他の契約検査、Linux監視・publisher検証、実際のsecure Quick I/NIと残りの全adapterは未完了。全21profiles・Full2680+20+7・Quick268・10seedの範囲は維持し、初回CPU接続をTask54全体の完了とは扱わない。FULL-2と既存queueの順序も維持する。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
