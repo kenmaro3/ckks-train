@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -809,5 +809,15 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 [算出資料](study-resource-allocation.md)と[元資料・独立レビュー](../results/validation/task54-d7-resource-allocation/README.md)を保存した。固定commitの37ファイルを根拠に、暗号鍵・Encoder・NN状態・学習用packet・bootstrap等の要素数と保持期間を整理した。refresh時の鍵の複製、NI更新時の旧状態と新状態の同時保持、逐次BSGSでも全giant出力が蓄積する点を反映している。
 
 選択したソースの算出資料として仕様・品質レビューは合格。pinの説明とMarkdown表の区切りに関する軽微な2点を閲覧用文書で修正し、元資料はそのまま保存した。22区分のうち0〜13に具体的な算出根拠があるが、再帰処理の完全なピーク、allocation容量・allocator・runtime・kernel、入力保持と実materializerの接続、実機検証は未完了である。payloadの要素数を物理メモリ上限や実行許可へ置き換えず、Task54全体は未完了とする。
+
+<a id="latest-evidence-20261108-d7-resource-source"></a>
+
+## 2026-11-08追記: 資源記録の読取処理
+
+[実装・元ログ・独立レビュー](../results/validation/task54-d7-resource-source/README.md)を保存した。6種類のJSONの項目・数値・列挙・参照関係と元bytesのidentityを検査し、bootstrap記録は借用bytesと固定配列で読み取る。既存のFull／Quick Resource形式は変更していない。
+
+修正後の限定テスト13件が合格（0 failed／0 ignored、269 filtered）。109入力・473,973 bytesを照合し、strict Clippyとformatも合格した。初回のClippy不合格はenumのサイズ差と不要な参照2か所で、配置を維持する局所的な注記と参照の除去で修正し、仕様・品質の再レビューが合格した。元の失敗ログと修正前snapshotを保持した。テスト専用モード間の比較に関する軽微なQ1は、最終接続レビューの残項目として明記している。
+
+これは記録形式と与えられた記録同士の整合性の合格である。物理メモリモデル、実ホスト容量・ロック、保持した同じ入力bytesのtyped loaderへの接続、live gate・全実験行列は未完了。704 bytesというbootstrapの形式長をメモリ上限とは扱わず、Task54全体や実学習の合格を主張しない。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

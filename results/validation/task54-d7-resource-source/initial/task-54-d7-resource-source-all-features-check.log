@@ -1,0 +1,14 @@
+    Checking ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Checking ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-cuda)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+warning: unused import: `links::Baseline`
+ --> crates/ckks-train-bench/src/study_reference/document/resource.rs:9:5
+  |
+9 | use links::Baseline;
+  |     ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: `ckks-train-bench` (lib) generated 1 warning (run `cargo fix --lib -p ckks-train-bench` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.12s

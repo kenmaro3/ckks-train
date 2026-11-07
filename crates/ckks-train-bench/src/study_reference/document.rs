@@ -6,6 +6,7 @@
 //! denominator, arithmetic and digest claim against the trusted full plan/data.
 //! Source/build/session/prefix/state/publication policies remain separate gates.
 mod execution_descriptors;
+mod resource;
 pub(crate) use execution_descriptors::{
     collect_blocks as collect_block_preparation_descriptors,
     collect_single as collect_single_preparation_descriptors,
@@ -157,6 +158,7 @@ enum DocumentLayout {
     Admission,
     Start,
     Quick,
+    Resource,
 }
 impl DocumentLayout {
     fn file_cap(self) -> usize {
@@ -164,6 +166,7 @@ impl DocumentLayout {
             Self::Reference | Self::Admission => J_MAX,
             Self::Start | Self::Quick => A_MAX,
             Self::TargetLock => 7_324_204,
+            Self::Resource => 8_388_608,
         }
     }
     fn canonical_cap(self) -> usize {
@@ -172,6 +175,7 @@ impl DocumentLayout {
             Self::Start => A_MAX,
             Self::Quick => evidence::QUICK_K_MAX,
             Self::TargetLock => 4_710_678,
+            Self::Resource => 8_388_608,
         }
     }
 }
@@ -200,6 +204,33 @@ impl Scan<'_> {
                     && invocation == "invocation" && argv == "argv" && bytes == "bytes"
         )
     }
+    fn resource_list_limit(&self) -> usize {
+        use PathComponent::{ArrayElement, Key};
+        match self.structural_path.as_slice() {
+            [Key(name)] if name == "components" || name == "coverage" => 22,
+            [Key(envelope), Key(components)]
+                if envelope == "modeled_envelope" && components == "components" =>
+            {
+                22
+            }
+            [Key(runs), ArrayElement, Key(components)]
+                if runs == "runs" && components == "covered_components" =>
+            {
+                22
+            }
+            [Key(filesystems), ArrayElement, Key(roots)]
+                if (filesystems == "filesystems" || filesystems == "filesystem_environment")
+                    && roots == "roots" =>
+            {
+                6
+            }
+            _ => match self.structural_path.last() {
+                Some(Key(name)) if name == "source_files" || name == "library_files" => 512,
+                Some(Key(name)) if name == "argv" => 256,
+                _ => 65536,
+            },
+        }
+    }
     fn ws(&mut self) {
         while self
             .s
@@ -218,7 +249,17 @@ impl Scan<'_> {
         let start = self.i;
         self.i += 1;
         let mut escaped = false;
-        let blob = if key {
+        let blob = if !key
+            && matches!(self.layout, DocumentLayout::Resource)
+            && (self.at_keys(&["work", "registration"]) || self.at_keys(&["work", "request"]))
+        {
+            Some(A_MAX)
+        } else if !key
+            && matches!(self.layout, DocumentLayout::Resource)
+            && matches!(self.structural_path.as_slice(), [PathComponent::Key(runs), PathComponent::ArrayElement, PathComponent::Key(metadata), PathComponent::Key(argv), PathComponent::ArrayElement] if runs == "runs" && metadata == "metadata" && argv == "argv")
+        {
+            Some(4096)
+        } else if key {
             None
         } else if matches!(self.layout, DocumentLayout::Reference)
             && self.at_keys(&["identity", "contract", "canonical_bytes"])
@@ -315,7 +356,11 @@ impl Scan<'_> {
                     self.i += 1;
                     return Ok(());
                 }
+                let mut count = 0usize;
                 loop {
+                    if !object && matches!(self.layout, DocumentLayout::Resource) {
+                        count = bounded_add(count, 1, self.resource_list_limit(), p)?;
+                    }
                     let child = if object {
                         self.ws();
                         if self.s.get(self.i) != Some(&b'"') {
@@ -395,7 +440,18 @@ fn preflight_layout(s: &[u8], layout: DocumentLayout) -> Result<()> {
     scan.value("", 0)?;
     scan.ws();
     ensure(scan.i == s.len(), DocumentErrorCode::BadJson, "")?;
-    check_outer_size(s.len(), scan.excluded)
+    if matches!(layout, DocumentLayout::Resource) {
+        // The raw ceiling bounds the complete input; enlarged hex paths are
+        // not excluded from it. This is no physical allocation budget.
+        ensure(
+            scan.excluded <= s.len(),
+            DocumentErrorCode::TooLarge,
+            "resource.aggregate",
+        )?;
+        Ok(())
+    } else {
+        check_outer_size(s.len(), scan.excluded)
+    }
 }
 struct Fields<'a> {
     values: Vec<Option<&'a RawValue>>,

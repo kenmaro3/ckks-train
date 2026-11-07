@@ -1,0 +1,36 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 38.06s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 8 tests
+test study_reference::document::resource::tests::small_checked_bounds_without_cap_sized_allocation ... ok
+
+thread 'test study_reference::document::resource::tests::raw_identity_preserves_whitespace_and_member_order ... ok
+study_reference::document::resource::tests::primitive_and_closed_nested_controls' panicked at crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:85:45:
+assertion `left != right` failed
+  left: "{\"schema\":\"hekit-test-resource-disk-observation-v1\",\"synthetic\":true,\"claim_id\":\"fictional-claim\",\"sequence\":1,\"started\":{\"wall_source\":0,\"unix_ns\":1,\"monotonic_source\":0,\"elapsed_since_operation_start_ns\":0},\"finished\":{\"wall_source\":0,\"unix_ns\":2,\"monotonic_source\":0,\"elapsed_since_operation_start_ns\":1},\"filesystems\":[{\"identity\":{\"device\":3,\"mount_id\":4,\"type\":5},\"roots\":[0,1,2,3,4,5],\"frsize\":4,\"bavail\":8,\"favail\":3,\"required_bytes\":12,\"required_files\":2,\"quota_evidence\":{\"root\":2,\"path\":\"fictional/facts.txt\",\"length\":44,\"sha256\":\"64a4b90acae713ff95f45224626dc625c64ab30efd097e4e3f4dea488519d688\"}}]}\n"
+ right: "{\"schema\":\"hekit-test-resource-disk-observation-v1\",\"synthetic\":true,\"claim_id\":\"fictional-claim\",\"sequence\":1,\"started\":{\"wall_source\":0,\"unix_ns\":1,\"monotonic_source\":0,\"elapsed_since_operation_start_ns\":0},\"finished\":{\"wall_source\":0,\"unix_ns\":2,\"monotonic_source\":0,\"elapsed_since_operation_start_ns\":1},\"filesystems\":[{\"identity\":{\"device\":3,\"mount_id\":4,\"type\":5},\"roots\":[0,1,2,3,4,5],\"frsize\":4,\"bavail\":8,\"favail\":3,\"required_bytes\":12,\"required_files\":2,\"quota_evidence\":{\"root\":2,\"path\":\"fictional/facts.txt\",\"length\":44,\"sha256\":\"64a4b90acae713ff95f45224626dc625c64ab30efd097e4e3f4dea488519d688\"}}]}\n"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test study_reference::document::resource::tests::primitive_and_closed_nested_controls ... FAILED
+test study_reference::document::resource::tests::production_refuses_all_synthetic_sources_and_anchor ... ok
+
+thread 'study_reference::document::resource::tests::frozen_bootstrap_negatives_reach_independent_refusals' panicked at crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:5:85:
+called `Result::unwrap()` on an `Err` value: Error("unexpected end of hex escape", line: 20, column: 90)
+
+thread 'study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals' panicked at crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:5:85:
+called `Result::unwrap()` on an `Err` value: Error("unexpected end of hex escape", line: 20, column: 90)
+test study_reference::document::resource::tests::frozen_bootstrap_negatives_reach_independent_refusals ... FAILED
+test study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals ... FAILED
+test study_reference::document::resource::tests::frozen_bootstrap_literal_bytes_and_projections ... ok
+test study_reference::document::resource::tests::frozen_positive_sources_preserve_whole_file_identity ... ok
+
+failures:
+
+failures:
+    study_reference::document::resource::tests::frozen_bootstrap_negatives_reach_independent_refusals
+    study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals
+    study_reference::document::resource::tests::primitive_and_closed_nested_controls
+
+test result: FAILED. 5 passed; 3 failed; 0 ignored; 0 measured; 269 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

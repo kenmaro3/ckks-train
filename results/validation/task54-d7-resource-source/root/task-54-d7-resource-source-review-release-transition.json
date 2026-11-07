@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-07T18:27:15.991954+00:00",
+  "action": "Root released the review brief after verifying all148 original author pins. Only this administrative brief changed. Frozen source/report/diff/input pins remain untouched.",
+  "original": {
+    "bytes": 3606,
+    "lines": 13,
+    "sha256": "50efbee1c3393c91ab62095579f1bee4b466245f2b5e9b6ea7658339c443ee9d"
+  },
+  "released": {
+    "path": "task-54-d7-resource-source-review-brief.md",
+    "bytes": 4825,
+    "sha256": "14132b1870ba99481fe5a7ff5dbb64193bce70713f55cd7ff056ff8b4ada0ee9"
+  },
+  "reconstruction": {
+    "path": "task-54-d7-resource-source-review-brief-prerelease-reconstructed.md",
+    "method": "Inverse of exact root replacement and appended scope. This is reconstructed, not an originally captured snapshot. Byte/hash matches original author pin."
+  }
+}

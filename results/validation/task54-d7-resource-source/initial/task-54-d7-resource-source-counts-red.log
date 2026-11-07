@@ -1,0 +1,31 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 30.84s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 13 tests
+
+thread 'study_reference::document::resource::tests::closed_inventory_counts_refuse_during_preflight' panicked at crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:683:76:
+called `Result::unwrap_err()` on an `Ok` value: ()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test study_reference::document::resource::tests::primitive_and_closed_nested_controls ... ok
+test study_reference::document::resource::tests::raw_identity_preserves_whitespace_and_member_order ... ok
+test study_reference::document::resource::tests::closed_inventory_counts_refuse_during_preflight ... FAILED
+test study_reference::document::resource::tests::small_checked_bounds_without_cap_sized_allocation ... ok
+test study_reference::document::resource::tests::closed_nested_paths_unicode_and_production_flags ... ok
+test study_reference::document::resource::tests::legacy_outer_full_quick_resource_bytes_unchanged ... ok
+test study_reference::document::resource::tests::quick_train_preserves_registered_seed_zero_scope ... ok
+test study_reference::document::resource::tests::frozen_bootstrap_literal_bytes_and_projections ... ok
+test study_reference::document::resource::tests::production_refuses_all_synthetic_sources_and_anchor ... ok
+test study_reference::document::resource::tests::new_resource_byte_paths_and_integer_lexemes ... ok
+test study_reference::document::resource::tests::frozen_bootstrap_negatives_reach_independent_refusals ... ok
+test study_reference::document::resource::tests::frozen_positive_sources_preserve_whole_file_identity ... ok
+test study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals ... ok
+
+failures:
+
+failures:
+    study_reference::document::resource::tests::closed_inventory_counts_refuse_during_preflight
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 269 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

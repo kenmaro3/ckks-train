@@ -1,0 +1,45 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0597]: `out` does not live long enough
+  --> crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs:47:21
+   |
+19 | impl<'a> Bootstrap<'a>{
+   |      -- lifetime `'a` defined here
+...
+38 |         let mut out=FixedBytes{bytes:[0;704],len:0};
+   |             ------- binding `out` declared here
+...
+47 |         Self::parse(out.as_slice(),self.mode)?;Ok(out)
+   |         ------------^^^----------------------
+   |         |           |
+   |         |           borrowed value does not live long enough
+   |         argument requires that `out` is borrowed for `'a`
+48 |     }
+   |     - `out` dropped here while still borrowed
+
+error[E0505]: cannot move out of `out` because it is borrowed
+  --> crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs:47:51
+   |
+19 | impl<'a> Bootstrap<'a>{
+   |      -- lifetime `'a` defined here
+...
+38 |         let mut out=FixedBytes{bytes:[0;704],len:0};
+   |             ------- binding `out` declared here
+...
+47 |         Self::parse(out.as_slice(),self.mode)?;Ok(out)
+   |         -------------------------------------     ^^^ move out of `out` occurs here
+   |         |           |
+   |         |           borrow of `out` occurs here
+   |         argument requires that `out` is borrowed for `'a`
+   |
+note: if `FixedBytes` implemented `Clone`, you could clone the value
+  --> crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs:50:1
+   |
+47 |         Self::parse(out.as_slice(),self.mode)?;Ok(out)
+   |                     --- you could clone this value
+...
+50 | pub(super) struct FixedBytes{bytes:[u8;704],len:usize}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+
+Some errors have detailed explanations: E0505, E0597.
+For more information about an error, try `rustc --explain E0505`.
+error: could not compile `ckks-train-bench` (lib test) due to 2 previous errors

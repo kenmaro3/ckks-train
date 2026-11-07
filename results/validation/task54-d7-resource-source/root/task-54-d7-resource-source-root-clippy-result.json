@@ -1,0 +1,11 @@
+{
+  "time": "2026-11-07T18:29:19.444114+00:00",
+  "command": "CARGO_BUILD_JOBS=2 cargo clippy -p ckks-train-bench --all-features --all-targets -- -D warnings",
+  "original_session": 37868,
+  "exit_code": 101,
+  "terminal_chunk": "b39c9a",
+  "log_bytes": 2427,
+  "log_sha256": "c7b3895f9929b8bc6c73cd00e0c235ca3f0434b2586300c74b755b8027ba80d7",
+  "source_mutated": false,
+  "tests_executed": 0
+}

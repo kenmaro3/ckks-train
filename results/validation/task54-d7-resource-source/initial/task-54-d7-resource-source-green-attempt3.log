@@ -1,0 +1,28 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 29.79s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 8 tests
+test study_reference::document::resource::tests::small_checked_bounds_without_cap_sized_allocation ... ok
+test study_reference::document::resource::tests::raw_identity_preserves_whitespace_and_member_order ... ok
+test study_reference::document::resource::tests::primitive_and_closed_nested_controls ... ok
+test study_reference::document::resource::tests::frozen_bootstrap_literal_bytes_and_projections ... ok
+test study_reference::document::resource::tests::frozen_bootstrap_negatives_reach_independent_refusals ... ok
+test study_reference::document::resource::tests::production_refuses_all_synthetic_sources_and_anchor ... ok
+
+thread 'study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals' panicked at crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:79:9:
+assertion `left == right` failed: n22-build-receipt: SourceError { reason: "run-environment", field: "validation.runs.metadata.environment" }
+  left: "run-environment"
+ right: "build-identity"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals ... FAILED
+test study_reference::document::resource::tests::frozen_positive_sources_preserve_whole_file_identity ... ok
+
+failures:
+
+failures:
+    study_reference::document::resource::tests::frozen_negative_sources_reach_independent_refusals
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 269 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

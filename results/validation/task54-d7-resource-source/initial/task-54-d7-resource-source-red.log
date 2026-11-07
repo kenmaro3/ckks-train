@@ -1,0 +1,367 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0412]: cannot find type `Mode` in this scope
+ --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:6:34
+  |
+6 | fn parse_named(name: &str, mode: Mode) -> Source<'static> {
+  |                                  ^^^^ not found in this scope
+  |
+help: consider importing this enum
+  |
+1 + use crate::study_reference::document::evidence::Mode;
+  |
+
+error[E0412]: cannot find type `Source` in this scope
+ --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:6:43
+  |
+6 | fn parse_named(name: &str, mode: Mode) -> Source<'static> {
+  |                                           ^^^^^^ not found in this scope
+  |
+help: consider importing one of these structs
+  |
+1 + use crate::study_reference::document::Source;
+  |
+1 + use core::error::Source;
+  |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:10:5
+   |
+10 |     Source::parse(b, mode).unwrap_or_else(|e| panic!("{name}: {e:?}"))
+   |     ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0412]: cannot find type `Mode` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:12:19
+   |
+12 | fn baseline(mode: Mode) -> Baseline {
+   |                   ^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0412]: cannot find type `Baseline` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:12:28
+   |
+12 | fn baseline(mode: Mode) -> Baseline {
+   |                            ^^^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+1  + use criterion::Baseline;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:13:29
+   |
+13 |     let prefix = if mode == Mode::Production { "inert-production" } else { "synthetic" };
+   |                             ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Baseline`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:14:5
+   |
+14 |     Baseline::new(parse_named(&format!("{prefix}/model.json"),mode),parse_named(&format!("{prefix}/validation.json"),mode),parse_named(&f...
+   |     ^^^^^^^^ use of undeclared type `Baseline`
+   |
+help: consider importing this enum
+   |
+1  + use criterion::Baseline;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:21:57
+   |
+21 |             let mode=if name.starts_with("synthetic/") {Mode::Oracle} else {Mode::Production};
+   |                                                         ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:21:77
+   |
+21 |             let mode=if name.starts_with("synthetic/") {Mode::Oracle} else {Mode::Production};
+   |                                                                             ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:33:23
+   |
+33 |     let base=baseline(Mode::Oracle); let cases=metadata("negative-cases.json");let mut count=0;
+   |                       ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:37:19
+   |
+37 |         let error=Source::parse(&b,Mode::Oracle).and_then(|s|base.check(&s,supplied(),physical(),1)).expect_err(name);
+   |                   ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:37:36
+   |
+37 |         let error=Source::parse(&b,Mode::Oracle).and_then(|s|base.check(&s,supplied(),physical(),1)).expect_err(name);
+   |                                    ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:49:68
+   |
+49 | ...   let b=bytes(name); if name.ends_with(".json") { assert_eq!(Source::parse(&b,Mode::Production).unwrap_err().reason,"domain"); } else...
+   |                                                                  ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:49:85
+   |
+49 | ...   let b=bytes(name); if name.ends_with(".json") { assert_eq!(Source::parse(&b,Mode::Production).unwrap_err().reason,"domain"); } else...
+   |                                                                                   ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:49:171
+   |
+49 | ...n,"domain"); } else { assert!(Bootstrap::parse(&b,Mode::Production).is_err()); } count+=1;
+   |                                                      ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:54:44
+   |
+54 |     for (prefix,mode,len) in [("synthetic",Mode::Oracle,703),("inert-production",Mode::Production,704)] {
+   |                                            ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:54:82
+   |
+54 |     for (prefix,mode,len) in [("synthetic",Mode::Oracle,703),("inert-production",Mode::Production,704)] {
+   |                                                                                  ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:65:23
+   |
+65 |     let base=baseline(Mode::Oracle);let good=bytes("synthetic/bootstrap.bin");let expected=Bootstrap::parse(&good,Mode::Oracle).unwrap();...
+   |                       ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:65:115
+   |
+65 | ...otstrap.bin");let expected=Bootstrap::parse(&good,Mode::Oracle).unwrap();let cases=metadata("negative-cases.json");let mut count=0;
+   |                                                      ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:67:124
+   |
+67 | ..."negative/{name}.bin"));let e=Bootstrap::parse(&b,Mode::Oracle).and_then(|a|base.check_bootstrap(&a,&expected)).unwrap_err();assert_eq...
+   |                                                      ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:79:11
+   |
+79 |     let a=Source::parse(&b,Mode::Oracle).unwrap();let z=Source::parse(&other,Mode::Oracle).unwrap();assert_ne!(a.sha256(),z.sha256());ass...
+   |           ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:79:28
+   |
+79 |     let a=Source::parse(&b,Mode::Oracle).unwrap();let z=Source::parse(&other,Mode::Oracle).unwrap();assert_ne!(a.sha256(),z.sha256());ass...
+   |                            ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:79:57
+   |
+79 |     let a=Source::parse(&b,Mode::Oracle).unwrap();let z=Source::parse(&other,Mode::Oracle).unwrap();assert_ne!(a.sha256(),z.sha256());ass...
+   |                                                         ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:79:78
+   |
+79 |     let a=Source::parse(&b,Mode::Oracle).unwrap();let z=Source::parse(&other,Mode::Oracle).unwrap();assert_ne!(a.sha256(),z.sha256());ass...
+   |                                                                              ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Source`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:85:83
+   |
+85 | ...   let changed=source.replace(from,to);assert_ne!(source,changed);assert_eq!(Source::parse(changed.as_bytes(),Mode::Oracle).unwrap_err...
+   |                                                                                 ^^^^^^ use of undeclared type `Source`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::study_reference::document::Source;
+   |
+1  + use core::error::Source;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mode`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:85:116
+   |
+85 | ...nged);assert_eq!(Source::parse(changed.as_bytes(),Mode::Oracle).unwrap_err().reason,reason);
+   |                                                      ^^^^ use of undeclared type `Mode`
+   |
+help: consider importing this enum
+   |
+1  + use crate::study_reference::document::evidence::Mode;
+   |
+
+warning: unused import: `super::*`
+ --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:1:5
+  |
+1 | use super::*;
+  |     ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared type `Bootstrap`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:49:151
+   |
+49 | ...rap_err().reason,"domain"); } else { assert!(Bootstrap::parse(&b,Mode::Production).is_err()); } count+=1;
+   |                                                 ^^^^^^^^^ use of undeclared type `Bootstrap`
+
+error[E0433]: failed to resolve: use of undeclared type `Bootstrap`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:55:64
+   |
+55 |         let b=bytes(&format!("{prefix}/bootstrap.bin")); let a=Bootstrap::parse(&b,mode).unwrap();
+   |                                                                ^^^^^^^^^ use of undeclared type `Bootstrap`
+
+error[E0433]: failed to resolve: use of undeclared type `Bootstrap`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:60:44
+   |
+60 |         baseline(mode).check_bootstrap(&a,&Bootstrap::parse(&b,mode).unwrap()).unwrap();
+   |                                            ^^^^^^^^^ use of undeclared type `Bootstrap`
+
+error[E0433]: failed to resolve: use of undeclared type `Bootstrap`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:65:92
+   |
+65 | ...ytes("synthetic/bootstrap.bin");let expected=Bootstrap::parse(&good,Mode::Oracle).unwrap();let cases=metadata("negative-cases.json");l...
+   |                                                 ^^^^^^^^^ use of undeclared type `Bootstrap`
+
+error[E0433]: failed to resolve: use of undeclared type `Bootstrap`
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:67:104
+   |
+67 | ...bytes(&format!("negative/{name}.bin"));let e=Bootstrap::parse(&b,Mode::Oracle).and_then(|a|base.check_bootstrap(&a,&expected)).unwrap_...
+   |                                                 ^^^^^^^^^ use of undeclared type `Bootstrap`
+
+error[E0425]: cannot find function `check_source_length` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:72:13
+   |
+72 |     assert!(check_source_length(8_388_608).is_ok());assert_eq!(check_source_length(8_388_609).unwrap_err().reason,"raw-cap");
+   |             ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `check_source_length` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:72:64
+   |
+72 |     assert!(check_source_length(8_388_608).is_ok());assert_eq!(check_source_length(8_388_609).unwrap_err().reason,"raw-cap");
+   |                                                                ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `checked_disk_sum` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:73:16
+   |
+73 |     assert_eq!(checked_disk_sum(&[u64::MAX,1]).unwrap_err().reason,"arithmetic-overflow");
+   |                ^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `checked_disk_sum` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:74:13
+   |
+74 |     assert!(checked_disk_sum(&[u64::MAX]).is_ok());
+   |             ^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0412, E0425, E0433.
+For more information about an error, try `rustc --explain E0412`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 35 previous errors; 1 warning emitted

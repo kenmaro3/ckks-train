@@ -1,0 +1,780 @@
+{
+  "base_source_commit": "17c18c3ecc4b1c87053e0d6397bfebca9a8316bf",
+  "before_fix1_snapshots": {
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document.rs": {
+      "bytes": 67700,
+      "lines": 2076,
+      "sha256": "193783906876377788689e56a3d472c38e41d2c604cbfb06f12445139e7c72a4"
+    },
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document/evidence.rs": {
+      "bytes": 16272,
+      "lines": 443,
+      "sha256": "40af834576a44452d712f33e88ec3a4a8b1675b6933d54cfef44f63125dbb7fe"
+    },
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document/resource.rs": {
+      "bytes": 38511,
+      "lines": 988,
+      "sha256": "4bab6c5d000427cac80ad10be6ee4636cf8c00dec4100a9b3c33d6bf1c4259c1"
+    },
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs": {
+      "bytes": 6801,
+      "lines": 216,
+      "sha256": "f11c957e1eccf4ce80751692acd47fc663b5bd4c50a3d880013d0445a66236c1"
+    },
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document/resource/links.rs": {
+      "bytes": 13356,
+      "lines": 346,
+      "sha256": "91b3781bf66538baf453253a08914b7e5afe140e85fa71f98e066f7681a33bf4"
+    },
+    "task-54-d7-resource-source-before-fix1/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs": {
+      "bytes": 28284,
+      "lines": 713,
+      "sha256": "d87eda233eac097d46b21f21e2d6b1fdba3796f11bf83286b3a6f19a8c6fb3bd"
+    },
+    "task-54-d7-resource-source-before-fix1/task-54-d7-resource-source-pins.json": {
+      "bytes": 32347,
+      "lines": 755,
+      "sha256": "8b09981ae08abc39fc9650275046a8c42ce61d692dbe68df97402ba071151360"
+    },
+    "task-54-d7-resource-source-before-fix1/task-54-d7-resource-source-report.md": {
+      "bytes": 34354,
+      "lines": 256,
+      "sha256": "42bf0e94622b93edd11d8ff1bce0e48a868a0c88172a2c79f04df85c9770426c"
+    },
+    "task-54-d7-resource-source-before-fix1/task-54-d7-resource-source-review.md": {
+      "bytes": 20293,
+      "lines": 77,
+      "sha256": "fc8518aff1d14934f184ad891ea8b2369d2b28f1a7e24c97c934cc1bb6b4a677"
+    },
+    "task-54-d7-resource-source-before-fix1/task-54-d7-resource-source.diff": {
+      "bytes": 96578,
+      "lines": 2442,
+      "sha256": "79ce39a076e2bb61ac1622b95bfcca8c075d49fcd41f4c6920a2daed6a7a5e02"
+    }
+  },
+  "deferred_Q1": "Unchanged cfg(test)-only bootstrap/source bundle mode consistency; root deferred to final integration review; not a production synthetic bypass.",
+  "independent_format_inputs": {
+    "results/validation/task54-d7-resource-design/task-54-d7-resource-producer-proposal.md": {
+      "bytes": 65108,
+      "lines": 215,
+      "sha256": "e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a"
+    },
+    "results/validation/task54-d7-resource-format/task-54-d7-resource-format-contract.md": {
+      "bytes": 30832,
+      "lines": 185,
+      "sha256": "a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/SHA256SUMS": {
+      "bytes": 27530,
+      "lines": 263,
+      "sha256": "16373eb4ec861e5d61d6cb0ba1c4786ff0c3160ae4ceda780a974828a4c90fcf"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/literal-expectations.json": {
+      "bytes": 3233,
+      "lines": 31,
+      "sha256": "83f70dcd1d532302e27aebe1cbb6fbd36fd4aa1b193a3a365d679e2cf6f4b56e"
+    }
+  },
+  "ledger_artifacts": {
+    "task-54-d7-resource-source-fix1-brief.md": {
+      "bytes": 2393,
+      "lines": 9,
+      "sha256": "a2630aa4af45f28b570ff56afba8345108e6f4b4ede1cb8b2a7eb064e775fac8"
+    },
+    "task-54-d7-resource-source-fix1-clippy.log": {
+      "bytes": 175,
+      "lines": 2,
+      "sha256": "497b185a430e890de8643484abfeb670f44a62e021d1698bfe32682cd5d82598"
+    },
+    "task-54-d7-resource-source-fix1-fmt.log": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "task-54-d7-resource-source-fix1-full.diff": {
+      "bytes": 96778,
+      "lines": 2445,
+      "sha256": "22d8ce78810ad8b3799e117e0a52474dc237b16dc4efb5b8ea5607fb3bfffb30"
+    },
+    "task-54-d7-resource-source-fix1-narrow.diff": {
+      "bytes": 1772,
+      "lines": 33,
+      "sha256": "09740b5865ad6308cadfc026f3899569ec5bb6267faea0ba276501826c19b69d"
+    },
+    "task-54-d7-resource-source-fix1-tests.log": {
+      "bytes": 1742,
+      "lines": 21,
+      "sha256": "8b547a313a68d54a06e9445d9826f2af0d7555228f32ae8e38e8548e064bd00e"
+    },
+    "task-54-d7-resource-source-pins.json": {
+      "bytes": 32347,
+      "lines": 755,
+      "sha256": "8b09981ae08abc39fc9650275046a8c42ce61d692dbe68df97402ba071151360"
+    },
+    "task-54-d7-resource-source-report.md": {
+      "bytes": 40334,
+      "lines": 310,
+      "sha256": "194bb31604bcd8798b9c8ef5a12a91378666f67cb5f669846c03ff179091702a"
+    },
+    "task-54-d7-resource-source-review.md": {
+      "bytes": 20293,
+      "lines": 77,
+      "sha256": "fc8518aff1d14934f184ad891ea8b2369d2b28f1a7e24c97c934cc1bb6b4a677"
+    },
+    "task-54-d7-resource-source-root-clippy-inventory.md": {
+      "bytes": 730,
+      "lines": 5,
+      "sha256": "2a9026123e58dbe6e7dabf2e9b18b10bcf8f79177addb0789eb461155f5d3bb0"
+    },
+    "task-54-d7-resource-source-root-clippy.log": {
+      "bytes": 2427,
+      "lines": 45,
+      "sha256": "c7b3895f9929b8bc6c73cd00e0c235ca3f0434b2586300c74b755b8027ba80d7"
+    },
+    "task-54-d7-resource-source.diff": {
+      "bytes": 96578,
+      "lines": 2442,
+      "sha256": "79ce39a076e2bb61ac1622b95bfcca8c075d49fcd41f4c6920a2daed6a7a5e02"
+    }
+  },
+  "source_changes_exactly": [
+    "crates/ckks-train-bench/src/study_reference/document/resource.rs",
+    "crates/ckks-train-bench/src/study_reference/document/resource/tests.rs"
+  ],
+  "source_files": {
+    "crates/ckks-train-bench/src/study_reference/document.rs": {
+      "bytes": 67700,
+      "lines": 2076,
+      "sha256": "193783906876377788689e56a3d472c38e41d2c604cbfb06f12445139e7c72a4"
+    },
+    "crates/ckks-train-bench/src/study_reference/document/evidence.rs": {
+      "bytes": 16272,
+      "lines": 443,
+      "sha256": "40af834576a44452d712f33e88ec3a4a8b1675b6933d54cfef44f63125dbb7fe"
+    },
+    "crates/ckks-train-bench/src/study_reference/document/resource.rs": {
+      "bytes": 38710,
+      "lines": 991,
+      "sha256": "a218f171bbbf67413ff5248605c0443da7fe7a42a0d1020cf38fbf7cbef3989f"
+    },
+    "crates/ckks-train-bench/src/study_reference/document/resource/bootstrap.rs": {
+      "bytes": 6801,
+      "lines": 216,
+      "sha256": "f11c957e1eccf4ce80751692acd47fc663b5bd4c50a3d880013d0445a66236c1"
+    },
+    "crates/ckks-train-bench/src/study_reference/document/resource/links.rs": {
+      "bytes": 13356,
+      "lines": 346,
+      "sha256": "91b3781bf66538baf453253a08914b7e5afe140e85fa71f98e066f7681a33bf4"
+    },
+    "crates/ckks-train-bench/src/study_reference/document/resource/tests.rs": {
+      "bytes": 28282,
+      "lines": 713,
+      "sha256": "373e6b6e075adf1bcc57ca0f3c267eb413622ed3fab22332c170dfcd44e24447"
+    }
+  },
+  "static_checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-source-fix1-narrow.diff"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-resource-source-fix1-full.diff"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "status": "FIX1_SOURCE_FROZEN_FOR_SCOPED_REVIEW_NOT_TASK54_COMPLETE",
+  "test_input_unique_bytes": 473973,
+  "test_input_unique_count": 109,
+  "test_inputs": {
+    "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/full.resource.evidence.bin": {
+      "bytes": 4265,
+      "lines": 3,
+      "sha256": "988156ca6ec4dfbe2519f6ef3913299687b82df1efa49b8c04582129cfd4e3dd"
+    },
+    "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/negative/resource-peak.bin": {
+      "bytes": 6442,
+      "lines": 3,
+      "sha256": "25e40024d5528e2bf0939acfdae0bc6d61b57d9c8d1b0440fe42316a95f06923"
+    },
+    "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.resource.evidence.bin": {
+      "bytes": 6442,
+      "lines": 3,
+      "sha256": "704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/bootstrap.bin": {
+      "bytes": 704,
+      "lines": 2,
+      "sha256": "3d8bbb071f5804ca194f9a37f5938587a5dd7e7672f4a5e76fd11b5480502980"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-reference-read.json": {
+      "bytes": 2742,
+      "lines": 1,
+      "sha256": "7fa3f65d9908744bfae476348235fe69ad31214fc1b04ff92c2578160106e638"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-reference-recover.json": {
+      "bytes": 2804,
+      "lines": 1,
+      "sha256": "7aea792affa994ec7334eeff805958ee102e2368c9c27e49eadb7e8ef3e3f6e0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-reference-snapshot.json": {
+      "bytes": 2742,
+      "lines": 1,
+      "sha256": "afdae901df7c555eac1a2530b2eb914847030f1ef64abc8515e044015aae65c4"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-target-lock.json": {
+      "bytes": 2765,
+      "lines": 1,
+      "sha256": "1b354fda37cddeccd964771d509b4eb03e59506f08ca5aa1515b39110f972e3a"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-target-read-future.json": {
+      "bytes": 2890,
+      "lines": 1,
+      "sha256": "2ce111200f0111a6d134fd02df09e9e6d60a34d07e643d9aede9e840602b8b38"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-target-read-supplied.json": {
+      "bytes": 2952,
+      "lines": 1,
+      "sha256": "4a420be9a7524bd65c1bb6ca8fc0520ad61a4875d0830aa2d46a38fc3586fb1a"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-train-full.json": {
+      "bytes": 3273,
+      "lines": 1,
+      "sha256": "886d3585c913967bd0c84f22fbdd493dd9024dbb2782273e4efce9a7a38e887b"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/claim-train-quick.json": {
+      "bytes": 3273,
+      "lines": 1,
+      "sha256": "b0fd0d159eba73c18f85450997f15d06ff94526e478103c391850a279da22da1"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/disk-observation.json": {
+      "bytes": 614,
+      "lines": 1,
+      "sha256": "540bba336a68394da5112d36b18486ed55088aff691f328253140367dbd9120e"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/host-observation.json": {
+      "bytes": 3181,
+      "lines": 1,
+      "sha256": "669ca3f132a06b468e7f680be7577167c8b5332328d0929078d220815df0c2c7"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/host-policy.json": {
+      "bytes": 2322,
+      "lines": 1,
+      "sha256": "904e995c081866785bb6b63f8c761d2e48cbf686aa94d9611b8482bfb1405191"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/model.json": {
+      "bytes": 5101,
+      "lines": 1,
+      "sha256": "d8e285db572a64a36c05f7f4a02059b0fa8716e6d5ab046b90ad21131f14e50f"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/inert-production/validation.json": {
+      "bytes": 11651,
+      "lines": 1,
+      "sha256": "5bbdb7d845836d2395192c10ae622f2f0bf1c8ef52be4933d6206e998d66ec85"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/manifest.json": {
+      "bytes": 15767,
+      "lines": 1,
+      "sha256": "3cdd988685c9ee3564d8af2a58072c29d5e23a9ee833a28167dfe76180164bd4"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative-cases.json": {
+      "bytes": 11387,
+      "lines": 87,
+      "sha256": "1cadd3ac6e7ddf0089b3653dac86c3d2e3f0edc4d4010d36dda4bfe1eb0c0f66"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n01-missing-component.json": {
+      "bytes": 4936,
+      "lines": 1,
+      "sha256": "d6e869f5da8e66cc1c150f835c74c37a884c9af5e64715f04aa8bd07152b68b0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n02-duplicate-component.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "087e9f1526a433968fc9b81eec14d416d0d3a344aa1b171f15bc2ec01d262e24"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n03-component-order.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "d4220691d3091f4559c0b95be6d7e5e8cd1120e92879838b70a76ac88d57cdea"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n04-unknown-rule.json": {
+      "bytes": 5100,
+      "lines": 1,
+      "sha256": "48844b2aa2cf95c17eac980207a54cde94a116290bc8bd3ec0860d18626b8dbc"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n05-rule-revision.json": {
+      "bytes": 5086,
+      "lines": 1,
+      "sha256": "d4b69596c0d7649767940cb6724d0f2b4112e621acf9ed88f12057230c8a8db7"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n06-malformed-json.json": {
+      "bytes": 1,
+      "lines": 1,
+      "sha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n07-duplicate-decoded-key.json": {
+      "bytes": 5121,
+      "lines": 1,
+      "sha256": "a14d27e5a54c18f5b86edbc16ac2460cd62e25b5058132f988bb1b3e68b57d67"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n08-unknown-key.json": {
+      "bytes": 5115,
+      "lines": 1,
+      "sha256": "e62f5730fe482e961e8c710649e43d5a5b48a3b702c5fdc0e6ac57e8c439b1ec"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n09-missing-key.json": {
+      "bytes": 5069,
+      "lines": 1,
+      "sha256": "71df220f055e21e5cc33239b1a485712a36ea8d8b0ec5a75a3801995a79156ff"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n10-fraction.json": {
+      "bytes": 3181,
+      "lines": 1,
+      "sha256": "42f4d68d7a614c02e9bd6382146fe04bbed60fad7ef98ab5141e9c2b6e6a3af8"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n11-exponent.json": {
+      "bytes": 3181,
+      "lines": 1,
+      "sha256": "bf2ae47f7575b62ad7c16ce1ecb6b71b4f647a61933d103517f3464addb3f608"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n12-negative-zero.json": {
+      "bytes": 3180,
+      "lines": 1,
+      "sha256": "2ba73ecfef511c72df7ea90de3917996a31526ff9f365ba9c916088d351e4e26"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n13-bool-as-integer.json": {
+      "bytes": 3182,
+      "lines": 1,
+      "sha256": "2e18a32fb221b8cfb1b656ccbb2a8b973005c539118139be250c80bf5f04bc97"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n14-u64-overflow.json": {
+      "bytes": 3198,
+      "lines": 1,
+      "sha256": "6d94d30b2a0fa1f05772b459994002a5666ff43418b5bcc15f01fdb30c98d55f"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n15-quoted-number.json": {
+      "bytes": 3181,
+      "lines": 1,
+      "sha256": "1e629a6f9aa6f7aedcf36019412bc7276468850130351e8a4ea98bd577a812b9"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n16-invalid-utf8.json": {
+      "bytes": 5100,
+      "lines": 2,
+      "sha256": "cfa12a272527a99adb2cdddc271a41ad2e48ef0c8e81408b85c3fffea3aeed49"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n17-trailing-junk.json": {
+      "bytes": 5100,
+      "lines": 2,
+      "sha256": "c84326e0add85c15d458c98426eb9051de13d0c3b56caad0329f563e758937f8"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n18-bom.json": {
+      "bytes": 5102,
+      "lines": 1,
+      "sha256": "690e52cd4f7f8b7f2f81e7c49f176ba7d539ad089becab729f44fc2d45e68e41"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n19-invalid-scalar.json": {
+      "bytes": 5089,
+      "lines": 1,
+      "sha256": "08958ee72042e6a0303961bb147ba8939bc79783593e844fd8ec16643874ac9a"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n20-source-manifest.json": {
+      "bytes": 11649,
+      "lines": 1,
+      "sha256": "0c0ec2225331dce3380bf454cdda7ae5a626f3099a563d046e686d48e32ba854"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n21-source-revision.json": {
+      "bytes": 11649,
+      "lines": 1,
+      "sha256": "f295c4323ea917d4bbd988e17aac04bc13adae5504a1e9293de6cd76d66757b5"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n22-build-receipt.json": {
+      "bytes": 11644,
+      "lines": 1,
+      "sha256": "761851481a0da167ddc3503c3f41e2e3aa2d612adf19fd5f954bc6489e02d52d"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n23-run-environment.json": {
+      "bytes": 11649,
+      "lines": 1,
+      "sha256": "573489ff4f5e49583b83ce3041b38e92af8b40213a90bbb34a3cc3b9b3a230d0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n24-missing-validation.json": {
+      "bytes": 2158,
+      "lines": 1,
+      "sha256": "00ca465faefae0ddccfd3ee04b5c1587dca1bf58a0d291cbb5b3bad92a1597e2"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n25-validation-hash.json": {
+      "bytes": 2320,
+      "lines": 1,
+      "sha256": "5645c8c8419322a8dd4577971b779f2dcad0713c69d7c249367f310fbfd52e2a"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n26-model-hash.json": {
+      "bytes": 11649,
+      "lines": 1,
+      "sha256": "b636e5847bf0d612693b667d1d28fd4a18f86a6ab9d359274e8c35264951da5c"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n27-mixed-domain.json": {
+      "bytes": 5100,
+      "lines": 1,
+      "sha256": "5dfb48f82fcfe392fa077a25c84e39de36e5aaa51ca2df37aafb00b151f3d669"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n28-synthetic-pair.json": {
+      "bytes": 5100,
+      "lines": 1,
+      "sha256": "b4d58d01b662d87961b846de7c7c4f125b4ee32fecf26fdf4eac3b33d2e91c16"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n29-absolute-fileref.json": {
+      "bytes": 5088,
+      "lines": 1,
+      "sha256": "f4a42390e3849d80019cbff41d793885500ecb6d8d155bc3a55dbaa2b76ed408"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n30-duplicate-run.json": {
+      "bytes": 14725,
+      "lines": 1,
+      "sha256": "9163f3c2981c21a60857c054ca78055d123d00f38267dc49991a68116eb3b14e"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n31-unresolved-run.json": {
+      "bytes": 11650,
+      "lines": 1,
+      "sha256": "ded25bca6c592ab83646f144a6c1d30266c7997a54987ef8d95a607ab0c03e59"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n32-reciprocal-coverage.json": {
+      "bytes": 11646,
+      "lines": 1,
+      "sha256": "20cf305f23bef0b8c351db27be035003f0d2c87f0eafe9e4a05e32826f3d9842"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n33-unreferenced-run.json": {
+      "bytes": 14178,
+      "lines": 1,
+      "sha256": "d9180e5c04a079909fe15b58dd970f2fa96901843c1c04c7203e15bd03710ebd"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n34-duplicate-source.json": {
+      "bytes": 5230,
+      "lines": 1,
+      "sha256": "390bf0854bac56c4ea65db7d0f4198f4e1736205c5c4b68eb4918add575e0a0e"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n35-source-order.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "8efea3f78ce6a78d35fb27ddf816a194d40fcb136575fbb50e6e52e741e86fd7"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n36-work-order.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "8fcfdea66987d20a8dd6dd888e4e4739f40e52e14b2731c7fb899b6a4dbb14a0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n37-overlap-work.json": {
+      "bytes": 5167,
+      "lines": 1,
+      "sha256": "936aa4635828709eabb1326c6de9f12a41d33ae052ad82e7a0a21ba91439610e"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n38-read-expected-some.json": {
+      "bytes": 2802,
+      "lines": 1,
+      "sha256": "a6ce4f0c56ad33e546e0fab063f996708305b9fbc4eab31c1239432de0cac1a7"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n39-recover-expected-none.json": {
+      "bytes": 2740,
+      "lines": 1,
+      "sha256": "50a06f63f7f4fa6acca589a9c0e6331dde137ee16c846b08f29f819f333fdfc4"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n40-recover-wrong-hash.json": {
+      "bytes": 2802,
+      "lines": 1,
+      "sha256": "70fc4e96d2337bb1da488d1b19cc56d30a9b3b188e5a4343e83d0c539fd2bf15"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n41-snapshot-expected-some.json": {
+      "bytes": 2802,
+      "lines": 1,
+      "sha256": "94c656641b41ba222c7931aaefd09711a74e3d9a2789ab47f5034d6bcca3396c"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n42-reference-seed.json": {
+      "bytes": 2740,
+      "lines": 1,
+      "sha256": "9b2dc6d36c81bfbcb4131621c6928436b53b8abcce5133968f8eb28ccb7471cd"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n43-read-target-none.json": {
+      "bytes": 2763,
+      "lines": 1,
+      "sha256": "784cc8dbaf762211b5fc2016f27ff3f9b347b2f7d5942399f41715fd7cee98b5"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n44-lock-target-some.json": {
+      "bytes": 2888,
+      "lines": 1,
+      "sha256": "8b5b5b3f30f2d68e27b0199e9fd5c189a19de9321914fd6a785463b00894e677"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n45-lock-input-some.json": {
+      "bytes": 2825,
+      "lines": 1,
+      "sha256": "50f82dd4b8cd2757e608ad7fdc356967fe9aef4d0d11b7cfe23d28587b16caed"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n46-lock-seed.json": {
+      "bytes": 2763,
+      "lines": 1,
+      "sha256": "8aa4417e6c2e996803503540cf78857e23c92b48391647b67d84978cda39b5be"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n47-supplied-receipt-role.json": {
+      "bytes": 2950,
+      "lines": 1,
+      "sha256": "0281c542e76211bddef535fbfd0e11655336439bc4a8c5285d971c1c3a397e86"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n48-supplied-contract-role.json": {
+      "bytes": 2950,
+      "lines": 1,
+      "sha256": "62377937d5cdea6ac13d83b09115f146a488d6d3c7caf24139d33e4f82f379c9"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n49-supplied-one-byte.json": {
+      "bytes": 2950,
+      "lines": 1,
+      "sha256": "85e05f40d663f49943b98b1281b9b204647ad383d0810372b0186625c60fd7d5"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n53-request-mixed-domain.json": {
+      "bytes": 3269,
+      "lines": 1,
+      "sha256": "6fe1575630478f3202f8168638d7716c81838337438b1f96a180dd9debde0d7c"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n54-seed-membership.json": {
+      "bytes": 2888,
+      "lines": 1,
+      "sha256": "8aac0fc0d7590c6b3d026290e289cd8d906de6be62ba3581caf2be8467230d64"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n55-claim-observation-link.json": {
+      "bytes": 3179,
+      "lines": 1,
+      "sha256": "dba8e6df9322c36b711c8962a6015d0d52d05c5b3ab1e81c603d39a2cb9df2bf"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n56-observation-sequence.json": {
+      "bytes": 612,
+      "lines": 1,
+      "sha256": "8b9f5b1de5d0461be5d36d41dbcf9ea0d6668181d3bec65eed4b0ddd2be0b886"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n57-observation-physical.json": {
+      "bytes": 3179,
+      "lines": 1,
+      "sha256": "6982cbfe625569eb609c800d89a35f38d1d95638986140cfcd1e14bf7594f8bf"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n58-topology-namespace.json": {
+      "bytes": 3179,
+      "lines": 1,
+      "sha256": "59c2c9325398b72c73003ca184a79af33161901a83a5d00d15375423e4e6ed4f"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n59-v1-global-root.json": {
+      "bytes": 3179,
+      "lines": 1,
+      "sha256": "590543d392fa7dbcdfaa3a564f7a20031de889a987e73f988eb5ca8c8d238722"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n60-fabricated-root-row.json": {
+      "bytes": 3173,
+      "lines": 1,
+      "sha256": "deeb98664116c974b8d28cf9c328c947334404a3673a80b755e35d90852c1194"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n62-duplicate-root-role.json": {
+      "bytes": 604,
+      "lines": 1,
+      "sha256": "0f16c753fe4e1ee58eb2cba9e5d6ed64a55ddf7271e0b1a2f9dbc7704208e6a2"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n63-disk-product-overflow.json": {
+      "bytes": 631,
+      "lines": 1,
+      "sha256": "56fdce0269e602bd35f7f295f4f232ba6aa7bd1af633b9b0b9dca0c0af5dab12"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n65-phase-overflow.json": {
+      "bytes": 2782,
+      "lines": 1,
+      "sha256": "f8610787b2058f565c1fd8878c8b348608766672c40d05f1ad0d08a36ca55c39"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n66-peak-mismatch.json": {
+      "bytes": 2763,
+      "lines": 1,
+      "sha256": "d7fc478e4923b8686b7517d7b36a4e41cba74b841f111c7e5cb9f49e667a36c3"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n67-incremental-mismatch.json": {
+      "bytes": 2763,
+      "lines": 1,
+      "sha256": "240e6fe40672c51553083595637435b97fa833242297c6378709d64652432985"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n69-bootstrap-short.bin": {
+      "bytes": 702,
+      "lines": 2,
+      "sha256": "01912c42ffde4efbde01fa0812fa856b206674b3c22797a30a792d226bfe4b07"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n70-bootstrap-policy.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "0c433d7c042572d021e25563c05ff6b8f1b45f8ff77f8ed375bf2030d382634b"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n71-bootstrap-namespace.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "c7ef0cd100eee7b30cbd794584e31e49864da3ad313c8da43df0dd3379c55820"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n72-bootstrap-origin.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "80a893bead7f0406df818194c049e108d2d5d92ec14adfa55675828539b659e6"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n73-bootstrap-profile.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "f50695f5fe248af5341802e8fb84175437a63547f4293148a75bf85eac9bf5f4"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n74-bootstrap-domain.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "21b6c867ca53fb5d45789fa08f47b28ffb427759ab5c6ef4009265b5b79a2d12"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n75-bootstrap-synthetic.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "5ee6c406b0ce092eaefb5de1b2fabdfb829603a42bfaacd4c42f9ff7de9dc215"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n76-bootstrap-trailing.bin": {
+      "bytes": 704,
+      "lines": 2,
+      "sha256": "6789bc3b37329d3447d1fead0ba7831453799f8eb58cb45c56f907341a862654"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n77-bootstrap-hash-prefix.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "d441c6c0b23aa182f459ea5545fe8d3e1730acd83f74ea38aedf0bdaf6e48fb0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n78-escaped-bytes.json": {
+      "bytes": 3274,
+      "lines": 1,
+      "sha256": "92c44c89b1c9a8b6195837e643b061fabb4bd35bf4240ad218c972f1488f383c"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n79-i32-overflow.json": {
+      "bytes": 11658,
+      "lines": 1,
+      "sha256": "a2bad755855bc3bdd1245ce5e2a88060e2592f5d5584d3afd81f2f8afb44a51b"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n80-argv-nul.json": {
+      "bytes": 11607,
+      "lines": 1,
+      "sha256": "473c7716ccbf8f76fdb73dec034a434d714ba0a4456eb3477a4543ce76b833ba"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n81-insufficient-inodes.json": {
+      "bytes": 612,
+      "lines": 1,
+      "sha256": "4e4c5bd3df12ea01e73903c1dd4e5dab0df8ab62ebe2679d9152943933caf420"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/negative/n85-registry-identity.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "2d944becbdfa4425ea085fbc064cf86a511c4893b14aefb9f0cee4ccc615dfa3"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/bootstrap.bin": {
+      "bytes": 703,
+      "lines": 2,
+      "sha256": "6e51201e90c76642e4f30a9e7ff4724d40c6703656c63b6fcdbc9758b00811ae"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-reference-read.json": {
+      "bytes": 2740,
+      "lines": 1,
+      "sha256": "7a4c064632291cf9fbc98ec9a3b7f3f8b8312103bfe5eb5ad8822b122fdb6927"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-reference-recover.json": {
+      "bytes": 2802,
+      "lines": 1,
+      "sha256": "19605a0d4f2f8361b6a5c82d3643985ea4f36506e515ff2b4720909dc450280b"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-reference-snapshot.json": {
+      "bytes": 2740,
+      "lines": 1,
+      "sha256": "70421c5fe4c1bbd188bf65452e665e2b37d64c4e54de396c2e4bccf5c037a02c"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-target-lock.json": {
+      "bytes": 2763,
+      "lines": 1,
+      "sha256": "31e9e86f95b95c600a31c16e88d00cf265be15e0b29c7fe57ed95de3eae957a0"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-target-read-future.json": {
+      "bytes": 2888,
+      "lines": 1,
+      "sha256": "318fe11a398f4174738aee1c93f8e6f8546a239702e5ffd18251e7d5f854d2d6"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-target-read-supplied.json": {
+      "bytes": 2950,
+      "lines": 1,
+      "sha256": "ce4b2a72c3195394fe96b927666d5d25fa5f99bfb3ba3c11fe1ac9893ac8a912"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-train-full.json": {
+      "bytes": 3269,
+      "lines": 1,
+      "sha256": "0699c246fbbbfca8b2b7c6d7829335b0e5b8231bc6a38c5c9995d7a906e47b34"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/claim-train-quick.json": {
+      "bytes": 3269,
+      "lines": 1,
+      "sha256": "59b72eb6b188604daf00e057e5fb56616603496ef44785fde426f471a5862900"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/disk-observation.json": {
+      "bytes": 612,
+      "lines": 1,
+      "sha256": "1513641e66d735766281394b97c7d1a27089aad5ff54b5f3fe9a8ffa02842a79"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/host-observation.json": {
+      "bytes": 3179,
+      "lines": 1,
+      "sha256": "469466b13d87101a3308c0a5bc5524dfdec69bc2ed5a781d29d847534c5cda62"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/host-policy.json": {
+      "bytes": 2320,
+      "lines": 1,
+      "sha256": "166d88a45ff66a2056f8dd42cd63029627749ee7ee7ae3be8110562305504f17"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/model.json": {
+      "bytes": 5099,
+      "lines": 1,
+      "sha256": "616cdb9287e0b1f1fb549b03b5560b8139c245244687af47513f2cfe46973bdb"
+    },
+    "results/validation/task54-d7-resource-oracle/corpus/synthetic/validation.json": {
+      "bytes": 11649,
+      "lines": 1,
+      "sha256": "b6cbeaab5582b9e7f2eb7a3e8e47bab06fe10392805321de888f52ef23fe60dc"
+    }
+  },
+  "verification_results": {
+    "fmt_check": {
+      "executions": 1,
+      "exit": 0
+    },
+    "focused_tests": {
+      "executions": 1,
+      "exit": 0,
+      "failed": 0,
+      "filtered": 269,
+      "ignored": 0,
+      "passed": 13
+    },
+    "strict_clippy": {
+      "executions": 1,
+      "exit": 0
+    }
+  }
+}

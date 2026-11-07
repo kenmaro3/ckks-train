@@ -1,0 +1,45 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: large size difference between variants
+   --> crates/ckks-train-bench/src/study_reference/document/resource.rs:486:1
+    |
+486 | / enum Body {
+487 | |     Model(Model),
+488 | |     Validation(Validation),
+    | |     ---------------------- the second-largest variant contains at least 848 bytes
+489 | |     Policy(HostPolicy),
+490 | |     Claim(ClaimRecord),
+491 | |     Host(HostObservation),
+    | |     --------------------- the largest variant contains at least 1056 bytes
+492 | |     Disk(DiskObservation),
+493 | | }
+    | |_^ the entire enum is at least 1056 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields to reduce the total size of the enum
+    |
+491 |     Host(Box<HostObservation>),
+    |          ~~~~~~~~~~~~~~~~~~~~
+
+error: could not compile `ckks-train-bench` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: the borrowed expression implements the required traits
+   --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:525:39
+    |
+525 |     let changed = validation.replacen(&old, &format!("[\"{}\",\"ff\",\"\"]", "ff".repeat(4096)), 1);
+    |                                       ^^^^ help: change this to: `old`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrows_for_generic_args
+    = note: `-D clippy::needless-borrows-for-generic-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrows_for_generic_args)]`
+
+error: the borrowed expression implements the required traits
+   --> crates/ckks-train-bench/src/study_reference/document/resource/tests.rs:532:39
+    |
+532 |     let changed = validation.replacen(&old, "[\"\\u0066f\"]", 1);
+    |                                       ^^^^ help: change this to: `old`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrows_for_generic_args
+
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors

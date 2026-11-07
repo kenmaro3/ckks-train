@@ -21,14 +21,14 @@ pub(super) enum Mode {
     Oracle,
 }
 impl Mode {
-    fn synthetic(self) -> bool {
+    pub(super) fn synthetic(self) -> bool {
         match self {
             Self::Production => false,
             #[cfg(test)]
             Self::Oracle => true,
         }
     }
-    fn domain(self, name: &str) -> String {
+    pub(super) fn domain(self, name: &str) -> String {
         format!(
             "hekit-{}-{name}-v1",
             if self.synthetic() { "test" } else { "study" }
@@ -431,4 +431,13 @@ fn case_binding_matches(
         )?;
     }
     Ok(())
+}
+
+// Inert Request decoding reuse for the closed resource-source Train branch.
+// This projection grants no admission, geometry or execution capability.
+pub(super) fn resource_request_consumption(bytes: &[u8], mode: Mode) -> Result<u8> {
+    Ok(Auxiliary::decode(AuxKind::Request, bytes, mode)?
+        .request()?
+        .consumption
+        .0)
 }

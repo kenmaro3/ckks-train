@@ -1,0 +1,33 @@
+diff --git a/crates/ckks-train-bench/src/study_reference/document/resource.rs b/crates/ckks-train-bench/src/study_reference/document/resource.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/resource.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/resource.rs
+@@ -482,6 +482,9 @@
+         })
+     }
+ }
++// Keep this inert representation inline to avoid an added heap allocation and
++// indirection. Target-specific variant sizes are not portable resource/B0 bounds.
++#[allow(clippy::large_enum_variant)]
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ enum Body {
+     Model(Model),
+diff --git a/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs b/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs
+@@ -522,14 +522,14 @@
+     }
+     // Actual argv binary spelling beyond the old4096-character text path.
+     let old = "[\"66696374696f6e616c2d76616c6964617465\",\"ff\",\"\"]";
+-    let changed = validation.replacen(&old, &format!("[\"{}\",\"ff\",\"\"]", "ff".repeat(4096)), 1);
++    let changed = validation.replacen(old, &format!("[\"{}\",\"ff\",\"\"]", "ff".repeat(4096)), 1);
+     assert_ne!(changed, validation);
+     let s = Source::parse(changed.as_bytes(), Mode::Oracle).unwrap();
+     let Body::Validation(v) = s.body else {
+         panic!()
+     };
+     assert_eq!(v.runs.0[0].metadata.argv.0[0].0.len(), 4096);
+-    let changed = validation.replacen(&old, "[\"\\u0066f\"]", 1);
++    let changed = validation.replacen(old, "[\"\\u0066f\"]", 1);
+     assert_eq!(
+         Source::parse(changed.as_bytes(), Mode::Oracle)
+             .unwrap_err()

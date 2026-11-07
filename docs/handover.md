@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
+最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -1051,3 +1051,13 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 [算出資料](study-resource-allocation.md)と[元資料・独立レビュー](../results/validation/task54-d7-resource-allocation/README.md)を保存した。固定commitの37ファイルを根拠に、暗号鍵・Encoder・NN状態・学習用packet・bootstrap等の要素数と保持期間を整理した。refresh時の鍵の複製、NI更新時の旧状態と新状態の同時保持、逐次BSGSでも全giant出力が蓄積する点を反映している。
 
 選択したソースの算出資料として仕様・品質レビューは合格。pinの説明とMarkdown表の区切りに関する軽微な2点を閲覧用文書で修正し、元資料はそのまま保存した。22区分のうち0〜13に具体的な算出根拠があるが、再帰処理の完全なピーク、allocation容量・allocator・runtime・kernel、入力保持と実materializerの接続、実機検証は未完了である。payloadの要素数を物理メモリ上限や実行許可へ置き換えず、Task54全体は未完了とする。
+
+<a id="latest-evidence-20261108-d7-resource-source"></a>
+
+## 2026-11-08追記: 資源記録の読取処理
+
+[実装・元ログ・独立レビュー](../results/validation/task54-d7-resource-source/README.md)を保存した。6種類のJSONの項目・数値・列挙・参照関係と元bytesのidentityを検査し、bootstrap記録は借用bytesと固定配列で読み取る。既存のFull／Quick Resource形式は変更していない。
+
+修正後の限定テスト13件が合格（0 failed／0 ignored、269 filtered）。109入力・473,973 bytesを照合し、strict Clippyとformatも合格した。初回のClippy不合格はenumのサイズ差と不要な参照2か所で、配置を維持する局所的な注記と参照の除去で修正し、仕様・品質の再レビューが合格した。元の失敗ログと修正前snapshotを保持した。テスト専用モード間の比較に関する軽微なQ1は、最終接続レビューの残項目として明記している。
+
+これは記録形式と与えられた記録同士の整合性の合格である。物理メモリモデル、実ホスト容量・ロック、保持した同じ入力bytesのtyped loaderへの接続、live gate・全実験行列は未完了。704 bytesというbootstrapの形式長をメモリ上限とは扱わず、Task54全体や実学習の合格を主張しない。

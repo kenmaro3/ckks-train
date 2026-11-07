@@ -1,0 +1,20 @@
+[
+  {
+    "command": [
+      "rustc",
+      "--version"
+    ],
+    "exit": 0,
+    "stdout": "rustc 1.85.1 (4eb161250 2025-03-15)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cargo",
+      "--version"
+    ],
+    "exit": 0,
+    "stdout": "cargo 1.85.1 (d73d2caf9 2024-12-31)\n",
+    "stderr": ""
+  }
+]
