@@ -186,3 +186,7 @@ Evidence retained in the ledger: `post-full-followup-observation.stdout` (SHA256
 THIRD_PARTY_NOTICES now records the MIT alternative selected for rustix1.1.6 and reproduces its complete pinned LICENSE-MIT text. Commit71d3f09 added the direct Linux std/fs edge to ckks-train-bench with default features disabled; the locked version/checksum already existed. Bench remains publish=false. Existing notices, dependency versions/features, deny policy and the Unicode-table-only exception are unchanged by this documentation update.
 
 The [candidate and independent review](../results/validation/task55-rustix-notice/README.md) passed exact byte/manifest/history checks. This is repository notice preparation, not a new package build, final-SHA CI result, native Linux validation or registry publication. The latest source and distribution contents still require final release verification once implementation is complete.
+
+## 2026-11-08 07:09 JST: CI未起動の確認
+
+a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcompleted/failureだったが、全ジョブのstepは0件だった。各checkのannotationは、支払い失敗または利用上限による未起動を示している。どちらの課金条件かはAPIから区別できない。[全ジョブの一次記録とSHA対応](../results/validation/ci-20261108-0709/README.md)を保存した。コードのテスト結果は得られておらず、以前のSHAのCI合格を引き継がない。課金設定・支払い・workflowの変更や再実行は行っていない。ローカルの実装・検証は継続できるが、最終公開候補のCI検証は未達として残す。

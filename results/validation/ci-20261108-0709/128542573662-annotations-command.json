@@ -1,0 +1,1 @@
+{"kind": "readonly_ci_observation_not_science", "argv": ["gh", "api", "repos/kenmaro3/ckks-train/check-runs/128542573662/annotations"]}

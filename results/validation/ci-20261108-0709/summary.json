@@ -1,0 +1,221 @@
+{
+  "kind": "readonly_ci_observation_not_science",
+  "jobs": [
+    {
+      "run": 42416425934,
+      "job_id": 128535401161,
+      "name": "cuda-check",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42416425934,
+      "job_id": 128535401366,
+      "name": "test",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42416425934,
+      "job_id": 128535401375,
+      "name": "deny",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42416425934,
+      "job_id": 128535401441,
+      "name": "fmt",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42416425934,
+      "job_id": 128535401452,
+      "name": "clippy",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42416425934,
+      "job_id": 128535401463,
+      "name": "research-tools",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573467,
+      "name": "research-tools",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573593,
+      "name": "test",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573661,
+      "name": "cuda-check",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573662,
+      "name": "fmt",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573663,
+      "name": "clippy",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    },
+    {
+      "run": 42418803177,
+      "job_id": 128542573689,
+      "name": "deny",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": 0,
+      "annotations": [
+        {
+          "level": "failure",
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+        },
+        {
+          "level": "notice",
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+        }
+      ]
+    }
+  ]
+}
