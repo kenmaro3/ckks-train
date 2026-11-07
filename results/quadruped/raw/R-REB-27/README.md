@@ -1,0 +1,19 @@
+# R-REB-27: isolated Linux exporter and raw-input staging
+
+Operational preparation records, not scientific result JSON or an exporter context/capture. The three `remote-*` stdout/stderr/meta files are exact retained controller records. `remote.py`, `commands.json`, `manifest.json`, `package-freeze.json` and `execution-release.md` are exact frozen inputs; no payload, Git bundle, MNIST bytes, or external source-audit bodies are included here. `SHA256SUMS` binds the other archive files.
+
+All three released phases returned exit0, in order. Preflight created the initially absent receiver root. Receive transferred one112,650,240-byte package. Create/readback finished **2026-11-07T10:54:10.836329+09:00**, state `staging_verified`, receipt SHA256 `2f4894b5dfd0123db5dc531cdea04efe68f68ba2ba08aaa6c8c72a579743e7cd`. The later local controller completion is a separate timestamp. The exact final package hash is `373efd0a284fdcfe7997162bd5d8ef1db633a238c068c740ea6e11bbb2959cc0`.
+
+- Checkout: `/home/kmihara/hekit-exporter-010bb3c-task54-v1`, detached `010bb3c82627a0b8809e0308cdcbf76615bf9b39`, tree `509078781b1d7933f644c515957da6c54659dfed`.
+- Raw data root argument: `/home/kmihara/hekit-stage-task54-010bb3c-v1/payload/data`; the exact8 files live under `MNIST/raw`.
+- Archive: checkout's `results/quadruped/raw/reboot_emlp23_full`. The exporter, tracked config and36 weight/order files all match the frozen38 selected sizes/hashes; raw8 match exact sizes/hashes. Full committed tree inventory has1,293 entries.
+- Git15 commands retain their actual argv/environment, returncodes and binary streams. Detached `symbolic-ref -q HEAD` returned expected1; the other14 returned0. Both exporter-scoped and full status/diff observations were empty. Config observation SHA256 is `8af1efd8f9a96581ed737d72d2f6c088d2318975d934fb8614b7eb69e3c6c2ae`.
+- All24 bounded static sentinels match across preflight and final before/after snapshots. This supports preservation of the selected existing paths; it is not a claim to have hashed every old file or observed active jobs.
+
+The tracked config's193,960 bytes/hash76c493e2… belong to the new genuine checkout. The historical producer's191,369 bytes/hash9d6a2148… are preserved separately; no original output was repaired. Existing baseline raw gzip absence was likewise preserved. Both new roots now exist: the one-shot sequence must not be rerun into them.
+
+Evidence limits: remote paths/Git pin are bound by the frozen external release/code/commands rather than duplicated in the inner data manifest. Early runtime refusals and receive failures rely on controller records, not a universal structured script failure receipt. Controller metadata records exact input bytes/hash and `stdin_identity_stable=true`, but does **not** retain the raw before/after fd/path stat tuples; the execution-release wording was broader than the saved receipt in that respect. No raw-stat replay claim is made. Independently, remote whole-package and selected-file hashes match the released contents. The180s script budget is cooperative, not a hard transport/descendant deadline. The frozen command metadata contains a descriptive budget field omitted by its generator; actual argv/script budget are unchanged. Original records are not rewritten to remove these qualifications.
+
+No target import, exporter context/capture, full installed-package/native/canonical hashing, training, GPU work, FULL progress observation or job/queue mutation occurred in this request. The existing timed-workload gate and full encrypted-block campaign hold remain. Source and actual receipt reviews have separate scopes. Staging success alone establishes neither compatibility nor any Task42/M4/M5 scientific gate.
+
+Independent source review and actual-evidence review both passed for their stated staging scopes; see `source-review.md` and `actual-review.md`. The raw-stat recording limitation is retained rather than backfilled.

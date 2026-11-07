@@ -1,8 +1,8 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の追記: [FULL-2の定期確認](#latest-evidence-20261107-1048)。
+最新の追記: [専用checkoutと入力8点の配置完了](#latest-evidence-20261107-r27)。
 
-最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-1048)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
+最新の運用・CI状態は[最新の追記](#latest-evidence-20261107-r27)を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態はそこから推定しない。
 
 次の担当エージェントが、この文書と参照先だけで残りのタスク(Task 42 の仕上げ、47 の再計測、48〜58)を進められるように書く。日本語、技術用語は英語。
 
@@ -600,3 +600,12 @@ FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1047/README.md)では、10:48:05 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は187/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1047は依頼時刻のラベルで、実観測時刻とは区別する。ジョブ・キューは変更していない。
 
 この途中経過を最終精度やTask42／M4の合格とは扱わない。学習前のレベル・スケール・演算回数計画器は実装を開始し、実暗号比較は限定テストの条件を確認してから実施する。新しいexporter checkout／入力rootの配置ツールはローカル検証と独立sourceレビューを通過したが、サーバーへの配置・readbackはまだ未実行である。全登録範囲とfull encrypted-block campaign holdを維持する。
+
+<a id="latest-evidence-20261107-r27"></a>
+## 2026-11-07 10:54 JST追記: exporter専用checkoutと入力8点の配置完了
+
+[R27の運用記録](../results/quadruped/raw/R-REB-27/README.md)では、preflight・転送・作成後照合の3段階がexit0で終了し、10:54:10 JSTに`staging_verified`となった。専用checkout `/home/kmihara/hekit-exporter-010bb3c-task54-v1` のdetached HEADは`010bb3c`で、全1,293項目のGit tree inventory、exporter・tracked config・重み／順序を合わせた38ファイル、MNIST原本8ファイルのサイズとhashが固定値に一致した。exporter限定と全体のstatus／diffはいずれも空だった。元のproducer出力は修正せず、tracked版のconfigを正規checkoutに配置した。
+
+専用data rootは`/home/kmihara/hekit-stage-task54-010bb3c-v1/payload/data`で、8ファイルはその`MNIST/raw`以下にある。既存パスの24項目の限定確認は前後で一致し、元のbaseline側でgzip4点がない状態も維持した。両方の新規rootは既に存在するため、作成処理を再実行しない。独立sourceレビューと実記録レビューは配置の範囲で合格した。controllerは入力hash・サイズ・安定確認booleanを保持するが、比較したfd／pathの生stat情報までは保存しておらず、そこからの再検証はできないという制限を残す。
+
+完了したのは入力とcheckoutの配置であり、exporter context／capture、全package・native・canonical内容の照合、追加seedの取得や学習実行は未完了である。既存の計時ジョブ終了待ち条件を維持する。FULL-2の最新実観測は10:48:05 JSTの187/1000更新のままで、今回の配置から学習・GPUキューの進捗を推定しない。Task42／M4／M5の全体判定、全登録範囲とfull encrypted-block campaign holdは変えていない。
