@@ -1,0 +1,92 @@
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+   Compiling ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-core)
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+error[E0432]: unresolved import `super::train_capture`
+ --> crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs:3:12
+  |
+3 | use super::train_capture::{check_case_materialized, check_train_role, require_capture_owners};
+  |            ^^^^^^^^^^^^^ could not find `train_capture` in `super`
+
+error[E0425]: cannot find function `encode_captured_value` in module `case_provenance`
+   --> crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs:172:39
+    |
+172 |         let actual = case_provenance::encode_captured_value(value).unwrap();
+    |                                       ^^^^^^^^^^^^^^^^^^^^^ not found in `case_provenance`
+
+error[E0425]: cannot find function `encode_captured_value` in module `case_provenance`
+   --> crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs:181:42
+    |
+181 |                 assert!(case_provenance::encode_captured_value(value).is_err(), "{name}");
+    |                                          ^^^^^^^^^^^^^^^^^^^^^ not found in `case_provenance`
+
+error[E0599]: no method named `capture_train` found for reference `&'a context::VerifiedStudyTrainContext` in the current scope
+  --> crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs:15:31
+   |
+15 |         let capture = context.capture_train(case, input)?;
+   |                               ^^^^^^^^^^^^^ method not found in `&VerifiedStudyTrainContext`
+
+error[E0599]: no method named `finish_train_capture` found for reference `&'a context::VerifiedStudyTrainContext` in the current scope
+  --> crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs:16:31
+   |
+16 |         let checked = context.finish_train_capture(case, input, capture)?;
+   |                               ^^^^^^^^^^^^^^^^^^^^ method not found in `&VerifiedStudyTrainContext`
+
+error[E0599]: no method named `facts` found for struct `study_runtime::HostExecutor` in the current scope
+   --> crates/ckks-train-bench/src/study_runtime/tests.rs:166:26
+    |
+166 |     let facts = executor.facts(&host).unwrap();
+    |                          ^^^^^ method not found in `HostExecutor`
+    |
+   ::: crates/ckks-train-bench/src/study_runtime.rs:85:1
+    |
+85  | struct HostExecutor {
+    | ------------------- method `facts` not found for this struct
+
+error[E0599]: no method named `facts` found for struct `study_runtime::HostExecutor` in the current scope
+   --> crates/ckks-train-bench/src/study_runtime/tests.rs:182:34
+    |
+182 |             let facts = executor.facts(&host).unwrap();
+    |                                  ^^^^^ method not found in `HostExecutor`
+    |
+   ::: crates/ckks-train-bench/src/study_runtime.rs:85:1
+    |
+85  | struct HostExecutor {
+    | ------------------- method `facts` not found for this struct
+
+error[E0599]: no method named `facts` found for struct `study_runtime::HostExecutor` in the current scope
+   --> crates/ckks-train-bench/src/study_runtime/tests.rs:187:26
+    |
+187 |         assert!(executor.facts(&Host::observe()).is_err());
+    |                          ^^^^^ method not found in `HostExecutor`
+    |
+   ::: crates/ckks-train-bench/src/study_runtime.rs:85:1
+    |
+85  | struct HostExecutor {
+    | ------------------- method `facts` not found for this struct
+
+error[E0599]: no method named `facts` found for struct `study_runtime::HostExecutor` in the current scope
+   --> crates/ckks-train-bench/src/study_runtime/tests.rs:189:43
+    |
+189 |         assert!(other.install(|| executor.facts(&Host::observe()).is_err()));
+    |                                           ^^^^^ method not found in `HostExecutor`
+    |
+   ::: crates/ckks-train-bench/src/study_runtime.rs:85:1
+    |
+85  | struct HostExecutor {
+    | ------------------- method `facts` not found for this struct
+
+error[E0599]: no method named `facts` found for struct `study_runtime::HostExecutor` in the current scope
+   --> crates/ckks-train-bench/src/study_runtime/tests.rs:192:49
+    |
+192 |     assert!(std::thread::spawn(move || executor.facts(&Host::observe()).is_err()).join().unwrap());
+    |                                                 ^^^^^ method not found in `HostExecutor`
+    |
+   ::: crates/ckks-train-bench/src/study_runtime.rs:85:1
+    |
+85  | struct HostExecutor {
+    | ------------------- method `facts` not found for this struct
+
+Some errors have detailed explanations: E0425, E0432, E0599.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 10 previous errors

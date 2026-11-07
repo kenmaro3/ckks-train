@@ -1,0 +1,16 @@
+{
+  "source_base": "9aba62f0a2a2b565466216511238dec3fd7a244f",
+  "head_at_static_capture": "bb4f65f95a6f609aa00e80b14223e95c639db225",
+  "files": {
+    "crates/ckks-train-bench/src/study_runtime.rs": "cbd8be188554061f75b78b6924ac4d7be947a88ad482f5d64d6d3e3c0a73d5c0",
+    "crates/ckks-train-bench/src/study_runtime/tests.rs": "d95a197623e9132f9189cad6cca744ea9c5564479088993f2f070767165398bf",
+    "crates/ckks-train-bench/src/study_provenance.rs": "0bb4200cab631d940cbf28c18d09e939af5751d441f8897746aeffe8b5524e35",
+    "crates/ckks-train-bench/src/study_provenance/context.rs": "1a704b951a4557788c6e48aba939e096d219a4e5f144f6f0858d297e9f972928",
+    "crates/ckks-train-bench/src/study_provenance/train_capture.rs": "5825c51c15ac917b2fb8df7c9177ced08fb6e44c374108cf6f8a6a947087ae9f",
+    "crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs": "c1d7d412feb27e4149328097d5a93ab826f70c429a081e22509a0a77b3930857",
+    "crates/ckks-train-bench/src/study_reference/document.rs": "d42e96b7c493ff501f4de7f794e3e04895f60da32b805c34a83dcdc76e697d15",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance.rs": "97dffae2b064a4bfa730eec9c4ceff18c21cd8d7a7c4fa40c567843194095e2e",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs": "427698f2a3c5232245fcd645866195d05536e449e6d5212371388b6fb7a7e068",
+    "crates/ckks-train-bench/src/study_reference/document/producer.rs": "ecbb85c62430b47f7ea698b5e8b81a03a8fc6ab41d814231dccff326f202f06f"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "index": 32,
+  "name": "doctests",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--doc",
+    "--features",
+    "parallel",
+    "study_provenance::context::VerifiedStudyTrainContext",
+    "--",
+    "--test-threads=1"
+  ],
+  "start": 1794044449.368284,
+  "expected_parent_tests": 9,
+  "pid": 35593,
+  "exit_code": 0,
+  "end": 1794044459.681931,
+  "stdout_sha256": "6871b170ca53fd08168676356a8d84a972f518711bfece4f9329f2d91f3b2f7f",
+  "stdout_bytes": 1552,
+  "stderr_sha256": "0fab78416e147022b776cefd8036c56c13d12ab25909c5704d8316ae953d74c6",
+  "stderr_bytes": 204,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      8,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": false
+}

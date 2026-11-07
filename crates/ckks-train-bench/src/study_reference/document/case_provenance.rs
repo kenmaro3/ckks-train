@@ -31,6 +31,43 @@ impl Encode for ParsedCaseProvenance {
     }
 }
 
+/// Canonical bounded inspection bytes; no conversion back into capture authority.
+pub(crate) struct CapturedCaseComponent {
+    bytes: Vec<u8>,
+    hash: String,
+}
+impl CapturedCaseComponent {
+    pub(crate) fn canonical_bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+    pub(crate) fn sha256(&self) -> &str {
+        &self.hash
+    }
+}
+// Private formatting/codec boundary. Production calls this only with the
+// captured_case adapter's value. Unit fixtures exercise this same bounded codec,
+// but cannot use a component or ParsedCaseProvenance to construct a live capture.
+pub(super) fn encode_captured_value(value: serde_json::Value) -> Result<CapturedCaseComponent> {
+    let wrapper = serde_json::to_vec(&serde_json::json!({"provenance":value}))
+        .map_err(|e| json_err(e, "provenance"))?;
+    preflight(&wrapper)?;
+    let raw = serde_json::from_slice::<&RawValue>(&wrapper).map_err(|e| json_err(e, ""))?;
+    let mut fields = Fields::new(raw, &["provenance"], "")?;
+    let value = ParsedCaseProvenance::decode(fields.get("provenance", "")?, "provenance")?;
+    let mut encoder = Encoder::new(DocumentLayout::Reference);
+    value.encode(&mut encoder)?;
+    ensure(
+        encoder.bytes.len() <= A_MAX,
+        DocumentErrorCode::TooLarge,
+        "provenance",
+    )?;
+    let hash = sha256_hex(&encoder.bytes);
+    Ok(CapturedCaseComponent {
+        bytes: encoder.bytes,
+        hash,
+    })
+}
+
 // These checks belong to this distinct claim type. Reference validation is
 // intentionally unchanged, including its unavailable branch and scalar1 rule.
 fn validate(p: &mut CaseValue) -> Result<()> {

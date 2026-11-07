@@ -1,0 +1,19 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--tests",
+    "--features",
+    "parallel",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "start": "2026-11-07T09:28:09.470215+00:00",
+  "end": "2026-11-07T09:28:17.408998+00:00",
+  "exit_code": 101
+}

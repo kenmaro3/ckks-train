@@ -1,0 +1,20 @@
+{
+  "index": 22,
+  "name": "study_provenance::context::tests::role_current_and_artifact_reference_predicates_are_independent",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::role_current_and_artifact_reference_predicates_are_independent",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.330664,
+  "expected_parent_tests": 1,
+  "pid": 35532
+}

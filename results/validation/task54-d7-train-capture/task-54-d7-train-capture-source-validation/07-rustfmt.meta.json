@@ -1,0 +1,14 @@
+{
+  "command": [
+    "rustfmt",
+    "--edition",
+    "2024",
+    "--config",
+    "skip_children=true",
+    "crates/ckks-train-bench/src/study_runtime/tests.rs"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "start": "2026-11-07T09:29:03.864608+00:00",
+  "end": "2026-11-07T09:29:03.925804+00:00",
+  "exit_code": 0
+}

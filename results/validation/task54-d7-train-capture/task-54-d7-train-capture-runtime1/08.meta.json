@@ -1,0 +1,34 @@
+{
+  "index": 8,
+  "name": "study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044446.871843,
+  "expected_parent_tests": 1,
+  "pid": 35465,
+  "exit_code": 0,
+  "end": 1794044446.9678159,
+  "stdout_sha256": "d1e1fe70b411b0c9db8b3ad3e71cced52a33c47aed74d2d45ef239c8eb10b4ee",
+  "stdout_bytes": 216,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

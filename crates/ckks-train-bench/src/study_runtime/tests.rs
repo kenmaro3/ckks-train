@@ -64,7 +64,7 @@ fn runtime_nested_join_iteration_and_synchronous_host_route_stay_owned() {
         };
         // Stand-in for the reviewed synchronous download/bootstrap/upload route.
         let synchronous_host = || {
-            rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), || check());
+            rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), check);
         };
         host.recheck().unwrap();
         synchronous_host();
@@ -82,6 +82,10 @@ fn runtime_owned_pool_ignores_environment_in_isolated_child() {
         pool.install(move || {
             let host = HostExecutor::parallel(retained).unwrap();
             assert_eq!(host.workers(), 2);
+            let observation = Host::observe();
+            let facts = host.facts(&observation).unwrap();
+            assert_eq!(facts.execution_threads(), 2);
+            assert!(std::ptr::eq(facts.host(), &observation));
             host.recheck().unwrap();
         });
         return;
@@ -156,5 +160,42 @@ fn runtime_owned_selector_refuses_backend_before_context_or_pool() {
     assert_eq!(
         dispatch(request).unwrap_err().0,
         "case/runtime backend mismatch"
+    );
+}
+
+#[test]
+fn runtime_capture_fact_projection_serial_is_actual_and_borrowed() {
+    let executor = HostExecutor::serial();
+    let host = Host::observe();
+    let facts = executor.facts(&host).unwrap();
+    assert_eq!(facts.execution_threads(), 1);
+    assert!(std::ptr::eq(facts.host(), &host));
+    // Observation snapshots are not stable runtime identity.
+    let _ = host.observed_threads();
+}
+
+#[cfg(feature = "parallel")]
+#[test]
+fn runtime_capture_fact_projection_exact_pools_and_owner() {
+    for count in [1, 2] {
+        let pool = dedicated_pool(count).unwrap();
+        let retained = pool.clone();
+        let host = Host::observe();
+        let executor = pool.install(move || {
+            let executor = HostExecutor::parallel(retained).unwrap();
+            let facts = executor.facts(&host).unwrap();
+            assert_eq!(facts.execution_threads(), count as u64);
+            assert!(std::ptr::eq(facts.host(), &host));
+            executor
+        });
+        assert!(executor.facts(&Host::observe()).is_err());
+        let other = dedicated_pool(count).unwrap();
+        assert!(other.install(|| executor.facts(&Host::observe()).is_err()));
+    }
+    let executor = HostExecutor::serial();
+    assert!(
+        std::thread::spawn(move || executor.facts(&Host::observe()).is_err())
+            .join()
+            .unwrap()
     );
 }

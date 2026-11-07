@@ -1,0 +1,23 @@
+{
+  "command": [
+    "rustfmt",
+    "--edition",
+    "2024",
+    "--config",
+    "skip_children=true",
+    "crates/ckks-train-bench/src/study_runtime.rs",
+    "crates/ckks-train-bench/src/study_runtime/tests.rs",
+    "crates/ckks-train-bench/src/study_provenance.rs",
+    "crates/ckks-train-bench/src/study_provenance/context.rs",
+    "crates/ckks-train-bench/src/study_provenance/train_capture.rs",
+    "crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs",
+    "crates/ckks-train-bench/src/study_reference/document.rs",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance.rs",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+    "crates/ckks-train-bench/src/study_reference/document/producer.rs"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "start": "2026-11-07T09:27:42.152014+00:00",
+  "end": "2026-11-07T09:27:42.366465+00:00",
+  "exit_code": 0
+}

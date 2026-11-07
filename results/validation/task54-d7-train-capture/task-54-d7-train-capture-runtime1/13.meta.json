@@ -1,0 +1,34 @@
+{
+  "index": 13,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.367564,
+  "expected_parent_tests": 1,
+  "pid": 35476,
+  "exit_code": 0,
+  "end": 1794044447.488641,
+  "stdout_sha256": "d7a898ead7aee61f5b3d6a20d2992cd85c11fe26c0e098eee97774071654fa99",
+  "stdout_bytes": 250,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

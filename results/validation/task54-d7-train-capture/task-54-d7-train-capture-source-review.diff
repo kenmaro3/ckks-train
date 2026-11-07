@@ -1,0 +1,1193 @@
+Task54 D7 Train capture source review
+BASE 9aba62f0a2a2b565466216511238dec3fd7a244f; frozen working-tree candidate, not committed.
+Only unrelated requests.md commit bb4f65f intervenes.
+
+ crates/ckks-train-bench/src/study_provenance.rs    |  2 +
+ .../src/study_provenance/context.rs                | 17 ++++++++
+ .../src/study_reference/document.rs                |  9 +++++
+ .../study_reference/document/case_provenance.rs    | 37 +++++++++++++++++
+ .../document/case_provenance_tests.rs              | 27 +++++++++++++
+ .../src/study_reference/document/producer.rs       | 29 +++++++++++++
+ crates/ckks-train-bench/src/study_runtime.rs       | 47 ++++++++++++++++++++--
+ crates/ckks-train-bench/src/study_runtime/tests.rs | 43 +++++++++++++++++++-
+ 8 files changed, 206 insertions(+), 5 deletions(-)
+
+diff --git a/crates/ckks-train-bench/src/study_provenance.rs b/crates/ckks-train-bench/src/study_provenance.rs
+index b65d501..f65e279 100644
+--- a/crates/ckks-train-bench/src/study_provenance.rs
++++ b/crates/ckks-train-bench/src/study_provenance.rs
+@@ -1,39 +1,41 @@
+ //! Approved local build context for the study-reference producer.
+ //!
+ //! A context is not a completed reference or scientific execution authorization.
+ //! Ordinary nonrecipe builds carry no capsule and cannot acquire this capability.
+ #![allow(dead_code)] // Foundation getters are consumed by the separately assigned D6c2b.
+ mod codec;
+ mod context;
+ pub(crate) mod process;
+ pub(crate) mod publication;
+ pub(crate) mod role;
+ 
+ #[allow(unused_imports)]
+ pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
+ pub use context::{ContextRequest, VerifiedStudyContext, VerifiedStudyTrainContext};
++#[allow(unused_imports)]
++pub(crate) use context::{RecheckedTrainCapture, TrainCapture};
+ pub(crate) use context::{check_runtime_environment, check_train_preflight};
+ 
+ /// A bounded rejection of unavailable, inconsistent or unsupported evidence.
+ #[derive(Debug)]
+ pub struct ProvenanceError(pub(crate) &'static str);
+ impl std::fmt::Display for ProvenanceError {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         f.write_str(self.0)
+     }
+ }
+ impl std::error::Error for ProvenanceError {}
+ impl From<std::io::Error> for ProvenanceError {
+     fn from(_: std::io::Error) -> Self {
+         Self("provenance I/O unavailable")
+     }
+ }
+ pub(crate) type Result<T> = std::result::Result<T, ProvenanceError>;
+ fn ensure(ok: bool, why: &'static str) -> Result<()> {
+     if ok {
+         Ok(())
+     } else {
+         Err(ProvenanceError(why))
+     }
+ }
+ include!(concat!(env!("OUT_DIR"), "/study_capsule.rs"));
+diff --git a/crates/ckks-train-bench/src/study_provenance/context.rs b/crates/ckks-train-bench/src/study_provenance/context.rs
+index dafc0cd..e1fd56e 100644
+--- a/crates/ckks-train-bench/src/study_provenance/context.rs
++++ b/crates/ckks-train-bench/src/study_provenance/context.rs
+@@ -1,44 +1,47 @@
+ //! Pinned local trust input, immutable captured facts and exact rechecks.
+ use super::role::{ExecutableRole, Recipe};
+ use super::{EMBEDDED_CAPSULE, ProvenanceError, Result, codec::*, ensure, publication::read_path};
+ use crate::study_runtime::CaseRuntimeLease;
+ use crate::{
+     data::sha256_hex,
+     study_inputs::{MaterializedProfile, SourceDigest},
+     study_reference::derive_identities,
+ };
+ use std::{
+     ffi::{OsStr, OsString},
+     io::Read,
+     os::unix::{
+         ffi::{OsStrExt, OsStringExt},
+         fs::MetadataExt,
+     },
+     path::{Path, PathBuf},
+     process::{Command, Stdio},
+ };
++#[path = "train_capture.rs"]
++mod train_capture;
++pub(crate) use train_capture::{RecheckedTrainCapture, TrainCapture};
+ const DESIGNS: [&str; 5] = [
+     "docs/experiment-matrix.md",
+     "docs/study-reference-design.md",
+     "docs/study-reference-document-design.md",
+     "docs/study-reference-session-design.md",
+     "docs/study-training-design.md",
+ ];
+ const THREAD_KEYS: [&str; 7] = [
+     "BLIS_NUM_THREADS",
+     "MKL_NUM_THREADS",
+     "NUMEXPR_NUM_THREADS",
+     "OMP_NUM_THREADS",
+     "OPENBLAS_NUM_THREADS",
+     "RAYON_NUM_THREADS",
+     "VECLIB_MAXIMUM_THREADS",
+ ];
+ const BUILD_KEYS: [&str; 18] = [
+     "CARGO_BUILD_JOBS",
+     "CARGO_ENCODED_RUSTFLAGS",
+     "CARGO_HOME",
+     "CARGO_INCREMENTAL",
+     "CARGO_NET_OFFLINE",
+     "CARGO_TARGET_DIR",
+     "GIT_CONFIG_GLOBAL",
+     "GIT_CONFIG_NOSYSTEM",
+@@ -122,50 +125,60 @@ impl CurrentRuntime {
+     }
+ }
+ /// Train context with its exact artifact context and privately retained runtime.
+ /// No production context can be moved to another thread or shared with nested tasks.
+ /// ```compile_fail
+ /// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+ /// fn needs_send<T: Send>() {}
+ /// needs_send::<VerifiedStudyTrainContext>();
+ /// ```
+ /// ```compile_fail
+ /// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+ /// fn needs_sync<T: Sync>() {}
+ /// needs_sync::<VerifiedStudyTrainContext>();
+ /// ```
+ /// Reference contexts deliberately share the same non-Send core:
+ /// ```compile_fail
+ /// use ckks_train_bench::study_provenance::VerifiedStudyContext;
+ /// fn needs_send<T: Send>() {}
+ /// needs_send::<VerifiedStudyContext>();
+ /// ```
+ /// A named type does not provide an authority constructor:
+ /// ```compile_fail
+ /// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
+ /// let forged = VerifiedStudyTrainContext::default();
+ /// ```
++/// Train capture types and their fields are private to the crate; claims cannot
++/// supply a public authority constructor:
++/// ```compile_fail
++/// use ckks_train_bench::study_provenance::TrainCapture;
++/// let forged = TrainCapture::default();
++/// ```
++/// ```compile_fail
++/// use ckks_train_bench::study_provenance::RecheckedTrainCapture;
++/// let forged = RecheckedTrainCapture::default();
++/// ```
+ /// ```compile_fail
+ /// use ckks_train_bench::study_provenance::VerifiedStudyContext;
+ /// fn needs_sync<T: Sync>() {}
+ /// needs_sync::<VerifiedStudyContext>();
+ /// ```
+ /// The private dispatcher is not an external arbitrary-closure execution API:
+ /// ```compile_fail
+ /// use ckks_train_bench::study_runtime::dispatch;
+ /// ```
+ /// Only a borrowed artifact view is exposed:
+ /// ```
+ /// use ckks_train_bench::study_provenance::{VerifiedStudyContext, VerifiedStudyTrainContext};
+ /// fn artifact(ctx: &VerifiedStudyTrainContext) -> &VerifiedStudyContext {
+ ///     ctx.artifact_context()
+ /// }
+ /// ```
+ pub struct VerifiedStudyTrainContext {
+     artifact: VerifiedStudyContext,
+ }
+ impl VerifiedStudyTrainContext {
+     pub(crate) fn load(request: crate::study_runtime::StudyTrainContextRequest) -> Result<Self> {
+         let (locations, runtime) = request.into_parts();
+         Ok(Self {
+             artifact: VerifiedStudyContext::load_current(
+                 locations,
+@@ -1372,25 +1385,29 @@ impl RuntimeRecheck {
+     }
+ }
+ impl Host {
+     pub(crate) fn cpu_model(&self) -> &Observation<String> {
+         &self.cpu_model
+     }
+     pub(crate) fn os(&self) -> &Observation<String> {
+         &self.os
+     }
+     pub(crate) fn hostname(&self) -> &Observation<String> {
+         &self.hostname
+     }
+     pub(crate) fn available_cpus(&self) -> &Observation<u64> {
+         &self.available_cpus
+     }
+     pub(crate) fn process_id(&self) -> &Observation<u64> {
+         &self.process_id
+     }
+     pub(crate) fn observed_threads(&self) -> &Observation<u64> {
+         &self.observed_threads
+     }
+     pub(crate) fn execution_threads(&self) -> u64 {
+         1
+     }
+ }
++
++#[cfg(test)]
++#[path = "train_capture_tests.rs"]
++mod train_capture_tests;
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index 2eec7fd..77a04d3 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -1940,25 +1940,34 @@ pub(super) fn registered_case_canonical(
+     e.byte(s.backend as u8)?;
+     e.byte(s.mode as u8)?;
+     e.byte(s.placement as u8)?;
+     e.byte(s.packing as u8)?;
+     e.byte(case.security_policy() as u8)?;
+     case.logical_batch().encode(&mut e)?;
+     // Use the unchanged Option/Bool grammar without exposing private document DTOs.
+     struct Flags(crate::study_profile::CaseEvalConfig);
+     impl Encode for Flags {
+         fn encode(&self, e: &mut Encoder) -> Result<()> {
+             self.0.hoist.encode(e)?;
+             self.0.bsgs.encode(e)?;
+             self.0.lazy_relin.encode(e)
+         }
+     }
+     case.eval_config().map(Flags).encode(&mut e)?;
+     Ok(e.bytes)
+ }
+ 
+ #[cfg(test)]
+ #[path = "document/case_provenance_tests.rs"]
+ mod case_provenance_tests;
+ 
+ #[allow(dead_code)] // Future bounded admission/start owners consume this private component.
+ mod case_provenance;
++
++// This is an inspection component, never an admission/start or execution token.
++// Placing the adapter here keeps private document DTOs inside this module while
++// allowing the retained owner to consume its actual rechecked Train capture.
++impl crate::study_provenance::RecheckedTrainCapture<'_> {
++    pub(crate) fn case_provenance(&self) -> Result<case_provenance::CapturedCaseComponent> {
++        case_provenance::encode_captured_value(producer::captured_case(self)?)
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs b/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
+index cdfe948..f44d9a8 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
+@@ -9,50 +9,87 @@ record!(CaseValue {
+     executable: Executable,
+     invocation: Invocation,
+     host: Host,
+     thread_environment: List<ThreadEnvironment,32>,
+     recheck: Recheck,
+ });
+ // Parsed claims cannot construct a context, checked case or captured runtime fact.
+ pub(super) struct ParsedCaseProvenance(CaseValue);
+ impl Decode for ParsedCaseProvenance {
+     fn decode(raw: &RawValue, p: &str) -> Result<Self> {
+         let mut f = Fields::new(raw, &["status", "value"], p)?;
+         let status: Text<128> = f.field("status", p)?;
+         ensure(status.0 == "captured", DocumentErrorCode::UnsupportedTag, p)?;
+         let mut value: CaseValue = f.field("value", p)?;
+         validate(&mut value)?;
+         Ok(Self(value))
+     }
+ }
+ impl Encode for ParsedCaseProvenance {
+     fn encode(&self, e: &mut Encoder) -> Result<()> {
+         e.byte(0)?;
+         self.0.encode(e)
+     }
+ }
+ 
++/// Canonical bounded inspection bytes; no conversion back into capture authority.
++pub(crate) struct CapturedCaseComponent {
++    bytes: Vec<u8>,
++    hash: String,
++}
++impl CapturedCaseComponent {
++    pub(crate) fn canonical_bytes(&self) -> &[u8] {
++        &self.bytes
++    }
++    pub(crate) fn sha256(&self) -> &str {
++        &self.hash
++    }
++}
++// Private formatting/codec boundary. Production calls this only with the
++// captured_case adapter's value. Unit fixtures exercise this same bounded codec,
++// but cannot use a component or ParsedCaseProvenance to construct a live capture.
++pub(super) fn encode_captured_value(value: serde_json::Value) -> Result<CapturedCaseComponent> {
++    let wrapper = serde_json::to_vec(&serde_json::json!({"provenance":value}))
++        .map_err(|e| json_err(e, "provenance"))?;
++    preflight(&wrapper)?;
++    let raw = serde_json::from_slice::<&RawValue>(&wrapper).map_err(|e| json_err(e, ""))?;
++    let mut fields = Fields::new(raw, &["provenance"], "")?;
++    let value = ParsedCaseProvenance::decode(fields.get("provenance", "")?, "provenance")?;
++    let mut encoder = Encoder::new(DocumentLayout::Reference);
++    value.encode(&mut encoder)?;
++    ensure(
++        encoder.bytes.len() <= A_MAX,
++        DocumentErrorCode::TooLarge,
++        "provenance",
++    )?;
++    let hash = sha256_hex(&encoder.bytes);
++    Ok(CapturedCaseComponent {
++        bytes: encoder.bytes,
++        hash,
++    })
++}
++
+ // These checks belong to this distinct claim type. Reference validation is
+ // intentionally unchanged, including its unavailable branch and scalar1 rule.
+ fn validate(p: &mut CaseValue) -> Result<()> {
+     ensure(
+         p.schema.0 == "hekit-study-case-provenance-v1",
+         DocumentErrorCode::UnsupportedSchema,
+         "provenance.schema",
+     )?;
+     for (raw, field) in [
+         (&p.source.root, "provenance.source.root"),
+         (&p.executable.path, "provenance.executable.path"),
+         (&p.invocation.cwd, "provenance.invocation.cwd"),
+     ] {
+         ensure(
+             raw.bytes.first() == Some(&b'/'),
+             DocumentErrorCode::OutOfRange,
+             field,
+         )?;
+     }
+     nonempty(&p.build.recipe_version, "provenance.build.recipe_version")?;
+     nonempty(&p.build.package_version, "provenance.build.package_version")?;
+     unique_by(
+         &mut p.build.features.0,
+         |x| &x.0,
+         "provenance.build.features",
+diff --git a/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs b/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
+index d01f557..3249285 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs
+@@ -140,25 +140,52 @@ fn case_provenance_preflight_exact_paths_and_aggregate_budget() {
+         )
+         .is_err()
+     );
+ }
+ 
+ #[test]
+ fn case_provenance_canonical_bytes_cannot_escape_outer_budget() {
+     let mut v: Value = serde_json::from_slice(&fixture("threads-2.json")).unwrap();
+     let hash = "a".repeat(64);
+     v["value"]["source"]["manifest"] = Value::Array(
+         (0..512)
+             .map(|n| json!({"path":format!("f{n:03}{}","x".repeat(4092)),"sha256":hash}))
+             .collect(),
+     );
+     // All individual fields fit, but they cannot fit the shared auxiliary budget.
+     let bytes = serde_json::to_vec(&v).unwrap();
+     let raw = serde_json::from_slice::<&RawValue>(&bytes).unwrap();
+     let claim = case_provenance::ParsedCaseProvenance::decode(raw, "provenance").unwrap();
+     let mut encoder = Encoder::new(DocumentLayout::Reference);
+     assert_eq!(
+         claim.encode(&mut encoder).unwrap_err().code(),
+         DocumentErrorCode::TooLarge
+     );
+     assert!(encoder.bytes.len() <= A_MAX);
+ }
++
++#[test]
++fn case_provenance_producer_codec_preserves_independent_components_synthetic() {
++    // Synthetic JSON fixtures exercise the production codec only, never capture authority.
++    let manifest: Value = serde_json::from_slice(&fixture("manifest.json")).unwrap();
++    for (name, expected) in manifest["positive"].as_object().unwrap() {
++        let value: Value = serde_json::from_slice(&fixture(&format!("{name}.json"))).unwrap();
++        let actual = case_provenance::encode_captured_value(value).unwrap();
++        assert_eq!(
++            actual.canonical_bytes(),
++            decode_hex(&fixture(&format!("{name}.canonical.hex")))
++        );
++        assert_eq!(actual.sha256(), expected["canonical_sha256"]);
++    }
++    for name in manifest["negative"].as_object().unwrap().keys() {
++        let bytes = fixture(&format!("negative/{name}.json"));
++        // Several transport negatives intentionally cannot be represented by Value.
++        if let Ok(value) = serde_json::from_slice::<Value>(&bytes) {
++            if component(&serde_json::to_vec(&value).unwrap()).is_err() {
++                assert!(
++                    case_provenance::encode_captured_value(value).is_err(),
++                    "{name}"
++                );
++            }
++        }
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/producer.rs b/crates/ckks-train-bench/src/study_reference/document/producer.rs
+index 38f03d2..b706bd4 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/producer.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/producer.rs
+@@ -54,50 +54,79 @@ pub(super) fn build(f: &BuildFacts<'_>) -> Value {
+ }
+ pub(super) fn captured(v: &CaptureFact<'_>) -> Result<Value> {
+     v.context.require_current_reference().map_err(|_| {
+         err(
+             DocumentErrorCode::CrossLinkMismatch,
+             "provenance.current_role",
+         )
+     })?;
+     let c = v.context;
+     let start = &v.start;
+     let end = &v.end;
+     let f = c
+         .reference_build_facts(start.receipt_file_sha256())
+         .map_err(|_| err(DocumentErrorCode::CrossLinkMismatch, "provenance.build"))?;
+     let manifest = c
+         .source_files()
+         .map_err(|_| err(DocumentErrorCode::CrossLinkMismatch, "provenance.source"))?
+         .into_iter()
+         .map(|(path, sha256)| json!({"path":path,"sha256":sha256}))
+         .collect::<Vec<_>>();
+     let host = start.host();
+     Ok(
+         json!({"status":"captured","value":{"schema":"hekit-study-provenance-v1","build":build(&f),"source":{"root":raw(c.root().as_os_str().as_bytes()),"commit":available(c.source_commit()),"tracked":"clean","untracked":"clean","manifest":manifest},"executable":{"path":raw(f.executable_path()),"start_sha256":start.executable_start_sha256(),"end_sha256":end.executable_end_sha256()},"invocation":{"argv":start.argv().iter().map(|v|raw(v)).collect::<Vec<_>>(),"cwd":raw(start.cwd())},"host":{"cpu_model":observed(host.cpu_model()),"os":observed(host.os()),"hostname":observed(host.hostname()),"available_cpus":observed(host.available_cpus()),"process_id":observed(host.process_id()),"observed_threads":observed(host.observed_threads()),"execution_threads":host.execution_threads()},"thread_environment":start.thread_environment().iter().map(|(key,value)|json!({"key":key,"value":observed(value)})).collect::<Vec<_>>(),"recheck":{"source_manifest_sha256":end.source_manifest_sha256(),"build_receipt_file_sha256":end.receipt_file_sha256()}}}),
+     )
+ }
++pub(super) fn captured_case(
++    v: &crate::study_provenance::RecheckedTrainCapture<'_>,
++) -> Result<Value> {
++    let c = v.artifact_context();
++    let f = v.train_build_facts().map_err(|_| {
++        err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "provenance.current_train",
++        )
++    })?;
++    let manifest = c
++        .source_files()
++        .map_err(|_| err(DocumentErrorCode::CrossLinkMismatch, "provenance.source"))?
++        .into_iter()
++        .map(|(path, sha256)| json!({"path":path,"sha256":sha256}))
++        .collect::<Vec<_>>();
++    let host = v.host();
++    let end = v.recheck();
++    Ok(json!({"status":"captured","value":{
++        "schema":"hekit-study-case-provenance-v1","role":"study_train",
++        "build":build(&f),
++        "source":{"root":raw(c.root().as_os_str().as_bytes()),"commit":available(c.source_commit()),"tracked":"clean","untracked":"clean","manifest":manifest},
++        "executable":{"path":raw(f.executable_path()),"start_sha256":v.executable_start_sha256(),"end_sha256":end.executable_end_sha256()},
++        "invocation":{"argv":v.argv().iter().map(|a| raw(a)).collect::<Vec<_>>(),"cwd":raw(v.cwd())},
++        "host":{"cpu_model":observed(host.cpu_model()),"os":observed(host.os()),"hostname":observed(host.hostname()),"available_cpus":observed(host.available_cpus()),"process_id":observed(host.process_id()),"observed_threads":observed(host.observed_threads()),"execution_threads":v.execution_threads()},
++        "thread_environment":v.thread_environment().iter().map(|(key,value)|json!({"key":key,"value":observed(value)})).collect::<Vec<_>>(),
++        "recheck":{"source_manifest_sha256":end.source_manifest_sha256(),"build_receipt_file_sha256":end.receipt_file_sha256()}
++    }}))
++}
+ fn common_value(
+     schema: &str,
+     kind: &str,
+     status: &str,
+     id: &str,
+     dtype: u8,
+     provenance: Value,
+ ) -> Value {
+     json!({"schema":schema,"kind":kind,"status":status,"run_id":id,"writer":{"api_version":API,"algorithm_revision":ALGORITHM},"synthetic":false,"arithmetic":{"dtype":if dtype==32{"f32"}else{"f64"},"accumulation":if dtype==32{"scalar_f32"}else{"scalar_f64"},"cast":if dtype==32{"f64_to_f32_once"}else{"canonical_f64"},"reduction":if dtype==32{REDUCTION}else{REDUCTION64},"classification":CLASSIFICATION},"provenance":provenance,"integrity":{"encoding":ENCODING_VERSION,"hash":"sha256","payload_sha256":"0".repeat(64)}})
+ }
+ fn diagnostic(r: &Record, provenance: Value) -> Result<Vec<u8>> {
+     let mut v = common_value(
+         DIAGNOSTIC,
+         if r.full {
+             "diagnostic_full"
+         } else {
+             "diagnostic_quick"
+         },
+         "complete",
+         &r.run_id,
+         r.dtype,
+         provenance,
+     );
+     v["identity"] = identity(&r.identity);
+     v["target_eligible"] = json!(false);
+diff --git a/crates/ckks-train-bench/src/study_runtime.rs b/crates/ckks-train-bench/src/study_runtime.rs
+index e2dd505..fea61d1 100644
+--- a/crates/ckks-train-bench/src/study_runtime.rs
++++ b/crates/ckks-train-bench/src/study_runtime.rs
+@@ -73,50 +73,58 @@ impl RuntimeRequest {
+         }
+     }
+     fn backend(&self) -> CaseBackend {
+         if matches!(self, Self::CudaHost { .. }) {
+             CaseBackend::Cuda
+         } else {
+             CaseBackend::Cpu
+         }
+     }
+ }
+ // This private primitive has no process/approval authority. Tests may move it to
+ // inspect refused threads; the actual lease below is non-Send/non-Sync.
+ struct HostExecutor {
+     owner: ThreadId,
+     pool: HostPool,
+ }
+ enum HostPool {
+     Serial,
+     #[cfg(feature = "parallel")]
+     Rayon {
+         pool: Arc<rayon::ThreadPool>,
+         count: usize,
+     },
+ }
+ impl HostExecutor {
++    fn facts<'a>(&self, host: &'a Host) -> Result<CaseRuntimeFacts<'a>> {
++        self.recheck()?;
++        Ok(CaseRuntimeFacts {
++            host,
++            execution_threads: u64::try_from(self.workers())
++                .map_err(|_| ProvenanceError("worker count representation"))?,
++        })
++    }
+     fn serial() -> Self {
+         Self {
+             owner: std::thread::current().id(),
+             pool: HostPool::Serial,
+         }
+     }
+     #[cfg(feature = "parallel")]
+     fn parallel(pool: Arc<rayon::ThreadPool>) -> Result<Self> {
+         let count = pool.current_num_threads();
+         require(
+             count > 0 && pool.current_thread_index().is_some(),
+             "outside retained Rayon pool",
+         )?;
+         Ok(Self {
+             owner: std::thread::current().id(),
+             pool: HostPool::Rayon { pool, count },
+         })
+     }
+     fn workers(&self) -> usize {
+         match &self.pool {
+             HostPool::Serial => 1,
+             #[cfg(feature = "parallel")]
+             HostPool::Rayon { count, .. } => *count,
+         }
+     }
+@@ -150,59 +158,79 @@ fn dedicated_pool(count: usize) -> Result<Arc<rayon::ThreadPool>> {
+     // TLS-only observation; never initialize or discover the global pool.
+     require(
+         rayon::current_thread_index().is_none(),
+         "dispatcher already in Rayon pool",
+     )?;
+     require(count > 0, "runtime workers must be positive")?;
+     let pool = rayon::ThreadPoolBuilder::new()
+         .num_threads(count)
+         .build()
+         .map_err(|_| ProvenanceError("dedicated Rayon pool unavailable"))?;
+     require(
+         pool.current_num_threads() == count,
+         "requested worker count not retained",
+     )?;
+     Ok(Arc::new(pool))
+ }
+ pub(crate) struct CaseRuntimeLease {
+     recipe: Recipe,
+     executor: HostExecutor,
+     process: ProcessStamp,
+     host: Box<Host>,
+     #[cfg(feature = "cuda")]
+     cuda: Option<Box<cuda::CudaBinding>>,
+     _not_send_sync: PhantomData<Rc<()>>,
+ }
++// Immutable observations, never a runtime lease or readiness capability. Only
++// the retained executor supplies the worker count; Host's scalar helper is not used.
++pub(crate) struct CaseRuntimeFacts<'a> {
++    host: &'a Host,
++    execution_threads: u64,
++}
++impl CaseRuntimeFacts<'_> {
++    pub(crate) fn host(&self) -> &Host {
++        self.host
++    }
++    pub(crate) fn execution_threads(&self) -> u64 {
++        self.execution_threads
++    }
++}
+ fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
+     match (host.cpu_model(), host.os(), host.hostname()) {
+         (Observation::Available(cpu), Observation::Available(os), Observation::Available(name)) => {
+             Ok((cpu, os, name))
+         }
+         _ => Err(ProvenanceError("runtime host identity unavailable")),
+     }
+ }
+ impl CaseRuntimeLease {
++    pub(crate) fn facts(&self) -> Result<CaseRuntimeFacts<'_>> {
++        self.recheck()?;
++        let facts = self.executor.facts(&self.host)?;
++        self.recheck()?;
++        Ok(facts)
++    }
+     // Only the concrete installed dispatcher calls this; no evidence injection.
+     fn capture(recipe: Recipe, executor: HostExecutor, ordinal: Option<usize>) -> Result<Self> {
+         check_compiled_recipe(recipe)?;
+         executor.recheck()?;
+         check_runtime_environment()?;
+         let process = ProcessStamp::capture()?;
+         let host = Box::new(Host::observe());
+         host_identity(&host)?;
+         #[cfg(feature = "cuda")]
+         let cuda = match (recipe, ordinal) {
+             (Recipe::TrainCudaHost, Some(ordinal)) => {
+                 Some(Box::new(cuda::CudaBinding::observe(ordinal)?))
+             }
+             _ => return Err(ProvenanceError("CUDA runtime selection mismatch")),
+         };
+         #[cfg(not(feature = "cuda"))]
+         require(ordinal.is_none(), "unexpected CUDA ordinal")?;
+         let lease = Self {
+             recipe,
+             executor,
+             process,
+             host,
+             #[cfg(feature = "cuda")]
+             cuda,
+             _not_send_sync: PhantomData,
+@@ -233,56 +261,67 @@ impl CaseRuntimeLease {
+         self.executor.recheck()?;
+         self.process.recheck()
+     }
+ }
+ // All authority remains in this one synchronous owner frame. Later D7 extends
+ // this function, never a caller callback or a per-operation pool.install.
+ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutcome> {
+     let recipe = request.runtime.recipe();
+     let ordinal = match request.runtime {
+         RuntimeRequest::CudaHost { ordinal, .. } => Some(ordinal),
+         _ => None,
+     };
+     let runtime = CaseRuntimeLease::capture(recipe, executor, ordinal)?;
+     let context = VerifiedStudyTrainContext::load(StudyTrainContextRequest {
+         locations: request.locations,
+         runtime,
+     })?;
+     context.artifact_context().recheck()?;
+     // Select only after loading the actual pinned current context, inside this
+     // owner frame. Membership is expected registration, never checked readiness.
+     let registry = StudyRegistry::load(context.artifact_context().root())
+         .map_err(|_| ProvenanceError("registered study source unavailable"))?;
+     let cases = registry
+         .registered_cases()
+         .map_err(|_| ProvenanceError("registered study projection unavailable"))?;
+-    let _case = cases
++    let case = cases
+         .select(&request.case)
+         .map_err(|_| ProvenanceError("unregistered study selector"))?;
+-    context.artifact_context().recheck()?;
+-    // Actual captured Case facts, canonical D7 descriptors, real gate leases/admission/start,
+-    // and concrete HE construction are deliberately absent, not successful.
++    let seed = u8::try_from(case.selector().seed)
++        .map_err(|_| ProvenanceError("registered study seed representation"))?;
++    let resolved = registry
++        .resolve(&case.selector().profile_id, seed)
++        .map_err(|_| ProvenanceError("selected study input resolution failed"))?;
++    let input = crate::study_inputs::materialize(&resolved)
++        .map_err(|_| ProvenanceError("selected study input materialization failed"))?;
++    let capture = context.capture_train(case, &input)?;
++    let rechecked = context.finish_train_capture(case, &input, capture)?;
++    let _component = rechecked
++        .case_provenance()
++        .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
++    // Captured component bytes are inspection only. Canonical D7 descriptors,
++    // live gates/admission/start, scientific output and HE continuation are absent.
+     Ok(RunOutcome::MissingExecutionDependency)
+ }
+ pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {
+     let recipe = request.runtime.recipe();
+     check_compiled_recipe(recipe)?;
+     require(
+         request.case.backend == request.runtime.backend(),
+         "case/runtime backend mismatch",
+     )?;
+     check_train_preflight(recipe)?;
+     match request.runtime {
+         RuntimeRequest::SerialCpu => run_owned(request, HostExecutor::serial()),
+         RuntimeRequest::RayonCpu { workers } | RuntimeRequest::CudaHost { workers, .. } => {
+             let count = checked_workers(workers)?;
+             #[cfg(feature = "parallel")]
+             {
+                 let pool = dedicated_pool(count)?;
+                 let retained = Arc::clone(&pool);
+                 pool.install(move || run_owned(request, HostExecutor::parallel(retained)?))
+             }
+             #[cfg(not(feature = "parallel"))]
+             {
+                 let _ = count;
+                 Err(ProvenanceError("parallel runtime not compiled"))
+             }
+diff --git a/crates/ckks-train-bench/src/study_runtime/tests.rs b/crates/ckks-train-bench/src/study_runtime/tests.rs
+index 67dba8d..c9d1ef6 100644
+--- a/crates/ckks-train-bench/src/study_runtime/tests.rs
++++ b/crates/ckks-train-bench/src/study_runtime/tests.rs
+@@ -42,68 +42,72 @@ fn runtime_exact_pool_rejects_foreign_same_size_and_outside() {
+             host.recheck().unwrap();
+             host
+         });
+         assert_eq!(host.recheck().unwrap_err().0, "outside retained Rayon pool");
+         let foreign = dedicated_pool(count).unwrap();
+         assert_eq!(
+             foreign.install(|| host.recheck().unwrap_err().0),
+             "outside retained Rayon pool"
+         );
+         assert!(pool.install(|| dedicated_pool(1)).is_err());
+     }
+ }
+ #[cfg(feature = "parallel")]
+ #[test]
+ fn runtime_nested_join_iteration_and_synchronous_host_route_stay_owned() {
+     use rayon::prelude::*;
+     let pool = dedicated_pool(2).unwrap();
+     let retained = pool.clone();
+     pool.install(move || {
+         let host = HostExecutor::parallel(retained).unwrap();
+         let check = || {
+             assert!(host.pool_index().is_some());
+         };
+         // Stand-in for the reviewed synchronous download/bootstrap/upload route.
+         let synchronous_host = || {
+-            rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), || check());
++            rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), check);
+         };
+         host.recheck().unwrap();
+         synchronous_host();
+         host.recheck().unwrap();
+     });
+ }
+ #[cfg(feature = "parallel")]
+ #[test]
+ fn runtime_owned_pool_ignores_environment_in_isolated_child() {
+     const KEY: &str = "CKKS_RUNTIME_POOL_TEST_CHILD";
+     if std::env::var_os(KEY).is_some() {
+         assert_eq!(std::env::var("RAYON_NUM_THREADS").unwrap(), "99");
+         let pool = dedicated_pool(2).unwrap();
+         let retained = pool.clone();
+         pool.install(move || {
+             let host = HostExecutor::parallel(retained).unwrap();
+             assert_eq!(host.workers(), 2);
++            let observation = Host::observe();
++            let facts = host.facts(&observation).unwrap();
++            assert_eq!(facts.execution_threads(), 2);
++            assert!(std::ptr::eq(facts.host(), &observation));
+             host.recheck().unwrap();
+         });
+         return;
+     }
+     let status = std::process::Command::new(std::env::current_exe().unwrap())
+         .args([
+             "--exact",
+             "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+             "--test-threads=1",
+         ])
+         .env(KEY, "1")
+         .env("RAYON_NUM_THREADS", "99")
+         .status()
+         .unwrap();
+     assert!(status.success());
+ }
+ #[cfg(not(target_os = "linux"))]
+ #[test]
+ fn runtime_mac_never_fabricates_production_process_stamp() {
+     assert!(ProcessStamp::capture().is_err());
+ }
+ 
+ #[cfg(feature = "parallel")]
+ #[test]
+ fn runtime_retained_count_drift_fails_even_inside_exact_pool() {
+@@ -136,25 +140,62 @@ fn runtime_owned_selector_refuses_backend_before_context_or_pool() {
+                 workers: 2,
+                 ordinal: 0,
+             }
+         } else if cfg!(feature = "parallel") {
+             RuntimeRequest::RayonCpu { workers: 2 }
+         } else {
+             RuntimeRequest::SerialCpu
+         },
+         case: CaseSelector {
+             origin: CaseOrigin::Family,
+             registration_id: "untrusted".into(),
+             profile_id: "untrusted".into(),
+             seed: 0,
+             scope: CaseScope::Full,
+             backend: CaseBackend::ExternalCpu,
+             mode: CaseMode::Interactive,
+             placement: CasePlacement::ClientRefresh,
+             packing: CasePacking::BatchedDiagonal,
+         },
+     };
+     assert_eq!(
+         dispatch(request).unwrap_err().0,
+         "case/runtime backend mismatch"
+     );
+ }
++
++#[test]
++fn runtime_capture_fact_projection_serial_is_actual_and_borrowed() {
++    let executor = HostExecutor::serial();
++    let host = Host::observe();
++    let facts = executor.facts(&host).unwrap();
++    assert_eq!(facts.execution_threads(), 1);
++    assert!(std::ptr::eq(facts.host(), &host));
++    // Observation snapshots are not stable runtime identity.
++    let _ = host.observed_threads();
++}
++
++#[cfg(feature = "parallel")]
++#[test]
++fn runtime_capture_fact_projection_exact_pools_and_owner() {
++    for count in [1, 2] {
++        let pool = dedicated_pool(count).unwrap();
++        let retained = pool.clone();
++        let host = Host::observe();
++        let executor = pool.install(move || {
++            let executor = HostExecutor::parallel(retained).unwrap();
++            let facts = executor.facts(&host).unwrap();
++            assert_eq!(facts.execution_threads(), count as u64);
++            assert!(std::ptr::eq(facts.host(), &host));
++            executor
++        });
++        assert!(executor.facts(&Host::observe()).is_err());
++        let other = dedicated_pool(count).unwrap();
++        assert!(other.install(|| executor.facts(&Host::observe()).is_err()));
++    }
++    let executor = HostExecutor::serial();
++    assert!(
++        std::thread::spawn(move || executor.facts(&Host::observe()).is_err())
++            .join()
++            .unwrap()
++    );
++}
+
+diff --git a/crates/ckks-train-bench/src/study_provenance/train_capture.rs b/crates/ckks-train-bench/src/study_provenance/train_capture.rs
+new file mode 100644
+index 0000000..1de5285
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_provenance/train_capture.rs
+@@ -0,0 +1,210 @@
++//! Train-only live capture. Parsed provenance and inspection bytes cannot enter here.
++use super::*;
++use crate::study_profile::{CaseBackend, RegisteredCase};
++use crate::study_runtime::CaseRuntimeFacts;
++
++// These exact borrows keep the owner, registered selection and immutable input
++// alive through recheck and serialization. No constructor/Clone/serde is exposed.
++pub(crate) struct TrainCapture<'a> {
++    context: &'a VerifiedStudyTrainContext,
++    case: &'a RegisteredCase,
++    input: &'a MaterializedProfile,
++    checked: CheckedMaterializedInput<'a>,
++    runtime: CaseRuntimeFacts<'a>,
++    invocation: TrainInvocation,
++    thread_environment: Vec<(String, Observation<String>)>,
++    executable_start: String,
++}
++pub(crate) struct RecheckedTrainCapture<'a> {
++    start: TrainCapture<'a>,
++    end: RuntimeRecheck,
++}
++#[derive(PartialEq, Eq)]
++struct TrainInvocation {
++    argv: Vec<Vec<u8>>,
++    cwd: Vec<u8>,
++}
++impl TrainInvocation {
++    fn observe(root: &Path) -> Result<Self> {
++        let cwd = std::env::current_dir()?;
++        canonical(&cwd)?;
++        ensure(cwd == root, "runtime cwd/source root mismatch")?;
++        Ok(Self {
++            argv: argv(std::env::args_os())?,
++            cwd: cwd.as_os_str().as_bytes().to_vec(),
++        })
++    }
++}
++pub(super) fn check_train_role(role: ExecutableRole) -> Result<()> {
++    ensure(
++        role == ExecutableRole::StudyTrain,
++        "current StudyTrain required",
++    )
++}
++pub(super) fn check_case_materialized(
++    case: &RegisteredCase,
++    input: &MaterializedProfile,
++    recipe: Recipe,
++) -> Result<()> {
++    check_train_role(recipe.role())?;
++    ensure(
++        input.identity().canonical_prepared() && input.shared_selector().is_some(),
++        "canonical Train input required",
++    )?;
++    let selected = case.selector();
++    ensure(
++        selected.profile_id == input.metadata().id
++            && selected.seed == u64::from(input.metadata().seed)
++            && Some(case.logical_batch()) == u64::try_from(input.metadata().batch).ok(),
++        "Train case/input selection mismatch",
++    )?;
++    let backend = match recipe {
++        Recipe::TrainCpuSerial | Recipe::TrainCpuRayon => CaseBackend::Cpu,
++        Recipe::TrainCudaHost => CaseBackend::Cuda,
++        Recipe::Reference => return Err(ProvenanceError("current StudyTrain required")),
++    };
++    ensure(selected.backend == backend, "Train case/runtime mismatch")?;
++    ensure(
++        sha256_hex(case.canonical_bytes()) == case.digest(),
++        "Train registered case binding changed",
++    )
++}
++pub(super) fn require_capture_owners<C>(
++    context: &C,
++    previous_context: &C,
++    case: &RegisteredCase,
++    previous_case: &RegisteredCase,
++    input: &MaterializedProfile,
++    previous_input: &MaterializedProfile,
++) -> Result<()> {
++    ensure(
++        std::ptr::eq(context, previous_context),
++        "Train capture context changed",
++    )?;
++    ensure(
++        std::ptr::eq(case, previous_case),
++        "Train capture registered case changed",
++    )?;
++    ensure(
++        std::ptr::eq(input, previous_input),
++        "Train capture materialization changed",
++    )
++}
++impl VerifiedStudyTrainContext {
++    fn retained_train_runtime(&self) -> Result<&CaseRuntimeLease> {
++        check_train_role(self.artifact.current_role())?;
++        match &self.artifact.core.runtime {
++            CurrentRuntime::Train(runtime) => {
++                ensure(
++                    runtime.recipe()
++                        == self.artifact.core.receipts[self.artifact.core.current]
++                            .role
++                            .0,
++                    "Train current receipt/runtime mismatch",
++                )?;
++                Ok(runtime)
++            }
++            CurrentRuntime::Reference => Err(ProvenanceError("retained Train runtime required")),
++        }
++    }
++    pub(crate) fn capture_train<'a>(
++        &'a self,
++        case: &'a RegisteredCase,
++        input: &'a MaterializedProfile,
++    ) -> Result<TrainCapture<'a>> {
++        let runtime = self.retained_train_runtime()?;
++        check_case_materialized(case, input, runtime.recipe())?;
++        let checked = self.artifact.check_materialized_input_now(input)?;
++        let invocation = TrainInvocation::observe(self.artifact.root())?;
++        let thread_environment = thread_environment(|k| std::env::var_os(k))?;
++        let executable_start = self
++            .artifact
++            .current_build_facts()
++            .executable_sha256()
++            .into();
++        let facts = runtime.facts()?;
++        self.artifact.recheck()?;
++        Ok(TrainCapture {
++            context: self,
++            case,
++            input,
++            checked,
++            runtime: facts,
++            invocation,
++            thread_environment,
++            executable_start,
++        })
++    }
++    pub(crate) fn finish_train_capture<'a>(
++        &'a self,
++        case: &'a RegisteredCase,
++        input: &'a MaterializedProfile,
++        start: TrainCapture<'a>,
++    ) -> Result<RecheckedTrainCapture<'a>> {
++        require_capture_owners(self, start.context, case, start.case, input, start.input)?;
++        let runtime = self.retained_train_runtime()?;
++        check_case_materialized(case, input, runtime.recipe())?;
++        self.artifact
++            .recheck_materialized_input_now(input, &start.checked)?;
++        let facts = runtime.facts()?;
++        ensure(
++            std::ptr::eq(facts.host(), start.runtime.host())
++                && facts.execution_threads() == start.runtime.execution_threads(),
++            "Train retained executor binding changed",
++        )?;
++        ensure(
++            TrainInvocation::observe(self.artifact.root())? == start.invocation,
++            "Train invocation changed",
++        )?;
++        let build = self.artifact.current_build_facts();
++        ensure(
++            build.executable_sha256() == start.executable_start,
++            "Train captured executable changed",
++        )?;
++        let end = RuntimeRecheck {
++            source: self.artifact.core.approval.source.clone(),
++            receipt_file: self.artifact.current_receipt_sha256().into(),
++            executable_end: build.executable_sha256().into(),
++        };
++        self.artifact.recheck()?;
++        Ok(RecheckedTrainCapture { start, end })
++    }
++}
++impl RecheckedTrainCapture<'_> {
++    // Producer-only immutable inspection. Build access remains Train-role checked,
++    // and comes from this exact context, not from receipt IDs supplied by callers.
++    pub(crate) fn train_build_facts(&self) -> Result<BuildFacts<'_>> {
++        self.start.context.retained_train_runtime()?.recheck()?;
++        let artifact = &self.start.context.artifact;
++        let build = artifact.current_build_facts();
++        ensure(
++            build.receipt_file_sha256() == self.start.checked.facts.receipt_file,
++            "Train producer receipt changed",
++        )?;
++        Ok(build)
++    }
++    pub(crate) fn artifact_context(&self) -> &VerifiedStudyContext {
++        &self.start.context.artifact
++    }
++    pub(crate) fn argv(&self) -> &[Vec<u8>] {
++        &self.start.invocation.argv
++    }
++    pub(crate) fn cwd(&self) -> &[u8] {
++        &self.start.invocation.cwd
++    }
++    pub(crate) fn thread_environment(&self) -> &[(String, Observation<String>)] {
++        &self.start.thread_environment
++    }
++    pub(crate) fn host(&self) -> &Host {
++        self.start.runtime.host()
++    }
++    pub(crate) fn execution_threads(&self) -> u64 {
++        self.start.runtime.execution_threads()
++    }
++    pub(crate) fn executable_start_sha256(&self) -> &str {
++        &self.start.executable_start
++    }
++    pub(crate) fn recheck(&self) -> &RuntimeRecheck {
++        &self.end
++    }
++}
+
+diff --git a/crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs b/crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs
+new file mode 100644
+index 0000000..5a85e3e
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs
+@@ -0,0 +1,138 @@
++//! Pure predicate coverage only; these tests never forge a verified Train context.
++use super::train_capture::{check_case_materialized, check_train_role, require_capture_owners};
++use super::*;
++use crate::study_profile::{CaseBackend, CaseRole, StudyRegistry};
++
++// Compile-only wiring, deliberately not a runtime #[test]. Actual approved Linux
++// context creation and the installed run_owned path remain separate evidence.
++#[allow(dead_code)]
++fn train_capture_actual_api_compile_only<'a>(
++    context: &'a VerifiedStudyTrainContext,
++    case: &'a crate::study_profile::RegisteredCase,
++    input: &'a MaterializedProfile,
++) -> Result<()> {
++    let capture = context.capture_train(case, input)?;
++    let checked = context.finish_train_capture(case, input, capture)?;
++    let component = checked
++        .case_provenance()
++        .map_err(|_| ProvenanceError("case codec"))?;
++    assert_eq!(sha256_hex(component.canonical_bytes()), component.sha256());
++    Ok(())
++}
++
++// Compile-only negative trait assertions: adding any of these impls makes type
++// inference ambiguous. These operate on the real private capture types, without
++// manufacturing a context or relying only on external import privacy errors.
++const _: fn() = || {
++    macro_rules! not_impl {
++        ($ty:ty, $bound:path) => {{
++            trait AmbiguousIfImpl<A> {
++                fn marker() {}
++            }
++            impl<T: ?Sized> AmbiguousIfImpl<()> for T {}
++            impl<T: ?Sized + $bound> AmbiguousIfImpl<u8> for T {}
++            let _ = <$ty as AmbiguousIfImpl<_>>::marker;
++        }};
++    }
++    not_impl!(TrainCapture<'static>, Send);
++    not_impl!(TrainCapture<'static>, Sync);
++    not_impl!(TrainCapture<'static>, Clone);
++    not_impl!(TrainCapture<'static>, Default);
++    not_impl!(RecheckedTrainCapture<'static>, Send);
++    not_impl!(RecheckedTrainCapture<'static>, Sync);
++    not_impl!(RecheckedTrainCapture<'static>, Clone);
++    not_impl!(RecheckedTrainCapture<'static>, Default);
++    not_impl!(TrainCapture<'static>, serde::Deserialize<'static>);
++    not_impl!(RecheckedTrainCapture<'static>, serde::Deserialize<'static>);
++};
++
++#[test]
++fn train_capture_canonical_iris_0_7_case_input_and_owner_binding() {
++    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
++    let registry = StudyRegistry::load(root).unwrap();
++    let cases = registry.registered_cases().unwrap();
++    // Exactly two materializations, one each for canonical Iris seeds0/7; no learning.
++    let p0 =
++        crate::study_inputs::materialize(&registry.resolve("iris__emlp1", 0).unwrap()).unwrap();
++    let p7 =
++        crate::study_inputs::materialize(&registry.resolve("iris__emlp1", 7).unwrap()).unwrap();
++    let case = |seed| {
++        cases
++            .family_cases()
++            .iter()
++            .find(|c| {
++                c.selector().profile_id == "iris__emlp1"
++                    && c.selector().seed == seed
++                    && c.selector().backend == CaseBackend::Cpu
++                    && c.role() == CaseRole::Main
++            })
++            .unwrap()
++    };
++    let c0 = case(0);
++    let c7 = case(7);
++    check_case_materialized(c0, &p0, Recipe::TrainCpuSerial).unwrap();
++    check_case_materialized(c7, &p7, Recipe::TrainCpuRayon).unwrap();
++    assert!(check_case_materialized(c0, &p7, Recipe::TrainCpuSerial).is_err());
++    assert!(check_case_materialized(c7, &p0, Recipe::TrainCpuSerial).is_err());
++    assert!(check_case_materialized(c0, &p0, Recipe::Reference).is_err());
++    assert!(check_case_materialized(c0, &p0, Recipe::TrainCudaHost).is_err());
++    let other_profile = cases
++        .family_cases()
++        .iter()
++        .find(|c| {
++            c.selector().profile_id != "iris__emlp1"
++                && c.selector().seed == 0
++                && c.selector().backend == CaseBackend::Cpu
++        })
++        .unwrap();
++    assert!(check_case_materialized(other_profile, &p0, Recipe::TrainCpuSerial).is_err());
++    let other_case = cases
++        .family_cases()
++        .iter()
++        .find(|c| {
++            c.selector().profile_id == "iris__emlp1"
++                && c.selector().seed == 0
++                && c.selector().backend == CaseBackend::Cpu
++                && !std::ptr::eq(*c, c0)
++        })
++        .unwrap();
++    // Plain owner sentinels exercise the same exact pointer predicate as production.
++    let owner = Box::new(3u8);
++    let other_owner = Box::new(3u8);
++    require_capture_owners(&*owner, &*owner, c0, c0, &p0, &p0).unwrap();
++    assert!(require_capture_owners(&*owner, &*other_owner, c0, c0, &p0, &p0).is_err());
++    assert!(require_capture_owners(&*owner, &*owner, other_case, c0, &p0, &p0).is_err());
++    assert!(require_capture_owners(&*owner, &*owner, c7, c0, &p7, &p0).is_err());
++    assert!(require_capture_owners(&*owner, &*owner, c0, c0, &p7, &p0).is_err());
++    let facts =
++        |p: &MaterializedProfile| checked_materialized_facts(p, "receipt", "source", |_| Ok(()));
++    let start = facts(&p0).unwrap();
++    assert_eq!(start, facts(&p0).unwrap());
++    assert_eq!(start.contract_hash, facts(&p7).unwrap().contract_hash);
++    assert_ne!(
++        start.input_receipt_hash,
++        facts(&p7).unwrap().input_receipt_hash
++    );
++    assert_ne!(start, facts(&p7).unwrap());
++    assert_ne!(
++        start,
++        checked_materialized_facts(&p0, "changed receipt", "source", |_| Ok(())).unwrap()
++    );
++    assert_ne!(
++        start,
++        checked_materialized_facts(&p0, "receipt", "changed source", |_| Ok(())).unwrap()
++    );
++    assert!(
++        checked_materialized_facts(&p0, "receipt", "source", |_| Err(ProvenanceError(
++            "source changed"
++        )))
++        .is_err()
++    );
++}
++
++#[test]
++fn train_capture_role_is_distinct_from_reference_authority() {
++    assert!(check_train_role(ExecutableRole::Reference).is_err());
++    check_train_role(ExecutableRole::StudyTrain).unwrap();
++    assert!(require_reference_role(ExecutableRole::StudyTrain).is_err());
++}

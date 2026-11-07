@@ -1,0 +1,34 @@
+{
+  "index": 10,
+  "name": "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.074931,
+  "expected_parent_tests": 1,
+  "pid": 35470,
+  "exit_code": 0,
+  "end": 1794044447.173506,
+  "stdout_sha256": "9e75f836add791c20cf44ca3a96bf79e9bcac6f64a36fe3b7bef721c9170df9b",
+  "stdout_bytes": 206,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

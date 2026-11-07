@@ -1,0 +1,6 @@
+
+running 1 test
+test study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 202 filtered out; finished in 0.04s
+

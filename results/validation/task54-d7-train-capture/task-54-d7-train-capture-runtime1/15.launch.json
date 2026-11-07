@@ -1,0 +1,20 @@
+{
+  "index": 15,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.5906858,
+  "expected_parent_tests": 1,
+  "pid": 35480
+}

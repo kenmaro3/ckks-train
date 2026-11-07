@@ -17,6 +17,9 @@ use std::{
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
+#[path = "train_capture.rs"]
+mod train_capture;
+pub(crate) use train_capture::{RecheckedTrainCapture, TrainCapture};
 const DESIGNS: [&str; 5] = [
     "docs/experiment-matrix.md",
     "docs/study-reference-design.md",
@@ -143,6 +146,16 @@ impl CurrentRuntime {
 /// ```compile_fail
 /// use ckks_train_bench::study_provenance::VerifiedStudyTrainContext;
 /// let forged = VerifiedStudyTrainContext::default();
+/// ```
+/// Train capture types and their fields are private to the crate; claims cannot
+/// supply a public authority constructor:
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::TrainCapture;
+/// let forged = TrainCapture::default();
+/// ```
+/// ```compile_fail
+/// use ckks_train_bench::study_provenance::RecheckedTrainCapture;
+/// let forged = RecheckedTrainCapture::default();
 /// ```
 /// ```compile_fail
 /// use ckks_train_bench::study_provenance::VerifiedStudyContext;
@@ -1394,3 +1407,7 @@ impl Host {
         1
     }
 }
+
+#[cfg(test)]
+#[path = "train_capture_tests.rs"]
+mod train_capture_tests;

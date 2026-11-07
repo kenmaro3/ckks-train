@@ -162,3 +162,30 @@ fn case_provenance_canonical_bytes_cannot_escape_outer_budget() {
     );
     assert!(encoder.bytes.len() <= A_MAX);
 }
+
+#[test]
+fn case_provenance_producer_codec_preserves_independent_components_synthetic() {
+    // Synthetic JSON fixtures exercise the production codec only, never capture authority.
+    let manifest: Value = serde_json::from_slice(&fixture("manifest.json")).unwrap();
+    for (name, expected) in manifest["positive"].as_object().unwrap() {
+        let value: Value = serde_json::from_slice(&fixture(&format!("{name}.json"))).unwrap();
+        let actual = case_provenance::encode_captured_value(value).unwrap();
+        assert_eq!(
+            actual.canonical_bytes(),
+            decode_hex(&fixture(&format!("{name}.canonical.hex")))
+        );
+        assert_eq!(actual.sha256(), expected["canonical_sha256"]);
+    }
+    for name in manifest["negative"].as_object().unwrap().keys() {
+        let bytes = fixture(&format!("negative/{name}.json"));
+        // Several transport negatives intentionally cannot be represented by Value.
+        if let Ok(value) = serde_json::from_slice::<Value>(&bytes) {
+            if component(&serde_json::to_vec(&value).unwrap()).is_err() {
+                assert!(
+                    case_provenance::encode_captured_value(value).is_err(),
+                    "{name}"
+                );
+            }
+        }
+    }
+}

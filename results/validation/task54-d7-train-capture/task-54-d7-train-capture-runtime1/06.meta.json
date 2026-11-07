@@ -1,0 +1,34 @@
+{
+  "index": 6,
+  "name": "study_runtime::tests::runtime_serial_owner_thread_is_not_transferable",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_serial_owner_thread_is_not_transferable",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044446.674793,
+  "expected_parent_tests": 1,
+  "pid": 35461,
+  "exit_code": 0,
+  "end": 1794044446.771413,
+  "stdout_sha256": "b71e1a821c008eb0ac9ef9f349a1c817387ab84afc4df50f7d0a2ef4330d8a8d",
+  "stdout_bytes": 196,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

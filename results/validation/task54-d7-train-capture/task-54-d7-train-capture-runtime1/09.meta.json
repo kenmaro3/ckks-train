@@ -1,0 +1,39 @@
+{
+  "index": 9,
+  "name": "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044446.9696221,
+  "expected_parent_tests": 1,
+  "pid": 35467,
+  "exit_code": 0,
+  "end": 1794044447.072756,
+  "stdout_sha256": "97184d7d7cc7383c4530ada706b94e0ecccdd6af69f55f7185fdb69885c1ee15",
+  "stdout_bytes": 410,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

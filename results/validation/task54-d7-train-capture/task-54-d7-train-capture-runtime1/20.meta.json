@@ -1,0 +1,34 @@
+{
+  "index": 20,
+  "name": "study_provenance::context::tests::runtime_environment_absent_empty_and_non_utf8_are_distinct",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::runtime_environment_absent_empty_and_non_utf8_are_distinct",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.1124249,
+  "expected_parent_tests": 1,
+  "pid": 35490,
+  "exit_code": 0,
+  "end": 1794044448.2227578,
+  "stdout_sha256": "69ae1faa657dc17f86b7f6924f53469cb44115c500c8d4752222d6f1c32f9c0a",
+  "stdout_bytes": 219,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

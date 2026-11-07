@@ -95,6 +95,14 @@ enum HostPool {
     },
 }
 impl HostExecutor {
+    fn facts<'a>(&self, host: &'a Host) -> Result<CaseRuntimeFacts<'a>> {
+        self.recheck()?;
+        Ok(CaseRuntimeFacts {
+            host,
+            execution_threads: u64::try_from(self.workers())
+                .map_err(|_| ProvenanceError("worker count representation"))?,
+        })
+    }
     fn serial() -> Self {
         Self {
             owner: std::thread::current().id(),
@@ -172,6 +180,20 @@ pub(crate) struct CaseRuntimeLease {
     cuda: Option<Box<cuda::CudaBinding>>,
     _not_send_sync: PhantomData<Rc<()>>,
 }
+// Immutable observations, never a runtime lease or readiness capability. Only
+// the retained executor supplies the worker count; Host's scalar helper is not used.
+pub(crate) struct CaseRuntimeFacts<'a> {
+    host: &'a Host,
+    execution_threads: u64,
+}
+impl CaseRuntimeFacts<'_> {
+    pub(crate) fn host(&self) -> &Host {
+        self.host
+    }
+    pub(crate) fn execution_threads(&self) -> u64 {
+        self.execution_threads
+    }
+}
 fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
     match (host.cpu_model(), host.os(), host.hostname()) {
         (Observation::Available(cpu), Observation::Available(os), Observation::Available(name)) => {
@@ -181,6 +203,12 @@ fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
     }
 }
 impl CaseRuntimeLease {
+    pub(crate) fn facts(&self) -> Result<CaseRuntimeFacts<'_>> {
+        self.recheck()?;
+        let facts = self.executor.facts(&self.host)?;
+        self.recheck()?;
+        Ok(facts)
+    }
     // Only the concrete installed dispatcher calls this; no evidence injection.
     fn capture(recipe: Recipe, executor: HostExecutor, ordinal: Option<usize>) -> Result<Self> {
         check_compiled_recipe(recipe)?;
@@ -255,12 +283,23 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
     let cases = registry
         .registered_cases()
         .map_err(|_| ProvenanceError("registered study projection unavailable"))?;
-    let _case = cases
+    let case = cases
         .select(&request.case)
         .map_err(|_| ProvenanceError("unregistered study selector"))?;
-    context.artifact_context().recheck()?;
-    // Actual captured Case facts, canonical D7 descriptors, real gate leases/admission/start,
-    // and concrete HE construction are deliberately absent, not successful.
+    let seed = u8::try_from(case.selector().seed)
+        .map_err(|_| ProvenanceError("registered study seed representation"))?;
+    let resolved = registry
+        .resolve(&case.selector().profile_id, seed)
+        .map_err(|_| ProvenanceError("selected study input resolution failed"))?;
+    let input = crate::study_inputs::materialize(&resolved)
+        .map_err(|_| ProvenanceError("selected study input materialization failed"))?;
+    let capture = context.capture_train(case, &input)?;
+    let rechecked = context.finish_train_capture(case, &input, capture)?;
+    let _component = rechecked
+        .case_provenance()
+        .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
+    // Captured component bytes are inspection only. Canonical D7 descriptors,
+    // live gates/admission/start, scientific output and HE continuation are absent.
     Ok(RunOutcome::MissingExecutionDependency)
 }
 pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {

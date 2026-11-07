@@ -1962,3 +1962,12 @@ mod case_provenance_tests;
 
 #[allow(dead_code)] // Future bounded admission/start owners consume this private component.
 mod case_provenance;
+
+// This is an inspection component, never an admission/start or execution token.
+// Placing the adapter here keeps private document DTOs inside this module while
+// allowing the retained owner to consume its actual rechecked Train capture.
+impl crate::study_provenance::RecheckedTrainCapture<'_> {
+    pub(crate) fn case_provenance(&self) -> Result<case_provenance::CapturedCaseComponent> {
+        case_provenance::encode_captured_value(producer::captured_case(self)?)
+    }
+}

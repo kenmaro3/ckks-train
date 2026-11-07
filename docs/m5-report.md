@@ -516,4 +516,16 @@ P5は小規模synthetic CPUの16session・42attemptを実行し、40更新成功
 
 snapshot公開APIは成功直後の使用だけをこの検証で確認した。初回成功前やpoison後は一貫したendpointとは限らず、広い用途向けの利用条件明記／拒否処理は軽微な残項目である。negative mutationの一時コピーは未観測の診断workspaceに含める。retentionは保持payloadと推定・未観測領域の区分であり、実ピーク・RSS・本番メモリ適合ではない。canonical D7とdurable start／全行runner、secure profile、GPU、全登録科学実験、P5／Task54／M4／M5全体は引き続き未完了で、full encrypted-block holdとFULL-2の判定条件を維持する。
 
+<a id="latest-evidence-20261107-d7-train-capture"></a>
+
+## 2026-11-07追記: 全実験runnerの入力・実行環境provenance接続
+
+[実装・検証証跡](../results/validation/task54-d7-train-capture/README.md)を保存した。保持した実行所有者の中で、選択したcaseのprofile／seedを解決し、canonical inputを1回生成して、Train専用のcapture／recheck／CaseProvenance符号化へ接続した。実際のexecutorのworker数と同じHostを使い、Reference専用経路の固定1や環境変数を学習側のスレッド数として流用しない。context／case／inputの借用と同一性、source／receipt／executableの検査を維持する。
+
+compile REDから実装し、最終no-run／strict Clippy／逐次CPU・CUDA feature check／formatと独立source reviewが合格した。Macの限定テストは31parent（新規5・回帰26）と隔離child1が合格、doctest9（compile-pass1・compile-fail8）も合格した。Iris emlp1のseed0／7だけを各1回生成し、別入力・別所有者・同サイズ別poolの拒否、実pool2対environment99、Caseの独立6正例／67負例とReferenceの既存bytesを確認した。
+
+全32Cargo呼出しはexit0だったが、controllerはdoctestの最後のsuite8だけを総数9と比べ、exit1になった。元controller・ログ・metadataを保持し、実際の1＋8件の成功を結果報告で区別した。数値JSONの書換えや再実行はしていない。synthetic predicate／codecとcompile-only検査を、本物の承認済みLinux Train contextの実行証拠へ読み替えない。
+
+Linuxでの正式なcontextを使うpositive integrationは未計測である。production runnerはこの接続後もMissingExecutionDependencyを返す。残りのdescriptor／route、実資源等のgate、target／reference要求、durable admission／start、科学結果publisherと全実験への接続は未完了で、Task54／M4／M5全体の合格ではない。HE／学習／GPU計測はこの検証では行っていない。全登録範囲と既存hold、FULL-2の判定条件を維持する。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

@@ -1,0 +1,20 @@
+{
+  "index": 18,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.894827,
+  "expected_parent_tests": 1,
+  "pid": 35486
+}

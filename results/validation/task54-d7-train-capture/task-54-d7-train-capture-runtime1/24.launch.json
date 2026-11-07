@@ -1,0 +1,20 @@
+{
+  "index": 24,
+  "name": "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.5465548,
+  "expected_parent_tests": 1,
+  "pid": 35536
+}

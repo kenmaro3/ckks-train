@@ -1,0 +1,19 @@
+
+running 1 test
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 170) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 129) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 134) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 140) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 146) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 152) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 156) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 160) - compile fail ... ok
+test crates/ckks-train-bench/src/study_provenance/context.rs - study_provenance::context::VerifiedStudyTrainContext (line 166) - compile fail ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.36s
+

@@ -76,6 +76,35 @@ pub(super) fn captured(v: &CaptureFact<'_>) -> Result<Value> {
         json!({"status":"captured","value":{"schema":"hekit-study-provenance-v1","build":build(&f),"source":{"root":raw(c.root().as_os_str().as_bytes()),"commit":available(c.source_commit()),"tracked":"clean","untracked":"clean","manifest":manifest},"executable":{"path":raw(f.executable_path()),"start_sha256":start.executable_start_sha256(),"end_sha256":end.executable_end_sha256()},"invocation":{"argv":start.argv().iter().map(|v|raw(v)).collect::<Vec<_>>(),"cwd":raw(start.cwd())},"host":{"cpu_model":observed(host.cpu_model()),"os":observed(host.os()),"hostname":observed(host.hostname()),"available_cpus":observed(host.available_cpus()),"process_id":observed(host.process_id()),"observed_threads":observed(host.observed_threads()),"execution_threads":host.execution_threads()},"thread_environment":start.thread_environment().iter().map(|(key,value)|json!({"key":key,"value":observed(value)})).collect::<Vec<_>>(),"recheck":{"source_manifest_sha256":end.source_manifest_sha256(),"build_receipt_file_sha256":end.receipt_file_sha256()}}}),
     )
 }
+pub(super) fn captured_case(
+    v: &crate::study_provenance::RecheckedTrainCapture<'_>,
+) -> Result<Value> {
+    let c = v.artifact_context();
+    let f = v.train_build_facts().map_err(|_| {
+        err(
+            DocumentErrorCode::CrossLinkMismatch,
+            "provenance.current_train",
+        )
+    })?;
+    let manifest = c
+        .source_files()
+        .map_err(|_| err(DocumentErrorCode::CrossLinkMismatch, "provenance.source"))?
+        .into_iter()
+        .map(|(path, sha256)| json!({"path":path,"sha256":sha256}))
+        .collect::<Vec<_>>();
+    let host = v.host();
+    let end = v.recheck();
+    Ok(json!({"status":"captured","value":{
+        "schema":"hekit-study-case-provenance-v1","role":"study_train",
+        "build":build(&f),
+        "source":{"root":raw(c.root().as_os_str().as_bytes()),"commit":available(c.source_commit()),"tracked":"clean","untracked":"clean","manifest":manifest},
+        "executable":{"path":raw(f.executable_path()),"start_sha256":v.executable_start_sha256(),"end_sha256":end.executable_end_sha256()},
+        "invocation":{"argv":v.argv().iter().map(|a| raw(a)).collect::<Vec<_>>(),"cwd":raw(v.cwd())},
+        "host":{"cpu_model":observed(host.cpu_model()),"os":observed(host.os()),"hostname":observed(host.hostname()),"available_cpus":observed(host.available_cpus()),"process_id":observed(host.process_id()),"observed_threads":observed(host.observed_threads()),"execution_threads":v.execution_threads()},
+        "thread_environment":v.thread_environment().iter().map(|(key,value)|json!({"key":key,"value":observed(value)})).collect::<Vec<_>>(),
+        "recheck":{"source_manifest_sha256":end.source_manifest_sha256(),"build_receipt_file_sha256":end.receipt_file_sha256()}
+    }}))
+}
 fn common_value(
     schema: &str,
     kind: &str,

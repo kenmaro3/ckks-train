@@ -1,0 +1,34 @@
+{
+  "index": 30,
+  "name": "study_provenance::process::tests::process_boot_exact_grammar_not_uuid_version_policy",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::process::tests::process_boot_exact_grammar_not_uuid_version_policy",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044449.169759,
+  "expected_parent_tests": 1,
+  "pid": 35589,
+  "exit_code": 0,
+  "end": 1794044449.266921,
+  "stdout_sha256": "13d448bfc6fb55fb76277edc80e26c9a6657286c8f39bfd28d9e39a7b1778233",
+  "stdout_bytes": 211,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

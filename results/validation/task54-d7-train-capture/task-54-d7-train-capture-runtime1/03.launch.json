@@ -1,0 +1,20 @@
+{
+  "index": 3,
+  "name": "study_runtime::tests::runtime_capture_fact_projection_serial_is_actual_and_borrowed",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_capture_fact_projection_serial_is_actual_and_borrowed",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044446.37944,
+  "expected_parent_tests": 1,
+  "pid": 35448
+}

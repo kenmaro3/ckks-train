@@ -1,0 +1,387 @@
+{
+  "status": "PROPOSED_ONLY_NOT_EXECUTED_NOT_AUTHORIZED_BY_THIS_FILE",
+  "features": [
+    "parallel"
+  ],
+  "invocation_pattern": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "EXACT_NAME",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "tests": [
+    {
+      "name": "study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding",
+      "kind": "new",
+      "canonical_materializations": 2,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Actual immutable iris__emlp1 materializations seeds0/7 once each; pure case/input/snapshot/owner-sentinel predicates only. No live Train context, no learning."
+    },
+    {
+      "name": "study_provenance::context::train_capture_tests::train_capture_role_is_distinct_from_reference_authority",
+      "kind": "new",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_capture_fact_projection_serial_is_actual_and_borrowed",
+      "kind": "new",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 1,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Actual serial executor projection with borrowed observed Host; no ProcessStamp or verified context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_capture_fact_projection_exact_pools_and_owner",
+      "kind": "new",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [
+        1,
+        1,
+        2,
+        2
+      ],
+      "host_executor_objects": 3,
+      "explicit_std_threads": 1,
+      "subprocesses": 0,
+      "note": "Two retained pool executors plus one serial executor; four actual pools including foreign same-size1/2; no ProcessStamp or verified context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_worker_bounds_and_compile_role_match",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_serial_owner_thread_is_not_transferable",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 1,
+      "explicit_std_threads": 1,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_exact_pool_rejects_foreign_same_size_and_outside",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [
+        1,
+        1,
+        2,
+        2
+      ],
+      "host_executor_objects": 2,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [
+        2
+      ],
+      "host_executor_objects": 1,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Synchronous stand-in/nested Rayon work only; no actual HE/bootstrap call."
+    },
+    {
+      "name": "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [
+        2
+      ],
+      "host_executor_objects": 1,
+      "explicit_std_threads": 0,
+      "subprocesses": 1,
+      "note": "Parent test key CKKS_RUNTIME_POOL_TEST_CHILD must be unset. Exactly one child invokes this same exact test, sets key1/RAYON_NUM_THREADS99 and constructs actual pool2; projection still2. No recursive second child."
+    },
+    {
+      "name": "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [
+        2
+      ],
+      "host_executor_objects": 1,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_runtime::tests::runtime_mac_never_fabricates_production_process_stamp",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "cfg(not(target_os=\"linux\")); actual ProcessStamp capture refuses platform. No live context/pool/subprocess."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic",
+      "kind": "new",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing six independent synthetic positive vectors through production codec; representable surviving semantic negatives only. Does not invoke actual captured_case adapter or mint capture authority."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_member_order_does_not_choose_canonical_order",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_reference::document::case_provenance_tests::case_provenance_canonical_bytes_cannot_escape_outer_budget",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing synthetic literal/parser/encoder regression. Original67-negative test preserves exact raw literal transport; budget tests allocate bounded codec fixture buffers only."
+    },
+    {
+      "name": "study_provenance::context::tests::runtime_environment_absent_empty_and_non_utf8_are_distinct",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::role_current_and_artifact_reference_predicates_are_independent",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::reader_guard_reference_mutation_policy_rejects_all_train_recipes",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::train_context_requires_v2_train_recipe_and_exact_runtime",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::context::tests::train_current_candidate_requires_role_capsule_and_executable",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Pure structural or codec predicates; no verified production context."
+    },
+    {
+      "name": "study_provenance::process::tests::process_exact_match_checks_every_field_and_observed_pid",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Synthetic ProcessStamp/parser predicates only; never constructs an approved context."
+    },
+    {
+      "name": "study_provenance::process::tests::process_stat_comm_delimiter_and_u64_boundaries",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Synthetic ProcessStamp/parser predicates only; never constructs an approved context."
+    },
+    {
+      "name": "study_provenance::process::tests::process_stat_malformed_missing_overflow_and_trailing_reject",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Synthetic ProcessStamp/parser predicates only; never constructs an approved context."
+    },
+    {
+      "name": "study_provenance::process::tests::process_boot_exact_grammar_not_uuid_version_policy",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Synthetic ProcessStamp/parser predicates only; never constructs an approved context."
+    },
+    {
+      "name": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+      "kind": "regression",
+      "canonical_materializations": 0,
+      "pool_worker_counts": [],
+      "host_executor_objects": 0,
+      "explicit_std_threads": 0,
+      "subprocesses": 0,
+      "note": "Existing literal Reference/Diagnostic/Failure golden codec regression. Python in name describes fixture origin; test spawns no Python or subprocess."
+    }
+  ],
+  "total_selected_parent_tests_on_mac": 31,
+  "new_tests": 5,
+  "canonical_materializations_total": 2,
+  "subprocesses_total": 1,
+  "explicit_std_threads_total": 2,
+  "pools_worker_counts_total": [
+    1,
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "compile_only_helper": "study_provenance::context::train_capture_tests::train_capture_actual_api_compile_only (never invoked; no runtime test)",
+  "compile_only_negative_trait_assertions": 10,
+  "proposed_doctest_command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--doc",
+    "--features",
+    "parallel",
+    "study_provenance::context::VerifiedStudyTrainContext",
+    "--",
+    "--test-threads=1"
+  ],
+  "doctest_count_from_source": 9,
+  "doctest_compile_fail_count": 8,
+  "doctest_compile_pass_count": 1,
+  "explicitly_excluded_materializing_regressions": [
+    "study_provenance::context::tests::reader_guard_materialized_checks_retain_selected_seed_and_context_binding",
+    "study_reference::document::tests::actual_iris_seed_zero_and_seven_all_graphs_roundtrip_only_input_identities"
+  ],
+  "actual_linux_approved_train_integration": "UNMEASURED: this inventory does not construct one."
+}

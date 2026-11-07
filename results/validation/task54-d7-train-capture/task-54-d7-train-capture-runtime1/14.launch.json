@@ -1,0 +1,20 @@
+{
+  "index": 14,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.490674,
+  "expected_parent_tests": 1,
+  "pid": 35478
+}

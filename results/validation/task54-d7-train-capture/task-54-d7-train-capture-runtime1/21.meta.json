@@ -1,0 +1,34 @@
+{
+  "index": 21,
+  "name": "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.224889,
+  "expected_parent_tests": 1,
+  "pid": 35530,
+  "exit_code": 0,
+  "end": 1794044448.328728,
+  "stdout_sha256": "032a3f14fa408603f9f7feeb2cab6b4aeab929dafe2b576783cbca4d06ffef0d",
+  "stdout_bytes": 209,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

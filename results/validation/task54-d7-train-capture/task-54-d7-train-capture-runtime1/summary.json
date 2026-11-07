@@ -1,0 +1,1103 @@
+{
+  "kind": "local_unit_validation_not_scientific_result",
+  "results": [
+    {
+      "index": 1,
+      "name": "study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044445.418237,
+      "expected_parent_tests": 1,
+      "pid": 35406,
+      "exit_code": 0,
+      "end": 1794044446.272762,
+      "stdout_sha256": "1104d662229b9ef38f4766cf6cedf19546785a12307ba904331d602be3f2ed04",
+      "stdout_bytes": 236,
+      "stderr_sha256": "6fbb1efd65781e7f817f6d89698b8a4b5c7d9205d77a0c5e1efc46f9671a79ad",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 2,
+      "name": "study_provenance::context::train_capture_tests::train_capture_role_is_distinct_from_reference_authority",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::train_capture_tests::train_capture_role_is_distinct_from_reference_authority",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.2744892,
+      "expected_parent_tests": 1,
+      "pid": 35446,
+      "exit_code": 0,
+      "end": 1794044446.3778932,
+      "stdout_sha256": "ad971162a1492e1476c299bbba1a3adf62eb1132b8cd8995409069be12b04b36",
+      "stdout_bytes": 230,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 3,
+      "name": "study_runtime::tests::runtime_capture_fact_projection_serial_is_actual_and_borrowed",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_capture_fact_projection_serial_is_actual_and_borrowed",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.37944,
+      "expected_parent_tests": 1,
+      "pid": 35448,
+      "exit_code": 0,
+      "end": 1794044446.477055,
+      "stdout_sha256": "58b83435455228fc7196c184f2f323b423ab02014e3a9bba0d9e05dce2af7561",
+      "stdout_bytes": 210,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 4,
+      "name": "study_runtime::tests::runtime_capture_fact_projection_exact_pools_and_owner",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_capture_fact_projection_exact_pools_and_owner",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.478847,
+      "expected_parent_tests": 1,
+      "pid": 35455,
+      "exit_code": 0,
+      "end": 1794044446.57603,
+      "stdout_sha256": "24f9e8fa17ba66f33629bf52733e6379b3401f2053429135e84bbb9c3f090540",
+      "stdout_bytes": 202,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 5,
+      "name": "study_runtime::tests::runtime_worker_bounds_and_compile_role_match",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_worker_bounds_and_compile_role_match",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.5778172,
+      "expected_parent_tests": 1,
+      "pid": 35459,
+      "exit_code": 0,
+      "end": 1794044446.673079,
+      "stdout_sha256": "df9d3be526b106130a78edd01fd70678f26edc6b851724549b4f5d07f677f548",
+      "stdout_bytes": 193,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 6,
+      "name": "study_runtime::tests::runtime_serial_owner_thread_is_not_transferable",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_serial_owner_thread_is_not_transferable",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.674793,
+      "expected_parent_tests": 1,
+      "pid": 35461,
+      "exit_code": 0,
+      "end": 1794044446.771413,
+      "stdout_sha256": "b71e1a821c008eb0ac9ef9f349a1c817387ab84afc4df50f7d0a2ef4330d8a8d",
+      "stdout_bytes": 196,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 7,
+      "name": "study_runtime::tests::runtime_exact_pool_rejects_foreign_same_size_and_outside",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_exact_pool_rejects_foreign_same_size_and_outside",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.7734442,
+      "expected_parent_tests": 1,
+      "pid": 35463,
+      "exit_code": 0,
+      "end": 1794044446.870223,
+      "stdout_sha256": "4f66559a624f4e3b50c08e3ce31c26db81f887b4c6b1df79b843b7461e1cb38e",
+      "stdout_bytes": 205,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 8,
+      "name": "study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.871843,
+      "expected_parent_tests": 1,
+      "pid": 35465,
+      "exit_code": 0,
+      "end": 1794044446.9678159,
+      "stdout_sha256": "d1e1fe70b411b0c9db8b3ad3e71cced52a33c47aed74d2d45ef239c8eb10b4ee",
+      "stdout_bytes": 216,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 9,
+      "name": "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_owned_pool_ignores_environment_in_isolated_child",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044446.9696221,
+      "expected_parent_tests": 1,
+      "pid": 35467,
+      "exit_code": 0,
+      "end": 1794044447.072756,
+      "stdout_sha256": "97184d7d7cc7383c4530ada706b94e0ecccdd6af69f55f7185fdb69885c1ee15",
+      "stdout_bytes": 410,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 10,
+      "name": "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.074931,
+      "expected_parent_tests": 1,
+      "pid": 35470,
+      "exit_code": 0,
+      "end": 1794044447.173506,
+      "stdout_sha256": "9e75f836add791c20cf44ca3a96bf79e9bcac6f64a36fe3b7bef721c9170df9b",
+      "stdout_bytes": 206,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 11,
+      "name": "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.175203,
+      "expected_parent_tests": 1,
+      "pid": 35472,
+      "exit_code": 0,
+      "end": 1794044447.2700071,
+      "stdout_sha256": "6491babb725f9f9e829d701eabd9a9d5ef8733205531b0272b5237c3a83101a2",
+      "stdout_bytes": 210,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 12,
+      "name": "study_runtime::tests::runtime_mac_never_fabricates_production_process_stamp",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_runtime::tests::runtime_mac_never_fabricates_production_process_stamp",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.271709,
+      "expected_parent_tests": 1,
+      "pid": 35474,
+      "exit_code": 0,
+      "end": 1794044447.365807,
+      "stdout_sha256": "af5a48f26b834b5ff1af721174f4fee44a4d7d0b8dbd637de064fd8ed3cff575",
+      "stdout_bytes": 202,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 13,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_producer_codec_preserves_independent_components_synthetic",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.367564,
+      "expected_parent_tests": 1,
+      "pid": 35476,
+      "exit_code": 0,
+      "end": 1794044447.488641,
+      "stdout_sha256": "d7a898ead7aee61f5b3d6a20d2992cd85c11fe26c0e098eee97774071654fa99",
+      "stdout_bytes": 250,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 14,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_all_six_independent_components_exact",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.490674,
+      "expected_parent_tests": 1,
+      "pid": 35478,
+      "exit_code": 0,
+      "end": 1794044447.5891619,
+      "stdout_sha256": "15141717892787042fe042ee5c316004df9ec44cb44d6748f0b99558dbf3f8c5",
+      "stdout_bytes": 229,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 15,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_all_67_actual_negative_literals_reject",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.5906858,
+      "expected_parent_tests": 1,
+      "pid": 35480,
+      "exit_code": 0,
+      "end": 1794044447.6959202,
+      "stdout_sha256": "4907bbc478c657d26999dc05c6042b3fa618958e873aa14a2b9a0ae6c57117f4",
+      "stdout_bytes": 231,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 16,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_member_order_does_not_choose_canonical_order",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_member_order_does_not_choose_canonical_order",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.697566,
+      "expected_parent_tests": 1,
+      "pid": 35482,
+      "exit_code": 0,
+      "end": 1794044447.7962549,
+      "stdout_sha256": "6c41e0ba443a37269c121db597adb311a0dc9a3c61a26bd5123f74913ed6e5a7",
+      "stdout_bytes": 237,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 17,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.798054,
+      "expected_parent_tests": 1,
+      "pid": 35484,
+      "exit_code": 0,
+      "end": 1794044447.892753,
+      "stdout_sha256": "55d61be2e9ec67a765aa78059ed6e1ba7e035c761ffaee2366b12c6acb7e1c74",
+      "stdout_bytes": 231,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 18,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044447.894827,
+      "expected_parent_tests": 1,
+      "pid": 35486,
+      "exit_code": 0,
+      "end": 1794044447.99999,
+      "stdout_sha256": "3b38a073d330ad1414009badf7b2dffa6192fe46d83486845a406ec9ebde7cea",
+      "stdout_bytes": 235,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 19,
+      "name": "study_reference::document::case_provenance_tests::case_provenance_canonical_bytes_cannot_escape_outer_budget",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::case_provenance_tests::case_provenance_canonical_bytes_cannot_escape_outer_budget",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.002198,
+      "expected_parent_tests": 1,
+      "pid": 35488,
+      "exit_code": 0,
+      "end": 1794044448.11045,
+      "stdout_sha256": "df9ef1273ecc9f410359955bc8af1e1549376fbd53ee82768a4267494ef64b83",
+      "stdout_bytes": 235,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 20,
+      "name": "study_provenance::context::tests::runtime_environment_absent_empty_and_non_utf8_are_distinct",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::runtime_environment_absent_empty_and_non_utf8_are_distinct",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.1124249,
+      "expected_parent_tests": 1,
+      "pid": 35490,
+      "exit_code": 0,
+      "end": 1794044448.2227578,
+      "stdout_sha256": "69ae1faa657dc17f86b7f6924f53469cb44115c500c8d4752222d6f1c32f9c0a",
+      "stdout_bytes": 219,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 21,
+      "name": "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.224889,
+      "expected_parent_tests": 1,
+      "pid": 35530,
+      "exit_code": 0,
+      "end": 1794044448.328728,
+      "stdout_sha256": "032a3f14fa408603f9f7feeb2cab6b4aeab929dafe2b576783cbca4d06ffef0d",
+      "stdout_bytes": 209,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 22,
+      "name": "study_provenance::context::tests::role_current_and_artifact_reference_predicates_are_independent",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::role_current_and_artifact_reference_predicates_are_independent",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.330664,
+      "expected_parent_tests": 1,
+      "pid": 35532,
+      "exit_code": 0,
+      "end": 1794044448.435422,
+      "stdout_sha256": "bb5d97196b1c5bb8b780fad6b0b4470ec62196412c8a1216bdf80948d23cd9e6",
+      "stdout_bytes": 223,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 23,
+      "name": "study_provenance::context::tests::reader_guard_reference_mutation_policy_rejects_all_train_recipes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::reader_guard_reference_mutation_policy_rejects_all_train_recipes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.437845,
+      "expected_parent_tests": 1,
+      "pid": 35534,
+      "exit_code": 0,
+      "end": 1794044448.5440252,
+      "stdout_sha256": "294fe4803529bf0c7359c4d3b3ae29ab478d202284510b272866f3b64339e296",
+      "stdout_bytes": 225,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 24,
+      "name": "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.5465548,
+      "expected_parent_tests": 1,
+      "pid": 35536,
+      "exit_code": 0,
+      "end": 1794044448.6599731,
+      "stdout_sha256": "d2748c459a483c41cf4b366014764c84d59489086ada164c67ade67be2b6db6e",
+      "stdout_bytes": 230,
+      "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 25,
+      "name": "study_provenance::context::tests::train_context_requires_v2_train_recipe_and_exact_runtime",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::train_context_requires_v2_train_recipe_and_exact_runtime",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.661897,
+      "expected_parent_tests": 1,
+      "pid": 35576,
+      "exit_code": 0,
+      "end": 1794044448.761122,
+      "stdout_sha256": "17f62632f247a12c677a89ec056f7e6484dad5b6b55276e1ae7b19d06208590c",
+      "stdout_bytes": 217,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 26,
+      "name": "study_provenance::context::tests::train_current_candidate_requires_role_capsule_and_executable",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::context::tests::train_current_candidate_requires_role_capsule_and_executable",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.763388,
+      "expected_parent_tests": 1,
+      "pid": 35578,
+      "exit_code": 0,
+      "end": 1794044448.8622699,
+      "stdout_sha256": "4dcf28ce0bae64e9f03d4a886cd96ff936d41ed86308f0ad05f8215fbf9e1569",
+      "stdout_bytes": 221,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 27,
+      "name": "study_provenance::process::tests::process_exact_match_checks_every_field_and_observed_pid",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::process::tests::process_exact_match_checks_every_field_and_observed_pid",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.864209,
+      "expected_parent_tests": 1,
+      "pid": 35582,
+      "exit_code": 0,
+      "end": 1794044448.964467,
+      "stdout_sha256": "2e4e9041d306a19fe9223f880e1aca948178b56a9b60ff496710b4b63af1f16c",
+      "stdout_bytes": 216,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 28,
+      "name": "study_provenance::process::tests::process_stat_comm_delimiter_and_u64_boundaries",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::process::tests::process_stat_comm_delimiter_and_u64_boundaries",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044448.96652,
+      "expected_parent_tests": 1,
+      "pid": 35585,
+      "exit_code": 0,
+      "end": 1794044449.06881,
+      "stdout_sha256": "dd73c43dcad67c3576f07fedb33d2889b8f0465dc9afe43ebf3e8c8d262a840e",
+      "stdout_bytes": 207,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 29,
+      "name": "study_provenance::process::tests::process_stat_malformed_missing_overflow_and_trailing_reject",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::process::tests::process_stat_malformed_missing_overflow_and_trailing_reject",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044449.070538,
+      "expected_parent_tests": 1,
+      "pid": 35587,
+      "exit_code": 0,
+      "end": 1794044449.16792,
+      "stdout_sha256": "559a5dd2f60e257978fca5953838a0faf7c7fee668ccc94e7a1519b79e0e0e74",
+      "stdout_bytes": 220,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 30,
+      "name": "study_provenance::process::tests::process_boot_exact_grammar_not_uuid_version_policy",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_provenance::process::tests::process_boot_exact_grammar_not_uuid_version_policy",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044449.169759,
+      "expected_parent_tests": 1,
+      "pid": 35589,
+      "exit_code": 0,
+      "end": 1794044449.266921,
+      "stdout_sha256": "13d448bfc6fb55fb76277edc80e26c9a6657286c8f39bfd28d9e39a7b1778233",
+      "stdout_bytes": 211,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 31,
+      "name": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "--features",
+        "parallel",
+        "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794044449.268655,
+      "expected_parent_tests": 1,
+      "pid": 35591,
+      "exit_code": 0,
+      "end": 1794044449.366025,
+      "stdout_sha256": "9aeccd512f2288c1fb67ec09c4d7232f93aa66efd1364968ded96953e0fa7327",
+      "stdout_bytes": 238,
+      "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+      "stderr_bytes": 159,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true
+    },
+    {
+      "index": 32,
+      "name": "doctests",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--doc",
+        "--features",
+        "parallel",
+        "study_provenance::context::VerifiedStudyTrainContext",
+        "--",
+        "--test-threads=1"
+      ],
+      "start": 1794044449.368284,
+      "expected_parent_tests": 9,
+      "pid": 35593,
+      "exit_code": 0,
+      "end": 1794044459.681931,
+      "stdout_sha256": "6871b170ca53fd08168676356a8d84a972f518711bfece4f9329f2d91f3b2f7f",
+      "stdout_bytes": 1552,
+      "stderr_sha256": "0fab78416e147022b776cefd8036c56c13d12ab25909c5704d8316ae953d74c6",
+      "stderr_bytes": 204,
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          8,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": false
+    }
+  ],
+  "complete": true
+}

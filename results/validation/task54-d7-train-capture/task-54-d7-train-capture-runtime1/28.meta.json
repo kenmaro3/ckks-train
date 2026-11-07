@@ -1,0 +1,34 @@
+{
+  "index": 28,
+  "name": "study_provenance::process::tests::process_stat_comm_delimiter_and_u64_boundaries",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::process::tests::process_stat_comm_delimiter_and_u64_boundaries",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.96652,
+  "expected_parent_tests": 1,
+  "pid": 35585,
+  "exit_code": 0,
+  "end": 1794044449.06881,
+  "stdout_sha256": "dd73c43dcad67c3576f07fedb33d2889b8f0465dc9afe43ebf3e8c8d262a840e",
+  "stdout_bytes": 207,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

@@ -1,0 +1,20 @@
+{
+  "index": 10,
+  "name": "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_runtime::tests::runtime_retained_count_drift_fails_even_inside_exact_pool",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.074931,
+  "expected_parent_tests": 1,
+  "pid": 35470
+}

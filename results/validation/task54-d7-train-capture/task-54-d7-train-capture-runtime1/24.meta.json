@@ -1,0 +1,34 @@
+{
+  "index": 24,
+  "name": "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::reader_guard_selected_sources_reject_before_hash_or_accept_exact_file",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.5465548,
+  "expected_parent_tests": 1,
+  "pid": 35536,
+  "exit_code": 0,
+  "end": 1794044448.6599731,
+  "stdout_sha256": "d2748c459a483c41cf4b366014764c84d59489086ada164c67ade67be2b6db6e",
+  "stdout_bytes": 230,
+  "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

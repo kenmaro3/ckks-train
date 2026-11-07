@@ -1,0 +1,6 @@
+
+running 1 test
+test study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 202 filtered out; finished in 0.00s
+

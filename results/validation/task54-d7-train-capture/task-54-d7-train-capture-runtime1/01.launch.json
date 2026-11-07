@@ -1,0 +1,20 @@
+{
+  "index": 1,
+  "name": "study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::train_capture_tests::train_capture_canonical_iris_0_7_case_input_and_owner_binding",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044445.418237,
+  "expected_parent_tests": 1,
+  "pid": 35406
+}

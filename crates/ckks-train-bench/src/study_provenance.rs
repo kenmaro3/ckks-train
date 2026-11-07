@@ -12,6 +12,8 @@ pub(crate) mod role;
 #[allow(unused_imports)]
 pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
 pub use context::{ContextRequest, VerifiedStudyContext, VerifiedStudyTrainContext};
+#[allow(unused_imports)]
+pub(crate) use context::{RecheckedTrainCapture, TrainCapture};
 pub(crate) use context::{check_runtime_environment, check_train_preflight};
 
 /// A bounded rejection of unavailable, inconsistent or unsupported evidence.

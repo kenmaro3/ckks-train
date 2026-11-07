@@ -1,0 +1,15 @@
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Checking ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-core)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+error: redundant closure
+  --> crates/ckks-train-bench/src/study_runtime/tests.rs:67:75
+   |
+67 |             rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), || check());
+   |                                                                           ^^^^^^^^^^ help: replace the closure with the function itself: `&check`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure
+   = note: `-D clippy::redundant-closure` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_closure)]`
+
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

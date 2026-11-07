@@ -1,0 +1,6 @@
+
+running 1 test
+test study_runtime::tests::runtime_nested_join_iteration_and_synchronous_host_route_stay_owned ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 202 filtered out; finished in 0.00s
+

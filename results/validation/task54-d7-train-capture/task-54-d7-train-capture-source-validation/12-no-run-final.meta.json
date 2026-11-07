@@ -1,0 +1,16 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "--no-run"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "start": "2026-11-07T09:29:49.658416+00:00",
+  "end": "2026-11-07T09:30:01.337687+00:00",
+  "exit_code": 0
+}

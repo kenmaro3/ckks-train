@@ -1,0 +1,34 @@
+{
+  "index": 31,
+  "name": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044449.268655,
+  "expected_parent_tests": 1,
+  "pid": 35591,
+  "exit_code": 0,
+  "end": 1794044449.366025,
+  "stdout_sha256": "9aeccd512f2288c1fb67ec09c4d7232f93aa66efd1364968ded96953e0fa7327",
+  "stdout_bytes": 238,
+  "stderr_sha256": "4cf9591cc432a18d85bf21916dbd1b6829f3b027a6b96e3f7612488527f3f4e2",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

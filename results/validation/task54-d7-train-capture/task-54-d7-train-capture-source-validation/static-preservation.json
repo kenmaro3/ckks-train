@@ -1,0 +1,28 @@
+{
+  "changed_tracked_source_paths": [
+    "crates/ckks-train-bench/src/study_provenance.rs",
+    "crates/ckks-train-bench/src/study_provenance/context.rs",
+    "crates/ckks-train-bench/src/study_reference/document.rs",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance.rs",
+    "crates/ckks-train-bench/src/study_reference/document/case_provenance_tests.rs",
+    "crates/ckks-train-bench/src/study_reference/document/producer.rs",
+    "crates/ckks-train-bench/src/study_runtime.rs",
+    "crates/ckks-train-bench/src/study_runtime/tests.rs"
+  ],
+  "allowed_focused_new_paths": [
+    "crates/ckks-train-bench/src/study_provenance/train_capture.rs",
+    "crates/ckks-train-bench/src/study_provenance/train_capture_tests.rs"
+  ],
+  "unchanged_tracked_bench_source_and_workspace_cargo_count": 256,
+  "unchanged_case_golden_count": 82,
+  "reference_capture_finish_and_helpers_byte_identical": true,
+  "reference_captured_producer_byte_identical": true,
+  "preexisting_case_tests_and_document_source_prefix_byte_identical": true,
+  "unowned_results_present_sha256": {
+    "results/mnist_blocks_128-64_plain_b48.json": "0b3b36c7a0553e5bd01bb782fbd6f8aaa80aa0cf7339e70f1706e2e13c8cee5c",
+    "results/mnist_blocks_64_plain_b48.json": "ce61dfa0f7ff42583075499867a5801cd02499045037ba7f7ebeb78efefdc2fe"
+  },
+  "unowned_vscode_exists": true,
+  "runtime_tests_executed": 0,
+  "production_run_owned_executed": 0
+}

@@ -1,0 +1,12 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: the borrowed expression implements the required traits
+  --> crates/ckks-train-bench/src/study_runtime/tests.rs:67:75
+   |
+67 |             rayon::join(|| (0..32).into_par_iter().for_each(|_| check()), &check);
+   |                                                                           ^^^^^^ help: change this to: `check`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrows_for_generic_args
+   = note: `-D clippy::needless-borrows-for-generic-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_borrows_for_generic_args)]`
+
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

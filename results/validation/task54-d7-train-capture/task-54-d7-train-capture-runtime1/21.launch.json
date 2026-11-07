@@ -1,0 +1,20 @@
+{
+  "index": 21,
+  "name": "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_provenance::context::tests::runtime_override_and_argument_bounds_fail_closed",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044448.224889,
+  "expected_parent_tests": 1,
+  "pid": 35530
+}

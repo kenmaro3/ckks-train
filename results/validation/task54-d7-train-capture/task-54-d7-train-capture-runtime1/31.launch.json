@@ -1,0 +1,20 @@
+{
+  "index": 31,
+  "name": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044449.268655,
+  "expected_parent_tests": 1,
+  "pid": 35591
+}

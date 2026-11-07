@@ -1,0 +1,19 @@
+{
+  "index": 32,
+  "name": "doctests",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--doc",
+    "--features",
+    "parallel",
+    "study_provenance::context::VerifiedStudyTrainContext",
+    "--",
+    "--test-threads=1"
+  ],
+  "start": 1794044449.368284,
+  "expected_parent_tests": 9,
+  "pid": 35593
+}

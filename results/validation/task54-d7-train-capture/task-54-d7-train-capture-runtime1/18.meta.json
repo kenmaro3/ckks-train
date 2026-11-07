@@ -1,0 +1,34 @@
+{
+  "index": 18,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_preflight_exact_paths_and_aggregate_budget",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794044447.894827,
+  "expected_parent_tests": 1,
+  "pid": 35486,
+  "exit_code": 0,
+  "end": 1794044447.99999,
+  "stdout_sha256": "3b38a073d330ad1414009badf7b2dffa6192fe46d83486845a406ec9ebde7cea",
+  "stdout_bytes": 235,
+  "stderr_sha256": "2c9834707b0623177a88baca83cc0ebde564e7c1d5ed7091f5ac857318a5dc6a",
+  "stderr_bytes": 159,
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true
+}

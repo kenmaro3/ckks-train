@@ -1,0 +1,18 @@
+{
+  "released": true,
+  "scope": "one sequential bounded pure batch, no automatic retry, not scientific evidence",
+  "inputs": {
+    "task-54-d7-train-capture-source-review.md": "85ffa25bea6cab54ad28b36d7093691cde8b54302bebaf9b8bcc4457cddd934f",
+    "task-54-d7-train-capture-source-report.md": "54c2183d01d39bb0b0daf663f3763be40387d19f91e812d911bf1b332cc98388",
+    "task-54-d7-train-capture-source-validation/source-pins.json": "be178dd20f29b7b37b84ad07d8e09c6f7f5236648d06f50b65b286f163f4bed3",
+    "task-54-d7-train-capture-source-validation/proposed-pure-test-inventory.json": "64f700519d56dbbf15f6fac780b76c67c05baade9725b9e88c252bcf2a2e48fc",
+    "task-54-d7-train-capture-runtime1-controller.py": "3c6d03f7eccc745bb526d32c637c467d0e647c76824635cee2973a27c4475482"
+  },
+  "inventory": "task-54-d7-train-capture-source-validation/proposed-pure-test-inventory.json",
+  "source_pins": "task-54-d7-train-capture-source-validation/source-pins.json",
+  "parent_unit_tests": 31,
+  "doctests": 9,
+  "canonical_materializations": 2,
+  "no_he_training_network": true,
+  "root_review": "full read source review PASS, no Critical/Important findings; actual Linux integration remains missing"
+}
