@@ -1,0 +1,58 @@
+BASE 2da02ab7c861c7d85ff25c4ee5bf67f4d86a6c72; design only; no source mutations.
+--- /dev/null
++++ .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-dataset-acquisition-refinement.md
+@@ -0,0 +1,54 @@
++# Task 54 D7 — closed dataset acquisition refinement
++
++Status: proposed for independent SPEC/QUALITY review, 2026-11-08. No reader implementation or runtime authority is released by this document. Root fully read the retained-reader integration map and its focused addendum (SHA256 4266520bb4a4237c1e68ee7c373ae7001b14aaa35aaa62cddd0e84dc663ec1a1); its original 30,490-byte prefix is unchanged. Source inspection is fixed at 2da02ab7c861c7d85ff25c4ee5bf67f4d86a6c72. The intervening cleanup commit 2ce43c2 changes no relevant source.
++
++## Problem and intended decision
++
++Schema section 5 bounds external evidence at 8,388,608 bytes per raw file and requires held File/read stamp/immutable bytes for canonical inputs too. The registered Fashion training IDX is 47,040,016 bytes. Existing typed loaders whole-read before shape/hash validation; no pre-read typed byte budget authorizes that file. Applying the report limit to all inputs would strand four declared Fashion profiles (510 family Full rows and 51 Quick projections); omitting those rows would not complete Task 54. Registered MNIST uses 4,800 training and 10,000 test rows at196 features; its largest raw NPY is7,840,128 bytes and does not cause this conflict.
++
++Proposed ruling: define a closed canonical DatasetInput acquisition policy, selected from the actual RegisteredCase and fixed input inventory, before any materialization read/allocation. It requires the exact sizes below in addition to the already-registered content digests, types and shapes. This is an explicit acquisition refinement, not an assertion that existing typed readers already enforce it. It does not raise external report/evidence limits. FileRef lengths describe checked files; callers and artifacts cannot choose an acquisition cap or path.
++
++## Closed raw dataset inventory
++
++Paths are repository-relative identities resolved beneath the actual trusted root; never open an artifact-provided path. A selected case acquires the complete existing dataset inventory required by its resolver, not the union unnecessarily and not a subset chosen to fit memory. The registry, locks, manifests and acquisition policy must agree; mismatch refuses.
++
++| Exact path | Required raw bytes |
++|---|---:|
++| crates/ckks-train-bench/data/iris.csv | 2756 |
++| crates/ckks-train-bench/data/iris_split_seed2020.txt | 705 |
++| crates/ckks-train-bench/data/breast_cancer.csv | 124103 |
++| results/quadruped/data/reboot_emlp1_full/train_images_14x14.npy | 3763328 |
++| results/quadruped/data/reboot_emlp1_full/train_labels.npy | 4928 |
++| results/quadruped/data/reboot_emlp1_full/test_images_14x14.npy | 7840128 |
++| results/quadruped/data/reboot_emlp1_full/test_labels.npy | 10128 |
++| data/fashion_mnist/train-images-idx3-ubyte | 47040016 |
++| data/fashion_mnist/train-labels-idx1-ubyte | 60008 |
++| data/fashion_mnist/t10k-images-idx3-ubyte | 7840016 |
++| data/fashion_mnist/t10k-labels-idx1-ubyte | 10008 |
++
++The focused map records source references, typed dimensions and local size/header observations. Those observations have not established full content-hash acceptance. Before source release, independently verify these exact sizes against the existing locked dataset bytes/digests and registry representations; no result JSON is edited and no dataset regenerated. Failure to verify a row leaves it missing rather than accepting a new source hash. For IDX the size also follows exactly from magic/header/dimensions; NPY includes the locked export's header, not just shape×element width. CSV lengths identify the pinned byte representation, not an arbitrary serialization of equivalent data.
++
++Only Fashion training IDX exceeds the report cap, at exactly16+60000×28×28 bytes. Adding a dataset, changing a pinned representation or extending this table needs a separate recorded design/registration change. Captured initialization/order/config/manifest/source files and report inputs are not granted a new exemption; their complete inventories, current8MiB or stricter typed limits, existing identities and canonical checks remain. The seven supplement entries keep their distinct unresolved input status; this table is not a substitute for resolving them.
++
++## Acquisition, custody and accounting
++
++1. Select the private expected role, fixed trusted relative name, expected raw size and existing digest from checked registration/source policy. Do not accept caller-supplied size/hash/pass bits as authority.
++2. Open beneath held safe root/ancestor FDs with existing nofollow/regular-file/owner/mode/mount checks. Reject a size different from the exact policy length before allocating the raw buffer. Use bounded reading with overflow/truncation/growth detection and post-read identity checks; stat alone is insufficient.
++3. Verify whole-file digest, exact typed header/shape/payload and all existing semantic conditions from the same retained immutable bytes. Preserve the held original File/stamp/ancestor custody. Equal-byte inode replacement is still a custody failure. Do not reopen the pathname for a separate typed load or silently fall back to old unbounded whole reads.
++4. Feed this checked acquisition to the actual typed materializer, before its current whole-read points. Retain the exact immutable raw bytes and source handles across required gate/start checks and transfer under the existing live-frame custody rule. Streaming-only hashes or manifest-only retention do not satisfy it.
++5. Include actual retained raw allocations, decoded/temporary coexistence and relevant preparation/reader allocations in the complete physical resource model, with existing resident-versus-incremental treatment and no double counting. Fashion's47,040,016 raw bytes are real residency. No guessed headroom or resource PASS follows. Before-acquisition resource prerequisites must cover bounded reading/allocation itself; the completed retained-data gate cannot retrospectively authorize an unsafe earlier allocation. Missing required budget/model/capacity remains missing evidence.
++
++External report cap8MiB, C/R/A/K, frozen Full/Quick wire, scopes, existing holds, exact matrix and scientific thresholds remain unchanged. FileRef U64 already expresses the size; no evidence-vector regeneration is required solely for this rule. This document does not authorize a full materializer, registry traversal runtime, HE/native run or memory allocation test; later bounded test releases remain separately inventoried.
++
++## Required source and verification evidence
++
++The reader source brief must carry this rule into the real typed-loader path, not merely add a post-materialization audit. Independent review must trace the same retained bytes and owners into the actual selected profile. Necessary tests cover exact-size acceptance and ±1 rejection before raw allocation, size-changing reads, same-size wrong hash, invalid header/dimensions/payload, equal-byte inode replacement and safe-root/path failures; Full/Quick both retain the full canonical source inventory. Reuse existing generic typed-loader semantics without copying baseline code. Use bounded synthetic controls for generic negative cases and separately inventory any real47MB acquisition; no large test is implicitly released here. Resource-model tests must account for retained/decoded overlap and reject missing terms.
++
++## Alternatives and cost if wrong
++
++- Keep8MiB as a temporary universal refusal: safe missing evidence, but strands510/51 declared Fashion family rows; unacceptable as the final requested scope.
++- Adopt this closed exact-size policy (recommended): preserves actual registered data and immutable-byte custody; costs reader/typed-loader integration, resource accounting and focused tests/review.
++- Retain only streaming digest/FD/decoded values: potentially less raw memory, but changes the ratified immutable-byte custody design and needs a separate consistency/lifetime design; not selected.
++- Raise every evidence limit, truncate input or regenerate smaller data: unnecessary and alters evidence boundaries or scientific inputs; rejected.
++
++If the selected policy is wrong, the cost is input/resource-accounting rework or invalid gate claims. Therefore the size/digest verification and independent review precede reader source release. This proposal supplies neither a positive gate nor a completed Task54/research result.
