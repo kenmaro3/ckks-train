@@ -1,0 +1,19 @@
+{
+  "index": 4,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_runtime_alignment_and_route_claims_rejected",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_runtime_alignment_and_route_claims_rejected",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046126.182747,
+  "pid": 72524
+}

@@ -1,0 +1,19 @@
+{
+  "index": 8,
+  "name": "study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::case_provenance_tests::case_provenance_reference_stays_scalar_and_unavailable",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046126.644886,
+  "pid": 72535
+}

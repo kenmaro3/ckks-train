@@ -1,0 +1,19 @@
+{
+  "index": 2,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_rejects_transport_corruption",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_rejects_transport_corruption",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046125.930578,
+  "pid": 72513
+}

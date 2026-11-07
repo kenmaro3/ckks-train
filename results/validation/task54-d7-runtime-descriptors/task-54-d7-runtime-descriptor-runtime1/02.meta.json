@@ -1,0 +1,36 @@
+{
+  "index": 2,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_rejects_transport_corruption",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_rejects_transport_corruption",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046125.930578,
+  "pid": 72513,
+  "exit_code": 0,
+  "end": 1794046126.0598028,
+  "named_successes": [
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_rejects_transport_corruption"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 229,
+  "stdout_sha256": "99d321bddb797d3c3ec807b8b5b5953ccdd473b420966d3c7a955a780be2f44b",
+  "stderr_bytes": 159,
+  "stderr_sha256": "904c130ee8bb94a13170ec6c0a8fdf863b4af8b4d855f64910d535493dd36307"
+}

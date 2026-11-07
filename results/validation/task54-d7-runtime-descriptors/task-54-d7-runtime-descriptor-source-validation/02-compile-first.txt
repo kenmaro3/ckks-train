@@ -1,0 +1,6 @@
+$ cargo test -p ckks-train-bench --lib --features parallel --no-run
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 14.41s
+  Executable unittests src/lib.rs (target/debug/deps/ckks_train_bench-190377a24cc433d7)
+
+EXIT 0

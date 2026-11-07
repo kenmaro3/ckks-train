@@ -171,6 +171,24 @@ impl VerifiedStudyTrainContext {
     }
 }
 impl RecheckedTrainCapture<'_> {
+    pub(crate) fn runtime_descriptor_facts(
+        &self,
+    ) -> Result<crate::study_runtime::RuntimeDescriptorFacts<'_>> {
+        self.start.context.artifact.recheck()?;
+        let facts = self
+            .start
+            .context
+            .retained_train_runtime()?
+            .descriptor_facts()?;
+        ensure(
+            std::ptr::eq(facts.host(), self.host())
+                && facts.execution_threads() == self.execution_threads(),
+            "Train descriptor retained owner changed",
+        )?;
+        self.start.context.artifact.recheck()?;
+        Ok(facts)
+    }
+
     // Producer-only immutable inspection. Build access remains Train-role checked,
     // and comes from this exact context, not from receipt IDs supplied by callers.
     pub(crate) fn train_build_facts(&self) -> Result<BuildFacts<'_>> {

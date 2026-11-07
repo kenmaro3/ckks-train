@@ -7,6 +7,7 @@
 //! Source/build/session/prefix/state/publication policies remain separate gates.
 mod producer;
 mod reader;
+mod runtime_descriptors;
 use super::{CONTRACT_VERSION, ENCODING_VERSION, RECEIPT_VERSION};
 use crate::data::sha256_hex;
 pub(in crate::study_reference) use producer::{
@@ -1971,3 +1972,6 @@ impl crate::study_provenance::RecheckedTrainCapture<'_> {
         case_provenance::encode_captured_value(producer::captured_case(self)?)
     }
 }
+
+#[cfg(test)]
+mod runtime_descriptor_tests;

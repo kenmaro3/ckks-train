@@ -201,7 +201,47 @@ pub(super) struct CudaBinding {
     // Exact owned source identities; no alternate runtime-policy encoding.
     kernel_hashes: [String; 4],
 }
+// Borrowed observations only: no exports, addresses, owners or file handles.
+pub(crate) struct CudaRuntimeFacts<'a> {
+    binding: &'a CudaBinding,
+}
+impl CudaRuntimeFacts<'_> {
+    pub(crate) fn driver_path(&self) -> &[u8] {
+        self.binding.driver.path.as_os_str().as_bytes()
+    }
+    pub(crate) fn driver_sha256(&self) -> &str {
+        &self.binding.driver.hash
+    }
+    pub(crate) fn nvrtc_path(&self) -> &[u8] {
+        self.binding.compiler.path.as_os_str().as_bytes()
+    }
+    pub(crate) fn nvrtc_sha256(&self) -> &str {
+        &self.binding.compiler.hash
+    }
+    pub(crate) fn driver_version(&self) -> u32 {
+        self.binding.observation.driver_version()
+    }
+    pub(crate) fn nvrtc_version(&self) -> (u32, u32) {
+        self.binding.observation.nvrtc_version()
+    }
+    pub(crate) fn physical_identity(&self) -> &ckks_train_cuda::CudaPhysicalIdentity {
+        self.binding.observation.physical_identity()
+    }
+    pub(crate) fn kernel_hashes(&self) -> &[String; 4] {
+        &self.binding.kernel_hashes
+    }
+    pub(crate) fn intended_options(&self) -> &[String; 2] {
+        self.binding.observation.intended_compile_options()
+    }
+}
 impl CudaBinding {
+    pub(super) fn facts(&self) -> Result<CudaRuntimeFacts<'_>> {
+        self.recheck()?;
+        let facts = CudaRuntimeFacts { binding: self };
+        self.recheck()?;
+        Ok(facts)
+    }
+
     pub(super) fn observe(ordinal: usize) -> Result<Self> {
         check_runtime_environment()?; // MUST precede CUDA singleton/library discovery.
         require(

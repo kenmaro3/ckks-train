@@ -534,4 +534,16 @@ Linuxでの正式なcontextを使うpositive integrationは未計測である。
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1851/README.md)では、18:52:11 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は390/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。18:51:10以降の予定枠から1回観測し、同じcontroller handle66436で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は19:52:12 JST以降とする。
 
+<a id="latest-evidence-20261107-d7-descriptors"></a>
+
+## 2026-11-07追記: 実行環境descriptorの実装と限定検証
+
+[実装・検証証跡](../results/validation/task54-d7-runtime-descriptors/README.md)を保存した。確定済みのphysical／runtime-policyの形式を既存のdocument primitivesと上限で実装し、保持したCPU／CUDAの実情報を借用するfact viewと、CaseProvenanceの直後にphysical descriptorを生成するproduction経路を接続した。同じHost・実executor worker数・context／CUDA再検証を維持する。
+
+compile REDから実装し、最終no-run／strict Clippy／逐次CPU・CUDA feature check／formatと独立source reviewが合格した。Macでは新規6件と既存Case／Reference互換性3件、計9件の限定テストが全件合格し、controllerもexit0で終了した。独立した4つの完全なバイト列・長さ・hashと一致し、切断／余分なbytes／domain／tag／上限／UTF8、実行条件や物理identity・source hashの取り違えを拒否した。CUDAのordinal・minorが0の場合や非UTF8 module pathも形式として検証した。入力はsyntheticであり、GPUの実測ではない。
+
+選択したテストではdataset生成・学習・HE・実機／native moduleの観測・executor／thread／subprocess生成は行っていない。既存goldenのうち2件だけが同梱fixtureを読んだ。正式なLinux contextを使うphysical captureのpositive integrationは未計測で、Linux限定のhost／thread検証もMacではcompile対象外・未実行である。
+
+runtime-policyのcodecと実情報viewは実装したが、具体的な学習経路の所有権を保証するadapterとproduction runtime-policy生成は未接続である。descriptorのbytes／hashや登録値だけから実行可としない。残りのExecutionBinding、live gate、durable admission／start、科学結果出力と全実験runnerが必要で、Task54／M4／M5全体は未完了。全登録範囲・既存hold・FULL-2の判定条件を維持する。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

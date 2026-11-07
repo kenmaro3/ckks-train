@@ -1,0 +1,19 @@
+{
+  "index": 5,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_cuda_paths_versions_kernels_options_and_hashes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_cuda_paths_versions_kernels_options_and_hashes",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046126.3012538,
+  "pid": 72527
+}

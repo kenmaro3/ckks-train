@@ -10,6 +10,8 @@ use std::sync::Arc;
 use std::{marker::PhantomData, rc::Rc, thread::ThreadId};
 #[cfg(feature = "cuda")]
 mod cuda;
+#[cfg(feature = "cuda")]
+pub(crate) use cuda::CudaRuntimeFacts;
 #[cfg(all(test, feature = "cuda"))]
 mod cuda_tests;
 #[cfg(test)]
@@ -194,6 +196,29 @@ impl CaseRuntimeFacts<'_> {
         self.execution_threads
     }
 }
+// This view observes an actual retained runtime. It supplies no implementation
+// route, sequential-dispatch, stream-construction or admission authority.
+pub(crate) struct RuntimeDescriptorFacts<'a> {
+    runtime: CaseRuntimeFacts<'a>,
+    recipe: Recipe,
+    #[cfg(feature = "cuda")]
+    cuda: Option<CudaRuntimeFacts<'a>>,
+}
+impl RuntimeDescriptorFacts<'_> {
+    pub(crate) fn host(&self) -> &Host {
+        self.runtime.host()
+    }
+    pub(crate) fn execution_threads(&self) -> u64 {
+        self.runtime.execution_threads()
+    }
+    pub(crate) fn recipe(&self) -> Recipe {
+        self.recipe
+    }
+    #[cfg(feature = "cuda")]
+    pub(crate) fn cuda(&self) -> Option<&CudaRuntimeFacts<'_>> {
+        self.cuda.as_ref()
+    }
+}
 fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
     match (host.cpu_model(), host.os(), host.hostname()) {
         (Observation::Available(cpu), Observation::Available(os), Observation::Available(name)) => {
@@ -203,6 +228,22 @@ fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
     }
 }
 impl CaseRuntimeLease {
+    pub(crate) fn descriptor_facts(&self) -> Result<RuntimeDescriptorFacts<'_>> {
+        self.recheck()?;
+        let facts = RuntimeDescriptorFacts {
+            runtime: self.executor.facts(&self.host)?,
+            recipe: self.recipe,
+            #[cfg(feature = "cuda")]
+            cuda: self
+                .cuda
+                .as_ref()
+                .map(|binding| binding.facts())
+                .transpose()?,
+        };
+        self.recheck()?;
+        Ok(facts)
+    }
+
     pub(crate) fn facts(&self) -> Result<CaseRuntimeFacts<'_>> {
         self.recheck()?;
         let facts = self.executor.facts(&self.host)?;
@@ -298,7 +339,11 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
     let _component = rechecked
         .case_provenance()
         .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
-    // Captured component bytes are inspection only. Canonical D7 descriptors,
+    let _physical = rechecked
+        .physical_descriptor()
+        .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
+    // Captured Case/physical bytes are inspection only. Checked runtime route,
+    // remaining canonical D7 descriptors,
     // live gates/admission/start, scientific output and HE continuation are absent.
     Ok(RunOutcome::MissingExecutionDependency)
 }

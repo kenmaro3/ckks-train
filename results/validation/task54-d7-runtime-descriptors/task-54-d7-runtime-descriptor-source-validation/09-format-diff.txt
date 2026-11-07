@@ -1,0 +1,7 @@
+$ git diff --check
+
+EXIT 0
+
+$ rustfmt --edition 2024 --check --config skip_children=true crates/ckks-train-bench/src/study_reference/document.rs crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs crates/ckks-train-bench/src/study_reference/document/runtime_descriptor_tests.rs crates/ckks-train-bench/src/study_runtime.rs crates/ckks-train-bench/src/study_runtime/cuda.rs crates/ckks-train-bench/src/study_provenance/train_capture.rs
+
+EXIT 0

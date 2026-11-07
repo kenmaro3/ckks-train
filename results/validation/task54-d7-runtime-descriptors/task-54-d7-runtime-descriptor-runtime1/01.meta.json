@@ -1,0 +1,36 @@
+{
+  "index": 1,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_four_independent_literals",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_four_independent_literals",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046124.8807008,
+  "pid": 72459,
+  "exit_code": 0,
+  "end": 1794046125.921472,
+  "named_successes": [
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_four_independent_literals"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 226,
+  "stdout_sha256": "77e7b7bff5a4a363c748f437dfe8c74fb0d122313c856620a4a34e2aecfe7b46",
+  "stderr_bytes": 159,
+  "stderr_sha256": "0361e366b435bb432036578ba4b8b56745c50d7bd5fc1663b81193ad2e0d6024"
+}

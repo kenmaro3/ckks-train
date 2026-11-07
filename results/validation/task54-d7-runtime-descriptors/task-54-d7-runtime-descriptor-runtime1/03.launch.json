@@ -1,0 +1,19 @@
+{
+  "index": 3,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_physical_identity_bounds_and_swaps",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_reference::document::runtime_descriptor_tests::synthetic_physical_identity_bounds_and_swaps",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794046126.067332,
+  "pid": 72522
+}

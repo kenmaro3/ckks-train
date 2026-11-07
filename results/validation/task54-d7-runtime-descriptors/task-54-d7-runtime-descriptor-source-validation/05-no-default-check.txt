@@ -1,0 +1,5 @@
+$ cargo check -p ckks-train-bench --lib --no-default-features
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.95s
+
+EXIT 0
