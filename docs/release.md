@@ -6,6 +6,12 @@ whether the crates go to crates.io. The user has authorized milestone pushes to 
 main branch and the ckks-train crate rename. Making the repository public, publishing crates,
 and creating a public release remain separate publication decisions.
 
+Current qualification (2026-11-08): the dated Task55 preparation below is historical.
+Subsequent source changes and the ongoing Task54 implementation require validation of
+the final release candidate; the earlier package/CI passes do not cover that candidate.
+The two CI runs in the 07:09 JST observation below did not execute any test steps. No final release
+readiness or publication is established by this document.
+
 ## 1. Checks before any release step
 
 ```sh
@@ -77,8 +83,13 @@ The renamed commit `09202cf5650aa76b9b30dd79a68dd615c75a91ae` has its own succes
 
 Order: `ckks-train-core`, `ckks-train-ckks`, `ckks-train-nn`, `ckks-train-cuda`.
 `ckks-train-bench` has `publish = false`. Every path dependency carries `version = "1.0.0"`, and
-each publishable crate ships `LICENSE` and `THIRD_PARTY_NOTICES` (symbolic links to the
-repository root, which cargo packages as files) and its own `README.md`.
+each publishable crate ships `LICENSE`, `THIRD_PARTY_NOTICES`, and its own `README.md`.
+Since commit `a29dcf6`, the eight license/notice entries are regular mode0644 copies,
+not symbolic links. All eight currently match the root originals byte for byte.
+Whenever a root notice changes, synchronize all four crate copies before packaging.
+The [source-custody record](../results/validation/task54-d7-fixture-custody/README.md)
+explains this change. The package checks below predate that conversion and subsequent
+source changes; inspect and build the actual final archives again before release.
 
 ```sh
 cargo publish -p ckks-train-core
