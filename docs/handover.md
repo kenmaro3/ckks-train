@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1952)。
+最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1952)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -797,3 +797,13 @@ tests-firstのcompile REDから実装し、no-run／strict Clippy／逐次CPU・
 Macで10件の限定テストを1回実行し、全件合格、全Cargoとcontrollerがexit0で終了した。独立した14の完全なbytes／hash、56負例、6,314の途中切断、6段のP3配置bytes、宣言weightの範囲と同一性の違いを検査した。実行証跡の独立レビューも合格した。syntheticな形式検証であり、パラメータ生成・planner・dataset・HE・GPU／native実行は行っていない。Macの時間を性能比較に使用しない。
 
 実際のcanonical sourceを用いるpositive integrationは未計測で、runnerのMissingExecutionDependencyは維持している。残りは保持したCPU経路、実ExecutionBinding／runtime-policy生成、追加payloadの一括計上、live gate、durable admission／startと科学結果出力である。この限定合格をTask54／M4／M5全体、セキュリティ、学習精度の合格とはしない。全登録範囲・既存hold・FULL-2判定条件を維持する。
+
+<a id="latest-evidence-20261107-d7-preparation-design"></a>
+
+## 2026-11-07追記: CPU準備処理の所有権とメモリ計上設計
+
+[設計の補足](study-execution-design.md#5-retained-preparation-accounting-refinement)と[独立レビュー記録](../results/validation/task54-d7-preparation-design/README.md)を実装前に確定した。既存callbackからchecked配置が外へ出ると計上用ownerが先に破棄される点と、入力・パラメータのlifetimeを一つにした型の不整合を修正した。新しいD7経路は配置・入力参照・元の計上ownerをまとめて保持する。既存互換経路の旧P3範囲と区別し、将来の固定CPU処理では暗号化後のinitial state／block binding／sessionが配置を持つ間も同じ計上ownerを保持する。修正後の独立SPEC／QUALITYレビューが合格した。
+
+追加payloadは元のplan料金と合算し、元の上限を変えず、実際の一時bufferの重なりと保持分を数える。descriptorやbindingのサイズは出力を先に作らず共通の符号化処理から求める。既存P2生成、別管理の入力・パラメータ、library sort内部scratch等の対象外を明記し、全準備メモリやRSSを制限したとは主張しない。固定最大値による代用や、配置を複製してサイズを調べる案は採用しなかった。
+
+これは設計の限定合格である。canonicalなI／NI・1〜3段の6ケースは検証計画であり、まだ実行結果ではない。保持準備の実装、実学習経路・gate・durable start・科学結果出力と全実験は未完了。Task54／M4／M5全体の合格ではなく、既存hold・全登録範囲・FULL-2の判定条件を維持する。
