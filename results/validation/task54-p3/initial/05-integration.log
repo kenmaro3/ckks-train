@@ -1,0 +1,20 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission -- --test-threads=1 --nocapture
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.63s
+     Running tests/study_admission.rs (target/debug/deps/study_admission-a09c96cdecd97aa7)
+
+running 3 tests
+test p3_canonical_quick_full_identity_and_revalidation ... P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 canonical bundled Iris materializations=1; plaintext_training=0
+P3 canonical usage: PlanningUsage { geometries: 1, initial_states: 1, updates: 2, handoffs: 0, wrapper_calls: 3 }
+ok
+test p3_case_projection_and_scope ... ok
+test p3_inventory_and_candidate_separation ... P3 inventory usage: PlanningUsage { geometries: 145, initial_states: 145, updates: 2, handoffs: 0, wrapper_calls: 3 }
+ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+
+EXIT: 0
+crates/ckks-train-bench/src/study_admission.rs SHA256 4e215d71d5e16ad91220ae84168d33de75cd1e1304021e4b912e86c3109ab111
+crates/ckks-train-bench/tests/study_admission.rs SHA256 3f90c10c4086cd98831ea5197f3c5cdf4d563df096a1d82360e01d34bbfe547a

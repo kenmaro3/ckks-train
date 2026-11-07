@@ -1,0 +1,31 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --lib study_admission::tests::p3_fix1_operational_context -- --test-threads=1 --nocapture
+ENV: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8
+41fdc1373148e06ef1f09b16f31cddb9c1696193687e202a23b4444d2966e2f4 crates/ckks-train-bench/src/study_admission.rs
+69a2cb167497609480a15b3288923d85ddf4a4c6ced5b39707f5dcfeee144b8a crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 11.30s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-fe037ad79be4cfe0)
+
+running 1 test
+test study_admission::tests::p3_fix1_operational_context ... P3 synthetic fixture: params=2 proof=1 bootstrap_metadata=1; data_materializations=0 HE=0
+P3 fix1 index RED/GREEN usage PlanningUsage { geometries: 3, initial_states: 3, updates: 1, handoffs: 1, wrapper_calls: 0 }; completed=0 stage=None update=Some(0)
+
+thread 'study_admission::tests::p3_fix1_operational_context' panicked at crates/ckks-train-bench/src/study_admission.rs:2931:9:
+assertion `left == right` failed
+  left: None
+ right: Some(1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    study_admission::tests::p3_fix1_operational_context
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 183 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`
+
+EXIT: 101

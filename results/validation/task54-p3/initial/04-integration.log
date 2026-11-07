@@ -1,0 +1,30 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission -- --test-threads=1 --nocapture
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find value `before` in this scope
+  --> crates/ckks-train-bench/tests/study_admission.rs:95:34
+   |
+95 |     assert_eq!((stats.geometries-before.geometries,stats.initial_states-before.initial_states),(144,144));
+   |                                  ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `before` in this scope
+  --> crates/ckks-train-bench/tests/study_admission.rs:95:73
+   |
+95 |     assert_eq!((stats.geometries-before.geometries,stats.initial_states-before.initial_states),(144,144));
+   |                                                                         ^^^^^^ not found in this scope
+
+warning: unused variable: `before`
+  --> crates/ckks-train-bench/tests/study_admission.rs:47:9
+   |
+47 |     let before=f.budget.usage();
+   |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_before`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+For more information about this error, try `rustc --explain E0425`.
+warning: `ckks-train-bench` (test "study_admission") generated 1 warning
+error: could not compile `ckks-train-bench` (test "study_admission") due to 2 previous errors; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...
+
+EXIT: 101
+crates/ckks-train-bench/src/study_admission.rs SHA256 4e215d71d5e16ad91220ae84168d33de75cd1e1304021e4b912e86c3109ab111
+crates/ckks-train-bench/tests/study_admission.rs SHA256 07675bc21a9466f1f4c25243779f694e735ce1a657a385f5e0b9a47129cb9f15

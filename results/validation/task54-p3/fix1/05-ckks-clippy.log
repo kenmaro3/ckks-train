@@ -1,0 +1,9 @@
+COMMAND: cargo clippy --locked --offline -p ckks-train-ckks --lib --no-deps -- -D warnings
+    Checking ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.63s
+
+EXIT: 0
+f8012204627c379299ecf5eee9893d8adb446e4e945fa1e527a3061d0c71bbc7 crates/ckks-train-bench/src/study_admission.rs
+571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c crates/ckks-train-bench/tests/study_admission.rs
+e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs

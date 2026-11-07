@@ -1,0 +1,32 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission p3_fix1_late_finalization_retains_complete_prefix -- --test-threads=1 --nocapture
+ENV: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8
+41fdc1373148e06ef1f09b16f31cddb9c1696193687e202a23b4444d2966e2f4 crates/ckks-train-bench/src/study_admission.rs
+69a2cb167497609480a15b3288923d85ddf4a4c6ced5b39707f5dcfeee144b8a crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 14.38s
+     Running tests/study_admission.rs (target/debug/deps/study_admission-a09c96cdecd97aa7)
+
+running 1 test
+test p3_fix1_late_finalization_retains_complete_prefix ... P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 fix1 canonical Iris materializations=1
+P3 fix1 late-finalization usage PlanningUsage { geometries: 2, initial_states: 2, updates: 4, handoffs: 0, wrapper_calls: 2 }; cap=1904016 completed=0 prefix_records=0
+
+thread 'p3_fix1_late_finalization_retains_complete_prefix' panicked at crates/ckks-train-bench/tests/study_admission.rs:416:5:
+assertion `left == right` failed
+  left: 0
+ right: 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    p3_fix1_late_finalization_retains_complete_prefix
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.24s
+
+error: test failed, to rerun pass `-p ckks-train-bench --test study_admission`
+
+EXIT: 101

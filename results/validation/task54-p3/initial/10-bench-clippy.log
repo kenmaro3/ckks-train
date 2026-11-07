@@ -1,0 +1,24 @@
+COMMAND: cargo clippy --locked --offline -p ckks-train-bench --lib --test study_admission --no-deps -- -D warnings
+    Checking ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: the loop variable `i` is used to index `counts`
+    --> crates/ckks-train-bench/src/study_admission.rs:1785:14
+     |
+1785 |     for i in 0..count {
+     |              ^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_range_loop
+     = note: `-D clippy::needless-range-loop` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
+help: consider using an iterator and enumerate()
+     |
+1785 |     for (i, <item>) in counts.iter().enumerate().take(count) {
+     |         ~~~~~~~~~~~    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: could not compile `ckks-train-bench` (lib) due to 1 previous error
+
+EXIT: 101
+crates/ckks-train-bench/src/study_admission.rs SHA256 b65701d6666f4e291660de34f0cca273ad2933283af44eb374618594f56eb8fb
+crates/ckks-train-bench/tests/study_admission.rs SHA256 85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e
+crates/ckks-train-ckks/src/bootstrap/metadata.rs SHA256 07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12

@@ -1,0 +1,21 @@
+OPERATIONAL SOURCE/EVIDENCE MANIFEST - NOT SCIENTIFIC RESULTS
+Environment for Cargo: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8; existing target only
+Disk free bytes now: 68089151488
+Original03/05 snapshots NOT retained; only exact hashes in raw logs and tool edit history.
+Current frozen snapshots follow:
+4d6b1cc66f820b5782c6c9831f24eb94f3eef999e6dd2a572e38007f254fbb56  crates/ckks-train-bench/src/study_admission.rs
+85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e  crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12  crates/ckks-train-ckks/src/bootstrap/metadata.rs
+de67a486f5ae4d8835c29ae6182d932591e3db02dfb6e904faf4a84de1beb160  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/01-red.log bytes=6062
+5d3daa4b870535faa3e00550d357e5909a1ff642d41b75a1d70104d87e05f983  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/02-unit.log bytes=1259
+26c3d1ff7f54c40c84c40d4c5e90eefd8ec1d1552f76dd7c6d7de1618c2a1981  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/03-unit.log bytes=55010
+ec31b665caf155086f05b1bec6863eb7ae59aab5cc01da18788cdbe21de38b10  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/04-integration.log bytes=1713
+45806947a620fdbb9fdf50e1ff87d9f1f315f68c4b24faf9034f5950a08d46c3  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/05-integration.log bytes=1261
+9c5f4fa13cd7e72581305e661094e1c2279d3fe1cd01876a1cb7d02d5606faa5  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/06-getter-red.log bytes=1745
+1fdcfa6b27eeeed82211fded05aea19bedb5380d2bc6c0798c2cd86ce4156795  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/07-getter.log bytes=1248
+f0d53c9dcc5e7609d884672bfb555bcc7dbe8bac54ca0bec3f87fd45d31d6da1  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/08-prefix-red.log bytes=2137
+0ce39faff581e1d4645855665fd406257c8d04b67d605323cfb148c8cfdef3bc  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/09-prefix.log bytes=1096
+1e5f99a189b59f4ee7f905fb2ccb9658de0fcce26ee41388618dd06c289a01d5  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/10-bench-clippy.log bytes=1524
+fd778dc79e3d99a3907cda2c5bbbb5251bd70342707b506c69ccdcfc2db6341c  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/11-ckks-clippy.log bytes=634
+61dd5e0a403613e61da61657bb48be101c819506fb597ca7c65df6ecff9fe1c8  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/12-bench-clippy.log bytes=660
+0a1ca18c7ea18f900dd7422b71abd0d0e5ccf573d5a7415762e73fa7a22f0cd2  .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-validation/13-format.log bytes=537

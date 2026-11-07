@@ -1,0 +1,34 @@
+OPERATIONAL FIX1 FINAL EVIDENCE MANIFEST - NOT SCIENTIFIC RESULTS
+Runtime: expected R2/R1 REDs, compile-only API RED, frozen GREEN11unit+5integration PASS.
+Fix1 actual: params11 proof5 metadata7 Iris3 geometry191 initial191 updates95 handoffs31 wrappers8 HE0.
+Cumulative: params23 proof11 metadata15 Iris5 geometry527 initial527 updates243 handoffs79 wrappers14 HE0.
+Environment: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8; existing target; one owner.
+Disk free bytes now: 67204194304
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/01-r2-red/crates/ckks-train-bench/src/lib.rs
+41fdc1373148e06ef1f09b16f31cddb9c1696193687e202a23b4444d2966e2f4 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/01-r2-red/crates/ckks-train-bench/src/study_admission.rs
+69a2cb167497609480a15b3288923d85ddf4a4c6ced5b39707f5dcfeee144b8a .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/01-r2-red/crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/01-r2-red/crates/ckks-train-ckks/src/bootstrap/metadata.rs
+2a94b82964d30a4f1bdba96af8e6ff239bc6516248b1cebe6d6b301214599e96 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/01-r2-red.log
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/02-r1-red/crates/ckks-train-bench/src/lib.rs
+41fdc1373148e06ef1f09b16f31cddb9c1696193687e202a23b4444d2966e2f4 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/02-r1-red/crates/ckks-train-bench/src/study_admission.rs
+69a2cb167497609480a15b3288923d85ddf4a4c6ced5b39707f5dcfeee144b8a .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/02-r1-red/crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/02-r1-red/crates/ckks-train-ckks/src/bootstrap/metadata.rs
+6df8f1b2a0c0cc65863ed9d84fcffe24c083c39102087c9020a33a2fce6f3620 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/02-r1-red.log
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/03-api-red/crates/ckks-train-bench/src/lib.rs
+5691b29b4f0e524c7533ce9e84fa612af9060adbaa50b71949402234fe517101 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/03-api-red/crates/ckks-train-bench/src/study_admission.rs
+0847905d49b0b2922b31a4bb63ff55cfef66ecd23ed4a813823ca8b97d24e540 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/03-api-red/crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/03-api-red/crates/ckks-train-ckks/src/bootstrap/metadata.rs
+1a84107926ca77a594196ce3a7efc55b2b5688cc7c53068823eb3ed91fbb1659 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/03-api-red.log
+14f304861a7ecf4835f5406e5c732e54a0d20fdbeba27747e94f5bf97e0cde35 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/04-bench-clippy.log
+2b823e7643eb2203942b5df85e57bcfc9bda9f36247e0d38a2b30fe2dbc25b39 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/05-ckks-clippy.log
+55941a8392ed360620a91652ada87b59252de0327970aa6bb00788123ac721a8 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/06-bench-clippy.log
+beed7b26c891b226fd02b446f273c050808a0241893639b1badde0b738fc0283 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/07-format.log
+cfba719b45e832c3a0368262dd6a450fc71c217df842ca9184c6828ec77e37d4 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/08-frozen-unit-green.log
+237b9b31331ba5c8b322d7b853effbc53b7d2245280c34ef642b3538a0134850 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/09-frozen-integration-green.log
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/frozen-source/crates/ckks-train-bench/src/lib.rs
+326fd68a967ba025f3502b9d9797a20900a928562c417e94fcb735c816117356 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/frozen-source/crates/ckks-train-bench/src/study_admission.rs
+571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/frozen-source/crates/ckks-train-bench/tests/study_admission.rs
+e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/frozen-source/crates/ckks-train-ckks/src/bootstrap/metadata.rs
+69a60bee7d1b9d3f19fdc36304d450644349d923a31d66d13f7df287d50b1958 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/frozen-source-manifest.txt
+3603f8f85eb0f3ea14e7ef68df1860fcbffff9969c86da293bf0ce4360e362e4 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-validation/source-delta.patch
+64cf3c0a6bba8b48861749eb6dccefb84164cf0c738b5fd92b838068002536e7 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p3-fix1-report.md

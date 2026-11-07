@@ -1,0 +1,27 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission p3_bootstrap_configuration_binding -- --test-threads=1 --nocapture
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0599]: no method named `boot_params` found for struct `BootstrapMetadata` in the current scope
+   --> crates/ckks-train-bench/tests/study_admission.rs:171:27
+    |
+171 |     assert_eq!(descriptor.boot_params(),&caller);
+    |                           ^^^^^^^^^^^ method not found in `BootstrapMetadata`
+
+error[E0599]: no method named `boot_params` found for struct `BootstrapMetadata` in the current scope
+   --> crates/ckks-train-bench/tests/study_admission.rs:173:27
+    |
+173 |     assert_eq!(descriptor.boot_params(),&BootParams::default_n16());
+    |                           ^^^^^^^^^^^ method not found in `BootstrapMetadata`
+
+error[E0599]: no method named `boot_params` found for struct `BootstrapMetadata` in the current scope
+   --> crates/ckks-train-bench/tests/study_admission.rs:178:29
+    |
+178 |     assert_eq!(incompatible.boot_params(),&caller);
+    |                             ^^^^^^^^^^^ method not found in `BootstrapMetadata`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `ckks-train-bench` (test "study_admission") due to 3 previous errors
+
+EXIT: 101
+crates/ckks-train-bench/src/study_admission.rs SHA256 4e215d71d5e16ad91220ae84168d33de75cd1e1304021e4b912e86c3109ab111
+crates/ckks-train-bench/tests/study_admission.rs SHA256 2810f2fd8096c894f71454b2eee4d70cdf9206a2347e0858bdafe60cc2661ec3
+crates/ckks-train-ckks/src/bootstrap/metadata.rs SHA256 3bf68915b5f70e9e2ae3405bb011196f919631a7651b1829a636b5ca4b768ae8

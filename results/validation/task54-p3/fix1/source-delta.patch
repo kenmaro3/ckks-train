@@ -1,0 +1,1205 @@
+--- original-frozen/crates/ckks-train-bench/src/study_admission.rs
++++ fix1-frozen/crates/ckks-train-bench/src/study_admission.rs
+@@ -113,7 +113,7 @@
+         let mut usage = self
+             .usage
+             .lock()
+-            .map_err(|_| issue(IssueKind::PlanningBudgetExceeded, "poisoned work budget"))?;
++            .map_err(|_| issue(IssueKind::PlanningBudgetPoisoned, "poisoned work budget"))?;
+         let (used, limit) = match field {
+             Work::Geometry => (&mut usage.geometries, self.limits.geometries),
+             Work::Initial => (&mut usage.initial_states, self.limits.initial_states),
+@@ -125,10 +125,14 @@
+             .checked_add(1)
+             .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "work counter"))?;
+         if next > limit {
+-            return Err(issue(
+-                IssueKind::PlanningBudgetExceeded,
+-                "pure planning work limit",
+-            ));
++            let resource = match field {
++                Work::Geometry => "stage-geometry calls",
++                Work::Initial => "initial-state calls",
++                Work::Update => "stage-update calls",
++                Work::Handoff => "stage-handoff calls",
++                Work::Wrapper => "production-wrapper calls",
++            };
++            return Err(budget_error(resource, next, limit));
+         }
+         *used = next;
+         Ok(())
+@@ -248,10 +252,24 @@
+     MissingCode,
+     /// Operational byte/index/work cap exceeded; not insufficient CKKS depth.
+     PlanningBudgetExceeded,
++    /// A shared work-budget lock was poisoned; no numerical limit is asserted.
++    PlanningBudgetPoisoned,
+     /// A fallible metadata reservation failed, independently from the configured cap.
+     AllocationFailed,
+     /// Existing P2 returned its preserved typed operation failure.
+     StagePlanning,
++}
++/// Actual binding/planning phase associated with a retained failure.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum IssuePhase {
++    /// Case/input/parameter binding before stage construction.
++    Binding,
++    /// A stage optimizer-update record, including operational reservations/encoding.
++    Update,
++    /// A source-stage boundary record, including operational reservations/encoding.
++    Handoff,
++    /// Retaining final rates/keys after every consumed update completed.
++    Finalization,
+ }
+ /// A failure with exact P2 cause, completed prefix and inspectable partial transcript.
+ #[derive(Debug)]
+@@ -265,6 +283,7 @@
+     prefix: Vec<u8>,
+     prefix_index: Box<[TransitionIndex]>,
+     budget: Option<Box<(usize, usize)>>,
++    phase: IssuePhase,
+ }
+ impl AdmissionIssue {
+     /// Broad binding category; inspect the P2 source for exact level/scale failures.
+@@ -274,6 +293,10 @@
+     /// Named checked boundary.
+     pub fn operation(&self) -> &'static str {
+         self.operation
++    }
++    /// Phase at which this failure actually occurred; finalization has no failing stage/update.
++    pub fn phase(&self) -> IssuePhase {
++        self.phase
+     }
+     /// Stage associated with this failure, if any.
+     pub fn stage(&self) -> Option<usize> {
+@@ -326,6 +349,7 @@
+         prefix: vec![],
+         prefix_index: Box::default(),
+         budget: None,
++        phase: IssuePhase::Binding,
+     }
+ }
+ fn require(ok: bool, kind: IssueKind, operation: &'static str) -> Result<()> {
+@@ -352,6 +376,7 @@
+         prefix: vec![],
+         prefix_index: Box::default(),
+         budget: None,
++        phase: IssuePhase::Binding,
+     }
+ }
+ /// Logical training and bootstrap key identities; physical bundles stay separate.
+@@ -696,6 +721,22 @@
+         Model::Emlp2 => 2,
+         Model::Emlp3 => 3,
+     }
++}
++fn encode_layer(w: &mut Transcript, layer: &crate::study_profile::Layer) -> Result<()> {
++    w.text(&layer.name)?;
++    w.number(layer.input)?;
++    w.number(layer.output)?;
++    w.tag(match layer.activation {
++        Activation::Square => 0,
++        Activation::SquarePlusLinear => 1,
++        Activation::Identity => 2,
++    })?;
++    w.tag(u8::from(layer.bias))?;
++    role(w, layer.role)
++}
++fn encode_preamble(w: &mut Transcript) -> Result<()> {
++    w.text("hekit-study-diagonal-plan-v1")?;
++    w.u64(1)
+ }
+ fn metadata_geometry(w: &mut Transcript, m: &ProfileMetadata) -> Result<()> {
+     require(
+@@ -785,16 +826,7 @@
+                 .checked_next_power_of_two()
+                 .and_then(|_| layer.output.checked_next_power_of_two())
+                 .ok_or_else(|| issue(IssueKind::ArithmeticOverflow, "dimension padding"))?;
+-            w.text(&layer.name)?;
+-            w.number(layer.input)?;
+-            w.number(layer.output)?;
+-            w.tag(match layer.activation {
+-                Activation::Square => 0,
+-                Activation::SquarePlusLinear => 1,
+-                Activation::Identity => 2,
+-            })?;
+-            w.tag(u8::from(layer.bias))?;
+-            role(w, layer.role)?;
++            encode_layer(w, layer)?;
+         }
+     }
+     Ok(())
+@@ -904,20 +936,42 @@
+         )
+     }
+ }
++#[derive(Clone, Copy)]
++struct ParameterFields<'a> {
++    n: usize,
++    q: &'a [u64],
++    p: &'a [u64],
++    scale: f64,
++    dnum: usize,
++    secret: Option<usize>,
++}
++impl<'a> ParameterFields<'a> {
++    fn from_params(p: &'a CkksParams) -> Self {
++        Self {
++            n: p.n(),
++            q: p.q(),
++            p: p.p(),
++            scale: p.scale(),
++            dnum: p.dnum(),
++            secret: p.hamming_weight(),
++        }
++    }
++}
++// Borrowed encoding fields only; no constructor or admission capability.
++fn encode_parameter_fields(w: &mut Transcript, p: ParameterFields<'_>) -> Result<()> {
++    w.number(p.n)?;
++    for values in [p.q, p.p] {
++        w.number(values.len())?;
++        for &n in values {
++            w.u64(n)?;
++        }
++    }
++    w.float(p.scale)?;
++    w.number(p.dnum)?;
++    w.option_number(p.secret)
++}
+ fn encode_params(w: &mut Transcript, p: PlanningParameters<'_>) -> Result<()> {
+-    let q = p.params;
+-    w.number(q.n())?;
+-    w.number(q.q().len())?;
+-    for &n in q.q() {
+-        w.u64(n)?;
+-    }
+-    w.number(q.p().len())?;
+-    for &n in q.p() {
+-        w.u64(n)?;
+-    }
+-    w.float(q.scale())?;
+-    w.number(q.dnum())?;
+-    w.option_number(q.hamming_weight())?;
++    encode_parameter_fields(w, ParameterFields::from_params(p.params))?;
+     w.tag(u8::from(p.boot_params.is_some()))?;
+     if let Some(b) = p.boot_params {
+         w.u64(u64::from(b.log_slots))?;
+@@ -938,6 +992,7 @@
+     if let Some(b) = p.bootstrap {
+         w.blob(b.parameter_identity_bytes())?;
+         w.blob(b.descriptor_identity_bytes())?;
++        encode_metadata_limits(w, b.metadata_limits())?;
+         w.u64(u64::from(b.schema_version()))?;
+         w.u64(u64::from(b.algorithm_revision()))?;
+         w.tag(0)?; // ProofScope::StructuralCostAndBoundaryScales, only current variant.
+@@ -991,6 +1046,20 @@
+         }
+         int_steps(w, keys.rotation_steps())?;
+         int_steps(w, b.execution_rotation_steps())?;
++    }
++    Ok(())
++}
++fn encode_metadata_limits(
++    w: &mut Transcript,
++    limits: ckks_train_ckks::bootstrap::metadata::MetadataLimits,
++) -> Result<()> {
++    for ceiling in [
++        limits.max_coefficients,
++        limits.max_interpolation_terms,
++        limits.max_polynomial_work,
++        limits.max_peak_bytes,
++    ] {
++        w.u64(ceiling)?;
+     }
+     Ok(())
+ }
+@@ -1555,6 +1624,19 @@
+     }
+     Ok(out)
+ }
++fn encode_rate_schedule_fields(
++    w: &mut Transcript,
++    rates: &[RateCoefficients<f64>],
++    reference: f64,
++) -> Result<()> {
++    w.number(rates.len())?;
++    for r in rates {
++        for value in [r.source, r.mean, r.delta, r.kernel] {
++            w.float(value)?;
++        }
++    }
++    w.float(reference)
++}
+ fn rates(w: &mut Transcript, rates: &[RateCoefficients<f64>], reference: f64) -> Result<()> {
+     require(
+         !rates.is_empty() && reference.is_finite() && reference > 0.,
+@@ -1562,7 +1644,6 @@
+         "reference",
+     )?;
+     let mut maximum = 0f64;
+-    w.number(rates.len())?;
+     for r in rates {
+         require(
+             [r.source, r.mean, r.delta, r.kernel]
+@@ -1572,9 +1653,6 @@
+             IssueKind::RateConflict,
+             "authoritative kernel coefficient",
+         )?;
+-        for v in [r.source, r.mean, r.delta, r.kernel] {
+-            w.float(v)?;
+-        }
+         maximum = maximum.max(r.kernel);
+     }
+     require(
+@@ -1582,7 +1660,7 @@
+         IssueKind::RateConflict,
+         "full maximum reference",
+     )?;
+-    w.float(reference)
++    encode_rate_schedule_fields(w, rates, reference)
+ }
+ fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     w.number(p.updates.len())?;
+@@ -1716,8 +1794,7 @@
+     }
+     w.metadata(partition_bytes)?;
+     let parts = partitions(&counts, lanes, r)?;
+-    w.text("hekit-study-diagonal-plan-v1")?;
+-    w.u64(1)?;
++    encode_preamble(&mut w)?;
+     w.blob(c.canonical_bytes())?;
+     w.text(c.digest())?;
+     w.text(c.registry_sha256())?;
+@@ -1844,7 +1921,7 @@
+         encode_geometry(&mut transcript, g)?;
+         encode_state(&mut transcript, s)?;
+     }
+-    let index = compose(
++    let mut index = compose(
+         &geometry,
+         &mut states,
+         params,
+@@ -1853,14 +1930,28 @@
+         r,
+         &mut transcript,
+     )?;
+-    // All remaining retained arrays/strings are charged before their allocation.
+-    transcript.metadata(sum_payload([
+-        payload::<RateCoefficients<f64>>(numeric.rates().len())?,
+-        p.identity().plan_sha256().len(),
+-        64usize,
+-    ])?)?;
+-    let full_rates = copy_vec(numeric.rates())?;
+-    let keys = bounded_manifest(&geometry, params, &mut transcript)?;
++    let completed = RecordCheckpoint::capture(&transcript, &index);
++    let finalization: Result<_> = (|| {
++        // Keep this fallible phase after composition; all its failures retain that prefix.
++        transcript.metadata(sum_payload([
++            payload::<RateCoefficients<f64>>(numeric.rates().len())?,
++            p.identity().plan_sha256().len(),
++            64usize,
++        ])?)?;
++        let full_rates = copy_vec(numeric.rates())?;
++        let keys = bounded_manifest(&geometry, params, &mut transcript)?;
++        Ok((full_rates, keys))
++    })();
++    let (full_rates, keys) = match finalization {
++        Ok(values) => values,
++        Err(mut error) => {
++            error.phase = IssuePhase::Finalization;
++            error.completed = parts.len();
++            error.stage = None;
++            error.update = None;
++            return Err(fail_record(&mut transcript, &mut index, completed, error));
++        }
++    };
+     let digest = sha256_hex(&transcript.bytes);
+     let charges = ReceiptCharges {
+         transcript_bytes: transcript.bytes.len(),
+@@ -1885,8 +1976,10 @@
+     })
+ }
+ /// Revalidates a plan against actual trusted materialization/case/parameters/partition.
+-/// It performs no updates or allocation and returns no execution capability. A real
+-/// consuming P4/D7 boundary must call this after its genuine gates/start, before keys.
++/// It performs no updates or HE/key allocation and returns no execution capability.
++/// It allocates metadata transcripts/partitions/identity buffers. This validates a
++/// trusted locally constructed plan, not an adversarial transported-plan decoder.
++/// A real P4/D7 consumer must call it after genuine gates/start and before keys.
+ pub fn validate_plan_binding(
+     p: &MaterializedProfile,
+     c: &RegisteredCase,
+@@ -1896,7 +1989,9 @@
+ ) -> Result<()> {
+     let (binding, _, _, _) = canonical_binding(p, c, params, r)?;
+     require(
+-        binding.bytes == plan.binding && sha256_hex(&plan.bytes) == plan.digest,
++        binding.bytes == plan.binding
++            && plan.bytes.starts_with(&plan.binding)
++            && sha256_hex(&plan.bytes) == plan.digest,
+         IssueKind::IdentityMismatch,
+         "actual plan/input/parameters/partition binding",
+     )
+@@ -1987,22 +2082,22 @@
+     }
+     Ok(())
+ }
+-fn encode_state(w: &mut Transcript, s: &StageState) -> Result<()> {
+-    for v in [s.weights(), s.biases(), s.compact_weights()] {
++fn encode_state_labels(w: &mut Transcript, s: StateLabels<'_>) -> Result<()> {
++    for v in [s.weights, s.biases, s.compact] {
+         cts(w, v)?;
+     }
+-    w.number(s.velocity().len())?;
+-    for &v in s.velocity() {
++    w.number(s.velocity.len())?;
++    for &v in s.velocity {
+         w.tag(u8::from(v.is_some()))?;
+         if let Some(v) = v {
+             ct(w, v)?;
+         }
+     }
+-    let b = s.batch();
++    let b = s.batch;
+     ct(w, b.x)?;
+     ct(w, b.y)?;
+-    w.number(s.completed_updates())?;
+-    match s.optimizer() {
++    w.number(s.updates)?;
++    match s.optimizer {
+         DiagonalOptimizer::Sgd { lr } => {
+             w.tag(0)?;
+             w.float(lr)?;
+@@ -2018,6 +2113,10 @@
+             w.float(momentum)?;
+         }
+     }
++    Ok(())
++}
++fn encode_state(w: &mut Transcript, s: &StageState) -> Result<()> {
++    encode_state_labels(w, StateLabels::from_state(s))?;
+     let p = s.parameter_identity();
+     w.number(p.n())?;
+     for q in [p.q(), p.p()] {
+@@ -2068,7 +2167,7 @@
+     ct(w, b.output)?;
+     w.blob(&b.descriptor_identity)
+ }
+-fn encode_update(w: &mut Transcript, u: &PlannedStageUpdate, input: &UpdateSpec) -> Result<()> {
++fn encode_update_input(w: &mut Transcript, input: &UpdateSpec) -> Result<()> {
+     w.number(input.total_valid)?;
+     w.float(input.rate)?;
+     w.bool_option(input.next_full)?;
+@@ -2078,6 +2177,10 @@
+         ct(w, m.x)?;
+         ct(w, m.y)?;
+     }
++    Ok(())
++}
++fn encode_update(w: &mut Transcript, u: &PlannedStageUpdate, input: &UpdateSpec) -> Result<()> {
++    encode_update_input(w, input)?;
+     w.tag(u8::from(u.reference_branch()))?;
+     w.tag(u8::from(u.first_nag_update()))?;
+     w.tag(u8::from(u.state_bootstrapped()))?;
+@@ -2200,6 +2303,7 @@
+     let mut index = vec![];
+     let mut last = RecordCheckpoint::capture(w, &index);
+     let mut completed = 0;
++    let mut context = (None, None, IssuePhase::Binding);
+     let result: Result<()> = (|| {
+         require(
+             !g.is_empty() && g.len() == states.len() && rates.len() >= parts.len(),
+@@ -2216,6 +2320,7 @@
+             })?;
+             let mut inputs = vec![states[0].batch().x; part.len()];
+             for s in 0..g.len() {
++                context = (Some(s), Some(i), IssuePhase::Update);
+                 require(
+                     inputs.len() == part.len(),
+                     IssueKind::IdentityMismatch,
+@@ -2279,6 +2384,7 @@
+                     },
+                 );
+                 if s + 1 < g.len() {
++                    context = (Some(s), Some(i), IssuePhase::Handoff);
+                     index_room(&mut index, w)?;
+                     r.work_budget.charge(Work::Handoff)?;
+                     let h = plan_stage_handoff(&g[s], p.params, p.bootstrap, &update, &g[s + 1])
+@@ -2316,7 +2422,9 @@
+         Ok(()) => Ok(index),
+         Err(mut e) => {
+             e.completed = completed;
+-            e.update = e.update.or(Some(completed));
++            e.stage = e.stage.or(context.0);
++            e.update = e.update.or(context.1);
++            e.phase = context.2;
+             Err(fail_record(w, &mut index, last, e))
+         }
+     }
+@@ -2334,6 +2442,7 @@
+         noninteractive: CkksParams,
+         boot: BootstrapMetadata,
+         bp: BootParams,
++        proof: DftSupportProof,
+         budget: Arc<PlanningBudget>,
+     }
+     fn fixtures() -> &'static SyntheticFixtures {
+@@ -2347,7 +2456,7 @@
+             let bp=BootParams{log_slots:9,..BootParams::default_n16()};
+             let boot=BootstrapMetadata::new_with_verified_support(&noninteractive,&bp,&proof).unwrap();
+             eprintln!("P3 synthetic fixture: params=2 proof=1 bootstrap_metadata=1; data_materializations=0 HE=0");
+-            SyntheticFixtures {registry,interactive,noninteractive,boot,bp,budget:Arc::new(PlanningBudget::new(
++            SyntheticFixtures {registry,interactive,noninteractive,boot,bp,proof,budget:Arc::new(PlanningBudget::new(
+                 PlanningUsage{geometries:96,initial_states:96,updates:512,handoffs:256,wrapper_calls:0}))}
+         })
+     }
+@@ -2460,7 +2569,7 @@
+                     synthetic(model, mode, &[0.02, 0.01, 0.01, 0.02], schedule_parts(), &r);
+                 let plan = result.unwrap_or_else(|e| panic!("{model} {mode:?}: {e:?}"));
+                 assert_eq!(plan.index.len(), 4);
+-                let mut old = None;
++                let mut old: Option<&StateMetadata> = None;
+                 for (i, index) in plan.index.iter().enumerate() {
+                     let u = index.update_metadata().unwrap();
+                     assert_eq!(u.pre_state().completed_updates(), i);
+@@ -2470,9 +2579,15 @@
+                         [Some(false), Some(false), Some(true), None][i]
+                     );
+                     if let Some(before) = old {
+-                        assert_eq!(u.pre_state().velocity(), before);
++                        assert_eq!(u.pre_state().weights(), before.weights());
++                        assert_eq!(u.pre_state().biases(), before.biases());
++                        assert_eq!(u.pre_state().compact_weights(), before.compact_weights());
++                        assert_eq!(u.pre_state().velocity(), before.velocity());
++                        assert_eq!(u.pre_state().optimizer(), before.optimizer());
++                        assert_eq!(u.pre_state().batch().x, before.batch().x);
++                        assert_eq!(u.pre_state().batch().y, before.batch().y);
+                     }
+-                    old = Some(u.post_state().velocity());
++                    old = Some(u.post_state());
+                     if model == "emlp1" {
+                         assert_eq!(u.reference_branch(), i == 1 || i == 2);
+                         assert_eq!(u.first_nag_update(), i == 0);
+@@ -2923,4 +3038,612 @@
+         assert!(UNPROVED.contains(&UnprovedGate::Security));
+         assert!(UNPROVED.contains(&UnprovedGate::PreKeyFactoryIntegration));
+     }
+-}
++    fn encoded(write: impl FnOnce(&mut Transcript) -> Result<()>) -> Vec<u8> {
++        let mut w = Transcript::new(ReceiptLimits::default());
++        write(&mut w).unwrap();
++        w.bytes
++    }
++    #[test]
++    fn p3_fix1_original_limits_are_bound() {
++        let f = fixtures();
++        let mut limits = ckks_train_ckks::bootstrap::metadata::MetadataLimits::default();
++        limits.max_peak_bytes += 1;
++        let changed = BootstrapMetadata::with_limits_and_verified_support(
++            &f.noninteractive,
++            &f.bp,
++            limits,
++            &f.proof,
++        )
++        .unwrap();
++        assert_eq!(
++            f.boot.metadata_limits().max_peak_bytes + 1,
++            changed.metadata_limits().max_peak_bytes
++        );
++        assert_eq!(
++            f.boot.descriptor_identity_bytes(),
++            changed.descriptor_identity_bytes()
++        );
++        let before = encoded(|w| {
++            encode_params(
++                w,
++                parameters(DiagonalMode::NonInteractive(BootPlacement::WhenNeeded)),
++            )
++        });
++        let after = encoded(|w| {
++            encode_params(
++                w,
++                PlanningParameters {
++                    params: &f.noninteractive,
++                    bootstrap: Some(&changed),
++                    boot_params: Some(&f.bp),
++                },
++            )
++        });
++        assert_ne!(before, after);
++        let original = f.boot.metadata_limits();
++        let baseline = encoded(|w| encode_metadata_limits(w, original));
++        for field in 0..4 {
++            let mut changed = original;
++            match field {
++                0 => changed.max_coefficients += 1,
++                1 => changed.max_interpolation_terms += 1,
++                2 => changed.max_polynomial_work += 1,
++                _ => changed.max_peak_bytes += 1,
++            }
++            assert_ne!(
++                baseline,
++                encoded(|w| encode_metadata_limits(w, changed)),
++                "MetadataLimits field {field}"
++            );
++        }
++        eprintln!(
++            "P3 fix1 additional original-limit metadata descriptors=1; no extra params/proof"
++        );
++    }
++    #[test]
++    fn p3_fix1_heterogeneous_destination_targets() {
++        for mode in all_modes() {
++            let r = request();
++            let p = parameters(mode);
++            let layout = Layout::new(p.params.slots(), 2, 8).unwrap();
++            let mut g = vec![];
++            let mut states = vec![];
++            for (acts, policy) in [
++                (
++                    [DiagonalActivation::PolyRelu2, DiagonalActivation::Identity],
++                    BiasPolicy::Frozen,
++                ),
++                (
++                    [DiagonalActivation::Square, DiagonalActivation::Square],
++                    BiasPolicy::Active,
++                ),
++            ] {
++                r.work_budget.charge(Work::Geometry).unwrap();
++                let geometry = plan_stage_geometry(
++                    &[2, 2, 2],
++                    &layout,
++                    &acts,
++                    &TransposeKeys::Dedicated,
++                    mode,
++                    EvalConfig::OPTIMIZED,
++                )
++                .unwrap();
++                r.work_budget.charge(Work::Initial).unwrap();
++                let state = initial_stage_metadata(
++                    &geometry,
++                    p.params,
++                    p.bootstrap,
++                    DiagonalOptimizer::Sgd { lr: 0.02 },
++                    policy,
++                )
++                .unwrap();
++                g.push(geometry);
++                states.push(state);
++            }
++            let source_y = states[0].batch().y;
++            let destination_y = states[1].batch().y;
++            assert_ne!(
++                source_y, destination_y,
++                "fixture must discriminate {mode:?}"
++            );
++            let rates = [RateCoefficients {
++                source: 0.02,
++                mean: 0.02,
++                delta: 1.,
++                kernel: 0.02,
++            }];
++            let parts = vec![vec![
++                MicroPart { start: 0, valid: 8 },
++                MicroPart { start: 8, valid: 4 },
++            ]];
++            let mut transcript = Transcript::new(r.limits);
++            transcript
++                .text("synthetic-heterogeneous-targets-v1")
++                .unwrap();
++            let index = compose(&g, &mut states, p, &parts, &rates, &r, &mut transcript)
++                .unwrap_or_else(|e| panic!("heterogeneous {mode:?}: {e}"));
++            assert_eq!(index.len(), 3);
++            let handoff = index[1].handoff_metadata().unwrap();
++            for (micro, &x) in index[2]
++                .update_metadata()
++                .unwrap()
++                .micros()
++                .iter()
++                .zip(handoff.outputs())
++            {
++                assert_eq!(micro.x, x);
++                assert_eq!(micro.y, destination_y);
++                assert_ne!(micro.y, source_y);
++            }
++            eprintln!(
++                "P3 fix1 heterogeneous {mode:?}: actual source_y=({}, {}) destination_y=({}, {})",
++                source_y.level(),
++                source_y.scale_bits(),
++                destination_y.level(),
++                destination_y.scale_bits()
++            );
++        }
++        eprintln!(
++            "P3 fix1 heterogeneous shared usage {:?}",
++            fixtures().budget.usage()
++        );
++    }
++    #[test]
++    fn p3_fix1_identity_field_discriminators() {
++        let f = fixtures();
++        let base = ParameterFields::from_params(&f.interactive);
++        let baseline = encoded(|w| encode_parameter_fields(w, base));
++        let mut q = f.interactive.q().to_vec();
++        q[0] ^= 1;
++        let mut p = f.interactive.p().to_vec();
++        p[0] ^= 1;
++        for (name, view) in [
++            ("actual q", ParameterFields { q: &q, ..base }),
++            ("actual p", ParameterFields { p: &p, ..base }),
++            (
++                "secret",
++                ParameterFields {
++                    secret: Some(1),
++                    ..base
++                },
++            ),
++            (
++                "Delta bits",
++                ParameterFields {
++                    scale: f64::from_bits(base.scale.to_bits() + 1),
++                    ..base
++                },
++            ),
++            (
++                "dnum",
++                ParameterFields {
++                    dnum: base.dnum + 1,
++                    ..base
++                },
++            ),
++            (
++                "N",
++                ParameterFields {
++                    n: base.n * 2,
++                    ..base
++                },
++            ),
++        ] {
++            assert_ne!(
++                baseline,
++                encoded(|w| encode_parameter_fields(w, view)),
++                "{name}"
++            );
++        }
++        let mut bp = f.bp.clone();
++        let params = parameters(DiagonalMode::NonInteractive(BootPlacement::WhenNeeded));
++        let baseline = encoded(|w| encode_params(w, params));
++        bp.k_intervals += 1;
++        assert_ne!(
++            baseline,
++            encoded(|w| encode_params(
++                w,
++                PlanningParameters {
++                    boot_params: Some(&bp),
++                    ..params
++                }
++            ))
++        );
++        let mut variants = Vec::new();
++        let mut b = f.bp.clone();
++        b.log_slots += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.ctos_levels += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.evalmod_levels += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.stoc_levels += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.cheb_degree += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.double_angle += 1;
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.sparse_hw = Some(1);
++        variants.push(b);
++        let mut b = f.bp.clone();
++        b.ephemeral_hw = Some(b.ephemeral_hw.unwrap() + 1);
++        variants.push(b);
++        for b in &variants {
++            assert_ne!(
++                baseline,
++                encoded(|w| encode_params(
++                    w,
++                    PlanningParameters {
++                        boot_params: Some(b),
++                        ..params
++                    }
++                )),
++                "one BootParams encoding field"
++            );
++        }
++        let r = request();
++        let baseline = encoded(|w| encode_request(w, &r));
++        let mut scope = r.clone();
++        scope.consumption = Consumption::Quick;
++        let mut transpose = r.clone();
++        transpose.transpose = TransposeKeys::Reuse(vec![8, -8]);
++        let mut cfg = r.clone();
++        cfg.eval_config.hoist = !cfg.eval_config.hoist;
++        for changed in [&scope, &transpose, &cfg] {
++            assert_ne!(baseline, encoded(|w| encode_request(w, changed)));
++        }
++        let mut rr = vec![0.01, 0.02, 0.03, 0.10]
++            .into_iter()
++            .map(|kernel| RateCoefficients {
++                source: kernel,
++                mean: kernel,
++                delta: 1.,
++                kernel,
++            })
++            .collect::<Vec<_>>();
++        let baseline = encoded(|w| rates(w, &rr, 0.10));
++        let prefix = encoded(|w| encode_rate_schedule_fields(w, &rr[..2], 0.10));
++        rr[2] = RateCoefficients {
++            source: 0.04,
++            mean: 0.04,
++            delta: 1.,
++            kernel: 0.04,
++        };
++        assert_eq!(
++            prefix,
++            encoded(|w| encode_rate_schedule_fields(w, &rr[..2], 0.10))
++        );
++        assert_ne!(baseline, encoded(|w| rates(w, &rr, 0.10)));
++        assert_eq!(rr[3].kernel.to_bits(), 0.10f64.to_bits());
++        assert_ne!(
++            encoded(|w| encode_rate_schedule_fields(w, &rr, 0.10)),
++            encoded(|w| encode_rate_schedule_fields(w, &rr, 0.11))
++        );
++        let parts_a = vec![vec![
++            MicroPart { start: 0, valid: 8 },
++            MicroPart {
++                start: 8,
++                valid: 12,
++            },
++        ]];
++        let parts_b = vec![vec![
++            MicroPart {
++                start: 0,
++                valid: 12,
++            },
++            MicroPart {
++                start: 12,
++                valid: 8,
++            },
++        ]];
++        assert_ne!(
++            encoded(|w| bound_partitions(w, &parts_a, 32)),
++            encoded(|w| bound_partitions(w, &parts_b, 32))
++        );
++        let mode = DiagonalMode::NonInteractive(BootPlacement::WhenNeeded);
++        let params = parameters(mode);
++        let (_, states) = make_stages(&metadata("emlp1"), params, &r, mode, 0.02, 0.02).unwrap();
++        let state = &states[0];
++        let labels = StateLabels::from_state(state);
++        let baseline = encoded(|w| encode_state_labels(w, labels));
++        let mutate = |values: &[CtMeta]| {
++            let mut changed = values.to_vec();
++            changed[0] = CtMeta::new(
++                params.params,
++                changed[0].level(),
++                f64::from_bits(changed[0].scale_bits() + 1),
++            )
++            .unwrap();
++            changed
++        };
++        let weights = mutate(labels.weights);
++        let biases = mutate(labels.biases);
++        let compact = mutate(labels.compact);
++        let mut velocity = labels.velocity.to_vec();
++        velocity[0] = Some(labels.compact[0]);
++        for (name, changed) in [
++            (
++                "weights",
++                StateLabels {
++                    weights: &weights,
++                    ..labels
++                },
++            ),
++            (
++                "biases",
++                StateLabels {
++                    biases: &biases,
++                    ..labels
++                },
++            ),
++            (
++                "compact",
++                StateLabels {
++                    compact: &compact,
++                    ..labels
++                },
++            ),
++            (
++                "velocity",
++                StateLabels {
++                    velocity: &velocity,
++                    ..labels
++                },
++            ),
++        ] {
++            assert_ne!(
++                baseline,
++                encoded(|w| encode_state_labels(w, changed)),
++                "retained {name}"
++            );
++        }
++        let entry = MicroMetadata {
++            n_valid: 8,
++            x: labels.batch.x,
++            y: labels.batch.y,
++        };
++        let spec = UpdateSpec::new(vec![entry], 8, 0.02, None);
++        let baseline = encoded(|w| encode_update_input(w, &spec));
++        for is_target in [false, true] {
++            let mut changed = spec.clone();
++            let old = if is_target {
++                changed.micros[0].y
++            } else {
++                changed.micros[0].x
++            };
++            let next = CtMeta::new(
++                params.params,
++                old.level(),
++                f64::from_bits(old.scale_bits() + 1),
++            )
++            .unwrap();
++            if is_target {
++                changed.micros[0].y = next;
++            } else {
++                changed.micros[0].x = next;
++            }
++            assert_ne!(baseline, encoded(|w| encode_update_input(w, &changed)));
++        }
++        let layer = f
++            .registry
++            .resolve("iris__mlp2020", 0)
++            .unwrap()
++            .metadata()
++            .layers[0]
++            .clone();
++        let baseline = encoded(|w| encode_layer(w, &layer));
++        let mut alternate = layer.clone();
++        alternate.input += 1;
++        assert_ne!(baseline, encoded(|w| encode_layer(w, &alternate)));
++        alternate = layer.clone();
++        alternate.activation = Activation::Identity;
++        assert_ne!(baseline, encoded(|w| encode_layer(w, &alternate)));
++        eprintln!(
++            "P3 fix1 isolated encoder cases; geometry/init additional=1, updates=0; usage {:?}",
++            f.budget.usage()
++        );
++    }
++    #[test]
++    fn p3_fix1_structured_golden() {
++        let p = &fixtures().interactive;
++        let label = CtMeta::new(p, 2, 1.).unwrap();
++        let q = [17];
++        let special = [97];
++        let fields = ParameterFields {
++            n: 32,
++            q: &q,
++            p: &special,
++            scale: 1.,
++            dnum: 1,
++            secret: Some(3),
++        };
++        // Private encoding fields only; these integers are not an admitted parameter object.
++        let layer = crate::study_profile::Layer {
++            name: "a".into(),
++            input: 2,
++            output: 4,
++            activation: Activation::Identity,
++            bias: false,
++            role: LayerRole::Hidden,
++        };
++        let mut r = request();
++        r.consumption = Consumption::Quick;
++        r.physical_lanes = Some(8);
++        r.transpose = TransposeKeys::Reuse(vec![-4, 4]);
++        r.eval_config = EvalConfig {
++            hoist: true,
++            bsgs: false,
++            lazy_relin: true,
++        };
++        r.limits = ReceiptLimits {
++            max_bytes: 1024,
++            max_records: 2,
++        };
++        r.work_budget = Arc::new(PlanningBudget::new(PlanningUsage {
++            geometries: 1,
++            initial_states: 2,
++            updates: 3,
++            handoffs: 4,
++            wrapper_calls: 5,
++        }));
++        let labels = [label];
++        let velocity = [None];
++        let state = StateLabels {
++            weights: &labels,
++            biases: &[],
++            compact: &[],
++            velocity: &velocity,
++            batch: BatchMetadata { x: label, y: label },
++            optimizer: DiagonalOptimizer::Sgd { lr: 0.5 },
++            updates: 3,
++        };
++        let actual = encoded(|w| {
++            encode_preamble(w)?;
++            encode_parameter_fields(w, fields)?;
++            encode_layer(w, &layer)?;
++            encode_request(w, &r)?;
++            encode_state_labels(w, state)
++        });
++        let golden = "1c0000000000000068656b69742d73747564792d646961676f6e616c2d706c616e2d7631010000000000000020000000000000000100000000000000110000000000000001000000000000006100000000000000000000000000f03f01000000000000000103000000000000000100000000000000610200000000000000040000000000000002000001010800000000000000010200000000000000fcffffff04000000010001000400000000000002000000000000000100000000000000020000000000000003000000000000000400000000000000050000000000000001000000000000000200000000000000000000000000f03f000000000000000000000000000000000100000000000000000200000000000000000000000000f03f0200000000000000000000000000f03f030000000000000000000000000000e03f";
++        let expected = golden
++            .as_bytes()
++            .chunks_exact(2)
++            .map(|h| u8::from_str_radix(std::str::from_utf8(h).unwrap(), 16).unwrap())
++            .collect::<Vec<_>>();
++        assert_eq!(actual, expected);
++        assert_eq!(actual.len(), 321);
++    }
++    #[test]
++    fn p3_fix1_private_corrupt_binding() {
++        let f = fixtures();
++        let secure = CkksParams::n16_train();
++        let p = crate::study_inputs::materialize(&f.registry.resolve("iris__mlp2020", 0).unwrap())
++            .unwrap();
++        let cases = f.registry.registered_cases().unwrap();
++        let case = cases
++            .family_cases()
++            .iter()
++            .find(|c| {
++                c.role() == CaseRole::Main
++                    && c.selector().profile_id == "iris__mlp2020"
++                    && c.selector().seed == 0
++                    && c.selector().backend == CaseBackend::Cpu
++                    && c.selector().placement == CasePlacement::ClientRefresh
++            })
++            .unwrap();
++        let params = PlanningParameters {
++            params: &secure,
++            bootstrap: None,
++            boot_params: None,
++        };
++        let mut r = DiagonalRequest::quick();
++        r.work_budget = Arc::new(PlanningBudget::new(PlanningUsage {
++            geometries: 1,
++            initial_states: 1,
++            updates: 2,
++            handoffs: 0,
++            wrapper_calls: 1,
++        }));
++        let mut plan = plan_diagonal(&p, case, params, &r).unwrap();
++        let mut alternate = r.clone();
++        alternate.partitions = Some(vec![
++            vec![
++                MicroPart {
++                    start: 0,
++                    valid: 10
++                },
++                MicroPart {
++                    start: 10,
++                    valid: 10
++                }
++            ];
++            2
++        ]);
++        assert!(canonical_binding(&p, case, params, &alternate).is_ok());
++        assert_eq!(
++            validate_plan_binding(&p, case, &plan, params, &alternate)
++                .unwrap_err()
++                .kind(),
++            IssueKind::IdentityMismatch
++        );
++        plan.bytes[0] ^= 1;
++        plan.digest = sha256_hex(&plan.bytes);
++        assert!(validate_plan_binding(&p, case, &plan, params, &r).is_err());
++        plan.binding[0] ^= 1;
++        assert!(plan.bytes.starts_with(&plan.binding));
++        assert!(validate_plan_binding(&p, case, &plan, params, &r).is_err());
++        eprintln!(
++            "P3 fix1 private canonical: params=1 materializations=1; own usage {:?}",
++            r.work_budget.usage()
++        );
++    }
++    #[test]
++    fn p3_fix1_operational_context() {
++        let mut r = request();
++        r.limits.max_records = 2;
++        let error = synthetic(
++            "emlp3",
++            DiagonalMode::Interactive,
++            &[0.02],
++            vec![vec![MicroPart { start: 0, valid: 8 }]],
++            &r,
++        )
++        .err()
++        .unwrap();
++        eprintln!(
++            "P3 fix1 index RED/GREEN usage {:?}; completed={} stage={:?} update={:?}",
++            r.work_budget.usage(),
++            error.completed_updates(),
++            error.stage(),
++            error.update()
++        );
++        assert_eq!(error.stage(), Some(1));
++        assert_eq!(error.update(), Some(0));
++        assert_eq!(error.completed_updates(), 0);
++        assert_eq!(error.phase(), IssuePhase::Update);
++        assert_eq!(error.budget_requirement(), Some((3, 2)));
++        assert_eq!(error.completed_prefix_transitions().len(), 2);
++        assert!(
++            error
++                .completed_prefix_transitions()
++                .iter()
++                .all(|x| x.end <= error.completed_prefix_bytes().len())
++        );
++        let mut r = request();
++        r.work_budget = Arc::new(PlanningBudget::new(PlanningUsage {
++            geometries: 3,
++            initial_states: 3,
++            updates: 1,
++            handoffs: 1,
++            wrapper_calls: 0,
++        }));
++        let error = synthetic(
++            "emlp3",
++            DiagonalMode::Interactive,
++            &[0.02],
++            vec![vec![MicroPart { start: 0, valid: 8 }]],
++            &r,
++        )
++        .err()
++        .unwrap();
++        assert_eq!(error.stage(), Some(1));
++        assert_eq!(error.update(), Some(0));
++        assert_eq!(error.completed_updates(), 0);
++        assert_eq!(error.operation(), "stage-update calls");
++        assert_eq!(error.budget_requirement(), Some((2, 1)));
++        assert_eq!(error.phase(), IssuePhase::Update);
++        assert_eq!(error.completed_prefix_transitions().len(), 2);
++        assert_eq!(r.work_budget.usage().updates, 1);
++        assert_eq!(r.work_budget.usage().handoffs, 1);
++        eprintln!(
++            "P3 fix1 update-work denial actual usage {:?}",
++            r.work_budget.usage()
++        );
++    }
++}
+--- original-frozen/crates/ckks-train-bench/tests/study_admission.rs
++++ fix1-frozen/crates/ckks-train-bench/tests/study_admission.rs
+@@ -53,7 +53,7 @@
+                 initial_states: 148,
+                 updates: 8,
+                 handoffs: 0,
+-                wrapper_calls: 4,
++                wrapper_calls: 8,
+             })),
+         }
+     })
+@@ -396,3 +396,66 @@
+         "P3 filtered getter fixture: params=1 proof=1 metadata=2 geometry=1 initial=1; update/materialization/HE=0"
+     );
+ }
++
++#[test]
++fn p3_fix1_late_finalization_retains_complete_prefix() {
++    let f = fixtures();
++    let p = f.iris.get_or_init(|| {
++        eprintln!("P3 fix1 canonical Iris materializations=1");
++        materialize(&f.registry.resolve("iris__mlp2020", 0).unwrap()).unwrap()
++    });
++    let case = main_case("iris__mlp2020", CasePlacement::ClientRefresh);
++    let mut request = request();
++    let params = parameters(CasePlacement::ClientRefresh);
++    let plan = plan_diagonal(p, case, params, &request).unwrap();
++    let final_bytes = std::mem::size_of_val(plan.full_rates())
++        + plan.full_plan_sha256().len()
++        + 64
++        + std::mem::size_of_val(plan.keys().training_rotations());
++    request.limits.max_bytes = plan.charges().combined() - final_bytes;
++    let error = plan_diagonal(p, case, params, &request).unwrap_err();
++    eprintln!(
++        "P3 fix1 late-finalization usage {:?}; cap={} completed={} prefix_records={}",
++        f.budget.usage(),
++        request.limits.max_bytes,
++        error.completed_updates(),
++        error.completed_prefix_transitions().len()
++    );
++    assert_eq!(error.completed_updates(), 2);
++    assert_eq!(error.phase(), IssuePhase::Finalization);
++    assert_eq!(error.stage(), None);
++    assert_eq!(error.update(), None);
++    assert_eq!(error.completed_prefix_transitions().len(), 2);
++    assert_eq!(error.kind(), IssueKind::PlanningBudgetExceeded);
++    let required = request.limits.max_bytes
++        + std::mem::size_of_val(plan.full_rates())
++        + plan.full_plan_sha256().len()
++        + 64;
++    assert_eq!(
++        error.budget_requirement(),
++        Some((required, request.limits.max_bytes))
++    );
++    for (i, r) in error.completed_prefix_transitions().iter().enumerate() {
++        assert_eq!(r.update(), i);
++        assert_eq!(r.stage(), 0);
++        assert_eq!(
++            r.update_metadata().unwrap().post_state().weights(),
++            plan.transitions()[i]
++                .update_metadata()
++                .unwrap()
++                .post_state()
++                .weights()
++        );
++    }
++    let start = plan.canonical_bytes().len()
++        - plan
++            .transitions()
++            .iter()
++            .enumerate()
++            .map(|(i, _)| plan.receipt_bytes(i).unwrap().len())
++            .sum::<usize>();
++    assert_eq!(
++        &error.completed_prefix_bytes()[start..],
++        &plan.canonical_bytes()[start..]
++    );
++}
+--- original-frozen/crates/ckks-train-ckks/src/bootstrap/metadata.rs
++++ fix1-frozen/crates/ckks-train-ckks/src/bootstrap/metadata.rs
+@@ -777,6 +777,7 @@
+ #[derive(Debug)]
+ pub struct BootstrapMetadata {
+     boot_params: BootParams,
++    metadata_limits: MetadataLimits,
+     parameter_id: Vec<u8>,
+     descriptor_id: Vec<u8>,
+     main: SecretDeclaration,
+@@ -969,6 +970,7 @@
+             .ok_or_else(|| overflow("total key switches"))?;
+         let mut result = Self {
+             boot_params: bp.clone(),
++            metadata_limits: limits,
+             parameter_id,
+             descriptor_id: Vec::new(),
+             main,
+@@ -996,6 +998,11 @@
+     /// The existing parameter identity already binds these same fields.
+     pub fn boot_params(&self) -> &BootParams {
+         &self.boot_params
++    }
++    /// Exact original operational construction ceilings, distinct from charged resource use.
++    /// These ceilings do not alter the existing cryptographic descriptor identity.
++    pub fn metadata_limits(&self) -> MetadataLimits {
++        self.metadata_limits
+     }
+     /// Canonical typed-byte schema version.
+     pub fn schema_version(&self) -> u32 {

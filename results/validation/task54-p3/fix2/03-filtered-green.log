@@ -1,0 +1,29 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --lib study_admission::tests::p3_digest_golden_and_mutations -- --test-threads=1 --nocapture
+ENV: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8
+BEFORE 697f76cd289b626b7167d569561befe9b36375c03baa8971c0f0d7de34c6e561 crates/ckks-train-bench/src/study_admission.rs
+BEFORE 571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c crates/ckks-train-bench/tests/study_admission.rs
+BEFORE e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+BEFORE 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+BEFORE d7a20981ec0c908f78a579f73fe68df4b92e2939827bf511d41a2168b2d85c9b crates/ckks-train-bench/src/study_plain.rs
+BEFORE 9a09235dc09d08acb62f40359d8bf6c75cf4eec3400117b621b7d3099dd815b3 crates/ckks-train-bench/src/study_plain/p4_fixtures.rs
+BEFORE fcb7f1d34fd8c87527af4adf59c0ebd919eeeb2a07f5f635a965a436c233c9af crates/ckks-train-bench/src/study_reference.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 11.32s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-fe037ad79be4cfe0)
+
+running 1 test
+test study_admission::tests::p3_digest_golden_and_mutations ... P3 fix2 isolated rate fields=4 rate_golden_bytes=112 present_velocity_numeric_fields=2; reused existing tiny_params=1 only
+P3 prefix accounting: tiny_params=1; transcript=3 metadata=2256 combined=2259; proof/descriptor/stage/handoff/materialization/HE=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 189 filtered out; finished in 0.00s
+
+
+EXIT: 0
+AFTER 697f76cd289b626b7167d569561befe9b36375c03baa8971c0f0d7de34c6e561 crates/ckks-train-bench/src/study_admission.rs
+AFTER 571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c crates/ckks-train-bench/tests/study_admission.rs
+AFTER e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+AFTER 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+AFTER d7a20981ec0c908f78a579f73fe68df4b92e2939827bf511d41a2168b2d85c9b crates/ckks-train-bench/src/study_plain.rs
+AFTER 9a09235dc09d08acb62f40359d8bf6c75cf4eec3400117b621b7d3099dd815b3 crates/ckks-train-bench/src/study_plain/p4_fixtures.rs
+AFTER fcb7f1d34fd8c87527af4adf59c0ebd919eeeb2a07f5f635a965a436c233c9af crates/ckks-train-bench/src/study_reference.rs

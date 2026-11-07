@@ -1,0 +1,29 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission -- --test-threads=1 --nocapture
+ENV: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8
+BEFORE 4d6b1cc66f820b5782c6c9831f24eb94f3eef999e6dd2a572e38007f254fbb56 crates/ckks-train-bench/src/study_admission.rs
+BEFORE 85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e crates/ckks-train-bench/tests/study_admission.rs
+BEFORE 07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+BEFORE 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 13.53s
+     Running tests/study_admission.rs (target/debug/deps/study_admission-a09c96cdecd97aa7)
+
+running 4 tests
+test p3_bootstrap_configuration_binding ... P3 filtered getter fixture: params=1 proof=1 metadata=2 geometry=1 initial=1; update/materialization/HE=0
+ok
+test p3_canonical_quick_full_identity_and_revalidation ... P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 canonical bundled Iris materializations=1; plaintext_training=0
+P3 canonical usage: PlanningUsage { geometries: 1, initial_states: 1, updates: 2, handoffs: 0, wrapper_calls: 3 }
+ok
+test p3_case_projection_and_scope ... ok
+test p3_inventory_and_candidate_separation ... P3 inventory usage: PlanningUsage { geometries: 145, initial_states: 145, updates: 2, handoffs: 0, wrapper_calls: 3 }
+ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+
+EXIT: 0
+AFTER 4d6b1cc66f820b5782c6c9831f24eb94f3eef999e6dd2a572e38007f254fbb56 crates/ckks-train-bench/src/study_admission.rs
+AFTER 85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e crates/ckks-train-bench/tests/study_admission.rs
+AFTER 07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+AFTER 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs

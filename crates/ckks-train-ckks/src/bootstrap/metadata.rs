@@ -776,6 +776,8 @@ impl BootstrapKeyRequirements {
 /// Immutable root-free structural metadata. Success is conditional on runtime execution.
 #[derive(Debug)]
 pub struct BootstrapMetadata {
+    boot_params: BootParams,
+    metadata_limits: MetadataLimits,
     parameter_id: Vec<u8>,
     descriptor_id: Vec<u8>,
     main: SecretDeclaration,
@@ -967,6 +969,8 @@ impl BootstrapMetadata {
             .and_then(|v| v.checked_add(cost.sse_switches))
             .ok_or_else(|| overflow("total key switches"))?;
         let mut result = Self {
+            boot_params: bp.clone(),
+            metadata_limits: limits,
             parameter_id,
             descriptor_id: Vec::new(),
             main,
@@ -989,6 +993,16 @@ impl BootstrapMetadata {
         resources.requested_bytes = budget.bytes;
         result.resources = resources;
         Ok(result)
+    }
+    /// Exact original bootstrap configuration, retained immutably after construction.
+    /// The existing parameter identity already binds these same fields.
+    pub fn boot_params(&self) -> &BootParams {
+        &self.boot_params
+    }
+    /// Exact original operational construction ceilings, distinct from charged resource use.
+    /// These ceilings do not alter the existing cryptographic descriptor identity.
+    pub fn metadata_limits(&self) -> MetadataLimits {
+        self.metadata_limits
     }
     /// Canonical typed-byte schema version.
     pub fn schema_version(&self) -> u32 {

@@ -1,0 +1,127 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --lib study_admission::tests::p3_ -- --test-threads=1 --nocapture
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0422]: cannot find struct, variant or union type `ReceiptLimits` in this scope
+ --> crates/ckks-train-bench/src/study_admission.rs:7:35
+  |
+7 |         let mut w=Transcript::new(ReceiptLimits {max_bytes:64,max_records:2});
+  |                                   ^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ReceiptLimits` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:15:39
+   |
+15 |         let mut limit=Transcript::new(ReceiptLimits {max_bytes:1,max_records:1});
+   |                                       ^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `UNPROVED` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:38:17
+   |
+38 |         assert!(UNPROVED.contains(&UnprovedGate::Resource));
+   |                 ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `UNPROVED` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:39:17
+   |
+39 |         assert!(UNPROVED.contains(&UnprovedGate::Range));
+   |                 ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `UNPROVED` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:40:17
+   |
+40 |         assert!(UNPROVED.contains(&UnprovedGate::Precision));
+   |                 ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `UNPROVED` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:41:17
+   |
+41 |         assert!(UNPROVED.contains(&UnprovedGate::Security));
+   |                 ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `UNPROVED` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:42:17
+   |
+42 |         assert!(UNPROVED.contains(&UnprovedGate::PreKeyFactoryIntegration));
+   |                 ^^^^^^^^ not found in this scope
+
+warning: unused import: `super::*`
+ --> crates/ckks-train-bench/src/study_admission.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared type `Transcript`
+ --> crates/ckks-train-bench/src/study_admission.rs:7:19
+  |
+7 |         let mut w=Transcript::new(ReceiptLimits {max_bytes:64,max_records:2});
+  |                   ^^^^^^^^^^ use of undeclared type `Transcript`
+
+error[E0433]: failed to resolve: use of undeclared type `Transcript`
+  --> crates/ckks-train-bench/src/study_admission.rs:15:23
+   |
+15 |         let mut limit=Transcript::new(ReceiptLimits {max_bytes:1,max_records:1});
+   |                       ^^^^^^^^^^ use of undeclared type `Transcript`
+
+error[E0425]: cannot find function `synthetic_schedule_acceptance` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:23:9
+   |
+23 |         synthetic_schedule_acceptance();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `synthetic_block_acceptance` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:28:9
+   |
+28 |         synthetic_block_acceptance();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `synthetic_binding_negatives` in this scope
+  --> crates/ckks-train-bench/src/study_admission.rs:33:9
+   |
+33 |         synthetic_binding_negatives();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0433]: failed to resolve: use of undeclared type `UnprovedGate`
+  --> crates/ckks-train-bench/src/study_admission.rs:38:36
+   |
+38 |         assert!(UNPROVED.contains(&UnprovedGate::Resource));
+   |                                    ^^^^^^^^^^^^ use of undeclared type `UnprovedGate`
+
+error[E0433]: failed to resolve: use of undeclared type `UnprovedGate`
+  --> crates/ckks-train-bench/src/study_admission.rs:39:36
+   |
+39 |         assert!(UNPROVED.contains(&UnprovedGate::Range));
+   |                                    ^^^^^^^^^^^^ use of undeclared type `UnprovedGate`
+
+error[E0433]: failed to resolve: use of undeclared type `UnprovedGate`
+  --> crates/ckks-train-bench/src/study_admission.rs:40:36
+   |
+40 |         assert!(UNPROVED.contains(&UnprovedGate::Precision));
+   |                                    ^^^^^^^^^^^^ use of undeclared type `UnprovedGate`
+
+error[E0433]: failed to resolve: use of undeclared type `UnprovedGate`
+  --> crates/ckks-train-bench/src/study_admission.rs:41:36
+   |
+41 |         assert!(UNPROVED.contains(&UnprovedGate::Security));
+   |                                    ^^^^^^^^^^^^ use of undeclared type `UnprovedGate`
+
+error[E0433]: failed to resolve: use of undeclared type `UnprovedGate`
+  --> crates/ckks-train-bench/src/study_admission.rs:42:36
+   |
+42 |         assert!(UNPROVED.contains(&UnprovedGate::PreKeyFactoryIntegration));
+   |                                    ^^^^^^^^^^^^ use of undeclared type `UnprovedGate`
+
+error[E0433]: failed to resolve: use of undeclared type `IssueKind`
+  --> crates/ckks-train-bench/src/study_admission.rs:17:59
+   |
+17 |         assert!(matches!(limit.tag(1).unwrap_err().kind(),IssueKind::PlanningBudgetExceeded));
+   |                                                           ^^^^^^^^^ use of undeclared type `IssueKind`
+
+Some errors have detailed explanations: E0422, E0425, E0433.
+For more information about an error, try `rustc --explain E0422`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 18 previous errors; 1 warning emitted
+
+EXIT: 101
+crates/ckks-train-bench/src/study_admission.rs SHA256 e01bfbd70c1c841c68af9caead102c02589c5b79109fed2beb9fc5f33fbf0a46
+crates/ckks-train-bench/tests/study_admission.rs SHA256 9d1f237cbe30057103320f867cd41d05a4684cbaec54cd647704647a29e30425

@@ -1,0 +1,194 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --lib study_admission::tests::p3_fix1_ -- --test-threads=1 --nocapture
+5691b29b4f0e524c7533ce9e84fa612af9060adbaa50b71949402234fe517101 crates/ckks-train-bench/src/study_admission.rs
+0847905d49b0b2922b31a4bb63ff55cfef66ecd23ed4a813823ca8b97d24e540 crates/ckks-train-bench/tests/study_admission.rs
+07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2978:41
+     |
+2978 |         for (name,view) in [("actual q",ParameterFields{q:&q,..base}),("actual p",ParameterFields{p:&p,..base}),
+     |                                         ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2978:83
+     |
+2978 |         for (name,view) in [("actual q",ParameterFields{q:&q,..base}),("actual p",ParameterFields{p:&p,..base}),
+     |                                                                                   ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2979:23
+     |
+2979 | ...   ("secret",ParameterFields{secret:Some(1),..base}),("Delta bits",ParameterFields{scale:f64::from_bits(base.scale.to_bits()+1),..base}),
+     |                 ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2979:77
+     |
+2979 | ...   ("secret",ParameterFields{secret:Some(1),..base}),("Delta bits",ParameterFields{scale:f64::from_bits(base.scale.to_bits()+1),..base}),
+     |                                                                       ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2980:21
+     |
+2980 |             ("dnum",ParameterFields{dnum:base.dnum+1,..base}),("N",ParameterFields{n:base.n*2,..base})] {
+     |                     ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2980:68
+     |
+2980 |             ("dnum",ParameterFields{dnum:base.dnum+1,..base}),("N",ParameterFields{n:base.n*2,..base})] {
+     |                                                                    ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterFields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3028:20
+     |
+3028 |         let fields=ParameterFields{n:32,q:&q,p:&special,scale:1.,dnum:1,secret:Some(3)};
+     |                    ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0599]: no method named `metadata_limits` found for struct `ckks_train_ckks::bootstrap::metadata::BootstrapMetadata` in the current scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2965:27
+     |
+2965 |         assert_eq!(f.boot.metadata_limits().max_peak_bytes+1,changed.metadata_limits().max_peak_bytes);
+     |                           ^^^^^^^^^^^^^^^ method not found in `BootstrapMetadata`
+
+error[E0599]: no method named `metadata_limits` found for struct `ckks_train_ckks::bootstrap::metadata::BootstrapMetadata` in the current scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2965:70
+     |
+2965 |         assert_eq!(f.boot.metadata_limits().max_peak_bytes+1,changed.metadata_limits().max_peak_bytes);
+     |                                                                      ^^^^^^^^^^^^^^^ method not found in `BootstrapMetadata`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterFields`
+    --> crates/ckks-train-bench/src/study_admission.rs:2974:35
+     |
+2974 |         let f=fixtures();let base=ParameterFields::from_params(&f.interactive);
+     |                                   ^^^^^^^^^^^^^^^ use of undeclared type `ParameterFields`
+
+error[E0425]: cannot find function `encode_parameter_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2975:33
+     |
+2975 |         let baseline=encoded(|w|encode_parameter_fields(w,base));
+     |                                 ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_parameter_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2981:44
+     |
+2981 |             assert_ne!(baseline,encoded(|w|encode_parameter_fields(w,view)),"{name}");
+     |                                            ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_rate_schedule_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2992:74
+     |
+2992 |         let baseline=encoded(|w|rates(w,&rr,0.10));let prefix=encoded(|w|encode_rate_schedule_fields(w,&rr[..2],0.10));
+     |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_rate_schedule_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2994:38
+     |
+2994 |         assert_eq!(prefix,encoded(|w|encode_rate_schedule_fields(w,&rr[..2],0.10)));
+     |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_rate_schedule_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2996:31
+     |
+2996 |         assert_ne!(encoded(|w|encode_rate_schedule_fields(w,&rr,0.10)),encoded(|w|encode_rate_schedule_fields(w,&rr,0.11)));
+     |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_rate_schedule_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:2996:83
+     |
+2996 |         assert_ne!(encoded(|w|encode_rate_schedule_fields(w,&rr,0.10)),encoded(|w|encode_rate_schedule_fields(w,&rr,0.11)));
+     |                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_state_labels` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3002:75
+     |
+3002 |         let labels=StateLabels::from_state(state);let baseline=encoded(|w|encode_state_labels(w,labels));
+     |                                                                           ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_state_labels` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3008:44
+     |
+3008 |             assert_ne!(baseline,encoded(|w|encode_state_labels(w,changed)),"retained {name}");
+     |                                            ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_update_input` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3011:83
+     |
+2099 | fn encode_update(w: &mut Transcript, u: &PlannedStageUpdate, input: &UpdateSpec) -> Result<()> {
+     | ---------------------------------------------------------------------------------------------- similarly named function `encode_update` defined here
+...
+3011 |         let spec=UpdateSpec::new(vec![entry],8,0.02,None);let baseline=encoded(|w|encode_update_input(w,&spec));
+     |                                                                                   ^^^^^^^^^^^^^^^^^^^ help: a function with a similar name exists: `encode_update`
+
+error[E0425]: cannot find function `encode_update_input` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3016:44
+     |
+2099 | fn encode_update(w: &mut Transcript, u: &PlannedStageUpdate, input: &UpdateSpec) -> Result<()> {
+     | ---------------------------------------------------------------------------------------------- similarly named function `encode_update` defined here
+...
+3016 |             assert_ne!(baseline,encoded(|w|encode_update_input(w,&changed)));
+     |                                            ^^^^^^^^^^^^^^^^^^^ help: a function with a similar name exists: `encode_update`
+
+error[E0425]: cannot find function `encode_layer` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3019:33
+     |
+1605 | fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     | --------------------------------------------------------------- similarly named function `encode_plan` defined here
+...
+3019 |         let baseline=encoded(|w|encode_layer(w,&layer));
+     |                                 ^^^^^^^^^^^^ help: a function with a similar name exists: `encode_plan`
+
+error[E0425]: cannot find function `encode_layer` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3020:91
+     |
+1605 | fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     | --------------------------------------------------------------- similarly named function `encode_plan` defined here
+...
+3020 |         let mut alternate=layer.clone();alternate.input+=1;assert_ne!(baseline,encoded(|w|encode_layer(w,&alternate)));
+     |                                                                                           ^^^^^^^^^^^^ help: a function with a similar name exists: `encode_plan`
+
+error[E0425]: cannot find function `encode_layer` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3021:106
+     |
+1605 | fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     | --------------------------------------------------------------- similarly named function `encode_plan` defined here
+...
+3021 |         alternate=layer.clone();alternate.activation=Activation::Identity;assert_ne!(baseline,encoded(|w|encode_layer(w,&alternate)));
+     |                                                                                                          ^^^^^^^^^^^^ help: a function with a similar name exists: `encode_plan`
+
+error[E0425]: cannot find function `encode_preamble` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3036:32
+     |
+925  | fn encode_params(w: &mut Transcript, p: PlanningParameters<'_>) -> Result<()> {
+     | ----------------------------------------------------------------------------- similarly named function `encode_params` defined here
+...
+3036 |         let actual=encoded(|w|{encode_preamble(w)?;encode_parameter_fields(w,fields)?;encode_layer(w,&layer)?;encode_request(w,&r)?;encod...
+     |                                ^^^^^^^^^^^^^^^ help: a function with a similar name exists: `encode_params`
+
+error[E0425]: cannot find function `encode_parameter_fields` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3036:52
+     |
+3036 | ...   let actual=encoded(|w|{encode_preamble(w)?;encode_parameter_fields(w,fields)?;encode_layer(w,&layer)?;encode_request(w,&r)?;encode_...
+     |                                                  ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `encode_layer` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3036:87
+     |
+1605 | fn encode_plan(w: &mut Transcript, p: &BatchPlan) -> Result<()> {
+     | --------------------------------------------------------------- similarly named function `encode_plan` defined here
+...
+3036 |         let actual=encoded(|w|{encode_preamble(w)?;encode_parameter_fields(w,fields)?;encode_layer(w,&layer)?;encode_request(w,&r)?;encod...
+     |                                                                                       ^^^^^^^^^^^^ help: a function with a similar name exists: `encode_plan`
+
+error[E0425]: cannot find function `encode_state_labels` in this scope
+    --> crates/ckks-train-bench/src/study_admission.rs:3036:133
+     |
+3036 | ...ncode_layer(w,&layer)?;encode_request(w,&r)?;encode_state_labels(w,state)});
+     |                                                 ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0422, E0425, E0433, E0599.
+For more information about an error, try `rustc --explain E0422`.
+error: could not compile `ckks-train-bench` (lib test) due to 27 previous errors
+
+EXIT: 101

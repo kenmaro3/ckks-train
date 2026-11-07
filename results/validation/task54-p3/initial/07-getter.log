@@ -1,0 +1,18 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission p3_bootstrap_configuration_binding -- --test-threads=1 --nocapture
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 16.04s
+     Running tests/study_admission.rs (target/debug/deps/study_admission-a09c96cdecd97aa7)
+
+running 1 test
+test p3_bootstrap_configuration_binding ... P3 filtered getter fixture: params=1 proof=1 metadata=2 geometry=1 initial=1; update/materialization/HE=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.13s
+
+
+EXIT: 0
+crates/ckks-train-bench/src/study_admission.rs SHA256 5c0614b7bcf5ec93246338518a3dbcf343674ef6ae5ab2b2c56cb28824582f8a
+crates/ckks-train-bench/tests/study_admission.rs SHA256 85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e
+crates/ckks-train-ckks/src/bootstrap/metadata.rs SHA256 07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12

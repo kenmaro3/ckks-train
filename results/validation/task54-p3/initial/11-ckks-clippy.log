@@ -1,0 +1,8 @@
+COMMAND: cargo clippy --locked --offline -p ckks-train-ckks --lib --no-deps -- -D warnings
+    Checking ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.63s
+
+EXIT: 0
+crates/ckks-train-bench/src/study_admission.rs SHA256 b65701d6666f4e291660de34f0cca273ad2933283af44eb374618594f56eb8fb
+crates/ckks-train-bench/tests/study_admission.rs SHA256 85c13c334c3956cde76b2992130155d7225f214cc8087c1187520c1b69d88a0e
+crates/ckks-train-ckks/src/bootstrap/metadata.rs SHA256 07ae0174669d5c494836cfb2cb9bddbbc1173cc70cf304a96e5d65e2d7013a12

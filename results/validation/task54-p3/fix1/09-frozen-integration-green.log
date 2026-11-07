@@ -1,0 +1,31 @@
+COMMAND: cargo test --locked --offline -p ckks-train-bench --test study_admission -- --test-threads=1 --nocapture
+ENV: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8
+BEFORE 326fd68a967ba025f3502b9d9797a20900a928562c417e94fcb735c816117356 crates/ckks-train-bench/src/study_admission.rs
+BEFORE 571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c crates/ckks-train-bench/tests/study_admission.rs
+BEFORE e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+BEFORE 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 12.55s
+     Running tests/study_admission.rs (target/debug/deps/study_admission-a09c96cdecd97aa7)
+
+running 5 tests
+test p3_bootstrap_configuration_binding ... P3 filtered getter fixture: params=1 proof=1 metadata=2 geometry=1 initial=1; update/materialization/HE=0
+ok
+test p3_canonical_quick_full_identity_and_revalidation ... P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 canonical bundled Iris materializations=1; plaintext_training=0
+P3 canonical usage: PlanningUsage { geometries: 1, initial_states: 1, updates: 2, handoffs: 0, wrapper_calls: 3 }
+ok
+test p3_case_projection_and_scope ... ok
+test p3_fix1_late_finalization_retains_complete_prefix ... P3 fix1 late-finalization usage PlanningUsage { geometries: 3, initial_states: 3, updates: 6, handoffs: 0, wrapper_calls: 5 }; cap=1904016 completed=2 prefix_records=2
+ok
+test p3_inventory_and_candidate_separation ... P3 inventory usage: PlanningUsage { geometries: 147, initial_states: 147, updates: 6, handoffs: 0, wrapper_calls: 5 }
+ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+
+EXIT: 0
+AFTER 326fd68a967ba025f3502b9d9797a20900a928562c417e94fcb735c816117356 crates/ckks-train-bench/src/study_admission.rs
+AFTER 571f4145239230ab124364a76d0fa16d3b940d5fa8b066a7194f0e1f1d846a0c crates/ckks-train-bench/tests/study_admission.rs
+AFTER e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8 crates/ckks-train-ckks/src/bootstrap/metadata.rs
+AFTER 867b2c6d8f4391861956c10483fe18c91636e9272e41cceee8953b90976b3e44 crates/ckks-train-bench/src/lib.rs
