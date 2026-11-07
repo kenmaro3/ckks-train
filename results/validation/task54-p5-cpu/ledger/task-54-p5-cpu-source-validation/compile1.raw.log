@@ -1,0 +1,48 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0106]: missing lifetime specifier
+   --> crates/ckks-train-bench/src/study_blocks/p5_tests.rs:261:52
+    |
+261 | fn raw_ciphertexts(s: &CpuBlockSession<'_>) -> Vec<&Ciphertext> {
+    |                       --------------------         ^ expected named lifetime parameter
+    |
+    = help: this function's return type contains a borrowed value, but the signature does not say which one of `s`'s 2 lifetimes it is borrowed from
+help: consider introducing a named lifetime parameter
+    |
+261 | fn raw_ciphertexts<'a>(s: &'a CpuBlockSession<'a>) -> Vec<&'a Ciphertext> {
+    |                   ++++     ++                 ~~           ++
+
+warning: unused imports: `dense::TransposeKeys` and `trainer::Mlp`
+  --> crates/ckks-train-bench/src/study_blocks/p5_tests.rs:22:21
+   |
+22 | use ckks_train_nn::{dense::TransposeKeys, optim::Nag, trainer::Mlp};
+   |                     ^^^^^^^^^^^^^^^^^^^^              ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0502]: cannot borrow `packet.micros` as immutable because it is also borrowed as mutable
+   --> crates/ckks-train-bench/src/study_blocks/p5_tests.rs:427:15
+    |
+425 |     packet.micros[0]
+    |     ------------- mutable borrow occurs here
+426 |         .targets
+427 |         .push(packet.micros[0].targets[0].clone());
+    |          ---- ^^^^^^^^^^^^^ immutable borrow occurs here
+    |          |
+    |          mutable borrow later used by call
+
+error[E0716]: temporary value dropped while borrowed
+    --> crates/ckks-train-bench/src/study_blocks.rs:1213:42
+     |
+1213 |                         if let Some(v) = stage.optimizer_view(layer)?.velocity() {
+     |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ creates a temporary value which is freed while still in use
+1214 |                             velocity.extend(v.entries());
+     |                             -------- borrow later used here
+1215 |                         }
+     |                         - temporary value is freed at the end of this statement
+     |
+     = note: consider using a `let` binding to create a longer lived value
+
+Some errors have detailed explanations: E0106, E0502, E0716.
+For more information about an error, try `rustc --explain E0106`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors; 1 warning emitted

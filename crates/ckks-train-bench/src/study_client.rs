@@ -299,12 +299,16 @@ impl StudyClient {
         let params = keys.params().clone();
         #[cfg(test)]
         crate::study_diagonal::p4_tests::reserve_encoder();
+        #[cfg(test)]
+        crate::study_blocks::p5_tests::reserve_encoder();
         let encoder = Encoder::new(params.clone());
         let (bootstrap, metadata, boot_params) = if let Some(b) = boot {
             #[cfg(test)]
             if let Some(budget) = &budget {
                 budget.reserve_bootstrapper();
             }
+            #[cfg(test)]
+            crate::study_blocks::p5_tests::reserve_bootstrapper();
             let real = Arc::new(Bootstrapper::new(
                 params.clone(),
                 b.parameters.clone(),
@@ -659,6 +663,41 @@ pub(crate) fn make_owned(
     encryption_rng: Rng,
     #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
 ) -> Result<(StudyClient, CpuEvaluationContext)> {
+    make_owned_fields(
+        SetupFields {
+            parameters: checked.parameters,
+            bootstrap_identity: checked.bootstrap_identity,
+            boot_parameters: checked.boot_parameters,
+            rotations: checked.description.geometry.rotation_steps(),
+            config: checked.description.geometry.eval_config(),
+        },
+        parameters,
+        rotations,
+        boot,
+        key_rng,
+        encryption_rng,
+        #[cfg(test)]
+        budget,
+    )
+}
+/// Borrowed validated setup fields; cannot be publicly constructed or used as a permit.
+pub(crate) struct SetupFields<'a> {
+    pub(crate) parameters: &'a CkksParams,
+    pub(crate) bootstrap_identity: Option<&'a [u8]>,
+    pub(crate) boot_parameters: Option<&'a BootParams>,
+    pub(crate) rotations: &'a [i32],
+    pub(crate) config: EvalConfig,
+}
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn make_owned_fields(
+    checked: SetupFields<'_>,
+    parameters: Arc<CkksParams>,
+    rotations: &[i32],
+    boot: Option<CpuBootstrapDescription>,
+    key_rng: Rng,
+    encryption_rng: Rng,
+    #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
+) -> Result<(StudyClient, CpuEvaluationContext)> {
     ensure(
         std::ptr::eq(checked.parameters, parameters.as_ref()),
         "owned actual parameters",
@@ -672,12 +711,7 @@ pub(crate) fn make_owned(
         "owned bootstrap identity",
     )?;
     ensure(
-        checked
-            .description
-            .geometry
-            .rotation_steps()
-            .iter()
-            .all(|s| rotations.contains(s)),
+        checked.rotations.iter().all(|s| rotations.contains(s)),
         "owned union key manifest",
     )?;
     #[cfg(test)]
@@ -686,11 +720,13 @@ pub(crate) fn make_owned(
     }
     // First secret/key action. Validation has already consumed the closed input in
     // prepare_then_make; the checked frame cannot be publicly constructed.
+    #[cfg(test)]
+    crate::study_blocks::p5_tests::reserve_key();
     let mut keys = KeyGenerator::new(parameters, key_rng)?;
     StudyClient::make_material(
         &mut keys,
         rotations,
-        checked.description.geometry.eval_config(),
+        checked.config,
         boot,
         encryption_rng,
         #[cfg(test)]
@@ -749,3 +785,6 @@ fn prepare_owned_canonical(
         },
     )
 }
+
+/// Closed block preparation and client endpoints, never D7 authority.
+pub(crate) mod blocks;

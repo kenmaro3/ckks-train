@@ -3731,3 +3731,6 @@ mod tests {
 
 #[cfg(test)]
 pub(crate) mod p4_fixtures;
+
+#[cfg(test)]
+pub(crate) mod p5_fixtures;

@@ -1,0 +1,3893 @@
+diff --git a/crates/ckks-train-bench/src/lib.rs b/crates/ckks-train-bench/src/lib.rs
+index 775edbc..e6e5ed3 100644
+--- a/crates/ckks-train-bench/src/lib.rs
++++ b/crates/ckks-train-bench/src/lib.rs
+@@ -11,14 +11,16 @@ pub mod study_plain;
+ pub mod study_profile;
+ pub mod study_provenance;
+ pub mod study_reference;
+ pub mod twin;
+ 
+ mod study_runtime;
+ 
+ /// Closed study request frontend; grants no readiness authority.
+ pub mod study_run;
+ 
++/// Multi-stage CPU consuming bridge; production owned start remains disconnected.
++pub mod study_blocks;
+ /// Client-owned CPU study encryption and diagnostics; grants no production admission.
+ pub mod study_client;
+ /// Single-stage CPU consuming bridge; production dispatch remains disconnected.
+ pub mod study_diagonal;
+diff --git a/crates/ckks-train-bench/src/study_admission.rs b/crates/ckks-train-bench/src/study_admission.rs
+index a64555b..453e269 100644
+--- a/crates/ckks-train-bench/src/study_admission.rs
++++ b/crates/ckks-train-bench/src/study_admission.rs
+@@ -3724,10 +3724,13 @@ mod tests {
+         assert_eq!(r.work_budget.usage().handoffs, 1);
+         eprintln!(
+             "P3 fix1 update-work denial actual usage {:?}",
+             r.work_budget.usage()
+         );
+     }
+ }
+ 
+ #[cfg(test)]
+ pub(crate) mod p4_fixtures;
++
++#[cfg(test)]
++pub(crate) mod p5_fixtures;
+diff --git a/crates/ckks-train-bench/src/study_client.rs b/crates/ckks-train-bench/src/study_client.rs
+index 758f158..47375ea 100644
+--- a/crates/ckks-train-bench/src/study_client.rs
++++ b/crates/ckks-train-bench/src/study_client.rs
+@@ -292,26 +292,30 @@ impl StudyClient {
+         keys: &mut KeyGenerator,
+         rotations: &[i32],
+         config: EvalConfig,
+         boot: Option<CpuBootstrapDescription>,
+         rng: Rng,
+         #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
+     ) -> Result<(Self, CpuEvaluationContext)> {
+         let params = keys.params().clone();
+         #[cfg(test)]
+         crate::study_diagonal::p4_tests::reserve_encoder();
++        #[cfg(test)]
++        crate::study_blocks::p5_tests::reserve_encoder();
+         let encoder = Encoder::new(params.clone());
+         let (bootstrap, metadata, boot_params) = if let Some(b) = boot {
+             #[cfg(test)]
+             if let Some(budget) = &budget {
+                 budget.reserve_bootstrapper();
+             }
++            #[cfg(test)]
++            crate::study_blocks::p5_tests::reserve_bootstrapper();
+             let real = Arc::new(Bootstrapper::new(
+                 params.clone(),
+                 b.parameters.clone(),
+                 &encoder,
+                 keys,
+             )?);
+             (
+                 Some(CpuBootstrap {
+                     real,
+                     #[cfg(test)]
+@@ -651,53 +655,85 @@ pub(crate) fn context_parameters(c: &CpuEvaluationContext) -> PlanningParameters
+ // supplies its genuine owned gates/start frame. Synthetic tests reach this exact factory.
+ #[allow(dead_code)]
+ pub(crate) fn make_owned(
+     checked: &CheckedPreparation<'_>,
+     parameters: Arc<CkksParams>,
+     rotations: &[i32],
+     boot: Option<CpuBootstrapDescription>,
+     key_rng: Rng,
+     encryption_rng: Rng,
+     #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
++) -> Result<(StudyClient, CpuEvaluationContext)> {
++    make_owned_fields(
++        SetupFields {
++            parameters: checked.parameters,
++            bootstrap_identity: checked.bootstrap_identity,
++            boot_parameters: checked.boot_parameters,
++            rotations: checked.description.geometry.rotation_steps(),
++            config: checked.description.geometry.eval_config(),
++        },
++        parameters,
++        rotations,
++        boot,
++        key_rng,
++        encryption_rng,
++        #[cfg(test)]
++        budget,
++    )
++}
++/// Borrowed validated setup fields; cannot be publicly constructed or used as a permit.
++pub(crate) struct SetupFields<'a> {
++    pub(crate) parameters: &'a CkksParams,
++    pub(crate) bootstrap_identity: Option<&'a [u8]>,
++    pub(crate) boot_parameters: Option<&'a BootParams>,
++    pub(crate) rotations: &'a [i32],
++    pub(crate) config: EvalConfig,
++}
++#[allow(clippy::too_many_arguments)]
++pub(crate) fn make_owned_fields(
++    checked: SetupFields<'_>,
++    parameters: Arc<CkksParams>,
++    rotations: &[i32],
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++    #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
+ ) -> Result<(StudyClient, CpuEvaluationContext)> {
+     ensure(
+         std::ptr::eq(checked.parameters, parameters.as_ref()),
+         "owned actual parameters",
+     )?;
+     ensure(
+         checked.bootstrap_identity
+             == boot
+                 .as_ref()
+                 .map(|b| b.metadata.descriptor_identity_bytes())
+             && checked.boot_parameters == boot.as_ref().map(|b| &b.parameters),
+         "owned bootstrap identity",
+     )?;
+     ensure(
+-        checked
+-            .description
+-            .geometry
+-            .rotation_steps()
+-            .iter()
+-            .all(|s| rotations.contains(s)),
++        checked.rotations.iter().all(|s| rotations.contains(s)),
+         "owned union key manifest",
+     )?;
+     #[cfg(test)]
+     if let Some(budget) = &budget {
+         budget.reserve_key();
+     }
+     // First secret/key action. Validation has already consumed the closed input in
+     // prepare_then_make; the checked frame cannot be publicly constructed.
++    #[cfg(test)]
++    crate::study_blocks::p5_tests::reserve_key();
+     let mut keys = KeyGenerator::new(parameters, key_rng)?;
+     StudyClient::make_material(
+         &mut keys,
+         rotations,
+-        checked.description.geometry.eval_config(),
++        checked.config,
+         boot,
+         encryption_rng,
+         #[cfg(test)]
+         budget,
+     )
+ }
+ 
+ // Compile-visible canonical owned continuation. It cannot be called by public code or
+ // dispatch and grants no start authority; D7 must supply the eventual owned callsite.
+ #[allow(dead_code, clippy::too_many_arguments)]
+@@ -742,10 +778,13 @@ fn prepare_owned_canonical(
+                 .initial()
+                 .layers()
+                 .iter()
+                 .map(|l| (l.weights().clone(), l.biases().to_vec()))
+                 .collect::<Vec<_>>();
+             let initial = client.encrypt_initial(checked, &context, &arrays)?;
+             Ok((client, context, initial))
+         },
+     )
+ }
++
++/// Closed block preparation and client endpoints, never D7 authority.
++pub(crate) mod blocks;
+diff --git a/crates/ckks-train-bench/src/study_diagonal.rs b/crates/ckks-train-bench/src/study_diagonal.rs
+index cb1c9fe..078e346 100644
+--- a/crates/ckks-train-bench/src/study_diagonal.rs
++++ b/crates/ckks-train-bench/src/study_diagonal.rs
+@@ -118,20 +118,21 @@ impl PlanOwner {
+                 t.update() == i
+                     && t.stage() == 0
+                     && !t.is_boundary()
+                     && t.update_metadata().is_some(),
+                 "single-stage transition ordering",
+             )?;
+         }
+         Ok(())
+     }
+ }
++#[derive(Clone)]
+ pub(crate) struct Description {
+     pub(crate) geometry: StageGeometry,
+     pub(crate) activations: Vec<DiagonalActivation>,
+     pub(crate) transpose: TransposeKeys,
+     pub(crate) frozen: bool,
+ }
+ pub(crate) fn activations(kinds: &[DiagonalActivation]) -> Vec<Box<dyn Activation>> {
+     kinds
+         .iter()
+         .map(|a| match a {
+@@ -260,21 +261,26 @@ impl BootstrapOps<Evaluator> for CpuBootstrap {
+ }
+ /// Client-owned interactive service. The session borrows only its narrow handle.
+ pub struct ClientRefreshService {
+     pub(crate) owner: Arc<()>,
+     pub(crate) inner: RefCell<ckks_train_nn::refresh::ClientRefresher>,
+     #[cfg(test)]
+     pub(crate) fail_after: Option<usize>,
+     #[cfg(test)]
+     pub(crate) successful: std::cell::Cell<usize>,
+ }
+-struct RefreshHandle<'a>(&'a ClientRefreshService);
++pub(crate) struct RefreshHandle<'a>(&'a ClientRefreshService);
++impl ClientRefreshService {
++    pub(crate) fn handle(&self) -> RefreshHandle<'_> {
++        RefreshHandle(self)
++    }
++}
+ impl Refresher for RefreshHandle<'_> {
+     fn output_level(&self) -> usize {
+         self.0.inner.borrow().output_level()
+     }
+     fn bind_layout(&mut self, l: &Layout) -> Result<()> {
+         self.0.inner.borrow_mut().bind_layout(l)
+     }
+     fn refresh(&mut self, c: &Ciphertext) -> Result<Ciphertext> {
+         #[cfg(test)]
+         if self
+@@ -530,83 +536,38 @@ impl<'a> CpuDiagonalSession<'a> {
+         ensure(actual == self.batch, "retained batch specification")
+     }
+     fn check_state(&self, state: &StateMetadata) -> Result<()> {
+         ensure(
+             state.completed_updates() == self.completed,
+             "state successful index",
+         )?;
+         self.check_state_without_progress(state)
+     }
+     fn check_state_without_progress(&self, state: &StateMetadata) -> Result<()> {
+-        check_mlp(self.context, &self.description, &self.mlp, state)?;
+-        check_batch(self.batch, state.batch())?;
+         match &self.trainer {
+-            Training::Interactive(t) => {
+-                ensure(
+-                    state.compact_weights().is_empty()
+-                        && state.velocity().len() == self.mlp.layers.len(),
+-                    "interactive state cardinalities",
+-                )?;
+-                for (i, (dense, _)) in self.mlp.layers.iter().enumerate() {
+-                    let v = t.optimizer_view(i)?;
+-                    check_optimizer(state.optimizer(), v.lr(), v.reference(), v.momentum())?;
+-                    match (v.velocity(), state.velocity()[i]) {
+-                        (None, None) => {}
+-                        (Some(actual), Some(expected)) => {
+-                            ensure(
+-                                actual.d() == dense.w.diagonals().d()
+-                                    && actual.stride() == dense.w.diagonals().stride()
+-                                    && actual.entries().len()
+-                                        == dense.w.diagonals().entries().len(),
+-                                "velocity geometry",
+-                            )?;
+-                            for c in actual.entries() {
+-                                check_ct(self.context, c, expected)?;
+-                            }
+-                        }
+-                        _ => return Err(mismatch("interactive velocity presence")),
+-                    }
+-                }
+-                ensure(
+-                    t.optimizer_view(self.mlp.layers.len()).is_err(),
+-                    "optimizer bounds",
+-                )?;
+-            }
+-            Training::NonInteractive(t) => {
+-                let o = t.optimizer();
+-                let (reference, momentum) = match o {
+-                    NiOptimizer::Sgd { .. } => (None, None),
+-                    NiOptimizer::Nag { momentum, .. } => (Some(t.lr_reference()), Some(momentum)),
+-                };
+-                check_optimizer(state.optimizer(), o.lr(), reference, momentum)?;
+-                ensure(
+-                    t.state().weights.len() == state.compact_weights().len()
+-                        && t.state().velocity.len() == state.velocity().len(),
+-                    "compact state cardinality",
+-                )?;
+-                for (c, &m) in t.state().weights.iter().zip(state.compact_weights()) {
+-                    check_ct(self.context, c, m)?;
+-                }
+-                for (actual, expected) in t.state().velocity.iter().zip(state.velocity()) {
+-                    match (actual, expected) {
+-                        (None, None) => {}
+-                        (Some(c), Some(m)) => check_ct(self.context, c, *m)?,
+-                        _ => return Err(mismatch("NI velocity presence")),
+-                    }
+-                }
+-                ensure(
+-                    Some(t.compact_layout()) == self.description.geometry.compact(),
+-                    "compact geometry and bias slots",
+-                )?;
+-            }
++            Training::Interactive(t) => check_interactive_stage(
++                self.context,
++                &self.description,
++                &self.mlp,
++                self.batch,
++                t,
++                state,
++            ),
++            Training::NonInteractive(t) => check_ni_stage(
++                self.context,
++                &self.description,
++                &self.mlp,
++                self.batch,
++                t,
++                state,
++            ),
+         }
+-        Ok(())
+     }
+     fn validate_packet(&self, p: &EncryptedLogicalUpdate) -> Result<(usize, usize)> {
+         ensure(!self.poisoned, "poisoned session")?;
+         ensure(
+             self.completed < self.plan.parts().len(),
+             "exhausted session",
+         )?;
+         ensure(p.index == self.completed, "update index or replay")?;
+         ensure(self.plan.same(&p.plan), "packet plan identity")?;
+         ensure(
+@@ -927,20 +888,100 @@ impl<'a> CpuDiagonalSession<'a> {
+             } else {
+                 ensure(
+                     actual.is_empty() && canonical.iter().all(Vec::is_empty),
+                     "non-AA canonical absence",
+                 )?;
+             }
+         }
+         Ok(())
+     }
+ }
++/// Read-only comparison of the actual interactive stage; identical P4 expressions.
++pub(crate) fn check_interactive_stage(
++    context: &CpuEvaluationContext,
++    description: &Description,
++    mlp: &Mlp,
++    batch: BatchSpec,
++    t: &Trainer<'_>,
++    state: &StateMetadata,
++) -> Result<()> {
++    check_mlp(context, description, mlp, state)?;
++    check_batch(batch, state.batch())?;
++
++    ensure(
++        state.compact_weights().is_empty() && state.velocity().len() == mlp.layers.len(),
++        "interactive state cardinalities",
++    )?;
++    for (i, (dense, _)) in mlp.layers.iter().enumerate() {
++        let v = t.optimizer_view(i)?;
++        check_optimizer(state.optimizer(), v.lr(), v.reference(), v.momentum())?;
++        match (v.velocity(), state.velocity()[i]) {
++            (None, None) => {}
++            (Some(actual), Some(expected)) => {
++                ensure(
++                    actual.d() == dense.w.diagonals().d()
++                        && actual.stride() == dense.w.diagonals().stride()
++                        && actual.entries().len() == dense.w.diagonals().entries().len(),
++                    "velocity geometry",
++                )?;
++                for c in actual.entries() {
++                    check_ct(context, c, expected)?;
++                }
++            }
++            _ => return Err(mismatch("interactive velocity presence")),
++        }
++    }
++    ensure(
++        t.optimizer_view(mlp.layers.len()).is_err(),
++        "optimizer bounds",
++    )?;
++    Ok(())
++}
++/// Read-only comparison of the actual NI stage; identical P4 expressions.
++pub(crate) fn check_ni_stage<B: BootstrapOps<Evaluator>>(
++    context: &CpuEvaluationContext,
++    description: &Description,
++    mlp: &Mlp,
++    batch: BatchSpec,
++    t: &NonInteractiveTrainer<'_, Evaluator, B>,
++    state: &StateMetadata,
++) -> Result<()> {
++    check_mlp(context, description, mlp, state)?;
++    check_batch(batch, state.batch())?;
++
++    let o = t.optimizer();
++    let (reference, momentum) = match o {
++        NiOptimizer::Sgd { .. } => (None, None),
++        NiOptimizer::Nag { momentum, .. } => (Some(t.lr_reference()), Some(momentum)),
++    };
++    check_optimizer(state.optimizer(), o.lr(), reference, momentum)?;
++    ensure(
++        t.state().weights.len() == state.compact_weights().len()
++            && t.state().velocity.len() == state.velocity().len(),
++        "compact state cardinality",
++    )?;
++    for (c, &m) in t.state().weights.iter().zip(state.compact_weights()) {
++        check_ct(context, c, m)?;
++    }
++    for (actual, expected) in t.state().velocity.iter().zip(state.velocity()) {
++        match (actual, expected) {
++            (None, None) => {}
++            (Some(c), Some(m)) => check_ct(context, c, *m)?,
++            _ => return Err(mismatch("NI velocity presence")),
++        }
++    }
++    ensure(
++        Some(t.compact_layout()) == description.geometry.compact(),
++        "compact geometry and bias slots",
++    )?;
++    Ok(())
++}
+ pub(crate) fn validate_initial_packet(
+     context: &CpuEvaluationContext,
+     plan: &PlanOwner,
+     initial: &EncryptedInitialState,
+ ) -> Result<()> {
+     plan.check_shape()?;
+     ensure(
+         Arc::ptr_eq(&context.owner, &initial.owner),
+         "initial context identity",
+     )?;
+@@ -981,51 +1022,54 @@ pub(crate) fn check_ct(context: &CpuEvaluationContext, c: &Ciphertext, m: CtMeta
+     )?;
+     ensure(
+         c.polys().iter().all(|p| {
+             p.is_ntt_form()
+                 && p.level() == c.level()
+                 && Arc::ptr_eq(p.basis(), context.parameters().basis_q())
+         }),
+         "ciphertext basis",
+     )
+ }
+-fn check_batch(b: BatchSpec, m: ckks_train_nn::diagonal_plan::BatchMetadata) -> Result<()> {
++pub(crate) fn check_batch(
++    b: BatchSpec,
++    m: ckks_train_nn::diagonal_plan::BatchMetadata,
++) -> Result<()> {
+     ensure(
+         b.x_level == m.x.level()
+             && b.x_scale.to_bits() == m.x.scale_bits()
+             && b.y_level == m.y.level()
+             && b.y_scale.to_bits() == m.y.scale_bits(),
+         "BatchSpec all fields",
+     )
+ }
+-fn check_optimizer(
++pub(crate) fn check_optimizer(
+     o: DiagonalOptimizer,
+     lr: f64,
+     reference: Option<f64>,
+     momentum: Option<f64>,
+ ) -> Result<()> {
+     let (expected, r, m) = match o {
+         DiagonalOptimizer::Sgd { lr } => (lr, None, None),
+         DiagonalOptimizer::Nag {
+             lr,
+             reference,
+             momentum,
+         } => (lr, Some(reference), Some(momentum)),
+     };
+     ensure(
+         lr.to_bits() == expected.to_bits()
+             && reference.map(f64::to_bits) == r.map(f64::to_bits)
+             && momentum.map(f64::to_bits) == m.map(f64::to_bits),
+         "optimizer raw config",
+     )
+ }
+-fn check_mlp(
++pub(crate) fn check_mlp(
+     context: &CpuEvaluationContext,
+     description: &Description,
+     mlp: &Mlp,
+     s: &StateMetadata,
+ ) -> Result<()> {
+     let g = &description.geometry;
+     ensure(
+         mlp.dims() == g.dims()
+             && mlp.layers.len() == s.weights().len()
+             && mlp.layers.len() == s.biases().len()
+diff --git a/docs/study-diagonal-admission-design.md b/docs/study-diagonal-admission-design.md
+index bf66065..965895c 100644
+--- a/docs/study-diagonal-admission-design.md
++++ b/docs/study-diagonal-admission-design.md
+@@ -267,10 +267,17 @@ P4で接続した既存trainerを、既存BlockMlp／BlockTrainer／BlockNiTrain
+ この純粋計算の検証と、後のHE検証を別の実行に分ける。提案上限は純粋計算で156回の実Engine更新・61 Engine生成・179回の明示的forwardで、source reviewで実際の呼出しに照合してから実行する。失敗した候補を隠したり、HEへ進んだり、自動探索・許容誤差緩和はしない。失敗時は数値と原因を保持し、変更理由・代替案を記録して再検討する。後続のHE matrix案は40更新成功＋2途中失敗、I／WN／AU／AA、stage別C/P・label、full／partial／unequal micro、reference／schedule、handoffの旧重み表現・AA再利用、全七計数・状態・retentionを対象とするが、まだ実行しない。full登録範囲、canonical D7開始条件、secure profileとfull encrypted-block campaignの未達・保留を維持する。
+ 
+ 
+ ## 14. P5感度検証v1の実測失敗と、HE前の厳格化（2026-11-07）
+ 
+ 固定したP5 pure v1を実際に1回実行し、156 Engine更新／61 Engine生成／179明示forwardを完走した。Iは36/36の識別基準を満たしたが、NIは36項目中7項目が8倍未満でFAILだった。最弱の更新後hidden誤使用との差は3.17824570814917440e-4で、NI許容誤差4e-4自体より小さい。全698 CHECK、stage targetの局所性、finite／凍結zero／shape、35個のbaseline range検査は失敗せず、最大hidden絶対値は0.652500000000000080だった。失敗した元出力・値・判定を保持し、独立の結果レビューで照合した。HEはまだ0である。
+ 
+ 次の小規模P5検証では、同じ入力・初期値・rate・reference・全control・必要識別倍率8を維持し、**NIの将来HE誤差上限を3e-5へ厳しくする**。Iは1e-5のまま。保持した最小差を8で割った値は約3.972807135186468e-5であり、3e-5なら同じ差の識別倍率は約10.59415となる。これは保存済みF64結果の算術で、v1のFAILをPASSに変更する根拠でも、HEが3e-5を達成した証拠でもない。新しいv2の定数・sourceをレビューし、別の限定したpure実行で確認してからHEを検討する。
+ 
+ 代替案は信号を強めるため入力・初期値を変えることだが、軌跡とrange／局所性も変わる。元の診断対象を維持し、将来のHE精度要求を約13.33倍厳しくする方を選ぶ。識別倍率を下げる案や失敗controlを外す案は採らない。将来HEが3e-5を満たせなければ未達として停止し、自動で4e-4に戻さない。この決定はHE結果を見る前のsynthetic検証基準であり、論文の精度ゲート・本番preset・登録行列・P4既存結果・D7／campaign保留は変更しない。v1の消費済み156/61/179は後続の累積にも含める。
++
++
++## 15. P5途中失敗の診断用コピー（2026-11-07）
++
++P5の途中失敗テストでは、失敗後の状態からretryが何も変更しないことに加え、後段が失敗前から変わっていないことも検査する。失敗後のsnapshotだけでは後者を証明できないため、既存I／AUの2つの失敗sessionで、消費前の初期暗号モデルを各1回保持する。既定の46個の全session状態snapshotに加えて、2個の部分的な初期モデルcapture、合計48個の状態／モデル診断captureとなる。別の設定専用snapshot3個はこの数に含めない。
++
++代替の暗号文digest比較は別のhash検査経路を要するため、既存の全limb比較を使う。追加コピーの実際のpayloadと保持期間はretention記録に含め、該当する失敗比較の後に解放する。暗号モデルの再生成・追加の学習・bootstrap・復号は行わず、session数、全比較条件、誤差上限と高コスト処理の上限は変更しない。誤った判断だった場合のコストは小規模テスト内の追加診断メモリと再検証であり、本番のメモリ適合・RSS・resource gateの証明には使わない。これは実行前の診断設計で、P5の暗号実測を意味しない。
+diff --git a/crates/ckks-train-bench/src/study_blocks.rs b/crates/ckks-train-bench/src/study_blocks.rs
+new file mode 100644
+index 0000000..2dfa734
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_blocks.rs
+@@ -0,0 +1,1403 @@
++//! Actual multi-stage CPU consuming route, with no owned D7 admission/start authority.
++//! Plaintext data and secret material stay with `StudyClient`. Counters are whole-step
++//! inclusive deltas, never separately measured per-stage windows.
++pub use crate::study_client::blocks::{BlockEncryptionBinding, ClientBlockSnapshot};
++use crate::{
++    study_admission::{DiagonalPlan, MicroPart, StateMetadata, TransitionIndex},
++    study_diagonal::{
++        ClientRefreshService, CpuEvaluationContext, Description, EncryptedMicro,
++        EncryptedModelSnapshot, check_batch, check_ct, check_interactive_stage, check_mlp,
++        check_ni_stage, ensure, mismatch,
++    },
++    study_inputs::RateCoefficients,
++};
++use ckks_train_ckks::{BootstrapOps, Ciphertext, Evaluator, HeOps, OpCounter};
++use ckks_train_core::error::Result;
++use ckks_train_nn::{
++    block::{BlockMlp, BlockNiTrainer, BlockTrainer},
++    diagonal_plan::{DiagonalMode, DiagonalOptimizer},
++    layout::Layout,
++    optim::{Nag, Sgd},
++    refresh::Refresher,
++    trainer::{BatchSpec, LayerOptimizer, Trainer},
++    trainer_ni::{BootPlacement, CompactState, NiOptimizer, NonInteractiveTrainer},
++};
++use std::{
++    cell::{Cell, RefCell},
++    sync::Arc,
++};
++
++/// Closed ownership domains; synthetic plans cannot be promoted to canonical values.
++#[derive(Clone)]
++pub(crate) enum BlockPlanOwner {
++    Canonical(Arc<DiagonalPlan>),
++    #[cfg(test)]
++    Synthetic(Arc<crate::study_admission::p5_fixtures::SyntheticBlockPlan>),
++}
++impl BlockPlanOwner {
++    pub(crate) fn same(&self, other: &Self) -> bool {
++        match (self, other) {
++            (Self::Canonical(a), Self::Canonical(b)) => Arc::ptr_eq(a, b),
++            #[cfg(test)]
++            (Self::Synthetic(a), Self::Synthetic(b)) => Arc::ptr_eq(a, b),
++            #[cfg(test)]
++            _ => false,
++        }
++    }
++    #[cfg(test)]
++    pub(crate) fn identity(&self) -> &str {
++        match self {
++            Self::Canonical(p) => p.digest(),
++            #[cfg(test)]
++            Self::Synthetic(p) => p.identity(),
++        }
++    }
++    pub(crate) fn initial(&self) -> &[StateMetadata] {
++        match self {
++            Self::Canonical(p) => p.initial_states(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.initial,
++        }
++    }
++    pub(crate) fn transitions(&self) -> &[TransitionIndex] {
++        match self {
++            Self::Canonical(p) => p.transitions(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.index,
++        }
++    }
++    pub(crate) fn parts(&self) -> &[Vec<MicroPart>] {
++        match self {
++            Self::Canonical(p) => p.partitions(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.parts,
++        }
++    }
++    pub(crate) fn rates(&self) -> &[RateCoefficients<f64>] {
++        match self {
++            Self::Canonical(p) => p.full_rates(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.rates,
++        }
++    }
++    pub(crate) fn reference(&self) -> f64 {
++        match self {
++            Self::Canonical(p) => f64::from_bits(p.reference_bits()),
++            #[cfg(test)]
++            Self::Synthetic(p) => p.reference,
++        }
++    }
++    fn stride(&self) -> usize {
++        2 * self.initial().len() - 1
++    }
++    pub(crate) fn transition(&self, update: usize, stage: usize) -> &TransitionIndex {
++        &self.transitions()[update * self.stride() + 2 * stage]
++    }
++    pub(crate) fn boundary(&self, update: usize, stage: usize) -> &TransitionIndex {
++        &self.transitions()[update * self.stride() + 2 * stage + 1]
++    }
++    pub(crate) fn check_shape(&self) -> Result<()> {
++        let stages = self.initial().len();
++        ensure((2..=3).contains(&stages), "block stage cardinality")?;
++        ensure(
++            !self.parts().is_empty() && self.rates().len() >= self.parts().len(),
++            "block schedule cardinality",
++        )?;
++        let expected = self
++            .parts()
++            .len()
++            .checked_mul(self.stride())
++            .ok_or_else(|| mismatch("block transition overflow"))?;
++        ensure(
++            self.transitions().len() == expected,
++            "block transition cardinality",
++        )?;
++        for update in 0..self.parts().len() {
++            let next = self.transition(update, 0).next_full();
++            for stage in 0..stages {
++                let t = self.transition(update, stage);
++                ensure(
++                    t.update() == update
++                        && t.stage() == stage
++                        && !t.is_boundary()
++                        && t.update_metadata().is_some()
++                        && t.handoff_metadata().is_none()
++                        && t.next_full() == next,
++                    "block typed update order/lookahead",
++                )?;
++                if stage + 1 < stages {
++                    let t = self.boundary(update, stage);
++                    ensure(
++                        t.update() == update
++                            && t.stage() == stage
++                            && t.is_boundary()
++                            && t.handoff_metadata().is_some()
++                            && t.update_metadata().is_none(),
++                        "block typed handoff order",
++                    )?;
++                }
++            }
++        }
++        ensure(
++            self.reference().is_finite() && self.reference() > 0.,
++            "block reference",
++        )
++    }
++}
++/// Immutable client-produced block model, with no unchecked public constructor.
++pub struct EncryptedBlockInitial {
++    pub(crate) owner: Arc<()>,
++    pub(crate) plan: BlockPlanOwner,
++    pub(crate) descriptions: Vec<Description>,
++    pub(crate) classes: Vec<usize>,
++    pub(crate) model: BlockMlp,
++    pub(crate) compact: Option<Vec<CompactState>>,
++    pub(crate) batches: Vec<BatchSpec>,
++}
++/// Immutable first input plus one independently encrypted target per stage and micro.
++pub struct EncryptedBlockUpdate {
++    pub(crate) owner: Arc<()>,
++    pub(crate) plan: BlockPlanOwner,
++    pub(crate) index: usize,
++    pub(crate) total: usize,
++    pub(crate) input_width: usize,
++    pub(crate) target_widths: Vec<usize>,
++    pub(crate) micros: Vec<EncryptedMicro>,
++}
++/// Explicit encrypted endpoint copies; each ciphertext clone allocates its payload.
++pub struct EncryptedBlockSnapshot {
++    pub(crate) stages: Vec<EncryptedModelSnapshot>,
++    pub(crate) handoffs: Vec<Vec<Ciphertext>>,
++    pub(crate) valid: Vec<usize>,
++    pub(crate) widths: Vec<usize>,
++}
++/// One successful logical block update, after every typed postcheck.
++#[derive(Debug)]
++pub struct BlockCompletion {
++    /// Successful block update count.
++    pub completed_updates: usize,
++    /// Successful logical sample count.
++    pub processed_samples: usize,
++    /// Whole-step inclusive seven-counter delta.
++    pub measured: OpCounter,
++    /// Actual client refresh delta including boundaries.
++    pub client_refreshes: usize,
++    /// Available per-stage existing trainer traces, without per-stage measured windows.
++    pub traces: Vec<Vec<(String, usize)>>,
++}
++/// Actual prefix evidence after a permanently poisoned attempt.
++#[derive(Clone, Debug, PartialEq)]
++pub struct BlockFailure {
++    /// Zero-based attempted update.
++    pub update: usize,
++    /// Last reached configuration, trainer or postcheck phase.
++    pub phase: &'static str,
++    /// Actual inclusive partial counter delta; no rollback is implied.
++    pub measured: OpCounter,
++    /// Available actual trainer traces in stage order; may include prior-step traces.
++    pub traces: Vec<Vec<(String, usize)>>,
++    /// Whether each available trace differs from the pre-attempt trace. Equal traces do
++    /// not prove that a stage ran or did not run; no temporal provenance is invented.
++    pub trace_changed: Vec<bool>,
++    /// Successful I boundary outputs retained before failure; NI publishes none on failure.
++    pub retained_boundary_outputs: usize,
++}
++/// Caller-owned sized facade over the same real public evaluation/bootstrap material.
++/// It must outlive sessions, preventing self-referential trainer storage.
++pub struct CpuBlockEvaluation<'a> {
++    pub(crate) base: &'a CpuEvaluationContext,
++    boundary: RefCell<Vec<Ciphertext>>,
++    refreshes: Cell<usize>,
++    boots: Cell<usize>,
++    boundary_cap: Cell<usize>,
++    active: Cell<bool>,
++    #[cfg(test)]
++    pub(crate) fail_refresh_after: Cell<Option<usize>>,
++    #[cfg(test)]
++    pub(crate) fail_boot_after: Cell<Option<usize>>,
++}
++impl<'a> CpuBlockEvaluation<'a> {
++    /// Borrows the caller-owned base context; no new key, encoder or Bootstrapper.
++    pub fn new(base: &'a CpuEvaluationContext) -> Self {
++        Self {
++            base,
++            boundary: RefCell::new(Vec::new()),
++            refreshes: Cell::new(0),
++            boots: Cell::new(0),
++            boundary_cap: Cell::new(0),
++            active: Cell::new(false),
++            #[cfg(test)]
++            fail_refresh_after: Cell::new(None),
++            #[cfg(test)]
++            fail_boot_after: Cell::new(None),
++        }
++    }
++    fn begin(&self, cap: usize) {
++        self.boundary.borrow_mut().clear();
++        self.boundary_cap.set(cap);
++    }
++}
++impl BootstrapOps<Evaluator> for CpuBlockEvaluation<'_> {
++    fn output_level(&self) -> usize {
++        self.base
++            .bootstrap
++            .as_ref()
++            .map_or(0, |b| b.real.output_level())
++    }
++    fn bootstrap(&self, e: &Evaluator, c: &Ciphertext) -> Result<Ciphertext> {
++        #[cfg(test)]
++        {
++            ensure(
++                self.fail_boot_after
++                    .get()
++                    .is_none_or(|n| self.boots.get() < n),
++                "injected second block boundary bootstrap",
++            )?;
++            p5_tests::reserve_boot();
++        }
++        let out = self
++            .base
++            .bootstrap
++            .as_ref()
++            .ok_or_else(|| mismatch("block bootstrap dependency"))?
++            .real
++            .bootstrap(e, c)?;
++        self.boots.set(
++            self.boots
++                .get()
++                .checked_add(1)
++                .ok_or_else(|| mismatch("block bootstrap overflow"))?,
++        );
++        Ok(out)
++    }
++}
++struct BlockRefresh<'a> {
++    facade: &'a CpuBlockEvaluation<'a>,
++    service: &'a ClientRefreshService,
++    boundary: bool,
++}
++impl Refresher for BlockRefresh<'_> {
++    fn output_level(&self) -> usize {
++        self.service.handle().output_level()
++    }
++    fn bind_layout(&mut self, l: &Layout) -> Result<()> {
++        self.service.handle().bind_layout(l)
++    }
++    fn refresh(&mut self, c: &Ciphertext) -> Result<Ciphertext> {
++        #[cfg(test)]
++        {
++            ensure(
++                self.facade
++                    .fail_refresh_after
++                    .get()
++                    .is_none_or(|n| self.facade.refreshes.get() < n),
++                "injected second block boundary refresh",
++            )?;
++            p5_tests::reserve_refresh();
++        }
++        if self.boundary {
++            ensure(
++                self.facade.boundary.borrow().len() < self.facade.boundary_cap.get(),
++                "block boundary retention bound",
++            )?;
++        }
++        let out = self.service.handle().refresh(c)?;
++        self.facade.refreshes.set(
++            self.facade
++                .refreshes
++                .get()
++                .checked_add(1)
++                .ok_or_else(|| mismatch("block refresh overflow"))?,
++        );
++        if self.boundary {
++            self.facade.boundary.borrow_mut().push(out.clone());
++        }
++        Ok(out)
++    }
++}
++enum BlockTraining<'a> {
++    Interactive(BlockTrainer<'a>),
++    NonInteractive(BlockNiTrainer<'a, Evaluator, CpuBlockEvaluation<'a>>),
++}
++/// Actual multi-stage session. It contains encrypted state and public evaluation handles only.
++pub struct CpuBlockSession<'a> {
++    facade: &'a CpuBlockEvaluation<'a>,
++    plan: BlockPlanOwner,
++    descriptions: Vec<Description>,
++    classes: Vec<usize>,
++    model: BlockMlp,
++    trainer: BlockTraining<'a>,
++    batches: Vec<BatchSpec>,
++    completed: usize,
++    samples: usize,
++    poisoned: bool,
++    failed: Option<BlockFailure>,
++}
++impl<'a> CpuBlockSession<'a> {
++    /// Consumes an actual canonical block packet; this grants no D7 start capability.
++    pub fn new(
++        facade: &'a CpuBlockEvaluation<'a>,
++        plan: Arc<DiagonalPlan>,
++        initial: EncryptedBlockInitial,
++        refresh: Option<&'a ClientRefreshService>,
++    ) -> Result<Self> {
++        Self::from_owner(facade, BlockPlanOwner::Canonical(plan), initial, refresh)
++    }
++    pub(crate) fn from_owner(
++        facade: &'a CpuBlockEvaluation<'a>,
++        plan: BlockPlanOwner,
++        initial: EncryptedBlockInitial,
++        refresh: Option<&'a ClientRefreshService>,
++    ) -> Result<Self> {
++        plan.check_shape()?;
++        ensure(
++            !facade.active.get(),
++            "block facade already borrowed by session",
++        )?;
++        let context = facade.base;
++        let n = plan.initial().len();
++        ensure(
++            Arc::ptr_eq(&context.owner, &initial.owner) && plan.same(&initial.plan),
++            "block initial association",
++        )?;
++        ensure(
++            initial.descriptions.len() == n
++                && initial.classes.len() == n
++                && initial.batches.len() == n
++                && initial.model.num_stages() == n,
++            "block initial cardinality",
++        )?;
++        let mode = initial.descriptions[0].geometry.mode();
++        let layout = initial.descriptions[0].geometry.layout();
++        // Every stage and every initial CT is checked before any Trainer construction.
++        for stage in 0..n {
++            let description = &initial.descriptions[stage];
++            let state = &plan.initial()[stage];
++            context.check_geometry(&description.geometry)?;
++            ensure(
++                description.geometry.mode() == mode && description.geometry.layout() == layout,
++                "block homogeneous mode/layout",
++            )?;
++            ensure(
++                initial.classes[stage] > 0
++                    && initial.classes[stage] <= *description.geometry.dims().last().unwrap(),
++                "block stage classes",
++            )?;
++            check_mlp(context, description, initial.model.stage(stage), state)?;
++            check_batch(initial.batches[stage], state.batch())?;
++            ensure(
++                state.completed_updates() == 0 && state.velocity().iter().all(Option::is_none),
++                "block initial progress/velocity",
++            )?;
++            match &initial.compact {
++                None => ensure(
++                    state.compact_weights().is_empty() && mode == DiagonalMode::Interactive,
++                    "block initial compact absence",
++                )?,
++                Some(states) => {
++                    ensure(
++                        mode != DiagonalMode::Interactive,
++                        "block unexpected interactive compact state",
++                    )?;
++                    ensure(states.len() == n, "block compact stage cardinality")?;
++                    let actual = &states[stage];
++                    ensure(
++                        actual.weights.len() == state.compact_weights().len()
++                            && actual.velocity.len() == state.velocity().len(),
++                        "block initial compact cardinality",
++                    )?;
++                    for (ct, &m) in actual.weights.iter().zip(state.compact_weights()) {
++                        check_ct(context, ct, m)?;
++                    }
++                    ensure(
++                        actual.velocity.iter().all(Option::is_none),
++                        "block initial compact velocity absence",
++                    )?;
++                }
++            }
++        }
++        let EncryptedBlockInitial {
++            descriptions,
++            classes,
++            model,
++            compact,
++            batches,
++            ..
++        } = initial;
++        let trainer = match mode {
++            DiagonalMode::Interactive => {
++                let service = refresh.ok_or_else(|| mismatch("block refresh dependency"))?;
++                ensure(
++                    Arc::ptr_eq(&service.owner, &context.owner),
++                    "block refresh identity",
++                )?;
++                let mut stages = Vec::with_capacity(n);
++                for (stage, description) in descriptions.iter().enumerate() {
++                    let opt = plan.initial()[stage].optimizer();
++                    let optims = (0..model.stage(stage).layers.len())
++                        .map(|_| -> Result<Box<dyn LayerOptimizer>> {
++                            Ok(match opt {
++                                DiagonalOptimizer::Sgd { lr } => Box::new(Sgd { lr }),
++                                DiagonalOptimizer::Nag {
++                                    lr,
++                                    reference,
++                                    momentum,
++                                } => {
++                                    let mut nag = Nag::new(lr, momentum);
++                                    nag.set_lr_reference(reference)?;
++                                    Box::new(nag)
++                                }
++                            })
++                        })
++                        .collect::<Result<Vec<_>>>()?;
++                    #[cfg(test)]
++                    p5_tests::reserve_encoder();
++                    let mut t = Trainer::new(
++                        &context.evaluator,
++                        Box::new(BlockRefresh {
++                            facade,
++                            service,
++                            boundary: false,
++                        }),
++                        optims,
++                        layout,
++                    )?
++                    .with_transpose_keys(description.transpose.clone());
++                    if description.frozen {
++                        t = t.with_frozen_biases();
++                    }
++                    stages.push(t);
++                }
++                BlockTraining::Interactive(BlockTrainer::new(
++                    &context.evaluator,
++                    stages,
++                    Box::new(BlockRefresh {
++                        facade,
++                        service,
++                        boundary: true,
++                    }),
++                )?)
++            }
++            DiagonalMode::NonInteractive(placement) => {
++                ensure(refresh.is_none(), "block NI refresh absence")?;
++                let states = compact.ok_or_else(|| mismatch("block compact dependency"))?;
++                let mut stages = Vec::with_capacity(n);
++                for (stage, state) in states.into_iter().enumerate() {
++                    let opt = plan.initial()[stage].optimizer();
++                    let optim = match opt {
++                        DiagonalOptimizer::Sgd { lr } => NiOptimizer::Sgd { lr },
++                        DiagonalOptimizer::Nag { lr, momentum, .. } => {
++                            NiOptimizer::Nag { lr, momentum }
++                        }
++                    };
++                    #[cfg(test)]
++                    p5_tests::reserve_encoder();
++                    let mut t = NonInteractiveTrainer::new(
++                        &context.evaluator,
++                        facade,
++                        optim,
++                        layout,
++                        placement,
++                        model.stage(stage),
++                        state,
++                    )?
++                    .with_transpose_keys(descriptions[stage].transpose.clone());
++                    if let DiagonalOptimizer::Nag { reference, .. } = opt {
++                        t.set_lr_reference(reference)?;
++                    }
++                    if descriptions[stage].frozen {
++                        t = t.with_frozen_biases();
++                    }
++                    stages.push(t);
++                }
++                BlockTraining::NonInteractive(BlockNiTrainer::new(
++                    &context.evaluator,
++                    facade,
++                    stages,
++                )?)
++            }
++        };
++        let s = Self {
++            facade,
++            plan,
++            descriptions,
++            classes,
++            model,
++            trainer,
++            batches,
++            completed: 0,
++            samples: 0,
++            poisoned: false,
++            failed: None,
++        };
++        for stage in 0..n {
++            s.check_state(stage, &s.plan.initial()[stage], 0)?;
++            s.check_actual_batch(stage)?;
++        }
++        facade.active.set(true);
++        Ok(s)
++    }
++    /// Successful logical block updates.
++    pub fn completed_updates(&self) -> usize {
++        self.completed
++    }
++    /// Successful logical samples; stages do not multiply this denominator.
++    pub fn processed_samples(&self) -> usize {
++        self.samples
++    }
++    /// Permanent midwork failure state.
++    pub fn is_poisoned(&self) -> bool {
++        self.poisoned
++    }
++    /// Actual prefix evidence, when poisoned.
++    pub fn failed_update(&self) -> Option<&BlockFailure> {
++        self.failed.as_ref()
++    }
++    fn traces(&self) -> Vec<Vec<(String, usize)>> {
++        match &self.trainer {
++            BlockTraining::Interactive(t) => {
++                t.stages().iter().map(|t| t.trace().to_vec()).collect()
++            }
++            BlockTraining::NonInteractive(t) => {
++                t.stages().iter().map(|t| t.trace().to_vec()).collect()
++            }
++        }
++    }
++    fn check_state(&self, stage: usize, state: &StateMetadata, progress: usize) -> Result<()> {
++        ensure(
++            state.completed_updates() == progress,
++            "block state successful index",
++        )?;
++        match &self.trainer {
++            BlockTraining::Interactive(t) => check_interactive_stage(
++                self.facade.base,
++                &self.descriptions[stage],
++                self.model.stage(stage),
++                self.batches[stage],
++                &t.stages()[stage],
++                state,
++            ),
++            BlockTraining::NonInteractive(t) => check_ni_stage(
++                self.facade.base,
++                &self.descriptions[stage],
++                self.model.stage(stage),
++                self.batches[stage],
++                &t.stages()[stage],
++                state,
++            ),
++        }
++    }
++    fn check_actual_batch(&self, stage: usize) -> Result<()> {
++        let c = self.facade.base;
++        let before = c.counter();
++        let ev = c.evaluator.fork();
++        let actual = match &self.trainer {
++            BlockTraining::Interactive(t) => self.model.stage(stage).batch_spec_at(
++                &ev,
++                &c.encoder,
++                t.stages()[stage].refresh_level(),
++            )?,
++            BlockTraining::NonInteractive(t) => {
++                t.stages()[stage].batch_spec(self.model.stage(stage))?
++            }
++        };
++        ensure(before == c.counter(), "block probe counter isolation")?;
++        ensure(
++            actual == self.batches[stage],
++            "block retained batch specification",
++        )
++    }
++    fn validate_packet(&self, p: &EncryptedBlockUpdate) -> Result<(usize, usize)> {
++        ensure(!self.poisoned, "poisoned block session")?;
++        ensure(
++            self.completed < self.plan.parts().len(),
++            "exhausted block session",
++        )?;
++        ensure(p.index == self.completed, "block update index/replay")?;
++        ensure(self.plan.same(&p.plan), "block packet plan identity")?;
++        ensure(
++            Arc::ptr_eq(&p.owner, &self.facade.base.owner),
++            "block packet context identity",
++        )?;
++        let n = self.descriptions.len();
++        let parts = &self.plan.parts()[self.completed];
++        ensure(p.micros.len() == parts.len(), "block micro cardinality")?;
++        ensure(
++            p.target_widths.len() == n && p.input_width == self.descriptions[0].geometry.dims()[0],
++            "block packet widths",
++        )?;
++        let mut total = 0usize;
++        for (micro, part) in p.micros.iter().zip(parts) {
++            ensure(
++                micro.part == *part
++                    && part.start == total
++                    && part.valid > 0
++                    && part.valid <= self.descriptions[0].geometry.layout().batch,
++                "block ordered partition",
++            )?;
++            total = total
++                .checked_add(part.valid)
++                .ok_or_else(|| mismatch("block partition overflow"))?;
++            ensure(micro.targets.len() == n, "block stage target cardinality")?;
++        }
++        ensure(p.total == total, "block logical denominator")?;
++        let next = self
++            .completed
++            .checked_add(1)
++            .ok_or_else(|| mismatch("block progress overflow"))?;
++        let samples = self
++            .samples
++            .checked_add(total)
++            .ok_or_else(|| mismatch("block sample overflow"))?;
++        let rate = self.plan.rates()[self.completed].kernel;
++        for stage in 0..n {
++            let d = &self.descriptions[stage];
++            self.facade.base.check_geometry(&d.geometry)?;
++            ensure(
++                self.classes[stage] > 0
++                    && self.classes[stage] <= p.target_widths[stage]
++                    && p.target_widths[stage] == *d.geometry.dims().last().unwrap(),
++                "block stage target shape",
++            )?;
++            let t = self.plan.transition(self.completed, stage);
++            let u = t.update_metadata().unwrap();
++            self.check_state(stage, u.pre_state(), self.completed)?;
++            self.check_actual_batch(stage)?;
++            ensure(
++                u.micros().len() == parts.len(),
++                "block receipt micro cardinality",
++            )?;
++            for (mi, ((micro, part), m)) in p.micros.iter().zip(parts).zip(u.micros()).enumerate() {
++                ensure(m.n_valid == part.valid, "block receipt ordered rows")?;
++                check_ct(self.facade.base, &micro.targets[stage], m.y)?;
++                if stage == 0 {
++                    check_ct(self.facade.base, &micro.x, m.x)?;
++                } else {
++                    let h = self
++                        .plan
++                        .boundary(self.completed, stage - 1)
++                        .handoff_metadata()
++                        .unwrap();
++                    ensure(
++                        h.outputs().len() == parts.len() && h.outputs()[mi] == m.x,
++                        "block incoming transition metadata",
++                    )?;
++                }
++            }
++            let c = u.coefficients();
++            ensure(
++                f64::from_bits(c.current_bits).is_finite()
++                    && f64::from_bits(c.bias_bits).is_finite()
++                    && c.reference_bits
++                        .is_none_or(|v| f64::from_bits(v).is_finite()),
++                "block finite read-only coefficients",
++            )?;
++            match &self.trainer {
++                BlockTraining::Interactive(t) => {
++                    let t = &t.stages()[stage];
++                    t.validate_lr(rate)?;
++                    for layer in 0..self.model.stage(stage).layers.len() {
++                        let v = t.optimizer_view(layer)?;
++                        ensure(
++                            v.lr().is_finite()
++                                && v.weight_factor().is_finite()
++                                && v.bias_factor().is_finite()
++                                && v.reference_factor().is_none_or(f64::is_finite)
++                                && v.momentum().is_none_or(f64::is_finite),
++                            "block read-only configured coefficient validity",
++                        )?;
++                        if let Some(reference) = v.reference() {
++                            ensure(
++                                reference.to_bits() == self.plan.reference().to_bits(),
++                                "block fixed reference",
++                            )?;
++                        }
++                    }
++                }
++                BlockTraining::NonInteractive(t) => {
++                    t.stages()[stage].validate_lr(rate)?;
++                    let o = t.stages()[stage].optimizer();
++                    ensure(
++                        o.lr().is_finite()
++                            && o.grad_scale().is_finite()
++                            && o.bias_grad_scale().is_finite(),
++                        "block read-only configured coefficient validity",
++                    )?;
++                    ensure(
++                        t.stages()[stage].lr_reference().to_bits()
++                            == self.plan.reference().to_bits(),
++                        "block fixed reference",
++                    )?;
++                }
++            }
++        }
++        Ok((next, samples))
++    }
++    /// Validates the full packet and every stage before setters; invokes one existing wrapper.
++    /// Midwork errors retain prefix counters and permanently reject retries.
++    pub fn step(&mut self, p: &EncryptedBlockUpdate) -> Result<BlockCompletion> {
++        let (next, samples) = self.validate_packet(p)?;
++        let before = self.facade.base.counter();
++        let trace_before = self.traces();
++        let refresh_before = self.facade.refreshes.get();
++        let stage_before = match &self.trainer {
++            BlockTraining::NonInteractive(t) => t
++                .stages()
++                .iter()
++                .map(|t| (t.weight_bootstraps(), t.activation_bootstraps()))
++                .collect::<Vec<_>>(),
++            _ => vec![],
++        };
++        let handoff_before = match &self.trainer {
++            BlockTraining::Interactive(t) => t.handoffs() as u64,
++            BlockTraining::NonInteractive(t) => t.handoff_bootstraps(),
++        };
++        self.poisoned = true;
++        self.failed = Some(BlockFailure {
++            update: self.completed,
++            phase: "configuration",
++            measured: OpCounter::default(),
++            traces: vec![],
++            trace_changed: vec![],
++            retained_boundary_outputs: 0,
++        });
++        self.facade
++            .begin((self.descriptions.len() - 1) * p.micros.len());
++        let result = (|| {
++            let rate = self.plan.rates()[self.completed].kernel;
++            let next_full = self.plan.transition(self.completed, 0).next_full();
++            match &mut self.trainer {
++                BlockTraining::Interactive(t) => t.set_lr(rate)?,
++                BlockTraining::NonInteractive(t) => {
++                    t.set_lr(rate)?;
++                    t.set_next_batch_full(next_full);
++                }
++            }
++            for (stage, _) in self.descriptions.iter().enumerate() {
++                self.check_coefficients(stage, p.total)?;
++            }
++            let targets = p
++                .micros
++                .iter()
++                .map(|m| m.targets.iter().collect::<Vec<_>>())
++                .collect::<Vec<_>>();
++            let batches = p
++                .micros
++                .iter()
++                .zip(&targets)
++                .map(|(m, y)| (&m.x, y.as_slice(), m.part.valid))
++                .collect::<Vec<_>>();
++            self.failed.as_mut().unwrap().phase = "trainer";
++            #[cfg(test)]
++            p5_tests::reserve_attempt();
++            match &mut self.trainer {
++                BlockTraining::Interactive(t) => t.train_step_valid(&mut self.model, &batches)?,
++                BlockTraining::NonInteractive(t) => {
++                    t.train_step_valid(&mut self.model, &batches)?
++                }
++            }
++            self.failed.as_mut().unwrap().phase = "postcheck";
++            let measured = &self.facade.base.counter() - &before;
++            let mut expected = OpCounter::default();
++            let mut refreshes = 0;
++            let mut boots = 0;
++            let mut boundary_events = 0;
++            for (stage, _) in self.descriptions.iter().enumerate() {
++                let u = self
++                    .plan
++                    .transition(self.completed, stage)
++                    .update_metadata()
++                    .unwrap();
++                expected += u.counts_including_bootstrap();
++                refreshes += u.client_refreshes();
++                boots += u.bootstrap_count();
++                self.check_state(stage, u.post_state(), next)?;
++                self.check_actual_batch(stage)?;
++                self.check_trace(stage)?;
++                if let BlockTraining::NonInteractive(t) = &self.trainer {
++                    let actual = &t.stages()[stage];
++                    let activation = u
++                        .canonical_activations()
++                        .iter()
++                        .map(Vec::len)
++                        .sum::<usize>();
++                    ensure(
++                        actual.last_update_rescaled() == u.reference_branch()
++                            && actual.last_update_booted() == u.state_bootstrapped()
++                            && actual.activation_bootstraps() - stage_before[stage].1
++                                == activation as u64
++                            && actual.weight_bootstraps() - stage_before[stage].0
++                                == (u.bootstrap_count() - activation) as u64,
++                        "block NI stage bootstrap decisions",
++                    )?;
++                }
++                if stage + 1 < self.descriptions.len() {
++                    let h = self
++                        .plan
++                        .boundary(self.completed, stage)
++                        .handoff_metadata()
++                        .unwrap();
++                    expected += h.counts_including_bootstrap();
++                    refreshes += h.client_refreshes();
++                    boots += h.bootstrap_count();
++                    boundary_events += match &self.trainer {
++                        BlockTraining::Interactive(_) => h.client_refreshes(),
++                        BlockTraining::NonInteractive(_) => h.bootstrap_count(),
++                    };
++                }
++            }
++            self.check_handoffs(p.micros.len())?;
++            let handoff_after = match &self.trainer {
++                BlockTraining::Interactive(t) => t.handoffs() as u64,
++                BlockTraining::NonInteractive(t) => t.handoff_bootstraps(),
++            };
++            ensure(
++                handoff_after - handoff_before == boundary_events as u64,
++                "block boundary refresh/bootstrap decisions",
++            )?;
++            ensure(
++                measured == expected && measured.bootstraps == boots as u64,
++                "block seven inclusive stage+handoff counters",
++            )?;
++            ensure(
++                self.facade.refreshes.get() - refresh_before == refreshes,
++                "block inclusive client refreshes",
++            )?;
++            Ok(BlockCompletion {
++                completed_updates: next,
++                processed_samples: samples,
++                measured,
++                client_refreshes: refreshes,
++                traces: self.traces(),
++            })
++        })();
++        match result {
++            Ok(done) => {
++                self.completed = next;
++                self.samples = samples;
++                self.poisoned = false;
++                self.failed = None;
++                Ok(done)
++            }
++            Err(e) => {
++                let traces = self.traces();
++                let trace_changed = traces
++                    .iter()
++                    .zip(&trace_before)
++                    .map(|(a, b)| a != b)
++                    .collect();
++                let failure = self.failed.as_mut().unwrap();
++                failure.measured = &self.facade.base.counter() - &before;
++                failure.traces = traces;
++                failure.trace_changed = trace_changed;
++                failure.retained_boundary_outputs = self.facade.boundary.borrow().len();
++                Err(e)
++            }
++        }
++    }
++    fn check_coefficients(&self, stage: usize, total: usize) -> Result<()> {
++        let u = self
++            .plan
++            .transition(self.completed, stage)
++            .update_metadata()
++            .unwrap();
++        let c = u.coefficients();
++        let n = total as f64;
++        let rate = self.plan.rates()[self.completed].kernel;
++        match &self.trainer {
++            BlockTraining::Interactive(t) => {
++                for layer in 0..self.model.stage(stage).layers.len() {
++                    let v = t.stages()[stage].optimizer_view(layer)?;
++                    ensure(
++                        v.lr().to_bits() == rate.to_bits()
++                            && (v.weight_factor() / n).to_bits() == c.current_bits
++                            && v.reference_factor().map(|x| (x / n).to_bits()) == c.reference_bits
++                            && (if self.descriptions[stage].frozen {
++                                0.
++                            } else {
++                                v.bias_factor() / n
++                            })
++                            .to_bits()
++                                == c.bias_bits
++                            && v.momentum().map(f64::to_bits) == c.velocity_mu_bits
++                            && v.reference_factor().is_some() == u.reference_branch()
++                            && (v.momentum().is_some() && v.velocity().is_none())
++                                == u.first_nag_update(),
++                        "block interactive configured coefficients/branches",
++                    )?;
++                }
++            }
++            BlockTraining::NonInteractive(t) => {
++                let t = &t.stages()[stage];
++                let o = t.optimizer();
++                let reference = (o.has_velocity() && rate / t.lr_reference() != 1.)
++                    .then(|| o.with_lr(t.lr_reference()).grad_scale() / n);
++                let mu = match o {
++                    NiOptimizer::Nag { momentum, .. } => Some(momentum),
++                    _ => None,
++                };
++                ensure(
++                    o.lr().to_bits() == rate.to_bits()
++                        && (o.grad_scale() / n).to_bits() == c.current_bits
++                        && reference.map(f64::to_bits) == c.reference_bits
++                        && (if self.descriptions[stage].frozen {
++                            0.
++                        } else {
++                            o.bias_grad_scale() / n
++                        })
++                        .to_bits()
++                            == c.bias_bits
++                        && mu.map(f64::to_bits) == c.velocity_mu_bits
++                        && reference.is_some() == u.reference_branch()
++                        && (o.has_velocity() && t.state().velocity.iter().all(Option::is_none))
++                            == u.first_nag_update(),
++                    "block NI configured coefficients/branches",
++                )?;
++            }
++        }
++        Ok(())
++    }
++    fn check_trace(&self, stage: usize) -> Result<()> {
++        let u = self
++            .plan
++            .transition(self.completed, stage)
++            .update_metadata()
++            .unwrap();
++        let traces = self.traces();
++        let trace = &traces[stage];
++        let interactive = matches!(&self.trainer, BlockTraining::Interactive(_));
++        let count = if interactive { u.micros().len() } else { 1 };
++        ensure(
++            u.retained_hidden().len() == u.micros().len(),
++            "block hidden micro cardinality",
++        )?;
++        for micro in 0..count {
++            let labels = &u.retained_hidden()[micro];
++            ensure(
++                labels.len() + 1 == self.model.stage(stage).layers.len(),
++                "block hidden layer cardinality",
++            )?;
++            for (layer, m) in labels.iter().enumerate() {
++                let name = if interactive && count > 1 {
++                    format!("micro{micro}/a{}", layer + 1)
++                } else {
++                    format!("a{}", layer + 1)
++                };
++                let found = trace.iter().filter(|(n, _)| n == &name).collect::<Vec<_>>();
++                ensure(
++                    found.len() == 1 && found[0].1 == m.level(),
++                    "block hidden trace level",
++                )?;
++            }
++        }
++        if let BlockTraining::NonInteractive(t) = &self.trainer {
++            let t = &t.stages()[stage];
++            let actual = t.last_activation_bootstraps();
++            let canonical = u.canonical_activations();
++            if t.placement() == BootPlacement::AfterActivation {
++                ensure(
++                    actual.len() == canonical.len(),
++                    "block AA micro cardinality",
++                )?;
++                for (a, b) in actual.iter().zip(canonical) {
++                    ensure(a.len() == b.len(), "block AA layer cardinality")?;
++                    for (ct, &m) in a.iter().zip(b) {
++                        check_ct(self.facade.base, ct, m)?;
++                    }
++                }
++                for (layer, m) in canonical[0].iter().enumerate() {
++                    let name = format!("a{}_boot", layer + 1);
++                    let found = trace.iter().filter(|(n, _)| n == &name).collect::<Vec<_>>();
++                    ensure(
++                        found.len() == 1 && found[0].1 == m.level(),
++                        "block AA trace level",
++                    )?;
++                }
++            } else {
++                ensure(
++                    actual.is_empty() && canonical.iter().all(Vec::is_empty),
++                    "block non-AA activation absence",
++                )?;
++            }
++        }
++        Ok(())
++    }
++    fn check_handoffs(&self, micros: usize) -> Result<()> {
++        let boundaries = self.descriptions.len() - 1;
++        match &self.trainer {
++            BlockTraining::Interactive(_) => {
++                let output = self.facade.boundary.borrow();
++                ensure(
++                    output.len() == boundaries * micros,
++                    "block I recorded handoff cardinality",
++                )?;
++                for (stage, part) in output.chunks_exact(micros).enumerate() {
++                    let expected = self
++                        .plan
++                        .boundary(self.completed, stage)
++                        .handoff_metadata()
++                        .unwrap();
++                    ensure(
++                        part.len() == expected.outputs().len(),
++                        "block I typed handoff cardinality",
++                    )?;
++                    for (ct, &m) in part.iter().zip(expected.outputs()) {
++                        check_ct(self.facade.base, ct, m)?;
++                    }
++                }
++            }
++            BlockTraining::NonInteractive(t) => {
++                let output = t.last_handoff_bootstraps();
++                ensure(
++                    output.len() == boundaries,
++                    "block NI handoff boundary cardinality",
++                )?;
++                for (stage, part) in output.iter().enumerate() {
++                    let expected = self
++                        .plan
++                        .boundary(self.completed, stage)
++                        .handoff_metadata()
++                        .unwrap();
++                    let dest = self
++                        .plan
++                        .transition(self.completed, stage + 1)
++                        .update_metadata()
++                        .unwrap();
++                    ensure(
++                        part.len() == micros && part.len() == expected.outputs().len(),
++                        "block NI typed handoff cardinality",
++                    )?;
++                    for (micro, (ct, &m)) in part.iter().zip(expected.outputs()).enumerate() {
++                        check_ct(self.facade.base, ct, m)?;
++                        ensure(
++                            m == dest.micros()[micro].x,
++                            "block incoming handoff level16 transition",
++                        )?;
++                        if t.stages()[stage].placement() == BootPlacement::AfterActivation {
++                            ensure(
++                                expected.bootstrap_count() == 0
++                                    && *expected.counts_including_bootstrap()
++                                        == OpCounter::default()
++                                    && ciphertext_exact(
++                                        ct,
++                                        &t.stages()[stage].last_activation_bootstraps()[micro][0],
++                                    ),
++                                "block exact AA reuse/zero conversion",
++                            )?;
++                        }
++                    }
++                }
++            }
++        }
++        Ok(())
++    }
++    /// Copies all stage models and available old-hidden handoffs to a client endpoint.
++    pub fn snapshot(&self) -> EncryptedBlockSnapshot {
++        let stages = (0..self.descriptions.len())
++            .map(|stage| EncryptedModelSnapshot {
++                owner: self.facade.base.owner.clone(),
++                layers: self
++                    .model
++                    .stage(stage)
++                    .layers
++                    .iter()
++                    .map(|(d, _)| d.clone())
++                    .collect(),
++                layout: self.descriptions[stage].geometry.layout(),
++            })
++            .collect();
++        let update = self.completed.saturating_sub(1);
++        let micros = self.plan.parts()[update].len();
++        let handoffs = match &self.trainer {
++            BlockTraining::Interactive(_) => self
++                .facade
++                .boundary
++                .borrow()
++                .chunks(micros)
++                .map(|p| p.to_vec())
++                .collect(),
++            BlockTraining::NonInteractive(t) => t.last_handoff_bootstraps().to_vec(),
++        };
++        EncryptedBlockSnapshot {
++            stages,
++            handoffs,
++            valid: self.plan.parts()[update].iter().map(|p| p.valid).collect(),
++            widths: self
++                .descriptions
++                .iter()
++                .take(self.descriptions.len() - 1)
++                .map(|d| d.geometry.dims()[1])
++                .collect(),
++        }
++    }
++}
++/// Exact ciphertext comparison includes lengths, all limbs, form and basis identity.
++pub(crate) fn ciphertext_exact(a: &Ciphertext, b: &Ciphertext) -> bool {
++    a.len() == b.len()
++        && a.level() == b.level()
++        && a.scale().to_bits() == b.scale().to_bits()
++        && a.polys().len() == b.polys().len()
++        && a.polys().iter().zip(b.polys()).all(|(a, b)| {
++            Arc::ptr_eq(a.basis(), b.basis())
++                && a.level() == b.level()
++                && a.is_ntt_form() == b.is_ntt_form()
++                && a.limbs() == b.limbs()
++        })
++}
++#[cfg(test)]
++pub(crate) mod p5_tests;
++
++impl Drop for CpuBlockSession<'_> {
++    fn drop(&mut self) {
++        self.facade.boundary.borrow_mut().clear();
++        self.facade.active.set(false);
++    }
++}
++/// Observed retained payload for one explicitly named live role.
++#[derive(Debug)]
++pub struct BlockRetainedRole {
++    /// Role and endpoint liveness; equal ciphertext contents are still separate payloads.
++    pub role: &'static str,
++    /// Number of actually retained ciphertext allocations in this role.
++    pub ciphertexts: usize,
++    /// Checked bytes of actual coefficient words; excludes object and allocator overhead.
++    pub coefficient_bytes: usize,
++}
++/// Checked payload inventory at a quiescent endpoint, never RSS or resource admission.
++#[derive(Debug)]
++pub struct BlockRetentionReceipt {
++    /// Actual retained ciphertext roles, counted separately for every clone owner.
++    pub retained: Vec<BlockRetainedRole>,
++    /// Checked sum of the observed roles only.
++    pub retained_coefficient_bytes: usize,
++    /// Actual retained training key bundle coefficient payload, separately owned.
++    pub training_key_bytes: usize,
++    /// Actual retained separate bootstrap key bundle payload, even when keys overlap.
++    pub bootstrap_key_bytes: usize,
++    /// Analytical role/count bounds for work inside the NN wrapper; not observations.
++    pub analytical_work: Vec<(&'static str, usize)>,
++    /// Explicit unobserved memory, with no fabricated total peak or secure-memory gate.
++    pub unobserved: &'static str,
++}
++fn checked_add(a: usize, b: usize) -> Result<usize> {
++    a.checked_add(b)
++        .ok_or_else(|| mismatch("block retention overflow"))
++}
++fn checked_mul(a: usize, b: usize) -> Result<usize> {
++    a.checked_mul(b)
++        .ok_or_else(|| mismatch("block retention overflow"))
++}
++fn ciphertext_bytes(c: &Ciphertext) -> Result<usize> {
++    c.polys().iter().try_fold(0, |sum, p| {
++        p.limbs().iter().try_fold(sum, |sum, limb| {
++            checked_add(sum, checked_mul(limb.len(), std::mem::size_of::<u64>())?)
++        })
++    })
++}
++fn role<'a>(
++    name: &'static str,
++    cts: impl IntoIterator<Item = &'a Ciphertext>,
++) -> Result<BlockRetainedRole> {
++    let mut count = 0;
++    let mut bytes = 0;
++    for c in cts {
++        count = checked_add(count, 1)?;
++        bytes = checked_add(bytes, ciphertext_bytes(c)?)?;
++    }
++    Ok(BlockRetainedRole {
++        role: name,
++        ciphertexts: count,
++        coefficient_bytes: bytes,
++    })
++}
++fn key_bytes(key: &ckks_train_ckks::KskKey) -> Result<usize> {
++    let mut words = 0;
++    for (b, a) in key.parts() {
++        for part in [b.q(), b.p(), a.q(), a.p()] {
++            for limb in part.limbs() {
++                words = checked_add(words, limb.len())?;
++            }
++        }
++    }
++    checked_mul(words, 8)
++}
++impl CpuBlockSession<'_> {
++    /// Accounts actual retained payloads at an endpoint, optionally including the caller's
++    /// current packet and exported snapshot. Other diagnostic copies remain caller-owned.
++    pub fn retention_receipt(
++        &self,
++        packet: Option<&EncryptedBlockUpdate>,
++        snapshot: Option<&EncryptedBlockSnapshot>,
++    ) -> Result<BlockRetentionReceipt> {
++        let mut retained = vec![role(
++            "session expanded W/b; live for session",
++            (0..self.model.num_stages()).flat_map(|s| {
++                self.model.stage(s).layers.iter().flat_map(|(d, _)| {
++                    d.w.diagonals()
++                        .entries()
++                        .iter()
++                        .chain(std::iter::once(&d.b))
++                })
++            }),
++        )?];
++        match &self.trainer {
++            BlockTraining::Interactive(t) => {
++                let mut velocity = BlockRetainedRole {
++                    role: "I velocity; live for session",
++                    ciphertexts: 0,
++                    coefficient_bytes: 0,
++                };
++                for (s, stage) in t.stages().iter().enumerate() {
++                    for layer in 0..self.model.stage(s).layers.len() {
++                        let view = stage.optimizer_view(layer)?;
++                        if let Some(v) = view.velocity() {
++                            let part = role("I velocity layer", v.entries())?;
++                            velocity.ciphertexts =
++                                checked_add(velocity.ciphertexts, part.ciphertexts)?;
++                            velocity.coefficient_bytes =
++                                checked_add(velocity.coefficient_bytes, part.coefficient_bytes)?;
++                        }
++                    }
++                }
++                retained.push(velocity);
++                retained.push(role(
++                    "I boundary recorder; current attempt, cleared at next accepted attempt/drop",
++                    self.facade.boundary.borrow().iter(),
++                )?);
++            }
++            BlockTraining::NonInteractive(t) => {
++                retained.push(role(
++                    "NI compact W; live for session",
++                    t.stages().iter().flat_map(|s| &s.state().weights),
++                )?);
++                retained.push(role(
++                    "NI compact velocity; live for session",
++                    t.stages()
++                        .iter()
++                        .flat_map(|s| s.state().velocity.iter().flatten()),
++                )?);
++                retained.push(role(
++                    "NI boundary output clones; last success, cleared by next wrapper attempt",
++                    t.last_handoff_bootstraps().iter().flatten(),
++                )?);
++                retained.push(role(
++                    "AA activation outputs; per-stage last successful update",
++                    t.stages()
++                        .iter()
++                        .flat_map(|s| s.last_activation_bootstraps().iter().flatten()),
++                )?);
++            }
++        }
++        if let Some(p) = packet {
++            ensure(
++                self.plan.same(&p.plan) && Arc::ptr_eq(&p.owner, &self.facade.base.owner),
++                "block retention packet association",
++            )?;
++            retained.push(role(
++                "caller packet x0 and stage targets; until endpoint/drop",
++                p.micros
++                    .iter()
++                    .flat_map(|m| std::iter::once(&m.x).chain(&m.targets)),
++            )?);
++        }
++        if let Some(s) = snapshot {
++            ensure(
++                s.stages.len() == self.descriptions.len()
++                    && s.stages
++                        .iter()
++                        .all(|s| Arc::ptr_eq(&s.owner, &self.facade.base.owner)),
++                "block retention snapshot association",
++            )?;
++            retained.push(role(
++                "client endpoint model snapshot clones; caller owned",
++                s.stages.iter().flat_map(|s| {
++                    s.layers.iter().flat_map(|d| {
++                        d.w.diagonals()
++                            .entries()
++                            .iter()
++                            .chain(std::iter::once(&d.b))
++                    })
++                }),
++            )?);
++            retained.push(role(
++                "client endpoint handoff snapshot clones; caller owned",
++                s.handoffs.iter().flatten(),
++            )?);
++        }
++        let retained_coefficient_bytes = retained
++            .iter()
++            .try_fold(0, |sum, r| checked_add(sum, r.coefficient_bytes))?;
++        let ev = &self.facade.base.evaluator;
++        let mut training_key_bytes = 0;
++        if let Some(k) = ev.relin_key() {
++            training_key_bytes = checked_add(training_key_bytes, key_bytes(k.key())?)?;
++        }
++        if let Some(keys) = ev.galois_keys() {
++            for k in keys.iter() {
++                training_key_bytes = checked_add(training_key_bytes, key_bytes(k.key())?)?;
++            }
++        }
++        let mut bootstrap_key_bytes = 0;
++        if let Some(b) = &self.facade.base.bootstrap {
++            for k in b.real.keys().galois().iter() {
++                bootstrap_key_bytes = checked_add(bootstrap_key_bytes, key_bytes(k.key())?)?;
++            }
++            if let Some(sse) = b.real.keys().sse() {
++                bootstrap_key_bytes =
++                    checked_add(bootstrap_key_bytes, key_bytes(sse.to_sparse())?)?;
++                bootstrap_key_bytes = checked_add(bootstrap_key_bytes, key_bytes(sse.to_dense())?)?;
++            }
++        }
++        let micros = self.plan.parts().iter().map(Vec::len).max().unwrap_or(0);
++        let expanded = self.descriptions.iter().try_fold(0, |sum, d| {
++            d.geometry.dims().windows(2).try_fold(sum, |sum, w| {
++                checked_add(sum, checked_add(w[0].max(w[1]).next_power_of_two(), 1)?)
++            })
++        })?;
++        let layers = self
++            .descriptions
++            .iter()
++            .try_fold(0, |sum, d| checked_add(sum, d.activations.len()))?;
++        let analytical_work = vec![
++            (
++                "wrapper current inputs clones plus next handoff clones; per active boundary",
++                checked_mul(micros, 2)?,
++            ),
++            (
++                "old hidden and forward caches; all stage layers upper role bound",
++                checked_mul(micros, layers)?,
++            ),
++            (
++                "active gradients plus reference gradients/transpose work; coefficient payload not observed",
++                checked_mul(expanded, 3)?,
++            ),
++            (
++                "AA wrapper retains separate source activation and handoff clones",
++                checked_mul(micros, self.descriptions.len() - 1)?,
++            ),
++        ];
++        Ok(BlockRetentionReceipt {
++            retained,
++            retained_coefficient_bytes,
++            training_key_bytes,
++            bootstrap_key_bytes,
++            analytical_work,
++            unobserved: "NN temporary lifetime overlap, bootstrap ciphertext/plaintext workspace and transforms, evaluator/encoder caches, parameter tables, client public/secret/encryption RNG storage, caller diagnostic comparison copies, object/Vec capacity and allocator overhead are not measured. This receipt is not RSS, security, resource admission or a secure-memory gate.",
++        })
++    }
++}
++
++#[cfg(test)]
++impl BlockRetentionReceipt {
++    fn include_diagnostic_copy<'a>(
++        &mut self,
++        name: &'static str,
++        cts: impl IntoIterator<Item = &'a Ciphertext>,
++    ) -> Result<()> {
++        let observed = role(name, cts)?;
++        self.retained_coefficient_bytes =
++            checked_add(self.retained_coefficient_bytes, observed.coefficient_bytes)?;
++        self.retained.push(observed);
++        Ok(())
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_blocks/p5_tests.rs b/crates/ckks-train-bench/src/study_blocks/p5_tests.rs
+new file mode 100644
+index 0000000..95b9283
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_blocks/p5_tests.rs
+@@ -0,0 +1,1112 @@
++//! NONSCIENTIFIC_TEST_EVIDENCE. Compile-visible complete fixed matrix, no automatic release.
++use super::*;
++use crate::{
++    study_admission::{
++        PlanningBudget, PlanningParameters, PlanningUsage, p5_fixtures::SyntheticBlockPlan,
++    },
++    study_client::{
++        CpuBootstrapDescription, StudyClient,
++        blocks::{BlockPreparationInput, make_blocks_owned, prepare_blocks_then_make},
++        context_parameters,
++    },
++    study_plain::p5_fixtures::{BlockFamily, BlockOracle, BlockRecipe, PairedOraclePhase},
++};
++use ckks_train_ckks::{
++    CkksParams,
++    bootstrap::{
++        BootParams,
++        metadata::{BootstrapMetadata, DftSupportProof},
++    },
++};
++use ckks_train_core::sampler::Rng;
++use ckks_train_nn::optim::Nag;
++use ndarray::Array2;
++use std::rc::Rc;
++
++#[derive(Clone, Copy, Debug)]
++#[repr(usize)]
++enum Work {
++    Params,
++    Keys,
++    Proof,
++    Descriptor,
++    Bootstrapper,
++    Encoder,
++    Attempt,
++    Boot,
++    Refresh,
++    Packet,
++    X,
++    Y,
++    Endpoint,
++    Inspection,
++    HandoffInspection,
++    Session,
++    Snapshot,
++    Unchanged,
++    ConfigSnapshot,
++    ConfigComparison,
++    PrefixCapture,
++    Spy,
++}
++const CAPS: [usize; 22] = [
++    2, 2, 1, 1, 1, 40, 42, 361, 357, 42, 64, 152, 40, 96, 84, 16, 46, 68, 3, 4, 2, 1,
++];
++#[derive(Default)]
++struct Budget {
++    counts: [Cell<usize>; 22],
++}
++thread_local! {static ACTIVE:RefCell<Option<Rc<Budget>>>=const {RefCell::new(None)};}
++fn reserve(work: Work) {
++    ACTIVE.with(|active| {
++        if let Some(b) = active.borrow().as_ref() {
++            let cell = &b.counts[work as usize];
++            let next = cell.get().checked_add(1).unwrap();
++            eprintln!(
++                "P5_BEFORE_CALL kind={work:?} ordinal={next} cap={}",
++                CAPS[work as usize]
++            );
++            assert!(next <= CAPS[work as usize], "P5 {work:?} cap");
++            cell.set(next);
++        }
++    });
++}
++macro_rules! guards {($($name:ident:$kind:ident),*$(,)?)=>{$(pub(crate) fn $name(){reserve(Work::$kind);})*};}
++guards! {reserve_key:Keys,reserve_bootstrapper:Bootstrapper,reserve_encoder:Encoder,reserve_boot:Boot,reserve_refresh:Refresh,reserve_attempt:Attempt,reserve_packet:Packet,reserve_x:X,reserve_y:Y,reserve_endpoint:Endpoint,reserve_inspection:Inspection,reserve_handoff_inspection:HandoffInspection}
++struct Active;
++impl Drop for Active {
++    fn drop(&mut self) {
++        ACTIVE.with(|active| *active.borrow_mut() = None);
++    }
++}
++fn rng(seed: u8) -> Rng {
++    Rng::from_seed([seed; 32])
++}
++struct Case {
++    family: BlockFamily,
++    mode: DiagonalMode,
++    plan: Arc<SyntheticBlockPlan>,
++    poison: bool,
++}
++fn arrays(recipe: &BlockRecipe) -> Vec<Vec<(Array2<f64>, Vec<f64>)>> {
++    recipe
++        .initial()
++        .chunks_exact(2)
++        .map(|stage| {
++            stage
++                .iter()
++                .map(|l| (l.weights().clone(), l.biases().to_vec()))
++                .collect()
++        })
++        .collect()
++}
++fn setup(
++    case: &Case,
++    parameters: Arc<CkksParams>,
++    boot: Option<CpuBootstrapDescription>,
++    steps: &[i32],
++) -> (StudyClient, CpuEvaluationContext) {
++    let bound = boot.clone();
++    let actual = PlanningParameters {
++        params: &parameters,
++        bootstrap: bound.as_ref().map(|b| b.metadata.as_ref()),
++        boot_params: bound.as_ref().map(|b| &b.parameters),
++    };
++    let claim = case.plan.claim();
++    prepare_blocks_then_make(
++        BlockPreparationInput::Synthetic {
++            plan: case.plan.clone(),
++            claim: &claim,
++        },
++        actual,
++        &case.plan.parts,
++        |checked| make_blocks_owned(&checked, parameters.clone(), steps, boot, rng(61), rng(62)),
++    )
++    .unwrap()
++}
++fn spy_contract(
++    plan: &Arc<SyntheticBlockPlan>,
++    actual: PlanningParameters<'_>,
++    other: PlanningParameters<'_>,
++) {
++    let claim = plan.claim();
++    let marker = prepare_blocks_then_make(
++        BlockPreparationInput::Synthetic {
++            plan: plan.clone(),
++            claim: &claim,
++        },
++        actual,
++        &plan.parts,
++        |checked| {
++            reserve(Work::Spy);
++            assert!(checked.plan.same(&BlockPlanOwner::Synthetic(plan.clone())));
++            Ok("checked-private-block-factory")
++        },
++    )
++    .unwrap();
++    assert_eq!(marker, "checked-private-block-factory");
++    let calls = Cell::new(0usize);
++    let reject = |claim: &crate::study_admission::p5_fixtures::SyntheticBlockClaim,
++                  p: PlanningParameters<'_>,
++                  parts: &[Vec<MicroPart>],
++                  field: &str| {
++        let result = prepare_blocks_then_make(
++            BlockPreparationInput::Synthetic {
++                plan: plan.clone(),
++                claim,
++            },
++            p,
++            parts,
++            |_| {
++                calls.set(calls.get() + 1);
++                Ok(())
++            },
++        );
++        assert_eq!(result.unwrap_err(), mismatch(field));
++        assert_eq!(calls.get(), 0);
++    };
++    let mut wrong = plan.claim();
++    wrong.identity.push('x');
++    reject(&wrong, actual, &plan.parts, "identity");
++    reject(
++        &plan.claim_for_actual_parameters(other),
++        other,
++        &plan.parts,
++        "parameters",
++    );
++    for field in 0..7 {
++        reject(
++            &plan.bad_parameter_claim(actual, field),
++            actual,
++            &plan.parts,
++            "parameters",
++        );
++    }
++    for parts in [
++        vec![],
++        vec![vec![MicroPart { start: 0, valid: 0 }]],
++        vec![vec![MicroPart { start: 1, valid: 8 }]],
++        vec![vec![MicroPart { start: 0, valid: 9 }]],
++        vec![vec![MicroPart { start: 0, valid: 7 }]],
++        vec![vec![
++            MicroPart { start: 4, valid: 4 },
++            MicroPart { start: 0, valid: 4 },
++        ]],
++        vec![vec![
++            MicroPart { start: 0, valid: 4 },
++            MicroPart { start: 0, valid: 4 },
++        ]],
++    ] {
++        reject(&claim, actual, &parts, "partition");
++    }
++    eprintln!(
++        "P5_FACTORY_SPY positive=1 negative=16 key_factory_reached=0 canonical_owned_start=false"
++    );
++}
++#[derive(Debug, PartialEq)]
++struct Config {
++    lr: u64,
++    reference: Option<u64>,
++    momentum: Option<u64>,
++    weight: u64,
++    bias: u64,
++    reference_factor: Option<u64>,
++}
++fn i_config(t: &Trainer<'_>, layers: usize) -> Vec<Config> {
++    (0..layers)
++        .map(|l| {
++            let v = t.optimizer_view(l).unwrap();
++            Config {
++                lr: v.lr().to_bits(),
++                reference: v.reference().map(f64::to_bits),
++                momentum: v.momentum().map(f64::to_bits),
++                weight: v.weight_factor().to_bits(),
++                bias: v.bias_factor().to_bits(),
++                reference_factor: v.reference_factor().map(f64::to_bits),
++            }
++        })
++        .collect()
++}
++fn configs(s: &CpuBlockSession<'_>) -> Vec<Vec<Config>> {
++    match &s.trainer {
++        BlockTraining::Interactive(t) => t
++            .stages()
++            .iter()
++            .enumerate()
++            .map(|(stage, t)| i_config(t, s.model.stage(stage).layers.len()))
++            .collect(),
++        BlockTraining::NonInteractive(t) => t
++            .stages()
++            .iter()
++            .map(|t| {
++                let o = t.optimizer();
++                let momentum = match o {
++                    NiOptimizer::Nag { momentum, .. } => Some(momentum),
++                    _ => None,
++                };
++                let reference = (o.has_velocity() && o.lr() / t.lr_reference() != 1.)
++                    .then(|| o.with_lr(t.lr_reference()).grad_scale());
++                vec![Config {
++                    lr: o.lr().to_bits(),
++                    reference: Some(t.lr_reference().to_bits()),
++                    momentum: momentum.map(f64::to_bits),
++                    weight: o.grad_scale().to_bits(),
++                    bias: o.bias_grad_scale().to_bits(),
++                    reference_factor: reference.map(f64::to_bits),
++                }]
++            })
++            .collect(),
++    }
++}
++fn visit_ciphertexts(s: &CpuBlockSession<'_>, mut visit: impl FnMut(&Ciphertext)) {
++    for stage in 0..s.model.num_stages() {
++        for (d, _) in &s.model.stage(stage).layers {
++            for c in d.w.diagonals().entries() {
++                visit(c);
++            }
++            visit(&d.b);
++        }
++    }
++    match &s.trainer {
++        BlockTraining::Interactive(t) => {
++            for (stage, t) in t.stages().iter().enumerate() {
++                for layer in 0..s.model.stage(stage).layers.len() {
++                    let view = t.optimizer_view(layer).unwrap();
++                    if let Some(v) = view.velocity() {
++                        for c in v.entries() {
++                            visit(c);
++                        }
++                    }
++                }
++            }
++        }
++        BlockTraining::NonInteractive(t) => {
++            for t in t.stages() {
++                for c in &t.state().weights {
++                    visit(c);
++                }
++                for c in t.state().velocity.iter().flatten() {
++                    visit(c);
++                }
++                for c in t.last_activation_bootstraps().iter().flatten() {
++                    visit(c);
++                }
++            }
++            for c in t.last_handoff_bootstraps().iter().flatten() {
++                visit(c);
++            }
++        }
++    }
++}
++#[derive(Debug, PartialEq)]
++struct RawMetadata {
++    dims: Vec<Vec<usize>>,
++    batches: Vec<BatchSpec>,
++    velocity: Vec<Vec<bool>>,
++    boot_refresh: Vec<(u64, u64)>,
++    handoffs: u64,
++    reference_flags: Vec<(bool, bool)>,
++    compact_layouts: Vec<ckks_train_nn::trainer_ni::CompactLayout>,
++}
++fn raw_metadata(s: &CpuBlockSession<'_>) -> RawMetadata {
++    let (velocity, boot_refresh, handoffs, reference_flags) = match &s.trainer {
++        BlockTraining::Interactive(t) => (
++            t.stages()
++                .iter()
++                .enumerate()
++                .map(|(stage, t)| {
++                    (0..s.model.stage(stage).layers.len())
++                        .map(|layer| t.optimizer_view(layer).unwrap().velocity().is_some())
++                        .collect()
++                })
++                .collect(),
++            t.stages()
++                .iter()
++                .map(|t| (t.refreshes() as u64, 0))
++                .collect(),
++            t.handoffs() as u64,
++            vec![],
++        ),
++        BlockTraining::NonInteractive(t) => (
++            t.stages()
++                .iter()
++                .map(|t| t.state().velocity.iter().map(Option::is_some).collect())
++                .collect(),
++            t.stages()
++                .iter()
++                .map(|t| (t.weight_bootstraps(), t.activation_bootstraps()))
++                .collect(),
++            t.handoff_bootstraps(),
++            t.stages()
++                .iter()
++                .map(|t| (t.last_update_rescaled(), t.last_update_booted()))
++                .collect(),
++        ),
++    };
++    let compact_layouts = match &s.trainer {
++        BlockTraining::Interactive(_) => vec![],
++        BlockTraining::NonInteractive(t) => t
++            .stages()
++            .iter()
++            .map(|t| t.compact_layout().clone())
++            .collect(),
++    };
++    RawMetadata {
++        compact_layouts,
++        dims: s.model.stage_dims(),
++        batches: s.batches.clone(),
++        velocity,
++        boot_refresh,
++        handoffs,
++        reference_flags,
++    }
++}
++struct RawSnapshot {
++    cts: Vec<Ciphertext>,
++    i_boundary: Vec<Ciphertext>,
++    counter: OpCounter,
++    progress: (usize, usize, bool),
++    failure: Option<BlockFailure>,
++    traces: Vec<Vec<(String, usize)>>,
++    config: Vec<Vec<Config>>,
++    metadata: RawMetadata,
++}
++impl RawSnapshot {
++    fn capture(s: &CpuBlockSession<'_>, packet: &EncryptedBlockUpdate) -> Self {
++        reserve(Work::Snapshot);
++        let mut cts = Vec::new();
++        visit_ciphertexts(s, |c| cts.push(c.clone()));
++        let i_boundary = s.facade.boundary.borrow().clone();
++        let mut receipt = s.retention_receipt(Some(packet), None).unwrap();
++        receipt
++            .include_diagnostic_copy(
++                "full-session encrypted snapshot; through rejection comparisons only",
++                cts.iter().chain(&i_boundary),
++            )
++            .unwrap();
++        eprintln!("P5_RETENTION full_snapshot_live {receipt:?}");
++        Self {
++            cts,
++            i_boundary,
++            counter: s.facade.base.counter(),
++            progress: (s.completed, s.samples, s.poisoned),
++            failure: s.failed.clone(),
++            traces: s.traces(),
++            config: configs(s),
++            metadata: raw_metadata(s),
++        }
++    }
++    fn assert_unchanged(&self, s: &CpuBlockSession<'_>) {
++        reserve(Work::Unchanged);
++        assert_eq!(self.counter, s.facade.base.counter());
++        assert_eq!(self.progress, (s.completed, s.samples, s.poisoned));
++        assert_eq!(self.failure, s.failed);
++        assert_eq!(self.traces, s.traces());
++        assert_eq!(self.config, configs(s));
++        assert_eq!(self.metadata, raw_metadata(s));
++        let mut ordinal = 0;
++        visit_ciphertexts(s, |b| {
++            assert!(ordinal < self.cts.len());
++            assert!(ciphertext_exact(&self.cts[ordinal], b));
++            ordinal += 1;
++        });
++        assert_eq!(ordinal, self.cts.len());
++        let boundary = s.facade.boundary.borrow();
++        assert_eq!(boundary.len(), self.i_boundary.len());
++        for (a, b) in self.i_boundary.iter().zip(boundary.iter()) {
++            assert!(ciphertext_exact(a, b));
++        }
++    }
++}
++fn prework_negatives(
++    s: &mut CpuBlockSession<'_>,
++    packet: &mut EncryptedBlockUpdate,
++    other_plan: &Arc<SyntheticBlockPlan>,
++) {
++    let state = RawSnapshot::capture(s, packet);
++    let reject = |s: &mut CpuBlockSession<'_>, p: &EncryptedBlockUpdate, field: &str| {
++        assert_eq!(s.step(p).unwrap_err(), mismatch(field));
++        state.assert_unchanged(s);
++        assert!(!s.poisoned);
++    };
++    let owner = packet.owner.clone();
++    packet.owner = Arc::new(());
++    reject(s, packet, "block packet context identity");
++    packet.owner = owner;
++    let plan = packet.plan.clone();
++    packet.plan = BlockPlanOwner::Synthetic(other_plan.clone());
++    reject(s, packet, "block packet plan identity");
++    packet.plan = plan;
++    packet.index += 1;
++    reject(s, packet, "block update index/replay");
++    packet.index -= 1;
++    packet.total += 1;
++    reject(s, packet, "block logical denominator");
++    packet.total -= 1;
++    packet.micros[0].part.start += 1;
++    reject(s, packet, "block ordered partition");
++    packet.micros[0].part.start -= 1;
++    let valid = packet.micros[0].part.valid;
++    packet.micros[0].part.valid = 0;
++    reject(s, packet, "block ordered partition");
++    packet.micros[0].part.valid = valid;
++    let micro = packet.micros.pop().unwrap();
++    reject(s, packet, "block micro cardinality");
++    packet.micros.push(micro);
++    let target = packet.micros[0].targets.pop().unwrap();
++    reject(s, packet, "block stage target cardinality");
++    packet.micros[0].targets.push(target);
++    let duplicate = packet.micros[0].targets[0].clone();
++    packet.micros[0].targets.push(duplicate);
++    reject(s, packet, "block stage target cardinality");
++    packet.micros[0].targets.pop();
++    packet.micros[0].targets.swap(0, 1);
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].targets.swap(0, 1);
++    let original = packet.micros[0].x.clone();
++    packet.micros[0].x = s
++        .facade
++        .base
++        .evaluator
++        .fork()
++        .mod_switch_to_level(&original, original.level() - 1)
++        .unwrap();
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].x = original;
++    let original = packet.micros[0].targets[1].clone();
++    packet.micros[0].targets[1] =
++        Ciphertext::new(original.polys().to_vec(), original.scale() * 2.).unwrap();
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].targets[1] = original;
++}
++fn later_rate_negative(s: &mut CpuBlockSession<'_>, packet: &mut EncryptedBlockUpdate) {
++    let state = RawSnapshot::capture(s, packet);
++    assert!(state.metadata.velocity.iter().flatten().all(|v| *v));
++    let rate = s.plan.rates()[packet.index].kernel.to_bits();
++    assert!(state.config.iter().flatten().all(|c| c.lr != rate));
++    if let BlockTraining::NonInteractive(t) = &mut s.trainer {
++        assert!(t.set_lr_reference(s.plan.reference()).is_err());
++    }
++    let target = packet.micros[0].targets.pop().unwrap();
++    assert_eq!(
++        s.step(packet).unwrap_err(),
++        mismatch("block stage target cardinality")
++    );
++    state.assert_unchanged(s);
++    packet.micros[0].targets.push(target);
++}
++fn config_only_i(context: &CpuEvaluationContext, refresh: &ClientRefreshService) {
++    let layout = Layout::new(512, 16, 8).unwrap();
++    let mut stages = Vec::new();
++    for reference in [0.08, 0.04] {
++        let mut nag = Nag::new(0.04, 0.9);
++        nag.set_lr_reference(reference).unwrap();
++        reserve_encoder();
++        stages.push(
++            Trainer::new(
++                &context.evaluator,
++                Box::new(refresh.handle()),
++                vec![Box::new(nag)],
++                layout,
++            )
++            .unwrap(),
++        );
++    }
++    let mut block =
++        BlockTrainer::new(&context.evaluator, stages, Box::new(refresh.handle())).unwrap();
++    reserve(Work::ConfigSnapshot);
++    let before = block
++        .stages()
++        .iter()
++        .map(|t| i_config(t, 1))
++        .collect::<Vec<_>>();
++    let counter = context.counter();
++    assert!(block.set_lr(0.06).is_err());
++    reserve(Work::ConfigComparison);
++    assert_eq!(
++        before,
++        block
++            .stages()
++            .iter()
++            .map(|t| i_config(t, 1))
++            .collect::<Vec<_>>()
++    );
++    assert_eq!(counter, context.counter());
++    block.set_lr(0.04).unwrap();
++    reserve(Work::ConfigComparison);
++    assert_eq!(
++        before,
++        block
++            .stages()
++            .iter()
++            .map(|t| i_config(t, 1))
++            .collect::<Vec<_>>()
++    );
++    assert_eq!(counter, context.counter());
++}
++fn config_ni(s: &mut CpuBlockSession<'_>) {
++    reserve(Work::ConfigSnapshot);
++    let original = configs(s);
++    let counter = s.facade.base.counter();
++    if let BlockTraining::NonInteractive(t) = &mut s.trainer {
++        t.stages_mut()
++            .last_mut()
++            .unwrap()
++            .set_lr_reference(0.04)
++            .unwrap();
++    } else {
++        panic!("NI atomic test");
++    }
++    reserve(Work::ConfigSnapshot);
++    let lowered = configs(s);
++    if let BlockTraining::NonInteractive(t) = &mut s.trainer {
++        assert!(t.set_lr(0.06).is_err());
++    }
++    reserve(Work::ConfigComparison);
++    assert_eq!(lowered, configs(s));
++    assert_eq!(counter, s.facade.base.counter());
++    if let BlockTraining::NonInteractive(t) = &mut s.trainer {
++        t.stages_mut()
++            .last_mut()
++            .unwrap()
++            .set_lr_reference(0.08)
++            .unwrap();
++    }
++    reserve(Work::ConfigComparison);
++    assert_eq!(original, configs(s));
++    assert_eq!(counter, s.facade.base.counter());
++}
++fn emit_ct_metadata(context: &str, ct: &Ciphertext) {
++    eprintln!(
++        "P5_CT_METADATA context={context} components={} level={} scale_bits={} forms={:?} limb_lengths={:?}",
++        ct.len(),
++        ct.level(),
++        ct.scale().to_bits(),
++        ct.polys()
++            .iter()
++            .map(|p| p.is_ntt_form())
++            .collect::<Vec<_>>(),
++        ct.polys()
++            .iter()
++            .map(|p| p.limbs().iter().map(Vec::len).collect::<Vec<_>>())
++            .collect::<Vec<_>>()
++    );
++}
++fn emit_attempt(s: &CpuBlockSession<'_>, p: &EncryptedBlockUpdate) {
++    eprintln!(
++        "P5_ATTEMPT_PRE plan={} update={} total={} successful={} samples={} config={:?} state={:?}",
++        s.plan.identity(),
++        p.index,
++        p.total,
++        s.completed,
++        s.samples,
++        configs(s),
++        raw_metadata(s)
++    );
++    for stage in 0..s.descriptions.len() {
++        eprintln!("P5_TYPED_UPDATE {:?}", s.plan.transition(p.index, stage));
++        if stage + 1 < s.descriptions.len() {
++            eprintln!("P5_TYPED_HANDOFF {:?}", s.plan.boundary(p.index, stage));
++        }
++    }
++    for (micro, m) in p.micros.iter().enumerate() {
++        emit_ct_metadata(&format!("packet/{}/micro{micro}/x0", p.index), &m.x);
++        for (stage, y) in m.targets.iter().enumerate() {
++            emit_ct_metadata(
++                &format!("packet/{}/micro{micro}/stage{stage}/y", p.index),
++                y,
++            );
++        }
++    }
++}
++fn compare(
++    client: &StudyClient,
++    s: &CpuBlockSession<'_>,
++    oracle: &BlockOracle,
++    update: usize,
++    ni: bool,
++    packet: &EncryptedBlockUpdate,
++) -> usize {
++    let before = s.facade.base.counter();
++    let snapshot = s.snapshot();
++    for (boundary, part) in snapshot.handoffs.iter().enumerate() {
++        for (micro, ct) in part.iter().enumerate() {
++            emit_ct_metadata(
++                &format!("snapshot/{update}/boundary{boundary}/micro{micro}"),
++                ct,
++            );
++        }
++    }
++    let retention = s.retention_receipt(Some(packet), Some(&snapshot)).unwrap();
++    eprintln!("P5_RETENTION endpoint={update} {retention:?}");
++    let actual = client
++        .inspect_block_snapshot(&snapshot, s.facade.base)
++        .unwrap();
++    assert_eq!(before, s.facade.base.counter());
++    let expected = oracle.post(update).unwrap();
++    let cap = if ni { 3e-5 } else { 1e-5 };
++    assert_eq!(actual.stages().len(), s.descriptions.len());
++    let mut maximum = 0_f64;
++    for (stage, model) in actual.stages().iter().enumerate() {
++        assert_eq!(model.layers().len(), 2);
++        for (layer, ((w, b), expected)) in model
++            .layers()
++            .iter()
++            .zip(&expected[stage * 2..stage * 2 + 2])
++            .enumerate()
++        {
++            assert_eq!(w.dim(), expected.weights().dim());
++            assert_eq!(b.len(), expected.biases().len());
++            for ((row, col), value) in w.indexed_iter() {
++                let truth = expected.weights()[[row, col]];
++                let error = (value - truth).abs();
++                eprintln!(
++                    "P5_VALUE update={update} stage={stage} layer={layer} tensor=W row={row} col={col} actual={value:.17e} expected={truth:.17e} error={error:.17e} cap={cap}"
++                );
++                assert!(value.is_finite() && truth.is_finite() && error <= cap);
++                maximum = maximum.max(error);
++            }
++            for (entry, (&value, &truth)) in b.iter().zip(expected.biases()).enumerate() {
++                assert_eq!(truth.to_bits(), 0_f64.to_bits());
++                let error = (value - truth).abs();
++                eprintln!(
++                    "P5_VALUE update={update} stage={stage} layer={layer} tensor=b entry={entry} actual={value:.17e} expected={truth:.17e} error={error:.17e} cap={cap}"
++                );
++                assert!(value.is_finite() && error <= cap);
++                maximum = maximum.max(error);
++            }
++            for ct in s.model.stage(stage).layers[layer]
++                .0
++                .w
++                .diagonals()
++                .entries()
++                .iter()
++                .chain(std::iter::once(&s.model.stage(stage).layers[layer].0.b))
++            {
++                eprintln!(
++                    "P5_METADATA update={update} stage={stage} layer={layer} components={} level={} scale_bits={} limb_lengths={:?}",
++                    ct.len(),
++                    ct.level(),
++                    ct.scale().to_bits(),
++                    ct.polys()
++                        .iter()
++                        .map(|p| p.limbs().iter().map(Vec::len).collect::<Vec<_>>())
++                        .collect::<Vec<_>>()
++                );
++            }
++        }
++    }
++    let hidden = oracle.old_hidden(update).unwrap();
++    assert_eq!(actual.handoffs().len(), hidden.len() - 1);
++    for (boundary, parts) in actual.handoffs().iter().enumerate() {
++        let mut offset = 0;
++        for (micro, values) in parts.iter().enumerate() {
++            for ((row, col), value) in values.indexed_iter() {
++                let truth = hidden[boundary][[offset + row, col]];
++                let error = (value - truth).abs();
++                eprintln!(
++                    "P5_VALUE update={update} boundary={boundary} micro={micro} tensor=old_hidden row={row} col={col} actual={value:.17e} expected={truth:.17e} error={error:.17e} cap={cap}"
++                );
++                assert!(value.is_finite() && truth.is_finite() && error <= cap);
++                maximum = maximum.max(error);
++            }
++            offset += values.nrows();
++        }
++        assert_eq!(offset, hidden[boundary].nrows());
++    }
++    eprintln!(
++        "P5_ENDPOINT update={update} maximum={maximum:.17e} cap={cap} config={:?} metadata={:?} counter={:?}",
++        configs(s),
++        raw_metadata(s),
++        s.facade.base.counter()
++    );
++    actual.handoffs().iter().map(Vec::len).sum()
++}
++fn capture_prefix_initial(initial: &EncryptedBlockInitial) -> Vec<Vec<Ciphertext>> {
++    reserve(Work::PrefixCapture);
++    let mut captures = (0..initial.model.num_stages())
++        .map(|stage| {
++            initial
++                .model
++                .stage(stage)
++                .layers
++                .iter()
++                .flat_map(|(d, _)| {
++                    d.w.diagonals()
++                        .entries()
++                        .iter()
++                        .chain(std::iter::once(&d.b))
++                })
++                .cloned()
++                .collect::<Vec<_>>()
++        })
++        .collect::<Vec<_>>();
++    if let Some(compact) = &initial.compact {
++        for (capture, state) in captures.iter_mut().zip(compact) {
++            capture.extend(state.weights.iter().cloned());
++        }
++    }
++    eprintln!(
++        "P5_POISON_INITIAL_CAPTURE role=initial_expanded_and_compact_model count={} bytes={} live_until=corresponding_failure_comparison",
++        captures.iter().map(Vec::len).sum::<usize>(),
++        captures
++            .iter()
++            .flatten()
++            .map(|c| ciphertext_bytes(c).unwrap())
++            .sum::<usize>()
++    );
++    captures
++}
++fn poison_contract(
++    s: &mut CpuBlockSession<'_>,
++    packet: &EncryptedBlockUpdate,
++    initial: Vec<Vec<Ciphertext>>,
++    ni: bool,
++) {
++    let mut receipt = s.retention_receipt(Some(packet), None).unwrap();
++    receipt
++        .include_diagnostic_copy(
++            "poison initial expanded/compact model; until corresponding failure comparison",
++            initial.iter().flatten(),
++        )
++        .unwrap();
++    eprintln!("P5_RETENTION poison_initial_live {receipt:?}");
++    emit_attempt(s, packet);
++    let before = s.facade.base.counter();
++    assert!(s.step(packet).is_err());
++    assert!(s.poisoned);
++    assert_eq!(s.completed, 0);
++    assert_eq!(s.samples, 0);
++    let failure = s.failed.as_ref().unwrap();
++    assert_eq!(failure.phase, "trainer");
++    assert_eq!(failure.measured, &s.facade.base.counter() - &before);
++    assert!(!failure.traces[0].is_empty());
++    assert!(failure.traces[1].is_empty());
++    let source = s.plan.transition(0, 0).update_metadata().unwrap();
++    s.check_state(0, source.post_state(), 1).unwrap();
++    s.check_state(1, &s.plan.initial()[1], 0).unwrap();
++    let mut current = (0..s.model.num_stages())
++        .map(|stage| {
++            s.model
++                .stage(stage)
++                .layers
++                .iter()
++                .flat_map(|(d, _)| {
++                    d.w.diagonals()
++                        .entries()
++                        .iter()
++                        .chain(std::iter::once(&d.b))
++                })
++                .collect::<Vec<_>>()
++        })
++        .collect::<Vec<_>>();
++    if let BlockTraining::NonInteractive(t) = &s.trainer {
++        for (capture, stage) in current.iter_mut().zip(t.stages()) {
++            capture.extend(&stage.state().weights);
++        }
++    }
++    assert_eq!(initial.len(), current.len());
++    let mut source_changed = false;
++    for (stage, (expected, actual)) in initial.iter().zip(current).enumerate() {
++        assert_eq!(expected.len(), actual.len());
++        for (a, b) in expected.iter().zip(actual) {
++            if stage == 0 {
++                source_changed |= !ciphertext_exact(a, b);
++            } else {
++                assert!(ciphertext_exact(a, b));
++            }
++        }
++    }
++    assert!(source_changed);
++    if ni {
++        assert_eq!(s.facade.boots.get(), 5);
++        assert_eq!(failure.measured.bootstraps, 5);
++        if let BlockTraining::NonInteractive(t) = &s.trainer {
++            assert!(t.last_handoff_bootstraps().is_empty());
++        }
++        assert_eq!(failure.retained_boundary_outputs, 0);
++    } else {
++        assert_eq!(s.facade.refreshes.get(), 15);
++        assert_eq!(failure.retained_boundary_outputs, 1);
++    }
++    // Addendum: these two model captures are distinct from the 46 full snapshots.
++    drop(initial);
++    let snapshot = RawSnapshot::capture(s, packet);
++    assert_eq!(
++        s.step(packet).unwrap_err(),
++        mismatch("poisoned block session")
++    );
++    snapshot.assert_unchanged(s);
++    eprintln!("P5_POISON_FAILURE ni={ni} actual={:?}", s.failed);
++}
++#[test]
++#[ignore = "requires independent root frozen-source CPU runtime release"]
++fn p5_cpu_block_bridge_contract() {
++    assert!(std::mem::size_of::<BlockPlanOwner>() > 0);
++    assert!(std::mem::size_of::<CpuBlockSession<'static>>() > 0);
++    let budget = Rc::new(Budget::default());
++    ACTIVE.with(|active| {
++        assert!(active.borrow().is_none());
++        *active.borrow_mut() = Some(budget.clone());
++    });
++    let _active = Active;
++    reserve(Work::Params);
++    let ip = Arc::new(
++        CkksParams::new(10, &[60, 40, 40, 40, 40, 40, 40, 40, 40, 40], &[60], 40, 10).unwrap(),
++    );
++    reserve(Work::Params);
++    let (q, p) = ckks_train_ckks::params::n16_boot_bits();
++    let np = Arc::new(CkksParams::new(10, &q, &p, 42, 8).unwrap());
++    let bp = BootParams {
++        log_slots: 9,
++        ..BootParams::default_n16()
++    };
++    reserve(Work::Proof);
++    let proof = DftSupportProof::verify_current().unwrap();
++    reserve(Work::Descriptor);
++    let bm = Arc::new(BootstrapMetadata::new_with_verified_support(&np, &bp, &proof).unwrap());
++    let planning = Arc::new(PlanningBudget::new(PlanningUsage {
++        geometries: 36,
++        initial_states: 36,
++        updates: 100,
++        handoffs: 58,
++        wrapper_calls: 0,
++    }));
++    let i = DiagonalMode::Interactive;
++    let wn = DiagonalMode::NonInteractive(BootPlacement::WhenNeeded);
++    let au = DiagonalMode::NonInteractive(BootPlacement::AfterUpdate);
++    let aa = DiagonalMode::NonInteractive(BootPlacement::AfterActivation);
++    let params = |mode| {
++        if mode == i {
++            PlanningParameters {
++                params: &ip,
++                bootstrap: None,
++                boot_params: None,
++            }
++        } else {
++            PlanningParameters {
++                params: &np,
++                bootstrap: Some(&bm),
++                boot_params: Some(&bp),
++            }
++        }
++    };
++    let mut cases = Vec::new();
++    for family in [BlockFamily::A, BlockFamily::B, BlockFamily::C] {
++        for mode in [i, wn, au, aa] {
++            let plan = Arc::new(
++                SyntheticBlockPlan::build(
++                    &family.recipe(),
++                    mode,
++                    params(mode),
++                    planning.clone(),
++                    false,
++                )
++                .unwrap(),
++            );
++            cases.push(Case {
++                family,
++                mode,
++                plan,
++                poison: false,
++            });
++        }
++    }
++    for mode in [i, au] {
++        let family = BlockFamily::D;
++        let plan = Arc::new(
++            SyntheticBlockPlan::build(
++                &family.recipe(),
++                mode,
++                params(mode),
++                planning.clone(),
++                false,
++            )
++            .unwrap(),
++        );
++        cases.push(Case {
++            family,
++            mode,
++            plan,
++            poison: false,
++        });
++    }
++    for mode in [i, au] {
++        let family = BlockFamily::A;
++        let plan = Arc::new(
++            SyntheticBlockPlan::build(&family.recipe(), mode, params(mode), planning.clone(), true)
++                .unwrap(),
++        );
++        cases.push(Case {
++            family,
++            mode,
++            plan,
++            poison: true,
++        });
++    }
++    assert_eq!(cases.len(), 16);
++    assert_eq!(
++        planning.usage(),
++        PlanningUsage {
++            geometries: 36,
++            initial_states: 36,
++            updates: 100,
++            handoffs: 58,
++            wrapper_calls: 0
++        }
++    );
++    assert_eq!(cases.iter().map(|c| c.plan.index.len()).sum::<usize>(), 158);
++    spy_contract(&cases[1].plan, params(wn), params(i));
++    let union = |ni: bool| {
++        let mut keys = cases
++            .iter()
++            .filter(|c| (c.mode != i) == ni)
++            .flat_map(|c| {
++                c.plan
++                    .descriptions
++                    .iter()
++                    .flat_map(|d| d.geometry.rotation_steps().iter().copied())
++            })
++            .collect::<Vec<_>>();
++        keys.sort_unstable();
++        keys.dedup();
++        keys
++    };
++    let (ic, ictx) = setup(&cases[0], ip.clone(), None, &union(false));
++    let (nc, nctx) = setup(
++        &cases[1],
++        np.clone(),
++        Some(CpuBootstrapDescription {
++            parameters: bp.clone(),
++            metadata: bm.clone(),
++        }),
++        &union(true),
++    );
++    let config_refresh = ic.refresh_service(rng(63));
++    config_only_i(&ictx, &config_refresh);
++    let mut phase = PairedOraclePhase::new();
++    let mut successes = 0;
++    let mut failures = 0;
++    let mut returned_handoffs = [0usize; 2];
++    for case in &cases {
++        reserve(Work::Session);
++        let ni = case.mode != i;
++        let (client, base) = if ni { (&nc, &nctx) } else { (&ic, &ictx) };
++        let context = base.fork();
++        let facade = CpuBlockEvaluation::new(&context);
++        let refresh = client.refresh_service(rng(64));
++        let recipe = case.family.recipe();
++        let oracle = if case.poison {
++            None
++        } else {
++            Some(phase.oracle(case.family).unwrap())
++        };
++        let claim = case.plan.claim();
++        let checked = prepare_blocks_then_make(
++            BlockPreparationInput::Synthetic {
++                plan: case.plan.clone(),
++                claim: &claim,
++            },
++            context_parameters(&context),
++            &case.plan.parts,
++            Ok,
++        )
++        .unwrap();
++        let (initial, binding) = client
++            .encrypt_block_initial(checked, &context, &arrays(&recipe))
++            .unwrap();
++        let prefix = case.poison.then(|| capture_prefix_initial(&initial));
++        let mut session = CpuBlockSession::from_owner(
++            &facade,
++            BlockPlanOwner::Synthetic(case.plan.clone()),
++            initial,
++            (!ni).then_some(&refresh),
++        )
++        .unwrap();
++        if matches!(case.family, BlockFamily::A) && case.mode == au && !case.poison {
++            config_ni(&mut session);
++        }
++        if case.poison {
++            if ni {
++                facade.fail_boot_after.set(Some(5));
++            } else {
++                facade.fail_refresh_after.set(Some(15));
++            }
++            let (x, y) = recipe.rows(0).unwrap();
++            let packet = client
++                .encrypt_block_rows(&binding, 0, &context, x, y)
++                .unwrap();
++            poison_contract(&mut session, &packet, prefix.unwrap(), ni);
++            failures += 1;
++            continue;
++        }
++        for update in 0..case.plan.parts.len() {
++            let (x, y) = recipe.rows(update).unwrap();
++            let mut packet = client
++                .encrypt_block_rows(&binding, update, &context, x, y)
++                .unwrap();
++            if matches!(case.family, BlockFamily::C) && (case.mode == i || case.mode == au) {
++                prework_negatives(&mut session, &mut packet, &cases[0].plan);
++            }
++            if matches!(case.family, BlockFamily::A)
++                && update == 1
++                && (case.mode == i || case.mode == au)
++            {
++                later_rate_negative(&mut session, &mut packet);
++            }
++            emit_attempt(&session, &packet);
++            let completion = session.step(&packet).unwrap();
++            assert_eq!(completion.completed_updates, update + 1);
++            assert_eq!(session.completed_updates(), update + 1);
++            assert!(!session.is_poisoned());
++            eprintln!(
++                "P5_COMPLETION family={:?} mode={:?} plan={} {completion:?}",
++                case.family,
++                case.mode,
++                session.plan.identity()
++            );
++            let receipt = session.retention_receipt(Some(&packet), None).unwrap();
++            eprintln!("P5_RETENTION packet_live {receipt:?}");
++            returned_handoffs[usize::from(ni)] += compare(
++                client,
++                &session,
++                oracle.as_ref().unwrap(),
++                update,
++                ni,
++                &packet,
++            );
++            let unchanged = RawSnapshot::capture(&session, &packet);
++            let field = if update + 1 == case.plan.parts.len() {
++                "exhausted block session"
++            } else {
++                "block update index/replay"
++            };
++            assert_eq!(session.step(&packet).unwrap_err(), mismatch(field));
++            unchanged.assert_unchanged(&session);
++            successes += 1;
++        }
++    }
++    assert_eq!((successes, failures), (40, 2));
++    assert_eq!(returned_handoffs, [22, 62]);
++    eprintln!(
++        "P5_SUCCESS_HANDOFFS I={} NI={} total=84",
++        returned_handoffs[0], returned_handoffs[1]
++    );
++    phase.check_complete().unwrap();
++    assert_eq!(phase.actual_counts(), [14, 14, 40, 128]);
++    for (ordinal, cap) in CAPS.iter().enumerate() {
++        let actual = budget.counts[ordinal].get();
++        if ordinal == Work::Boot as usize || ordinal == Work::Refresh as usize {
++            assert!(actual <= *cap);
++        } else {
++            assert_eq!(
++                actual, *cap,
++                "P5 expensive/diagnostic count ordinal={ordinal}"
++            );
++        }
++        eprintln!("P5_FINAL_COUNT ordinal={ordinal} actual={actual} cap={cap}");
++    }
++    eprintln!(
++        "NONSCIENTIFIC_TEST_EVIDENCE P5 matrix16 sessions42 attempts40 successes2 poison; all-entry caps I1e-5 NI3e-5; canonical owned D7/start/resource/security/Task54 acceptance unclaimed"
++    );
++}
+diff --git a/crates/ckks-train-bench/src/study_client/blocks.rs b/crates/ckks-train-bench/src/study_client/blocks.rs
+new file mode 100644
+index 0000000..75f0261
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_client/blocks.rs
+@@ -0,0 +1,591 @@
++//! Block endpoints in the existing secret-bearing client's child module.
++use super::*;
++use crate::study_blocks::{
++    BlockPlanOwner, EncryptedBlockInitial, EncryptedBlockSnapshot, EncryptedBlockUpdate,
++};
++use ckks_train_nn::{block::BlockMlp, layout::pack_activations};
++
++pub(crate) enum BlockPreparationInput<'a> {
++    Canonical {
++        materialized: &'a MaterializedProfile,
++        registered: &'a RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &'a DiagonalRequest,
++    },
++    #[cfg(test)]
++    Synthetic {
++        plan: Arc<crate::study_admission::p5_fixtures::SyntheticBlockPlan>,
++        claim: &'a crate::study_admission::p5_fixtures::SyntheticBlockClaim,
++    },
++}
++pub(crate) struct CheckedBlockPreparation<'a> {
++    pub(crate) plan: BlockPlanOwner,
++    descriptions: Vec<Description>,
++    classes: Vec<usize>,
++    parameters: &'a CkksParams,
++    bootstrap_identity: Option<&'a [u8]>,
++    boot_parameters: Option<&'a BootParams>,
++    rotations: Vec<i32>,
++}
++/// Closed validation before the first key-material factory; never an admission capability.
++pub(crate) fn prepare_blocks_then_make<'a, T>(
++    input: BlockPreparationInput<'_>,
++    actual: PlanningParameters<'a>,
++    parts: &[Vec<MicroPart>],
++    factory: impl FnOnce(CheckedBlockPreparation<'a>) -> Result<T>,
++) -> CpuPreparationResult<T> {
++    let (plan, descriptions, classes, rotations) = match input {
++        BlockPreparationInput::Canonical {
++            materialized,
++            registered,
++            plan,
++            request,
++        } => {
++            let owner = BlockPlanOwner::Canonical(plan.clone());
++            owner.check_shape()?;
++            study_admission::validate_plan_binding(
++                materialized,
++                registered,
++                &plan,
++                actual,
++                request,
++            )
++            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++            ensure(parts == plan.partitions(), "block partition")?;
++            // Original request only: reserve the additional S geometry/initial allowance
++            // before its hash. No cloned replacement budget or post-binding mutation.
++            let candidate = study_admission::describe_candidate(
++                materialized.metadata(),
++                registered,
++                actual,
++                request,
++            );
++            if candidate.issue().is_some() {
++                return Err(CpuPreparationError::Candidate(Box::new(candidate)));
++            }
++            let graph = materialized.graph().stages();
++            ensure(
++                candidate.geometries().len() == graph.len() && graph.len() == owner.initial().len(),
++                "block candidate stages",
++            )?;
++            let keys = candidate
++                .keys()
++                .ok_or_else(|| mismatch("block candidate manifest"))?;
++            ensure(
++                keys.training_rotations() == plan.keys().training_rotations()
++                    && keys.bootstrap_generated_rotations()
++                        == plan.keys().bootstrap_generated_rotations()
++                    && keys.bootstrap_execution_rotations()
++                        == plan.keys().bootstrap_execution_rotations()
++                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
++                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
++                "block candidate/plan manifest",
++            )?;
++            let mut descriptions = Vec::with_capacity(graph.len());
++            for (stage, (topology, geometry)) in
++                graph.iter().zip(candidate.geometries()).enumerate()
++            {
++                let range = topology.layers();
++                let specs = &materialized.metadata().layers[range.clone()];
++                ensure(
++                    specs.len() == 2
++                        && topology.representation_layer()
++                            == (stage + 1 < graph.len()).then_some(range.start),
++                    "block actual representation/local-head graph",
++                )?;
++                let acts = specs
++                    .iter()
++                    .map(|l| match l.activation {
++                        ProfileActivation::Square => DiagonalActivation::Square,
++                        ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
++                        ProfileActivation::Identity => DiagonalActivation::Identity,
++                    })
++                    .collect();
++                let frozen = specs.iter().all(|l| !l.bias);
++                ensure(
++                    frozen || specs.iter().all(|l| l.bias),
++                    "block mixed bias policy",
++                )?;
++                descriptions.push(Description {
++                    geometry: geometry.clone(),
++                    activations: acts,
++                    transpose: request.transpose.clone(),
++                    frozen,
++                });
++            }
++            (
++                owner,
++                descriptions,
++                vec![materialized.metadata().classes; graph.len()],
++                keys.training_rotations().to_vec(),
++            )
++        }
++        #[cfg(test)]
++        BlockPreparationInput::Synthetic { plan, claim } => {
++            plan.validate(actual, parts, claim).map_err(mismatch)?;
++            let owner = BlockPlanOwner::Synthetic(plan.clone());
++            owner.check_shape()?;
++            let descriptions = plan.descriptions.clone();
++            let mut rotations = descriptions
++                .iter()
++                .flat_map(|d| d.geometry.rotation_steps().iter().copied())
++                .collect::<Vec<_>>();
++            rotations.sort_unstable();
++            rotations.dedup();
++            (owner, descriptions, plan.classes.clone(), rotations)
++        }
++    };
++    factory(CheckedBlockPreparation {
++        plan,
++        descriptions,
++        classes,
++        parameters: actual.params,
++        bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++        boot_parameters: actual.boot_params,
++        rotations,
++    })
++    .map_err(CpuPreparationError::He)
++}
++pub(crate) fn make_blocks_owned(
++    checked: &CheckedBlockPreparation<'_>,
++    parameters: Arc<CkksParams>,
++    rotations: &[i32],
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++) -> Result<(StudyClient, CpuEvaluationContext)> {
++    make_owned_fields(
++        SetupFields {
++            parameters: checked.parameters,
++            bootstrap_identity: checked.bootstrap_identity,
++            boot_parameters: checked.boot_parameters,
++            rotations: &checked.rotations,
++            config: checked.descriptions[0].geometry.eval_config(),
++        },
++        parameters,
++        rotations,
++        boot,
++        key_rng,
++        encryption_rng,
++        #[cfg(test)]
++        None,
++    )
++}
++/// Immutable client-side encryption binding, containing neither secrets nor plaintext data.
++pub struct BlockEncryptionBinding {
++    owner: Arc<()>,
++    plan: BlockPlanOwner,
++    descriptions: Vec<Description>,
++    classes: Vec<usize>,
++}
++/// Finite all-stage logical W/b and old-hidden values, disclosed only to the client.
++pub struct ClientBlockSnapshot {
++    stages: Vec<ClientModelSnapshot>,
++    handoffs: Vec<Vec<Array2<f64>>>,
++}
++impl ClientBlockSnapshot {
++    /// Per-stage model inspection in graph order.
++    pub fn stages(&self) -> &[ClientModelSnapshot] {
++        &self.stages
++    }
++    /// `[boundary][micro]` old-hidden values, truncated to valid rows.
++    pub fn handoffs(&self) -> &[Vec<Array2<f64>>] {
++        &self.handoffs
++    }
++}
++impl StudyClient {
++    /// Validates actual canonical inputs and encrypts their exact stage arrays.
++    /// Reserve S extra candidate geometry/initial calls in the original request before
++    /// creating the bound plan. Typed budget errors remain unchanged.
++    pub fn prepare_block_initial(
++        &self,
++        materialized: &MaterializedProfile,
++        registered: &RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &DiagonalRequest,
++        context: &CpuEvaluationContext,
++    ) -> CpuPreparationResult<(EncryptedBlockInitial, BlockEncryptionBinding)> {
++        prepare_blocks_then_make(
++            BlockPreparationInput::Canonical {
++                materialized,
++                registered,
++                plan: plan.clone(),
++                request,
++            },
++            context_parameters(context),
++            plan.partitions(),
++            |checked| {
++                let arrays = canonical_arrays(materialized);
++                self.encrypt_block_initial(checked, context, &arrays)
++            },
++        )
++    }
++    pub(crate) fn encrypt_block_initial(
++        &self,
++        checked: CheckedBlockPreparation<'_>,
++        context: &CpuEvaluationContext,
++        arrays: &[Vec<(Array2<f64>, Vec<f64>)>],
++    ) -> Result<(EncryptedBlockInitial, BlockEncryptionBinding)> {
++        self.check_context(context)?;
++        ensure(
++            std::ptr::eq(checked.parameters, context.parameters().as_ref()),
++            "block initial actual parameters",
++        )?;
++        checked.plan.check_shape()?;
++        let n = checked.descriptions.len();
++        ensure(arrays.len() == n, "block initial array stages")?;
++        for (s, d) in checked.descriptions.iter().enumerate() {
++            context.check_geometry(&d.geometry)?;
++            ensure(
++                d.geometry.mode() == checked.descriptions[0].geometry.mode()
++                    && d.geometry.layout() == checked.descriptions[0].geometry.layout(),
++                "block initial common configuration",
++            )?;
++            ensure(
++                arrays[s].len() == d.geometry.dims().len() - 1,
++                "block initial array layers",
++            )?;
++            for ((w, b), dims) in arrays[s].iter().zip(d.geometry.dims().windows(2)) {
++                ensure(
++                    w.nrows() == dims[1] && w.ncols() == dims[0] && b.len() == dims[1],
++                    "block initial array dimensions",
++                )?;
++            }
++        }
++        let before = context.counter();
++        let diagnostic = context.evaluator.fork();
++        let layout = checked.descriptions[0].geometry.layout();
++        let mut rng = self.rng.borrow_mut();
++        let mut models = Vec::with_capacity(n);
++        let mut compact = Vec::with_capacity(n);
++        let mut batches = Vec::with_capacity(n);
++        for (stage, d) in checked.descriptions.iter().enumerate() {
++            let m = checked.plan.initial()[stage].batch();
++            batches.push(BatchSpec {
++                x_level: m.x.level(),
++                x_scale: m.x.scale(),
++                y_level: m.y.level(),
++                y_scale: m.y.scale(),
++            });
++            let model = match d.geometry.mode() {
++                DiagonalMode::Interactive => Mlp::encrypt_at(
++                    &diagnostic,
++                    &arrays[stage],
++                    activations(&d.activations),
++                    &layout,
++                    m.x.level(),
++                    &self.encrypt,
++                    &self.encoder,
++                    &mut rng,
++                )?,
++                DiagonalMode::NonInteractive(placement) => {
++                    let (model, state) = NonInteractiveTrainer::encrypt_network(
++                        &diagnostic,
++                        context
++                            .bootstrap
++                            .as_ref()
++                            .ok_or_else(|| mismatch("block initial bootstrap dependency"))?,
++                        &arrays[stage],
++                        activations(&d.activations),
++                        &layout,
++                        placement,
++                        &self.encrypt,
++                        &self.encoder,
++                        &mut rng,
++                    )?;
++                    compact.push(state);
++                    model
++                }
++            };
++            models.push(model);
++        }
++        ensure(
++            before == context.counter(),
++            "block initial probe counter isolation",
++        )?;
++        let output = models
++            .pop()
++            .ok_or_else(|| mismatch("block initial empty models"))?;
++        let model = BlockMlp::new(models, output)?;
++        let binding = BlockEncryptionBinding {
++            owner: self.owner.clone(),
++            plan: checked.plan.clone(),
++            descriptions: checked.descriptions.clone(),
++            classes: checked.classes.clone(),
++        };
++        Ok((
++            EncryptedBlockInitial {
++                owner: self.owner.clone(),
++                plan: checked.plan,
++                descriptions: checked.descriptions,
++                classes: checked.classes,
++                model,
++                compact: (!compact.is_empty()).then_some(compact),
++                batches,
++            },
++            binding,
++        ))
++    }
++    /// Gathers canonical D6a rows once, then creates separate stage targets.
++    #[allow(clippy::too_many_arguments)]
++    pub fn encrypt_block_update(
++        &self,
++        binding: &BlockEncryptionBinding,
++        materialized: &MaterializedProfile,
++        registered: &RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &DiagonalRequest,
++        index: usize,
++        context: &CpuEvaluationContext,
++    ) -> CpuPreparationResult<EncryptedBlockUpdate> {
++        study_admission::validate_plan_binding(
++            materialized,
++            registered,
++            &plan,
++            context_parameters(context),
++            request,
++        )
++        .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++        ensure(
++            binding.plan.same(&BlockPlanOwner::Canonical(plan)),
++            "block client canonical plan association",
++        )?;
++        let rows = materialized
++            .update_rows(index)
++            .map_err(|e| mismatch(&format!("block update rows: {e}")))?;
++        let numeric = materialized.numeric_f64();
++        let x = Array2::from_shape_fn((rows.rows().len(), numeric.train_x().ncols()), |(r, j)| {
++            numeric.train_x()[[rows.rows()[r] as usize, j]]
++        });
++        let labels = rows
++            .rows()
++            .iter()
++            .map(|&r| numeric.train_y()[r as usize])
++            .collect::<Vec<_>>();
++        let labels = vec![labels; binding.descriptions.len()];
++        self.encrypt_block_rows(binding, index, context, &x, &labels)
++            .map_err(CpuPreparationError::He)
++    }
++    pub(crate) fn encrypt_block_rows(
++        &self,
++        binding: &BlockEncryptionBinding,
++        index: usize,
++        context: &CpuEvaluationContext,
++        x: &Array2<f64>,
++        labels: &[Vec<u8>],
++    ) -> Result<EncryptedBlockUpdate> {
++        self.check_context(context)?;
++        ensure(
++            Arc::ptr_eq(&binding.owner, &self.owner),
++            "block client prepared owner",
++        )?;
++        binding.plan.check_shape()?;
++        let parts = binding
++            .plan
++            .parts()
++            .get(index)
++            .ok_or_else(|| mismatch("block client update index"))?;
++        let n = binding.descriptions.len();
++        let layout = binding.descriptions[0].geometry.layout();
++        let total = parts
++            .iter()
++            .try_fold(0usize, |sum, p| sum.checked_add(p.valid))
++            .ok_or_else(|| mismatch("block client row overflow"))?;
++        ensure(
++            x.nrows() == total
++                && x.ncols() == binding.descriptions[0].geometry.dims()[0]
++                && labels.len() == n
++                && labels.iter().all(|l| l.len() == total),
++            "block client label/row cardinality",
++        )?;
++        let widths = binding
++            .descriptions
++            .iter()
++            .map(|d| *d.geometry.dims().last().unwrap())
++            .collect::<Vec<_>>();
++        let targets = labels
++            .iter()
++            .enumerate()
++            .map(|(s, l)| {
++                padded_targets(l, binding.classes[s], widths[s])
++                    .map_err(|_| mismatch("block client stage labels"))
++            })
++            .collect::<Result<Vec<_>>>()?;
++        #[cfg(test)]
++        crate::study_blocks::p5_tests::reserve_packet();
++        let mut micros = Vec::with_capacity(parts.len());
++        let mut rng = self.rng.borrow_mut();
++        let mut offset = 0;
++        for (micro, part) in parts.iter().enumerate() {
++            let end = part
++                .start
++                .checked_add(part.valid)
++                .ok_or_else(|| mismatch("block client partition overflow"))?;
++            ensure(
++                part.start == offset
++                    && part.valid > 0
++                    && part.valid <= layout.batch
++                    && end <= total,
++                "block client ordered partition",
++            )?;
++            offset = end;
++            let m = binding
++                .plan
++                .transition(index, 0)
++                .update_metadata()
++                .unwrap()
++                .micros()[micro];
++            let xp = self.encoder.encode(
++                &pack_activations(&x.slice(s![part.start..end, ..]).to_owned(), &layout),
++                m.x.scale(),
++                m.x.level(),
++            )?;
++            #[cfg(test)]
++            crate::study_blocks::p5_tests::reserve_x();
++            let encrypted_x = self.encrypt.encrypt(&xp, &mut rng);
++            let mut ys = Vec::with_capacity(n);
++            for (stage, target) in targets.iter().enumerate() {
++                let m = binding
++                    .plan
++                    .transition(index, stage)
++                    .update_metadata()
++                    .unwrap()
++                    .micros()[micro];
++                let yp = self.encoder.encode(
++                    &pack_activations(&target.slice(s![part.start..end, ..]).to_owned(), &layout),
++                    m.y.scale(),
++                    m.y.level(),
++                )?;
++                #[cfg(test)]
++                crate::study_blocks::p5_tests::reserve_y();
++                ys.push(self.encrypt.encrypt(&yp, &mut rng));
++            }
++            micros.push(EncryptedMicro {
++                part: *part,
++                x: encrypted_x,
++                targets: ys,
++            });
++        }
++        Ok(EncryptedBlockUpdate {
++            owner: self.owner.clone(),
++            plan: binding.plan.clone(),
++            index,
++            total,
++            input_width: x.ncols(),
++            target_widths: widths,
++            micros,
++        })
++    }
++    /// One client endpoint for all stage W/b and every successful old-hidden handoff.
++    pub fn inspect_block_snapshot(
++        &self,
++        snapshot: &EncryptedBlockSnapshot,
++        context: &CpuEvaluationContext,
++    ) -> Result<ClientBlockSnapshot> {
++        self.check_context(context)?;
++        let before = context.counter();
++        let _diagnostic = context.evaluator.fork();
++        #[cfg(test)]
++        crate::study_blocks::p5_tests::reserve_endpoint();
++        let stages = snapshot
++            .stages
++            .iter()
++            .map(|s| {
++                #[cfg(test)]
++                crate::study_blocks::p5_tests::reserve_inspection();
++                self.inspect_snapshot(s, context)
++            })
++            .collect::<Result<Vec<_>>>()?;
++        ensure(
++            snapshot.handoffs.len() == snapshot.widths.len(),
++            "block diagnostic boundaries",
++        )?;
++        let mut handoffs = Vec::with_capacity(snapshot.widths.len());
++        for (boundary, cts) in snapshot.handoffs.iter().enumerate() {
++            ensure(cts.len() == snapshot.valid.len(), "block diagnostic micros")?;
++            let mut parts = Vec::with_capacity(cts.len());
++            for (ct, &valid) in cts.iter().zip(&snapshot.valid) {
++                #[cfg(test)]
++                crate::study_blocks::p5_tests::reserve_handoff_inspection();
++                let values = unpack_activations(
++                    &self.encoder.decode(&self.decrypt.decrypt(ct)),
++                    &snapshot.stages[boundary].layout,
++                    snapshot.widths[boundary],
++                );
++                let values = values.slice(s![..valid, ..]).to_owned();
++                ensure(
++                    values.iter().all(|v| v.is_finite()),
++                    "nonfinite block hidden snapshot",
++                )?;
++                parts.push(values);
++            }
++            handoffs.push(parts);
++        }
++        ensure(
++            before == context.counter(),
++            "block combined diagnostic counter isolation",
++        )?;
++        Ok(ClientBlockSnapshot { stages, handoffs })
++    }
++}
++#[allow(clippy::type_complexity)]
++fn canonical_arrays(m: &MaterializedProfile) -> Vec<Vec<(Array2<f64>, Vec<f64>)>> {
++    m.graph()
++        .stages()
++        .iter()
++        .map(|stage| {
++            m.initial().layers()[stage.layers()]
++                .iter()
++                .map(|l| (l.weights().clone(), l.biases().to_vec()))
++                .collect()
++        })
++        .collect()
++}
++// Real checked continuation; deliberately disconnected from production D7 dispatch/start.
++#[allow(dead_code, clippy::too_many_arguments)]
++fn prepare_block_owned_canonical(
++    materialized: &MaterializedProfile,
++    registered: &RegisteredCase,
++    plan: Arc<DiagonalPlan>,
++    request: &DiagonalRequest,
++    parameters: Arc<CkksParams>,
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++) -> CpuPreparationResult<(
++    StudyClient,
++    CpuEvaluationContext,
++    EncryptedBlockInitial,
++    BlockEncryptionBinding,
++)> {
++    let bound = boot.clone();
++    let actual = PlanningParameters {
++        params: &parameters,
++        bootstrap: bound.as_ref().map(|b| b.metadata.as_ref()),
++        boot_params: bound.as_ref().map(|b| &b.parameters),
++    };
++    prepare_blocks_then_make(
++        BlockPreparationInput::Canonical {
++            materialized,
++            registered,
++            plan: plan.clone(),
++            request,
++        },
++        actual,
++        plan.partitions(),
++        |checked| {
++            let steps = checked.rotations.clone();
++            let (client, context) = make_blocks_owned(
++                &checked,
++                parameters.clone(),
++                &steps,
++                boot,
++                key_rng,
++                encryption_rng,
++            )?;
++            let (initial, binding) =
++                client.encrypt_block_initial(checked, &context, &canonical_arrays(materialized))?;
++            Ok((client, context, initial, binding))
++        },
++    )
++}
+diff --git a/crates/ckks-train-bench/src/study_admission/p5_fixtures.rs b/crates/ckks-train-bench/src/study_admission/p5_fixtures.rs
+new file mode 100644
+index 0000000..4177545
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_admission/p5_fixtures.rs
+@@ -0,0 +1,247 @@
++//! Separate synthetic block identity. Never a canonical plan or start capability.
++use super::*;
++use crate::{study_diagonal::Description, study_plain::p5_fixtures::BlockRecipe};
++
++pub(crate) struct SyntheticBlockPlan {
++    pub(crate) descriptions: Vec<Description>,
++    pub(crate) initial: Vec<StateMetadata>,
++    pub(crate) index: Vec<TransitionIndex>,
++    pub(crate) rates: Vec<RateCoefficients<f64>>,
++    pub(crate) reference: f64,
++    pub(crate) parts: Vec<Vec<MicroPart>>,
++    pub(crate) classes: Vec<usize>,
++    identity: String,
++    parameters: Vec<u8>,
++    binding: Vec<u8>,
++}
++impl SyntheticBlockPlan {
++    pub(crate) fn build(
++        recipe: &BlockRecipe,
++        mode: DiagonalMode,
++        p: PlanningParameters<'_>,
++        budget: Arc<PlanningBudget>,
++        poison: bool,
++    ) -> Result<Self> {
++        let mut request = DiagonalRequest::quick();
++        request.consumption = Consumption::Full;
++        request.physical_lanes = Some(8);
++        request.work_budget = budget;
++        let count = if poison { 1 } else { recipe.rates().len() };
++        let rates = recipe.rates()[..count]
++            .iter()
++            .map(|&rate| RateCoefficients {
++                source: rate,
++                mean: rate,
++                delta: 1.,
++                kernel: rate,
++            })
++            .collect::<Vec<_>>();
++        let reference = recipe.reference();
++        let mut descriptions = Vec::new();
++        let mut states = Vec::new();
++        for (stage, specs) in recipe.layer_specs().chunks_exact(2).enumerate() {
++            let acts = specs
++                .iter()
++                .map(|l| match l.activation {
++                    crate::study_profile::Activation::Square => DiagonalActivation::Square,
++                    crate::study_profile::Activation::SquarePlusLinear => {
++                        DiagonalActivation::PolyRelu2
++                    }
++                    crate::study_profile::Activation::Identity => DiagonalActivation::Identity,
++                })
++                .collect::<Vec<_>>();
++            let dims = [specs[0].input, specs[0].output, specs[1].output];
++            request.work_budget.charge(Work::Geometry)?;
++            let geometry = plan_stage_geometry(
++                &dims,
++                &Layout::new(512, 16, 8)
++                    .map_err(|_| issue(IssueKind::IdentityMismatch, "synthetic layout"))?,
++                &acts,
++                &request.transpose,
++                mode,
++                request.eval_config,
++            )
++            .map_err(|e| p2(e, stage))?;
++            request.work_budget.charge(Work::Initial)?;
++            let state = initial_stage_metadata(
++                &geometry,
++                p.params,
++                p.bootstrap,
++                DiagonalOptimizer::Nag {
++                    lr: rates[0].kernel,
++                    reference,
++                    momentum: 0.9,
++                },
++                BiasPolicy::Frozen,
++            )
++            .map_err(|e| p2(e, stage))?;
++            states.push(state);
++            descriptions.push(Description {
++                geometry,
++                activations: acts,
++                transpose: request.transpose.clone(),
++                frozen: true,
++            });
++        }
++        let initial = states
++            .iter()
++            .map(StateMetadata::from_state)
++            .collect::<Result<Vec<_>>>()?;
++        let counts = recipe.partitions()[..count]
++            .iter()
++            .map(|p| p.iter().sum())
++            .collect::<Vec<_>>();
++        request.partitions = Some(
++            recipe.partitions()[..count]
++                .iter()
++                .map(|p| {
++                    let mut start = 0;
++                    p.iter()
++                        .map(|&valid| {
++                            let part = MicroPart { start, valid };
++                            start += valid;
++                            part
++                        })
++                        .collect()
++                })
++                .collect(),
++        );
++        let parts = partitions(&counts, 8, &request)?;
++        let mut transcript = Transcript::new(request.limits);
++        transcript.text("hekit-p5-distinct-cpu-block-v1")?;
++        encode_params(&mut transcript, p)?;
++        // Shared codec with explicit reference; deliberately no canonical maximum policy.
++        encode_rate_schedule_fields(&mut transcript, &rates, reference)?;
++        for (description, state) in descriptions.iter().zip(&states) {
++            encode_geometry(&mut transcript, &description.geometry)?;
++            encode_state(&mut transcript, state)?;
++        }
++        bound_partitions(&mut transcript, &parts, 8)?;
++        let binding = transcript.bytes.clone();
++        let identity = sha256_hex(&binding);
++        let geometry = descriptions
++            .iter()
++            .map(|d| d.geometry.clone())
++            .collect::<Vec<_>>();
++        let index = compose(
++            &geometry,
++            &mut states,
++            p,
++            &parts,
++            &rates,
++            &request,
++            &mut transcript,
++        )?;
++        let mut parameters = Transcript::new(request.limits);
++        encode_params(&mut parameters, p)?;
++        eprintln!(
++            "P5_PLAN identity={identity} usage={:?} records={}",
++            request.work_budget.usage(),
++            index.len()
++        );
++        Ok(Self {
++            descriptions,
++            initial,
++            index,
++            rates,
++            reference,
++            parts,
++            classes: recipe.stage_classes(),
++            identity,
++            parameters: parameters.bytes,
++            binding,
++        })
++    }
++    pub(crate) fn identity(&self) -> &str {
++        &self.identity
++    }
++    pub(crate) fn validate(
++        &self,
++        p: PlanningParameters<'_>,
++        parts: &[Vec<MicroPart>],
++        claim: &SyntheticBlockClaim,
++    ) -> std::result::Result<(), &'static str> {
++        if claim.identity != self.identity || claim.binding != self.binding {
++            return Err("identity");
++        }
++        let mut actual = Transcript::new(ReceiptLimits::default());
++        encode_params(&mut actual, p).map_err(|_| "parameters")?;
++        if actual.bytes != self.parameters || claim.parameters != actual.bytes {
++            return Err("parameters");
++        }
++        if parts != self.parts {
++            return Err("partition");
++        }
++        Ok(())
++    }
++    pub(crate) fn claim(&self) -> SyntheticBlockClaim {
++        SyntheticBlockClaim {
++            identity: self.identity.clone(),
++            binding: self.binding.clone(),
++            parameters: self.parameters.clone(),
++        }
++    }
++    /// Keep the original plan binding but make the claim agree with the actual supplied
++    /// parameter description. This isolates actual-vs-bound rejection from malformed claims.
++    pub(crate) fn claim_for_actual_parameters(
++        &self,
++        p: PlanningParameters<'_>,
++    ) -> SyntheticBlockClaim {
++        let mut actual = Transcript::new(ReceiptLimits::default());
++        encode_params(&mut actual, p).unwrap();
++        let mut claim = self.claim();
++        claim.parameters = actual.bytes;
++        claim
++    }
++    pub(crate) fn bad_parameter_claim(
++        &self,
++        p: PlanningParameters<'_>,
++        which: usize,
++    ) -> SyntheticBlockClaim {
++        // Exercise the existing parameter codec without allocating any new CkksParams.
++        let mut q = p.params.q().to_vec();
++        let mut special = p.params.p().to_vec();
++        let mut fields = ParameterFields::from_params(p.params);
++        match which {
++            0 => {
++                q[0] ^= 2;
++                fields.q = &q;
++            }
++            1 => fields.scale *= 2.,
++            2 => fields.dnum += 1,
++            3 => fields.secret = Some(1),
++            4 => {
++                special[0] ^= 2;
++                fields.p = &special;
++            }
++            5 => fields.n *= 2,
++            _ => {}
++        }
++        let mut original = Transcript::new(ReceiptLimits::default());
++        encode_parameter_fields(&mut original, ParameterFields::from_params(p.params)).unwrap();
++        let mut changed = Transcript::new(ReceiptLimits::default());
++        encode_parameter_fields(&mut changed, fields).unwrap();
++        let mut claim = self.claim();
++        claim
++            .parameters
++            .splice(..original.bytes.len(), changed.bytes);
++        if which == 6 {
++            let identity = p
++                .bootstrap
++                .expect("NI spy descriptor")
++                .descriptor_identity_bytes();
++            let start = claim
++                .parameters
++                .windows(identity.len())
++                .position(|w| w == identity)
++                .unwrap();
++            claim.parameters[start] ^= 1;
++        }
++        claim
++    }
++}
++pub(crate) struct SyntheticBlockClaim {
++    pub(crate) identity: String,
++    pub(crate) binding: Vec<u8>,
++    parameters: Vec<u8>,
++}

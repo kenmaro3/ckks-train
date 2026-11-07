@@ -1,0 +1,11 @@
+{
+  "kind": "nonscientific_test_runtime_authorization",
+  "authorized_utc": "2026-11-07T08:56:23.370480+00:00",
+  "invocations": 1,
+  "review_sha256": "0c4cb5903d288621bd2f33c6fcdf0fd16b8521c7e60389a25c6d9c005044b6be",
+  "release_sha256": "b017a5f7b8a22f37a1cd3313188a6b472ae96d0d758e7182c65f040a925c4b79",
+  "pins_sha256": "e0a955eb6b123b0189907637a316a497b381b66079996615f060bce7693a0176",
+  "source_report_sha256": "0bb3fcc3312404b40ab6e9f784c518aa7f7f3d6a893525dd3015def205c2e3f9",
+  "source_review_pass_root_read": true,
+  "automatic_retry": false
+}

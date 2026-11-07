@@ -1,0 +1,13 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: variable does not need to be mutable
+   --> crates/ckks-train-bench/src/study_blocks/p5_tests.rs:927:9
+    |
+927 |     let mut returned_handoffs = [0usize; 2];
+    |         ----^^^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `-D unused-mut` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_mut)]`
+
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

@@ -1,0 +1,31 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_blocks::p5_tests::p5_cpu_block_bridge_contract",
+    "--no-run"
+  ],
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8"
+  },
+  "free_bytes": 60389982208,
+  "start": "2026-11-07T08:22:40.561537+00:00",
+  "source_before": {
+    "crates/ckks-train-bench/src/lib.rs": "d87fa73b7842b6cfb6e61df975cf1690f4452e911582101df521d59e9237ea53",
+    "crates/ckks-train-bench/src/study_blocks.rs": "0beba43765d4007102037e1dd551b084ac0e6b9b6ba97e3106f2d496935260de",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs": "0b10f812b3e97a17aab898becf3c91f8dba4034bce2796ff11cfccace16739f2"
+  },
+  "process_handle": 31102,
+  "exit": 101,
+  "end": "2026-11-07T08:22:43.658528+00:00",
+  "source_after": {
+    "crates/ckks-train-bench/src/lib.rs": "d87fa73b7842b6cfb6e61df975cf1690f4452e911582101df521d59e9237ea53",
+    "crates/ckks-train-bench/src/study_blocks.rs": "0beba43765d4007102037e1dd551b084ac0e6b9b6ba97e3106f2d496935260de",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs": "0b10f812b3e97a17aab898becf3c91f8dba4034bce2796ff11cfccace16739f2"
+  }
+}

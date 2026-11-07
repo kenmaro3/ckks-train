@@ -1,0 +1,80 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: method `identity` is never used
+  --> crates/ckks-train-bench/src/study_blocks.rs:47:19
+   |
+37 | impl BlockPlanOwner {
+   | ------------------- method in this implementation
+...
+47 |     pub(crate) fn identity(&self) -> &str {
+   |                   ^^^^^^^^
+   |
+   = note: `-D dead-code` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(dead_code)]`
+
+error: the loop variable `stage` is used to index `descriptions`
+   --> crates/ckks-train-bench/src/study_blocks.rs:429:30
+    |
+429 |                 for stage in 0..n {
+    |                              ^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_range_loop
+    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
+help: consider using an iterator and enumerate()
+    |
+429 |                 for (stage, <item>) in descriptions.iter().enumerate().take(n) {
+    |                     ~~~~~~~~~~~~~~~    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: the loop variable `stage` is used to index `stage_before`
+   --> crates/ckks-train-bench/src/study_blocks.rs:771:26
+    |
+771 |             for stage in 0..self.descriptions.len() {
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_range_loop
+help: consider using an iterator and enumerate()
+    |
+771 |             for (stage, <item>) in stage_before.iter().enumerate().take(self.descriptions.len()) {
+    |                 ~~~~~~~~~~~~~~~    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: could not compile `ckks-train-bench` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: this boolean expression can be simplified
+   --> crates/ckks-train-bench/src/study_blocks.rs:247:17
+    |
+247 | /                 !self
+248 | |                     .fail_boot_after
+249 | |                     .get()
+250 | |                     .is_some_and(|n| self.boots.get() >= n),
+    | |___________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
+    = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
+help: try
+    |
+247 ~                 self
+248 +                     .fail_boot_after
+249 ~                     .get().is_none_or(|n| self.boots.get() < n),
+    |
+
+error: this boolean expression can be simplified
+   --> crates/ckks-train-bench/src/study_blocks.rs:287:17
+    |
+287 | /                 !self
+288 | |                     .facade
+289 | |                     .fail_refresh_after
+290 | |                     .get()
+291 | |                     .is_some_and(|n| self.facade.refreshes.get() >= n),
+    | |______________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
+help: try
+    |
+287 ~                 self
+288 +                     .facade
+289 +                     .fail_refresh_after
+290 ~                     .get().is_none_or(|n| self.facade.refreshes.get() < n),
+    |
+
+error: could not compile `ckks-train-bench` (lib test) due to 4 previous errors

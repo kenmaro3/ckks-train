@@ -1,0 +1,11 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved imports `super::BlockPlanOwner`, `super::CpuBlockSession`
+ --> crates/ckks-train-bench/src/study_blocks/p5_tests.rs:2:13
+  |
+2 | use super::{BlockPlanOwner, CpuBlockSession};
+  |             ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^ no `CpuBlockSession` in `study_blocks`
+  |             |
+  |             no `BlockPlanOwner` in `study_blocks`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

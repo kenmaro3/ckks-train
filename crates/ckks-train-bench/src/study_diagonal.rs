@@ -125,6 +125,7 @@ impl PlanOwner {
         Ok(())
     }
 }
+#[derive(Clone)]
 pub(crate) struct Description {
     pub(crate) geometry: StageGeometry,
     pub(crate) activations: Vec<DiagonalActivation>,
@@ -267,7 +268,12 @@ pub struct ClientRefreshService {
     #[cfg(test)]
     pub(crate) successful: std::cell::Cell<usize>,
 }
-struct RefreshHandle<'a>(&'a ClientRefreshService);
+pub(crate) struct RefreshHandle<'a>(&'a ClientRefreshService);
+impl ClientRefreshService {
+    pub(crate) fn handle(&self) -> RefreshHandle<'_> {
+        RefreshHandle(self)
+    }
+}
 impl Refresher for RefreshHandle<'_> {
     fn output_level(&self) -> usize {
         self.0.inner.borrow().output_level()
@@ -537,69 +543,24 @@ impl<'a> CpuDiagonalSession<'a> {
         self.check_state_without_progress(state)
     }
     fn check_state_without_progress(&self, state: &StateMetadata) -> Result<()> {
-        check_mlp(self.context, &self.description, &self.mlp, state)?;
-        check_batch(self.batch, state.batch())?;
         match &self.trainer {
-            Training::Interactive(t) => {
-                ensure(
-                    state.compact_weights().is_empty()
-                        && state.velocity().len() == self.mlp.layers.len(),
-                    "interactive state cardinalities",
-                )?;
-                for (i, (dense, _)) in self.mlp.layers.iter().enumerate() {
-                    let v = t.optimizer_view(i)?;
-                    check_optimizer(state.optimizer(), v.lr(), v.reference(), v.momentum())?;
-                    match (v.velocity(), state.velocity()[i]) {
-                        (None, None) => {}
-                        (Some(actual), Some(expected)) => {
-                            ensure(
-                                actual.d() == dense.w.diagonals().d()
-                                    && actual.stride() == dense.w.diagonals().stride()
-                                    && actual.entries().len()
-                                        == dense.w.diagonals().entries().len(),
-                                "velocity geometry",
-                            )?;
-                            for c in actual.entries() {
-                                check_ct(self.context, c, expected)?;
-                            }
-                        }
-                        _ => return Err(mismatch("interactive velocity presence")),
-                    }
-                }
-                ensure(
-                    t.optimizer_view(self.mlp.layers.len()).is_err(),
-                    "optimizer bounds",
-                )?;
-            }
-            Training::NonInteractive(t) => {
-                let o = t.optimizer();
-                let (reference, momentum) = match o {
-                    NiOptimizer::Sgd { .. } => (None, None),
-                    NiOptimizer::Nag { momentum, .. } => (Some(t.lr_reference()), Some(momentum)),
-                };
-                check_optimizer(state.optimizer(), o.lr(), reference, momentum)?;
-                ensure(
-                    t.state().weights.len() == state.compact_weights().len()
-                        && t.state().velocity.len() == state.velocity().len(),
-                    "compact state cardinality",
-                )?;
-                for (c, &m) in t.state().weights.iter().zip(state.compact_weights()) {
-                    check_ct(self.context, c, m)?;
-                }
-                for (actual, expected) in t.state().velocity.iter().zip(state.velocity()) {
-                    match (actual, expected) {
-                        (None, None) => {}
-                        (Some(c), Some(m)) => check_ct(self.context, c, *m)?,
-                        _ => return Err(mismatch("NI velocity presence")),
-                    }
-                }
-                ensure(
-                    Some(t.compact_layout()) == self.description.geometry.compact(),
-                    "compact geometry and bias slots",
-                )?;
-            }
+            Training::Interactive(t) => check_interactive_stage(
+                self.context,
+                &self.description,
+                &self.mlp,
+                self.batch,
+                t,
+                state,
+            ),
+            Training::NonInteractive(t) => check_ni_stage(
+                self.context,
+                &self.description,
+                &self.mlp,
+                self.batch,
+                t,
+                state,
+            ),
         }
-        Ok(())
     }
     fn validate_packet(&self, p: &EncryptedLogicalUpdate) -> Result<(usize, usize)> {
         ensure(!self.poisoned, "poisoned session")?;
@@ -934,6 +895,86 @@ impl<'a> CpuDiagonalSession<'a> {
         Ok(())
     }
 }
+/// Read-only comparison of the actual interactive stage; identical P4 expressions.
+pub(crate) fn check_interactive_stage(
+    context: &CpuEvaluationContext,
+    description: &Description,
+    mlp: &Mlp,
+    batch: BatchSpec,
+    t: &Trainer<'_>,
+    state: &StateMetadata,
+) -> Result<()> {
+    check_mlp(context, description, mlp, state)?;
+    check_batch(batch, state.batch())?;
+
+    ensure(
+        state.compact_weights().is_empty() && state.velocity().len() == mlp.layers.len(),
+        "interactive state cardinalities",
+    )?;
+    for (i, (dense, _)) in mlp.layers.iter().enumerate() {
+        let v = t.optimizer_view(i)?;
+        check_optimizer(state.optimizer(), v.lr(), v.reference(), v.momentum())?;
+        match (v.velocity(), state.velocity()[i]) {
+            (None, None) => {}
+            (Some(actual), Some(expected)) => {
+                ensure(
+                    actual.d() == dense.w.diagonals().d()
+                        && actual.stride() == dense.w.diagonals().stride()
+                        && actual.entries().len() == dense.w.diagonals().entries().len(),
+                    "velocity geometry",
+                )?;
+                for c in actual.entries() {
+                    check_ct(context, c, expected)?;
+                }
+            }
+            _ => return Err(mismatch("interactive velocity presence")),
+        }
+    }
+    ensure(
+        t.optimizer_view(mlp.layers.len()).is_err(),
+        "optimizer bounds",
+    )?;
+    Ok(())
+}
+/// Read-only comparison of the actual NI stage; identical P4 expressions.
+pub(crate) fn check_ni_stage<B: BootstrapOps<Evaluator>>(
+    context: &CpuEvaluationContext,
+    description: &Description,
+    mlp: &Mlp,
+    batch: BatchSpec,
+    t: &NonInteractiveTrainer<'_, Evaluator, B>,
+    state: &StateMetadata,
+) -> Result<()> {
+    check_mlp(context, description, mlp, state)?;
+    check_batch(batch, state.batch())?;
+
+    let o = t.optimizer();
+    let (reference, momentum) = match o {
+        NiOptimizer::Sgd { .. } => (None, None),
+        NiOptimizer::Nag { momentum, .. } => (Some(t.lr_reference()), Some(momentum)),
+    };
+    check_optimizer(state.optimizer(), o.lr(), reference, momentum)?;
+    ensure(
+        t.state().weights.len() == state.compact_weights().len()
+            && t.state().velocity.len() == state.velocity().len(),
+        "compact state cardinality",
+    )?;
+    for (c, &m) in t.state().weights.iter().zip(state.compact_weights()) {
+        check_ct(context, c, m)?;
+    }
+    for (actual, expected) in t.state().velocity.iter().zip(state.velocity()) {
+        match (actual, expected) {
+            (None, None) => {}
+            (Some(c), Some(m)) => check_ct(context, c, *m)?,
+            _ => return Err(mismatch("NI velocity presence")),
+        }
+    }
+    ensure(
+        Some(t.compact_layout()) == description.geometry.compact(),
+        "compact geometry and bias slots",
+    )?;
+    Ok(())
+}
 pub(crate) fn validate_initial_packet(
     context: &CpuEvaluationContext,
     plan: &PlanOwner,
@@ -988,7 +1029,10 @@ pub(crate) fn check_ct(context: &CpuEvaluationContext, c: &Ciphertext, m: CtMeta
         "ciphertext basis",
     )
 }
-fn check_batch(b: BatchSpec, m: ckks_train_nn::diagonal_plan::BatchMetadata) -> Result<()> {
+pub(crate) fn check_batch(
+    b: BatchSpec,
+    m: ckks_train_nn::diagonal_plan::BatchMetadata,
+) -> Result<()> {
     ensure(
         b.x_level == m.x.level()
             && b.x_scale.to_bits() == m.x.scale_bits()
@@ -997,7 +1041,7 @@ fn check_batch(b: BatchSpec, m: ckks_train_nn::diagonal_plan::BatchMetadata) -> 
         "BatchSpec all fields",
     )
 }
-fn check_optimizer(
+pub(crate) fn check_optimizer(
     o: DiagonalOptimizer,
     lr: f64,
     reference: Option<f64>,
@@ -1018,7 +1062,7 @@ fn check_optimizer(
         "optimizer raw config",
     )
 }
-fn check_mlp(
+pub(crate) fn check_mlp(
     context: &CpuEvaluationContext,
     description: &Description,
     mlp: &Mlp,

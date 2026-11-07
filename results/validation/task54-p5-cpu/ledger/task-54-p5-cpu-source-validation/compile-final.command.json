@@ -1,0 +1,41 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_blocks::p5_tests::p5_cpu_block_bridge_contract",
+    "--no-run"
+  ],
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8"
+  },
+  "free_bytes": 60255739904,
+  "start": "2026-11-07T08:40:39.847690+00:00",
+  "source_before": {
+    "crates/ckks-train-bench/src/lib.rs": "afa043377a9b2403f6f79e94ab2b89d7077484d2c6bb9f00a7e6da6885edd4e1",
+    "crates/ckks-train-bench/src/study_blocks.rs": "1c09d44fdde899de12d3c3009d0ac9cd4e294cd2c3120a1c1f0dc6a6df4bb282",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs": "fd56fc67eddbedb1ec8ec362d8b9627e53ad11ed06cadbcbae31daf50ea39215",
+    "crates/ckks-train-bench/src/study_client.rs": "0143659b8d9cd5f19e9726288199088951f7ed18dbb5853d6b7a8cca79f2076d",
+    "crates/ckks-train-bench/src/study_client/blocks.rs": "7c23eddca07d8fd2e96bf52b7e97f62c34c821886c9fc2c56cb9e5ebb595efb5",
+    "crates/ckks-train-bench/src/study_admission.rs": "72cd597e46eca197e349032c89f1f59c0ed7e109b4671b2c3d300eb7922a784a",
+    "crates/ckks-train-bench/src/study_admission/p5_fixtures.rs": "5e72a14b3adf70946e20f087d4ab0c1371c3b723f0c1fae0593129c8f7b5e435",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0"
+  },
+  "process_handle": 54268,
+  "exit": 0,
+  "end": "2026-11-07T08:40:57.235067+00:00",
+  "source_after": {
+    "crates/ckks-train-bench/src/lib.rs": "afa043377a9b2403f6f79e94ab2b89d7077484d2c6bb9f00a7e6da6885edd4e1",
+    "crates/ckks-train-bench/src/study_blocks.rs": "1c09d44fdde899de12d3c3009d0ac9cd4e294cd2c3120a1c1f0dc6a6df4bb282",
+    "crates/ckks-train-bench/src/study_blocks/p5_tests.rs": "fd56fc67eddbedb1ec8ec362d8b9627e53ad11ed06cadbcbae31daf50ea39215",
+    "crates/ckks-train-bench/src/study_client.rs": "0143659b8d9cd5f19e9726288199088951f7ed18dbb5853d6b7a8cca79f2076d",
+    "crates/ckks-train-bench/src/study_client/blocks.rs": "7c23eddca07d8fd2e96bf52b7e97f62c34c821886c9fc2c56cb9e5ebb595efb5",
+    "crates/ckks-train-bench/src/study_admission.rs": "72cd597e46eca197e349032c89f1f59c0ed7e109b4671b2c3d300eb7922a784a",
+    "crates/ckks-train-bench/src/study_admission/p5_fixtures.rs": "5e72a14b3adf70946e20f087d4ab0c1371c3b723f0c1fae0593129c8f7b5e435",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "6360dacc998bda23ee9494dcf21ee7ae035fcb8f7ad74467c5fd2e1df91278e0"
+  }
+}

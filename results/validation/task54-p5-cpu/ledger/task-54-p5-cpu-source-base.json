@@ -1,0 +1,11 @@
+{
+  "base": "2ea00601c5d6f4c10a98f4e0ddb2405935c34022",
+  "pins": {
+    "crates/ckks-train-bench/src/study_client.rs": "4227bff4f06db0dbe61a2d97e4a20986209347b8f15e74d8db852b16cdad0950",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "44107c8617582883558e79dbc9cb37abefd2502d3c3ceaf6f361953c29f9102f",
+    "crates/ckks-train-bench/src/study_admission.rs": "60f1dbf83e30ea59eee89e2a38889a9161fc04570493a13fff00e0a21ac4e9a2",
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "cd580c14c8f6aa8099c113701890ec2231bb5b162f2375b63103c6562dcdb99e"
+  }
+}

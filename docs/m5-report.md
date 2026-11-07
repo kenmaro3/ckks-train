@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1750)。
+最新の実装: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1750)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -503,5 +503,17 @@ P5のkeys／Encoder／evaluator／HEは0であり、暗号学習が3e-5を達成
 ## 2026-11-07 17:51 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1750/README.md)では、17:51:09 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は365/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。17:50:05以降の予定枠から1回観測し、同じcontroller handle58137で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は18:51:10 JST以降とする。
+
+<a id="latest-evidence-20261107-p5-cpu"></a>
+
+## 2026-11-07追記: P5複数層CPU学習経路の限定実測
+
+[実装・検証証跡](../results/validation/task54-p5-cpu/README.md)を保存した。既存BlockMlp／BlockTrainer／BlockNiTrainerを使う2段・3段のclient／暗号packet／sessionを接続し、更新前hiddenの層間受け渡し、stage別target、AAの同一暗号文再利用、全stageの状態・inclusive七計数・途中失敗後の再実行拒否を検査した。共通処理を変更したため既存P4も1回再実行し、32更新成功＋2意図した失敗、71実bootstrap、268状態不変比較が合格した。
+
+P5は小規模synthetic CPUの16session・42attemptを実行し、40更新成功＋2意図した途中失敗を含む1件のテストが合格した。実bootstrap313回、client refresh357回、成功handoff84個。重み2,304・bias784・old hidden1,800、計4,888項目の全要素を既存F64 Engineと比較し、Iの11endpoint最大絶対誤差は8.56300169660428878e-9、NIの29endpointでは9.06713890636012820e-8だった。事前固定の上限I1e-5／NI3e-5以内であり、元のpure v1失敗・v2厳格化の記録は変更していない。
+
+独立レビューで、全比較の期待値とoracle出力bits、全40endpointの要素網羅・最大値、実測七計数とstage＋handoffの合計、全guard列と68状態不変比較の完了を確認した。最初のguardがharness行に付いていたため報告の総件数を1,376から1,377へ修正したが、元ログ・各処理の件数・数値・判定は不変。元報告も保持した。source／compile／strict Clippy／formatと、P4回帰・P5実行証跡の独立レビューが合格した。Macのテスト時間を性能比較には使用しない。
+
+snapshot公開APIは成功直後の使用だけをこの検証で確認した。初回成功前やpoison後は一貫したendpointとは限らず、広い用途向けの利用条件明記／拒否処理は軽微な残項目である。negative mutationの一時コピーは未観測の診断workspaceに含める。retentionは保持payloadと推定・未観測領域の区分であり、実ピーク・RSS・本番メモリ適合ではない。canonical D7とdurable start／全行runner、secure profile、GPU、全登録科学実験、P5／Task54／M4／M5全体は引き続き未完了で、full encrypted-block holdとFULL-2の判定条件を維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
