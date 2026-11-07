@@ -1,0 +1,162 @@
+{
+  "status": "captured",
+  "value": {
+    "schema": "hekit-study-case-provenance-v1",
+    "build": {
+      "compiler_vv": "FICTIONAL compiler\nhost: fictional\n",
+      "target": "fictional-target",
+      "host": "fictional-host",
+      "profile": "fictional",
+      "opt_level": "0",
+      "debug": false,
+      "features": [
+        "a-fictional",
+        "\u00e9-fictional"
+      ],
+      "package_version": "0.0.0-fictional",
+      "cargo_lock_sha256": "a252a98f669999f11558672e5a352907cbd9f1062ab5260938f5f09417c08cb2",
+      "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+      "config_manifest_sha256": "17f65fe46b8d1cfb9cc7b6c36717a675875b1c8f8101cca707d0d728bd02ea2f",
+      "build_environment_sha256": "53b769e53704b07717b8f8c72a4dc055e16263238f7ebd37bf4f6c3c0d5b72ce",
+      "recipe_version": "FICTIONAL-NOT-APPROVED",
+      "receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+    },
+    "source": {
+      "root": {
+        "encoding": "unix_bytes",
+        "bytes": "2f66696374696f6e616c2fff"
+      },
+      "commit": {
+        "status": "available",
+        "value": "1111111111111111111111111111111111111111"
+      },
+      "tracked": "clean",
+      "untracked": "clean",
+      "manifest": [
+        {
+          "path": "../a.rs",
+          "sha256": "01fc11ef519a8bf4cd46fb6e37e3f1d45ac5f191f323ed88f5904d39f3642da4"
+        },
+        {
+          "path": "fictional/\u00e9.rs",
+          "sha256": "d569ee2450c979d997b9f836895097160cdc9b9575b1e4920ffddce0e1a38079"
+        }
+      ]
+    },
+    "executable": {
+      "path": {
+        "encoding": "unix_bytes",
+        "bytes": "2f66696374696f6e616c2f657865"
+      },
+      "start_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71",
+      "end_sha256": "fc178ce3aa897f8e5ab3543511a039813fa0057caedc7a4096c28c9a9896ea71"
+    },
+    "invocation": {
+      "argv": [
+        {
+          "encoding": "unix_bytes",
+          "bytes": "2f66696374696f6e616c2f657865"
+        },
+        {
+          "encoding": "unix_bytes",
+          "bytes": ""
+        },
+        {
+          "encoding": "unix_bytes",
+          "bytes": "ff00"
+        },
+        {
+          "encoding": "unix_bytes",
+          "bytes": "c3a9"
+        }
+      ],
+      "cwd": {
+        "encoding": "unix_bytes",
+        "bytes": "2f66696374696f6e616c"
+      }
+    },
+    "host": {
+      "cpu_model": {
+        "status": "available",
+        "value": "fictional-cpu"
+      },
+      "os": {
+        "status": "available",
+        "value": "fictional-os"
+      },
+      "hostname": {
+        "status": "available",
+        "value": "fictional-host"
+      },
+      "available_cpus": {
+        "status": "available",
+        "value": 2
+      },
+      "process_id": {
+        "status": "available",
+        "value": 42
+      },
+      "observed_threads": {
+        "status": "available",
+        "value": 1
+      },
+      "execution_threads": 2
+    },
+    "thread_environment": [
+      {
+        "key": "BLIS_NUM_THREADS",
+        "value": {
+          "status": "available",
+          "value": "1"
+        }
+      },
+      {
+        "key": "MKL_NUM_THREADS",
+        "value": {
+          "status": "unavailable",
+          "reason": "fictional unavailable observation"
+        }
+      },
+      {
+        "key": "NUMEXPR_NUM_THREADS",
+        "value": {
+          "status": "available",
+          "value": "1"
+        }
+      },
+      {
+        "key": "OMP_NUM_THREADS",
+        "value": {
+          "status": "unavailable",
+          "reason": "fictional unavailable observation"
+        }
+      },
+      {
+        "key": "OPENBLAS_NUM_THREADS",
+        "value": {
+          "status": "available",
+          "value": "1"
+        }
+      },
+      {
+        "key": "RAYON_NUM_THREADS",
+        "value": {
+          "status": "unavailable",
+          "reason": "fictional unavailable observation"
+        }
+      },
+      {
+        "key": "VECLIB_MAXIMUM_THREADS",
+        "value": {
+          "status": "available",
+          "value": "1"
+        }
+      }
+    ],
+    "recheck": {
+      "source_manifest_sha256": "787e3bb38a0576318b5a0f50a2bf3d81c7b7c66a955b1561780796fbf4614c0b",
+      "build_receipt_file_sha256": "bba3b38b81af37f86dce7fc08eceaa57749cf7e75cd7396a22ce8941ac349e97"
+    },
+    "role": "study_train"
+  }
+}

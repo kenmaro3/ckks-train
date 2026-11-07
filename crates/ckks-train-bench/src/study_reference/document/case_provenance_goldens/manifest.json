@@ -1,0 +1,883 @@
+{
+  "synthetic": true,
+  "schema_scope": "standalone CaseProvenance component, no envelope header, no synthetic field in claim",
+  "positive": {
+    "threads-1": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "positive U64 syntax, not an actual retained worker observation",
+      "json_sha256": "94f7195785735d50c072e5b015bc09c65e8e9a3c0dbbc7630c49292fc3b61994",
+      "canonical_sha256": "89012bdcdeec862d7e3bab708176e95c6c1a0f37bdead7e91bbc6445755768d0",
+      "canonical_bytes": 1732,
+      "hex_file_sha256": "7d47734060c856eea8401c8a7929a22b1fa710523449bce10d4cebbef9eb0e6b"
+    },
+    "threads-2": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "positive U64 syntax, not an actual retained worker observation",
+      "json_sha256": "ae1af68c4f353c6f47b37c70a85e941d612046cbcf07120dddfd5eb0930f531f",
+      "canonical_sha256": "f0bdfa37140ae3274d52b444484002e7f1a04212483160d974b46ba694a4cb5a",
+      "canonical_bytes": 1732,
+      "hex_file_sha256": "09d04f12a55e434ed2f3766a4ddeb50de3b17f118c058bb8cb470ae1dd9ce7d6"
+    },
+    "threads-2pow53-plus1": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "positive U64 syntax, not an actual retained worker observation",
+      "json_sha256": "b976d358680d87677a6a9d6b68225358b143c39713ee45b575c573db44d5fc2f",
+      "canonical_sha256": "836e7c0e6d7fcb52e881504ea3f6a337449db5bb1eed8ba38b2770fede66b165",
+      "canonical_bytes": 1732,
+      "hex_file_sha256": "9bd4dcb6bd0597ad2f7f8dd53b345b36b63ecfed6e150e96b0658b1d3b1d5044"
+    },
+    "threads-u64-max": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "positive U64 syntax, not an actual retained worker observation",
+      "json_sha256": "1c17efffdf03ce55bac818acc801255e8d0911b54c8f1aa91cbc682114a1821b",
+      "canonical_sha256": "a7b66e6043fbc5e037790d842724545caa5c1ce70c46de0a01f134c74d49de10",
+      "canonical_bytes": 1732,
+      "hex_file_sha256": "6a3789d2593ca3601b568fc993a9a3720037619b49b0383000b9c43d6fca82af"
+    },
+    "optional-host-unavailable": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "optional observation tags only; no runtime readiness claim",
+      "json_sha256": "e48a9cf1d98715af8e9c930392fa1744b78bd759e0a8bd6cfd3f326bb0d930c3",
+      "canonical_sha256": "e46210204a1d86aec535cfc6c1ddd9759ef209a601ceab9deb1e2b9937b441ef",
+      "canonical_bytes": 1903,
+      "hex_file_sha256": "4bf21bf9719b9d539ca5e5e58476ebbbb6c79b58d02e15f12b26e4ea20a2b9c0"
+    },
+    "threads-2-environment-99": {
+      "expected": "accept untrusted component syntax only",
+      "scope": "literal environment99 must not replace execution_threads2; synthetic syntax only",
+      "json_sha256": "13560151b784192844c4e079f2d8940b4de9224328e7cf41a69409715ff3991f",
+      "canonical_sha256": "d6301729d935414509f733f63c145f9bf63f2d884d2666859bd2e51d37ea7159",
+      "canonical_bytes": 1701,
+      "hex_file_sha256": "d60ed1aa107743d029a815e735ca569991ea049c6ddaeb26003695003ffbc4b5"
+    }
+  },
+  "negative": {
+    "threads-zero": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "CaseProvenance requires positive execution_threads",
+      "json_sha256": "b516e8407847793b936d2a1652b9f67b6e1e88fe79574f2263575fc9b00dd07b",
+      "bytes": 4356
+    },
+    "threads-overflow": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact U64 integer token; reject type/range violation",
+      "json_sha256": "b1f944f438c676c03ca734cc0c8a2156fba0fe893af548b50e8b5fbc2a517a0e",
+      "bytes": 4375
+    },
+    "threads-negative": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact U64 integer token; reject type/range violation",
+      "json_sha256": "5160f787cd767ab0ef483d0e5fd8d591dcc556cf7b232387fb94afe704770980",
+      "bytes": 4357
+    },
+    "threads-string": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact U64 integer token; reject type/range violation",
+      "json_sha256": "7a75053eef42f3fe03975feeab477625fdc60d3c8a64f6d59b56f4acf4fe9b54",
+      "bytes": 4358
+    },
+    "threads-null": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact U64 integer token; reject type/range violation",
+      "json_sha256": "3704929b4a4fd403dc00f438967b75882214f83e43f005a935cfe2c805d0bd30",
+      "bytes": 4359
+    },
+    "threads-fraction": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact U64 integer token; reject type/range violation",
+      "json_sha256": "fc07f73719a77d25ac2d14d2d5174284ff58fb12c574061ce2bf9e35d87730c7",
+      "bytes": 4358
+    },
+    "threads-exponent": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact integer token or invalid JSON; no coercion",
+      "json_sha256": "4b7cba8ab79290e9876452c5c949c5f44d4b63d6ee88e892c1a961d419012854",
+      "bytes": 2962
+    },
+    "threads-fraction-integral": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact integer token or invalid JSON; no coercion",
+      "json_sha256": "1e28fb69a4211bce2293bd2e1430b34fe6fef5d76d987955763dc8c22d4a6a7d",
+      "bytes": 2962
+    },
+    "threads-plus": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact integer token or invalid JSON; no coercion",
+      "json_sha256": "462c482a2468af277139d57aa92c80e3d4cf79d6a46215e3d9b16b11b1e08e12",
+      "bytes": 2961
+    },
+    "threads-leading-zero": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact integer token or invalid JSON; no coercion",
+      "json_sha256": "4e69f2b2f3d1acfdb0abdbdebce49c07bc1e07e5b5b0fdaeb5bfcfb10f706624",
+      "bytes": 2961
+    },
+    "unavailable": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "no unavailable branch in CaseProvenance",
+      "json_sha256": "0b29ec391cfabb41aeb8bcf1b434b4877ecef76e411d0807910c867936f4bec5",
+      "bytes": 67
+    },
+    "reference-provenance": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "Reference schema and absent case role cannot decode as CaseProvenance",
+      "json_sha256": "b08b76c00310d024627e7c6953099fdc15c60b2f044d732ce9c1be4a82cee09c",
+      "bytes": 4324
+    },
+    "reference-schema": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "distinct exact schema; role alone does not override",
+      "json_sha256": "8b0e003f6151dd320518d73492c8e2d020c3efe34b31f4b750ea6f4042440a81",
+      "bytes": 4351
+    },
+    "reference-role": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "role must be exact study_train",
+      "json_sha256": "a52e4091e5e2d82af38d066a6bc265f6704f7676317993b99ce67d024a5133a2",
+      "bytes": 4354
+    },
+    "unknown-role": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "closed role grammar",
+      "json_sha256": "7e4cb60c83b9f9b4ce0d1359f30b8a6ef6ce954663ccdf277699cb7ebb62e0a5",
+      "bytes": 4356
+    },
+    "unknown-schema": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "closed schema grammar",
+      "json_sha256": "ade4453a20da810b3b5f57aad2734c927ed85d4c71f5f3317edd421ca2bdd8d8",
+      "bytes": 4356
+    },
+    "unknown-status": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "captured-only branch",
+      "json_sha256": "549933b0980015b06fcc618356a386d752e30960bfcc3a092432e657259295e3",
+      "bytes": 4356
+    },
+    "extra-branch-reason": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "captured branch has no reason field",
+      "json_sha256": "45ff4dd6426a69666bb9c78fa999ee017a6db396d7017669a30d47ce737fc697",
+      "bytes": 4381
+    },
+    "missing-schema": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "99f5339a55e4a66b76ddde4e6a73accc026bef7d44d85fb826deaedd41eb7860",
+      "bytes": 4308
+    },
+    "missing-role": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "ac133d7b331ecc0b5034c0a20e7c917964b4d6120a7aff972498fb1962f0f81e",
+      "bytes": 4329
+    },
+    "missing-build": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "3716d6e89569dc0e8923f0646a049076b676987aaf3c3de689fe88a8a9ef2df8",
+      "bytes": 3462
+    },
+    "missing-source": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "68fb069ece4fa86633caa4660a3718123570db480ac6db883935e8abbaf9a7c2",
+      "bytes": 3738
+    },
+    "missing-executable": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "7c15de890a9062f57f3938dec08a6229429e1a6b384bb5daba32a9aa80752439",
+      "bytes": 4045
+    },
+    "missing-invocation": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "21d5e0a96781f2e6c093a13763b038b343f76800a8d870e1cdaa877d144d1758",
+      "bytes": 3856
+    },
+    "missing-host": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "da6a077bdeb5c65db2080233895764dfda2ea1bc4e672cd4cc10ee010e128ea7",
+      "bytes": 3778
+    },
+    "missing-thread_environment": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "d20a0c989f162307c6581f3b8b6fd501967ceafe89273b987bd12315e79fc6bf",
+      "bytes": 3246
+    },
+    "missing-recheck": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "required exact CaseProvenance value field",
+      "json_sha256": "805d760c7a81aae229be47fe15fd3ac59ebc0cd3aa5b73f5f071874f27e9678c",
+      "bytes": 4130
+    },
+    "unknown-top": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "component schema has no synthetic field; metadata stays outside claim",
+      "json_sha256": "89c8bffc1d44824d8f7b78a9808a4fca9ef0f9c1af63fe6db6c99732fd053962",
+      "bytes": 4377
+    },
+    "unknown-value": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown value field rejects",
+      "json_sha256": "228e218c272aa15881fe309426f57300e6a728385315867fc65afb0885b6a8af",
+      "bytes": 4372
+    },
+    "unknown-build": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "6bf0608b796f6794f73780c5a9d5e34a29314267d5930adb2b8cd897877c4c9a",
+      "bytes": 4374
+    },
+    "unknown-source": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "5a739a46ae9bbf7484a7ea82dbabfc3899024737a10822e9b45fa831f947b9a6",
+      "bytes": 4374
+    },
+    "unknown-executable": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "bfaf38cc312dc9e412e407c1ac854e06a9277d44c653a080698805dcf028bb8e",
+      "bytes": 4374
+    },
+    "unknown-invocation": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "101c5d2136c1cd282bbfc8dba4936dff2b9f57850a0160007a62f0c84974ff1c",
+      "bytes": 4374
+    },
+    "unknown-host": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "86f1752b31420c5ca07439e9411b879681e124174a4e64eaf2a7dde4911c9a94",
+      "bytes": 4374
+    },
+    "unknown-recheck": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown inherited nested field rejects",
+      "json_sha256": "db7af3c8067896e012ecc7355ff70883d26d6a24d078fe064d931f97d437c9f6",
+      "bytes": 4374
+    },
+    "unknown-environment-record": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unknown environment record field rejects",
+      "json_sha256": "deaf01129ac2d1c6c75ce6c4d16c17c76d5b8c241de8fe5da4b41ebca85b90e4",
+      "bytes": 4376
+    },
+    "unknown-observation": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "available observation forbids reason",
+      "json_sha256": "41397473afd9596c3c9fa4771e6e817fdfa77f5722a0b636904c7b105d52b8fa",
+      "bytes": 4383
+    },
+    "duplicate-status": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate decoded field rejects even equal values",
+      "json_sha256": "4d2ece2941ee78ed828a674e79cb8dcf589edc5904158f030fe9df20327b44d4",
+      "bytes": 2980
+    },
+    "duplicate-role": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate decoded field rejects even equal values",
+      "json_sha256": "289e804faa761d10db04d6ccb543a56e6c9a5c933684071d32a60354c1299234",
+      "bytes": 2981
+    },
+    "duplicate-escaped-role": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate decoded field rejects even equal values",
+      "json_sha256": "89d6d59346d6f54bf79d83e4fd5a242786a85dec9bb256f0e4a5661f62331714",
+      "bytes": 2986
+    },
+    "duplicate-threads": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate decoded field rejects even equal values",
+      "json_sha256": "72f66fe3839a36cf4d888698e94b0557e999ef16b9900e742fe0ca11b96d8708",
+      "bytes": 2982
+    },
+    "features-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "array cap rejects before collecting excess; repeated entries also violate unique-key policy where applicable",
+      "json_sha256": "21cf4e7821fac3905eb40722bed9e636fe362f12c188998d63e6558496da0faa",
+      "bytes": 5800
+    },
+    "manifest-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "array cap rejects before collecting excess; repeated entries also violate unique-key policy where applicable",
+      "json_sha256": "16ad071040380d9634cbf75f2dba0785d414a2eac492dcc34d2bdbdf456ea5a4",
+      "bytes": 77935
+    },
+    "argv-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "array cap rejects before collecting excess; repeated entries also violate unique-key policy where applicable",
+      "json_sha256": "3046cf56c58196eea1ef83995d727d0e2c0f9437e905fc6a9813c4b0b09b65d5",
+      "bytes": 31503
+    },
+    "thread_environment-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "array cap rejects before collecting excess; repeated entries also violate unique-key policy where applicable",
+      "json_sha256": "67ca163d26dd56e487019a808adb72ef064992163e27041737aecf2c9936e9fc",
+      "bytes": 7801
+    },
+    "compiler-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "compiler decoded UTF8 cap16384",
+      "json_sha256": "d662f5b07265f938a3057588f741b182b5304fa34ce092ec864266e27a2a509b",
+      "bytes": 20704
+    },
+    "ordinary-text-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "ordinary decoded UTF8 cap4096",
+      "json_sha256": "d6ee853f06020a924ac79b8c64f795dfbef3fc27c0714d495318c848d82e69e3",
+      "bytes": 8437
+    },
+    "schema-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "schema Text128 limit and exact schema",
+      "json_sha256": "6b5a0c2d326df3a7926c1f338ccdfcb32a48b5ea696f472a9bd6e245e1ba1b0c",
+      "bytes": 4455
+    },
+    "raw-os-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "decoded RawOs byte cap4096",
+      "json_sha256": "9a28bd319863f30545235ed443dcd2bb49a9864694f8b28247577b76f33c0a54",
+      "bytes": 12526
+    },
+    "observation-reason-excess": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "observation reason Text256",
+      "json_sha256": "2421bc56e17a2beb84a370bd29e51814b707a49e1aa5844fa7ed401302e70dbb",
+      "bytes": 4603
+    },
+    "bad-raw-hex": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "lowercase even hex only",
+      "json_sha256": "1c6c89a1519ebd4fce11312c6a041ec893e73aadb95a8e847a77200d677d7caf",
+      "bytes": 4330
+    },
+    "odd-raw-hex": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "even hex only",
+      "json_sha256": "f1cbea13313a5cfd36de7b8a4fff16d2ba052d8f4fa5783367ef5c91b9083785",
+      "bytes": 4329
+    },
+    "wrong-raw-encoding": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "unix_bytes tag only",
+      "json_sha256": "6cda44c710a56f3bdf5ae308e0a87038fb772edccd09259de22c41fb78f944eb",
+      "bytes": 4350
+    },
+    "bad-hash": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "exact64 lowercase hex SHA256",
+      "json_sha256": "d5168c870f1a3eaba87be8bb98655fe13272485e2f131bde96e0a85069869a24",
+      "bytes": 4356
+    },
+    "unknown-env-key": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "only seven fixed environment names",
+      "json_sha256": "f7a742e9d2a91c8608d3aa5ccf4a47713341ac4545d8e6b6470a4efc011ad060",
+      "bytes": 4353
+    },
+    "duplicate-env-key": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate semantic environment key rejects",
+      "json_sha256": "61beb0669123782c65bb051bf082833932c88484dc1c667c29487654d139ded3",
+      "bytes": 4322
+    },
+    "duplicate-feature": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate semantic feature rejects",
+      "json_sha256": "5c26aaa6e2c99fdad9383083aaeffb9df34088bd486efe7d340f8ca903a17ae6",
+      "bytes": 4379
+    },
+    "duplicate-manifest-path": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "duplicate source manifest path rejects",
+      "json_sha256": "d883a64d83a63b46ca8837f5c56f74a2bb99d2a7ace59a31b62631faa8b7e550",
+      "bytes": 4500
+    },
+    "relative-root": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "source root must be lexical absolute bytes",
+      "json_sha256": "5a6930a87947653481ae7b0c6db3ebdf7b0867cb123ede0c972ad4cc5b0ab323",
+      "bytes": 4334
+    },
+    "parent-source-path": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "source relative path forbids dotdot components",
+      "json_sha256": "7f880117e9dd730c666d75a323fd1b9d5dba79d51ab017ce94c401085e080f33",
+      "bytes": 4349
+    },
+    "available_cpus-zero": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "available CPU/observed thread count positive; distinct from execution_threads",
+      "json_sha256": "cf8eb0b983dfcb2f32ff2e05403b6341150f944729319f1abc1a46d4d0639da2",
+      "bytes": 4356
+    },
+    "observed_threads-zero": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "available CPU/observed thread count positive; distinct from execution_threads",
+      "json_sha256": "4e6caed6b052bcdcf8e69a6ae4d481f8290ec9dc084da8c4ebe2ad81401c882b",
+      "bytes": 4356
+    },
+    "executable-recheck-mismatch": {
+      "expected": "reject",
+      "layer": "capture consistency",
+      "obligation": "completed case capture consistency requires unchanged executable",
+      "json_sha256": "fafcaa8042447118cc27d662f94ad373dc94492a01168d31f1f9513311d67b62",
+      "bytes": 4356
+    },
+    "source-recheck-mismatch": {
+      "expected": "reject",
+      "layer": "capture consistency",
+      "obligation": "captured build.source == recheck.source",
+      "json_sha256": "8daa3cc5c17a815884d5f94506aa2d2a38aee7499c167f7e3b6fbba490971af7",
+      "bytes": 4356
+    },
+    "receipt-recheck-mismatch": {
+      "expected": "reject",
+      "layer": "capture consistency",
+      "obligation": "captured build.receipt == recheck.receipt",
+      "json_sha256": "96726269b348257cd07b83105e132a5d7f58008d9aa7121e17b5b7c09f418ba1",
+      "bytes": 4356
+    },
+    "truncated-json": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "single complete JSON document required",
+      "json_sha256": "605a47065bc628b117b81275dd334e768b9892a9e53ea07db7d2c968de4e975a",
+      "bytes": 2959
+    },
+    "trailing-document": {
+      "expected": "reject",
+      "layer": "transport",
+      "obligation": "second JSON document forbidden",
+      "json_sha256": "33fceacaf2f2cd801c46bfad752e37ebb974ca71a075992801fbad9cb89733b7",
+      "bytes": 2962
+    }
+  },
+  "files": {
+    "literal-inputs.json": {
+      "sha256": "3dbfc4ddf96148c8bd2ec17456beb85273cb70516fc55f0b65b03d976cec209e",
+      "bytes": 9473
+    },
+    "negative/argv-excess.json": {
+      "sha256": "3046cf56c58196eea1ef83995d727d0e2c0f9437e905fc6a9813c4b0b09b65d5",
+      "bytes": 31503
+    },
+    "negative/available_cpus-zero.json": {
+      "sha256": "cf8eb0b983dfcb2f32ff2e05403b6341150f944729319f1abc1a46d4d0639da2",
+      "bytes": 4356
+    },
+    "negative/bad-hash.json": {
+      "sha256": "d5168c870f1a3eaba87be8bb98655fe13272485e2f131bde96e0a85069869a24",
+      "bytes": 4356
+    },
+    "negative/bad-raw-hex.json": {
+      "sha256": "1c6c89a1519ebd4fce11312c6a041ec893e73aadb95a8e847a77200d677d7caf",
+      "bytes": 4330
+    },
+    "negative/compiler-excess.json": {
+      "sha256": "d662f5b07265f938a3057588f741b182b5304fa34ce092ec864266e27a2a509b",
+      "bytes": 20704
+    },
+    "negative/duplicate-env-key.json": {
+      "sha256": "61beb0669123782c65bb051bf082833932c88484dc1c667c29487654d139ded3",
+      "bytes": 4322
+    },
+    "negative/duplicate-escaped-role.json": {
+      "sha256": "89d6d59346d6f54bf79d83e4fd5a242786a85dec9bb256f0e4a5661f62331714",
+      "bytes": 2986
+    },
+    "negative/duplicate-feature.json": {
+      "sha256": "5c26aaa6e2c99fdad9383083aaeffb9df34088bd486efe7d340f8ca903a17ae6",
+      "bytes": 4379
+    },
+    "negative/duplicate-manifest-path.json": {
+      "sha256": "d883a64d83a63b46ca8837f5c56f74a2bb99d2a7ace59a31b62631faa8b7e550",
+      "bytes": 4500
+    },
+    "negative/duplicate-role.json": {
+      "sha256": "289e804faa761d10db04d6ccb543a56e6c9a5c933684071d32a60354c1299234",
+      "bytes": 2981
+    },
+    "negative/duplicate-status.json": {
+      "sha256": "4d2ece2941ee78ed828a674e79cb8dcf589edc5904158f030fe9df20327b44d4",
+      "bytes": 2980
+    },
+    "negative/duplicate-threads.json": {
+      "sha256": "72f66fe3839a36cf4d888698e94b0557e999ef16b9900e742fe0ca11b96d8708",
+      "bytes": 2982
+    },
+    "negative/executable-recheck-mismatch.json": {
+      "sha256": "fafcaa8042447118cc27d662f94ad373dc94492a01168d31f1f9513311d67b62",
+      "bytes": 4356
+    },
+    "negative/extra-branch-reason.json": {
+      "sha256": "45ff4dd6426a69666bb9c78fa999ee017a6db396d7017669a30d47ce737fc697",
+      "bytes": 4381
+    },
+    "negative/features-excess.json": {
+      "sha256": "21cf4e7821fac3905eb40722bed9e636fe362f12c188998d63e6558496da0faa",
+      "bytes": 5800
+    },
+    "negative/manifest-excess.json": {
+      "sha256": "16ad071040380d9634cbf75f2dba0785d414a2eac492dcc34d2bdbdf456ea5a4",
+      "bytes": 77935
+    },
+    "negative/missing-build.json": {
+      "sha256": "3716d6e89569dc0e8923f0646a049076b676987aaf3c3de689fe88a8a9ef2df8",
+      "bytes": 3462
+    },
+    "negative/missing-executable.json": {
+      "sha256": "7c15de890a9062f57f3938dec08a6229429e1a6b384bb5daba32a9aa80752439",
+      "bytes": 4045
+    },
+    "negative/missing-host.json": {
+      "sha256": "da6a077bdeb5c65db2080233895764dfda2ea1bc4e672cd4cc10ee010e128ea7",
+      "bytes": 3778
+    },
+    "negative/missing-invocation.json": {
+      "sha256": "21d5e0a96781f2e6c093a13763b038b343f76800a8d870e1cdaa877d144d1758",
+      "bytes": 3856
+    },
+    "negative/missing-recheck.json": {
+      "sha256": "805d760c7a81aae229be47fe15fd3ac59ebc0cd3aa5b73f5f071874f27e9678c",
+      "bytes": 4130
+    },
+    "negative/missing-role.json": {
+      "sha256": "ac133d7b331ecc0b5034c0a20e7c917964b4d6120a7aff972498fb1962f0f81e",
+      "bytes": 4329
+    },
+    "negative/missing-schema.json": {
+      "sha256": "99f5339a55e4a66b76ddde4e6a73accc026bef7d44d85fb826deaedd41eb7860",
+      "bytes": 4308
+    },
+    "negative/missing-source.json": {
+      "sha256": "68fb069ece4fa86633caa4660a3718123570db480ac6db883935e8abbaf9a7c2",
+      "bytes": 3738
+    },
+    "negative/missing-thread_environment.json": {
+      "sha256": "d20a0c989f162307c6581f3b8b6fd501967ceafe89273b987bd12315e79fc6bf",
+      "bytes": 3246
+    },
+    "negative/observation-reason-excess.json": {
+      "sha256": "2421bc56e17a2beb84a370bd29e51814b707a49e1aa5844fa7ed401302e70dbb",
+      "bytes": 4603
+    },
+    "negative/observed_threads-zero.json": {
+      "sha256": "4e6caed6b052bcdcf8e69a6ae4d481f8290ec9dc084da8c4ebe2ad81401c882b",
+      "bytes": 4356
+    },
+    "negative/odd-raw-hex.json": {
+      "sha256": "f1cbea13313a5cfd36de7b8a4fff16d2ba052d8f4fa5783367ef5c91b9083785",
+      "bytes": 4329
+    },
+    "negative/ordinary-text-excess.json": {
+      "sha256": "d6ee853f06020a924ac79b8c64f795dfbef3fc27c0714d495318c848d82e69e3",
+      "bytes": 8437
+    },
+    "negative/parent-source-path.json": {
+      "sha256": "7f880117e9dd730c666d75a323fd1b9d5dba79d51ab017ce94c401085e080f33",
+      "bytes": 4349
+    },
+    "negative/raw-os-excess.json": {
+      "sha256": "9a28bd319863f30545235ed443dcd2bb49a9864694f8b28247577b76f33c0a54",
+      "bytes": 12526
+    },
+    "negative/receipt-recheck-mismatch.json": {
+      "sha256": "96726269b348257cd07b83105e132a5d7f58008d9aa7121e17b5b7c09f418ba1",
+      "bytes": 4356
+    },
+    "negative/reference-provenance.json": {
+      "sha256": "b08b76c00310d024627e7c6953099fdc15c60b2f044d732ce9c1be4a82cee09c",
+      "bytes": 4324
+    },
+    "negative/reference-role.json": {
+      "sha256": "a52e4091e5e2d82af38d066a6bc265f6704f7676317993b99ce67d024a5133a2",
+      "bytes": 4354
+    },
+    "negative/reference-schema.json": {
+      "sha256": "8b0e003f6151dd320518d73492c8e2d020c3efe34b31f4b750ea6f4042440a81",
+      "bytes": 4351
+    },
+    "negative/relative-root.json": {
+      "sha256": "5a6930a87947653481ae7b0c6db3ebdf7b0867cb123ede0c972ad4cc5b0ab323",
+      "bytes": 4334
+    },
+    "negative/schema-excess.json": {
+      "sha256": "6b5a0c2d326df3a7926c1f338ccdfcb32a48b5ea696f472a9bd6e245e1ba1b0c",
+      "bytes": 4455
+    },
+    "negative/source-recheck-mismatch.json": {
+      "sha256": "8daa3cc5c17a815884d5f94506aa2d2a38aee7499c167f7e3b6fbba490971af7",
+      "bytes": 4356
+    },
+    "negative/thread_environment-excess.json": {
+      "sha256": "67ca163d26dd56e487019a808adb72ef064992163e27041737aecf2c9936e9fc",
+      "bytes": 7801
+    },
+    "negative/threads-exponent.json": {
+      "sha256": "4b7cba8ab79290e9876452c5c949c5f44d4b63d6ee88e892c1a961d419012854",
+      "bytes": 2962
+    },
+    "negative/threads-fraction-integral.json": {
+      "sha256": "1e28fb69a4211bce2293bd2e1430b34fe6fef5d76d987955763dc8c22d4a6a7d",
+      "bytes": 2962
+    },
+    "negative/threads-fraction.json": {
+      "sha256": "fc07f73719a77d25ac2d14d2d5174284ff58fb12c574061ce2bf9e35d87730c7",
+      "bytes": 4358
+    },
+    "negative/threads-leading-zero.json": {
+      "sha256": "4e69f2b2f3d1acfdb0abdbdebce49c07bc1e07e5b5b0fdaeb5bfcfb10f706624",
+      "bytes": 2961
+    },
+    "negative/threads-negative.json": {
+      "sha256": "5160f787cd767ab0ef483d0e5fd8d591dcc556cf7b232387fb94afe704770980",
+      "bytes": 4357
+    },
+    "negative/threads-null.json": {
+      "sha256": "3704929b4a4fd403dc00f438967b75882214f83e43f005a935cfe2c805d0bd30",
+      "bytes": 4359
+    },
+    "negative/threads-overflow.json": {
+      "sha256": "b1f944f438c676c03ca734cc0c8a2156fba0fe893af548b50e8b5fbc2a517a0e",
+      "bytes": 4375
+    },
+    "negative/threads-plus.json": {
+      "sha256": "462c482a2468af277139d57aa92c80e3d4cf79d6a46215e3d9b16b11b1e08e12",
+      "bytes": 2961
+    },
+    "negative/threads-string.json": {
+      "sha256": "7a75053eef42f3fe03975feeab477625fdc60d3c8a64f6d59b56f4acf4fe9b54",
+      "bytes": 4358
+    },
+    "negative/threads-zero.json": {
+      "sha256": "b516e8407847793b936d2a1652b9f67b6e1e88fe79574f2263575fc9b00dd07b",
+      "bytes": 4356
+    },
+    "negative/trailing-document.json": {
+      "sha256": "33fceacaf2f2cd801c46bfad752e37ebb974ca71a075992801fbad9cb89733b7",
+      "bytes": 2962
+    },
+    "negative/truncated-json.json": {
+      "sha256": "605a47065bc628b117b81275dd334e768b9892a9e53ea07db7d2c968de4e975a",
+      "bytes": 2959
+    },
+    "negative/unavailable.json": {
+      "sha256": "0b29ec391cfabb41aeb8bcf1b434b4877ecef76e411d0807910c867936f4bec5",
+      "bytes": 67
+    },
+    "negative/unknown-build.json": {
+      "sha256": "6bf0608b796f6794f73780c5a9d5e34a29314267d5930adb2b8cd897877c4c9a",
+      "bytes": 4374
+    },
+    "negative/unknown-env-key.json": {
+      "sha256": "f7a742e9d2a91c8608d3aa5ccf4a47713341ac4545d8e6b6470a4efc011ad060",
+      "bytes": 4353
+    },
+    "negative/unknown-environment-record.json": {
+      "sha256": "deaf01129ac2d1c6c75ce6c4d16c17c76d5b8c241de8fe5da4b41ebca85b90e4",
+      "bytes": 4376
+    },
+    "negative/unknown-executable.json": {
+      "sha256": "bfaf38cc312dc9e412e407c1ac854e06a9277d44c653a080698805dcf028bb8e",
+      "bytes": 4374
+    },
+    "negative/unknown-host.json": {
+      "sha256": "86f1752b31420c5ca07439e9411b879681e124174a4e64eaf2a7dde4911c9a94",
+      "bytes": 4374
+    },
+    "negative/unknown-invocation.json": {
+      "sha256": "101c5d2136c1cd282bbfc8dba4936dff2b9f57850a0160007a62f0c84974ff1c",
+      "bytes": 4374
+    },
+    "negative/unknown-observation.json": {
+      "sha256": "41397473afd9596c3c9fa4771e6e817fdfa77f5722a0b636904c7b105d52b8fa",
+      "bytes": 4383
+    },
+    "negative/unknown-recheck.json": {
+      "sha256": "db7af3c8067896e012ecc7355ff70883d26d6a24d078fe064d931f97d437c9f6",
+      "bytes": 4374
+    },
+    "negative/unknown-role.json": {
+      "sha256": "7e4cb60c83b9f9b4ce0d1359f30b8a6ef6ce954663ccdf277699cb7ebb62e0a5",
+      "bytes": 4356
+    },
+    "negative/unknown-schema.json": {
+      "sha256": "ade4453a20da810b3b5f57aad2734c927ed85d4c71f5f3317edd421ca2bdd8d8",
+      "bytes": 4356
+    },
+    "negative/unknown-source.json": {
+      "sha256": "5a739a46ae9bbf7484a7ea82dbabfc3899024737a10822e9b45fa831f947b9a6",
+      "bytes": 4374
+    },
+    "negative/unknown-status.json": {
+      "sha256": "549933b0980015b06fcc618356a386d752e30960bfcc3a092432e657259295e3",
+      "bytes": 4356
+    },
+    "negative/unknown-top.json": {
+      "sha256": "89c8bffc1d44824d8f7b78a9808a4fca9ef0f9c1af63fe6db6c99732fd053962",
+      "bytes": 4377
+    },
+    "negative/unknown-value.json": {
+      "sha256": "228e218c272aa15881fe309426f57300e6a728385315867fc65afb0885b6a8af",
+      "bytes": 4372
+    },
+    "negative/wrong-raw-encoding.json": {
+      "sha256": "6cda44c710a56f3bdf5ae308e0a87038fb772edccd09259de22c41fb78f944eb",
+      "bytes": 4350
+    },
+    "optional-host-unavailable.canonical.hex": {
+      "sha256": "4bf21bf9719b9d539ca5e5e58476ebbbb6c79b58d02e15f12b26e4ea20a2b9c0",
+      "bytes": 3807
+    },
+    "optional-host-unavailable.json": {
+      "sha256": "e48a9cf1d98715af8e9c930392fa1744b78bd759e0a8bd6cfd3f326bb0d930c3",
+      "bytes": 4547
+    },
+    "optional-host-unavailable.segments.json": {
+      "sha256": "e60c3e7daee2609f99292cf18a49d48fc27a72ec8054dbe30968b925f489e42c",
+      "bytes": 17135
+    },
+    "original-component-links.json": {
+      "sha256": "c231ddf40b2d511706de59e52d8e022a14b7f0142339204a8f507475808f06ce",
+      "bytes": 3383
+    },
+    "reference-preserved.canonical.hex": {
+      "sha256": "4010f7ccf611e496369f86a8d6fcc079dce2511820a25076f7ffd4a4ce29efa9",
+      "bytes": 3453
+    },
+    "source-pins.json": {
+      "sha256": "ec260bc0dcf331f4ad5f946289eaf005261867ca8a43275a85cb2cce5eee3398",
+      "bytes": 13444
+    },
+    "threads-1.canonical.hex": {
+      "sha256": "7d47734060c856eea8401c8a7929a22b1fa710523449bce10d4cebbef9eb0e6b",
+      "bytes": 3465
+    },
+    "threads-1.json": {
+      "sha256": "94f7195785735d50c072e5b015bc09c65e8e9a3c0dbbc7630c49292fc3b61994",
+      "bytes": 4356
+    },
+    "threads-1.segments.json": {
+      "sha256": "896102f67961dd279adb573dd5e81c55a2887d615ee605a86741a1feee1a148c",
+      "bytes": 16717
+    },
+    "threads-2-environment-99.canonical.hex": {
+      "sha256": "d60ed1aa107743d029a815e735ca569991ea049c6ddaeb26003695003ffbc4b5",
+      "bytes": 3403
+    },
+    "threads-2-environment-99.json": {
+      "sha256": "13560151b784192844c4e079f2d8940b4de9224328e7cf41a69409715ff3991f",
+      "bytes": 4322
+    },
+    "threads-2-environment-99.segments.json": {
+      "sha256": "1cd9bab4038a3419c7cd522e55a42decd75a6445ab966c1f6a6bdf4d966b0441",
+      "bytes": 16714
+    },
+    "threads-2.canonical.hex": {
+      "sha256": "09d04f12a55e434ed2f3766a4ddeb50de3b17f118c058bb8cb470ae1dd9ce7d6",
+      "bytes": 3465
+    },
+    "threads-2.json": {
+      "sha256": "ae1af68c4f353c6f47b37c70a85e941d612046cbcf07120dddfd5eb0930f531f",
+      "bytes": 4356
+    },
+    "threads-2.segments.json": {
+      "sha256": "896102f67961dd279adb573dd5e81c55a2887d615ee605a86741a1feee1a148c",
+      "bytes": 16717
+    },
+    "threads-2pow53-plus1.canonical.hex": {
+      "sha256": "9bd4dcb6bd0597ad2f7f8dd53b345b36b63ecfed6e150e96b0658b1d3b1d5044",
+      "bytes": 3465
+    },
+    "threads-2pow53-plus1.json": {
+      "sha256": "b976d358680d87677a6a9d6b68225358b143c39713ee45b575c573db44d5fc2f",
+      "bytes": 4371
+    },
+    "threads-2pow53-plus1.segments.json": {
+      "sha256": "896102f67961dd279adb573dd5e81c55a2887d615ee605a86741a1feee1a148c",
+      "bytes": 16717
+    },
+    "threads-u64-max.canonical.hex": {
+      "sha256": "6a3789d2593ca3601b568fc993a9a3720037619b49b0383000b9c43d6fca82af",
+      "bytes": 3465
+    },
+    "threads-u64-max.json": {
+      "sha256": "1c17efffdf03ce55bac818acc801255e8d0911b54c8f1aa91cbc682114a1821b",
+      "bytes": 4375
+    },
+    "threads-u64-max.segments.json": {
+      "sha256": "896102f67961dd279adb573dd5e81c55a2887d615ee605a86741a1feee1a148c",
+      "bytes": 16717
+    }
+  }
+}

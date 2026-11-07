@@ -1955,3 +1955,10 @@ pub(super) fn registered_case_canonical(
     case.eval_config().map(Flags).encode(&mut e)?;
     Ok(e.bytes)
 }
+
+#[cfg(test)]
+#[path = "document/case_provenance_tests.rs"]
+mod case_provenance_tests;
+
+#[allow(dead_code)] // Future bounded admission/start owners consume this private component.
+mod case_provenance;

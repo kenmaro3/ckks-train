@@ -120,3 +120,41 @@ fn runtime_retained_count_drift_fails_even_inside_exact_pool() {
         );
     });
 }
+
+#[test]
+fn runtime_owned_selector_refuses_backend_before_context_or_pool() {
+    use crate::study_profile::{CaseMode, CaseOrigin, CasePacking, CasePlacement, CaseScope};
+    let request = StudyRunRequest {
+        locations: ContextRequest::new(
+            "/nonexistent".into(),
+            "/nonexistent/approval".into(),
+            "a".repeat(64),
+            vec!["/nonexistent/receipt".into()],
+        ),
+        runtime: if cfg!(feature = "cuda") {
+            RuntimeRequest::CudaHost {
+                workers: 2,
+                ordinal: 0,
+            }
+        } else if cfg!(feature = "parallel") {
+            RuntimeRequest::RayonCpu { workers: 2 }
+        } else {
+            RuntimeRequest::SerialCpu
+        },
+        case: CaseSelector {
+            origin: CaseOrigin::Family,
+            registration_id: "untrusted".into(),
+            profile_id: "untrusted".into(),
+            seed: 0,
+            scope: CaseScope::Full,
+            backend: CaseBackend::ExternalCpu,
+            mode: CaseMode::Interactive,
+            placement: CasePlacement::ClientRefresh,
+            packing: CasePacking::BatchedDiagonal,
+        },
+    };
+    assert_eq!(
+        dispatch(request).unwrap_err().0,
+        "case/runtime backend mismatch"
+    );
+}

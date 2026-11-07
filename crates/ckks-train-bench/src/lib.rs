@@ -13,3 +13,6 @@ pub mod study_reference;
 pub mod twin;
 
 mod study_runtime;
+
+/// Closed study request frontend; grants no readiness authority.
+pub mod study_run;

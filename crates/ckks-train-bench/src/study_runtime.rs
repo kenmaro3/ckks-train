@@ -1,6 +1,6 @@
 //! Concrete retained study executor. This is not D7 admission or a complete runner.
 #![allow(dead_code)] // Consumed by the separately owned concrete frontend / D7 boundary.
-use crate::study_profile::{CaseBackend, RegisteredCase};
+use crate::study_profile::{CaseBackend, CaseSelector, StudyRegistry};
 use crate::study_provenance::{
     ContextRequest, Host, Observation, ProvenanceError, Result, VerifiedStudyTrainContext,
     check_runtime_environment, check_train_preflight, process::ProcessStamp, role::Recipe,
@@ -31,7 +31,7 @@ pub(crate) enum RuntimeRequest {
 pub(crate) struct StudyRunRequest {
     pub(crate) locations: ContextRequest,
     pub(crate) runtime: RuntimeRequest,
-    pub(crate) case: RegisteredCase,
+    pub(crate) case: CaseSelector,
 }
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum RunOutcome {
@@ -248,7 +248,18 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
         runtime,
     })?;
     context.artifact_context().recheck()?;
-    // CaseProvenance, canonical D7 descriptors, real gate leases/admission/start,
+    // Select only after loading the actual pinned current context, inside this
+    // owner frame. Membership is expected registration, never checked readiness.
+    let registry = StudyRegistry::load(context.artifact_context().root())
+        .map_err(|_| ProvenanceError("registered study source unavailable"))?;
+    let cases = registry
+        .registered_cases()
+        .map_err(|_| ProvenanceError("registered study projection unavailable"))?;
+    let _case = cases
+        .select(&request.case)
+        .map_err(|_| ProvenanceError("unregistered study selector"))?;
+    context.artifact_context().recheck()?;
+    // Actual captured Case facts, canonical D7 descriptors, real gate leases/admission/start,
     // and concrete HE construction are deliberately absent, not successful.
     Ok(RunOutcome::MissingExecutionDependency)
 }
@@ -256,7 +267,7 @@ pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {
     let recipe = request.runtime.recipe();
     check_compiled_recipe(recipe)?;
     require(
-        request.case.selector().backend == request.runtime.backend(),
+        request.case.backend == request.runtime.backend(),
         "case/runtime backend mismatch",
     )?;
     check_train_preflight(recipe)?;
