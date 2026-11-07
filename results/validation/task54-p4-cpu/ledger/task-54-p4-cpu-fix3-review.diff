@@ -1,0 +1,122 @@
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix3-before/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+index ac68053..ff8e9a9 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix3-before/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
++++ b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+@@ -559,16 +559,17 @@ fn prework_negatives(
+     for ((aw, ab), (bw, bb)) in snapshot.layers().iter().zip(after.layers()) {
+         assert_eq!(aw, bw);
+         assert_eq!(ab, bb);
+     }
+ }
+ #[test]
+ #[ignore = "HE/F64/planner runtime requires a separate frozen-source release"]
+ fn p4_cpu_bridge_contract() {
++    crate::study_admission::p4_fixtures::explicit_reference_policy_regression();
+     assert_eq!(CpuDiagonalSession::capability(), CpuCapability::SingleStage);
+     assert_eq!(
+         require_single_stage(2).unwrap_err(),
+         mismatch("missing block-stage execution capability")
+     );
+     run_contract_matrix();
+ }
+ fn run_contract_matrix() {
+
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix3-before/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs b/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs
+index dc4cc07..d7fdefb 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix3-before/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs
++++ b/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs
+@@ -1,11 +1,59 @@
+ //! Distinct NONSCIENTIFIC_TEST_EVIDENCE plans, never canonical admission values.
+ use super::*;
+-use crate::study_plain::p4_fixtures::SignalRecipe;
++use crate::study_plain::p4_fixtures::{SignalFamily, SignalRecipe};
++
++// The synthetic fixture binds its explicit reference, which need not equal the
++// maximum consumed rate. The canonical full-plan policy remains in super::rates.
++fn encode_synthetic_rates(
++    w: &mut Transcript,
++    rates: &[RateCoefficients<f64>],
++    reference: f64,
++) -> Result<()> {
++    encode_rate_schedule_fields(w, rates, reference)
++}
++/// Small policy contrast run before all cryptographic parameter/setup constructors.
++/// It exercises the very wrapper used by build, with no wire offsets/schema copy.
++pub(crate) fn explicit_reference_policy_regression() {
++    let recipe = SignalFamily::PolyC3.recipe();
++    let schedule = recipe.rates();
++    let reference = recipe.reference();
++    assert_eq!(schedule.len(), 1);
++    assert_eq!(schedule[0].kernel.to_bits(), 0.04_f64.to_bits());
++    assert_eq!(reference.to_bits(), 0.08_f64.to_bits());
++    let calls = std::cell::Cell::new(0_usize);
++    let reserve = |kind| {
++        let next = calls.get().checked_add(1).unwrap();
++        assert!(next <= 2, "rate-policy regression cap");
++        calls.set(next);
++        eprintln!("P4_RATE_POLICY operation={kind} ordinal={next} cap=2");
++    };
++    let mut canonical = Transcript::new(ReceiptLimits::default());
++    reserve("canonical full-plan policy");
++    let rejected = super::rates(&mut canonical, &schedule, reference).unwrap_err();
++    assert_eq!(rejected.kind(), IssueKind::RateConflict);
++    assert_eq!(rejected.operation(), "full maximum reference");
++    assert!(canonical.bytes.is_empty());
++    let mut synthetic = Transcript::new(ReceiptLimits::default());
++    reserve("actual synthetic rate wrapper");
++    encode_synthetic_rates(&mut synthetic, &schedule, reference).unwrap();
++    // Exact original bit patterns must occur in the shared codec's output. No
++    // field offsets, independent schema decoder or fabricated future rate.
++    for bits in [schedule[0].kernel.to_bits(), reference.to_bits()] {
++        let encoded = bits.to_le_bytes();
++        assert!(
++            synthetic
++                .bytes
++                .windows(encoded.len())
++                .any(|bytes| bytes == encoded)
++        );
++    }
++    assert_eq!(calls.get(), 2);
++}
+ 
+ pub(crate) struct SyntheticCpuPlan {
+     pub(crate) geometry: StageGeometry,
+     pub(crate) initial: StateMetadata,
+     pub(crate) index: Vec<TransitionIndex>,
+     pub(crate) rates: Vec<RateCoefficients<f64>>,
+     pub(crate) reference: f64,
+     pub(crate) parts: Vec<Vec<MicroPart>>,
+@@ -86,17 +134,17 @@ impl SyntheticCpuPlan {
+                         .collect()
+                 })
+                 .collect(),
+         );
+         let parts = partitions(&counts, 8, &request)?;
+         let mut transcript = Transcript::new(request.limits);
+         transcript.text("hekit-p4-distinct-cpu-synthetic-v1")?;
+         encode_params(&mut transcript, p)?;
+-        super::rates(&mut transcript, &rates, reference)?;
++        encode_synthetic_rates(&mut transcript, &rates, reference)?;
+         encode_geometry(&mut transcript, &geometry)?;
+         encode_state(&mut transcript, &state)?;
+         bound_partitions(&mut transcript, &parts, 8)?;
+         let binding = transcript.bytes.clone();
+         let identity = sha256_hex(&binding);
+         let index = compose(
+             std::slice::from_ref(&geometry),
+             &mut [state],
+
+diff --git a/docs/study-diagonal-admission-design.md b/docs/study-diagonal-admission-design.md
+index 4ceeec0..4f241c9 100644
+--- a/docs/study-diagonal-admission-design.md
++++ b/docs/study-diagonal-admission-design.md
+@@ -250,5 +250,9 @@ This decision does not prove that HE can meet4e-4. Later HE validation must inde
+ 全ciphertextの状態と個数、7種類の演算カウンタ、設定された係数・reference・refresh／bootstrap判断を照合する。公開されているtraceとhidden状態も記録するが、型付きの完全なP3 traceとの一致は未検証として残す。完全なtraceを新規に保持・復号する方式はこの接続には追加しない。
+ 
+ 鍵と平文はclient側が所有し、server sessionは暗号化packetと評価資材、対話方式の場合のみ狭いrefreshハンドルを受け取る。同じ暗号パラメータでも異なる鍵所有者のpacketを受理しないため、setupごとに内部のcontext識別子を関連付ける。これは同一プロセス内の役割分離であり、プロセス隔離や暗号学的認証の証明ではない。処理途中の失敗はsessionを再利用不可にし、成功した更新数を増やさない。
+ 
+ 検証は既存のSignal平文Engineと既存の学習器を使う。合成planはprivateな別型とし、正式なmaterializationや実行許可へ変換しない。局所的なfactory呼出順序テストを、正式なD7のgate／start検証の代用にしない。数値許容誤差は暗号実行前に固定済みのI=1e-5、NI=4e-4を維持する。まずテストと実装を作成し、compile／静的検査と独立レビュー後に実行対象を固定する。元の32成功＋2失敗、最大85 bootstrapの検証範囲は削減しない。正式なrunnerと全実験行列の完了は引き続き未達である。
++
++NIの係数照合は公開getterの現在rate・reference・momentum・gradient係数と、既存のNiOptimizerヘルパーによるreference係数に限定する。内部のkappaやmask定数を直接観測したとは主張しない。新しい観測APIの追加はこの接続には不要と判断し、同じ式をbench側に複製しない。全更新の数値・状態・分岐・演算回数の照合は維持する。
++
++最初のP4実行は、鍵生成前の合成plan作成で停止した。単一更新rate0.04・明示reference0.08に、本番の「全予定rateの最大値とreferenceが一致する」検査を適用していたためである。本番の検査は変更せず、privateな合成fixtureでは既存のrate-field encoderを使って明示referenceを結合する。架空の将来更新を追加する案やreferenceを下げる案は、固定した検証条件を変えるため採用しない。失敗ログを保持し、修正後の実行を別に検証する。

@@ -1,0 +1,29 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 13.21s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-fe037ad79be4cfe0)
+
+running 1 test
+test study_diagonal::p4_tests::p4_cpu_bridge_contract ... P4_RESERVE operation=CkksParams before=0 next=1 cap=2
+P4_RESERVE operation=CkksParams before=1 next=2 cap=2
+P4_RESERVE operation=DftSupportProof before=0 next=1 cap=1
+P4_RESERVE operation=BootstrapMetadata before=0 next=1 cap=1
+P4_PLAN usage=PlanningUsage { geometries: 1, initial_states: 1, updates: 1, handoffs: 0, wrapper_calls: 0 } records=1
+P4_PLAN usage=PlanningUsage { geometries: 2, initial_states: 2, updates: 2, handoffs: 0, wrapper_calls: 0 } records=1
+P4_PLAN usage=PlanningUsage { geometries: 3, initial_states: 3, updates: 3, handoffs: 0, wrapper_calls: 0 } records=1
+P4_PLAN usage=PlanningUsage { geometries: 4, initial_states: 4, updates: 4, handoffs: 0, wrapper_calls: 0 } records=1
+P4_PLAN usage=PlanningUsage { geometries: 5, initial_states: 5, updates: 5, handoffs: 0, wrapper_calls: 0 } records=1
+P4_PLAN usage=PlanningUsage { geometries: 6, initial_states: 6, updates: 6, handoffs: 0, wrapper_calls: 0 } records=1
+
+thread 'study_diagonal::p4_tests::p4_cpu_bridge_contract' panicked at crates/ckks-train-bench/src/study_diagonal/p4_tests.rs:96:85:
+called `Result::unwrap()` on an `Err` value: AdmissionIssue { kind: RateConflict, operation: "full maximum reference", stage: None, update: None, completed: 0, source: None, prefix: [], prefix_index: [], budget: None, phase: Binding }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    study_diagonal::p4_tests::p4_cpu_bridge_contract
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 190 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

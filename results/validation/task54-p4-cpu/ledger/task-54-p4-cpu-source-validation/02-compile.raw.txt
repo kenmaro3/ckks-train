@@ -1,0 +1,36 @@
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0282]: type annotations needed for `std::option::Option<_>`
+   --> crates/ckks-train-bench/src/study_diagonal/p4_tests.rs:161:35
+    |
+161 |     let mut successful=0usize;let mut failure_layers=None;let mut failure_rows=None;
+    |                                   ^^^^^^^^^^^^^^^^^^
+...
+171 |         let layers=oracle.as_ref().map(arrays).unwrap_or_else(||failure_layers.as_ref().unwrap().clone());
+    |                                                                                                  ----- type must be known at this point
+    |
+help: consider giving `failure_layers` an explicit type, where the type for type parameter `T` is specified
+    |
+161 |     let mut successful=0usize;let mut failure_layers: std::option::Option<T>=None;let mut failure_rows=None;
+    |                                                     ++++++++++++++++++++++++
+
+error[E0505]: cannot move out of `boot` because it is borrowed
+   --> crates/ckks-train-bench/src/study_client.rs:105:26
+    |
+98  |         boot:Option<CpuBootstrapDescription>,rng:Rng)->Result<(Self,CpuEvaluationContext,EncryptedInitialState)>
+    |         ---- binding `boot` declared here
+...
+101 |         let actual=PlanningParameters{params:&params,bootstrap:boot.as_ref().map(|b|b.metadata.as_ref()),
+    |                                                                ---- borrow of `boot` occurs here
+...
+104 |         prepare_then_make(PreparationInput::Canonical{materialized,registered,plan:plan.clone(),request},
+    |         ----------------- borrow later used by call
+105 |             actual,parts,|checked|{
+    |                          ^^^^^^^^^ move out of `boot` occurs here
+106 |                 let (client,context)=Self::make_material(&mut keys,checked.description.geometry.rotation_steps(),
+107 |                     request.eval_config,boot,rng,
+    |                                         ---- move occurs due to use in closure
+
+Some errors have detailed explanations: E0282, E0505.
+For more information about an error, try `rustc --explain E0282`.
+error: could not compile `ckks-train-bench` (lib test) due to 2 previous errors

@@ -1,0 +1,31 @@
+{
+  "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8 cargo test -p ckks-train-bench --lib study_diagonal::p4_tests::p4_cpu_bridge_contract --no-run",
+  "free_bytes": 66972839936,
+  "start": "2026-11-07T06:11:21Z",
+  "source_before": {
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-bench/src/study_client.rs": "e2b038d3f275e54c1db99cf07f8b2dd2de7d40acc6a6cd5dd664dabb932b7f94",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "5b1a355182270533d01b5588a1622ab7dab30c7dcb12f18e1141147bff2c2eec",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "6c2986d5824b42aae83a705e2d3865c5f55fec816a74b3c403969eba7069f48a",
+    "crates/ckks-train-nn/src/trainer.rs": "69dc05446594afe019dba987d42474c30cce7843bc559905518c77c42efef975",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "d4edd2262ff0b3e9c0792047fb5e4016d2b5532849c89a47ad3491d4c6757a68",
+    "crates/ckks-train-bench/src/study_admission.rs": "697f76cd289b626b7167d569561befe9b36375c03baa8971c0f0d7de34c6e561"
+  },
+  "pid": 18889,
+  "exit": 101,
+  "end": "2026-11-07T06:11:24Z",
+  "source_after": {
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-bench/src/study_client.rs": "e2b038d3f275e54c1db99cf07f8b2dd2de7d40acc6a6cd5dd664dabb932b7f94",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "5b1a355182270533d01b5588a1622ab7dab30c7dcb12f18e1141147bff2c2eec",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "6c2986d5824b42aae83a705e2d3865c5f55fec816a74b3c403969eba7069f48a",
+    "crates/ckks-train-nn/src/trainer.rs": "69dc05446594afe019dba987d42474c30cce7843bc559905518c77c42efef975",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "d4edd2262ff0b3e9c0792047fb5e4016d2b5532849c89a47ad3491d4c6757a68",
+    "crates/ckks-train-bench/src/study_admission.rs": "697f76cd289b626b7167d569561befe9b36375c03baa8971c0f0d7de34c6e561"
+  },
+  "tool_handle": {
+    "kind": "exec_session",
+    "id": 72084,
+    "terminal_observed": true
+  }
+}

@@ -1,0 +1,35 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: field `reference` is never read
+  --> crates/ckks-train-bench/src/study_admission/p4_fixtures.rs:10:16
+   |
+5  | pub(crate) struct SyntheticCpuPlan {
+   |                   ---------------- field in this struct
+...
+10 |     pub(crate) reference: f64,
+   |                ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: method `identity` is never used
+  --> crates/ckks-train-bench/src/study_admission/p4_fixtures.rs:65:19
+   |
+18 | impl SyntheticCpuPlan {
+   | --------------------- method in this implementation
+...
+65 |     pub(crate) fn identity(&self)->&str { &self.identity }
+   |                   ^^^^^^^^
+
+warning: methods `identity` and `reference` are never used
+  --> crates/ckks-train-bench/src/study_diagonal.rs:34:19
+   |
+33 | impl PlanOwner {
+   | -------------- methods in this implementation
+34 |     pub(crate) fn identity(&self)->&str { match self {
+   |                   ^^^^^^^^
+...
+59 |     pub(crate) fn reference(&self)->f64 { match self {
+   |                   ^^^^^^^^^
+
+warning: `ckks-train-bench` (lib test) generated 3 warnings
+    Finished `test` profile [optimized + debuginfo] target(s) in 12.12s
+  Executable unittests src/lib.rs (target/debug/deps/ckks_train_bench-fe037ad79be4cfe0)

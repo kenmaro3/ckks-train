@@ -103,12 +103,61 @@ use crate::sim::valid_lane_mask;
 // Optimizers per layer.
 // ---------------------------------------------------------------------------------------------
 
+/// Borrowed read-only configuration and encrypted state of a supported layer optimizer.
+/// No ciphertext or metadata is copied and custom optimizers default to unsupported.
+pub struct OptimizerView<'a, C> {
+    lr: f64,
+    reference: Option<f64>,
+    momentum: Option<f64>,
+    weight_factor: f64,
+    bias_factor: f64,
+    reference_factor: Option<f64>,
+    velocity: Option<&'a Diagonals<C>>,
+}
+impl<C> OptimizerView<'_, C> {
+    /// Actual raw current rate.
+    pub fn lr(&self) -> f64 {
+        self.lr
+    }
+    /// Actual fixed reference, if the optimizer has one.
+    pub fn reference(&self) -> Option<f64> {
+        self.reference
+    }
+    /// Actual momentum, if supported by this optimizer.
+    pub fn momentum(&self) -> Option<f64> {
+        self.momentum
+    }
+    /// Existing optimizer's current folded weight-gradient factor.
+    pub fn weight_factor(&self) -> f64 {
+        self.weight_factor
+    }
+    /// Existing optimizer's bias-gradient factor, before a trainer's bias-free mask.
+    pub fn bias_factor(&self) -> f64 {
+        self.bias_factor
+    }
+    /// Existing validated optional reference-gradient query.
+    pub fn reference_factor(&self) -> Option<f64> {
+        self.reference_factor
+    }
+    /// Borrowed actual encrypted scaled velocity, absent before its initialization.
+    pub fn velocity(&self) -> Option<&Diagonals<C>> {
+        self.velocity
+    }
+}
+
 /// An [`Optimizer`] as the trainer uses it: one instance per layer.
 pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
     /// The factor the bias gradient carries (folded into its lane-0 mask, divided by the
     /// valid sample count): the bias update is `b' = b - bias_grad_scale() * mean(dz)`.
     /// [`Sgd`] and [`Nag`]: `lr` (biases take plain SGD steps, Task 28).
     fn bias_grad_scale(&self) -> f64;
+
+    /// Borrowed diagnostics. Unsupported is an error, never an absent SGD state.
+    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
+        Err(HekitError::InvalidParams(
+            "layer optimizer diagnostics unsupported".into(),
+        ))
+    }
 
     /// Refreshes the optimizer's encrypted state (e.g. the NAG velocity, which lands on the
     /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
@@ -133,6 +182,18 @@ pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
 }
 
 impl<E: HeOps> LayerOptimizer<E> for Sgd {
+    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
+        Ok(OptimizerView {
+            lr: self.lr,
+            reference: None,
+            momentum: None,
+            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
+            bias_factor: Sgd::bias_grad_scale(self),
+            reference_factor: <Self as Optimizer<E>>::reference_grad_scale(self)?,
+            velocity: None,
+        })
+    }
+
     fn validate_lr(&self, lr: f64) -> Result<()> {
         check_lr(lr)
     }
@@ -152,6 +213,20 @@ impl<E: HeOps> LayerOptimizer<E> for Sgd {
 }
 
 impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
+    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
+        // This existing query validates the locked reference/momentum basis.
+        let reference_factor = <Self as Optimizer<E>>::reference_grad_scale(self)?;
+        Ok(OptimizerView {
+            lr: self.lr,
+            reference: Some(self.lr_reference()),
+            momentum: Some(self.momentum),
+            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
+            bias_factor: Nag::bias_grad_scale(self),
+            reference_factor,
+            velocity: self.velocity(),
+        })
+    }
+
     fn validate_lr(&self, lr: f64) -> Result<()> {
         Nag::validate_rate(self, lr)
     }
@@ -780,6 +855,16 @@ impl<'a, E: HeOps> Trainer<'a, E> {
     pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> Trainer<'a, E> {
         self.transpose_keys = keys;
         self
+    }
+
+    /// Checked borrowed diagnostics for one optimizer, with no evaluator work.
+    pub fn optimizer_view(&self, layer: usize) -> Result<OptimizerView<'_, E::Ct>> {
+        self.optims
+            .get(layer)
+            .ok_or_else(|| {
+                HekitError::InvalidParams(format!("optimizer layer {layer} out of bounds"))
+            })?
+            .diagnostic_view()
     }
 
     /// Sets the rate of subsequent updates without clearing optimizer state. Every layer

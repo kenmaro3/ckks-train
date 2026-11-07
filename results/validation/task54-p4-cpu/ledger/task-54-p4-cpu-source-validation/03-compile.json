@@ -1,0 +1,33 @@
+{
+  "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=8 RAYON_NUM_THREADS=8 cargo test -p ckks-train-bench --lib study_diagonal::p4_tests::p4_cpu_bridge_contract --no-run",
+  "free_bytes": 66676002816,
+  "start": "2026-11-07T06:24:35Z",
+  "source_before": {
+    "crates/ckks-train-bench/src/study_client.rs": "e15dc50551310ce3e34d92b0e06527f3c77c37a5b5027115585bab4999878a45",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "70dc499cadf2d2128b6a52377c796f88c9dbcabdb942add9149b631ed82368ec",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "b21b8e6d089d12a694cdfb3069bdf6c94e30229e618e7d3f6d1b556dae9d7a43",
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-nn/src/trainer.rs": "9ea11a72a1787b68e24b3ab8474ce00d6da58f63502c79e0479146dfa6473d80",
+    "crates/ckks-train-bench/src/study_admission.rs": "60f1dbf83e30ea59eee89e2a38889a9161fc04570493a13fff00e0a21ac4e9a2",
+    "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs": "30ea6df37d8dfb2a5d8bb326cbb4937497ced6c7fb0774151659804e0781c54b",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "118047767fa5307dad4966c7d161add49fff57d0c75144aac09411567a0e8058"
+  },
+  "pid": 36016,
+  "exit": 0,
+  "end": "2026-11-07T06:24:47Z",
+  "source_after": {
+    "crates/ckks-train-bench/src/study_client.rs": "e15dc50551310ce3e34d92b0e06527f3c77c37a5b5027115585bab4999878a45",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "70dc499cadf2d2128b6a52377c796f88c9dbcabdb942add9149b631ed82368ec",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "b21b8e6d089d12a694cdfb3069bdf6c94e30229e618e7d3f6d1b556dae9d7a43",
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-nn/src/trainer.rs": "9ea11a72a1787b68e24b3ab8474ce00d6da58f63502c79e0479146dfa6473d80",
+    "crates/ckks-train-bench/src/study_admission.rs": "60f1dbf83e30ea59eee89e2a38889a9161fc04570493a13fff00e0a21ac4e9a2",
+    "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs": "30ea6df37d8dfb2a5d8bb326cbb4937497ced6c7fb0774151659804e0781c54b",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "118047767fa5307dad4966c7d161add49fff57d0c75144aac09411567a0e8058"
+  },
+  "tool_handle": {
+    "kind": "exec_session",
+    "id": 47497,
+    "terminal_observed": true
+  }
+}

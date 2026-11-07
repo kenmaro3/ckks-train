@@ -1,0 +1,3219 @@
+diff --git a/crates/ckks-train-bench/src/study_client.rs b/crates/ckks-train-bench/src/study_client.rs
+new file mode 100644
+index 0000000..758f158
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_client.rs
+@@ -0,0 +1,751 @@
++//! Client-owned encryption and explicit diagnostic endpoints for the CPU bridge.
++//! Canonical preparation revalidates trusted materialization; it is not a D7 start gate.
++use crate::{
++    profile_data::padded_targets,
++    study_admission::{self, DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters},
++    study_diagonal::{
++        ClientRefreshService, CpuBootstrap, CpuEvaluationContext, Description,
++        EncryptedInitialState, EncryptedLogicalUpdate, EncryptedMicro, EncryptedModelSnapshot,
++        PlanOwner, activations, ensure, mismatch,
++    },
++    study_inputs::MaterializedProfile,
++    study_profile::{Activation as ProfileActivation, RegisteredCase},
++};
++use ckks_train_ckks::{
++    CkksParams, Decryptor, Encoder, Encryptor, EvalConfig, Evaluator, HeOps, KeyGenerator,
++    bootstrap::{BootParams, Bootstrapper, metadata::BootstrapMetadata},
++};
++use ckks_train_core::{error::Result, sampler::Rng};
++use ckks_train_nn::{
++    diagonal_plan::{DiagonalActivation, DiagonalMode},
++    layout::unpack_activations,
++    refresh::ClientRefresher,
++    trainer::{BatchSpec, Mlp},
++    trainer_ni::NonInteractiveTrainer,
++};
++use ndarray::{Array2, s};
++use std::{cell::RefCell, sync::Arc};
++
++/// Preparation failure retaining the exact canonical admission/candidate diagnostic.
++#[derive(Debug)]
++pub enum CpuPreparationError {
++    /// Existing binding error, including typed budget/partial-receipt details.
++    Admission(Box<study_admission::AdmissionIssue>),
++    /// Existing candidate description, retaining its exact borrowed issue without cloning it.
++    Candidate(Box<study_admission::CandidateDescription>),
++    /// Bridge association, shape, encryption or evaluation error.
++    He(ckks_train_core::error::HekitError),
++}
++impl CpuPreparationError {
++    /// Exact P3 issue, including configured/required work budgets when present.
++    pub fn admission_issue(&self) -> Option<&study_admission::AdmissionIssue> {
++        match self {
++            Self::Admission(e) => Some(e),
++            Self::Candidate(c) => c.issue(),
++            Self::He(_) => None,
++        }
++    }
++}
++impl std::fmt::Display for CpuPreparationError {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        match self {
++            Self::Admission(e) => e.fmt(f),
++            Self::Candidate(c) => match c.issue() {
++                Some(e) => e.fmt(f),
++                None => write!(f, "candidate preparation failed without issue"),
++            },
++            Self::He(e) => e.fmt(f),
++        }
++    }
++}
++impl std::error::Error for CpuPreparationError {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        match self {
++            Self::Admission(e) => Some(e),
++            Self::Candidate(c) => c.issue().map(|e| e as _),
++            Self::He(e) => Some(e),
++        }
++    }
++}
++impl From<ckks_train_core::error::HekitError> for CpuPreparationError {
++    fn from(e: ckks_train_core::error::HekitError) -> Self {
++        Self::He(e)
++    }
++}
++#[cfg(test)]
++impl PartialEq<ckks_train_core::error::HekitError> for CpuPreparationError {
++    fn eq(&self, other: &ckks_train_core::error::HekitError) -> bool {
++        matches!(self,Self::He(e) if e==other)
++    }
++}
++/// Result of checked canonical/synthetic preparation; never a start/admission capability.
++pub type CpuPreparationResult<T> = std::result::Result<T, CpuPreparationError>;
++
++pub(crate) enum PreparationInput<'a> {
++    Canonical {
++        materialized: &'a MaterializedProfile,
++        registered: &'a RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &'a DiagonalRequest,
++    },
++    #[cfg(test)]
++    Synthetic {
++        plan: Arc<crate::study_admission::p4_fixtures::SyntheticCpuPlan>,
++        claim: &'a crate::study_admission::p4_fixtures::SyntheticClaim,
++    },
++}
++pub(crate) struct CheckedPreparation<'a> {
++    pub(crate) plan: PlanOwner,
++    pub(crate) description: Description,
++    parameters: &'a CkksParams,
++    bootstrap_identity: Option<&'a [u8]>,
++    boot_parameters: Option<&'a BootParams>,
++}
++// A single private validation-then-factory invocation, shared by real setup and terminal spy.
++// No callback or digest capability is exported by the public client API.
++pub(crate) fn prepare_then_make<'a, T>(
++    input: PreparationInput<'_>,
++    actual: PlanningParameters<'a>,
++    actual_partition: &[Vec<MicroPart>],
++    factory: impl FnOnce(CheckedPreparation<'a>) -> Result<T>,
++) -> CpuPreparationResult<T> {
++    let checked = match input {
++        PreparationInput::Canonical {
++            materialized,
++            registered,
++            plan,
++            request,
++        } => {
++            let owner = PlanOwner::Canonical(plan.clone());
++            owner.check_shape()?;
++            study_admission::validate_plan_binding(
++                materialized,
++                registered,
++                &plan,
++                actual,
++                request,
++            )
++            .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++            ensure(actual_partition == plan.partitions(), "partition")?;
++            // Reserve geometry/initial allowance in the original request BEFORE hashing.
++            let candidate = study_admission::describe_candidate(
++                materialized.metadata(),
++                registered,
++                actual,
++                request,
++            );
++            if candidate.issue().is_some() {
++                return Err(CpuPreparationError::Candidate(Box::new(candidate)));
++            }
++            ensure(
++                candidate.geometries().len() == 1,
++                "missing block-stage execution capability",
++            )?;
++            let keys = candidate
++                .keys()
++                .ok_or_else(|| mismatch("candidate key manifest"))?;
++            ensure(
++                keys.training_rotations() == plan.keys().training_rotations()
++                    && keys.bootstrap_generated_rotations()
++                        == plan.keys().bootstrap_generated_rotations()
++                    && keys.bootstrap_execution_rotations()
++                        == plan.keys().bootstrap_execution_rotations()
++                    && keys.bootstrap_conjugation() == plan.keys().bootstrap_conjugation()
++                    && keys.bootstrap_sse() == plan.keys().bootstrap_sse(),
++                "candidate/plan key manifest",
++            )?;
++            let activations = materialized
++                .metadata()
++                .layers
++                .iter()
++                .map(|l| match l.activation {
++                    ProfileActivation::Square => DiagonalActivation::Square,
++                    ProfileActivation::SquarePlusLinear => DiagonalActivation::PolyRelu2,
++                    ProfileActivation::Identity => DiagonalActivation::Identity,
++                })
++                .collect();
++            let frozen = materialized.metadata().layers.iter().all(|l| !l.bias);
++            ensure(
++                frozen || materialized.metadata().layers.iter().all(|l| l.bias),
++                "mixed bias policy unsupported",
++            )?;
++            // Clone only this one geometry, never the candidate's placeholder initial states.
++            CheckedPreparation {
++                parameters: actual.params,
++                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                boot_parameters: actual.boot_params,
++                plan: owner,
++                description: Description {
++                    geometry: candidate.geometries()[0].clone(),
++                    activations,
++                    transpose: request.transpose.clone(),
++                    frozen,
++                },
++            }
++        }
++        #[cfg(test)]
++        PreparationInput::Synthetic { plan, claim } => {
++            plan.validate(actual, actual_partition, claim)
++                .map_err(mismatch)?;
++            let owner = PlanOwner::Synthetic(plan.clone());
++            owner.check_shape()?;
++            let activations = if plan.frozen {
++                vec![DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
++            } else {
++                vec![DiagonalActivation::Square; 2]
++            };
++            CheckedPreparation {
++                parameters: actual.params,
++                bootstrap_identity: actual.bootstrap.map(|b| b.descriptor_identity_bytes()),
++                boot_parameters: actual.boot_params,
++                plan: owner,
++                description: Description {
++                    geometry: plan.geometry.clone(),
++                    activations,
++                    transpose: plan.transpose.clone(),
++                    frozen: plan.frozen,
++                },
++            }
++        }
++    };
++    factory(checked).map_err(CpuPreparationError::He)
++}
++/// Secret-bearing client; sessions never receive this value or a materialized profile.
++pub struct StudyClient {
++    owner: Arc<()>,
++    encrypt: Encryptor,
++    decrypt: Decryptor,
++    encoder: Encoder,
++    rng: RefCell<Rng>,
++    prepared: RefCell<Vec<(PlanOwner, ckks_train_nn::layout::Layout)>>,
++}
++/// Plaintext arrays returned only through an explicit client diagnostic endpoint.
++pub struct ClientModelSnapshot {
++    layers: Vec<(Array2<f64>, Vec<f64>)>,
++}
++impl ClientModelSnapshot {
++    /// Every logical weight and bias array, in bound layer order.
++    pub fn layers(&self) -> &[(Array2<f64>, Vec<f64>)] {
++        &self.layers
++    }
++}
++/// Caller-owned NI setup values; the descriptor alone is not precision/security admission.
++#[derive(Clone)]
++pub struct CpuBootstrapDescription {
++    /// Exact parameters used by the concrete bootstrapper.
++    pub parameters: BootParams,
++    /// Existing immutable P1 structural descriptor.
++    pub metadata: Arc<BootstrapMetadata>,
++}
++impl StudyClient {
++    /// Associates an already-created caller key owner after canonical binding checks.
++    /// This path cannot claim rejection preceded the caller's external key allocation.
++    #[allow(clippy::too_many_arguments)]
++    pub fn from_key_generator(
++        materialized: &MaterializedProfile,
++        registered: &RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &DiagonalRequest,
++        mut keys: KeyGenerator,
++        boot: Option<CpuBootstrapDescription>,
++        rng: Rng,
++    ) -> CpuPreparationResult<(Self, CpuEvaluationContext, EncryptedInitialState)> {
++        let params = keys.params().clone();
++        let bound_boot = boot.clone();
++        let actual = PlanningParameters {
++            params: &params,
++            bootstrap: bound_boot.as_ref().map(|b| b.metadata.as_ref()),
++            boot_params: bound_boot.as_ref().map(|b| &b.parameters),
++        };
++        let parts = plan.partitions();
++        prepare_then_make(
++            PreparationInput::Canonical {
++                materialized,
++                registered,
++                plan: plan.clone(),
++                request,
++            },
++            actual,
++            parts,
++            |checked| {
++                let (client, context) = Self::make_material(
++                    &mut keys,
++                    checked.description.geometry.rotation_steps(),
++                    request.eval_config,
++                    boot,
++                    rng,
++                    #[cfg(test)]
++                    None,
++                )?;
++                let arrays = materialized
++                    .initial()
++                    .layers()
++                    .iter()
++                    .map(|l| (l.weights().clone(), l.biases().to_vec()))
++                    .collect::<Vec<_>>();
++                let initial = client.encrypt_initial(checked, &context, &arrays)?;
++                Ok((client, context, initial))
++            },
++        )
++    }
++    pub(crate) fn make_material(
++        keys: &mut KeyGenerator,
++        rotations: &[i32],
++        config: EvalConfig,
++        boot: Option<CpuBootstrapDescription>,
++        rng: Rng,
++        #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
++    ) -> Result<(Self, CpuEvaluationContext)> {
++        let params = keys.params().clone();
++        #[cfg(test)]
++        crate::study_diagonal::p4_tests::reserve_encoder();
++        let encoder = Encoder::new(params.clone());
++        let (bootstrap, metadata, boot_params) = if let Some(b) = boot {
++            #[cfg(test)]
++            if let Some(budget) = &budget {
++                budget.reserve_bootstrapper();
++            }
++            let real = Arc::new(Bootstrapper::new(
++                params.clone(),
++                b.parameters.clone(),
++                &encoder,
++                keys,
++            )?);
++            (
++                Some(CpuBootstrap {
++                    real,
++                    #[cfg(test)]
++                    budget,
++                    #[cfg(test)]
++                    fail_after: None,
++                    #[cfg(test)]
++                    successful: std::cell::Cell::new(0),
++                }),
++                Some(b.metadata),
++                Some(b.parameters),
++            )
++        } else {
++            (None, None, None)
++        };
++        let encrypt = Encryptor::new(params.clone(), keys.public_key());
++        let decrypt = Decryptor::new(params.clone(), keys.secret_key());
++        let evaluator = Evaluator::with_config(
++            params,
++            Some(keys.relin_key()),
++            Some(keys.galois_keys(rotations)),
++            config,
++        );
++        let owner = Arc::new(());
++        let client = Self {
++            owner: owner.clone(),
++            encrypt,
++            decrypt,
++            encoder: encoder.clone(),
++            rng: RefCell::new(rng),
++            prepared: RefCell::new(vec![]),
++        };
++        let context = CpuEvaluationContext {
++            owner,
++            evaluator,
++            encoder,
++            bootstrap,
++            metadata,
++            boot_params,
++        };
++        Ok((client, context))
++    }
++    /// Revalidates canonical trusted inputs and encrypts their exact initial arrays.
++    pub fn prepare_initial(
++        &self,
++        materialized: &MaterializedProfile,
++        registered: &RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &DiagonalRequest,
++        context: &CpuEvaluationContext,
++    ) -> CpuPreparationResult<EncryptedInitialState> {
++        let checked = prepare_then_make(
++            PreparationInput::Canonical {
++                materialized,
++                registered,
++                plan: plan.clone(),
++                request,
++            },
++            context_parameters(context),
++            plan.partitions(),
++            Ok,
++        )?;
++        let arrays = materialized
++            .initial()
++            .layers()
++            .iter()
++            .map(|l| (l.weights().clone(), l.biases().to_vec()))
++            .collect::<Vec<_>>();
++        self.encrypt_initial(checked, context, &arrays)
++            .map_err(CpuPreparationError::He)
++    }
++    pub(crate) fn encrypt_initial(
++        &self,
++        checked: CheckedPreparation<'_>,
++        context: &CpuEvaluationContext,
++        arrays: &[(Array2<f64>, Vec<f64>)],
++    ) -> Result<EncryptedInitialState> {
++        self.check_context(context)?;
++        ensure(
++            std::ptr::eq(checked.parameters, context.parameters().as_ref()),
++            "initial actual parameters",
++        )?;
++        context.check_geometry(&checked.description.geometry)?;
++        let initial = &checked.plan.initial()[0];
++        let layout = checked.description.geometry.layout();
++        let before = context.counter();
++        let diagnostic = context.evaluator.fork();
++        let mut rng = self.rng.borrow_mut();
++        let (mlp, compact) = match checked.description.geometry.mode() {
++            DiagonalMode::Interactive => (
++                Mlp::encrypt_at(
++                    &diagnostic,
++                    arrays,
++                    activations(&checked.description.activations),
++                    &layout,
++                    initial.batch().x.level(),
++                    &self.encrypt,
++                    &self.encoder,
++                    &mut rng,
++                )?,
++                None,
++            ),
++            DiagonalMode::NonInteractive(placement) => {
++                let (m, c) = NonInteractiveTrainer::encrypt_network(
++                    &diagnostic,
++                    context
++                        .bootstrap
++                        .as_ref()
++                        .ok_or_else(|| mismatch("bootstrap dependency"))?,
++                    arrays,
++                    activations(&checked.description.activations),
++                    &layout,
++                    placement,
++                    &self.encrypt,
++                    &self.encoder,
++                    &mut rng,
++                )?;
++                (m, Some(c))
++            }
++        };
++        ensure(
++            context.counter() == before,
++            "initial probe counter isolation",
++        )?;
++        let m = initial.batch();
++        let batch = BatchSpec {
++            x_level: m.x.level(),
++            x_scale: m.x.scale(),
++            y_level: m.y.level(),
++            y_scale: m.y.scale(),
++        };
++        self.prepared
++            .borrow_mut()
++            .push((checked.plan.clone(), layout));
++        Ok(EncryptedInitialState {
++            owner: self.owner.clone(),
++            plan: checked.plan,
++            description: checked.description,
++            mlp,
++            compact,
++            batch,
++        })
++    }
++    /// Gathers the materializer's exact logical order, then slices it into bound micros.
++    /// C/P-aware padded targets come from the existing helper; no loss fold is repeated.
++    pub fn encrypt_update(
++        &self,
++        materialized: &MaterializedProfile,
++        registered: &RegisteredCase,
++        plan: Arc<DiagonalPlan>,
++        request: &DiagonalRequest,
++        index: usize,
++        context: &CpuEvaluationContext,
++    ) -> CpuPreparationResult<EncryptedLogicalUpdate> {
++        // Binding revalidation does not reconstruct geometry or rerun the schedule here.
++        study_admission::validate_plan_binding(
++            materialized,
++            registered,
++            &plan,
++            context_parameters(context),
++            request,
++        )
++        .map_err(|e| CpuPreparationError::Admission(Box::new(e)))?;
++        let owner = PlanOwner::Canonical(plan);
++        owner.check_shape()?;
++        let rows = materialized
++            .update_rows(index)
++            .map_err(|e| mismatch(&format!("update rows: {e}")))?;
++        let numeric = materialized.numeric_f64();
++        let x = Array2::from_shape_fn((rows.rows().len(), numeric.train_x().ncols()), |(r, j)| {
++            numeric.train_x()[[rows.rows()[r] as usize, j]]
++        });
++        let labels = rows
++            .rows()
++            .iter()
++            .map(|&r| numeric.train_y()[r as usize])
++            .collect::<Vec<_>>();
++        self.encrypt_rows(
++            owner,
++            index,
++            context,
++            &x,
++            &labels,
++            materialized.metadata().classes,
++            materialized.metadata().output_width,
++        )
++        .map_err(CpuPreparationError::He)
++    }
++    #[allow(clippy::too_many_arguments)]
++    pub(crate) fn encrypt_rows(
++        &self,
++        plan: PlanOwner,
++        index: usize,
++        context: &CpuEvaluationContext,
++        x: &Array2<f64>,
++        labels: &[u8],
++        classes: usize,
++        width: usize,
++    ) -> Result<EncryptedLogicalUpdate> {
++        self.check_context(context)?;
++        plan.check_shape()?;
++        let parts = plan
++            .parts()
++            .get(index)
++            .ok_or_else(|| mismatch("client update index"))?;
++        let update = plan.transitions()[index]
++            .update_metadata()
++            .ok_or_else(|| mismatch("client transition"))?;
++        let total = parts
++            .iter()
++            .try_fold(0usize, |s, p| s.checked_add(p.valid))
++            .ok_or_else(|| mismatch("client row count overflow"))?;
++        ensure(
++            x.nrows() == total && labels.len() == total,
++            "client label/row cardinality",
++        )?;
++        let targets = padded_targets(labels, classes, width)
++            .map_err(|_| mismatch("client labels/target shape"))?;
++        let layout = self
++            .prepared
++            .borrow()
++            .iter()
++            .find(|(p, _)| p.same(&plan))
++            .map(|(_, layout)| *layout)
++            .ok_or_else(|| mismatch("client prepared layout dependency"))?;
++        let mut micros = Vec::with_capacity(parts.len());
++        let mut rng = self.rng.borrow_mut();
++        ensure(
++            parts.len() == update.micros().len(),
++            "client receipt micros",
++        )?;
++        for (part, m) in parts.iter().zip(update.micros()) {
++            let end = part
++                .start
++                .checked_add(part.valid)
++                .ok_or_else(|| mismatch("client partition overflow"))?;
++            ensure(end <= total, "client ordered partition bounds")?;
++            let spec = BatchSpec {
++                x_level: m.x.level(),
++                x_scale: m.x.scale(),
++                y_level: m.y.level(),
++                y_scale: m.y.scale(),
++            };
++            let (a, b) = spec.encrypt(
++                &self.encrypt,
++                &self.encoder,
++                &layout,
++                &x.slice(s![part.start..end, ..]).to_owned(),
++                &targets.slice(s![part.start..end, ..]).to_owned(),
++                &mut rng,
++            )?;
++            micros.push(EncryptedMicro {
++                part: *part,
++                x: a,
++                targets: vec![b],
++            });
++        }
++        Ok(EncryptedLogicalUpdate {
++            owner: self.owner.clone(),
++            plan,
++            index,
++            total,
++            input_width: x.ncols(),
++            target_width: width,
++            micros,
++        })
++    }
++    /// Creates a secret-bearing service that stays client-owned; sessions borrow its handle.
++    pub fn refresh_service(&self, rng: Rng) -> ClientRefreshService {
++        ClientRefreshService {
++            owner: self.owner.clone(),
++            inner: RefCell::new(ClientRefresher::new(
++                self.decrypt.clone(),
++                self.encrypt.clone(),
++                self.encoder.clone(),
++                rng,
++            )),
++            #[cfg(test)]
++            fail_after: None,
++            #[cfg(test)]
++            successful: std::cell::Cell::new(0),
++        }
++    }
++    /// Decrypts an explicitly exported encrypted snapshot in the client role.
++    /// All logical W/b entries must be finite; training counters remain untouched.
++    pub fn inspect_snapshot(
++        &self,
++        snapshot: &EncryptedModelSnapshot,
++        context: &CpuEvaluationContext,
++    ) -> Result<ClientModelSnapshot> {
++        self.check_context(context)?;
++        ensure(
++            Arc::ptr_eq(&self.owner, &snapshot.owner),
++            "snapshot context identity",
++        )?;
++        let before = context.counter();
++        let _diagnostic = context.evaluator.fork();
++        let layers = snapshot
++            .layers
++            .iter()
++            .map(|d| {
++                let w = d.w.decrypt(&self.decrypt, &self.encoder, &snapshot.layout);
++                let b = unpack_activations(
++                    &self.encoder.decode(&self.decrypt.decrypt(&d.b)),
++                    &snapshot.layout,
++                    d.w.d_out(),
++                )
++                .row(0)
++                .to_vec();
++                ensure(
++                    w.iter().chain(b.iter()).all(|x| x.is_finite()),
++                    "nonfinite client snapshot",
++                )?;
++                Ok((w, b))
++            })
++            .collect::<Result<Vec<_>>>()?;
++        ensure(context.counter() == before, "snapshot counter isolation")?;
++        Ok(ClientModelSnapshot { layers })
++    }
++    fn check_context(&self, context: &CpuEvaluationContext) -> Result<()> {
++        ensure(
++            Arc::ptr_eq(&self.owner, &context.owner)
++                && Arc::ptr_eq(self.encoder.params(), context.parameters()),
++            "client context identity",
++        )
++    }
++}
++pub(crate) fn context_parameters(c: &CpuEvaluationContext) -> PlanningParameters<'_> {
++    PlanningParameters {
++        params: c.parameters(),
++        bootstrap: c.metadata.as_deref(),
++        boot_params: c.boot_params.as_ref(),
++    }
++}
++
++// Reserved private owned factory, intentionally disconnected from run_owned until D7
++// supplies its genuine owned gates/start frame. Synthetic tests reach this exact factory.
++#[allow(dead_code)]
++pub(crate) fn make_owned(
++    checked: &CheckedPreparation<'_>,
++    parameters: Arc<CkksParams>,
++    rotations: &[i32],
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++    #[cfg(test)] budget: Option<std::rc::Rc<crate::study_diagonal::p4_tests::RuntimeBudget>>,
++) -> Result<(StudyClient, CpuEvaluationContext)> {
++    ensure(
++        std::ptr::eq(checked.parameters, parameters.as_ref()),
++        "owned actual parameters",
++    )?;
++    ensure(
++        checked.bootstrap_identity
++            == boot
++                .as_ref()
++                .map(|b| b.metadata.descriptor_identity_bytes())
++            && checked.boot_parameters == boot.as_ref().map(|b| &b.parameters),
++        "owned bootstrap identity",
++    )?;
++    ensure(
++        checked
++            .description
++            .geometry
++            .rotation_steps()
++            .iter()
++            .all(|s| rotations.contains(s)),
++        "owned union key manifest",
++    )?;
++    #[cfg(test)]
++    if let Some(budget) = &budget {
++        budget.reserve_key();
++    }
++    // First secret/key action. Validation has already consumed the closed input in
++    // prepare_then_make; the checked frame cannot be publicly constructed.
++    let mut keys = KeyGenerator::new(parameters, key_rng)?;
++    StudyClient::make_material(
++        &mut keys,
++        rotations,
++        checked.description.geometry.eval_config(),
++        boot,
++        encryption_rng,
++        #[cfg(test)]
++        budget,
++    )
++}
++
++// Compile-visible canonical owned continuation. It cannot be called by public code or
++// dispatch and grants no start authority; D7 must supply the eventual owned callsite.
++#[allow(dead_code, clippy::too_many_arguments)]
++fn prepare_owned_canonical(
++    materialized: &MaterializedProfile,
++    registered: &RegisteredCase,
++    plan: Arc<DiagonalPlan>,
++    request: &DiagonalRequest,
++    parameters: Arc<CkksParams>,
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++) -> CpuPreparationResult<(StudyClient, CpuEvaluationContext, EncryptedInitialState)> {
++    let bound = boot.clone();
++    let actual = PlanningParameters {
++        params: &parameters,
++        bootstrap: bound.as_ref().map(|b| b.metadata.as_ref()),
++        boot_params: bound.as_ref().map(|b| &b.parameters),
++    };
++    prepare_then_make(
++        PreparationInput::Canonical {
++            materialized,
++            registered,
++            plan: plan.clone(),
++            request,
++        },
++        actual,
++        plan.partitions(),
++        |checked| {
++            let rotations = checked.description.geometry.rotation_steps().to_vec();
++            let (client, context) = make_owned(
++                &checked,
++                parameters.clone(),
++                &rotations,
++                boot,
++                key_rng,
++                encryption_rng,
++                #[cfg(test)]
++                None,
++            )?;
++            let arrays = materialized
++                .initial()
++                .layers()
++                .iter()
++                .map(|l| (l.weights().clone(), l.biases().to_vec()))
++                .collect::<Vec<_>>();
++            let initial = client.encrypt_initial(checked, &context, &arrays)?;
++            Ok((client, context, initial))
++        },
++    )
++}
+
+diff --git a/crates/ckks-train-bench/src/study_diagonal.rs b/crates/ckks-train-bench/src/study_diagonal.rs
+new file mode 100644
+index 0000000..cb1c9fe
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_diagonal.rs
+@@ -0,0 +1,1062 @@
++//! Single-stage CPU consuming bridge. This library path grants no production admission.
++//! Context association is private in-process evidence, not cryptographic authentication.
++use crate::study_admission::{DiagonalPlan, MicroPart, StateMetadata, TransitionIndex};
++use crate::study_inputs::RateCoefficients;
++use ckks_train_ckks::{
++    BootstrapOps, Ciphertext, CkksParams, Encoder, Evaluator, HeOps, OpCounter,
++    bootstrap::{BootParams, Bootstrapper, metadata::BootstrapMetadata},
++    metadata::CtMeta,
++};
++use ckks_train_core::error::{HekitError, Result};
++use ckks_train_nn::{
++    activation::{Activation, Identity, PolyRelu2, Square},
++    dense::{Dense, TransposeKeys},
++    diagonal_plan::{DiagonalActivation, DiagonalMode, DiagonalOptimizer, StageGeometry},
++    layout::Layout,
++    optim::{Nag, Sgd},
++    refresh::Refresher,
++    trainer::{BatchSpec, LayerOptimizer, Mlp, Trainer},
++    trainer_ni::{CompactState, NiOptimizer, NonInteractiveTrainer},
++};
++use std::{cell::RefCell, sync::Arc};
++
++pub(crate) fn mismatch(field: &str) -> HekitError {
++    HekitError::InvalidParams(format!("CPU bridge plan mismatch: {field}"))
++}
++pub(crate) fn ensure(ok: bool, field: &str) -> Result<()> {
++    if ok { Ok(()) } else { Err(mismatch(field)) }
++}
++pub(crate) fn require_single_stage(stages: usize) -> Result<()> {
++    ensure(stages == 1, "missing block-stage execution capability")
++}
++/// Supported encrypted execution shape; blocks require the separate P5 bridge.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum CpuCapability {
++    /// Exactly one existing NN stage.
++    SingleStage,
++}
++#[derive(Clone)]
++pub(crate) enum PlanOwner {
++    Canonical(Arc<DiagonalPlan>),
++    #[cfg(test)]
++    Synthetic(Arc<crate::study_admission::p4_fixtures::SyntheticCpuPlan>),
++}
++impl PlanOwner {
++    pub(crate) fn identity(&self) -> &str {
++        match self {
++            Self::Canonical(p) => p.digest(),
++            #[cfg(test)]
++            Self::Synthetic(p) => p.identity(),
++        }
++    }
++    pub(crate) fn same(&self, other: &Self) -> bool {
++        match (self, other) {
++            (Self::Canonical(a), Self::Canonical(b)) => Arc::ptr_eq(a, b),
++            #[cfg(test)]
++            (Self::Synthetic(a), Self::Synthetic(b)) => Arc::ptr_eq(a, b),
++            #[cfg(test)]
++            _ => false,
++        }
++    }
++    pub(crate) fn initial(&self) -> &[StateMetadata] {
++        match self {
++            Self::Canonical(p) => p.initial_states(),
++            #[cfg(test)]
++            Self::Synthetic(p) => std::slice::from_ref(&p.initial),
++        }
++    }
++    pub(crate) fn transitions(&self) -> &[TransitionIndex] {
++        match self {
++            Self::Canonical(p) => p.transitions(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.index,
++        }
++    }
++    pub(crate) fn parts(&self) -> &[Vec<MicroPart>] {
++        match self {
++            Self::Canonical(p) => p.partitions(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.parts,
++        }
++    }
++    pub(crate) fn rates(&self) -> &[RateCoefficients<f64>] {
++        match self {
++            Self::Canonical(p) => p.full_rates(),
++            #[cfg(test)]
++            Self::Synthetic(p) => &p.rates,
++        }
++    }
++    pub(crate) fn reference(&self) -> f64 {
++        match self {
++            Self::Canonical(p) => f64::from_bits(p.reference_bits()),
++            #[cfg(test)]
++            Self::Synthetic(p) => p.reference,
++        }
++    }
++    pub(crate) fn check_shape(&self) -> Result<()> {
++        require_single_stage(self.initial().len())?;
++        ensure(
++            !self.identity().is_empty() && self.reference().is_finite() && self.reference() > 0.,
++            "plan identity/reference",
++        )?;
++        if let DiagonalOptimizer::Nag { reference, .. } = self.initial()[0].optimizer() {
++            ensure(
++                reference.to_bits() == self.reference().to_bits(),
++                "full reference binding",
++            )?;
++        }
++        ensure(
++            self.parts().len() == self.transitions().len(),
++            "transition cardinality",
++        )?;
++        ensure(
++            !self.parts().is_empty() && self.rates().len() >= self.parts().len(),
++            "consumption",
++        )?;
++        for (i, t) in self.transitions().iter().enumerate() {
++            ensure(
++                t.update() == i
++                    && t.stage() == 0
++                    && !t.is_boundary()
++                    && t.update_metadata().is_some(),
++                "single-stage transition ordering",
++            )?;
++        }
++        Ok(())
++    }
++}
++pub(crate) struct Description {
++    pub(crate) geometry: StageGeometry,
++    pub(crate) activations: Vec<DiagonalActivation>,
++    pub(crate) transpose: TransposeKeys,
++    pub(crate) frozen: bool,
++}
++pub(crate) fn activations(kinds: &[DiagonalActivation]) -> Vec<Box<dyn Activation>> {
++    kinds
++        .iter()
++        .map(|a| match a {
++            DiagonalActivation::Square => Box::new(Square) as Box<dyn Activation>,
++            DiagonalActivation::PolyRelu2 => Box::new(PolyRelu2),
++            DiagonalActivation::Identity => Box::new(Identity),
++        })
++        .collect()
++}
++/// Immutable caller-owned public evaluation material, with no secret or materializer.
++pub struct CpuEvaluationContext {
++    pub(crate) owner: Arc<()>,
++    pub(crate) evaluator: Evaluator,
++    pub(crate) encoder: Encoder,
++    pub(crate) bootstrap: Option<CpuBootstrap>,
++    pub(crate) metadata: Option<Arc<BootstrapMetadata>>,
++    pub(crate) boot_params: Option<BootParams>,
++}
++impl CpuEvaluationContext {
++    /// Forks only training evaluation counters; the private key-owner association is kept.
++    pub fn fork(&self) -> Self {
++        Self {
++            owner: self.owner.clone(),
++            evaluator: self.evaluator.fork(),
++            encoder: self.encoder.clone(),
++            bootstrap: self.bootstrap.as_ref().map(CpuBootstrap::fork),
++            metadata: self.metadata.clone(),
++            boot_params: self.boot_params.clone(),
++        }
++    }
++    /// Current measured counts, including bootstrap internals exactly once.
++    pub fn counter(&self) -> OpCounter {
++        self.evaluator.counter()
++    }
++    /// Immutable parameters used by all evaluation material in this context.
++    pub fn parameters(&self) -> &Arc<CkksParams> {
++        self.evaluator.params()
++    }
++    pub(crate) fn check_geometry(&self, g: &StageGeometry) -> Result<()> {
++        ensure(
++            self.evaluator.config() == &g.eval_config(),
++            "evaluation configuration",
++        )?;
++        ensure(
++            g.layout().slots == self.parameters().slots(),
++            "layout parameters",
++        )?;
++        ensure(self.evaluator.relin_key().is_some(), "relinearization key")?;
++        ensure(
++            g.rotation_steps().iter().all(|&s| {
++                self.evaluator
++                    .galois_keys()
++                    .is_some_and(|k| k.get(s).is_some())
++            }),
++            "training key manifest",
++        )?;
++        match g.mode() {
++            DiagonalMode::Interactive => ensure(
++                self.bootstrap.is_none() && self.metadata.is_none() && self.boot_params.is_none(),
++                "interactive bootstrap absence",
++            ),
++            DiagonalMode::NonInteractive(_) => {
++                let b = self
++                    .bootstrap
++                    .as_ref()
++                    .ok_or_else(|| mismatch("bootstrap dependency"))?;
++                let m = self
++                    .metadata
++                    .as_ref()
++                    .ok_or_else(|| mismatch("bootstrap metadata"))?;
++                ensure(
++                    Arc::ptr_eq(b.real.params(), self.parameters())
++                        && b.output_level() == m.output().level()
++                        && b.real.cost_per_boot() == *m.cost_per_boot()
++                        && self.boot_params.as_ref() == Some(b.real.boot_params())
++                        && b.real.keys().rotation_steps() == m.generated_keys().rotation_steps(),
++                    "bootstrap binding",
++                )
++            }
++        }
++    }
++}
++pub(crate) struct CpuBootstrap {
++    pub(crate) real: Arc<Bootstrapper>,
++    #[cfg(test)]
++    pub(crate) budget: Option<std::rc::Rc<p4_tests::RuntimeBudget>>,
++    #[cfg(test)]
++    pub(crate) fail_after: Option<usize>,
++    #[cfg(test)]
++    pub(crate) successful: std::cell::Cell<usize>,
++}
++impl CpuBootstrap {
++    fn fork(&self) -> Self {
++        Self {
++            real: self.real.clone(),
++            #[cfg(test)]
++            budget: self.budget.clone(),
++            #[cfg(test)]
++            fail_after: None,
++            #[cfg(test)]
++            successful: std::cell::Cell::new(0),
++        }
++    }
++}
++impl BootstrapOps<Evaluator> for CpuBootstrap {
++    fn output_level(&self) -> usize {
++        self.real.output_level()
++    }
++    fn bootstrap(&self, e: &Evaluator, c: &Ciphertext) -> Result<Ciphertext> {
++        #[cfg(test)]
++        {
++            if self.fail_after.is_some_and(|n| self.successful.get() >= n) {
++                return Err(mismatch("injected second bootstrap"));
++            }
++            if let Some(budget) = &self.budget {
++                budget.reserve_boot();
++            }
++        }
++        let result = self.real.bootstrap(e, c);
++        #[cfg(test)]
++        if result.is_ok() {
++            self.successful.set(self.successful.get() + 1);
++        }
++        result
++    }
++}
++/// Client-owned interactive service. The session borrows only its narrow handle.
++pub struct ClientRefreshService {
++    pub(crate) owner: Arc<()>,
++    pub(crate) inner: RefCell<ckks_train_nn::refresh::ClientRefresher>,
++    #[cfg(test)]
++    pub(crate) fail_after: Option<usize>,
++    #[cfg(test)]
++    pub(crate) successful: std::cell::Cell<usize>,
++}
++struct RefreshHandle<'a>(&'a ClientRefreshService);
++impl Refresher for RefreshHandle<'_> {
++    fn output_level(&self) -> usize {
++        self.0.inner.borrow().output_level()
++    }
++    fn bind_layout(&mut self, l: &Layout) -> Result<()> {
++        self.0.inner.borrow_mut().bind_layout(l)
++    }
++    fn refresh(&mut self, c: &Ciphertext) -> Result<Ciphertext> {
++        #[cfg(test)]
++        if self
++            .0
++            .fail_after
++            .is_some_and(|n| self.0.successful.get() >= n)
++        {
++            return Err(mismatch("injected second refresh"));
++        }
++        let result = self.0.inner.borrow_mut().refresh(c);
++        #[cfg(test)]
++        if result.is_ok() {
++            self.0.successful.set(self.0.successful.get() + 1);
++        }
++        result
++    }
++}
++/// Immutable client-produced model packet. It exposes no unchecked construction path.
++pub struct EncryptedInitialState {
++    pub(crate) owner: Arc<()>,
++    pub(crate) plan: PlanOwner,
++    pub(crate) description: Description,
++    pub(crate) mlp: Mlp,
++    pub(crate) compact: Option<CompactState>,
++    pub(crate) batch: BatchSpec,
++}
++pub(crate) struct EncryptedMicro {
++    pub(crate) part: MicroPart,
++    pub(crate) x: Ciphertext,
++    pub(crate) targets: Vec<Ciphertext>,
++}
++/// Immutable encrypted logical update, with private ordered micros and no supplied rate.
++pub struct EncryptedLogicalUpdate {
++    pub(crate) owner: Arc<()>,
++    pub(crate) plan: PlanOwner,
++    pub(crate) index: usize,
++    pub(crate) total: usize,
++    pub(crate) input_width: usize,
++    pub(crate) target_width: usize,
++    pub(crate) micros: Vec<EncryptedMicro>,
++}
++impl EncryptedLogicalUpdate {
++    /// Consumed update index bound by the client.
++    pub fn index(&self) -> usize {
++        self.index
++    }
++    /// Number of logical valid rows, conserved across the ordered micros.
++    pub fn total_valid(&self) -> usize {
++        self.total
++    }
++}
++/// Explicit client diagnostic endpoint; holds only encrypted dense layers.
++pub struct EncryptedModelSnapshot {
++    pub(crate) owner: Arc<()>,
++    pub(crate) layers: Vec<Dense>,
++    pub(crate) layout: Layout,
++}
++/// Successful update completion, distinct from a scientific measurement artifact.
++#[derive(Debug)]
++pub struct UpdateCompletion {
++    /// Successful consumed updates, including this one.
++    pub completed_updates: usize,
++    /// Successful logical samples, including this update.
++    pub processed_samples: usize,
++    /// Actual seven-field measured delta, already inclusive of bootstrap internals.
++    pub measured: OpCounter,
++    /// Interactive refresh calls for this update.
++    pub client_refreshes: usize,
++    /// Actual publicly exposed runtime labelled-level diagnostics.
++    pub trace: Vec<(String, usize)>,
++}
++/// Poison evidence from a failure after entering fallible configuration/training work.
++#[derive(Debug)]
++pub struct FailedUpdate {
++    /// Update that remains uncommitted in successful progress.
++    pub update: usize,
++    /// Last entered bridge phase.
++    pub phase: &'static str,
++    /// Actual partial measured delta, with no rollback claim.
++    pub measured: OpCounter,
++    /// Available runtime diagnostics from the attempted step, absent for setter failure.
++    pub trace: Vec<(String, usize)>,
++}
++enum Training<'a> {
++    Interactive(Trainer<'a>),
++    NonInteractive(NonInteractiveTrainer<'a, Evaluator, CpuBootstrap>),
++}
++/// Borrowed caller-context session over existing trainers, with poison-on-midwork failure.
++pub struct CpuDiagonalSession<'a> {
++    context: &'a CpuEvaluationContext,
++    plan: PlanOwner,
++    description: Description,
++    mlp: Mlp,
++    trainer: Training<'a>,
++    batch: BatchSpec,
++    completed: usize,
++    samples: usize,
++    poisoned: bool,
++    failed: Option<FailedUpdate>,
++}
++impl<'a> CpuDiagonalSession<'a> {
++    /// The sole supported execution shape.
++    pub fn capability() -> CpuCapability {
++        CpuCapability::SingleStage
++    }
++    /// Consumes a canonical client packet without granting production admission/start.
++    pub fn new(
++        context: &'a CpuEvaluationContext,
++        plan: Arc<DiagonalPlan>,
++        initial: EncryptedInitialState,
++        refresh: Option<&'a ClientRefreshService>,
++    ) -> Result<Self> {
++        Self::from_owner(context, PlanOwner::Canonical(plan), initial, refresh)
++    }
++    pub(crate) fn from_owner(
++        context: &'a CpuEvaluationContext,
++        plan: PlanOwner,
++        initial: EncryptedInitialState,
++        refresh: Option<&'a ClientRefreshService>,
++    ) -> Result<Self> {
++        validate_initial_packet(context, &plan, &initial)?;
++        let EncryptedInitialState {
++            description,
++            mlp,
++            compact,
++            batch,
++            ..
++        } = initial;
++        let opt = plan.initial()[0].optimizer();
++        let trainer = match description.geometry.mode() {
++            DiagonalMode::Interactive => {
++                ensure(compact.is_none(), "unexpected initial compact state")?;
++                let service = refresh.ok_or_else(|| mismatch("interactive refresh dependency"))?;
++                ensure(
++                    Arc::ptr_eq(&context.owner, &service.owner),
++                    "refresh context identity",
++                )?;
++                let optims = (0..mlp.layers.len())
++                    .map(|_| -> Result<Box<dyn LayerOptimizer>> {
++                        Ok(match opt {
++                            DiagonalOptimizer::Sgd { lr } => Box::new(Sgd { lr }),
++                            DiagonalOptimizer::Nag {
++                                lr,
++                                reference,
++                                momentum,
++                            } => {
++                                let mut n = Nag::new(lr, momentum);
++                                n.set_lr_reference(reference)?;
++                                Box::new(n)
++                            }
++                        })
++                    })
++                    .collect::<Result<Vec<_>>>()?;
++                #[cfg(test)]
++                p4_tests::reserve_encoder();
++                let mut t = Trainer::new(
++                    &context.evaluator,
++                    Box::new(RefreshHandle(service)),
++                    optims,
++                    description.geometry.layout(),
++                )?
++                .with_transpose_keys(description.transpose.clone());
++                if description.frozen {
++                    t = t.with_frozen_biases();
++                }
++                Training::Interactive(t)
++            }
++            DiagonalMode::NonInteractive(placement) => {
++                ensure(refresh.is_none(), "NI refresh capability absence")?;
++                let state = compact.ok_or_else(|| mismatch("initial compact state"))?;
++                let optim = match opt {
++                    DiagonalOptimizer::Sgd { lr } => NiOptimizer::Sgd { lr },
++                    DiagonalOptimizer::Nag { lr, momentum, .. } => {
++                        NiOptimizer::Nag { lr, momentum }
++                    }
++                };
++                #[cfg(test)]
++                p4_tests::reserve_encoder();
++                let mut t = NonInteractiveTrainer::new(
++                    &context.evaluator,
++                    context
++                        .bootstrap
++                        .as_ref()
++                        .ok_or_else(|| mismatch("NI bootstrap dependency"))?,
++                    optim,
++                    description.geometry.layout(),
++                    placement,
++                    &mlp,
++                    state,
++                )?
++                .with_transpose_keys(description.transpose.clone());
++                if let DiagonalOptimizer::Nag { reference, .. } = opt {
++                    t.set_lr_reference(reference)?;
++                }
++                if description.frozen {
++                    t = t.with_frozen_biases();
++                }
++                Training::NonInteractive(t)
++            }
++        };
++        let s = Self {
++            context,
++            plan,
++            description,
++            mlp,
++            trainer,
++            batch,
++            completed: 0,
++            samples: 0,
++            poisoned: false,
++            failed: None,
++        };
++        s.check_state(&s.plan.initial()[0])?;
++        s.check_actual_batch()?;
++        Ok(s)
++    }
++    /// Successful progress only; prework and poisoned failures never advance it.
++    pub fn completed_updates(&self) -> usize {
++        self.completed
++    }
++    /// Successful logical sample progress only.
++    pub fn processed_samples(&self) -> usize {
++        self.samples
++    }
++    /// Whether a prior midwork failure permanently prevents reuse.
++    pub fn is_poisoned(&self) -> bool {
++        self.poisoned
++    }
++    /// Preserved actual partial-work evidence, if any.
++    pub fn failed_update(&self) -> Option<&FailedUpdate> {
++        self.failed.as_ref()
++    }
++    /// Copies encrypted dense state to an explicit diagnostic endpoint, without evaluation.
++    pub fn snapshot(&self) -> EncryptedModelSnapshot {
++        EncryptedModelSnapshot {
++            owner: self.context.owner.clone(),
++            layers: self.mlp.layers.iter().map(|(d, _)| d.clone()).collect(),
++            layout: self.description.geometry.layout(),
++        }
++    }
++    fn check_actual_batch(&self) -> Result<()> {
++        let before = self.context.counter();
++        let probe = self.context.evaluator.fork();
++        let actual = match &self.trainer {
++            Training::Interactive(t) => {
++                self.mlp
++                    .batch_spec_at(&probe, &self.context.encoder, t.refresh_level())?
++            }
++            Training::NonInteractive(t) => t.batch_spec(&self.mlp)?,
++        };
++        ensure(self.context.counter() == before, "probe counter isolation")?;
++        check_batch(actual, self.plan.initial()[0].batch())?;
++        ensure(actual == self.batch, "retained batch specification")
++    }
++    fn check_state(&self, state: &StateMetadata) -> Result<()> {
++        ensure(
++            state.completed_updates() == self.completed,
++            "state successful index",
++        )?;
++        self.check_state_without_progress(state)
++    }
++    fn check_state_without_progress(&self, state: &StateMetadata) -> Result<()> {
++        check_mlp(self.context, &self.description, &self.mlp, state)?;
++        check_batch(self.batch, state.batch())?;
++        match &self.trainer {
++            Training::Interactive(t) => {
++                ensure(
++                    state.compact_weights().is_empty()
++                        && state.velocity().len() == self.mlp.layers.len(),
++                    "interactive state cardinalities",
++                )?;
++                for (i, (dense, _)) in self.mlp.layers.iter().enumerate() {
++                    let v = t.optimizer_view(i)?;
++                    check_optimizer(state.optimizer(), v.lr(), v.reference(), v.momentum())?;
++                    match (v.velocity(), state.velocity()[i]) {
++                        (None, None) => {}
++                        (Some(actual), Some(expected)) => {
++                            ensure(
++                                actual.d() == dense.w.diagonals().d()
++                                    && actual.stride() == dense.w.diagonals().stride()
++                                    && actual.entries().len()
++                                        == dense.w.diagonals().entries().len(),
++                                "velocity geometry",
++                            )?;
++                            for c in actual.entries() {
++                                check_ct(self.context, c, expected)?;
++                            }
++                        }
++                        _ => return Err(mismatch("interactive velocity presence")),
++                    }
++                }
++                ensure(
++                    t.optimizer_view(self.mlp.layers.len()).is_err(),
++                    "optimizer bounds",
++                )?;
++            }
++            Training::NonInteractive(t) => {
++                let o = t.optimizer();
++                let (reference, momentum) = match o {
++                    NiOptimizer::Sgd { .. } => (None, None),
++                    NiOptimizer::Nag { momentum, .. } => (Some(t.lr_reference()), Some(momentum)),
++                };
++                check_optimizer(state.optimizer(), o.lr(), reference, momentum)?;
++                ensure(
++                    t.state().weights.len() == state.compact_weights().len()
++                        && t.state().velocity.len() == state.velocity().len(),
++                    "compact state cardinality",
++                )?;
++                for (c, &m) in t.state().weights.iter().zip(state.compact_weights()) {
++                    check_ct(self.context, c, m)?;
++                }
++                for (actual, expected) in t.state().velocity.iter().zip(state.velocity()) {
++                    match (actual, expected) {
++                        (None, None) => {}
++                        (Some(c), Some(m)) => check_ct(self.context, c, *m)?,
++                        _ => return Err(mismatch("NI velocity presence")),
++                    }
++                }
++                ensure(
++                    Some(t.compact_layout()) == self.description.geometry.compact(),
++                    "compact geometry and bias slots",
++                )?;
++            }
++        }
++        Ok(())
++    }
++    fn validate_packet(&self, p: &EncryptedLogicalUpdate) -> Result<(usize, usize)> {
++        ensure(!self.poisoned, "poisoned session")?;
++        ensure(
++            self.completed < self.plan.parts().len(),
++            "exhausted session",
++        )?;
++        ensure(p.index == self.completed, "update index or replay")?;
++        ensure(self.plan.same(&p.plan), "packet plan identity")?;
++        ensure(
++            Arc::ptr_eq(&p.owner, &self.context.owner),
++            "packet context identity",
++        )?;
++        self.context.check_geometry(&self.description.geometry)?;
++        let t = &self.plan.transitions()[self.completed];
++        let u = t
++            .update_metadata()
++            .ok_or_else(|| mismatch("update metadata"))?;
++        self.check_state(u.pre_state())?;
++        let parts = &self.plan.parts()[self.completed];
++        ensure(
++            p.micros.len() == parts.len() && p.micros.len() == u.micros().len(),
++            "micro cardinality",
++        )?;
++        let dims = self.description.geometry.dims();
++        ensure(
++            p.input_width == dims[0] && p.target_width == *dims.last().unwrap(),
++            "target/input shape",
++        )?;
++        let mut total = 0usize;
++        for ((m, part), expected) in p.micros.iter().zip(parts).zip(u.micros()) {
++            ensure(
++                m.part == *part
++                    && m.part.start == total
++                    && m.part.valid == expected.n_valid
++                    && m.part.valid > 0
++                    && m.part.valid <= self.description.geometry.layout().batch,
++                "ordered partition",
++            )?;
++            total = total
++                .checked_add(m.part.valid)
++                .ok_or_else(|| mismatch("partition overflow"))?;
++            ensure(m.targets.len() == 1, "stage target cardinality")?;
++            check_ct(self.context, &m.x, expected.x)?;
++            check_ct(self.context, &m.targets[0], expected.y)?;
++        }
++        ensure(total == p.total, "logical valid denominator")?;
++        let completed = self
++            .completed
++            .checked_add(1)
++            .ok_or_else(|| mismatch("update progress overflow"))?;
++        let samples = self
++            .samples
++            .checked_add(total)
++            .ok_or_else(|| mismatch("sample progress overflow"))?;
++        let rate = self.plan.rates()[self.completed].kernel;
++        match &self.trainer {
++            Training::Interactive(t) => t.validate_lr(rate)?,
++            Training::NonInteractive(t) => t.validate_lr(rate)?,
++        }
++        Ok((completed, samples))
++    }
++    /// Validates immutable binding before setters/work; invokes one existing logical step.
++    /// Any error after preflight poisons the session and preserves actual partial counts.
++    pub fn step(&mut self, p: &EncryptedLogicalUpdate) -> Result<UpdateCompletion> {
++        let (next, samples) = self.validate_packet(p)?;
++        let origin = self.context.counter();
++        let trace_origin = self.trace().to_vec();
++        let boots_before = match &self.trainer {
++            Training::NonInteractive(t) => (t.weight_bootstraps(), t.activation_bootstraps()),
++            _ => (0, 0),
++        };
++        let refresh_before = match &self.trainer {
++            Training::Interactive(t) => t.refreshes(),
++            _ => 0,
++        };
++        self.poisoned = true;
++        self.failed = Some(FailedUpdate {
++            update: self.completed,
++            phase: "configuration",
++            measured: OpCounter::default(),
++            trace: vec![],
++        });
++        let result = (|| {
++            let rate = self.plan.rates()[self.completed].kernel;
++            match &mut self.trainer {
++                Training::Interactive(t) => t.set_lr(rate)?,
++                Training::NonInteractive(t) => {
++                    t.set_lr(rate)?;
++                    t.set_next_batch_full(self.plan.transitions()[self.completed].next_full());
++                }
++            }
++            self.check_coefficients(p.total)?;
++            let batches: Vec<_> = p
++                .micros
++                .iter()
++                .map(|m| (&m.x, &m.targets[0], m.part.valid))
++                .collect();
++            self.failed.as_mut().unwrap().phase = "trainer";
++            #[cfg(test)]
++            p4_tests::reserve_attempt();
++            match &mut self.trainer {
++                Training::Interactive(t) => t.train_step_valid(&mut self.mlp, &batches)?,
++                Training::NonInteractive(t) => t.train_step_valid(&mut self.mlp, &batches)?,
++            }
++            self.failed.as_mut().unwrap().phase = "postcheck";
++            let actual = &self.context.counter() - &origin;
++            let u = self.plan.transitions()[self.completed]
++                .update_metadata()
++                .unwrap();
++            ensure(
++                actual == *u.counts_including_bootstrap(),
++                "seven inclusive measured counters",
++            )?;
++            let refreshes = match &self.trainer {
++                Training::Interactive(t) => t.refreshes() - refresh_before,
++                _ => 0,
++            };
++            ensure(
++                refreshes == u.client_refreshes(),
++                "client refresh decisions",
++            )?;
++            ensure(
++                actual.bootstraps as usize == u.bootstrap_count(),
++                "bootstrap decisions",
++            )?;
++            if let Training::NonInteractive(t) = &self.trainer {
++                ensure(
++                    t.last_update_rescaled() == u.reference_branch()
++                        && t.last_update_booted() == u.state_bootstrapped(),
++                    "NI reference/state bootstrap decisions",
++                )?;
++                let activation_boots = u
++                    .canonical_activations()
++                    .iter()
++                    .map(Vec::len)
++                    .sum::<usize>();
++                ensure(
++                    t.activation_bootstraps() - boots_before.1 == activation_boots as u64
++                        && t.weight_bootstraps() - boots_before.0
++                            == (u.bootstrap_count() - activation_boots) as u64,
++                    "NI weight/activation bootstrap decisions",
++                )?;
++            }
++            self.check_hidden_trace()?;
++            // Compare post state's successful index without publishing progress until all checks pass.
++            self.check_post_state(u.post_state(), next)?;
++            self.check_actual_batch()?;
++            Ok(UpdateCompletion {
++                completed_updates: next,
++                processed_samples: samples,
++                measured: actual,
++                client_refreshes: refreshes,
++                trace: self.trace().to_vec(),
++            })
++        })();
++        match result {
++            Ok(c) => {
++                self.completed = next;
++                self.samples = samples;
++                self.poisoned = false;
++                self.failed = None;
++                Ok(c)
++            }
++            Err(e) => {
++                let trace = if self.failed.as_ref().unwrap().phase == "configuration"
++                    || self.trace() == trace_origin
++                {
++                    vec![]
++                } else {
++                    self.trace().to_vec()
++                };
++                let failure = self.failed.as_mut().unwrap();
++                failure.measured = &self.context.counter() - &origin;
++                failure.trace = trace;
++                Err(e)
++            }
++        }
++    }
++    fn check_post_state(&self, state: &StateMetadata, next: usize) -> Result<()> {
++        // check_state reads self.completed; use the identical checker with an explicit index.
++        ensure(state.completed_updates() == next, "post successful index")?;
++        self.check_state_without_progress(state)
++    }
++    fn trace(&self) -> &[(String, usize)] {
++        match &self.trainer {
++            Training::Interactive(t) => t.trace(),
++            Training::NonInteractive(t) => t.trace(),
++        }
++    }
++    fn check_coefficients(&self, total: usize) -> Result<()> {
++        let u = self.plan.transitions()[self.completed]
++            .update_metadata()
++            .unwrap();
++        let c = u.coefficients();
++        let n = total as f64;
++        let rate = self.plan.rates()[self.completed].kernel;
++        match &self.trainer {
++            Training::Interactive(t) => {
++                for i in 0..self.mlp.layers.len() {
++                    let v = t.optimizer_view(i)?;
++                    ensure(
++                        v.lr().to_bits() == rate.to_bits(),
++                        "configured current rate",
++                    )?;
++                    ensure(
++                        (v.weight_factor() / n).to_bits() == c.current_bits
++                            && v.reference_factor().map(|x| (x / n).to_bits()) == c.reference_bits
++                            && (if self.description.frozen {
++                                0.
++                            } else {
++                                v.bias_factor() / n
++                            })
++                            .to_bits()
++                                == c.bias_bits,
++                        "configured optimizer folded factors",
++                    )?;
++                    ensure(
++                        v.momentum().map(f64::to_bits) == c.velocity_mu_bits,
++                        "configured momentum coefficient",
++                    )?;
++                    ensure(
++                        v.reference_factor().is_some() == u.reference_branch()
++                            && (v.momentum().is_some() && v.velocity().is_none())
++                                == u.first_nag_update(),
++                        "interactive reference and first velocity branches",
++                    )?;
++                }
++            }
++            Training::NonInteractive(t) => {
++                let o = t.optimizer();
++                let reference = if o.has_velocity() && rate / t.lr_reference() != 1. {
++                    Some(o.with_lr(t.lr_reference()).grad_scale() / n)
++                } else {
++                    None
++                };
++                ensure(
++                    o.lr().to_bits() == rate.to_bits()
++                        && (o.grad_scale() / n).to_bits() == c.current_bits
++                        && reference.map(f64::to_bits) == c.reference_bits
++                        && (if self.description.frozen {
++                            0.
++                        } else {
++                            o.bias_grad_scale() / n
++                        })
++                        .to_bits()
++                            == c.bias_bits,
++                    "NI configured optimizer folded factors",
++                )?;
++                let momentum = match o {
++                    NiOptimizer::Nag { momentum, .. } => Some(momentum),
++                    _ => None,
++                };
++                ensure(
++                    momentum.map(f64::to_bits) == c.velocity_mu_bits,
++                    "NI configured momentum coefficient",
++                )?;
++                ensure(
++                    reference.is_some() == u.reference_branch()
++                        && (o.has_velocity() && t.state().velocity.iter().all(Option::is_none))
++                            == u.first_nag_update(),
++                    "NI configured branches",
++                )?;
++            }
++        }
++        Ok(())
++    }
++    fn check_hidden_trace(&self) -> Result<()> {
++        let u = self.plan.transitions()[self.completed]
++            .update_metadata()
++            .unwrap();
++        ensure(
++            u.retained_hidden().len() == u.micros().len(),
++            "hidden micro cardinality",
++        )?;
++        let count = match &self.trainer {
++            Training::Interactive(_) => u.micros().len(),
++            _ => 1,
++        };
++        for i in 0..count {
++            let labels = &u.retained_hidden()[i];
++            ensure(
++                labels.len() + 1 == self.mlp.layers.len(),
++                "hidden layer cardinality",
++            )?;
++            for (l, m) in labels.iter().enumerate() {
++                let label = if matches!(&self.trainer, Training::Interactive(_)) && count > 1 {
++                    format!("micro{i}/a{}", l + 1)
++                } else {
++                    format!("a{}", l + 1)
++                };
++                let actual: Vec<_> = self.trace().iter().filter(|(s, _)| s == &label).collect();
++                ensure(
++                    actual.len() == 1 && actual[0].1 == m.level(),
++                    "hidden trace level",
++                )?;
++            }
++        }
++        if let Training::NonInteractive(t) = &self.trainer {
++            let actual = t.last_activation_bootstraps();
++            let canonical = u.canonical_activations();
++            if t.placement() == ckks_train_nn::trainer_ni::BootPlacement::AfterActivation {
++                ensure(
++                    actual.len() == canonical.len(),
++                    "AA canonical micro cardinality",
++                )?;
++                for (a, e) in actual.iter().zip(canonical) {
++                    ensure(a.len() == e.len(), "AA canonical layer cardinality")?;
++                    for (c, &m) in a.iter().zip(e) {
++                        check_ct(self.context, c, m)?;
++                    }
++                }
++                for (l, m) in canonical[0].iter().enumerate() {
++                    let label = format!("a{}_boot", l + 1);
++                    let levels = self
++                        .trace()
++                        .iter()
++                        .filter(|(s, _)| s == &label)
++                        .collect::<Vec<_>>();
++                    ensure(
++                        levels.len() == 1 && levels[0].1 == m.level(),
++                        "AA canonical trace level",
++                    )?;
++                }
++            } else {
++                ensure(
++                    actual.is_empty() && canonical.iter().all(Vec::is_empty),
++                    "non-AA canonical absence",
++                )?;
++            }
++        }
++        Ok(())
++    }
++}
++pub(crate) fn validate_initial_packet(
++    context: &CpuEvaluationContext,
++    plan: &PlanOwner,
++    initial: &EncryptedInitialState,
++) -> Result<()> {
++    plan.check_shape()?;
++    ensure(
++        Arc::ptr_eq(&context.owner, &initial.owner),
++        "initial context identity",
++    )?;
++    ensure(plan.same(&initial.plan), "initial plan identity")?;
++    context.check_geometry(&initial.description.geometry)?;
++    let state = &plan.initial()[0];
++    check_mlp(context, &initial.description, &initial.mlp, state)?;
++    check_batch(initial.batch, state.batch())?;
++    match &initial.compact {
++        None => ensure(
++            state.compact_weights().is_empty() && state.velocity().iter().all(Option::is_none),
++            "initial compact absence",
++        )?,
++        Some(c) => {
++            ensure(
++                c.weights.len() == state.compact_weights().len()
++                    && c.velocity.len() == state.velocity().len(),
++                "initial compact cardinality",
++            )?;
++            for (ct, &meta) in c.weights.iter().zip(state.compact_weights()) {
++                check_ct(context, ct, meta)?;
++            }
++            for (ct, meta) in c.velocity.iter().zip(state.velocity()) {
++                match (ct, meta) {
++                    (None, None) => {}
++                    (Some(ct), Some(meta)) => check_ct(context, ct, *meta)?,
++                    _ => return Err(mismatch("initial velocity presence")),
++                }
++            }
++        }
++    }
++    Ok(())
++}
++pub(crate) fn check_ct(context: &CpuEvaluationContext, c: &Ciphertext, m: CtMeta) -> Result<()> {
++    ensure(
++        c.len() == 2 && c.level() == m.level() && c.scale().to_bits() == m.scale_bits(),
++        "ciphertext level/scale/components",
++    )?;
++    ensure(
++        c.polys().iter().all(|p| {
++            p.is_ntt_form()
++                && p.level() == c.level()
++                && Arc::ptr_eq(p.basis(), context.parameters().basis_q())
++        }),
++        "ciphertext basis",
++    )
++}
++fn check_batch(b: BatchSpec, m: ckks_train_nn::diagonal_plan::BatchMetadata) -> Result<()> {
++    ensure(
++        b.x_level == m.x.level()
++            && b.x_scale.to_bits() == m.x.scale_bits()
++            && b.y_level == m.y.level()
++            && b.y_scale.to_bits() == m.y.scale_bits(),
++        "BatchSpec all fields",
++    )
++}
++fn check_optimizer(
++    o: DiagonalOptimizer,
++    lr: f64,
++    reference: Option<f64>,
++    momentum: Option<f64>,
++) -> Result<()> {
++    let (expected, r, m) = match o {
++        DiagonalOptimizer::Sgd { lr } => (lr, None, None),
++        DiagonalOptimizer::Nag {
++            lr,
++            reference,
++            momentum,
++        } => (lr, Some(reference), Some(momentum)),
++    };
++    ensure(
++        lr.to_bits() == expected.to_bits()
++            && reference.map(f64::to_bits) == r.map(f64::to_bits)
++            && momentum.map(f64::to_bits) == m.map(f64::to_bits),
++        "optimizer raw config",
++    )
++}
++fn check_mlp(
++    context: &CpuEvaluationContext,
++    description: &Description,
++    mlp: &Mlp,
++    s: &StateMetadata,
++) -> Result<()> {
++    let g = &description.geometry;
++    ensure(
++        mlp.dims() == g.dims()
++            && mlp.layers.len() == s.weights().len()
++            && mlp.layers.len() == s.biases().len()
++            && mlp.layers.len() == g.shapes().len()
++            && mlp.layers.len() == description.activations.len(),
++        "expanded state cardinalities",
++    )?;
++    for (i, (dense, act)) in mlp.layers.iter().enumerate() {
++        let expected = &g.shapes()[i];
++        let shape = dense.w.shape(&g.layout())?;
++        ensure(
++            &shape == expected
++                && dense.w.diagonals().d() == expected.m
++                && dense.w.diagonals().stride() == g.layout().batch
++                && dense.w.diagonals().entries().len() == expected.m,
++            "expanded diagonal geometry",
++        )?;
++        let kinds = activations(&[description.activations[i]]);
++        let expected_act = &kinds[0];
++        ensure(
++            act.depth() == expected_act.depth()
++                && act.derivative_depth() == expected_act.derivative_depth()
++                && act.constant_derivative() == expected_act.constant_derivative(),
++            "activation binding",
++        )?;
++        for c in dense.w.diagonals().entries() {
++            check_ct(context, c, s.weights()[i])?;
++        }
++        check_ct(context, &dense.b, s.biases()[i])?;
++    }
++    Ok(())
++}
++#[cfg(test)]
++pub(crate) mod p4_tests;
+
+diff --git a/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+new file mode 100644
+index 0000000..66db675
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+@@ -0,0 +1,687 @@
++//! NONSCIENTIFIC_TEST_EVIDENCE: one explicitly released future CPU matrix.
++use super::*;
++use crate::{
++    study_admission::{
++        MicroPart, PlanningBudget, PlanningParameters, PlanningUsage, p4_fixtures::SyntheticCpuPlan,
++    },
++    study_client::{
++        CpuBootstrapDescription, PreparationInput, StudyClient, context_parameters, make_owned,
++        prepare_then_make,
++    },
++    study_plain::p4_fixtures::{SignalFamily, SignalOracle, signal_oracle},
++};
++use ckks_train_ckks::bootstrap::metadata::DftSupportProof;
++use ckks_train_core::sampler::Rng;
++use ckks_train_nn::trainer_ni::BootPlacement;
++use std::{cell::Cell, rc::Rc};
++
++thread_local! { static ACTIVE: RefCell<Option<Rc<RuntimeBudget>>> = const { RefCell::new(None) }; }
++#[derive(Default)]
++pub(crate) struct RuntimeBudget {
++    parameters: Cell<usize>,
++    keys: Cell<usize>,
++    proofs: Cell<usize>,
++    descriptors: Cell<usize>,
++    bootstrappers: Cell<usize>,
++    encoders: Cell<usize>,
++    attempts: Cell<usize>,
++    boots: Cell<usize>,
++    f64_updates: Cell<usize>,
++    oracles: Cell<usize>,
++    sessions: Cell<usize>,
++    spy: Cell<usize>,
++}
++fn reserve(cell: &Cell<usize>, cap: usize, name: &str) {
++    let next = cell.get().checked_add(1).expect("guard overflow");
++    eprintln!(
++        "P4_RESERVE operation={name} before={} next={next} cap={cap}",
++        cell.get()
++    );
++    assert!(next <= cap, "P4 {name} cap");
++    cell.set(next);
++}
++impl RuntimeBudget {
++    pub(crate) fn reserve_f64(&self) {
++        reserve(&self.f64_updates, 32, "actual Engine::train");
++    }
++    pub(crate) fn reserve_oracle(&self) {
++        reserve(&self.oracles, 18, "SignalOracle");
++    }
++    pub(crate) fn reserve_boot(&self) {
++        reserve(&self.boots, 85, "actual bootstrap");
++    }
++    pub(crate) fn reserve_key(&self) {
++        reserve(&self.keys, 2, "KeyGenerator");
++    }
++    pub(crate) fn reserve_bootstrapper(&self) {
++        reserve(&self.bootstrappers, 1, "Bootstrapper");
++    }
++}
++pub(crate) fn reserve_encoder() {
++    ACTIVE.with(|b| {
++        if let Some(b) = b.borrow().as_ref() {
++            reserve(&b.encoders, 22, "Encoder");
++        }
++    });
++}
++pub(crate) fn reserve_attempt() {
++    ACTIVE.with(|b| {
++        reserve(
++            &b.borrow().as_ref().expect("active budget").attempts,
++            34,
++            "trainer attempt",
++        )
++    });
++}
++fn rng(seed: u8) -> Rng {
++    Rng::from_seed([seed; 32])
++}
++struct Case {
++    family: SignalFamily,
++    mode: DiagonalMode,
++    plan: Arc<SyntheticCpuPlan>,
++    poison: bool,
++}
++fn add_case(
++    cases: &mut Vec<Case>,
++    family: SignalFamily,
++    mode: DiagonalMode,
++    p: PlanningParameters<'_>,
++    budget: &Arc<PlanningBudget>,
++    poison: bool,
++) {
++    let plan =
++        Arc::new(SyntheticCpuPlan::build(&family.recipe(), mode, p, budget.clone()).unwrap());
++    cases.push(Case {
++        family,
++        mode,
++        plan,
++        poison,
++    });
++}
++fn spy_contract(plan: &Arc<SyntheticCpuPlan>, p: PlanningParameters<'_>, budget: &RuntimeBudget) {
++    let claim = plan.claim();
++    let marker = prepare_then_make(
++        PreparationInput::Synthetic {
++            plan: plan.clone(),
++            claim: &claim,
++        },
++        p,
++        &plan.parts,
++        |_| {
++            reserve(&budget.spy, 1, "positive terminal factory spy");
++            Ok("terminal-marker")
++        },
++    )
++    .unwrap();
++    assert_eq!(marker, "terminal-marker");
++    let mut negatives = 0;
++    let mut rejected = |claim: &crate::study_admission::p4_fixtures::SyntheticClaim,
++                        parts: &[Vec<MicroPart>],
++                        field: &str| {
++        let calls = Cell::new(0);
++        let result = prepare_then_make(
++            PreparationInput::Synthetic {
++                plan: plan.clone(),
++                claim,
++            },
++            p,
++            parts,
++            |_| {
++                calls.set(calls.get() + 1);
++                Ok(())
++            },
++        );
++        assert_eq!(result.unwrap_err(), mismatch(field));
++        assert_eq!(calls.get(), 0);
++        negatives += 1;
++    };
++    let mut wrong = plan.claim();
++    wrong.identity.push('x');
++    rejected(&wrong, &plan.parts, "identity");
++    let mut wrong = plan.claim();
++    wrong.binding.push(0);
++    rejected(&wrong, &plan.parts, "identity");
++    for which in 0..7 {
++        rejected(
++            &plan.bad_parameter_claim(p, which),
++            &plan.parts,
++            "parameters",
++        );
++    }
++    let variants = [
++        vec![],
++        vec![vec![
++            MicroPart { start: 0, valid: 4 },
++            MicroPart { start: 0, valid: 4 },
++        ]],
++        vec![vec![MicroPart { start: 0, valid: 0 }]],
++        vec![vec![MicroPart { start: 0, valid: 9 }]],
++        vec![vec![MicroPart { start: 0, valid: 7 }]],
++        vec![vec![MicroPart { start: 1, valid: 8 }]],
++        vec![vec![
++            MicroPart { start: 4, valid: 4 },
++            MicroPart { start: 0, valid: 4 },
++        ]],
++    ];
++    for parts in &variants {
++        rejected(&claim, parts, "partition");
++    }
++    assert_eq!(negatives, 16);
++}
++fn arrays(oracle: &SignalOracle) -> Vec<(ndarray::Array2<f64>, Vec<f64>)> {
++    oracle
++        .initial()
++        .iter()
++        .map(|l| (l.weights().clone(), l.biases().to_vec()))
++        .collect()
++}
++fn prepare_initial(
++    client: &StudyClient,
++    context: &CpuEvaluationContext,
++    plan: &Arc<SyntheticCpuPlan>,
++    layers: &[(ndarray::Array2<f64>, Vec<f64>)],
++) -> EncryptedInitialState {
++    let claim = plan.claim();
++    let checked = prepare_then_make(
++        PreparationInput::Synthetic {
++            plan: plan.clone(),
++            claim: &claim,
++        },
++        context_parameters(context),
++        &plan.parts,
++        Ok,
++    )
++    .unwrap();
++    client.encrypt_initial(checked, context, layers).unwrap()
++}
++fn compare(
++    client: &StudyClient,
++    context: &CpuEvaluationContext,
++    s: &CpuDiagonalSession<'_>,
++    oracle: &SignalOracle,
++    update: usize,
++    ni: bool,
++) {
++    let before = context.counter();
++    let snapshot = s.snapshot();
++    let actual = client.inspect_snapshot(&snapshot, context).unwrap();
++    assert_eq!(before, context.counter());
++    let expected = oracle.post(update).unwrap();
++    assert_eq!(actual.layers().len(), expected.len());
++    let tolerance = if ni { 4e-4 } else { 1e-5 };
++    let mut maximum = 0_f64;
++    for ((w, b), e) in actual.layers().iter().zip(expected) {
++        assert_eq!(w.dim(), e.weights().dim());
++        assert_eq!(b.len(), e.biases().len());
++        for (&a, &e) in w.iter().chain(b).zip(e.weights().iter().chain(e.biases())) {
++            assert!(a.is_finite() && e.is_finite());
++            maximum = maximum.max((a - e).abs());
++            assert!(
++                (a - e).abs() <= tolerance,
++                "all-entry error={} cap={tolerance}",
++                (a - e).abs()
++            );
++        }
++        if !oracle.recipe().square() {
++            assert!(e.biases().iter().all(|v| v.to_bits() == 0_f64.to_bits()));
++        }
++    }
++    eprintln!(
++        "P4_PARITY update={update} NI={ni} maximum_abs={maximum:.17e} frozen_cap={tolerance:.17e}"
++    );
++}
++fn prework_negatives(
++    s: &mut CpuDiagonalSession<'_>,
++    packet: &mut EncryptedLogicalUpdate,
++    other: &CpuEvaluationContext,
++    client: &StudyClient,
++    other_plan: &Arc<SyntheticCpuPlan>,
++) {
++    let before = s.context.counter();
++    let progress = (s.completed_updates(), s.processed_samples());
++    let snapshot = client.inspect_snapshot(&s.snapshot(), s.context).unwrap();
++    let reject = |s: &mut CpuDiagonalSession<'_>, p: &EncryptedLogicalUpdate, expected: &str| {
++        let error = s.step(p).unwrap_err();
++        assert_eq!(error, mismatch(expected));
++        assert_eq!(s.context.counter(), before);
++        assert!(!s.is_poisoned());
++        assert_eq!((s.completed_updates(), s.processed_samples()), progress);
++    };
++    packet.index += 1;
++    reject(s, packet, "update index or replay");
++    packet.index -= 1;
++    // Association-token mutation only: this is not a third real-key experiment.
++    let original = packet.owner.clone();
++    packet.owner = Arc::new(());
++    reject(s, packet, "packet context identity");
++    packet.owner = original;
++    let original = packet.plan.clone();
++    packet.plan = PlanOwner::Synthetic(other_plan.clone());
++    reject(s, packet, "packet plan identity");
++    packet.plan = original;
++    packet.micros[0].part.start += 1;
++    reject(s, packet, "ordered partition");
++    packet.micros[0].part.start -= 1;
++    packet.micros[0].part.valid += 9;
++    reject(s, packet, "ordered partition");
++    packet.micros[0].part.valid -= 9;
++    if packet.micros.len() > 1 {
++        packet.micros.swap(0, 1);
++        reject(s, packet, "ordered partition");
++        packet.micros.swap(0, 1);
++    }
++    packet.total += 1;
++    reject(s, packet, "logical valid denominator");
++    packet.total -= 1;
++    packet.target_width += 1;
++    reject(s, packet, "target/input shape");
++    packet.target_width -= 1;
++    let target = packet.micros[0].targets.pop().unwrap();
++    reject(s, packet, "stage target cardinality");
++    packet.micros[0].targets.push(target.clone());
++    packet.micros[0].targets.push(target);
++    reject(s, packet, "stage target cardinality");
++    packet.micros[0].targets.pop();
++    let original = packet.micros[0].x.clone();
++    packet.micros[0].x = Ciphertext::new(original.polys().to_vec(), original.scale() * 2.).unwrap();
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].x = original.clone();
++    packet.micros[0].x = s
++        .context
++        .evaluator
++        .fork()
++        .mod_switch_to_level(&original, original.level() - 1)
++        .unwrap();
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].x = original.clone();
++    let mut polys = original.polys().to_vec();
++    polys.push(polys[0].clone());
++    packet.micros[0].x = Ciphertext::new(polys, original.scale()).unwrap();
++    reject(s, packet, "ciphertext level/scale/components");
++    packet.micros[0].x = original.clone();
++    if original.level() <= other.parameters().max_level() {
++        let mut foreign =
++            ckks_train_core::poly::RnsPoly::zero(other.parameters().basis_q(), original.level());
++        foreign.to_ntt();
++        packet.micros[0].x =
++            Ciphertext::new(vec![foreign.clone(), foreign], original.scale()).unwrap();
++        reject(s, packet, "ciphertext basis");
++    }
++    packet.micros[0].x = original;
++    let after = client.inspect_snapshot(&s.snapshot(), s.context).unwrap();
++    for ((aw, ab), (bw, bb)) in snapshot.layers().iter().zip(after.layers()) {
++        assert_eq!(aw, bw);
++        assert_eq!(ab, bb);
++    }
++}
++#[test]
++#[ignore = "HE/F64/planner runtime requires a separate frozen-source release"]
++fn p4_cpu_bridge_contract() {
++    assert_eq!(CpuDiagonalSession::capability(), CpuCapability::SingleStage);
++    assert_eq!(
++        require_single_stage(2).unwrap_err(),
++        mismatch("missing block-stage execution capability")
++    );
++    run_contract_matrix();
++}
++fn run_contract_matrix() {
++    let runtime = Rc::new(RuntimeBudget::default());
++    ACTIVE.with(|b| *b.borrow_mut() = Some(runtime.clone()));
++    reserve(&runtime.parameters, 2, "CkksParams");
++    let ip = Arc::new(
++        CkksParams::new(10, &[60, 40, 40, 40, 40, 40, 40, 40, 40, 40], &[60], 40, 10).unwrap(),
++    );
++    reserve(&runtime.parameters, 2, "CkksParams");
++    let (q, p) = ckks_train_ckks::params::n16_boot_bits();
++    let np = Arc::new(CkksParams::new(10, &q, &p, 42, 8).unwrap());
++    let bp = BootParams {
++        log_slots: 9,
++        ..BootParams::default_n16()
++    };
++    reserve(&runtime.proofs, 1, "DftSupportProof");
++    let proof = DftSupportProof::verify_current().unwrap();
++    reserve(&runtime.descriptors, 1, "BootstrapMetadata");
++    let bm = Arc::new(BootstrapMetadata::new_with_verified_support(&np, &bp, &proof).unwrap());
++    let pure = Arc::new(PlanningBudget::new(PlanningUsage {
++        geometries: 28,
++        initial_states: 28,
++        updates: 42,
++        handoffs: 0,
++        wrapper_calls: 0,
++    }));
++    let i = DiagonalMode::Interactive;
++    let wn = DiagonalMode::NonInteractive(BootPlacement::WhenNeeded);
++    let au = DiagonalMode::NonInteractive(BootPlacement::AfterUpdate);
++    let aa = DiagonalMode::NonInteractive(BootPlacement::AfterActivation);
++    let params = |mode| {
++        if mode == i {
++            PlanningParameters {
++                params: &ip,
++                bootstrap: None,
++                boot_params: None,
++            }
++        } else {
++            PlanningParameters {
++                params: &np,
++                bootstrap: Some(&bm),
++                boot_params: Some(&bp),
++            }
++        }
++    };
++    let mut cases = vec![];
++    for (n, family) in SignalFamily::SMOKE.into_iter().enumerate() {
++        add_case(&mut cases, family, i, params(i), &pure, false);
++        let mode = [wn, au, aa][n % 3];
++        add_case(&mut cases, family, mode, params(mode), &pure, false);
++    }
++    for mode in [i, wn, au, aa] {
++        add_case(
++            &mut cases,
++            SignalFamily::PolyFourRate,
++            mode,
++            params(mode),
++            &pure,
++            false,
++        );
++    }
++    for mode in [i, au] {
++        add_case(
++            &mut cases,
++            SignalFamily::PolyFirstReference,
++            mode,
++            params(mode),
++            &pure,
++            false,
++        );
++    }
++    for mode in [i, au] {
++        add_case(
++            &mut cases,
++            SignalFamily::PolyC3,
++            mode,
++            params(mode),
++            &pure,
++            true,
++        );
++    }
++    assert_eq!(cases.len(), 20);
++    assert_eq!(pure.usage().geometries, 20);
++    assert_eq!(pure.usage().initial_states, 20);
++    assert_eq!(pure.usage().updates, 34);
++    assert_eq!(pure.usage().handoffs, 0);
++    spy_contract(&cases[1].plan, params(wn), &runtime);
++    let keys = |ni: bool| {
++        let mut keys = cases
++            .iter()
++            .filter(|c| (c.mode != i) == ni)
++            .flat_map(|c| c.plan.geometry.rotation_steps().iter().copied())
++            .collect::<Vec<_>>();
++        keys.sort_unstable();
++        keys.dedup();
++        keys
++    };
++    let setup = |case: &Case,
++                 p: Arc<CkksParams>,
++                 boot: Option<CpuBootstrapDescription>,
++                 steps: Vec<i32>| {
++        let claim = case.plan.claim();
++        prepare_then_make(
++            PreparationInput::Synthetic {
++                plan: case.plan.clone(),
++                claim: &claim,
++            },
++            params(case.mode),
++            &case.plan.parts,
++            |checked| {
++                make_owned(
++                    &checked,
++                    p,
++                    &steps,
++                    boot,
++                    rng(51),
++                    rng(52),
++                    Some(runtime.clone()),
++                )
++            },
++        )
++        .unwrap()
++    };
++    let (ic, ictx) = setup(&cases[0], ip.clone(), None, keys(false));
++    let (nc, nctx) = setup(
++        &cases[1],
++        np.clone(),
++        Some(CpuBootstrapDescription {
++            parameters: bp.clone(),
++            metadata: bm.clone(),
++        }),
++        keys(true),
++    );
++    let mut successful = 0usize;
++    let mut failure_layers: Option<Vec<(ndarray::Array2<f64>, Vec<f64>)>> = None;
++    let mut failure_rows: Option<(ndarray::Array2<f64>, Vec<u8>)> = None;
++    for case in &cases {
++        reserve(&runtime.sessions, 20, "session");
++        let ni = case.mode != i;
++        let (client, base) = if ni { (&nc, &nctx) } else { (&ic, &ictx) };
++        let mut context = base.fork();
++        let oracle = if case.poison {
++            None
++        } else {
++            Some(signal_oracle(case.family, &runtime).unwrap())
++        };
++        let layers = oracle
++            .as_ref()
++            .map(arrays)
++            .unwrap_or_else(|| failure_layers.as_ref().unwrap().clone());
++        if matches!(case.family, SignalFamily::PolyC3) && !case.poison {
++            failure_layers = Some(layers.clone());
++            let (x, y) = oracle.as_ref().unwrap().rows(0).unwrap();
++            failure_rows = Some((x.clone(), y.to_vec()));
++        }
++        if case.poison && ni {
++            context.bootstrap.as_mut().unwrap().fail_after = Some(1);
++        }
++        let mut refresh = client.refresh_service(rng(53));
++        if case.poison && !ni {
++            refresh.fail_after = Some(1);
++        }
++        let mut initial = prepare_initial(client, &context, &case.plan, &layers);
++        // All initial-packet negatives share the same validator before trainer construction.
++        let owner = PlanOwner::Synthetic(case.plan.clone());
++        let token = initial.owner.clone();
++        initial.owner = Arc::new(());
++        assert_eq!(
++            validate_initial_packet(&context, &owner, &initial).unwrap_err(),
++            mismatch("initial context identity")
++        );
++        initial.owner = token;
++        let different = cases
++            .iter()
++            .find(|c| !Arc::ptr_eq(&c.plan, &case.plan))
++            .unwrap();
++        assert_eq!(
++            validate_initial_packet(
++                &context,
++                &PlanOwner::Synthetic(different.plan.clone()),
++                &initial
++            )
++            .unwrap_err(),
++            mismatch("initial plan identity")
++        );
++        let removed = initial.mlp.layers.pop().unwrap();
++        assert!(validate_initial_packet(&context, &owner, &initial).is_err());
++        initial.mlp.layers.push(removed);
++        let original_batch = initial.batch;
++        initial.batch.y_scale *= 2.;
++        assert!(validate_initial_packet(&context, &owner, &initial).is_err());
++        initial.batch = original_batch;
++        if let Some(compact) = &mut initial.compact {
++            let c = compact.weights.pop().unwrap();
++            assert!(validate_initial_packet(&context, &owner, &initial).is_err());
++            initial.compact.as_mut().unwrap().weights.push(c);
++            let c = initial.compact.as_ref().unwrap().weights[0].clone();
++            initial.compact.as_mut().unwrap().velocity[0] = Some(c);
++            assert!(validate_initial_packet(&context, &owner, &initial).is_err());
++            initial.compact.as_mut().unwrap().velocity[0] = None;
++        }
++        let original_evaluator = context.evaluator.fork();
++        context.evaluator = Evaluator::with_config(
++            context.parameters().clone(),
++            original_evaluator.relin_key().cloned(),
++            original_evaluator.galois_keys().cloned(),
++            ckks_train_ckks::EvalConfig::NAIVE,
++        );
++        assert_eq!(
++            validate_initial_packet(&context, &owner, &initial).unwrap_err(),
++            mismatch("evaluation configuration")
++        );
++        context.evaluator = original_evaluator;
++        let original = initial.mlp.layers[0].0.b.clone();
++        initial.mlp.layers[0].0.b =
++            Ciphertext::new(original.polys().to_vec(), original.scale() * 2.).unwrap();
++        assert!(validate_initial_packet(&context, &owner, &initial).is_err());
++        initial.mlp.layers[0].0.b = original;
++        let mut session =
++            CpuDiagonalSession::from_owner(&context, owner, initial, (!ni).then_some(&refresh))
++                .unwrap();
++        for update in 0..case.plan.parts.len() {
++            let (x, y) = oracle
++                .as_ref()
++                .map(|o| o.rows(update).unwrap())
++                .unwrap_or_else(|| {
++                    let (x, y) = failure_rows.as_ref().unwrap();
++                    (x, y.as_slice())
++                });
++            let mut packet = client
++                .encrypt_rows(
++                    PlanOwner::Synthetic(case.plan.clone()),
++                    update,
++                    &context,
++                    x,
++                    y,
++                    case.family.recipe().classes(),
++                    case.family.recipe().width(),
++                )
++                .unwrap();
++            if update == 0 && !case.poison {
++                let before = context.counter();
++                let mut labels = y.to_vec();
++                labels[0] = u8::MAX;
++                assert!(
++                    client
++                        .encrypt_rows(
++                            PlanOwner::Synthetic(case.plan.clone()),
++                            update,
++                            &context,
++                            x,
++                            &labels,
++                            case.family.recipe().classes(),
++                            case.family.recipe().width()
++                        )
++                        .is_err()
++                );
++                assert!(
++                    client
++                        .encrypt_rows(
++                            PlanOwner::Synthetic(case.plan.clone()),
++                            update,
++                            &context,
++                            x,
++                            &y[..y.len() - 1],
++                            case.family.recipe().classes(),
++                            case.family.recipe().width()
++                        )
++                        .is_err()
++                );
++                assert_eq!(before, context.counter());
++                let targets = crate::profile_data::padded_targets(
++                    y,
++                    case.family.recipe().classes(),
++                    case.family.recipe().width(),
++                )
++                .unwrap();
++                assert!(
++                    targets
++                        .columns()
++                        .into_iter()
++                        .skip(case.family.recipe().classes())
++                        .all(|c| c.iter().all(|v| *v == 0.))
++                );
++                prework_negatives(
++                    &mut session,
++                    &mut packet,
++                    if ni { &ictx } else { &nctx },
++                    client,
++                    &different.plan,
++                );
++            }
++            if case.poison {
++                let before = context.counter();
++                assert!(session.step(&packet).is_err());
++                assert!(session.is_poisoned());
++                assert_eq!(session.completed_updates(), 0);
++                assert_eq!(session.processed_samples(), 0);
++                let failure = session.failed_update().unwrap();
++                assert_eq!(failure.phase, "trainer");
++                assert_eq!(failure.measured, &context.counter() - &before);
++                assert_ne!(failure.measured, OpCounter::default());
++                if ni {
++                    assert_eq!(context.bootstrap.as_ref().unwrap().successful.get(), 1);
++                } else {
++                    assert_eq!(refresh.successful.get(), 1);
++                }
++                let stopped = context.counter();
++                assert_eq!(
++                    session.step(&packet).unwrap_err(),
++                    mismatch("poisoned session")
++                );
++                assert_eq!(stopped, context.counter());
++                break;
++            }
++            let completion = session.step(&packet).unwrap();
++            successful += 1;
++            assert_eq!(completion.completed_updates, update + 1);
++            assert_eq!(session.completed_updates(), update + 1);
++            let expected_samples: usize = case.plan.parts[..=update]
++                .iter()
++                .flatten()
++                .map(|p| p.valid)
++                .sum();
++            assert_eq!(completion.processed_samples, expected_samples);
++            assert_eq!(session.processed_samples(), expected_samples);
++            compare(
++                client,
++                &context,
++                &session,
++                oracle.as_ref().unwrap(),
++                update,
++                ni,
++            );
++            let before = context.counter();
++            assert!(session.step(&packet).is_err());
++            assert_eq!(before, context.counter());
++            assert!(!session.is_poisoned());
++        }
++    }
++    assert_eq!(successful, 32);
++    assert_eq!(runtime.attempts.get(), 34);
++    assert_eq!(runtime.f64_updates.get(), 32);
++    assert_eq!(runtime.oracles.get(), 18);
++    assert_eq!(runtime.sessions.get(), 20);
++    assert_eq!(runtime.parameters.get(), 2);
++    assert_eq!(runtime.keys.get(), 2);
++    assert_eq!(runtime.proofs.get(), 1);
++    assert_eq!(runtime.descriptors.get(), 1);
++    assert_eq!(runtime.bootstrappers.get(), 1);
++    assert_eq!(runtime.encoders.get(), 22);
++    assert!(runtime.boots.get() <= 85);
++    eprintln!(
++        "P4_FINAL successes={successful} attempts={} actual_boots={} F64={} planner={:?}",
++        runtime.attempts.get(),
++        runtime.boots.get(),
++        runtime.f64_updates.get(),
++        pure.usage()
++    );
++    ACTIVE.with(|b| *b.borrow_mut() = None);
++}
+
+diff --git a/crates/ckks-train-bench/src/lib.rs b/crates/ckks-train-bench/src/lib.rs
+index 22c125e..775edbc 100644
+--- a/crates/ckks-train-bench/src/lib.rs
++++ b/crates/ckks-train-bench/src/lib.rs
+@@ -12,8 +12,13 @@ pub mod study_profile;
+ pub mod study_provenance;
+ pub mod study_reference;
+ pub mod twin;
+ 
+ mod study_runtime;
+ 
+ /// Closed study request frontend; grants no readiness authority.
+ pub mod study_run;
++
++/// Client-owned CPU study encryption and diagnostics; grants no production admission.
++pub mod study_client;
++/// Single-stage CPU consuming bridge; production dispatch remains disconnected.
++pub mod study_diagonal;
+
+diff --git a/crates/ckks-train-nn/src/trainer.rs b/crates/ckks-train-nn/src/trainer.rs
+index 549a244..df6a831 100644
+--- a/crates/ckks-train-nn/src/trainer.rs
++++ b/crates/ckks-train-nn/src/trainer.rs
+@@ -98,23 +98,72 @@ use crate::loss::Mse;
+ use crate::optim::{Nag, Optimizer, Sgd, check_lr};
+ use crate::refresh::Refresher;
+ use crate::sim::valid_lane_mask;
+ 
+ // ---------------------------------------------------------------------------------------------
+ // Optimizers per layer.
+ // ---------------------------------------------------------------------------------------------
+ 
++/// Borrowed read-only configuration and encrypted state of a supported layer optimizer.
++/// No ciphertext or metadata is copied and custom optimizers default to unsupported.
++pub struct OptimizerView<'a, C> {
++    lr: f64,
++    reference: Option<f64>,
++    momentum: Option<f64>,
++    weight_factor: f64,
++    bias_factor: f64,
++    reference_factor: Option<f64>,
++    velocity: Option<&'a Diagonals<C>>,
++}
++impl<C> OptimizerView<'_, C> {
++    /// Actual raw current rate.
++    pub fn lr(&self) -> f64 {
++        self.lr
++    }
++    /// Actual fixed reference, if the optimizer has one.
++    pub fn reference(&self) -> Option<f64> {
++        self.reference
++    }
++    /// Actual momentum, if supported by this optimizer.
++    pub fn momentum(&self) -> Option<f64> {
++        self.momentum
++    }
++    /// Existing optimizer's current folded weight-gradient factor.
++    pub fn weight_factor(&self) -> f64 {
++        self.weight_factor
++    }
++    /// Existing optimizer's bias-gradient factor, before a trainer's bias-free mask.
++    pub fn bias_factor(&self) -> f64 {
++        self.bias_factor
++    }
++    /// Existing validated optional reference-gradient query.
++    pub fn reference_factor(&self) -> Option<f64> {
++        self.reference_factor
++    }
++    /// Borrowed actual encrypted scaled velocity, absent before its initialization.
++    pub fn velocity(&self) -> Option<&Diagonals<C>> {
++        self.velocity
++    }
++}
++
+ /// An [`Optimizer`] as the trainer uses it: one instance per layer.
+ pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
+     /// The factor the bias gradient carries (folded into its lane-0 mask, divided by the
+     /// valid sample count): the bias update is `b' = b - bias_grad_scale() * mean(dz)`.
+     /// [`Sgd`] and [`Nag`]: `lr` (biases take plain SGD steps, Task 28).
+     fn bias_grad_scale(&self) -> f64;
+ 
++    /// Borrowed diagnostics. Unsupported is an error, never an absent SGD state.
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        Err(HekitError::InvalidParams(
++            "layer optimizer diagnostics unsupported".into(),
++        ))
++    }
++
+     /// Refreshes the optimizer's encrypted state (e.g. the NAG velocity, which lands on the
+     /// gradient's level) to the refresher's [`Refresher::output_level`]; returns the number
+     /// of ciphertexts refreshed. On an error the state is unchanged.
+     fn refresh_state(&mut self, refresher: &mut dyn Refresher<E>) -> Result<usize>;
+ 
+     /// Read-only rate-change validation. Defaults to unsupported so existing custom
+     /// optimizers remain usable without silently claiming schedule support.
+     /// Implement together with [`LayerOptimizer::apply_lr`].
+@@ -128,16 +177,28 @@ pub trait LayerOptimizer<E: HeOps = Evaluator>: Optimizer<E> {
+     /// The trainer validates every optimizer before calling this on any layer. An opt-in
+     /// custom implementation must assign the validated value without failure or panic and
+     /// without resetting state. The default is unreachable through the trainer's setter
+     /// because default validation always rejects; callers must not bypass validation.
+     fn apply_lr(&mut self, _lr: f64) {}
+ }
+ 
+ impl<E: HeOps> LayerOptimizer<E> for Sgd {
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        Ok(OptimizerView {
++            lr: self.lr,
++            reference: None,
++            momentum: None,
++            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
++            bias_factor: Sgd::bias_grad_scale(self),
++            reference_factor: <Self as Optimizer<E>>::reference_grad_scale(self)?,
++            velocity: None,
++        })
++    }
++
+     fn validate_lr(&self, lr: f64) -> Result<()> {
+         check_lr(lr)
+     }
+ 
+     fn apply_lr(&mut self, lr: f64) {
+         self.lr = lr;
+     }
+ 
+@@ -147,16 +208,30 @@ impl<E: HeOps> LayerOptimizer<E> for Sgd {
+ 
+     /// SGD has no state: nothing to refresh.
+     fn refresh_state(&mut self, _refresher: &mut dyn Refresher<E>) -> Result<usize> {
+         Ok(0)
+     }
+ }
+ 
+ impl<E: HeOps> LayerOptimizer<E> for Nag<E::Ct> {
++    fn diagnostic_view(&self) -> Result<OptimizerView<'_, E::Ct>> {
++        // This existing query validates the locked reference/momentum basis.
++        let reference_factor = <Self as Optimizer<E>>::reference_grad_scale(self)?;
++        Ok(OptimizerView {
++            lr: self.lr,
++            reference: Some(self.lr_reference()),
++            momentum: Some(self.momentum),
++            weight_factor: <Self as Optimizer<E>>::grad_scale(self),
++            bias_factor: Nag::bias_grad_scale(self),
++            reference_factor,
++            velocity: self.velocity(),
++        })
++    }
++
+     fn validate_lr(&self, lr: f64) -> Result<()> {
+         Nag::validate_rate(self, lr)
+     }
+ 
+     fn apply_lr(&mut self, lr: f64) {
+         self.lr = lr;
+     }
+ 
+@@ -777,16 +852,26 @@ impl<'a, E: HeOps> Trainer<'a, E> {
+ 
+     /// Uses `keys` for the transposes (e.g. [`TransposeKeys::Reuse`]`(`[`mlp_key_pool`]`)`
+     /// when key memory binds).
+     pub fn with_transpose_keys(mut self, keys: TransposeKeys) -> Trainer<'a, E> {
+         self.transpose_keys = keys;
+         self
+     }
+ 
++    /// Checked borrowed diagnostics for one optimizer, with no evaluator work.
++    pub fn optimizer_view(&self, layer: usize) -> Result<OptimizerView<'_, E::Ct>> {
++        self.optims
++            .get(layer)
++            .ok_or_else(|| {
++                HekitError::InvalidParams(format!("optimizer layer {layer} out of bounds"))
++            })?
++            .diagnostic_view()
++    }
++
+     /// Sets the rate of subsequent updates without clearing optimizer state. Every layer
+     /// is validated before any rate is committed: malformed rates, NAG reference ceilings,
+     /// or unsupported custom optimizers leave the entire rate set unchanged. NAG reference
+     /// maxima must be configured on each optimizer before constructing the trainer.
+     pub fn set_lr(&mut self, lr: f64) -> Result<()> {
+         self.validate_lr(lr)?;
+         self.apply_validated_lr(lr);
+         Ok(())
+
+diff --git a/crates/ckks-train-bench/src/study_admission.rs b/crates/ckks-train-bench/src/study_admission.rs
+index 46755dc..a64555b 100644
+--- a/crates/ckks-train-bench/src/study_admission.rs
++++ b/crates/ckks-train-bench/src/study_admission.rs
+@@ -3723,8 +3723,11 @@ mod tests {
+         assert_eq!(r.work_budget.usage().updates, 1);
+         assert_eq!(r.work_budget.usage().handoffs, 1);
+         eprintln!(
+             "P3 fix1 update-work denial actual usage {:?}",
+             r.work_budget.usage()
+         );
+     }
+ }
++
++#[cfg(test)]
++pub(crate) mod p4_fixtures;
+
+diff --git a/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs b/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs
+new file mode 100644
+index 0000000..b74d582
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_admission/p4_fixtures.rs
+@@ -0,0 +1,210 @@
++//! Distinct NONSCIENTIFIC_TEST_EVIDENCE plans, never canonical admission values.
++use super::*;
++use crate::study_plain::p4_fixtures::SignalRecipe;
++
++pub(crate) struct SyntheticCpuPlan {
++    pub(crate) geometry: StageGeometry,
++    pub(crate) initial: StateMetadata,
++    pub(crate) index: Vec<TransitionIndex>,
++    pub(crate) rates: Vec<RateCoefficients<f64>>,
++    pub(crate) reference: f64,
++    pub(crate) parts: Vec<Vec<MicroPart>>,
++    pub(crate) frozen: bool,
++    pub(crate) transpose: TransposeKeys,
++    identity: String,
++    parameters: Vec<u8>,
++    binding: Vec<u8>,
++}
++impl SyntheticCpuPlan {
++    pub(crate) fn build(
++        recipe: &SignalRecipe,
++        mode: DiagonalMode,
++        p: PlanningParameters<'_>,
++        budget: Arc<PlanningBudget>,
++    ) -> Result<Self> {
++        let mut request = DiagonalRequest::quick();
++        request.consumption = Consumption::Full;
++        request.physical_lanes = Some(8);
++        request.work_budget = budget;
++        let rates = recipe.rates();
++        let reference = recipe.reference();
++        let square = recipe.square();
++        let acts = if square {
++            [DiagonalActivation::Square; 2]
++        } else {
++            [DiagonalActivation::PolyRelu2, DiagonalActivation::Identity]
++        };
++        request.work_budget.charge(Work::Geometry)?;
++        let geometry = plan_stage_geometry(
++            &[2, 4, recipe.width()],
++            &Layout::new(512, 16, 8)
++                .map_err(|_| issue(IssueKind::IdentityMismatch, "synthetic layout"))?,
++            &acts,
++            &request.transpose,
++            mode,
++            request.eval_config,
++        )
++        .map_err(|e| p2(e, 0))?;
++        let optimizer = if square {
++            DiagonalOptimizer::Sgd {
++                lr: rates[0].kernel,
++            }
++        } else {
++            DiagonalOptimizer::Nag {
++                lr: rates[0].kernel,
++                reference,
++                momentum: 0.9,
++            }
++        };
++        request.work_budget.charge(Work::Initial)?;
++        let state = initial_stage_metadata(
++            &geometry,
++            p.params,
++            p.bootstrap,
++            optimizer,
++            if square {
++                BiasPolicy::Active
++            } else {
++                BiasPolicy::Frozen
++            },
++        )
++        .map_err(|e| p2(e, 0))?;
++        let initial = StateMetadata::from_state(&state)?;
++        let counts: Vec<_> = recipe.partitions().iter().map(|p| p.iter().sum()).collect();
++        request.partitions = Some(
++            recipe
++                .partitions()
++                .iter()
++                .map(|p| {
++                    let mut start = 0;
++                    p.iter()
++                        .map(|&valid| {
++                            let part = MicroPart { start, valid };
++                            start += valid;
++                            part
++                        })
++                        .collect()
++                })
++                .collect(),
++        );
++        let parts = partitions(&counts, 8, &request)?;
++        let mut transcript = Transcript::new(request.limits);
++        transcript.text("hekit-p4-distinct-cpu-synthetic-v1")?;
++        encode_params(&mut transcript, p)?;
++        super::rates(&mut transcript, &rates, reference)?;
++        encode_geometry(&mut transcript, &geometry)?;
++        encode_state(&mut transcript, &state)?;
++        bound_partitions(&mut transcript, &parts, 8)?;
++        let binding = transcript.bytes.clone();
++        let identity = sha256_hex(&binding);
++        let index = compose(
++            std::slice::from_ref(&geometry),
++            &mut [state],
++            p,
++            &parts,
++            &rates,
++            &request,
++            &mut transcript,
++        )?;
++        let mut parameters = Transcript::new(request.limits);
++        encode_params(&mut parameters, p)?;
++        eprintln!(
++            "P4_PLAN usage={:?} records={}",
++            request.work_budget.usage(),
++            index.len()
++        );
++        Ok(Self {
++            geometry,
++            initial,
++            index,
++            rates,
++            reference,
++            parts,
++            frozen: !square,
++            transpose: request.transpose,
++            identity,
++            parameters: parameters.bytes,
++            binding,
++        })
++    }
++    pub(crate) fn identity(&self) -> &str {
++        &self.identity
++    }
++    pub(crate) fn validate(
++        &self,
++        p: PlanningParameters<'_>,
++        parts: &[Vec<MicroPart>],
++        claim: &SyntheticClaim,
++    ) -> std::result::Result<(), &'static str> {
++        if claim.identity != self.identity || claim.binding != self.binding {
++            return Err("identity");
++        }
++        let mut actual = Transcript::new(ReceiptLimits::default());
++        encode_params(&mut actual, p).map_err(|_| "parameters")?;
++        if actual.bytes != self.parameters || claim.parameters != actual.bytes {
++            return Err("parameters");
++        }
++        if parts != self.parts {
++            return Err("partition");
++        }
++        Ok(())
++    }
++    pub(crate) fn claim(&self) -> SyntheticClaim {
++        SyntheticClaim {
++            identity: self.identity.clone(),
++            binding: self.binding.clone(),
++            parameters: self.parameters.clone(),
++        }
++    }
++    pub(crate) fn bad_parameter_claim(
++        &self,
++        p: PlanningParameters<'_>,
++        which: usize,
++    ) -> SyntheticClaim {
++        // Exercise the existing parameter codec without allocating any new CkksParams.
++        let mut q = p.params.q().to_vec();
++        let mut special = p.params.p().to_vec();
++        let mut fields = ParameterFields::from_params(p.params);
++        match which {
++            0 => {
++                q[0] ^= 2;
++                fields.q = &q;
++            }
++            1 => fields.scale *= 2.,
++            2 => fields.dnum += 1,
++            3 => fields.secret = Some(1),
++            4 => {
++                special[0] ^= 2;
++                fields.p = &special;
++            }
++            5 => fields.n *= 2,
++            _ => {}
++        }
++        let mut original = Transcript::new(ReceiptLimits::default());
++        encode_parameter_fields(&mut original, ParameterFields::from_params(p.params)).unwrap();
++        let mut changed = Transcript::new(ReceiptLimits::default());
++        encode_parameter_fields(&mut changed, fields).unwrap();
++        let mut claim = self.claim();
++        claim
++            .parameters
++            .splice(..original.bytes.len(), changed.bytes);
++        if which == 6 {
++            let identity = p
++                .bootstrap
++                .expect("NI spy descriptor")
++                .descriptor_identity_bytes();
++            let start = claim
++                .parameters
++                .windows(identity.len())
++                .position(|w| w == identity)
++                .unwrap();
++            claim.parameters[start] ^= 1;
++        }
++        claim
++    }
++}
++pub(crate) struct SyntheticClaim {
++    pub(crate) identity: String,
++    pub(crate) binding: Vec<u8>,
++    parameters: Vec<u8>,
++}
+
+diff --git a/crates/ckks-train-bench/src/study_plain/p4_fixtures.rs b/crates/ckks-train-bench/src/study_plain/p4_fixtures.rs
+index f401fbf..57d6bfa 100644
+--- a/crates/ckks-train-bench/src/study_plain/p4_fixtures.rs
++++ b/crates/ckks-train-bench/src/study_plain/p4_fixtures.rs
+@@ -319,16 +319,25 @@ fn hidden_range(
+     }
+ }
+ 
+ fn trajectory(
+     candidate: Candidate,
+     family: &Family,
+     control: Control,
+     report: &mut CandidateReport,
++) -> Trajectory {
++    trajectory_guarded(candidate, family, control, report, None)
++}
++fn trajectory_guarded(
++    candidate: Candidate,
++    family: &Family,
++    control: Control,
++    report: &mut CandidateReport,
++    guard: Option<&crate::study_diagonal::p4_tests::RuntimeBudget>,
+ ) -> Trajectory {
+     let mut engine = family.engine(candidate);
+     if matches!(control, Control::Sgd) {
+         engine.momentum = None;
+     }
+     let initial = snapshot(
+         &engine,
+         &format!("{candidate:?}/{} control={control:?} initial", family.name),
+@@ -341,29 +350,22 @@ fn trajectory(
+         let kept = if matches!(control, Control::LostTail) {
+             partitions[0]
+         } else {
+             rows
+         };
+         assert!((1..=12).contains(&rows));
+         assert!(family.width <= 16);
+         assert_eq!(engine.layers.len(), 2);
+-        let x = input(candidate, kept);
+-        // Logical r spans the entire update; a micro boundary never restarts x or y.
+-        let labels: Vec<u8> = (0..kept)
+-            .map(|r| {
+-                if matches!(control, Control::WrongTargets) {
+-                    0
+-                } else {
+-                    (r % family.classes) as u8
+-                }
+-            })
+-            .collect();
+-        let mut mean = base_mean;
+-        let mut delta = family.delta();
++        let (x, mut labels, baseline_rate) = baseline_rows(candidate, family, kept, base_mean);
++        if matches!(control, Control::WrongTargets) {
++            labels.fill(0);
++        }
++        let mut mean = baseline_rate.mean;
++        let mut delta = baseline_rate.delta;
+         match control {
+             Control::OmittedFold => delta = 1.,
+             Control::DoubleFold => mean *= delta,
+             Control::WrongWidth => {
+                 delta = 2.
+                     / if family.square {
+                         family.classes.next_power_of_two()
+                     } else {
+@@ -382,17 +384,17 @@ fn trajectory(
+         }
+         if matches!(control, Control::ResetVelocity) && index > 0 {
+             for layer in &mut engine.layers {
+                 layer.weight_velocity.fill(0.);
+                 layer.bias_velocity.fill(0.);
+             }
+         }
+         let rate = RateCoefficients {
+-            source: base_mean,
++            source: baseline_rate.source,
+             mean,
+             delta,
+             kernel: mean * delta,
+         };
+         let context = format!(
+             "{candidate:?}/{} control={control:?} update={index}",
+             family.name
+         );
+@@ -418,16 +420,19 @@ fn trajectory(
+             || (matches!(control, Control::DropSecond) && index == 1);
+         if !skip {
+             assert!(report.actual_calls < 100, "fixed candidate actual-call cap");
+             report.actual_calls += 1;
+             println!(
+                 "NONSCIENTIFIC_TEST_EVIDENCE ACTUAL_TRAIN {context} candidate_call={}",
+                 report.actual_calls
+             );
++            if let Some(guard) = guard {
++                guard.reserve_f64();
++            }
+             if let Err(error) = engine.train(&x, &[&labels], &rate) {
+                 report
+                     .gate_failures
+                     .push(format!("{context} train failed {error}"));
+                 println!(
+                     "NONSCIENTIFIC_TEST_EVIDENCE TRAIN_FAILURE {context} error={error:?} actual_calls={}",
+                     report.actual_calls
+                 );
+@@ -629,8 +634,158 @@ mod tests {
+             assert!(candidate.actual_calls <= 100);
+             assert_eq!(candidate.baseline_families, 8);
+             assert_eq!(candidate.control_rows, 60);
+             assert!(candidate.harness_failures.is_empty(), "{candidate:#?}");
+         }
+         assert!(report.candidates[1].gate_failures.is_empty(), "{report:#?}");
+     }
+ }
++
++// Closed sibling-consumer API. The existing Family::engine and trajectory remain the
++// sole initial-array and arithmetic owners; no mutant trajectory is invoked here.
++#[derive(Clone, Copy, Debug)]
++pub(crate) enum SignalFamily {
++    SquareC3,
++    SquareC2,
++    SquareC10,
++    PolyC3,
++    PolyC2,
++    PolyC10,
++    PolyFourRate,
++    PolyFirstReference,
++}
++impl SignalFamily {
++    pub(crate) const SMOKE: [Self; 6] = [
++        Self::SquareC3,
++        Self::SquareC2,
++        Self::SquareC10,
++        Self::PolyC3,
++        Self::PolyC2,
++        Self::PolyC10,
++    ];
++    pub(crate) fn recipe(self) -> SignalRecipe {
++        let index = match self {
++            Self::SquareC3 => 0,
++            Self::SquareC2 => 1,
++            Self::SquareC10 => 2,
++            Self::PolyC3 => 3,
++            Self::PolyC2 => 4,
++            Self::PolyC10 => 5,
++            Self::PolyFourRate => 6,
++            Self::PolyFirstReference => 7,
++        };
++        SignalRecipe {
++            family: families().remove(index),
++        }
++    }
++}
++fn baseline_rows(
++    candidate: Candidate,
++    family: &Family,
++    rows: usize,
++    mean: f64,
++) -> (Array2<f64>, Vec<u8>, RateCoefficients<f64>) {
++    // r spans the complete logical update, including every subsequent micro.
++    (
++        input(candidate, rows),
++        (0..rows).map(|r| (r % family.classes) as u8).collect(),
++        RateCoefficients {
++            source: mean,
++            mean,
++            delta: family.delta(),
++            kernel: mean * family.delta(),
++        },
++    )
++}
++pub(crate) struct SignalRecipe {
++    family: Family,
++}
++impl SignalRecipe {
++    pub(crate) fn classes(&self) -> usize {
++        self.family.classes
++    }
++    pub(crate) fn width(&self) -> usize {
++        self.family.width
++    }
++    pub(crate) fn square(&self) -> bool {
++        self.family.square
++    }
++    pub(crate) fn partitions(&self) -> &[Vec<usize>] {
++        &self.family.partitions
++    }
++    pub(crate) fn rates(&self) -> Vec<RateCoefficients<f64>> {
++        self.family
++            .means
++            .iter()
++            .map(|&mean| baseline_rows(Candidate::Signal, &self.family, 0, mean).2)
++            .collect()
++    }
++    pub(crate) fn reference(&self) -> f64 {
++        if self.family.square {
++            0.06 * self.family.delta()
++        } else {
++            0.08
++        }
++    }
++}
++pub(crate) struct SignalOracle {
++    recipe: SignalRecipe,
++    initial: Snapshot,
++    steps: Vec<Snapshot>,
++    rows: Vec<(Array2<f64>, Vec<u8>)>,
++}
++impl SignalOracle {
++    pub(crate) fn recipe(&self) -> &SignalRecipe {
++        &self.recipe
++    }
++    pub(crate) fn initial(&self) -> &[PlainLayer<f64>] {
++        &self.initial.layers
++    }
++    pub(crate) fn post(&self, update: usize) -> Option<&[PlainLayer<f64>]> {
++        self.steps.get(update).map(|s| s.layers.as_slice())
++    }
++    pub(crate) fn rows(&self, update: usize) -> Option<(&Array2<f64>, &[u8])> {
++        self.rows.get(update).map(|(x, y)| (x, y.as_slice()))
++    }
++}
++pub(crate) fn signal_oracle(
++    family: SignalFamily,
++    guard: &crate::study_diagonal::p4_tests::RuntimeBudget,
++) -> Result<SignalOracle, String> {
++    guard.reserve_oracle();
++    let recipe = family.recipe();
++    let mut report = CandidateReport::default();
++    let trajectory = trajectory_guarded(
++        Candidate::Signal,
++        &recipe.family,
++        Control::Baseline,
++        &mut report,
++        Some(guard),
++    );
++    if !report.harness_failures.is_empty()
++        || !report.gate_failures.is_empty()
++        || report.actual_calls != recipe.family.means.len()
++        || trajectory.steps.len() != recipe.family.means.len()
++    {
++        return Err(format!(
++            "Signal baseline failed: {:?} {:?}",
++            report.harness_failures, report.gate_failures
++        ));
++    }
++    let rows = recipe
++        .family
++        .partitions
++        .iter()
++        .zip(&recipe.family.means)
++        .map(|(parts, &mean)| {
++            let (x, y, _) =
++                baseline_rows(Candidate::Signal, &recipe.family, parts.iter().sum(), mean);
++            (x, y)
++        })
++        .collect();
++    Ok(SignalOracle {
++        recipe,
++        initial: trajectory.initial,
++        steps: trajectory.steps,
++        rows,
++    })
++}
+
+diff --git a/docs/study-diagonal-admission-design.md b/docs/study-diagonal-admission-design.md
+index 4ceeec0..9f44cbf 100644
+--- a/docs/study-diagonal-admission-design.md
++++ b/docs/study-diagonal-admission-design.md
+@@ -247,8 +247,10 @@ This decision does not prove that HE can meet4e-4. Later HE validation must inde
+ 
+ 単一stageのCPU接続は、既存の計画結合検証後にcandidateから配置を取得する。candidateの仮の初期学習率は利用せず、実際の初期状態・更新前後の状態は不変の計画から取得する。配置の再構築に必要なgeometry／initial各1回の余裕を最初のrequestに含め、hash確定後に制限を増やさない。P3に全配置を保持する代替案は、保持量と寿命の変更を伴うため採用しない。
+ 
+ 全ciphertextの状態と個数、7種類の演算カウンタ、設定された係数・reference・refresh／bootstrap判断を照合する。公開されているtraceとhidden状態も記録するが、型付きの完全なP3 traceとの一致は未検証として残す。完全なtraceを新規に保持・復号する方式はこの接続には追加しない。
+ 
+ 鍵と平文はclient側が所有し、server sessionは暗号化packetと評価資材、対話方式の場合のみ狭いrefreshハンドルを受け取る。同じ暗号パラメータでも異なる鍵所有者のpacketを受理しないため、setupごとに内部のcontext識別子を関連付ける。これは同一プロセス内の役割分離であり、プロセス隔離や暗号学的認証の証明ではない。処理途中の失敗はsessionを再利用不可にし、成功した更新数を増やさない。
+ 
+ 検証は既存のSignal平文Engineと既存の学習器を使う。合成planはprivateな別型とし、正式なmaterializationや実行許可へ変換しない。局所的なfactory呼出順序テストを、正式なD7のgate／start検証の代用にしない。数値許容誤差は暗号実行前に固定済みのI=1e-5、NI=4e-4を維持する。まずテストと実装を作成し、compile／静的検査と独立レビュー後に実行対象を固定する。元の32成功＋2失敗、最大85 bootstrapの検証範囲は削減しない。正式なrunnerと全実験行列の完了は引き続き未達である。
++
++NIの係数照合は公開getterの現在rate・reference・momentum・gradient係数と、既存のNiOptimizerヘルパーによるreference係数に限定する。内部のkappaやmask定数を直接観測したとは主張しない。新しい観測APIの追加はこの接続には不要と判断し、同じ式をbench側に複製しない。全更新の数値・状態・分岐・演算回数の照合は維持する。

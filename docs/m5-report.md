@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の実装: [入力結合・実行計画P3の限定検証](#latest-evidence-20261107-p3)。比較テストの準備: [P4平文感度検証](#latest-evidence-20261107-p4-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1549)。
+最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P4平文感度検証](#latest-evidence-20261107-p4-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1549)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -18,7 +18,7 @@
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | `7752459`、引継ぎ修正と独立再レビュー済み | 合計49件の Python 回帰テスト、表・図の freshness、shell syntax が合格。`--tables-only` で再生成可能 | **縮小版の再現入口は実装・レビュー済み。計画の全実験行列は実装未完**。拡張実装中で、[P2の限定検証](#latest-evidence-20261107-p2)まで反映済み。R-54-1 は未投入で post-full-v1 対象外 |
+| 54: 実験・表生成 | `7752459`、引継ぎ修正と独立再レビュー済み | 合計49件の Python 回帰テスト、表・図の freshness、shell syntax が合格。`--tables-only` で再生成可能 | **縮小版の再現入口は実装・レビュー済み。計画の全実験行列は実装未完**。拡張実装中で、[P4単一段CPU経路の限定検証](#latest-evidence-20261107-p4-cpu)まで反映済み。R-54-1 は未投入で post-full-v1 対象外 |
 | 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。queue SHA4b1c499のLinux CIも全6ジョブsuccess（後続SHAには継承しない）。公開操作は未実施 |
 | 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
@@ -467,5 +467,17 @@ HEを実行する前に、同じデータと8倍の条件を保ち、NI許容誤
 ## 2026-11-07 15:49 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1549/README.md)では、15:49:51 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は314/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handle43642で終端まで回収し、再試行やジョブ・キューの変更はしていない。
+
+<a id="latest-evidence-20261107-p4-cpu"></a>
+
+## 2026-11-07追記: P4単一段CPU学習経路の限定実測
+
+[実装・検証証跡](../results/validation/task54-p4-cpu/README.md)を保存した。clientが秘密鍵と入力暗号化を所有し、private packetを既存のinteractive／non-interactive trainerへ渡す単一段CPU経路を実装した。計画に結び付いた設定・状態・七つのinclusive計数・更新進捗を検査し、処理途中の失敗後は再実行を拒否する。optimizerの漸化式は既存実装を使う。
+
+合格範囲は小規模synthetic CPU contractである。実際に選択したignored testは1件実行・1件合格、20 sessionsで32更新成功と2件の意図した途中失敗、実bootstrapは71回だった。全W/bの平文比較はIで12更新、NIで20更新。最大絶対誤差はそれぞれ7.64926433305390674e-9／1.89993002996935445e-8で、事前固定の1e-5／4e-4以内。拒否・replay・poison後retryについて268回の状態不変比較も完走した。source／strict Clippy／formatと実行証跡の独立レビューが合格した。
+
+初回実行は、syntheticのcurrent .04／reference .08をcanonicalのfull-maximum検査に渡したため、鍵生成前に失敗した。失敗記録を保持し、private fixtureだけを既存field codecへ接続する修正をレビューした。canonical検査、rate／reference、誤差基準を変えず、別の2回目の実行で上記を確認した。報告では初回の消費した準備処理も累積に含める。Macのテスト時間は性能比較やサーバー計測に使用しない。
+
+未達・未計測はcanonical owned D7判定／durable startとproduction run_owned、full pre-key受入、secure profileのresource／range／security／precision、P5複数層、GPU、全行・quick科学実験である。NI内部kappa／maskと完全なtyped P3 traceは未観測、foreign-basis負例はIのみ、wrong-owner負例はprivate association tokenである。本結果をTask54／M4／M5全体の合格や本番精度・性能に拡張しない。全登録範囲、full encrypted-block hold、FULL-2の判定条件を維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

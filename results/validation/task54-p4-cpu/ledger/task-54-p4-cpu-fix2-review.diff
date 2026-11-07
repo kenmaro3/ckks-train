@@ -1,0 +1,42 @@
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix2-before/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+index 0c6b627..ac68053 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-p4-cpu-fix2-before/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
++++ b/crates/ckks-train-bench/src/study_diagonal/p4_tests.rs
+@@ -382,17 +382,17 @@ impl ReadOnlySessionSnapshot {
+             configurations: optimizer_configurations(s),
+             optimizer,
+         }
+     }
+     fn assert_unchanged(&self, s: &CpuDiagonalSession<'_>) {
+         ACTIVE.with(|b| {
+             reserve(
+                 &b.borrow().as_ref().unwrap().state_assertions,
+-                264,
++                268,
+                 "encrypted state unchanged assertion",
+             )
+         });
+         assert_eq!(self.counter, s.context.counter());
+         assert_eq!(self.completed, s.completed_updates());
+         assert_eq!(self.samples, s.processed_samples());
+         assert_eq!(self.poisoned, s.is_poisoned());
+         assert_eq!(self.failure, s.failed_update().map(FailureSnapshot::from));
+@@ -937,17 +937,17 @@ fn run_contract_matrix() {
+     assert_eq!(runtime.f64_updates.get(), 32);
+     assert_eq!(runtime.oracles.get(), 18);
+     assert_eq!(runtime.sessions.get(), 20);
+     assert_eq!(runtime.parameters.get(), 2);
+     assert_eq!(runtime.keys.get(), 2);
+     assert_eq!(runtime.proofs.get(), 1);
+     assert_eq!(runtime.descriptors.get(), 1);
+     assert_eq!(runtime.state_snapshots.get(), 54);
+-    assert_eq!(runtime.state_assertions.get(), 264);
++    assert_eq!(runtime.state_assertions.get(), 268);
+     assert_eq!(runtime.bootstrappers.get(), 1);
+     assert_eq!(runtime.encoders.get(), 22);
+     assert!(runtime.boots.get() <= 85);
+     eprintln!(
+         "P4_FINAL successes={successful} attempts={} actual_boots={} F64={} planner={:?}",
+         runtime.attempts.get(),
+         runtime.boots.get(),
+         runtime.f64_updates.get(),

@@ -1,0 +1,51 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0107]: missing generics for struct `Diagonals`
+   --> crates/ckks-train-bench/src/study_diagonal/p4_tests.rs:293:45
+    |
+293 |     Interactive(Vec<Option<ckks_train_ckks::Diagonals>>),
+    |                                             ^^^^^^^^^ expected 1 generic argument
+    |
+note: struct defined here, with 1 generic parameter: `T`
+   --> /Users/marconi/Documents/research/hekit/crates/ckks-train-ckks/src/linalg.rs:125:12
+    |
+125 | pub struct Diagonals<T> {
+    |            ^^^^^^^^^ -
+help: add missing generic argument
+    |
+293 |     Interactive(Vec<Option<ckks_train_ckks::Diagonals<T>>>),
+    |                                                      +++
+
+error[E0107]: missing generics for struct `Diagonals`
+   --> crates/ckks-train-bench/src/study_diagonal/p4_tests.rs:325:33
+    |
+325 |     expected: &ckks_train_ckks::Diagonals,
+    |                                 ^^^^^^^^^ expected 1 generic argument
+    |
+note: struct defined here, with 1 generic parameter: `T`
+   --> /Users/marconi/Documents/research/hekit/crates/ckks-train-ckks/src/linalg.rs:125:12
+    |
+125 | pub struct Diagonals<T> {
+    |            ^^^^^^^^^ -
+help: add missing generic argument
+    |
+325 |     expected: &ckks_train_ckks::Diagonals<T>,
+    |                                          +++
+
+error[E0107]: missing generics for struct `Diagonals`
+   --> crates/ckks-train-bench/src/study_diagonal/p4_tests.rs:326:31
+    |
+326 |     actual: &ckks_train_ckks::Diagonals,
+    |                               ^^^^^^^^^ expected 1 generic argument
+    |
+note: struct defined here, with 1 generic parameter: `T`
+   --> /Users/marconi/Documents/research/hekit/crates/ckks-train-ckks/src/linalg.rs:125:12
+    |
+125 | pub struct Diagonals<T> {
+    |            ^^^^^^^^^ -
+help: add missing generic argument
+    |
+326 |     actual: &ckks_train_ckks::Diagonals<T>,
+    |                                        +++
+
+For more information about this error, try `rustc --explain E0107`.
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors

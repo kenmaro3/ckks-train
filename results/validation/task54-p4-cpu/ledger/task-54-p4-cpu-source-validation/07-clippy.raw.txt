@@ -1,0 +1,66 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_client.rs:111:6
+    |
+35  |     Candidate(study_admission::CandidateDescription),
+    |     ------------------------------------------------ the largest variant contains at least 280 bytes
+...
+111 | ) -> CpuPreparationResult<T> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try reducing the size of `study_client::CpuPreparationError`, for example by boxing large elements or replacing it with `Box<study_client::CpuPreparationError>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+    = note: `-D clippy::result-large-err` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::result_large_err)]`
+
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_client.rs:252:10
+    |
+35  |     Candidate(study_admission::CandidateDescription),
+    |     ------------------------------------------------ the largest variant contains at least 280 bytes
+...
+252 |     ) -> CpuPreparationResult<(Self, CpuEvaluationContext, EncryptedInitialState)> {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try reducing the size of `study_client::CpuPreparationError`, for example by boxing large elements or replacing it with `Box<study_client::CpuPreparationError>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_client.rs:365:10
+    |
+35  |     Candidate(study_admission::CandidateDescription),
+    |     ------------------------------------------------ the largest variant contains at least 280 bytes
+...
+365 |     ) -> CpuPreparationResult<EncryptedInitialState> {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try reducing the size of `study_client::CpuPreparationError`, for example by boxing large elements or replacing it with `Box<study_client::CpuPreparationError>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_client.rs:464:10
+    |
+35  |     Candidate(study_admission::CandidateDescription),
+    |     ------------------------------------------------ the largest variant contains at least 280 bytes
+...
+464 |     ) -> CpuPreparationResult<EncryptedLogicalUpdate> {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try reducing the size of `study_client::CpuPreparationError`, for example by boxing large elements or replacing it with `Box<study_client::CpuPreparationError>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_client.rs:709:6
+    |
+35  |     Candidate(study_admission::CandidateDescription),
+    |     ------------------------------------------------ the largest variant contains at least 280 bytes
+...
+709 | ) -> CpuPreparationResult<(StudyClient, CpuEvaluationContext, EncryptedInitialState)> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try reducing the size of `study_client::CpuPreparationError`, for example by boxing large elements or replacing it with `Box<study_client::CpuPreparationError>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+
+error: could not compile `ckks-train-bench` (lib) due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `ckks-train-bench` (lib test) due to 5 previous errors

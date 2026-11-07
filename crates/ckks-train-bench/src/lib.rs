@@ -17,3 +17,8 @@ mod study_runtime;
 
 /// Closed study request frontend; grants no readiness authority.
 pub mod study_run;
+
+/// Client-owned CPU study encryption and diagnostics; grants no production admission.
+pub mod study_client;
+/// Single-stage CPU consuming bridge; production dispatch remains disconnected.
+pub mod study_diagonal;

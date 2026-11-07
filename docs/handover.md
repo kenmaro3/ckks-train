@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [入力結合・実行計画P3の限定検証](#latest-evidence-20261107-p3)。比較テストの準備: [P4平文感度検証](#latest-evidence-20261107-p4-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1549)。
+最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P4平文感度検証](#latest-evidence-20261107-p4-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1549)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -693,3 +693,15 @@ HEを実行する前に、同じデータと8倍の条件を保ち、NI許容誤
 ## 2026-11-07 15:49 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1549/README.md)では、15:49:51 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は314/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handle43642で終端まで回収し、再試行やジョブ・キューの変更はしていない。
+
+<a id="latest-evidence-20261107-p4-cpu"></a>
+
+## 2026-11-07追記: P4単一段CPU学習経路の限定実測
+
+[実装・検証証跡](../results/validation/task54-p4-cpu/README.md)を保存した。clientが秘密鍵と入力暗号化を所有し、private packetを既存のinteractive／non-interactive trainerへ渡す単一段CPU経路を実装した。計画に結び付いた設定・状態・七つのinclusive計数・更新進捗を検査し、処理途中の失敗後は再実行を拒否する。optimizerの漸化式は既存実装を使う。
+
+合格範囲は小規模synthetic CPU contractである。実際に選択したignored testは1件実行・1件合格、20 sessionsで32更新成功と2件の意図した途中失敗、実bootstrapは71回だった。全W/bの平文比較はIで12更新、NIで20更新。最大絶対誤差はそれぞれ7.64926433305390674e-9／1.89993002996935445e-8で、事前固定の1e-5／4e-4以内。拒否・replay・poison後retryについて268回の状態不変比較も完走した。source／strict Clippy／formatと実行証跡の独立レビューが合格した。
+
+初回実行は、syntheticのcurrent .04／reference .08をcanonicalのfull-maximum検査に渡したため、鍵生成前に失敗した。失敗記録を保持し、private fixtureだけを既存field codecへ接続する修正をレビューした。canonical検査、rate／reference、誤差基準を変えず、別の2回目の実行で上記を確認した。報告では初回の消費した準備処理も累積に含める。Macのテスト時間は性能比較やサーバー計測に使用しない。
+
+未達・未計測はcanonical owned D7判定／durable startとproduction run_owned、full pre-key受入、secure profileのresource／range／security／precision、P5複数層、GPU、全行・quick科学実験である。NI内部kappa／maskと完全なtyped P3 traceは未観測、foreign-basis負例はIのみ、wrong-owner負例はprivate association tokenである。本結果をTask54／M4／M5全体の合格や本番精度・性能に拡張しない。全登録範囲、full encrypted-block hold、FULL-2の判定条件を維持する。

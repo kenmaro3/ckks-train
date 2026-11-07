@@ -3728,3 +3728,6 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+pub(crate) mod p4_fixtures;

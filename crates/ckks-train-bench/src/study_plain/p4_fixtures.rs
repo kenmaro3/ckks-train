@@ -325,6 +325,15 @@ fn trajectory(
     control: Control,
     report: &mut CandidateReport,
 ) -> Trajectory {
+    trajectory_guarded(candidate, family, control, report, None)
+}
+fn trajectory_guarded(
+    candidate: Candidate,
+    family: &Family,
+    control: Control,
+    report: &mut CandidateReport,
+    guard: Option<&crate::study_diagonal::p4_tests::RuntimeBudget>,
+) -> Trajectory {
     let mut engine = family.engine(candidate);
     if matches!(control, Control::Sgd) {
         engine.momentum = None;
@@ -346,19 +355,12 @@ fn trajectory(
         assert!((1..=12).contains(&rows));
         assert!(family.width <= 16);
         assert_eq!(engine.layers.len(), 2);
-        let x = input(candidate, kept);
-        // Logical r spans the entire update; a micro boundary never restarts x or y.
-        let labels: Vec<u8> = (0..kept)
-            .map(|r| {
-                if matches!(control, Control::WrongTargets) {
-                    0
-                } else {
-                    (r % family.classes) as u8
-                }
-            })
-            .collect();
-        let mut mean = base_mean;
-        let mut delta = family.delta();
+        let (x, mut labels, baseline_rate) = baseline_rows(candidate, family, kept, base_mean);
+        if matches!(control, Control::WrongTargets) {
+            labels.fill(0);
+        }
+        let mut mean = baseline_rate.mean;
+        let mut delta = baseline_rate.delta;
         match control {
             Control::OmittedFold => delta = 1.,
             Control::DoubleFold => mean *= delta,
@@ -387,7 +389,7 @@ fn trajectory(
             }
         }
         let rate = RateCoefficients {
-            source: base_mean,
+            source: baseline_rate.source,
             mean,
             delta,
             kernel: mean * delta,
@@ -423,6 +425,9 @@ fn trajectory(
                 "NONSCIENTIFIC_TEST_EVIDENCE ACTUAL_TRAIN {context} candidate_call={}",
                 report.actual_calls
             );
+            if let Some(guard) = guard {
+                guard.reserve_f64();
+            }
             if let Err(error) = engine.train(&x, &[&labels], &rate) {
                 report
                     .gate_failures
@@ -633,4 +638,154 @@ mod tests {
         }
         assert!(report.candidates[1].gate_failures.is_empty(), "{report:#?}");
     }
+}
+
+// Closed sibling-consumer API. The existing Family::engine and trajectory remain the
+// sole initial-array and arithmetic owners; no mutant trajectory is invoked here.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum SignalFamily {
+    SquareC3,
+    SquareC2,
+    SquareC10,
+    PolyC3,
+    PolyC2,
+    PolyC10,
+    PolyFourRate,
+    PolyFirstReference,
+}
+impl SignalFamily {
+    pub(crate) const SMOKE: [Self; 6] = [
+        Self::SquareC3,
+        Self::SquareC2,
+        Self::SquareC10,
+        Self::PolyC3,
+        Self::PolyC2,
+        Self::PolyC10,
+    ];
+    pub(crate) fn recipe(self) -> SignalRecipe {
+        let index = match self {
+            Self::SquareC3 => 0,
+            Self::SquareC2 => 1,
+            Self::SquareC10 => 2,
+            Self::PolyC3 => 3,
+            Self::PolyC2 => 4,
+            Self::PolyC10 => 5,
+            Self::PolyFourRate => 6,
+            Self::PolyFirstReference => 7,
+        };
+        SignalRecipe {
+            family: families().remove(index),
+        }
+    }
+}
+fn baseline_rows(
+    candidate: Candidate,
+    family: &Family,
+    rows: usize,
+    mean: f64,
+) -> (Array2<f64>, Vec<u8>, RateCoefficients<f64>) {
+    // r spans the complete logical update, including every subsequent micro.
+    (
+        input(candidate, rows),
+        (0..rows).map(|r| (r % family.classes) as u8).collect(),
+        RateCoefficients {
+            source: mean,
+            mean,
+            delta: family.delta(),
+            kernel: mean * family.delta(),
+        },
+    )
+}
+pub(crate) struct SignalRecipe {
+    family: Family,
+}
+impl SignalRecipe {
+    pub(crate) fn classes(&self) -> usize {
+        self.family.classes
+    }
+    pub(crate) fn width(&self) -> usize {
+        self.family.width
+    }
+    pub(crate) fn square(&self) -> bool {
+        self.family.square
+    }
+    pub(crate) fn partitions(&self) -> &[Vec<usize>] {
+        &self.family.partitions
+    }
+    pub(crate) fn rates(&self) -> Vec<RateCoefficients<f64>> {
+        self.family
+            .means
+            .iter()
+            .map(|&mean| baseline_rows(Candidate::Signal, &self.family, 0, mean).2)
+            .collect()
+    }
+    pub(crate) fn reference(&self) -> f64 {
+        if self.family.square {
+            0.06 * self.family.delta()
+        } else {
+            0.08
+        }
+    }
+}
+pub(crate) struct SignalOracle {
+    recipe: SignalRecipe,
+    initial: Snapshot,
+    steps: Vec<Snapshot>,
+    rows: Vec<(Array2<f64>, Vec<u8>)>,
+}
+impl SignalOracle {
+    pub(crate) fn recipe(&self) -> &SignalRecipe {
+        &self.recipe
+    }
+    pub(crate) fn initial(&self) -> &[PlainLayer<f64>] {
+        &self.initial.layers
+    }
+    pub(crate) fn post(&self, update: usize) -> Option<&[PlainLayer<f64>]> {
+        self.steps.get(update).map(|s| s.layers.as_slice())
+    }
+    pub(crate) fn rows(&self, update: usize) -> Option<(&Array2<f64>, &[u8])> {
+        self.rows.get(update).map(|(x, y)| (x, y.as_slice()))
+    }
+}
+pub(crate) fn signal_oracle(
+    family: SignalFamily,
+    guard: &crate::study_diagonal::p4_tests::RuntimeBudget,
+) -> Result<SignalOracle, String> {
+    guard.reserve_oracle();
+    let recipe = family.recipe();
+    let mut report = CandidateReport::default();
+    let trajectory = trajectory_guarded(
+        Candidate::Signal,
+        &recipe.family,
+        Control::Baseline,
+        &mut report,
+        Some(guard),
+    );
+    if !report.harness_failures.is_empty()
+        || !report.gate_failures.is_empty()
+        || report.actual_calls != recipe.family.means.len()
+        || trajectory.steps.len() != recipe.family.means.len()
+    {
+        return Err(format!(
+            "Signal baseline failed: {:?} {:?}",
+            report.harness_failures, report.gate_failures
+        ));
+    }
+    let rows = recipe
+        .family
+        .partitions
+        .iter()
+        .zip(&recipe.family.means)
+        .map(|(parts, &mean)| {
+            let (x, y, _) =
+                baseline_rows(Candidate::Signal, &recipe.family, parts.iter().sum(), mean);
+            (x, y)
+        })
+        .collect();
+    Ok(SignalOracle {
+        recipe,
+        initial: trajectory.initial,
+        steps: trajectory.steps,
+        rows,
+    })
 }

@@ -1,0 +1,24 @@
+{
+  "changed_source": [
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs"
+  ],
+  "unchanged_source_count": 7,
+  "all8_final_pins": {
+    "crates/ckks-train-bench/src/study_client.rs": "4227bff4f06db0dbe61a2d97e4a20986209347b8f15e74d8db852b16cdad0950",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "44107c8617582883558e79dbc9cb37abefd2502d3c3ceaf6f361953c29f9102f",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "4f858727aa89053518ba94cd1120a855c4c80c64a866ccb76ebc8e79de63e40d",
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-nn/src/trainer.rs": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930",
+    "crates/ckks-train-bench/src/study_admission.rs": "60f1dbf83e30ea59eee89e2a38889a9161fc04570493a13fff00e0a21ac4e9a2",
+    "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs": "87f45887cc5d400765e0295165d2cf8479724168f0002e1f1c66301a159e554c",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "e062bc2678a205431ea2fcd522cfb4351795bd375a7aa073c3204d12915813f8"
+  },
+  "assertion_guard": 268,
+  "final_expected_assertions": 268,
+  "first_update_comparisons": 232,
+  "configuration_collections": 322,
+  "snapshot_captures": 54,
+  "client_decrypt_endpoints": 68,
+  "encrypted_snapshot_copies": 122,
+  "formatting": "not needed; two same-width numeric literal replacements only"
+}

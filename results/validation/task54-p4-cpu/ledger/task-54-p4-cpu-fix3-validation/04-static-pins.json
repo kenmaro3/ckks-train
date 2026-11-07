@@ -1,0 +1,43 @@
+{
+  "changed_only_owned_cfg_test_sources": [
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs",
+    "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs"
+  ],
+  "unchanged_source_count": 6,
+  "all8_final_pins": {
+    "crates/ckks-train-bench/src/study_client.rs": "4227bff4f06db0dbe61a2d97e4a20986209347b8f15e74d8db852b16cdad0950",
+    "crates/ckks-train-bench/src/study_diagonal.rs": "44107c8617582883558e79dbc9cb37abefd2502d3c3ceaf6f361953c29f9102f",
+    "crates/ckks-train-bench/src/study_diagonal/p4_tests.rs": "ceebab9bba7b2e4705ed9867f2b0ed411c377a2ee6fab1b0894a78317a1610a4",
+    "crates/ckks-train-bench/src/lib.rs": "9b001769d71954a225df80dcbfcc180301bd347959b00f620abc6d40d384863a",
+    "crates/ckks-train-nn/src/trainer.rs": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930",
+    "crates/ckks-train-bench/src/study_admission.rs": "60f1dbf83e30ea59eee89e2a38889a9161fc04570493a13fff00e0a21ac4e9a2",
+    "crates/ckks-train-bench/src/study_admission/p4_fixtures.rs": "c2426266444120b084ed3351696f0a7b42376f09b24b1589f5642e98ac71c1f7",
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": "e062bc2678a205431ea2fcd522cfb4351795bd375a7aa073c3204d12915813f8"
+  },
+  "runtime1_immutable_raw_bytes": 1965,
+  "runtime1_immutable_raw_sha256": "f1d14696c5cc7e4daeee089db83a34017b8b306310bd8535b759d32d8d4ef242",
+  "runtime1_exit": 101,
+  "runtime1_source_unchanged": true,
+  "runtime1_counts_from_log_and_failure_order": {
+    "params": 2,
+    "proof": 1,
+    "descriptor": 1,
+    "geometry": 7,
+    "initial": 7,
+    "update_plans": 6,
+    "keys": 0,
+    "encoders": 0,
+    "bootstrapper": 0,
+    "Engine": 0,
+    "trainer": 0,
+    "HE": 0,
+    "spy": 0,
+    "sessions": 0
+  },
+  "new_pre_parameter_regression": {
+    "canonical_policy_calls": 1,
+    "synthetic_wrapper_calls": 1,
+    "new_expensive_calls": 0
+  },
+  "new_runtime_invocations_in_fix3": 0
+}
