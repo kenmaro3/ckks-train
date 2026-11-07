@@ -600,4 +600,12 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 計上対象は指定したアプリケーションpayloadであり、既存P2生成や別管理の入力・パラメータ等を含む全メモリ、allocator容量、RSSの保証ではない。Reuse／full schedule全分岐、実際の資源・セキュリティ・精度gateは未検証。残りは固定CPU実行経路と暗号オブジェクト破棄までの計上保持、実ExecutionBinding／runtime-policy、明示request／consumption、live gate・durable start・科学結果出力と全実験であり、productionのMissingExecutionDependencyは維持している。Task54／M4／M5全体の合格ではなく、既存hold・全登録範囲・FULL-2条件を維持する。
 
+## 2026-11-07追記: 固定CPU処理と保持・計上の接続
+
+固定CPU処理の[実装・検証証跡](../results/validation/task54-d7-fixed-cpu-continuation/README.md)を保存した。単一段／複数段の準備結果を作り直さずに消費し、元の入力・計画・パラメータ・descriptorと同じ計上ownerを暗号オブジェクトの破棄まで保持する。鍵生成前の厳密な回転集合・parameter／P1所有者確認、初期配列とblock bindingコピーの事前計上、逐次更新と途中失敗時の部分進捗保持を実装した。ソースの独立SPEC／QUALITYレビューは合格した。
+
+追加の3 exactテストは一度ずつ実行して全件合格し、Cargo子プロセスは3件ともexit0だった。対象は鍵生成前の拒否、canonical ownerの保持、コピー計上の境界である。rootの呼出しラッパーがtool session情報を出力しなかったため、親controllerの終了コードは未観測として残す。元のcontroller PIDはその後不在、3件の結果・生ログ・完全summaryを保持し、491入力pinとraw hashを再確認した。再実行はしていない。
+
+暗号処理の成功経路・破棄・I／NI学習ループは未実行であり、実行開始権限も付与しない。入力生成内部を含むtest3の乱数初期化12回、各テストのNTT表生成72／36／72個、P1のscalar root検証65,535個は実際の処理として区別する。既存P4／P5数学処理は変更していない。残りは実runtime／ExecutionBinding、明示request、実gate・durable start・科学結果publisherと全実験で、productionのMissingExecutionDependencyを維持する。Task54／M4／M5全体、資源適合や学習精度の合格ではない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

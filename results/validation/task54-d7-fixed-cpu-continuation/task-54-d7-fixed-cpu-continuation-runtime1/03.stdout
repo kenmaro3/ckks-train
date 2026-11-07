@@ -1,0 +1,6 @@
+
+running 1 test
+test study_execution::cpu_continuation::tests::d7_fixed_retained_association_and_copy_refusal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 226 filtered out; finished in 0.26s
+

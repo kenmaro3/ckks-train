@@ -1,0 +1,17 @@
+{
+  "kind": "unit_validation_observation_not_scientific",
+  "observed_utc": "2026-11-07T12:36:51.488964+00:00",
+  "controller_pid": 73949,
+  "ps_returncode": 1,
+  "ps_stdout": "",
+  "ps_stderr": "",
+  "source_pins_verified": 491,
+  "raw_streams": 6,
+  "raw_bytes": 1222,
+  "tool_parent_exit": "unobserved; initial wrapper emitted output only and omitted exec session metadata; not rerun",
+  "cargo_exits": [
+    0,
+    0,
+    0
+  ]
+}

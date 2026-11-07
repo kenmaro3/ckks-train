@@ -1,0 +1,19 @@
+{
+  "index": 1,
+  "name": "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794054957.128628,
+  "pid": 73951
+}

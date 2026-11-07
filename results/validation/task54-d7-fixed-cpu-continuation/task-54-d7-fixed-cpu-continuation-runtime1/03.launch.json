@@ -1,0 +1,19 @@
+{
+  "index": 3,
+  "name": "study_execution::cpu_continuation::tests::d7_fixed_retained_association_and_copy_refusal",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_execution::cpu_continuation::tests::d7_fixed_retained_association_and_copy_refusal",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794054969.0812612,
+  "pid": 74217
+}

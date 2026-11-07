@@ -1,0 +1,10 @@
+{
+  "kind": "unit_validation_not_scientific",
+  "pid": 73949,
+  "start": 1794054957.088894,
+  "release_sha256": "947d12c2a04bfdd7a2c522fc46f7fd968b65d9b655ee06deb3c07d45f7e921bd",
+  "automatic_retry": false,
+  "env_overrides": {
+    "CARGO_NET_OFFLINE": "true"
+  }
+}

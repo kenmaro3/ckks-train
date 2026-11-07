@@ -1,0 +1,254 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:14:26
+   |
+14 |         let parameters = Arc::new(CkksParams::n16_train());
+   |                          ^^^ use of undeclared type `Arc`
+   |
+help: consider importing one of these structs
+   |
+5  +     use crate::study_execution::Arc;
+   |
+5  +     use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `CkksParams`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:14:35
+   |
+14 |         let parameters = Arc::new(CkksParams::n16_train());
+   |                                   ^^^^^^^^^^ use of undeclared type `CkksParams`
+   |
+help: consider importing this struct
+   |
+5  +     use ckks_train_ckks::CkksParams;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `DiagonalRequest`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:22:31
+   |
+22 |             let mut request = DiagonalRequest::quick();
+   |                               ^^^^^^^^^^^^^^^ use of undeclared type `DiagonalRequest`
+   |
+help: consider importing this struct through its public re-export
+   |
+5  +     use crate::study_execution::DiagonalRequest;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:23:35
+   |
+23 |             request.work_budget = Arc::new(PlanningBudget::new(PlanningUsage {
+   |                                   ^^^ use of undeclared type `Arc`
+   |
+help: consider importing one of these structs
+   |
+5  +     use crate::study_execution::Arc;
+   |
+5  +     use std::sync::Arc;
+   |
+
+error[E0422]: cannot find struct, variant or union type `PlanningParameters` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:27:26
+   |
+27 |             let actual = PlanningParameters { params: &parameters, bootstrap: None, boot_params: None };
+   |                          ^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct through its public re-export
+   |
+5  +     use crate::study_execution::PlanningParameters;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:28:24
+   |
+28 |             let plan = Arc::new(study_admission::plan_diagonal(&materialized, case, actual, &request).unwrap());
+   |                        ^^^ use of undeclared type `Arc`
+   |
+help: consider importing one of these structs
+   |
+5  +     use crate::study_execution::Arc;
+   |
+5  +     use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared crate or module `study_admission`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:28:33
+   |
+28 |             let plan = Arc::new(study_admission::plan_diagonal(&materialized, case, actual, &request).unwrap());
+   |                                 ^^^^^^^^^^^^^^^ use of undeclared crate or module `study_admission`
+   |
+help: consider importing this module
+   |
+5  +     use crate::study_admission;
+   |
+
+error[E0422]: cannot find struct, variant or union type `CanonicalPreparationInput` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:29:25
+   |
+29 |             let input = CanonicalPreparationInput { materialized: &materialized, registered: case,
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct
+   |
+5  +     use crate::study_execution::CanonicalPreparationInput;
+   |
+
+error[E0425]: cannot find function `collect_single` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:32:30
+   |
+32 |                 let bundle = collect_single(prepare_canonical(input, plan.partitions()).unwrap()).unwrap();
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this function
+   |
+5  +     use crate::study_execution::collect_single;
+   |
+
+error[E0425]: cannot find function `prepare_canonical` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:32:45
+   |
+32 |                 let bundle = collect_single(prepare_canonical(input, plan.partitions()).unwrap()).unwrap();
+   |                                             ^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this function
+   |
+5  +     use crate::study_execution::prepare_canonical;
+   |
+
+error[E0425]: cannot find function `collect_blocks` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:42:30
+   |
+42 |                 let bundle = collect_blocks(prepare_blocks_canonical(input, plan.partitions()).unwrap()).unwrap();
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this function
+   |
+5  +     use crate::study_execution::collect_blocks;
+   |
+
+error[E0425]: cannot find function `prepare_blocks_canonical` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:42:45
+   |
+42 |                 let bundle = collect_blocks(prepare_blocks_canonical(input, plan.partitions()).unwrap()).unwrap();
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this function
+   |
+5  +     use crate::study_execution::prepare_blocks_canonical;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:52:21
+   |
+52 |             assert!(Arc::ptr_eq(&retained.plan, &plan));
+   |                     ^^^ use of undeclared type `Arc`
+   |
+help: consider importing one of these structs
+   |
+5  +     use crate::study_execution::Arc;
+   |
+5  +     use std::sync::Arc;
+   |
+
+error[E0425]: cannot find function `sum` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:57:26
+   |
+57 |             let copies = sum([study_client::canonical_array_payload(&materialized, stages > 1).unwrap(), binding_bytes]).unwrap();
+   |                          ^^^ not found in this scope
+   |
+help: consider importing this function
+   |
+5  +     use crate::study_execution::sum;
+   |
+
+error[E0433]: failed to resolve: use of undeclared crate or module `study_client`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:57:31
+   |
+57 |             let copies = sum([study_client::canonical_array_payload(&materialized, stages > 1).unwrap(), binding_bytes]).unwrap();
+   |                               ^^^^^^^^^^^^ use of undeclared crate or module `study_client`
+   |
+help: consider importing this module
+   |
+5  +     use crate::study_client;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:60:33
+   |
+60 |             let mut too_small = PreparationAccounting::from_seed(0, 0, ReceiptLimits { max_bytes: copies - 1, max_records: 0 }).unwrap();
+   |                                 ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+   |
+help: consider importing this struct
+   |
+5  +     use crate::study_execution::PreparationAccounting;
+   |
+
+error[E0422]: cannot find struct, variant or union type `ReceiptLimits` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:60:72
+   |
+60 |             let mut too_small = PreparationAccounting::from_seed(0, 0, ReceiptLimits { max_bytes: copies - 1, max_records: 0 }).unwrap();
+   |                                                                        ^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct through its public re-export
+   |
+5  +     use crate::study_execution::ReceiptLimits;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `PreparationAccounting`
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:63:29
+   |
+63 |             let mut exact = PreparationAccounting::from_seed(0, 0, ReceiptLimits { max_bytes: copies, max_records: 0 }).unwrap();
+   |                             ^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `PreparationAccounting`
+   |
+help: consider importing this struct
+   |
+5  +     use crate::study_execution::PreparationAccounting;
+   |
+
+error[E0422]: cannot find struct, variant or union type `ReceiptLimits` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:63:68
+   |
+63 |             let mut exact = PreparationAccounting::from_seed(0, 0, ReceiptLimits { max_bytes: copies, max_records: 0 }).unwrap();
+   |                                                                    ^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct through its public re-export
+   |
+5  +     use crate::study_execution::ReceiptLimits;
+   |
+
+warning: unused import: `super::*`
+ --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:5:9
+  |
+5 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0425]: cannot find function `retain_single_bundle` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:35:43
+   |
+35 |                 let (checked, retained) = retain_single_bundle(bundle);
+   |                                           ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `retain_block_bundle` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:45:43
+   |
+45 |                 let (checked, retained) = retain_block_bundle(bundle);
+   |                                           ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `reserve_setup_copies` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:61:21
+   |
+61 |             assert!(reserve_setup_copies(&mut too_small, &materialized, stages > 1, binding_bytes).is_err());
+   |                     ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `reserve_setup_copies` in this scope
+  --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:65:39
+   |
+65 |                 let mut reservation = reserve_setup_copies(&mut exact, &materialized, stages > 1, binding_bytes).unwrap();
+   |                                       ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0422, E0425, E0433.
+For more information about an error, try `rustc --explain E0422`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 23 previous errors; 1 warning emitted

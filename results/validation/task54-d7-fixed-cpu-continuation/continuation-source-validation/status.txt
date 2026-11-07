@@ -1,0 +1,7 @@
+ M crates/ckks-train-bench/src/study_client.rs
+ M crates/ckks-train-bench/src/study_client/blocks.rs
+ M crates/ckks-train-bench/src/study_execution.rs
+?? .vscode/
+?? crates/ckks-train-bench/src/study_execution/
+?? results/mnist_blocks_128-64_plain_b48.json
+?? results/mnist_blocks_64_plain_b48.json

@@ -1,0 +1,19 @@
+{
+  "index": 2,
+  "name": "study_client::fixed_continuation_tests::d7_fixed_prekey_bootstrap_owner_and_parameters",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_client::fixed_continuation_tests::d7_fixed_prekey_bootstrap_owner_and_parameters",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794054968.7536929,
+  "pid": 74215
+}

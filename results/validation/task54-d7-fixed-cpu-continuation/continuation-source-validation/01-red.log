@@ -1,0 +1,70 @@
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:915:17
+    |
+915 |         assert!(validate_fixed_setup(fields(), None, &parameters, &[1, 2], None).is_ok());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:916:17
+    |
+916 |         assert!(validate_fixed_setup(fields(), None, &equal_parameters, &[1, 2], None).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:918:21
+    |
+918 |             assert!(validate_fixed_setup(fields(), None, &parameters, wrong, None).is_err());
+    |                     ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:937:17
+    |
+937 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&original)).is_ok());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0599]: no method named `clone` found for struct `ckks_train_ckks::bootstrap::metadata::BootstrapMetadata` in the current scope
+   --> crates/ckks-train-bench/src/study_client.rs:938:102
+    |
+938 |         let equal = CpuBootstrapDescription { parameters: bp.clone(), metadata: Arc::new((*metadata).clone()) };
+    |                                                                                                      ^^^^^ method not found in `BootstrapMetadata`
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:939:17
+    |
+939 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&equal)).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:940:17
+    |
+940 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], None).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `l` on type `ckks_train_ckks::bootstrap::BootParams`
+   --> crates/ckks-train-bench/src/study_client.rs:942:26
+    |
+942 |         wrong.parameters.l = wrong.parameters.l.saturating_sub(1);
+    |                          ^ unknown field
+    |
+    = note: available fields are: `log_slots`, `ctos_levels`, `evalmod_levels`, `stoc_levels`, `k_intervals` ... and 4 others
+
+error[E0609]: no field `l` on type `ckks_train_ckks::bootstrap::BootParams`
+   --> crates/ckks-train-bench/src/study_client.rs:942:47
+    |
+942 |         wrong.parameters.l = wrong.parameters.l.saturating_sub(1);
+    |                                               ^ unknown field
+    |
+    = note: available fields are: `log_slots`, `ctos_levels`, `evalmod_levels`, `stoc_levels`, `k_intervals` ... and 4 others
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:943:17
+    |
+943 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&wrong)).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0425, E0599, E0609.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 10 previous errors

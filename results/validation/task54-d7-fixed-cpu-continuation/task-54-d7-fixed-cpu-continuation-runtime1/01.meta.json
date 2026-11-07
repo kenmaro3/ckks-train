@@ -1,0 +1,36 @@
+{
+  "index": 1,
+  "name": "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--features",
+    "parallel",
+    "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794054957.128628,
+  "pid": 73951,
+  "exit_code": 0,
+  "end": 1794054968.6636858,
+  "named_successes": [
+    "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 213,
+  "stdout_sha256": "588fde52ea2f844f827e17e54b4b86364c46d9f04a4ac9b4434494877ad89594",
+  "stderr_bytes": 263,
+  "stderr_sha256": "18f4f5b888463a59125f80f2ad1eacf8890ae657077872206337e779e6ae6032"
+}

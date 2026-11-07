@@ -1,0 +1,72 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Checking ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-cuda)
+error: large size difference between variants
+   --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:106:1
+    |
+106 | /   enum CpuOwnedSetup {
+107 | | /     Single {
+108 | | |         client: StudyClient,
+109 | | |         evaluation: CpuEvaluationContext,
+110 | | |         initial: EncryptedInitialState,
+111 | | |     },
+    | | |_____- the largest variant contains at least 1584 bytes
+112 | | /     Block {
+113 | | |         client: StudyClient,
+114 | | |         evaluation: CpuEvaluationContext,
+115 | | |         initial: EncryptedBlockInitial,
+116 | | |         binding: BlockEncryptionBinding,
+117 | | |     },
+    | | |_____- the second-largest variant contains at least 1360 bytes
+118 | |   }
+    | |___^ the entire enum is at least 1584 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields to reduce the total size of the enum
+    |
+108 |         client: Box<StudyClient>,
+    |                 ~~~~~~~~~~~~~~~~
+
+error: the `Err`-variant returned from this function is very large
+   --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:182:58
+    |
+182 |     pub(crate) fn execute_cpu(self, refresh_rng: Rng) -> Result<CpuRunProgress, CpuRunFailure> {
+    |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 208 bytes
+    |
+    = help: try reducing the size of `study_execution::cpu_continuation::CpuRunFailure`, for example by boxing large elements or replacing it with `Box<study_execution::cpu_continuation::CpuRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
+    = note: `-D clippy::result-large-err` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::result_large_err)]`
+
+error: could not compile `ckks-train-bench` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: large size difference between variants
+   --> crates/ckks-train-bench/src/study_execution/cpu_continuation.rs:106:1
+    |
+106 | /   enum CpuOwnedSetup {
+107 | | /     Single {
+108 | | |         client: StudyClient,
+109 | | |         evaluation: CpuEvaluationContext,
+110 | | |         initial: EncryptedInitialState,
+111 | | |     },
+    | | |_____- the largest variant contains at least 1624 bytes
+112 | | /     Block {
+113 | | |         client: StudyClient,
+114 | | |         evaluation: CpuEvaluationContext,
+115 | | |         initial: EncryptedBlockInitial,
+116 | | |         binding: BlockEncryptionBinding,
+117 | | |     },
+    | | |_____- the second-largest variant contains at least 1408 bytes
+118 | |   }
+    | |___^ the entire enum is at least 1624 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields to reduce the total size of the enum
+    |
+108 |         client: Box<StudyClient>,
+    |                 ~~~~~~~~~~~~~~~~
+
+error: could not compile `ckks-train-bench` (lib test) due to 2 previous errors

@@ -673,3 +673,98 @@ fn prepare_block_owned_canonical(
         },
     )
 }
+
+impl<'p> CheckedBlockPreparation<'p> {
+    pub(crate) fn actual_parameters(&self) -> PlanningParameters<'p> {
+        PlanningParameters {
+            params: self.parameters,
+            bootstrap: self.bootstrap_metadata,
+            boot_params: self.boot_parameters,
+        }
+    }
+    // The actual encrypt_block_initial binding clones these descriptions/classes.
+    // Size by borrow, before invoking the cloning endpoint, with no geometry clone.
+    pub(crate) fn binding_copy_payload(&self) -> crate::study_execution::AccountingResult<usize> {
+        use crate::study_execution::{AccountingError, sum};
+        let mut bytes = sum([
+            copy_payload::<Description>(self.descriptions.len())?,
+            copy_payload::<usize>(self.classes.len())?,
+        ])?;
+        for description in &self.descriptions {
+            let geometry = description
+                .geometry
+                .requested_heap_payload_bytes()
+                .ok_or(AccountingError::Overflow)?;
+            let transpose = match &description.transpose {
+                ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
+                ckks_train_nn::dense::TransposeKeys::Reuse(v) => copy_payload::<i32>(v.len())?,
+            };
+            bytes = sum([
+                bytes,
+                geometry,
+                copy_payload::<DiagonalActivation>(description.activations.len())?,
+                transpose,
+            ])?;
+        }
+        // The binding is one new retained auxiliary; the original geometries remain
+        // charged separately by the original preparation owner.
+        copy_payload::<u8>(bytes)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn make_retained_blocks_owned(
+    checked: CheckedBlockPreparation<'_>,
+    materialized: &MaterializedProfile,
+    parameters: Arc<CkksParams>,
+    boot: Option<CpuBootstrapDescription>,
+    key_rng: Rng,
+    encryption_rng: Rng,
+    accounting: &mut crate::study_execution::PreparationAccounting,
+) -> CpuPreparationResult<(
+    StudyClient,
+    CpuEvaluationContext,
+    EncryptedBlockInitial,
+    BlockEncryptionBinding,
+)> {
+    let facts = checked
+        .descriptor_facts()
+        .ok_or_else(|| mismatch("fixed canonical block owner"))?;
+    let rotations = facts.plan().keys().training_rotations();
+    validate_fixed_setup(
+        SetupFields {
+            parameters: checked.parameters,
+            bootstrap_identity: checked.bootstrap_identity,
+            boot_parameters: checked.boot_parameters,
+            rotations: &checked.rotations,
+            config: checked.descriptions[0].geometry.eval_config(),
+        },
+        checked.bootstrap_metadata,
+        &parameters,
+        rotations,
+        boot.as_ref(),
+    )?;
+    let binding_bytes = checked.binding_copy_payload()?;
+    let mut reservation = crate::study_execution::reserve_setup_copies(
+        accounting,
+        materialized,
+        true,
+        binding_bytes,
+    )?;
+    let (client, context) = make_blocks_owned(
+        &checked,
+        parameters,
+        rotations,
+        boot,
+        key_rng,
+        encryption_rng,
+    )?;
+    let mut arrays = crate::study_execution::allocated(materialized.graph().stages().len())?;
+    for stage in materialized.graph().stages() {
+        arrays.push(copy_canonical_layers(materialized, stage.layers())?);
+    }
+    let (initial, binding) = client.encrypt_block_initial(checked, &context, &arrays)?;
+    drop(arrays);
+    reservation.retain(binding_bytes)?;
+    Ok((client, context, initial, binding))
+}

@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [CPU学習準備・計上](#latest-evidence-20261107-d7-retained-preparation)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
+最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -825,3 +825,13 @@ no-run、strict Clippy、CPU／CUDA feature check、formatと独立ソースレ�
 Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの準備・descriptor・同一owner・元の制限・拒否診断を確認した。入力の完全なmaterializationは3回で、Quickはその後の2更新分の計画消費を意味する。N16パラメータ2個に加え既存P3 golden用N10パラメータ2個、DFT proofとP1 metadata各2個を生成した。成功した6ケースのgeometry24／initial24／update24／handoff12／wrapper6は完走したテストのsourceとwork-budget assertionに基づく内訳で、独立イベント計測や暗号学習結果ではない。実際の鍵・HE Encoder／evaluator／session・GPU・学習は0である。
 
 計上対象は指定したアプリケーションpayloadであり、既存P2生成や別管理の入力・パラメータ等を含む全メモリ、allocator容量、RSSの保証ではない。Reuse／full schedule全分岐、実際の資源・セキュリティ・精度gateは未検証。残りは固定CPU実行経路と暗号オブジェクト破棄までの計上保持、実ExecutionBinding／runtime-policy、明示request／consumption、live gate・durable start・科学結果出力と全実験であり、productionのMissingExecutionDependencyは維持している。Task54／M4／M5全体の合格ではなく、既存hold・全登録範囲・FULL-2条件を維持する。
+
+<a id="latest-evidence-20261107-d7-fixed-cpu"></a>
+
+## 2026-11-07追記: 固定CPU処理と保持・計上の接続
+
+固定CPU処理の[実装・検証証跡](../results/validation/task54-d7-fixed-cpu-continuation/README.md)を保存した。単一段／複数段の準備結果を作り直さずに消費し、元の入力・計画・パラメータ・descriptorと同じ計上ownerを暗号オブジェクトの破棄まで保持する。鍵生成前の厳密な回転集合・parameter／P1所有者確認、初期配列とblock bindingコピーの事前計上、逐次更新と途中失敗時の部分進捗保持を実装した。ソースの独立SPEC／QUALITYレビューは合格した。
+
+追加の3 exactテストは一度ずつ実行して全件合格し、Cargo子プロセスは3件ともexit0だった。対象は鍵生成前の拒否、canonical ownerの保持、コピー計上の境界である。rootの呼出しラッパーがtool session情報を出力しなかったため、親controllerの終了コードは未観測として残す。元のcontroller PIDはその後不在、3件の結果・生ログ・完全summaryを保持し、491入力pinとraw hashを再確認した。再実行はしていない。
+
+暗号処理の成功経路・破棄・I／NI学習ループは未実行であり、実行開始権限も付与しない。入力生成内部を含むtest3の乱数初期化12回、各テストのNTT表生成72／36／72個、P1のscalar root検証65,535個は実際の処理として区別する。既存P4／P5数学処理は変更していない。残りは実runtime／ExecutionBinding、明示request、実gate・durable start・科学結果publisherと全実験で、productionのMissingExecutionDependencyを維持する。Task54／M4／M5全体、資源適合や学習精度の合格ではない。

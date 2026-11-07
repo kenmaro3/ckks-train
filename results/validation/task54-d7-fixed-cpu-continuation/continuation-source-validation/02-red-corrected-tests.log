@@ -1,0 +1,45 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:915:17
+    |
+915 |         assert!(validate_fixed_setup(fields(), None, &parameters, &[1, 2], None).is_ok());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:916:17
+    |
+916 |         assert!(validate_fixed_setup(fields(), None, &equal_parameters, &[1, 2], None).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:918:21
+    |
+918 |             assert!(validate_fixed_setup(fields(), None, &parameters, wrong, None).is_err());
+    |                     ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:937:17
+    |
+937 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&original)).is_ok());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:939:17
+    |
+939 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&equal)).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:940:17
+    |
+940 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], None).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `validate_fixed_setup` in this scope
+   --> crates/ckks-train-bench/src/study_client.rs:943:17
+    |
+943 |         assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&wrong)).is_err());
+    |                 ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 7 previous errors

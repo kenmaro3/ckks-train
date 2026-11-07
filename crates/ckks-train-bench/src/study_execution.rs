@@ -1,5 +1,5 @@
 //! Retained canonical CPU preparation. No start or execution capability.
-#![allow(dead_code)] // Intentionally disconnected from production until fixed phase3 release.
+#![allow(dead_code)] // Intentionally disconnected until genuine live gates and durable start exist.
 use crate::{
     study_admission::{
         DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters, ReceiptLimits,
@@ -10,6 +10,8 @@ use crate::{
 };
 use std::sync::Arc;
 use study_client::blocks::CheckedBlockPreparation;
+mod cpu_continuation;
+pub(crate) use cpu_continuation::reserve_setup_copies;
 
 #[derive(Debug, PartialEq, Eq)]
 /// A failure of the additive retained preparation requested-payload boundary.

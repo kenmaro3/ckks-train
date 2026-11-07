@@ -841,6 +841,156 @@ pub(crate) fn make_owned_fields(
     )
 }
 
+// Strict retained-route check shared with the pre-key refusal tests. This function
+// performs no crypto construction and accepts only already-checked private fields.
+fn validate_fixed_setup(
+    checked: SetupFields<'_>,
+    metadata: Option<&BootstrapMetadata>,
+    parameters: &Arc<CkksParams>,
+    rotations: &[i32],
+    boot: Option<&CpuBootstrapDescription>,
+) -> Result<()> {
+    ensure(
+        std::ptr::eq(checked.parameters, parameters.as_ref()),
+        "fixed actual parameter owner",
+    )?;
+    ensure(
+        checked.rotations == rotations,
+        "fixed exact training rotation union",
+    )?;
+    ensure(
+        checked.bootstrap_identity == boot.map(|b| b.metadata.descriptor_identity_bytes())
+            && checked.boot_parameters == boot.map(|b| &b.parameters),
+        "fixed bootstrap parameters",
+    )?;
+    ensure(
+        match (metadata, boot) {
+            (None, None) => true,
+            (Some(expected), Some(actual)) => std::ptr::eq(expected, actual.metadata.as_ref()),
+            _ => false,
+        },
+        "fixed bootstrap metadata owner",
+    )
+}
+
+impl<'p> CheckedPreparation<'p> {
+    pub(crate) fn actual_parameters(&self) -> PlanningParameters<'p> {
+        PlanningParameters {
+            params: self.parameters,
+            bootstrap: self.bootstrap_metadata,
+            boot_params: self.boot_parameters,
+        }
+    }
+}
+
+// Copies below are application auxiliaries, separately bounded from crypto material.
+const CANONICAL_AUX_MAX: usize = 2_097_152;
+fn copy_payload<T>(n: usize) -> crate::study_execution::AccountingResult<usize> {
+    let bytes = crate::study_execution::payload::<T>(n)?;
+    if bytes > CANONICAL_AUX_MAX {
+        return Err(crate::study_execution::AccountingError::Bytes {
+            required: bytes,
+            configured: CANONICAL_AUX_MAX,
+        });
+    }
+    Ok(bytes)
+}
+pub(crate) fn canonical_array_payload(
+    materialized: &MaterializedProfile,
+    block: bool,
+) -> crate::study_execution::AccountingResult<usize> {
+    use crate::study_execution::sum;
+    let mut bytes = if block {
+        copy_payload::<Vec<(Array2<f64>, Vec<f64>)>>(materialized.graph().stages().len())?
+    } else {
+        0
+    };
+    if block {
+        for stage in materialized.graph().stages() {
+            bytes = sum([
+                bytes,
+                copy_payload::<(Array2<f64>, Vec<f64>)>(stage.layers().len())?,
+            ])?;
+        }
+    } else {
+        bytes = sum([
+            bytes,
+            copy_payload::<(Array2<f64>, Vec<f64>)>(materialized.initial().layers().len())?,
+        ])?;
+    }
+    for layer in materialized.initial().layers() {
+        bytes = sum([
+            bytes,
+            copy_payload::<f64>(layer.weights().len())?,
+            copy_payload::<f64>(layer.biases().len())?,
+        ])?;
+    }
+    Ok(bytes)
+}
+fn copy_canonical_layers(
+    materialized: &MaterializedProfile,
+    range: std::ops::Range<usize>,
+) -> CpuPreparationResult<Vec<(Array2<f64>, Vec<f64>)>> {
+    use crate::study_execution::allocated;
+    let mut arrays = allocated(range.len())?;
+    for layer in &materialized.initial().layers()[range] {
+        let mut weights = allocated(layer.weights().len())?;
+        weights.extend(layer.weights().iter().copied());
+        let weights = Array2::from_shape_vec(layer.weights().raw_dim(), weights)
+            .map_err(|_| mismatch("canonical weight shape"))?;
+        let mut biases = allocated(layer.biases().len())?;
+        biases.extend_from_slice(layer.biases());
+        arrays.push((weights, biases));
+    }
+    Ok(arrays)
+}
+
+// Consumes checked geometry exactly once. Its caller must retain the SAME original
+// descriptor/input/accounting tail until every returned crypto value is destroyed.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn make_retained_owned(
+    checked: CheckedPreparation<'_>,
+    materialized: &MaterializedProfile,
+    parameters: Arc<CkksParams>,
+    boot: Option<CpuBootstrapDescription>,
+    key_rng: Rng,
+    encryption_rng: Rng,
+    accounting: &mut crate::study_execution::PreparationAccounting,
+) -> CpuPreparationResult<(StudyClient, CpuEvaluationContext, EncryptedInitialState)> {
+    let facts = checked
+        .descriptor_facts()
+        .ok_or_else(|| mismatch("fixed canonical single owner"))?;
+    let rotations = facts.plan().keys().training_rotations();
+    validate_fixed_setup(
+        SetupFields {
+            parameters: checked.parameters,
+            bootstrap_identity: checked.bootstrap_identity,
+            boot_parameters: checked.boot_parameters,
+            rotations: checked.description.geometry.rotation_steps(),
+            config: checked.description.geometry.eval_config(),
+        },
+        checked.bootstrap_metadata,
+        &parameters,
+        rotations,
+        boot.as_ref(),
+    )?;
+    let _reservation =
+        crate::study_execution::reserve_setup_copies(accounting, materialized, false, 0)?;
+    let (client, context) = make_owned(
+        &checked,
+        parameters,
+        rotations,
+        boot,
+        key_rng,
+        encryption_rng,
+        #[cfg(test)]
+        None,
+    )?;
+    let arrays = copy_canonical_layers(materialized, 0..materialized.initial().layers().len())?;
+    let initial = client.encrypt_initial(checked, &context, &arrays)?;
+    Ok((client, context, initial))
+}
+
 // Compile-visible canonical owned continuation. It cannot be called by public code or
 // dispatch and grants no start authority; D7 must supply the eventual owned callsite.
 #[allow(dead_code, clippy::too_many_arguments)]
@@ -895,3 +1045,76 @@ fn prepare_owned_canonical(
 
 /// Closed block preparation and client endpoints, never D7 authority.
 pub(crate) mod blocks;
+
+#[cfg(test)]
+mod fixed_continuation_tests {
+    use super::*;
+
+    // Shared production pre-key check: equal values never replace retained owners.
+    #[test]
+    fn d7_fixed_prekey_exact_parameters_and_rotations() {
+        let parameters = Arc::new(CkksParams::n16_train());
+        let equal_parameters = Arc::new(CkksParams::n16_train());
+        let fields = || SetupFields {
+            parameters: parameters.as_ref(),
+            bootstrap_identity: None,
+            boot_parameters: None,
+            rotations: &[1, 2],
+            config: EvalConfig::default(),
+        };
+        assert!(validate_fixed_setup(fields(), None, &parameters, &[1, 2], None).is_ok());
+        assert!(validate_fixed_setup(fields(), None, &equal_parameters, &[1, 2], None).is_err());
+        for wrong in [&[1][..], &[1, 2, 3][..], &[2, 1][..], &[1, 1, 2][..]] {
+            assert!(validate_fixed_setup(fields(), None, &parameters, wrong, None).is_err());
+        }
+    }
+
+    #[test]
+    fn d7_fixed_prekey_bootstrap_owner_and_parameters() {
+        use ckks_train_ckks::bootstrap::metadata::DftSupportProof;
+        let parameters = Arc::new(CkksParams::n16_boot());
+        let bp = BootParams::default_n16();
+        let proof = DftSupportProof::verify_current().unwrap();
+        let metadata = Arc::new(
+            BootstrapMetadata::new_with_verified_support(&parameters, &bp, &proof).unwrap(),
+        );
+        let original = CpuBootstrapDescription {
+            parameters: bp.clone(),
+            metadata: metadata.clone(),
+        };
+        let fields = || SetupFields {
+            parameters: parameters.as_ref(),
+            bootstrap_identity: Some(metadata.descriptor_identity_bytes()),
+            boot_parameters: Some(&bp),
+            rotations: &[1],
+            config: EvalConfig::default(),
+        };
+        assert!(
+            validate_fixed_setup(
+                fields(),
+                Some(&metadata),
+                &parameters,
+                &[1],
+                Some(&original)
+            )
+            .is_ok()
+        );
+        let equal = CpuBootstrapDescription {
+            parameters: bp.clone(),
+            metadata: Arc::new(
+                BootstrapMetadata::new_with_verified_support(&parameters, &bp, &proof).unwrap(),
+            ),
+        };
+        assert!(
+            validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&equal))
+                .is_err()
+        );
+        assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], None).is_err());
+        let mut wrong = original;
+        wrong.parameters.ctos_levels = wrong.parameters.ctos_levels.saturating_sub(1);
+        assert!(
+            validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&wrong))
+                .is_err()
+        );
+    }
+}

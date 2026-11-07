@@ -1,0 +1,909 @@
+diff --git a/crates/ckks-train-bench/src/study_client.rs b/crates/ckks-train-bench/src/study_client.rs
+index 99613d8..ed0ca0f 100644
+--- a/crates/ckks-train-bench/src/study_client.rs
++++ b/crates/ckks-train-bench/src/study_client.rs
+@@ -841,6 +841,156 @@ pub(crate) fn make_owned_fields(
+     )
+ }
+ 
++// Strict retained-route check shared with the pre-key refusal tests. This function
++// performs no crypto construction and accepts only already-checked private fields.
++fn validate_fixed_setup(
++    checked: SetupFields<'_>,
++    metadata: Option<&BootstrapMetadata>,
++    parameters: &Arc<CkksParams>,
++    rotations: &[i32],
++    boot: Option<&CpuBootstrapDescription>,
++) -> Result<()> {
++    ensure(
++        std::ptr::eq(checked.parameters, parameters.as_ref()),
++        "fixed actual parameter owner",
++    )?;
++    ensure(
++        checked.rotations == rotations,
++        "fixed exact training rotation union",
++    )?;
++    ensure(
++        checked.bootstrap_identity == boot.map(|b| b.metadata.descriptor_identity_bytes())
++            && checked.boot_parameters == boot.map(|b| &b.parameters),
++        "fixed bootstrap parameters",
++    )?;
++    ensure(
++        match (metadata, boot) {
++            (None, None) => true,
++            (Some(expected), Some(actual)) => std::ptr::eq(expected, actual.metadata.as_ref()),
++            _ => false,
++        },
++        "fixed bootstrap metadata owner",
++    )
++}
++
++impl<'p> CheckedPreparation<'p> {
++    pub(crate) fn actual_parameters(&self) -> PlanningParameters<'p> {
++        PlanningParameters {
++            params: self.parameters,
++            bootstrap: self.bootstrap_metadata,
++            boot_params: self.boot_parameters,
++        }
++    }
++}
++
++// Copies below are application auxiliaries, separately bounded from crypto material.
++const CANONICAL_AUX_MAX: usize = 2_097_152;
++fn copy_payload<T>(n: usize) -> crate::study_execution::AccountingResult<usize> {
++    let bytes = crate::study_execution::payload::<T>(n)?;
++    if bytes > CANONICAL_AUX_MAX {
++        return Err(crate::study_execution::AccountingError::Bytes {
++            required: bytes,
++            configured: CANONICAL_AUX_MAX,
++        });
++    }
++    Ok(bytes)
++}
++pub(crate) fn canonical_array_payload(
++    materialized: &MaterializedProfile,
++    block: bool,
++) -> crate::study_execution::AccountingResult<usize> {
++    use crate::study_execution::sum;
++    let mut bytes = if block {
++        copy_payload::<Vec<(Array2<f64>, Vec<f64>)>>(materialized.graph().stages().len())?
++    } else {
++        0
++    };
++    if block {
++        for stage in materialized.graph().stages() {
++            bytes = sum([
++                bytes,
++                copy_payload::<(Array2<f64>, Vec<f64>)>(stage.layers().len())?,
++            ])?;
++        }
++    } else {
++        bytes = sum([
++            bytes,
++            copy_payload::<(Array2<f64>, Vec<f64>)>(materialized.initial().layers().len())?,
++        ])?;
++    }
++    for layer in materialized.initial().layers() {
++        bytes = sum([
++            bytes,
++            copy_payload::<f64>(layer.weights().len())?,
++            copy_payload::<f64>(layer.biases().len())?,
++        ])?;
++    }
++    Ok(bytes)
++}
++fn copy_canonical_layers(
++    materialized: &MaterializedProfile,
++    range: std::ops::Range<usize>,
++) -> CpuPreparationResult<Vec<(Array2<f64>, Vec<f64>)>> {
++    use crate::study_execution::allocated;
++    let mut arrays = allocated(range.len())?;
++    for layer in &materialized.initial().layers()[range] {
++        let mut weights = allocated(layer.weights().len())?;
++        weights.extend(layer.weights().iter().copied());
++        let weights = Array2::from_shape_vec(layer.weights().raw_dim(), weights)
++            .map_err(|_| mismatch("canonical weight shape"))?;
++        let mut biases = allocated(layer.biases().len())?;
++        biases.extend_from_slice(layer.biases());
++        arrays.push((weights, biases));
++    }
++    Ok(arrays)
++}
++
++// Consumes checked geometry exactly once. Its caller must retain the SAME original
++// descriptor/input/accounting tail until every returned crypto value is destroyed.
++#[allow(clippy::too_many_arguments)]
++pub(crate) fn make_retained_owned(
++    checked: CheckedPreparation<'_>,
++    materialized: &MaterializedProfile,
++    parameters: Arc<CkksParams>,
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++    accounting: &mut crate::study_execution::PreparationAccounting,
++) -> CpuPreparationResult<(StudyClient, CpuEvaluationContext, EncryptedInitialState)> {
++    let facts = checked
++        .descriptor_facts()
++        .ok_or_else(|| mismatch("fixed canonical single owner"))?;
++    let rotations = facts.plan().keys().training_rotations();
++    validate_fixed_setup(
++        SetupFields {
++            parameters: checked.parameters,
++            bootstrap_identity: checked.bootstrap_identity,
++            boot_parameters: checked.boot_parameters,
++            rotations: checked.description.geometry.rotation_steps(),
++            config: checked.description.geometry.eval_config(),
++        },
++        checked.bootstrap_metadata,
++        &parameters,
++        rotations,
++        boot.as_ref(),
++    )?;
++    let _reservation =
++        crate::study_execution::reserve_setup_copies(accounting, materialized, false, 0)?;
++    let (client, context) = make_owned(
++        &checked,
++        parameters,
++        rotations,
++        boot,
++        key_rng,
++        encryption_rng,
++        #[cfg(test)]
++        None,
++    )?;
++    let arrays = copy_canonical_layers(materialized, 0..materialized.initial().layers().len())?;
++    let initial = client.encrypt_initial(checked, &context, &arrays)?;
++    Ok((client, context, initial))
++}
++
+ // Compile-visible canonical owned continuation. It cannot be called by public code or
+ // dispatch and grants no start authority; D7 must supply the eventual owned callsite.
+ #[allow(dead_code, clippy::too_many_arguments)]
+@@ -895,3 +1045,76 @@ fn prepare_owned_canonical(
+ 
+ /// Closed block preparation and client endpoints, never D7 authority.
+ pub(crate) mod blocks;
++
++#[cfg(test)]
++mod fixed_continuation_tests {
++    use super::*;
++
++    // Shared production pre-key check: equal values never replace retained owners.
++    #[test]
++    fn d7_fixed_prekey_exact_parameters_and_rotations() {
++        let parameters = Arc::new(CkksParams::n16_train());
++        let equal_parameters = Arc::new(CkksParams::n16_train());
++        let fields = || SetupFields {
++            parameters: parameters.as_ref(),
++            bootstrap_identity: None,
++            boot_parameters: None,
++            rotations: &[1, 2],
++            config: EvalConfig::default(),
++        };
++        assert!(validate_fixed_setup(fields(), None, &parameters, &[1, 2], None).is_ok());
++        assert!(validate_fixed_setup(fields(), None, &equal_parameters, &[1, 2], None).is_err());
++        for wrong in [&[1][..], &[1, 2, 3][..], &[2, 1][..], &[1, 1, 2][..]] {
++            assert!(validate_fixed_setup(fields(), None, &parameters, wrong, None).is_err());
++        }
++    }
++
++    #[test]
++    fn d7_fixed_prekey_bootstrap_owner_and_parameters() {
++        use ckks_train_ckks::bootstrap::metadata::DftSupportProof;
++        let parameters = Arc::new(CkksParams::n16_boot());
++        let bp = BootParams::default_n16();
++        let proof = DftSupportProof::verify_current().unwrap();
++        let metadata = Arc::new(
++            BootstrapMetadata::new_with_verified_support(&parameters, &bp, &proof).unwrap(),
++        );
++        let original = CpuBootstrapDescription {
++            parameters: bp.clone(),
++            metadata: metadata.clone(),
++        };
++        let fields = || SetupFields {
++            parameters: parameters.as_ref(),
++            bootstrap_identity: Some(metadata.descriptor_identity_bytes()),
++            boot_parameters: Some(&bp),
++            rotations: &[1],
++            config: EvalConfig::default(),
++        };
++        assert!(
++            validate_fixed_setup(
++                fields(),
++                Some(&metadata),
++                &parameters,
++                &[1],
++                Some(&original)
++            )
++            .is_ok()
++        );
++        let equal = CpuBootstrapDescription {
++            parameters: bp.clone(),
++            metadata: Arc::new(
++                BootstrapMetadata::new_with_verified_support(&parameters, &bp, &proof).unwrap(),
++            ),
++        };
++        assert!(
++            validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&equal))
++                .is_err()
++        );
++        assert!(validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], None).is_err());
++        let mut wrong = original;
++        wrong.parameters.ctos_levels = wrong.parameters.ctos_levels.saturating_sub(1);
++        assert!(
++            validate_fixed_setup(fields(), Some(&metadata), &parameters, &[1], Some(&wrong))
++                .is_err()
++        );
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_client/blocks.rs b/crates/ckks-train-bench/src/study_client/blocks.rs
+index 5e37a51..9365fd7 100644
+--- a/crates/ckks-train-bench/src/study_client/blocks.rs
++++ b/crates/ckks-train-bench/src/study_client/blocks.rs
+@@ -673,3 +673,98 @@ fn prepare_block_owned_canonical(
+         },
+     )
+ }
++
++impl<'p> CheckedBlockPreparation<'p> {
++    pub(crate) fn actual_parameters(&self) -> PlanningParameters<'p> {
++        PlanningParameters {
++            params: self.parameters,
++            bootstrap: self.bootstrap_metadata,
++            boot_params: self.boot_parameters,
++        }
++    }
++    // The actual encrypt_block_initial binding clones these descriptions/classes.
++    // Size by borrow, before invoking the cloning endpoint, with no geometry clone.
++    pub(crate) fn binding_copy_payload(&self) -> crate::study_execution::AccountingResult<usize> {
++        use crate::study_execution::{AccountingError, sum};
++        let mut bytes = sum([
++            copy_payload::<Description>(self.descriptions.len())?,
++            copy_payload::<usize>(self.classes.len())?,
++        ])?;
++        for description in &self.descriptions {
++            let geometry = description
++                .geometry
++                .requested_heap_payload_bytes()
++                .ok_or(AccountingError::Overflow)?;
++            let transpose = match &description.transpose {
++                ckks_train_nn::dense::TransposeKeys::Dedicated => 0,
++                ckks_train_nn::dense::TransposeKeys::Reuse(v) => copy_payload::<i32>(v.len())?,
++            };
++            bytes = sum([
++                bytes,
++                geometry,
++                copy_payload::<DiagonalActivation>(description.activations.len())?,
++                transpose,
++            ])?;
++        }
++        // The binding is one new retained auxiliary; the original geometries remain
++        // charged separately by the original preparation owner.
++        copy_payload::<u8>(bytes)
++    }
++}
++
++#[allow(clippy::too_many_arguments)]
++pub(crate) fn make_retained_blocks_owned(
++    checked: CheckedBlockPreparation<'_>,
++    materialized: &MaterializedProfile,
++    parameters: Arc<CkksParams>,
++    boot: Option<CpuBootstrapDescription>,
++    key_rng: Rng,
++    encryption_rng: Rng,
++    accounting: &mut crate::study_execution::PreparationAccounting,
++) -> CpuPreparationResult<(
++    StudyClient,
++    CpuEvaluationContext,
++    EncryptedBlockInitial,
++    BlockEncryptionBinding,
++)> {
++    let facts = checked
++        .descriptor_facts()
++        .ok_or_else(|| mismatch("fixed canonical block owner"))?;
++    let rotations = facts.plan().keys().training_rotations();
++    validate_fixed_setup(
++        SetupFields {
++            parameters: checked.parameters,
++            bootstrap_identity: checked.bootstrap_identity,
++            boot_parameters: checked.boot_parameters,
++            rotations: &checked.rotations,
++            config: checked.descriptions[0].geometry.eval_config(),
++        },
++        checked.bootstrap_metadata,
++        &parameters,
++        rotations,
++        boot.as_ref(),
++    )?;
++    let binding_bytes = checked.binding_copy_payload()?;
++    let mut reservation = crate::study_execution::reserve_setup_copies(
++        accounting,
++        materialized,
++        true,
++        binding_bytes,
++    )?;
++    let (client, context) = make_blocks_owned(
++        &checked,
++        parameters,
++        rotations,
++        boot,
++        key_rng,
++        encryption_rng,
++    )?;
++    let mut arrays = crate::study_execution::allocated(materialized.graph().stages().len())?;
++    for stage in materialized.graph().stages() {
++        arrays.push(copy_canonical_layers(materialized, stage.layers())?);
++    }
++    let (initial, binding) = client.encrypt_block_initial(checked, &context, &arrays)?;
++    drop(arrays);
++    reservation.retain(binding_bytes)?;
++    Ok((client, context, initial, binding))
++}
+diff --git a/crates/ckks-train-bench/src/study_execution.rs b/crates/ckks-train-bench/src/study_execution.rs
+index 5387bcf..cb87f60 100644
+--- a/crates/ckks-train-bench/src/study_execution.rs
++++ b/crates/ckks-train-bench/src/study_execution.rs
+@@ -1,5 +1,5 @@
+ //! Retained canonical CPU preparation. No start or execution capability.
+-#![allow(dead_code)] // Intentionally disconnected from production until fixed phase3 release.
++#![allow(dead_code)] // Intentionally disconnected until genuine live gates and durable start exist.
+ use crate::{
+     study_admission::{
+         DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters, ReceiptLimits,
+@@ -10,6 +10,8 @@ use crate::{
+ };
+ use std::sync::Arc;
+ use study_client::blocks::CheckedBlockPreparation;
++mod cpu_continuation;
++pub(crate) use cpu_continuation::reserve_setup_copies;
+ 
+ #[derive(Debug, PartialEq, Eq)]
+ /// A failure of the additive retained preparation requested-payload boundary.
+diff --git a/crates/ckks-train-bench/src/study_execution/cpu_continuation.rs b/crates/ckks-train-bench/src/study_execution/cpu_continuation.rs
+new file mode 100644
+index 0000000..185e5ed
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_execution/cpu_continuation.rs
+@@ -0,0 +1,542 @@
++//! Fixed, disconnected CPU bodies; no live gate, start capability or runtime claim.
++use super::*;
++use crate::{
++    study_admission,
++    study_blocks::{CpuBlockEvaluation, CpuBlockSession, EncryptedBlockInitial},
++    study_client::{CpuBootstrapDescription, StudyClient, blocks::BlockEncryptionBinding},
++    study_diagonal::{CpuDiagonalSession, CpuEvaluationContext, EncryptedInitialState},
++};
++use ckks_train_ckks::{CkksParams, OpCounter};
++use ckks_train_core::sampler::Rng;
++use std::{marker::PhantomData, rc::Rc};
++
++// This tail owns no permission. Only an already-retained bundle can supply it.
++// Move these SAME fields into the future genuine frame; never reset accounting.
++// Rust drops fields in declaration order: descriptors before accounting.
++struct RetainedCpuInputs<'i, 'p> {
++    descriptors: CanonicalDescriptors,
++    materialized: &'i MaterializedProfile,
++    registered: &'i RegisteredCase,
++    request: &'i DiagonalRequest,
++    plan: Arc<DiagonalPlan>,
++    actual: PlanningParameters<'p>,
++    not_send_sync: PhantomData<Rc<()>>,
++    accounting: PreparationAccounting,
++}
++fn retain_single_bundle<'i, 'p>(
++    bundle: PreparedCanonicalBundle<'i, CheckedPreparation<'p>>,
++) -> (CheckedPreparation<'p>, RetainedCpuInputs<'i, 'p>) {
++    let PreparedCanonicalBundle {
++        descriptors,
++        preparation,
++    } = bundle;
++    let RetainedPreparation {
++        checked,
++        materialized,
++        registered,
++        request,
++        accounting,
++    } = preparation;
++    let actual = checked.actual_parameters();
++    let plan = match &checked.plan {
++        crate::study_diagonal::PlanOwner::Canonical(p) => p.clone(),
++        #[cfg(test)]
++        crate::study_diagonal::PlanOwner::Synthetic(_) => unreachable!("canonical bundle"),
++    };
++    (
++        checked,
++        RetainedCpuInputs {
++            descriptors,
++            materialized,
++            registered,
++            request,
++            plan,
++            actual,
++            not_send_sync: PhantomData,
++            accounting,
++        },
++    )
++}
++fn retain_block_bundle<'i, 'p>(
++    bundle: PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>,
++) -> (CheckedBlockPreparation<'p>, RetainedCpuInputs<'i, 'p>) {
++    let PreparedCanonicalBundle {
++        descriptors,
++        preparation,
++    } = bundle;
++    let RetainedPreparation {
++        checked,
++        materialized,
++        registered,
++        request,
++        accounting,
++    } = preparation;
++    let actual = checked.actual_parameters();
++    let plan = match &checked.plan {
++        crate::study_blocks::BlockPlanOwner::Canonical(p) => p.clone(),
++        #[cfg(test)]
++        crate::study_blocks::BlockPlanOwner::Synthetic(_) => unreachable!("canonical bundle"),
++    };
++    (
++        checked,
++        RetainedCpuInputs {
++            descriptors,
++            materialized,
++            registered,
++            request,
++            plan,
++            actual,
++            not_send_sync: PhantomData,
++            accounting,
++        },
++    )
++}
++pub(crate) fn reserve_setup_copies<'a>(
++    accounting: &'a mut PreparationAccounting,
++    materialized: &MaterializedProfile,
++    block: bool,
++    binding_bytes: usize,
++) -> AccountingResult<Reservation<'a>> {
++    accounting.reserve(sum([
++        study_client::canonical_array_payload(materialized, block)?,
++        binding_bytes,
++    ])?)
++}
++
++// Keep fixed owners inline: boxing would add an unrelated application allocation.
++#[allow(clippy::large_enum_variant)]
++enum CpuOwnedSetup {
++    Single {
++        client: StudyClient,
++        evaluation: CpuEvaluationContext,
++        initial: EncryptedInitialState,
++    },
++    Block {
++        client: StudyClient,
++        evaluation: CpuEvaluationContext,
++        initial: EncryptedBlockInitial,
++        binding: BlockEncryptionBinding,
++    },
++}
++// NON-authorizing intermediate owner. Its only constructors consume the retained
++// bundle, never caller hashes. An unused value drops crypto BEFORE its input tail.
++pub(crate) struct CpuContinuation<'i, 'p> {
++    setup: CpuOwnedSetup,
++    retained: RetainedCpuInputs<'i, 'p>,
++}
++impl<'i, 'p> CpuContinuation<'i, 'p> {
++    pub(crate) fn single(
++        bundle: PreparedCanonicalBundle<'i, CheckedPreparation<'p>>,
++        parameters: Arc<CkksParams>,
++        boot: Option<CpuBootstrapDescription>,
++        key_rng: Rng,
++        encryption_rng: Rng,
++    ) -> CpuPreparationResult<Self> {
++        let (checked, mut retained) = retain_single_bundle(bundle);
++        let (client, evaluation, initial) = study_client::make_retained_owned(
++            checked,
++            retained.materialized,
++            parameters,
++            boot,
++            key_rng,
++            encryption_rng,
++            &mut retained.accounting,
++        )?;
++        Ok(Self {
++            setup: CpuOwnedSetup::Single {
++                client,
++                evaluation,
++                initial,
++            },
++            retained,
++        })
++    }
++    pub(crate) fn block(
++        bundle: PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>,
++        parameters: Arc<CkksParams>,
++        boot: Option<CpuBootstrapDescription>,
++        key_rng: Rng,
++        encryption_rng: Rng,
++    ) -> CpuPreparationResult<Self> {
++        let (checked, mut retained) = retain_block_bundle(bundle);
++        let (client, evaluation, initial, binding) =
++            study_client::blocks::make_retained_blocks_owned(
++                checked,
++                retained.materialized,
++                parameters,
++                boot,
++                key_rng,
++                encryption_rng,
++                &mut retained.accounting,
++            )?;
++        Ok(Self {
++            setup: CpuOwnedSetup::Block {
++                client,
++                evaluation,
++                initial,
++                binding,
++            },
++            retained,
++        })
++    }
++    // Deliberately not called by run_owned. Genuine live gate/resource rechecks and
++    // post-durable-start accounted binding validation still need their real frame.
++    // Failure retains progress inline; no error-path heap allocation is needed.
++    #[allow(clippy::result_large_err)]
++    pub(crate) fn execute_cpu(self, refresh_rng: Rng) -> Result<CpuRunProgress, CpuRunFailure> {
++        let Self { setup, retained } = self;
++        // Declare retained FIRST so every setup/session local dies before it on
++        // all returns, including a failed session constructor or encrypted update.
++        let mut retained = retained;
++        let setup = setup;
++        match setup {
++            CpuOwnedSetup::Single {
++                client,
++                evaluation,
++                initial,
++            } => {
++                let origin = evaluation.counter();
++                let mut progress = CpuRunProgress::default();
++                let result = {
++                    let refresh = retained
++                        .actual
++                        .bootstrap
++                        .is_none()
++                        .then(|| client.refresh_service(refresh_rng));
++                    let mut session = CpuDiagonalSession::new(
++                        &evaluation,
++                        retained.plan.clone(),
++                        initial,
++                        refresh.as_ref(),
++                    )
++                    .map_err(|error| {
++                        progress.measured = &evaluation.counter() - &origin;
++                        CpuRunFailure {
++                            error: error.into(),
++                            progress: progress.clone(),
++                        }
++                    })?;
++                    loop {
++                        let index = progress.completed_updates;
++                        if index == retained.plan.consumed_updates() {
++                            break Ok(progress);
++                        }
++                        let step = retained
++                            .encrypt_single_update(&client, &evaluation, index)
++                            .and_then(|update| {
++                                session.step(&update).map_err(CpuPreparationError::He)
++                            });
++                        match step {
++                            Ok(done) => {
++                                progress.completed_updates = done.completed_updates;
++                                progress.processed_samples = done.processed_samples;
++                                progress.measured = &evaluation.counter() - &origin;
++                            }
++                            Err(error) => {
++                                progress.measured = &evaluation.counter() - &origin;
++                                progress.poisoned = session.is_poisoned();
++                                progress.failed_prefix =
++                                    session.failed_update().map(|failed| CpuFailurePrefix {
++                                        update: failed.update,
++                                        phase: failed.phase,
++                                        measured: failed.measured.clone(),
++                                    });
++                                break Err(CpuRunFailure { error, progress });
++                            }
++                        }
++                    }
++                    // Session drops here, before its same-client refresher.
++                };
++                // client/evaluation drop before retained on leaving this arm.
++                result
++            }
++            CpuOwnedSetup::Block {
++                client,
++                evaluation,
++                initial,
++                binding,
++            } => {
++                let origin = evaluation.counter();
++                let mut progress = CpuRunProgress::default();
++                let result = {
++                    let refresh = retained
++                        .actual
++                        .bootstrap
++                        .is_none()
++                        .then(|| client.refresh_service(refresh_rng));
++                    let facade = CpuBlockEvaluation::new(&evaluation);
++                    let mut session = CpuBlockSession::new(
++                        &facade,
++                        retained.plan.clone(),
++                        initial,
++                        refresh.as_ref(),
++                    )
++                    .map_err(|error| {
++                        progress.measured = &evaluation.counter() - &origin;
++                        CpuRunFailure {
++                            error: error.into(),
++                            progress: progress.clone(),
++                        }
++                    })?;
++                    loop {
++                        let index = progress.completed_updates;
++                        if index == retained.plan.consumed_updates() {
++                            break Ok(progress);
++                        }
++                        let step = retained
++                            .encrypt_block_update(&client, &evaluation, &binding, index)
++                            .and_then(|update| {
++                                session.step(&update).map_err(CpuPreparationError::He)
++                            });
++                        match step {
++                            Ok(done) => {
++                                progress.completed_updates = done.completed_updates;
++                                progress.processed_samples = done.processed_samples;
++                                progress.measured = &evaluation.counter() - &origin;
++                            }
++                            Err(error) => {
++                                progress.measured = &evaluation.counter() - &origin;
++                                progress.poisoned = session.is_poisoned();
++                                progress.failed_prefix =
++                                    session.failed_update().map(|failed| CpuFailurePrefix {
++                                        update: failed.update,
++                                        phase: failed.phase,
++                                        measured: failed.measured.clone(),
++                                    });
++                                break Err(CpuRunFailure { error, progress });
++                            }
++                        }
++                    }
++                    // session, facade, refresher drop in that order.
++                };
++                result
++            }
++        }
++    }
++}
++impl RetainedCpuInputs<'_, '_> {
++    fn binding_workspace(&self) -> CpuPreparationResult<usize> {
++        study_admission::binding_workspace_payload(
++            self.materialized,
++            self.registered,
++            self.actual,
++            self.request,
++        )
++        .map_err(|e| CpuPreparationError::Admission(Box::new(e)))
++    }
++    fn encrypt_single_update(
++        &mut self,
++        client: &StudyClient,
++        evaluation: &CpuEvaluationContext,
++        index: usize,
++    ) -> CpuPreparationResult<crate::study_diagonal::EncryptedLogicalUpdate> {
++        let bytes = self.binding_workspace()?;
++        let _reservation = self.accounting.reserve(bytes)?;
++        client.encrypt_update(
++            self.materialized,
++            self.registered,
++            self.plan.clone(),
++            self.request,
++            index,
++            evaluation,
++        )
++    }
++    fn encrypt_block_update(
++        &mut self,
++        client: &StudyClient,
++        evaluation: &CpuEvaluationContext,
++        binding: &BlockEncryptionBinding,
++        index: usize,
++    ) -> CpuPreparationResult<crate::study_blocks::EncryptedBlockUpdate> {
++        let bytes = self.binding_workspace()?;
++        let _reservation = self.accounting.reserve(bytes)?;
++        client.encrypt_block_update(
++            binding,
++            self.materialized,
++            self.registered,
++            self.plan.clone(),
++            self.request,
++            index,
++            evaluation,
++        )
++    }
++}
++// Operational partial progress only. No ciphertext snapshots, scientific JSON,
++// endpoint metrics, gate bit or readiness identity are produced by these bodies.
++#[derive(Clone, Debug, Default)]
++pub(crate) struct CpuRunProgress {
++    completed_updates: usize,
++    processed_samples: usize,
++    poisoned: bool,
++    measured: OpCounter,
++    failed_prefix: Option<CpuFailurePrefix>,
++}
++#[derive(Clone, Debug)]
++struct CpuFailurePrefix {
++    update: usize,
++    phase: &'static str,
++    measured: OpCounter,
++}
++#[derive(Debug)]
++pub(crate) struct CpuRunFailure {
++    error: CpuPreparationError,
++    progress: CpuRunProgress,
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::study_admission::{PlanningBudget, PlanningUsage};
++    use crate::study_profile::{CaseBackend, CasePlacement, CaseRole, StudyRegistry};
++    use std::path::Path;
++
++    #[test]
++    fn d7_fixed_retained_association_and_copy_refusal() {
++        let registry =
++            StudyRegistry::load(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap();
++        let cases = registry.registered_cases().unwrap();
++        let parameters = Arc::new(CkksParams::n16_train());
++        let equal_parameters = Arc::new(CkksParams::n16_train());
++        for stages in [1, 2] {
++            let id = format!("iris__emlp{stages}");
++            let materialized =
++                crate::study_inputs::materialize(&registry.resolve(&id, 0).unwrap()).unwrap();
++            let case = cases
++                .family_cases()
++                .iter()
++                .find(|c| {
++                    c.role() == CaseRole::Main
++                        && c.selector().profile_id == id
++                        && c.selector().seed == 0
++                        && c.selector().backend == CaseBackend::Cpu
++                        && c.selector().placement == CasePlacement::ClientRefresh
++                })
++                .unwrap();
++            let mut request = DiagonalRequest::quick();
++            request.work_budget = Arc::new(PlanningBudget::new(PlanningUsage {
++                geometries: 2 * stages,
++                initial_states: 2 * stages,
++                updates: 2 * stages,
++                handoffs: 2 * (stages - 1),
++                wrapper_calls: 1,
++            }));
++            let actual = PlanningParameters {
++                params: &parameters,
++                bootstrap: None,
++                boot_params: None,
++            };
++            let plan = Arc::new(
++                study_admission::plan_diagonal(&materialized, case, actual, &request).unwrap(),
++            );
++            let input = CanonicalPreparationInput {
++                materialized: &materialized,
++                registered: case,
++                plan: plan.clone(),
++                request: &request,
++                actual,
++            };
++            let (retained, binding_bytes) = if stages == 1 {
++                let bundle =
++                    collect_single(prepare_canonical(input, plan.partitions()).unwrap()).unwrap();
++                let descriptor_pointer = bundle.descriptors.layout.as_ptr();
++                let before = bundle.preparation.accounting.retained;
++                let (checked, mut retained) = retain_single_bundle(bundle);
++                assert_eq!(retained.descriptors.layout.as_ptr(), descriptor_pointer);
++                assert_eq!(retained.accounting.retained, before);
++                assert!(std::ptr::eq(
++                    checked.actual_parameters().params,
++                    retained.actual.params
++                ));
++                let refusal = study_client::make_retained_owned(
++                    checked,
++                    retained.materialized,
++                    equal_parameters.clone(),
++                    None,
++                    Rng::from_seed([41; 32]),
++                    Rng::from_seed([42; 32]),
++                    &mut retained.accounting,
++                );
++                assert!(matches!(refusal, Err(CpuPreparationError::He(_))));
++                assert_eq!(retained.accounting.retained, before);
++                (retained, 0)
++            } else {
++                let bundle =
++                    collect_blocks(prepare_blocks_canonical(input, plan.partitions()).unwrap())
++                        .unwrap();
++                let descriptor_pointer = bundle.descriptors.layout.as_ptr();
++                let before = bundle.preparation.accounting.retained;
++                let (checked, mut retained) = retain_block_bundle(bundle);
++                assert_eq!(retained.descriptors.layout.as_ptr(), descriptor_pointer);
++                assert_eq!(retained.accounting.retained, before);
++                let binding_bytes = checked.binding_copy_payload().unwrap();
++                let refusal = study_client::blocks::make_retained_blocks_owned(
++                    checked,
++                    retained.materialized,
++                    equal_parameters.clone(),
++                    None,
++                    Rng::from_seed([43; 32]),
++                    Rng::from_seed([44; 32]),
++                    &mut retained.accounting,
++                );
++                assert!(matches!(refusal, Err(CpuPreparationError::He(_))));
++                assert_eq!(retained.accounting.retained, before);
++                (retained, binding_bytes)
++            };
++            assert!(Arc::ptr_eq(&retained.plan, &plan));
++            assert!(std::ptr::eq(retained.materialized, &materialized));
++            assert!(std::ptr::eq(retained.registered, case));
++            assert!(std::ptr::eq(retained.request, &request));
++            assert!(std::ptr::eq(retained.actual.params, parameters.as_ref()));
++            let copies = sum([
++                study_client::canonical_array_payload(&materialized, stages > 1).unwrap(),
++                binding_bytes,
++            ])
++            .unwrap();
++            // This is a fresh pure refusal probe for the SAME production reservation
++            // helper, not a mutated request/plan and never a crypto constructor.
++            let mut too_small = PreparationAccounting::from_seed(
++                0,
++                0,
++                ReceiptLimits {
++                    max_bytes: copies - 1,
++                    max_records: 0,
++                },
++            )
++            .unwrap();
++            assert!(
++                reserve_setup_copies(&mut too_small, &materialized, stages > 1, binding_bytes)
++                    .is_err()
++            );
++            assert_eq!((too_small.retained, too_small.live_temporary), (0, 0));
++            let mut exact = PreparationAccounting::from_seed(
++                0,
++                0,
++                ReceiptLimits {
++                    max_bytes: copies,
++                    max_records: 0,
++                },
++            )
++            .unwrap();
++            {
++                let mut reservation =
++                    reserve_setup_copies(&mut exact, &materialized, stages > 1, binding_bytes)
++                        .unwrap();
++                reservation.retain(binding_bytes).unwrap();
++                // Remaining canonical arrays are temporary and release on scope exit.
++            }
++            assert_eq!((exact.retained, exact.live_temporary), (binding_bytes, 0));
++            assert_eq!(retained.accounting.live_temporary, 0);
++            assert_eq!(
++                request.work_budget.usage(),
++                PlanningUsage {
++                    geometries: 2 * stages,
++                    initial_states: 2 * stages,
++                    updates: 2 * stages,
++                    handoffs: 2 * (stages - 1),
++                    wrapper_calls: 1,
++                }
++            );
++            drop(retained);
++        }
++    }
++}

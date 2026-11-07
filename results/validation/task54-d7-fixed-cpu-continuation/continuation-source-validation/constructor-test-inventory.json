@@ -1,0 +1,58 @@
+{
+  "executed_tests": 0,
+  "runtime_authorized": false,
+  "filters": [
+    {
+      "filter": "study_client::fixed_continuation_tests::d7_fixed_prekey_exact_parameters_and_rotations",
+      "n16_train": 2,
+      "strict_validation_calls": 6,
+      "rng": 0,
+      "geometry": 0
+    },
+    {
+      "filter": "study_client::fixed_continuation_tests::d7_fixed_prekey_bootstrap_owner_and_parameters",
+      "n16_boot": 1,
+      "default_n16_bootparams": 1,
+      "dft_support_proof": 1,
+      "bootstrap_metadata": 2,
+      "strict_validation_calls": 4,
+      "rng": 0,
+      "geometry": 0
+    },
+    {
+      "filter": "study_execution::cpu_continuation::tests::d7_fixed_retained_association_and_copy_refusal",
+      "n16_train": 2,
+      "registry_load": 1,
+      "registered_cases_inventory": 1,
+      "materializations": 2,
+      "plans": 2,
+      "retained_preparations": 2,
+      "descriptor_bundles": 2,
+      "g": 6,
+      "initial": 6,
+      "metadata_updates": 6,
+      "metadata_handoffs": 2,
+      "wrapper": 2,
+      "accounted_binding_validation": 2,
+      "fixed_setup_refusals": 2,
+      "rng_from_seed": 4,
+      "copy_reservation_attempts": 4,
+      "copy_reservation_successes": 2
+    }
+  ],
+  "expected_crypto_for_each_filter": {
+    "KeyGenerator": 0,
+    "Encoder": 0,
+    "Encryptor": 0,
+    "Decryptor": 0,
+    "Evaluator": 0,
+    "Bootstrapper": 0,
+    "session": 0,
+    "refresh_service": 0,
+    "encrypted_arrays": 0,
+    "snapshots": 0,
+    "training": 0,
+    "native_observer": 0
+  },
+  "conditional_inventory_only": true
+}
