@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [CPU学習準備・計上](#latest-evidence-20261107-d7-retained-preparation)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
+最新の設計: [証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2255)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -18,7 +18,7 @@
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
 | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | `7752459`、引継ぎ修正と独立再レビュー済み | 合計49件の Python 回帰テスト、表・図の freshness、shell syntax が合格。`--tables-only` で再生成可能 | **縮小版の再現入口は実装・レビュー済み。計画の全実験行列は実装未完**。拡張実装中で、[P4単一段CPU経路の限定検証](#latest-evidence-20261107-p4-cpu)まで反映済み。R-54-1 は未投入で post-full-v1 対象外 |
+| 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
 | 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **ローカル公開準備済み**。改名SHA09202cfのLinux CI全6ジョブ成功。queue SHA4b1c499のLinux CIも全6ジョブsuccess（後続SHAには継承しない）。公開操作は未実施 |
 | 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
@@ -634,6 +634,8 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 実際のnative contextによるbind_actual_cpu／run_owned成功、暗号学習、GPU、実gate・durable startは未実行であり、productionはMissingExecutionDependencyを維持する。残りは五つの実gateと証拠reader、admission／startの保存、開始後の所有者・lease接続、科学結果publisher、全実験である。Task54／M4／M5全体や物理メモリ適合の合格とはしない。
 
+<a id="latest-evidence-20261107-d7-admission-codec"></a>
+
 ## 2026-11-07追記: Full admission／startの記録形式
 
 [実装・検証証跡](../results/validation/task54-d7-admission-codec/README.md)を保存した。Full admission／startの厳密なparserとcanonical encodingを追加し、既存Reference／Lockと共通処理を再利用した。CaseIdentityは実際の登録ケースとparsed claimsが同じencodingを通り、ExecutionBindingも既存処理を共有する。既存78個のテストデータ、C／R／AとFullのbytes・上限は変更していない。
@@ -643,6 +645,8 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 回帰には実際の登録ケース2700件と補足7件のmetadata生成、19個の独立canonical値との比較が含まれる。新規9件は小さいfixtureによる記録・リンク・拒否・上限の検証で、上限サイズの巨大bufferや暗号処理は実行していない。documentのEncoderは実行しており、暗号用Encoderを生成していないことと区別する。
 
 実際のRetry readerは、現在と前回のadmissionの両方を同じ保持中のtarget／referenceと承認policyに照合してから、predecessor／startの整合性helperを組み合わせる必要がある。現在分のtarget確認だけでは足りず、前回のlock等を変更した拒否テストを次工程に残す。parserやhash一致は実gate・lease・実行開始権限にならない。保存protocol、durable start、Quick、科学結果publisherと全実験は未完了である。
+
+<a id="latest-evidence-20261107-d7-gate-schema"></a>
 
 ## 2026-11-07追記: 五つの証拠形式とQuick記録の確定
 
