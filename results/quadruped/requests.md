@@ -753,3 +753,17 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `task-54-linux-metadata-R25.{stdout,stderr,meta.json}` original operational records.
 - **pass criterion:** recorded file identity/hash and bounded header diagnostic on refusal; retain partial inventory/incomplete exit. No automatic cap increase, repair, skip-to-success, FULL poll or campaign release.
 - **status:** incomplete (2026-11-07T09:50:13.936008+09:00, SSH exit1). Candidate matplotlib-3.11.2.dist-info/METADATA hash retained; license accumulated8219bytes atline171 over8192cap. Metadata550058B/source0/small0, no later stages or retry. Exact operational originals: observations/R-REB-25/.
+
+
+## R-REB-26-REMAINING-PREREQUISITES: fixed bounded completion attempt
+
+- **purpose:** Collect exactly four missing pinned CPython callee bodies, two shallow discovery-root checks, corrected metadata forms and previously unreached fixed checkout/native/input candidate evidence. Operational preparation only.
+- **commit to sync:** none; frozen stdin observer, no deployment/checkout change.
+- **working dir:** absolute fixed paths under existing own baseline/preparation roots; no target import.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; ledger `task-54-linux-remaining-prerequisite-observer-v1.py` SHA256be66283425f9a21d5cd424b7bdf4c890167245394b958acd2f24072a34ef0b5b. FIX3 review4359079fe591f575df68e2385524ad61a3c206f42047596cbbf0e0fe47d0cd27; exact release `task-54-linux-prerequisite-R26-execution-release.md`.
+- **expected duration:** seconds, cooperative60s work budget; one process/thread, connect90s. Controller async handle retained to terminal; no restart on observation delay.
+- **GPU memory need:**0. **RAM need:** under150MiB expected.
+- **limits:** unchanged58MiB content (source2/metadata16/small24/self16MiB),8MiBoutput; fixed4sources at256KiB each, two shallow2048entry checks; physical metadata lines8192 and selectedvalues256. Long opaque logical headers are now recorded as final-length forms under existing filebounds; universal logical8192 refusal explicitly changed before code. No original23body reread, RECORD target read, package/native contenthash, fullraw/weight/order data, targetimport/subprocess/Git invocation.
+- **output path:** ignored ledger `task-54-linux-prerequisite-R26.{stdout,stderr,meta.json}`. Stdout includes4CPython audit bodies: NEVER copy to tracked/public archives. Later public summary must be derived and omit source_text.
+- **pass criterion:** Original bounded observations and explicit missing/unsupported/refused outcomes preserved; firstraised/latchedfailure stops. Observation completion is not prerequisite/closure/context/capture/scientific acceptance. No automatic retry/repair/capincrease/FULLpoll/campaign release.
+- **status:** bounded observation complete (2026-11-07T10:13:35.121185+09:00, SSH exit0). Metadata66distributions/198entries, fournewsourcepinsmatch, two roots no metadata candidates. Exporter checkout absent; historicalconfigpin mismatch unresolved; native candidates metadata-only. No context/capture/scientific acceptance. Derived identities/forms summary: observations/R-REB-26/; originalsource-body stdout private only.

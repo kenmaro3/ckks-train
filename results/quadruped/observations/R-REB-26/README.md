@@ -1,0 +1,11 @@
+# R26 remaining prerequisites — bounded observation complete
+
+Actual finish 2026-11-07T10:13:35.121185+09:00; SSH exit0, empty stderr. This is operational preparation, not scientific results or approval of prerequisites, helper closure, native runtime, context or capture.
+
+Derived-summary.json removes only the four source_text fields from the original observation and records the original stdout identity. Full CPython bodies remain exclusively in the ignored audit ledger. Controller.json, stderr.txt and observer.py preserve original controller/stderr and exact own invoked code. No collected stdlib or baseline source body is published here.
+
+Four pinned sources totaled22624bytes. Metadata reports66distributions/198file entries, filesystem_forms_complete, no missing required names/duplicates/unsupported forms. Long License fields now report final normalized lengths59883/46523/50660/45750bytes (matplotlib/numpy/pandas/scipy), without values. Two fixed stdlib roots scanned206/5 entries, completed with no metadata candidates. These are dated filesystem/form observations, not executed target behavior.
+
+The proposed honest exporter checkout is absent. Historical config actualSHA9d6a21484856b3a5761f64fa139c1da226531d31e901eec2f5d72493ad0ce444 still differs from expected76c493e28692531d07d54337dfcf89a21d8d78fa2979e02b20dccad47fb303c5. The existing [R8 comparison](../../raw/R-REB-8-ARCHIVE/README.md) already identifies the tracked-only structure_summary difference with equal shared models/source values. The fixed expected pin must come from the verified tracked archive in a fresh checkout; that remote copy is not yet established. Neither original is edited or accepted interchangeably by this operation. Three native roles have1/1/9 path candidates, metadata-only with no native hashes. Four uncompressed MNIST files, four canonical NPY prefixes and36historical array/order paths were observed; four gzip files required by the current exporter context are absent. Prefix observations are not full input hashes.
+
+Read bytes: source22624, metadata3562276, small4740284, self7477160. No target import, Git invocation, native content hash, full input read, FULL poll or job/queue change. R24/R25 remain separate failed observations. SHA256SUMS binds the other five files.

@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の追記: [Train runtime／contextの統合](#latest-evidence-20261107-runtime)。
+最新の追記: [残る前提情報の限定確認](#latest-evidence-20261107-r26)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -341,5 +341,16 @@ metadataの読取りは550058 bytes、source／smallは0。失敗前の部分inv
 現時点のdispatcherはcontext確認後にMissingExecutionDependencyを返す。CaseProvenance、具体的な実行条件の記録・admission／durable start・HE開始／checkpoint・全行runnerはまだ未完了で、この統合を科学実験の実行成功とは扱わない。CaseProvenanceの独立literal fixturesは準備・レビュー中。ReBoot側はR25の観測を根拠に、長い非選択headerを既存file上限内の形式情報として記録する修正を進める。物理行8192／選択値256と既存read/output上限は保持するが、非選択headerの一律logical8192拒否は変更する。理由と代替案は実装前に記録した。
 
 FULL-2の最新実観測は09:47:06 JSTの162/1000更新のまま。最終精度／GPU実測／Task42・M4・M5の全体判定、全登録範囲、campaign holdは変えていない。
+
+<a id="latest-evidence-20261107-r26"></a>
+## 2026-11-07 10:13 JST追記: 残る前提情報の限定確認
+
+[R26の派生運用記録](../results/quadruped/observations/R-REB-26/README.md)では、10:13:35 JSTに限定確認がexit0／bounded_observation_completeで終了した。追加4標準ライブラリ本文は既知pinに一致し、非追跡ledgerだけに保持した。公開用summaryは本文4項目を除いた派生物で、元stdoutや科学測定結果ではない。
+
+metadataは66distribution・198file entriesを記録し、必要名の欠落・重複・未対応形式は報告されなかった。長いLicenseの最終正規化長はmatplotlib／numpy／pandas／scipyで59883／46523／50660／45750 bytesであり、値は出力していない。2つのstdlib rootは206／5項目の浅い走査を完了し、metadata候補なしだった。これは形式・所在の観測であり、target実行やhelperの検証完了を意味しない。
+
+exporter用の正規checkout候補は存在せず、歴史producer出力の実hash 9d6a2148…は期待76c493e2…と不一致で、既存R8が確認したtracked版のstructure_summary有無による差を保持する。期待pinのtracked archiveを新しいcheckoutで確認する必要があり、元JSONを直して合わせない。native 3種類は1／1／9候補のmetadataのみで、内容hash・loadは未実行。未圧縮MNIST4ファイル、canonical NPY4prefix、既存の重み／順序36pathは観測され、現在のexporter contextが必須とするgzip4ファイルは不在だった。完了したのは限定確認であり、必要条件の承認・context／captureは未完了。既存ファイルの修復やpinの差替えはしていない。
+
+CaseProvenanceの独立literal fixturesはレビュー後に採用し、固定codecとthin Train入口の実装を開始した。実測に結び付いたcapture／admission／全行runnerは依然として未完了。FULL-2の最新実観測は09:47:06 JSTの162/1000更新で、R26から後続GPUキューの進捗を推測しない。全登録範囲・campaign holdを維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
