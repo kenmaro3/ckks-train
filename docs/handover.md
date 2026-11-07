@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1952)。
+最新の設計: [CPU準備の所有権・計上](#latest-evidence-20261107-d7-preparation-design)。最新の実装: [D7 ExecutionBinding内部descriptor](#latest-evidence-20261107-d7-execution-descriptors)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -807,3 +807,9 @@ Macで10件の限定テストを1回実行し、全件合格、全Cargoとcontro
 追加payloadは元のplan料金と合算し、元の上限を変えず、実際の一時bufferの重なりと保持分を数える。descriptorやbindingのサイズは出力を先に作らず共通の符号化処理から求める。既存P2生成、別管理の入力・パラメータ、library sort内部scratch等の対象外を明記し、全準備メモリやRSSを制限したとは主張しない。固定最大値による代用や、配置を複製してサイズを調べる案は採用しなかった。
 
 これは設計の限定合格である。canonicalなI／NI・1〜3段の6ケースは検証計画であり、まだ実行結果ではない。保持準備の実装、実学習経路・gate・durable start・科学結果出力と全実験は未完了。Task54／M4／M5全体の合格ではなく、既存hold・全登録範囲・FULL-2の判定条件を維持する。
+
+<a id="latest-evidence-20261107-2053"></a>
+
+## 2026-11-07 20:54 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2053/README.md)では、20:54:16 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は442/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。20:53:02以降の予定枠から1回観測し、同じcontroller handle15129で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。次の通常確認は21:54:17 JST以降とする。
