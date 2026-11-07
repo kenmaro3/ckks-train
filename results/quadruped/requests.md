@@ -726,3 +726,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** exact stdout/stderr/controller record only in ignored ledger `task-54-linux-context-prerequisite-observe-FIX1.*`. Stdout includes stdlib source audit bodies: NEVER copy it to tracked/public archives. Any later public summary must be separately labelled as derived metadata/interpretation, not original stdout.
 - **pass criterion:** Exact reviewed source and interpreter identity; bounded observations plus explicit missing/unsupported/refused/error outcomes. Preserve incomplete evidence and null hashes. Completion means observation recorded, not prerequisites accepted or context/native closure established. No automatic cap increase, retry, repair, FULL poll or campaign release.
 - **status:** incomplete (2026-11-07 08:59:43 JST, SSH exit1, empty stderr). All23 source audit inputs returned; installed metadata parsing hit `logical header cap` after550058 metadata bytes before returning an inventory/candidate identity. No later checkout/native/input/context/capture phase reached; small reads0. No retry or cap increase. Derived identities-only summary: `observations/R-REB-24/`; original source-body stdout retained only in ignored ledger.
+
+
+## R-41-FULL2-OBS-20261107-0950: read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue; delayed scheduled09:25 poll, no restart.
+- **commit to sync:** none.
+- **working dir:** existing own `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; unchanged ledger `post-full-observation-20261107-0600.remote.py` SHA25617550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; bounded8KiB tail, one observer, connect90s; retain controller until terminal.
+- **GPU memory need:**0. **RAM need:** under50MiB expected.
+- **output path:** ignored ledger `post-full-observation-20261107-0950.{stdout,stderr,meta.json}`.
+- **pass criterion:** preserve actual own process identity/state, final-result existence, log and queue listing; no signals, job/queue change, build or training. Operational only, not scientific result.
+- **status:** done (2026-11-07T09:47:06.073254+09:00, SSH exit0). Same own chain/queue live;162/1000 updates, finalJSON absent, queue owner.json only. Exact records raw/R-41-FULL2-OBS-20261107-0950/. No job mutation.
