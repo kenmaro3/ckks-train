@@ -712,3 +712,17 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261107-0825.{stdout,stderr,meta.json}`.
 - **pass criterion:** Actual process start/uid/state and direct-child observations plus log/result/queue state recorded. This is operational evidence, not a scientific result or final accuracy. No signals, restart, training, build, or other-user process inspection.
 - **status:** done (2026-11-07T08:25:52.000152+09:00, SSH exit0). Same owned chain/queue live; update126 means127/1000 completed, last-six predictions match. Final result absent; queue owner.json only. Exact operational records: `raw/R-41-FULL2-OBS-20261107-0825/`. No job or queue mutation.
+
+
+## R-REB-24-CONTEXT-PREREQUISITES: bounded read-only preparation evidence
+
+- **purpose:** Collect the fixed23 trusted-stdlib source audit inputs, shallow installed-metadata forms, and fixed checkout/native/input candidate metadata needed to prepare the existing exporter stages. This is not context/capture or scientific execution.
+- **commit to sync:** none; frozen observer through stdin, no deployment or checkout mutation.
+- **working dir:** no target import or execution; absolute paths fixed in the observer under the existing own baseline/preparation directories.
+- **command:** key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; ledger `task-54-linux-context-prerequisite-observer-v1.py` SHA25643dc1649e044a01d21d250fa23c174dbc48549e79f73412b4ab0d4bca625ea32 on stdin. One process/thread; no subprocesses, Git command, package import, install or native load.
+- **expected duration:** at most60s cooperative work budget after interpreter start; a blocked filesystem syscall is not forcibly interrupted. SSH connect budget90s; controller runs asynchronously and retains the exact handle until terminal. A delayed observation is not permission to restart.
+- **GPU memory need:** 0. **RAM need:** under150MiB expected.
+- **limits:**58MiB aggregate content ceiling (2MiB fixed sources,16MiB metadata,24MiB small identities,16MiB self);8MiB output;256-byte fixed NPY prefixes. Native binaries, raw MNIST and weight/order payloads are metadata-only; RECORD paths are never dereferenced. No ReBoot/OpenFHE source body is collected.
+- **output path:** exact stdout/stderr/controller record only in ignored ledger `task-54-linux-context-prerequisite-observe-FIX1.*`. Stdout includes stdlib source audit bodies: NEVER copy it to tracked/public archives. Any later public summary must be separately labelled as derived metadata/interpretation, not original stdout.
+- **pass criterion:** Exact reviewed source and interpreter identity; bounded observations plus explicit missing/unsupported/refused/error outcomes. Preserve incomplete evidence and null hashes. Completion means observation recorded, not prerequisites accepted or context/native closure established. No automatic cap increase, retry, repair, FULL poll or campaign release.
+- **status:** incomplete (2026-11-07 08:59:43 JST, SSH exit1, empty stderr). All23 source audit inputs returned; installed metadata parsing hit `logical header cap` after550058 metadata bytes before returning an inventory/candidate identity. No later checkout/native/input/context/capture phase reached; small reads0. No retry or cap increase. Derived identities-only summary: `observations/R-REB-24/`; original source-body stdout retained only in ignored ledger.

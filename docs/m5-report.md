@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の追記: [FULL-2の定期確認と実装状況](#latest-evidence-20261107-0825)。
+最新の追記: [CUDA runtime観測APIの統合とR24の未完了記録](#latest-evidence-20261107-cuda-r24)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -305,5 +305,16 @@ ReBootの次段階は、既知の標準ライブラリsource・installed metadat
 [今回の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-0825/README.md)では、08:25:52 JSTに既存chainと後続queueの同一PID／開始時刻／所有者を確認した。FULL-2は127/1000更新まで進み、末尾6更新の予測一致はtrue。最終結果JSONはまだなく、queueにはowner.jsonのみだった。処理は変更していない。これは途中経過であり、精度判定やTask42／M4の完了を意味しない。
 
 CUDA runtime観測adapterの実装を開始した。ReBoot前提確認ツールは限定テスト16件に合格したが、独立レビューで読取り失敗時の候補情報保持と未確認を区別する集計表示に修正事項が見つかり、実行前に修正する。新たなcontext／captureやGPU測定結果は得ていない。全登録範囲・campaign holdを維持する。
+
+<a id="latest-evidence-20261107-cuda-r24"></a>
+## 2026-11-07追記: CUDA runtime観測APIの統合とR24の未完了記録
+
+CUDA側の固定15 native export・実singleton・device識別情報を保持して再確認する観測APIと、共有compile options／2つのimmutable device accessorを`3bfbed3`で統合した。独立sourceレビュー後、仕様とのquery順序差C1を修正し、実保存ログで3件のREDから限定10テスト全件GREENを確認、再レビューでも合格した。初回の通常構成4件・doctest5件・Clippy／formatは実装担当の実行報告があるが、初回raw transcriptは保存されていないという証跡上の制限を残す。4 kernelのバイト列は不変。Mac上の限定検証であり、実GPU観測・Train context・native module照合・D7 admission／全行runnerの完成を意味しない。
+
+[R24の派生運用記録](../results/quadruped/observations/R-REB-24/README.md)では、08:59:43 JSTに標準ライブラリ23ファイルの監査用本文を取得した（18既知pin一致・5新規identity）。本文は非追跡ledgerにだけ保持し、公開側には識別情報の派生summaryと自作observer／controllerを置く。summaryは元stdoutではなく、科学測定結果でもない。
+
+R24はinstalled metadataのlogical header上限8192 bytesで止まり、exit1／未完了だった。metadataを550058 bytes読んだが、対象package／file／headerの識別情報は出力に残らず、その内訳を推定しない。checkout／native／input／context／captureの各段階は未到達。原記録を保存し、失敗を成功扱いしたり上限を自動で広げたりしていない。
+
+次の診断は、同じ上限のまま読み取れたmetadata fileのhashとheader名・長さ・行番号だけを失敗情報に残す。対象が未特定なのでpackageの推測や上限変更を採らず、取得済み23本文の再読取りも避け、同じroot／childに限定したmetadata専用確認を別途レビュー・実行判断する方針を理由・代替案とともに記録した。現在はその限定コードを準備中で、追加のremote確認は未実行。FULL-2の最新実観測は08:25:52 JSTの127/1000更新であり、R24から学習／後続queueの進捗を推定しない。全登録範囲とcampaign holdを維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

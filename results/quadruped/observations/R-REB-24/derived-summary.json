@@ -1,0 +1,415 @@
+{
+  "kind": "derived_operational_summary_NOT_original_stdout_NOT_scientific_result",
+  "source_stdout_sha256": "051fe79ac9ea4aef6e5de8c8bc8d4064fc1b32e7a1009b2cc6251f4f09556781",
+  "source_stdout_bytes": 847098,
+  "controller_sha256": "213f413ea5bfb8415fdb7dd1723c3095d6ba985cf15144c8258a75b812cb6617",
+  "observer_source_sha256": "43dc1649e044a01d21d250fa23c174dbc48549e79f73412b4ab0d4bca625ea32",
+  "source_review_sha256": "a6f4801a9146aaf55ddf04fc981dacf45fd968df491c454571e7dd4be9f19c57",
+  "status": "incomplete_observation",
+  "returncode": 1,
+  "observer": {
+    "lexical": "/usr/bin/python3.14",
+    "nice": 10,
+    "resolved": "/usr/bin/python3.14",
+    "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "uid": 1000,
+    "version": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]"
+  },
+  "started_unix": 1794009583.0151477,
+  "finished_unix": 1794009583.071646,
+  "section_status": {
+    "stdlib": "identities_and_source_bodies_only_not_closure"
+  },
+  "errors": [
+    {
+      "message": "logical header cap",
+      "type": "LimitError"
+    }
+  ],
+  "read_bytes": {
+    "metadata": 550058,
+    "self": 7477160,
+    "small": 0,
+    "source": 803424
+  },
+  "stdlib_source_identities": [
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/__init__.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/__init__.py",
+      "sha256": "bc6d98cd94459ad3b6ea5cb75cde38383647655054f065b897176f7635d2d8bc",
+      "stat": {
+        "bytes": 31109,
+        "device": 66311,
+        "inode": 32929702,
+        "mode": 436,
+        "mtime_ns": 1787713718030932364,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "bc6d98cd94459ad3b6ea5cb75cde38383647655054f065b897176f7635d2d8bc",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_adapters.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_adapters.py",
+      "sha256": "07a7c28b9fbc98b543154663de4ac8e67028fa62a9d5d1ffa886afc88c85ac9b",
+      "stat": {
+        "bytes": 1862,
+        "device": 66311,
+        "inode": 32929703,
+        "mode": 436,
+        "mtime_ns": 1787713718030932364,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "07a7c28b9fbc98b543154663de4ac8e67028fa62a9d5d1ffa886afc88c85ac9b",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_text.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/importlib/metadata/_text.py",
+      "sha256": "1c2b0592c66924b7933f734493f9e0ac079755146d4ebb7287d78e001a113f80",
+      "stat": {
+        "bytes": 2166,
+        "device": 66311,
+        "inode": 32929708,
+        "mode": 436,
+        "mtime_ns": 1787713718030932364,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "1c2b0592c66924b7933f734493f9e0ac079755146d4ebb7287d78e001a113f80",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/parser.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/parser.py",
+      "sha256": "7a665bc106e9d4f6f8f2c8de53b2c1d5b97f5105cc7da638b82d731f6f9e354e",
+      "stat": {
+        "bytes": 5038,
+        "device": 66311,
+        "inode": 32929434,
+        "mode": 436,
+        "mtime_ns": 1787713717675925572,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "7a665bc106e9d4f6f8f2c8de53b2c1d5b97f5105cc7da638b82d731f6f9e354e",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/feedparser.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/feedparser.py",
+      "sha256": "ca333e0462c96505d8c510f260192256306fa889c011c6f2eaa8d50c70503cce",
+      "stat": {
+        "bytes": 22802,
+        "device": 66311,
+        "inode": 32929418,
+        "mode": 436,
+        "mtime_ns": 1787713717672925514,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "ca333e0462c96505d8c510f260192256306fa889c011c6f2eaa8d50c70503cce",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/message.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/message.py",
+      "sha256": "275f2d0a31e1331cd90014039c4c150fe5822c3e981638cc31d4973ee0fb27eb",
+      "stat": {
+        "bytes": 48210,
+        "device": 66311,
+        "inode": 32929423,
+        "mode": 436,
+        "mtime_ns": 1787713717674925552,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "275f2d0a31e1331cd90014039c4c150fe5822c3e981638cc31d4973ee0fb27eb",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/header.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/header.py",
+      "sha256": "4d9baa908ad5288dd8fad8cf20b3802ffac77ba1642727804a633b201c56e5ca",
+      "stat": {
+        "bytes": 24092,
+        "device": 66311,
+        "inode": 32929420,
+        "mode": 436,
+        "mtime_ns": 1787713717672925514,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "4d9baa908ad5288dd8fad8cf20b3802ffac77ba1642727804a633b201c56e5ca",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/charset.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/charset.py",
+      "sha256": "3ccb2e860390656664d271f08da8c0bae9a4297cc7e90be664d7c82d364e442f",
+      "stat": {
+        "bytes": 17118,
+        "device": 66311,
+        "inode": 32929414,
+        "mode": 436,
+        "mtime_ns": 1787713717671925495,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "3ccb2e860390656664d271f08da8c0bae9a4297cc7e90be664d7c82d364e442f",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/policy.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/policy.py",
+      "sha256": "56a2a90d973c06668f6f113d67f26cf348af10b33eece2a6b812e34da45258d8",
+      "stat": {
+        "bytes": 10519,
+        "device": 66311,
+        "inode": 32929435,
+        "mode": 436,
+        "mtime_ns": 1787713717676925591,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "56a2a90d973c06668f6f113d67f26cf348af10b33eece2a6b812e34da45258d8",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/_policybase.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/email/_policybase.py",
+      "sha256": "3db4bf3be5bdba13ab9a78ce30784c330d6dbc657b4e9142210dc8b264cfd424",
+      "stat": {
+        "bytes": 15534,
+        "device": 66311,
+        "inode": 32929411,
+        "mode": 436,
+        "mtime_ns": 1787713717671925495,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "3db4bf3be5bdba13ab9a78ce30784c330d6dbc657b4e9142210dc8b264cfd424",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/csv.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/csv.py",
+      "sha256": "05c688620a98076289b09943788f840175cac8d299956e33fe9b4502a6526525",
+      "stat": {
+        "bytes": 16776,
+        "device": 66311,
+        "inode": 32929321,
+        "mode": 436,
+        "mtime_ns": 1787713717644924978,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "05c688620a98076289b09943788f840175cac8d299956e33fe9b4502a6526525",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/__init__.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/__init__.py",
+      "sha256": "78c4744d407690f321565488710b5aaf6486b5afa8d185637aa1e7633ab59cd8",
+      "stat": {
+        "bytes": 5884,
+        "device": 66311,
+        "inode": 32929439,
+        "mode": 436,
+        "mtime_ns": 1787713717676925591,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "78c4744d407690f321565488710b5aaf6486b5afa8d185637aa1e7633ab59cd8",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/aliases.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/encodings/aliases.py",
+      "sha256": "6fdcc49ba23a0203ae6cf28e608f8e6297d7c4d77d52e651db3cb49b9564c6d2",
+      "stat": {
+        "bytes": 15677,
+        "device": 66311,
+        "inode": 32929444,
+        "mode": 436,
+        "mtime_ns": 1787713717677925610,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "6fdcc49ba23a0203ae6cf28e608f8e6297d7c4d77d52e651db3cb49b9564c6d2",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/codecs.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/codecs.py",
+      "sha256": "f16a81d14e7f73931ecf9f9f2e17c10bc0ca29bbe38b0243f6919b70882fcfea",
+      "stat": {
+        "bytes": 37150,
+        "device": 66311,
+        "inode": 32929289,
+        "mode": 436,
+        "mtime_ns": 1787713717632924749,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": null,
+      "pin_match": null
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/argparse.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/argparse.py",
+      "sha256": "e878677e158d0bc0fb5119e0df74d94236f3653777bc9f2ea3fee49c167fe001",
+      "stat": {
+        "bytes": 100283,
+        "device": 66311,
+        "inode": 32929240,
+        "mode": 436,
+        "mtime_ns": 1787713717617924462,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "e878677e158d0bc0fb5119e0df74d94236f3653777bc9f2ea3fee49c167fe001",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/gettext.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/gettext.py",
+      "sha256": "a5c249a522b6b8e3aa6f1b12a8bcc09508b99ad612b58d2fc973db27ea3b7cc3",
+      "stat": {
+        "bytes": 21320,
+        "device": 66311,
+        "inode": 32929582,
+        "mode": 436,
+        "mtime_ns": 1787713717982931446,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "a5c249a522b6b8e3aa6f1b12a8bcc09508b99ad612b58d2fc973db27ea3b7cc3",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/locale.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/locale.py",
+      "sha256": "ac828df41b2fac93ba3e66a2735216c98c0e1853b8dfb9b859e301fe64153feb",
+      "stat": {
+        "bytes": 79095,
+        "device": 66311,
+        "inode": 32929818,
+        "mode": 436,
+        "mtime_ns": 1787713718118934048,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "ac828df41b2fac93ba3e66a2735216c98c0e1853b8dfb9b859e301fe64153feb",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/copy.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/copy.py",
+      "sha256": "27dcfc53a4b9d4fbc3d90c74e549eb6eca9301524d6d2fbff9a6589cf51b6fd5",
+      "stat": {
+        "bytes": 8681,
+        "device": 66311,
+        "inode": 32929318,
+        "mode": 436,
+        "mtime_ns": 1787713717643924959,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": null,
+      "pin_match": null
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/shutil.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/shutil.py",
+      "sha256": "f6da78257f31823dc53dc4fa72b27da59205d7dcfa97aa0f0683e546db91e26b",
+      "stat": {
+        "bytes": 55953,
+        "device": 66311,
+        "inode": 32929900,
+        "mode": 436,
+        "mtime_ns": 1787713718169935024,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": null,
+      "pin_match": null
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/textwrap.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/textwrap.py",
+      "sha256": "62867e40cdea6669b361f72af4d7daf0359f207c92cbeddfc7c7506397c1f31c",
+      "stat": {
+        "bytes": 19718,
+        "device": 66311,
+        "inode": 32930995,
+        "mode": 436,
+        "mtime_ns": 1787713718402939482,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": null,
+      "pin_match": null
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/pathlib.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/pathlib.py",
+      "sha256": "3b21ac188fd9ac20bacc8ccd976fabd5d8ccf5000f8e157d3dfff005b228fb3d",
+      "stat": {
+        "bytes": 48566,
+        "device": 66311,
+        "inode": 32929862,
+        "mode": 436,
+        "mtime_ns": 1787713718135934373,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "3b21ac188fd9ac20bacc8ccd976fabd5d8ccf5000f8e157d3dfff005b228fb3d",
+      "pin_match": true
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/zipfile.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/zipfile.py",
+      "sha256": "c12a6c52d404229c95ca530a77fd2b2aec42f17648dbd5499a9cac784f6676bc",
+      "stat": {
+        "bytes": 94920,
+        "device": 66311,
+        "inode": 32931129,
+        "mode": 436,
+        "mtime_ns": 1787713718447940343,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": null,
+      "pin_match": null
+    },
+    {
+      "path": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/typing.py",
+      "resolved": "/home/kmihara/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/typing.py",
+      "sha256": "eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203",
+      "stat": {
+        "bytes": 120951,
+        "device": 66311,
+        "inode": 32931050,
+        "mode": 436,
+        "mtime_ns": 1787713718422939865,
+        "uid": 1000
+      },
+      "status": "observed_source_not_semantic_closure",
+      "pin_expected": "eff3df4f1d65e13d690b8f427cada4dd3b88431dd1e7f319fda1bd0062113203",
+      "pin_match": true
+    }
+  ],
+  "not_observed": [
+    "metadata inventory returned values",
+    "checkout candidates",
+    "native candidates and roles",
+    "input candidates and archive summary",
+    "context",
+    "capture",
+    "scientific results"
+  ],
+  "publication": "Source bodies excluded. Exact stdout remains ignored private audit ledger; this summary is derived and cannot replace it."
+}
