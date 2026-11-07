@@ -1,0 +1,27 @@
+{
+  "utc": "2026-11-07T07:42:14.432452+00:00",
+  "evidence": "read-only SHA256; compiled test binary was not invoked",
+  "files": {
+    "Cargo.lock": {
+      "sha256": "7250dbf896c207b4e838cabea88c5a4110e46803e3c8e8fe6460f8a7f60c97b1",
+      "bytes": 20573
+    },
+    "Cargo.toml": {
+      "sha256": "7d0943095542c31ca1ab1038c59af8efe5a6bd621ba890c8f8fa28f0c4dc52c4",
+      "bytes": 614
+    },
+    "crates/ckks-train-bench/Cargo.toml": {
+      "sha256": "189d5d50799949561ccf6ff6696b7f5b89e1aa860d9f88a641abddca9e096d98",
+      "bytes": 1421
+    },
+    "crates/ckks-train-bench/src/study_plain/p4_fixtures.rs": {
+      "sha256": "e062bc2678a205431ea2fcd522cfb4351795bd375a7aa073c3204d12915813f8",
+      "bytes": 26285
+    },
+    "target/debug/deps/ckks_train_bench-fe037ad79be4cfe0": {
+      "sha256": "2e3f06d470a8e7cfbab52a490f8002d1422400b89e56f8070a67b17f09875e20",
+      "bytes": 8340288
+    }
+  },
+  "scope_check": "study_plain.rs equals saved original byte-for-byte plus the sole cfg(test) p5_fixtures declaration; owned-two-file.diff generated without Git commands"
+}

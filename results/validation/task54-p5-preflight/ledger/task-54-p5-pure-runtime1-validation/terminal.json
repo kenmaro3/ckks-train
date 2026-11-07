@@ -1,0 +1,42 @@
+{
+  "kind": "nonscientific_test_execution_custody",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_plain::p5_fixtures::p5_pure_block_sensitivity_gate",
+    "--",
+    "--ignored",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/target"
+  },
+  "free_bytes_before": 60428943360,
+  "source_before": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943"
+  },
+  "authorization_sha256": "b87359344108281ff494e3a63b7034a7758fdc9b0637104d862476bcd73b5de1",
+  "started_unix": 1794038108.415255,
+  "local_controller_pid": 94860,
+  "automatic_retry": false,
+  "cargo_pid": 94861,
+  "test_exit": 101,
+  "finished_unix": 1794038123.003102,
+  "source_after": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943"
+  },
+  "source_unchanged": true,
+  "raw_bytes": 5677785,
+  "raw_sha256": "4702340394d79d98135401b3538a833ba6d0a1b8f70d7b738a3c195b12461b32",
+  "controller_exit": 101
+}

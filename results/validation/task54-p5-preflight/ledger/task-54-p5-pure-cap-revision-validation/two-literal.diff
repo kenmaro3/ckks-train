@@ -1,0 +1,13 @@
+--- before/crates/ckks-train-bench/src/study_plain/p5_fixtures.rs
++++ after/crates/ckks-train-bench/src/study_plain/p5_fixtures.rs
+@@ -5,8 +5,8 @@
+ use crate::study_profile::{Activation, Layer, LayerRole};
+ use ndarray::Array2;
+ 
+-const VERSION: &str = "task54-p5-pure-v1";
+-const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 4e-4)];
++const VERSION: &str = "task54-p5-pure-v2";
++const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 3e-5)];
+ const REFERENCE: f64 = 0.08;
+ const PAIRED_ORACLES: usize = 14;
+ const PAIRED_LIMITS: Counts = Counts {

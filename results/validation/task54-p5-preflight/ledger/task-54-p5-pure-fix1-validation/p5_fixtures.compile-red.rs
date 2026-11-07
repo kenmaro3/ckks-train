@@ -1,0 +1,1060 @@
+//! NONSCIENTIFIC_TEST_EVIDENCE: closed synthetic block sensitivity, no HE admission.
+//! Source-frozen A/B/C/D recipes. The sole entrypoint is ignored pending root release.
+
+use super::{Engine, PlainLayer, RateCoefficients, StageSpec, forward};
+use crate::study_profile::{Activation, Layer, LayerRole};
+use ndarray::Array2;
+
+const VERSION: &str = "task54-p5-pure-v1";
+const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 4e-4)];
+const REFERENCE: f64 = 0.08;
+const LIMITS: Counts = Counts {
+    train: 156,
+    engines: 61,
+    forward: 179,
+};
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum BlockFamily {
+    A,
+    B,
+    C,
+    D,
+}
+impl BlockFamily {
+    pub(crate) const ALL: [Self; 4] = [Self::A, Self::B, Self::C, Self::D];
+    pub(crate) fn recipe(self) -> BlockRecipe {
+        let mut stages = vec![
+            StageRecipe {
+                input: 2,
+                hidden: 4,
+                classes: 3,
+                padded: 4,
+                output: Activation::Identity,
+            },
+            StageRecipe {
+                input: 4,
+                hidden: 2,
+                classes: 2,
+                padded: 2,
+                output: Activation::Identity,
+            },
+        ];
+        if matches!(self, Self::B) {
+            stages.push(StageRecipe {
+                input: 2,
+                hidden: 3,
+                classes: 10,
+                padded: 16,
+                output: Activation::Identity,
+            });
+        }
+        if matches!(self, Self::C) {
+            stages[1].output = Activation::Square;
+        }
+        let (rates, parts) = match self {
+            Self::A | Self::B => (
+                vec![0.04, 0.08, 0.02, 0.08],
+                vec![vec![8, 4], vec![8], vec![5], vec![8, 4]],
+            ),
+            Self::C => (vec![0.04], vec![vec![8, 4]]),
+            Self::D => (vec![0.08, 0.08], vec![vec![8], vec![8]]),
+        };
+        let specs: Vec<_> = stages
+            .iter()
+            .enumerate()
+            .flat_map(|(s, stage)| {
+                [
+                    Layer {
+                        name: format!("stage{s}.hidden"),
+                        input: stage.input,
+                        output: stage.hidden,
+                        activation: Activation::SquarePlusLinear,
+                        bias: false,
+                        role: LayerRole::Hidden,
+                    },
+                    Layer {
+                        name: format!("stage{s}.head"),
+                        input: stage.hidden,
+                        output: stage.padded,
+                        activation: stage.output,
+                        bias: false,
+                        role: LayerRole::Output,
+                    },
+                ]
+            })
+            .collect();
+        let initial = specs
+            .iter()
+            .enumerate()
+            .map(|(i, spec)| {
+                PlainLayer::from_arrays(
+                    spec.name.clone(),
+                    Array2::from_elem(
+                        (spec.output, spec.input),
+                        if i % 2 == 0 {
+                            0.45 / spec.input as f64
+                        } else {
+                            0.75 / spec.input as f64
+                        },
+                    ),
+                    vec![0.; spec.output],
+                )
+            })
+            .collect();
+        let batches = parts
+            .iter()
+            .map(|p: &Vec<usize>| rows(p, &stages, false))
+            .collect();
+        BlockRecipe {
+            family: self,
+            stages,
+            specs,
+            initial,
+            rates,
+            parts,
+            batches,
+        }
+    }
+}
+#[derive(Clone, Debug)]
+struct StageRecipe {
+    input: usize,
+    hidden: usize,
+    classes: usize,
+    padded: usize,
+    output: Activation,
+}
+#[derive(Clone)]
+struct Batch {
+    x: Array2<f64>,
+    labels: Vec<Vec<u8>>,
+}
+/// Immutable fixture view; no caller-mutated Engine or canonical materializer API.
+pub(crate) struct BlockRecipe {
+    family: BlockFamily,
+    stages: Vec<StageRecipe>,
+    specs: Vec<Layer>,
+    initial: Vec<PlainLayer<f64>>,
+    rates: Vec<f64>,
+    parts: Vec<Vec<usize>>,
+    batches: Vec<Batch>,
+}
+#[allow(dead_code)] // Deliberate closed read-only seams for the separately released HE sibling.
+impl BlockRecipe {
+    pub(crate) fn initial(&self) -> &[PlainLayer<f64>] {
+        &self.initial
+    }
+    pub(crate) fn layer_specs(&self) -> &[Layer] {
+        &self.specs
+    }
+    pub(crate) fn stage_classes(&self) -> Vec<usize> {
+        self.stages.iter().map(|s| s.classes).collect()
+    }
+    pub(crate) fn partitions(&self) -> &[Vec<usize>] {
+        &self.parts
+    }
+    pub(crate) fn rates(&self) -> &[f64] {
+        &self.rates
+    }
+    pub(crate) fn reference(&self) -> f64 {
+        REFERENCE
+    }
+    pub(crate) fn rows(&self, update: usize) -> Option<(&Array2<f64>, &[Vec<u8>])> {
+        self.batches
+            .get(update)
+            .map(|b| (&b.x, b.labels.as_slice()))
+    }
+}
+fn rows(parts: &[usize], stages: &[StageRecipe], restart: bool) -> Batch {
+    let indices: Vec<_> = parts
+        .iter()
+        .scan(0, |offset, &n| {
+            let start = *offset;
+            *offset += n;
+            Some((0..n).map(move |r| if restart { r } else { start + r }))
+        })
+        .flatten()
+        .collect();
+    Batch {
+        x: Array2::from_shape_fn((indices.len(), 2), |(r, c)| {
+            if c == 0 {
+                0.875 + 0.125 * (indices[r] % 2) as f64
+            } else {
+                0.875 + 0.0625 * (indices[r] % 3) as f64
+            }
+        }),
+        labels: stages
+            .iter()
+            .map(|s| indices.iter().map(|r| (r % s.classes) as u8).collect())
+            .collect(),
+    }
+}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct Counts {
+    train: usize,
+    engines: usize,
+    forward: usize,
+}
+#[derive(Debug, Default)]
+struct Report {
+    counts: Counts,
+    failures: Vec<String>,
+    margins: usize,
+    controls: usize,
+    inapplicable: usize,
+    equivalent: usize,
+}
+impl Report {
+    fn check(&mut self, ok: bool, context: &str) {
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE CHECK context={context} status={}",
+            if ok { "PASS" } else { "FAIL" }
+        );
+        if !ok {
+            self.failures.push(context.into());
+        }
+    }
+    fn reserve(&mut self, kind: &str, context: &str) {
+        let (value, cap) = match kind {
+            "train" => (&mut self.counts.train, LIMITS.train),
+            "engine" => (&mut self.counts.engines, LIMITS.engines),
+            "forward" => (&mut self.counts.forward, LIMITS.forward),
+            _ => unreachable!(),
+        };
+        assert!(
+            *value < cap,
+            "actual {kind} cap reached before call: {context}"
+        );
+        *value += 1;
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE BEFORE_CALL kind={kind} actual={} cap={cap} context={context}",
+            *value
+        );
+    }
+}
+fn engine(
+    recipe: &BlockRecipe,
+    only_stage: Option<usize>,
+    context: &str,
+    report: &mut Report,
+) -> Engine<f64> {
+    let (layers, specs, stages) = if let Some(s) = only_stage {
+        (
+            recipe.initial[s * 2..s * 2 + 2].to_vec(),
+            recipe.specs[s * 2..s * 2 + 2].to_vec(),
+            vec![StageSpec {
+                first: 0,
+                input: None,
+                representation: None,
+            }],
+        )
+    } else {
+        (
+            recipe.initial.clone(),
+            recipe.specs.clone(),
+            (0..recipe.stages.len())
+                .map(|s| StageSpec {
+                    first: s * 2,
+                    input: s.checked_sub(1).map(|v| v * 2),
+                    representation: if s + 1 < recipe.stages.len() {
+                        Some(s * 2)
+                    } else {
+                        None
+                    },
+                })
+                .collect(),
+        )
+    };
+    report.reserve("engine", context);
+    Engine {
+        layers,
+        specs,
+        stages,
+        classes: recipe.stages.iter().map(|s| s.classes).max().unwrap(),
+        momentum: Some(0.9),
+    }
+}
+fn validate_labels(recipe: &BlockRecipe, batch: &Batch) {
+    assert_eq!(batch.labels.len(), recipe.stages.len());
+    for (labels, stage) in batch.labels.iter().zip(&recipe.stages) {
+        assert_eq!(labels.len(), batch.x.nrows());
+        assert!(stage.classes <= stage.padded);
+        assert!(
+            labels
+                .iter()
+                .all(|&v| usize::from(v) < stage.classes && usize::from(v) < stage.padded),
+            "closed stage-specific labels must validate before actual train"
+        );
+    }
+}
+fn train(
+    engine: &mut Engine<f64>,
+    x: &Array2<f64>,
+    labels: &[&[u8]],
+    mean: f64,
+    context: &str,
+    report: &mut Report,
+) -> bool {
+    let rate = RateCoefficients {
+        source: mean,
+        mean,
+        delta: 1.,
+        kernel: mean,
+    };
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE TRAIN_INPUT context={context} rows={} cols={} stages={} rate={mean:.17e} rate_bits={} delta=1",
+        x.nrows(),
+        x.ncols(),
+        labels.len(),
+        mean.to_bits()
+    );
+    report.reserve("train", context);
+    match engine.train(x, labels, &rate) {
+        Ok(()) => true,
+        Err(e) => {
+            report.check(false, &format!("{context}/arithmetic={e:?}"));
+            false
+        }
+    }
+}
+fn capture_forward(
+    engine: &Engine<f64>,
+    layer: usize,
+    x: &Array2<f64>,
+    context: &str,
+    report: &mut Report,
+) -> Option<Array2<f64>> {
+    report.reserve("forward", context);
+    match forward(&engine.layers[layer], &engine.specs[layer], x) {
+        Ok(v) => Some(v.a),
+        Err(e) => {
+            report.check(false, &format!("{context}/forward={e:?}"));
+            None
+        }
+    }
+}
+fn emit_value(context: &str, tensor: &str, row: usize, col: usize, value: f64) {
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE VALUE context={context} tensor={tensor} row={row} col={col} value={value:.17e} bits={}",
+        value.to_bits()
+    );
+}
+fn emit_array(context: &str, tensor: &str, values: &Array2<f64>) {
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE ARRAY context={context} tensor={tensor} rows={} cols={}",
+        values.nrows(),
+        values.ncols()
+    );
+    for ((r, c), &v) in values.indexed_iter() {
+        emit_value(context, tensor, r, c, v);
+    }
+}
+fn inspect(layers: &[PlainLayer<f64>], specs: &[Layer], context: &str, report: &mut Report) {
+    report.check(
+        layers.len() == specs.len(),
+        &format!("{context}/layer_count"),
+    );
+    for (l, (layer, spec)) in layers.iter().zip(specs).enumerate() {
+        let name = format!("{context}/layer={l}");
+        let dimensions = layer.weights.dim() == (spec.output, spec.input)
+            && layer.weight_velocity.dim() == (spec.output, spec.input)
+            && layer.biases.len() == spec.output
+            && layer.bias_velocity.len() == spec.output;
+        let finite = layer
+            .weights
+            .iter()
+            .chain(layer.weight_velocity.iter())
+            .chain(layer.biases.iter())
+            .chain(layer.bias_velocity.iter())
+            .all(|v| v.is_finite());
+        let zero = layer
+            .biases
+            .iter()
+            .chain(layer.bias_velocity.iter())
+            .all(|v| v.to_bits() == 0_f64.to_bits());
+        report.check(
+            dimensions && finite && zero,
+            &format!("{name}/dimensions_finite_frozen_positive_zero"),
+        );
+        emit_array(&name, "W", &layer.weights);
+        emit_array(&name, "velocity_W", &layer.weight_velocity);
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE VECTOR context={name} b_len={} velocity_b_len={}",
+            layer.biases.len(),
+            layer.bias_velocity.len()
+        );
+        for (r, &v) in layer.biases.iter().enumerate() {
+            emit_value(&name, "b", r, 0, v);
+        }
+        for (r, &v) in layer.bias_velocity.iter().enumerate() {
+            emit_value(&name, "velocity_b", r, 0, v);
+        }
+    }
+}
+fn manifest(recipe: &BlockRecipe, report: &mut Report) {
+    let context = format!("{:?}/frozen", recipe.family);
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE RECIPE context={context} reference={REFERENCE:.17e} reference_bits={} momentum={:.17e} momentum_bits={} delta=1 hidden_limit=0.75 hidden_initializer=0.45/fan_in head_initializer=0.75/hidden_width target_perturbation=selected_stage_all_class_zero",
+        REFERENCE.to_bits(),
+        0.9_f64,
+        0.9_f64.to_bits()
+    );
+    inspect(&recipe.initial, &recipe.specs, &context, report);
+    for (s, stage) in recipe.stages.iter().enumerate() {
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE STAGE context={context} stage={s} dims=[{},{},{}] classes={} padded={} hidden_activation=SquarePlusLinear output_activation={:?} frozen_bias=true",
+            stage.input, stage.hidden, stage.padded, stage.classes, stage.padded, stage.output
+        );
+    }
+    for (u, ((batch, parts), rate)) in recipe
+        .batches
+        .iter()
+        .zip(&recipe.parts)
+        .zip(&recipe.rates)
+        .enumerate()
+    {
+        let context = format!("{:?}/frozen/update={u}", recipe.family);
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE UPDATE context={context} parts={parts:?} rate={rate:.17e} rate_bits={}",
+            rate.to_bits()
+        );
+        emit_array(&context, "input", &batch.x);
+        for (s, labels) in batch.labels.iter().enumerate() {
+            println!(
+                "NONSCIENTIFIC_TEST_EVIDENCE LABELS context={context} stage={s} labels={labels:?}"
+            );
+        }
+    }
+}
+#[derive(Clone)]
+struct Snapshot {
+    layers: Vec<PlainLayer<f64>>,
+}
+/// All baseline old-hidden entrance arrays and final endpoint are retained verbatim.
+pub(crate) struct BlockOracle {
+    recipe: BlockRecipe,
+    initial: Snapshot,
+    steps: Vec<Snapshot>,
+    hidden: Vec<Vec<Array2<f64>>>,
+}
+#[allow(dead_code)]
+impl BlockOracle {
+    pub(crate) fn recipe(&self) -> &BlockRecipe {
+        &self.recipe
+    }
+    pub(crate) fn initial(&self) -> &[PlainLayer<f64>] {
+        &self.initial.layers
+    }
+    pub(crate) fn post(&self, update: usize) -> Option<&[PlainLayer<f64>]> {
+        self.steps.get(update).map(|s| s.layers.as_slice())
+    }
+    pub(crate) fn old_hidden(&self, update: usize) -> Option<&[Array2<f64>]> {
+        self.hidden.get(update).map(Vec::as_slice)
+    }
+    pub(crate) fn final_hidden(&self) -> Option<&[Array2<f64>]> {
+        self.hidden.last().map(Vec::as_slice)
+    }
+}
+fn baseline(recipe: BlockRecipe, report: &mut Report) -> BlockOracle {
+    let context = format!("{:?}/Baseline", recipe.family);
+    let mut e = engine(&recipe, None, &context, report);
+    let initial = Snapshot {
+        layers: e.layers.clone(),
+    };
+    let mut steps = Vec::new();
+    let mut hidden = Vec::new();
+    for u in 0..=recipe.rates.len() {
+        let batch = &recipe.batches[u.min(recipe.batches.len() - 1)];
+        let mut x = batch.x.clone();
+        let mut old = Vec::new();
+        for s in 0..recipe.stages.len() {
+            let context = format!(
+                "{context}/update={u}/stage={s}/{}",
+                if u == recipe.rates.len() {
+                    "final"
+                } else {
+                    "entrance"
+                }
+            );
+            let Some(h) = capture_forward(&e, s * 2, &x, &context, report) else {
+                return BlockOracle {
+                    recipe,
+                    initial,
+                    steps,
+                    hidden,
+                };
+            };
+            let max = h.iter().fold(0_f64, |m, &v| m.max(v.abs()));
+            report.check(
+                h.iter().all(|v| v.is_finite() && v.abs() <= 0.75),
+                &format!("{context}/old_hidden_abs_le_0.75"),
+            );
+            println!(
+                "NONSCIENTIFIC_TEST_EVIDENCE RANGE context={context} max_abs={max:.17e} max_bits={} cap=0.75",
+                max.to_bits()
+            );
+            emit_array(&context, "old_hidden", &h);
+            x = h.clone();
+            old.push(h);
+        }
+        hidden.push(old);
+        if u == recipe.rates.len() {
+            break;
+        }
+        validate_labels(&recipe, batch);
+        let labels: Vec<_> = batch.labels.iter().map(Vec::as_slice).collect();
+        if !train(
+            &mut e,
+            &batch.x,
+            &labels,
+            recipe.rates[u],
+            &format!("{context}/update={u}"),
+            report,
+        ) {
+            break;
+        }
+        inspect(
+            &e.layers,
+            &recipe.specs,
+            &format!("{context}/update={u}/post"),
+            report,
+        );
+        steps.push(Snapshot {
+            layers: e.layers.clone(),
+        });
+    }
+    BlockOracle {
+        recipe,
+        initial,
+        steps,
+        hidden,
+    }
+}
+/// Future HE oracle uses this same immutable recipe/baseline path, never the mutant sweep.
+#[allow(dead_code)]
+pub(crate) fn block_oracle(family: BlockFamily) -> std::result::Result<BlockOracle, String> {
+    let mut report = Report::default();
+    let recipe = family.recipe();
+    manifest(&recipe, &mut report);
+    let oracle = baseline(recipe, &mut report);
+    if !report.failures.is_empty() || oracle.steps.len() != oracle.recipe.rates.len() {
+        Err(format!("{report:?}"))
+    } else {
+        Ok(oracle)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+enum LocalControl {
+    LocalHeadAsHidden,
+    PostUpdateHidden,
+    OmittedLocalUpdate,
+}
+fn local_mutant(
+    recipe: &BlockRecipe,
+    control: LocalControl,
+    boundary: usize,
+    report: &mut Report,
+) -> Vec<Snapshot> {
+    let root = format!("{:?}/{control:?}/boundary={boundary}", recipe.family);
+    let mut engines: Vec<_> = (0..recipe.stages.len())
+        .map(|s| engine(recipe, Some(s), &format!("{root}/stage={s}"), report))
+        .collect();
+    let mut steps = Vec::new();
+    for (u, batch) in recipe.batches.iter().enumerate() {
+        validate_labels(recipe, batch);
+        let mut x = batch.x.clone();
+        for (s, e) in engines.iter_mut().enumerate() {
+            let context = format!("{root}/update={u}/stage={s}");
+            let Some(old) = capture_forward(e, 0, &x, &format!("{context}/old_hidden"), report)
+            else {
+                return steps;
+            };
+            let head = if s == boundary && matches!(control, LocalControl::LocalHeadAsHidden) {
+                capture_forward(e, 1, &old, &format!("{context}/old_head"), report)
+            } else {
+                None
+            };
+            let updated = if s == boundary && matches!(control, LocalControl::OmittedLocalUpdate) {
+                true // Omit the actual Engine call; do not turn this into a no-op gradient.
+            } else {
+                train(
+                    e,
+                    &x,
+                    &[batch.labels[s].as_slice()],
+                    recipe.rates[u],
+                    &context,
+                    report,
+                )
+            };
+            if !updated {
+                return steps;
+            }
+            let next = if s == boundary && matches!(control, LocalControl::PostUpdateHidden) {
+                capture_forward(e, 0, &x, &format!("{context}/post_hidden"), report)
+            } else {
+                head.or(Some(old))
+            };
+            let Some(next) = next else {
+                return steps;
+            };
+            // Local H=P is deliberately shape compatible; the substituted actual arrays feed the next actual stage.
+            emit_array(&context, "handoff_or_terminal_hidden", &next);
+            x = next;
+        }
+        let layers: Vec<_> = engines.iter().flat_map(|e| e.layers.clone()).collect();
+        inspect(
+            &layers,
+            &recipe.specs,
+            &format!("{root}/update={u}/post"),
+            report,
+        );
+        steps.push(Snapshot { layers });
+    }
+    steps
+}
+#[derive(Clone, Copy, Debug)]
+enum ScheduleControl {
+    ResetVelocity,
+    ConstantReference,
+    LostTail,
+    MicroRowRestart,
+}
+impl ScheduleControl {
+    const ALL: [Self; 4] = [
+        Self::ResetVelocity,
+        Self::ConstantReference,
+        Self::LostTail,
+        Self::MicroRowRestart,
+    ];
+    fn status(self, recipe: &BlockRecipe) -> (&'static str, Option<usize>) {
+        match self {
+            Self::ResetVelocity if recipe.rates.len() == 1 => ("INAPPLICABLE", None),
+            Self::ResetVelocity => ("APPLICABLE", Some(1)),
+            Self::ConstantReference => match recipe
+                .rates
+                .iter()
+                .position(|&v| v.to_bits() != REFERENCE.to_bits())
+            {
+                Some(u) => ("APPLICABLE", Some(u)),
+                None => ("EQUIVALENT", None),
+            },
+            Self::LostTail | Self::MicroRowRestart => {
+                match recipe.parts.iter().position(|p| p.len() > 1) {
+                    Some(u) => ("APPLICABLE", Some(u)),
+                    None => ("INAPPLICABLE", None),
+                }
+            }
+        }
+    }
+}
+fn schedule_mutant(
+    recipe: &BlockRecipe,
+    control: ScheduleControl,
+    report: &mut Report,
+) -> Vec<Snapshot> {
+    let root = format!("{:?}/{control:?}", recipe.family);
+    let mut e = engine(recipe, None, &root, report);
+    let mut steps = Vec::new();
+    for u in 0..recipe.rates.len() {
+        if matches!(control, ScheduleControl::ResetVelocity) {
+            for l in &mut e.layers {
+                l.weight_velocity.fill(0.);
+                l.bias_velocity.fill(0.);
+            }
+        }
+        let batch = match control {
+            ScheduleControl::LostTail => rows(&recipe.parts[u][..1], &recipe.stages, false),
+            ScheduleControl::MicroRowRestart => rows(&recipe.parts[u], &recipe.stages, true),
+            _ => recipe.batches[u].clone(),
+        };
+        validate_labels(recipe, &batch);
+        let labels: Vec<_> = batch.labels.iter().map(Vec::as_slice).collect();
+        let rate = if matches!(control, ScheduleControl::ConstantReference) {
+            REFERENCE
+        } else {
+            recipe.rates[u]
+        };
+        let context = format!("{root}/update={u}");
+        emit_array(&context, "actual_input", &batch.x);
+        for (s, y) in batch.labels.iter().enumerate() {
+            println!("NONSCIENTIFIC_TEST_EVIDENCE LABELS context={context} stage={s} labels={y:?}");
+        }
+        if !train(&mut e, &batch.x, &labels, rate, &context, report) {
+            break;
+        }
+        inspect(&e.layers, &recipe.specs, &format!("{context}/post"), report);
+        steps.push(Snapshot {
+            layers: e.layers.clone(),
+        });
+    }
+    steps
+}
+#[derive(Debug)]
+struct Witness {
+    layer: usize,
+    row: usize,
+    col: usize,
+    baseline: f64,
+    control: f64,
+    difference: f64,
+}
+fn witness(a: &Snapshot, b: &Snapshot, stage: Option<usize>) -> Witness {
+    assert_eq!(a.layers.len(), b.layers.len());
+    let mut w = Witness {
+        layer: 0,
+        row: 0,
+        col: 0,
+        baseline: 0.,
+        control: 0.,
+        difference: -1.,
+    };
+    for (l, (a, b)) in a.layers.iter().zip(&b.layers).enumerate() {
+        if stage.is_some_and(|s| l / 2 != s) {
+            continue;
+        }
+        assert_eq!(a.weights.dim(), b.weights.dim());
+        for ((r, c), &v) in a.weights.indexed_iter() {
+            let other = b.weights[[r, c]];
+            let d = (v - other).abs();
+            if d > w.difference {
+                w = Witness {
+                    layer: l,
+                    row: r,
+                    col: c,
+                    baseline: v,
+                    control: other,
+                    difference: d,
+                };
+            }
+        }
+    }
+    w
+}
+fn margin(context: &str, w: Witness, report: &mut Report) {
+    for (backend, cap) in CAPS {
+        let distance = w.difference / cap;
+        let ok = distance.is_finite() && distance >= 8.;
+        report.margins += 1;
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE MARGIN context={context} backend={backend} layer={} tensor=W entry=[{},{}] baseline={:.17e} baseline_bits={} control={:.17e} control_bits={} difference={:.17e} difference_bits={} cap={cap:.17e} cap_bits={} normalized_margin={distance:.17e} required=8 status={}",
+            w.layer,
+            w.row,
+            w.col,
+            w.baseline,
+            w.baseline.to_bits(),
+            w.control,
+            w.control.to_bits(),
+            w.difference,
+            w.difference.to_bits(),
+            cap.to_bits(),
+            if ok { "PASS" } else { "FAIL" }
+        );
+        if !ok {
+            report.failures.push(format!(
+                "{context}/backend={backend}/margin={distance:.17e}"
+            ));
+        }
+    }
+}
+// Every paired entry remains visible, including zero differences and unselected stages.
+fn emit_comparison(context: &str, a: &Snapshot, b: &Snapshot) {
+    assert_eq!(a.layers.len(), b.layers.len());
+    for (l, (a, b)) in a.layers.iter().zip(&b.layers).enumerate() {
+        assert_eq!(a.weights.dim(), b.weights.dim());
+        assert_eq!(a.weight_velocity.dim(), b.weight_velocity.dim());
+        assert_eq!(a.biases.len(), b.biases.len());
+        assert_eq!(a.bias_velocity.len(), b.bias_velocity.len());
+        for (tensor, left, right, cols) in [
+            (
+                "W",
+                a.weights.iter().copied().collect::<Vec<_>>(),
+                b.weights.iter().copied().collect::<Vec<_>>(),
+                a.weights.ncols(),
+            ),
+            (
+                "velocity_W",
+                a.weight_velocity.iter().copied().collect(),
+                b.weight_velocity.iter().copied().collect(),
+                a.weight_velocity.ncols(),
+            ),
+            ("b", a.biases.clone(), b.biases.clone(), 1),
+            (
+                "velocity_b",
+                a.bias_velocity.clone(),
+                b.bias_velocity.clone(),
+                1,
+            ),
+        ] {
+            for (i, (value, other)) in left.into_iter().zip(right).enumerate() {
+                println!(
+                    "NONSCIENTIFIC_TEST_EVIDENCE COMPARISON context={context} layer={l} tensor={tensor} entry=[{},{}] baseline={value:.17e} baseline_bits={} control={other:.17e} control_bits={} difference={:.17e} bit_identical={}",
+                    i / cols,
+                    i % cols,
+                    value.to_bits(),
+                    other.to_bits(),
+                    (value - other).abs(),
+                    value.to_bits() == other.to_bits()
+                );
+            }
+        }
+    }
+}
+fn compare(
+    context: &str,
+    baseline: &BlockOracle,
+    steps: &[Snapshot],
+    update: usize,
+    stage: Option<usize>,
+    report: &mut Report,
+) {
+    if let (Some(a), Some(b)) = (baseline.steps.get(update), steps.get(update)) {
+        emit_comparison(context, a, b);
+        for prior in 0..update {
+            if let (Some(left), Some(right)) = (baseline.steps.get(prior), steps.get(prior)) {
+                for s in 0..baseline.recipe.stages.len() {
+                    report.check(
+                        exact_stage(left, right, s),
+                        &format!(
+                            "{context}/prior_update={prior}/stage={s}/all_entries_bit_identical"
+                        ),
+                    );
+                }
+            } else {
+                report.check(false, &format!("{context}/missing_prior_snapshot={prior}"));
+            }
+        }
+        margin(context, witness(a, b, stage), report);
+    } else {
+        report.check(false, &format!("{context}/missing_first_affected_snapshot"));
+    }
+}
+fn exact_stage(a: &Snapshot, b: &Snapshot, s: usize) -> bool {
+    a.layers[s * 2..s * 2 + 2]
+        .iter()
+        .zip(&b.layers[s * 2..s * 2 + 2])
+        .all(|(a, b)| {
+            a.weights.dim() == b.weights.dim()
+                && a.weight_velocity.dim() == b.weight_velocity.dim()
+                && a.biases.len() == b.biases.len()
+                && a.bias_velocity.len() == b.bias_velocity.len()
+                && a.weights
+                    .iter()
+                    .chain(a.biases.iter())
+                    .chain(a.weight_velocity.iter())
+                    .chain(a.bias_velocity.iter())
+                    .map(|v| v.to_bits())
+                    .eq(b
+                        .weights
+                        .iter()
+                        .chain(b.biases.iter())
+                        .chain(b.weight_velocity.iter())
+                        .chain(b.bias_velocity.iter())
+                        .map(|v| v.to_bits()))
+        })
+}
+fn targets(baseline: &BlockOracle, report: &mut Report) {
+    let recipe = &baseline.recipe;
+    for selected in 0..recipe.stages.len() {
+        let context = format!(
+            "{:?}/StageTargetIsolation/selected_stage={selected}/update=0",
+            recipe.family
+        );
+        report.controls += 1;
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE CONTROL context={context} status=APPLICABLE first_affected_update=0 perturbation=selected_stage_all_class_zero"
+        );
+        let mut batch = recipe.batches[0].clone();
+        batch.labels[selected].fill(0);
+        for s in 0..recipe.stages.len() {
+            if s != selected {
+                report.check(
+                    batch.labels[s] == recipe.batches[0].labels[s],
+                    &format!("{context}/input_labels_unchanged_stage={s}"),
+                );
+            }
+            println!(
+                "NONSCIENTIFIC_TEST_EVIDENCE LABELS context={context} stage={s} labels={:?}",
+                batch.labels[s]
+            );
+        }
+        validate_labels(recipe, &batch);
+        let mut e = engine(recipe, None, &context, report);
+        let labels: Vec<_> = batch.labels.iter().map(Vec::as_slice).collect();
+        if !train(&mut e, &batch.x, &labels, recipe.rates[0], &context, report) {
+            continue;
+        }
+        inspect(&e.layers, &recipe.specs, &format!("{context}/post"), report);
+        let mutant = Snapshot { layers: e.layers };
+        if let Some(correct) = baseline.steps.first() {
+            emit_comparison(&context, correct, &mutant);
+            for s in 0..recipe.stages.len() {
+                if s != selected {
+                    report.check(
+                        exact_stage(correct, &mutant, s),
+                        &format!("{context}/other_stage={s}/all_entries_bit_identical"),
+                    );
+                }
+            }
+            margin(&context, witness(correct, &mutant, Some(selected)), report);
+        } else {
+            report.check(false, &format!("{context}/missing_baseline"));
+        }
+    }
+}
+fn run_pure_sensitivity() -> Report {
+    let mut report = Report::default();
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE MANIFEST version={VERSION} families=A,B,C,D train_cap=156 engine_cap=61 external_forward_cap=179 hidden_limit=0.75 required_margin=8 no_HE=true update_indices=zero_based"
+    );
+    let recipes: Vec<_> = BlockFamily::ALL
+        .into_iter()
+        .map(BlockFamily::recipe)
+        .collect();
+    // Freeze/print every family's initial arrays, input order, labels, parts and rate bytes before any Engine.
+    for recipe in &recipes {
+        manifest(recipe, &mut report);
+    }
+    for recipe in recipes {
+        let before = report.counts;
+        let baseline = baseline(recipe, &mut report);
+        let recipe = &baseline.recipe;
+        for boundary in 0..recipe.stages.len() - 1 {
+            for control in [
+                LocalControl::LocalHeadAsHidden,
+                LocalControl::PostUpdateHidden,
+                LocalControl::OmittedLocalUpdate,
+            ] {
+                let context = format!(
+                    "{:?}/{control:?}/boundary={boundary}/update=0",
+                    recipe.family
+                );
+                report.controls += 1;
+                println!(
+                    "NONSCIENTIFIC_TEST_EVIDENCE CONTROL context={context} status=APPLICABLE first_affected_update=0"
+                );
+                let steps = local_mutant(recipe, control, boundary, &mut report);
+                let affected_stage = if matches!(control, LocalControl::OmittedLocalUpdate) {
+                    boundary
+                } else {
+                    boundary + 1
+                };
+                compare(
+                    &context,
+                    &baseline,
+                    &steps,
+                    0,
+                    Some(affected_stage),
+                    &mut report,
+                );
+            }
+        }
+        for control in ScheduleControl::ALL {
+            let (status, first) = control.status(recipe);
+            let context = format!("{:?}/{control:?}", recipe.family);
+            report.controls += 1;
+            println!(
+                "NONSCIENTIFIC_TEST_EVIDENCE CONTROL context={context} status={status} first_affected_update={}",
+                first.map_or_else(|| "NONE".into(), |v| v.to_string())
+            );
+            if let Some(first) = first {
+                let steps = schedule_mutant(recipe, control, &mut report);
+                compare(
+                    &format!("{context}/update={first}"),
+                    &baseline,
+                    &steps,
+                    first,
+                    None,
+                    &mut report,
+                );
+            } else if status == "EQUIVALENT" {
+                report.equivalent += 1;
+            } else {
+                report.inapplicable += 1;
+            }
+        }
+        targets(&baseline, &mut report);
+        let expected = match recipe.family {
+            BlockFamily::A => Counts {
+                train: 42,
+                engines: 13,
+                forward: 42,
+            },
+            BlockFamily::B => Counts {
+                train: 87,
+                engines: 26,
+                forward: 103,
+            },
+            BlockFamily::C => Counts {
+                train: 11,
+                engines: 12,
+                forward: 12,
+            },
+            BlockFamily::D => Counts {
+                train: 16,
+                engines: 10,
+                forward: 22,
+            },
+        };
+        let actual = Counts {
+            train: report.counts.train - before.train,
+            engines: report.counts.engines - before.engines,
+            forward: report.counts.forward - before.forward,
+        };
+        println!(
+            "NONSCIENTIFIC_TEST_EVIDENCE FAMILY_SUMMARY family={:?} actual={actual:?} expected={expected:?}",
+            recipe.family
+        );
+        report.check(
+            actual == expected,
+            &format!("{:?}/actual_counts", recipe.family),
+        );
+    }
+    report.check(report.counts == LIMITS, "total_actual_counts");
+    report.check(
+        report.controls == 40
+            && report.margins == 72
+            && report.equivalent == 1
+            && report.inapplicable == 3,
+        "complete_control_inventory",
+    );
+    println!(
+        "NONSCIENTIFIC_TEST_EVIDENCE SUMMARY actual_train={} actual_engines={} actual_external_forward={} controls={} margins={} equivalent={} inapplicable={} failures={} status={}",
+        report.counts.train,
+        report.counts.engines,
+        report.counts.forward,
+        report.controls,
+        report.margins,
+        report.equivalent,
+        report.inapplicable,
+        report.failures.len(),
+        if report.failures.is_empty() {
+            "PASS"
+        } else {
+            "FAIL"
+        }
+    );
+    for failure in &report.failures {
+        println!("NONSCIENTIFIC_TEST_EVIDENCE FAILURE context={failure}");
+    }
+    report
+}
+
+#[test]
+#[ignore = "requires separate root pure-runtime release; no HE"]
+fn p5_pure_block_sensitivity_gate() {
+    let report = run_pure_sensitivity();
+    assert_eq!(report.counts.train, 156);
+    assert_eq!(report.counts.engines, 61);
+    assert_eq!(report.counts.forward, 179);
+    assert!(report.failures.is_empty(), "{report:#?}");
+}
+
+// Compile-only guard specification; no fixture, Engine or forward arithmetic.
+#[test]
+#[ignore = "source/static phase only; guard test is not numerical evidence"]
+fn p5_paired_oracle_phase_starts_empty_and_incomplete() {
+    let phase = PairedOraclePhase::new();
+    assert_eq!(phase.actual_counts(), [0, 0, 0, 0]);
+    assert!(phase.check_complete().is_err());
+}

@@ -1127,3 +1127,6 @@ mod tests {
         assert!(e.train(&arr2(&[[1.]]), &[&[3]], &rate(0.1, 1.)).is_err());
     }
 }
+
+#[cfg(test)]
+pub(crate) mod p5_fixtures;

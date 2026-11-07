@@ -1,0 +1,24 @@
+{
+  "closed_recipe_and_rows": {
+    "equal": true,
+    "sha256": "5eb9c6aada60cd93c6b85b27bd24f74a16c5f04cb2526eb2efb7a0abfa3a7e15"
+  },
+  "actual_engine_train_forward_and_baseline": {
+    "equal": true,
+    "sha256": "5622dbacc98d74370f69d9c2e4b91f995e589057cd5c07faa91e715dad7014cf"
+  },
+  "all_control_and_comparison_semantics": {
+    "equal": true,
+    "sha256": "46a5f93ffaadca7094d20e3aa606a02e646224eaed902f5ca61507418cab196e"
+  },
+  "pure_matrix_except_closed_constructor": {
+    "equal": true,
+    "sha256": "dd39d87c515897d2c38672b951fe7aa0615204e9729e18786c24602be6aab1e8"
+  },
+  "existing_ignored_pure_entrypoint": {
+    "equal": true,
+    "sha256": "dcf7ffbca8e1657df5fec484d6d70de2508d4552d6b801864651bbfd9adfec09"
+  },
+  "old_unguarded_free_helper_removed": true,
+  "parent_unchanged": true
+}

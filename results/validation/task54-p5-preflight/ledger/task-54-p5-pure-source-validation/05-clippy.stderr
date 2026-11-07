@@ -1,0 +1,30 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: this boolean expression can be simplified
+   --> crates/ckks-train-bench/src/study_plain/p5_fixtures.rs:578:16
+    |
+578 |               if !(s == boundary && matches!(control, LocalControl::OmittedLocalUpdate))
+    |  ________________^
+579 | |                 && !train(
+580 | |                     e,
+581 | |                     &x,
+...   |
+585 | |                     report,
+586 | |                 )
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
+    = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
+help: try
+    |
+578 ~             if !(train(
+579 +                     e,
+580 +                     &x,
+581 +                     &[batch.labels[s].as_slice()],
+582 +                     recipe.rates[u],
+583 +                     &context,
+584 +                     report,
+585 +                 ) || s == boundary && matches!(control, LocalControl::OmittedLocalUpdate))
+    |
+
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

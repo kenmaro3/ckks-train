@@ -1,0 +1,18 @@
+{
+  "utc": "2026-11-07T08:04:04.286330+00:00",
+  "source": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "cd580c14c8f6aa8099c113701890ec2231bb5b162f2375b63103c6562dcdb99e"
+  },
+  "inverse_identity": true,
+  "protected_files": 14,
+  "all_protected_hashes_unchanged": true,
+  "compiled_test_binary": {
+    "path": "target/debug/deps/ckks_train_bench-fe037ad79be4cfe0",
+    "bytes": 8342544,
+    "sha256": "14a09f97113bf92b29dc6df2baaa8f478dac2613558a068beb9f6aead18c008b",
+    "executed": false
+  },
+  "fixture_and_Engine_and_forward_executions": 0,
+  "evidence": "compile/static source revision only; original runtime1 records unchanged"
+}

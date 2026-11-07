@@ -1,0 +1,5 @@
+{
+  "01-rustfmt-check": 79263,
+  "02-compile-final": 79263,
+  "03-clippy-final": 70338
+}

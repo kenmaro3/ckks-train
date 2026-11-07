@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P4平文感度検証](#latest-evidence-20261107-p4-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1649)。
+最新の実装: [P4単一段CPU学習経路の限定実測](#latest-evidence-20261107-p4-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1649)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -711,3 +711,15 @@ HEを実行する前に、同じデータと8倍の条件を保ち、NI許容誤
 ## 2026-11-07 16:50 JST追記: FULL-2の定期確認
 
 [読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1649/README.md)では、16:50:04 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は339/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。16:49以降の予定枠から1回観測し、同じcontroller handle69535で終端まで回収した。再試行やジョブ・キューの変更はしていない。最終精度・Task42／M4の判定は引き続き未確定である。
+
+<a id="latest-evidence-20261107-p5-preflight"></a>
+
+## 2026-11-07追記: P5複数層比較データの感度検証
+
+[平文検証と失敗を含む証跡](../results/validation/task54-p5-preflight/README.md)を保存した。既存F64 Engineの2段／3段・4系列で、local headや更新後hiddenの誤使用、local update欠落、schedule／tail／row再開の誤り、stage別targetの局所性を検査した。最初のv1はIで36/36合格、NIでは許容誤差4e-4の8倍に届かない7項目がありFAILだった。元の出力・失敗判定を保持している。
+
+HEを実行する前に、入力・初期値・rate・reference・control・必要倍率8を維持し、将来のNI誤差上限を3e-5へ厳しくした。Iは1e-5のまま。理由・代替案を設計報告に記録し、source review後に別のv2を1回実行した。I／NIの各36項目すべてが合格し、最小分離はそれぞれ31.782457081491742倍／10.594152360497247倍だった。30,836件の入力・状態・range等の出力が順序も含め一致し、全72比較の元値・bits・絶対差も不変であることを独立レビューで確認した。同じF64差を二つの誤差上限で評価した結果で、backend別の暗号実測ではない。
+
+各実行は156 Engine更新・61 Engine生成・179明示forwardを実際に完走し、失敗を含む累積は312／122／358となる。各698 CHECKは合格、baseline hidden最大絶対値は0.652500000000000080で0.75以内。source／strict Clippy／formatと限定したv2感度検証は合格した。別のempty-phase testと将来のpaired-oracle phaseは未実行である。
+
+P5のkeys／Encoder／evaluator／HEは0であり、暗号学習が3e-5を達成できるかは未検証。複数層のclient／session／packet／retention、canonical D7とdurable start、secure profile、GPU、全行・quick科学実験、P5／Task54／M4／M5全体は未完了である。全登録範囲、full encrypted-block hold、FULL-2の判定条件は維持する。

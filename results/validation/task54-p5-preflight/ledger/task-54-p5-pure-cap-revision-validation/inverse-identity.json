@@ -1,0 +1,20 @@
+{
+  "replacements": [
+    {
+      "before": "\"task54-p5-pure-v1\"",
+      "after": "\"task54-p5-pure-v2\"",
+      "occurrences": 1
+    },
+    {
+      "before": "(\"NI\", 4e-4)",
+      "after": "(\"NI\", 3e-5)",
+      "occurrences": 1
+    }
+  ],
+  "original_sha256": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943",
+  "after_sha256": "cd580c14c8f6aa8099c113701890ec2231bb5b162f2375b63103c6562dcdb99e",
+  "inverse_sha256": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943",
+  "inverse_exact_bytes_equal": true,
+  "parent_sha256": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+  "evidence": "byte-level literal replacement only; no fixture or Engine execution"
+}

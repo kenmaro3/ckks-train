@@ -1,0 +1,31 @@
+{
+  "kind": "nonscientific_test_execution_custody",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_plain::p5_fixtures::p5_pure_block_sensitivity_gate",
+    "--",
+    "--ignored",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/target"
+  },
+  "free_bytes_before": 60425277440,
+  "source_before": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "cd580c14c8f6aa8099c113701890ec2231bb5b162f2375b63103c6562dcdb99e"
+  },
+  "authorization_sha256": "6e96e66f8265b78de9ec7df6dbdae2d285c27926111329f9c784a8a0d699fdec",
+  "started_unix": 1794038874.866776,
+  "local_controller_pid": 11854,
+  "automatic_retry": false
+}

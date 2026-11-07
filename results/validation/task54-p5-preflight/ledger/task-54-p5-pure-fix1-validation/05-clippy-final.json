@@ -1,0 +1,33 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "--tests",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "8",
+    "RAYON_NUM_THREADS": "8"
+  },
+  "before": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943"
+  },
+  "start": "2026-11-07T07:50:22.579680+00:00",
+  "free_bytes": 60459622400,
+  "custody": "source/static only; child cargo test always --no-run; no test binary invoked",
+  "pid": 88547,
+  "exit": 0,
+  "end": "2026-11-07T07:50:25.821340+00:00",
+  "after": {
+    "crates/ckks-train-bench/src/study_plain.rs": "fc6c60bde0b8ec28d2fd8b69abe79809a3f36b0d6986dea3c14a3a1227fd160a",
+    "crates/ckks-train-bench/src/study_plain/p5_fixtures.rs": "fbf604ddc4a3dfae6f3c37bd6909d35adee8f83f639453fb97239bbd46bb2943"
+  }
+}

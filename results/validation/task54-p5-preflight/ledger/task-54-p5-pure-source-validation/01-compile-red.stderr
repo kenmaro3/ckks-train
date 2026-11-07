@@ -1,0 +1,9 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find function `run_pure_sensitivity` in this scope
+ --> crates/ckks-train-bench/src/study_plain/p5_fixtures.rs:6:18
+  |
+6 |     let report = run_pure_sensitivity();
+  |                  ^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

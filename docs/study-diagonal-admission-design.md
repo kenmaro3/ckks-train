@@ -265,3 +265,12 @@ P4で接続した既存trainerを、既存BlockMlp／BlockTrainer／BlockNiTrain
 最初に、暗号計算を伴わない独立したF64感度検証を実装する。候補は固定した2段／3段の4系列で、既存Engine::trainとforwardを使い、local headの誤使用、更新後hiddenの誤使用、local update欠落、schedule／tail／micro内row再開の誤り、stage targetの局所性を検査する。候補配列とrateは実行前に固定する。比較許容誤差はP4と同じI=1e-5／NI=4e-4、必要な識別距離もP4と同じ各許容誤差の8倍以上を要求する。mapの2倍超案は最低限の識別余地にとどまるため選ばず、既存の8倍基準を維持する。baseline old hiddenの絶対値0.75以下、全値finite、凍結biasの厳密な0も事前条件とする。これは小規模fixtureの診断基準であり、本番の精度・security・range基準の変更ではない。
 
 この純粋計算の検証と、後のHE検証を別の実行に分ける。提案上限は純粋計算で156回の実Engine更新・61 Engine生成・179回の明示的forwardで、source reviewで実際の呼出しに照合してから実行する。失敗した候補を隠したり、HEへ進んだり、自動探索・許容誤差緩和はしない。失敗時は数値と原因を保持し、変更理由・代替案を記録して再検討する。後続のHE matrix案は40更新成功＋2途中失敗、I／WN／AU／AA、stage別C/P・label、full／partial／unequal micro、reference／schedule、handoffの旧重み表現・AA再利用、全七計数・状態・retentionを対象とするが、まだ実行しない。full登録範囲、canonical D7開始条件、secure profileとfull encrypted-block campaignの未達・保留を維持する。
+
+
+## 14. P5感度検証v1の実測失敗と、HE前の厳格化（2026-11-07）
+
+固定したP5 pure v1を実際に1回実行し、156 Engine更新／61 Engine生成／179明示forwardを完走した。Iは36/36の識別基準を満たしたが、NIは36項目中7項目が8倍未満でFAILだった。最弱の更新後hidden誤使用との差は3.17824570814917440e-4で、NI許容誤差4e-4自体より小さい。全698 CHECK、stage targetの局所性、finite／凍結zero／shape、35個のbaseline range検査は失敗せず、最大hidden絶対値は0.652500000000000080だった。失敗した元出力・値・判定を保持し、独立の結果レビューで照合した。HEはまだ0である。
+
+次の小規模P5検証では、同じ入力・初期値・rate・reference・全control・必要識別倍率8を維持し、**NIの将来HE誤差上限を3e-5へ厳しくする**。Iは1e-5のまま。保持した最小差を8で割った値は約3.972807135186468e-5であり、3e-5なら同じ差の識別倍率は約10.59415となる。これは保存済みF64結果の算術で、v1のFAILをPASSに変更する根拠でも、HEが3e-5を達成した証拠でもない。新しいv2の定数・sourceをレビューし、別の限定したpure実行で確認してからHEを検討する。
+
+代替案は信号を強めるため入力・初期値を変えることだが、軌跡とrange／局所性も変わる。元の診断対象を維持し、将来のHE精度要求を約13.33倍厳しくする方を選ぶ。識別倍率を下げる案や失敗controlを外す案は採らない。将来HEが3e-5を満たせなければ未達として停止し、自動で4e-4に戻さない。この決定はHE結果を見る前のsynthetic検証基準であり、論文の精度ゲート・本番preset・登録行列・P4既存結果・D7／campaign保留は変更しない。v1の消費済み156/61/179は後続の累積にも含める。

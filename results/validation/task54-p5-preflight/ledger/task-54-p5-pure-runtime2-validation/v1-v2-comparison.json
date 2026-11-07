@@ -1,0 +1,50 @@
+{
+  "kind": "nonscientific_raw_record_comparison",
+  "v1_raw_sha256": "4702340394d79d98135401b3538a833ba6d0a1b8f70d7b738a3c195b12461b32",
+  "v2_raw_sha256": "ccd416c4fb342d6e2a0f75035d1dfd07aff9160ad1822a3ddb54a70e371a51be",
+  "unchanged_records": 30836,
+  "unchanged_record_kinds": {
+    "RECIPE": 4,
+    "CHECK": 698,
+    "ARRAY": 1237,
+    "VALUE": 22235,
+    "VECTOR": 520,
+    "STAGE": 9,
+    "UPDATE": 11,
+    "LABELS": 137,
+    "BEFORE_CALL": 396,
+    "RANGE": 35,
+    "TRAIN_INPUT": 156,
+    "CONTROL": 40,
+    "COMPARISON": 5354,
+    "FAMILY_SUMMARY": 4
+  },
+  "all_unchanged_record_bytes_equal": true,
+  "unchanged_records_sha256": "0b6b5d708b023ae143212dd86f42d97d54fa764de8cde42f4daf7dcf8afb26d3",
+  "margin_original_values_bits_location_absolute_difference_equal": 72,
+  "I_margin_entire_record_equal": 36,
+  "v1_NI_pass_fail": [
+    29,
+    7
+  ],
+  "v2_NI_pass_fail": [
+    36,
+    0
+  ],
+  "changed_record_kinds": [
+    "FAILURE",
+    "MANIFEST",
+    "MARGIN",
+    "SUMMARY"
+  ],
+  "actual_v2_counts": {
+    "engine": 61,
+    "forward": 179,
+    "train": 156
+  },
+  "cumulative_counts": {
+    "engine": 122,
+    "train": 312,
+    "forward": 358
+  }
+}

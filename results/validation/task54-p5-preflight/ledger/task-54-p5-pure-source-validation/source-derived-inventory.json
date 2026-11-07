@@ -1,0 +1,96 @@
+{
+  "evidence": "static source-derived inventory only; fixture/Engine/forward never executed",
+  "families": [
+    {
+      "family": "A",
+      "stages": 2,
+      "updates": 4,
+      "applicable_schedule_controls": 4,
+      "train_by_category": {
+        "baseline": 4,
+        "handoff": 16,
+        "omitted": 4,
+        "schedule": 16,
+        "target": 2
+      },
+      "train": 42,
+      "engines": 13,
+      "external_forward_by_category": {
+        "baseline": 10,
+        "handoff": 24,
+        "omitted": 8
+      },
+      "external_forward": 42
+    },
+    {
+      "family": "B",
+      "stages": 3,
+      "updates": 4,
+      "applicable_schedule_controls": 4,
+      "train_by_category": {
+        "baseline": 4,
+        "handoff": 48,
+        "omitted": 16,
+        "schedule": 16,
+        "target": 3
+      },
+      "train": 87,
+      "engines": 26,
+      "external_forward_by_category": {
+        "baseline": 15,
+        "handoff": 64,
+        "omitted": 24
+      },
+      "external_forward": 103
+    },
+    {
+      "family": "C",
+      "stages": 2,
+      "updates": 1,
+      "applicable_schedule_controls": 3,
+      "train_by_category": {
+        "baseline": 1,
+        "handoff": 4,
+        "omitted": 1,
+        "schedule": 3,
+        "target": 2
+      },
+      "train": 11,
+      "engines": 12,
+      "external_forward_by_category": {
+        "baseline": 4,
+        "handoff": 6,
+        "omitted": 2
+      },
+      "external_forward": 12
+    },
+    {
+      "family": "D",
+      "stages": 2,
+      "updates": 2,
+      "applicable_schedule_controls": 1,
+      "train_by_category": {
+        "baseline": 2,
+        "handoff": 8,
+        "omitted": 2,
+        "schedule": 2,
+        "target": 2
+      },
+      "train": 16,
+      "engines": 10,
+      "external_forward_by_category": {
+        "baseline": 6,
+        "handoff": 12,
+        "omitted": 4
+      },
+      "external_forward": 22
+    }
+  ],
+  "controls": {
+    "total": 40,
+    "applicable": 36,
+    "equivalent": 1,
+    "inapplicable": 3,
+    "margin_records": 72
+  }
+}

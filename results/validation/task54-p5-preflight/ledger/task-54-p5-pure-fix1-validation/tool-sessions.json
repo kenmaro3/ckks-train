@@ -1,0 +1,8 @@
+{
+  "01-compile-red": 10134,
+  "02-rustfmt": 38389,
+  "03-clippy": 38389,
+  "04-rustfmt-final": 36794,
+  "05-clippy-final": 36794,
+  "06-compile-final": 95826
+}

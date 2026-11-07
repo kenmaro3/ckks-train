@@ -1,0 +1,11 @@
+{
+  "review_sha256": "5bc86890f0edc28b4caa8c69625a97e4ce7dc90a4aeced7ca94f3a10e3e9db09",
+  "release_sha256": "b4ec5cd86ff6852697bc4788b32fecfcdf6bc8fb384efd862bbe71c9e420d5b1",
+  "pins_sha256": "0272cd10c7d3d0b2ff424523cd6c72812f9f064202c95535161b0f97f4ecd3e8",
+  "source_report_sha256": "bfc1e46c6ff0cf0e591fae9cab26abaa5f107d8d5933010c45205f7fd083ce44",
+  "invocations": 1,
+  "source_review_pass_root_read": true,
+  "automatic_retry": false,
+  "kind": "nonscientific_pure_test_execution_authorization",
+  "authorized_utc": "2026-11-07T08:07:50.540802+00:00"
+}

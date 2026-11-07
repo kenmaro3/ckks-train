@@ -1,0 +1,170 @@
+--- before/crates/ckks-train-bench/src/study_plain/p5_fixtures.rs
++++ after/crates/ckks-train-bench/src/study_plain/p5_fixtures.rs
+@@ -1,5 +1,5 @@
+ //! NONSCIENTIFIC_TEST_EVIDENCE: closed synthetic block sensitivity, no HE admission.
+-//! Source-frozen A/B/C/D recipes. The sole entrypoint is ignored pending root release.
++//! Source-frozen A/B/C/D recipes. The numerical entrypoint is ignored pending root release.
+ 
+ use super::{Engine, PlainLayer, RateCoefficients, StageSpec, forward};
+ use crate::study_profile::{Activation, Layer, LayerRole};
+@@ -8,6 +8,12 @@
+ const VERSION: &str = "task54-p5-pure-v1";
+ const CAPS: [(&str, f64); 2] = [("I", 1e-5), ("NI", 4e-4)];
+ const REFERENCE: f64 = 0.08;
++const PAIRED_ORACLES: usize = 14;
++const PAIRED_LIMITS: Counts = Counts {
++    train: 40,
++    engines: 14,
++    forward: 128,
++};
+ const LIMITS: Counts = Counts {
+     train: 156,
+     engines: 61,
+@@ -196,9 +202,10 @@
+     engines: usize,
+     forward: usize,
+ }
+-#[derive(Debug, Default)]
++#[derive(Debug)]
+ struct Report {
+     counts: Counts,
++    limits: Counts,
+     failures: Vec<String>,
+     margins: usize,
+     controls: usize,
+@@ -206,6 +213,23 @@
+     equivalent: usize,
+ }
+ impl Report {
++    fn pure() -> Self {
++        Self {
++            counts: Counts::default(),
++            limits: LIMITS,
++            failures: Vec::new(),
++            margins: 0,
++            controls: 0,
++            inapplicable: 0,
++            equivalent: 0,
++        }
++    }
++    fn paired() -> Self {
++        Self {
++            limits: PAIRED_LIMITS,
++            ..Self::pure()
++        }
++    }
+     fn check(&mut self, ok: bool, context: &str) {
+         println!(
+             "NONSCIENTIFIC_TEST_EVIDENCE CHECK context={context} status={}",
+@@ -217,9 +241,9 @@
+     }
+     fn reserve(&mut self, kind: &str, context: &str) {
+         let (value, cap) = match kind {
+-            "train" => (&mut self.counts.train, LIMITS.train),
+-            "engine" => (&mut self.counts.engines, LIMITS.engines),
+-            "forward" => (&mut self.counts.forward, LIMITS.forward),
++            "train" => (&mut self.counts.train, self.limits.train),
++            "engine" => (&mut self.counts.engines, self.limits.engines),
++            "forward" => (&mut self.counts.forward, self.limits.forward),
+             _ => unreachable!(),
+         };
+         assert!(
+@@ -531,17 +555,65 @@
+         hidden,
+     }
+ }
+-/// Future HE oracle uses this same immutable recipe/baseline path, never the mutant sweep.
+-#[allow(dead_code)]
+-pub(crate) fn block_oracle(family: BlockFamily) -> std::result::Result<BlockOracle, String> {
+-    let mut report = Report::default();
+-    let recipe = family.recipe();
+-    manifest(&recipe, &mut report);
+-    let oracle = baseline(recipe, &mut report);
+-    if !report.failures.is_empty() || oracle.steps.len() != oracle.recipe.rates.len() {
+-        Err(format!("{report:?}"))
+-    } else {
+-        Ok(oracle)
++/// One future paired-HE driver's shared oracle phase; constructing it grants no runtime authority.
++/// No Clone, Default, reset, mutable report or caller-selected limits are exposed.
++pub(crate) struct PairedOraclePhase {
++    report: Report,
++    oracles: usize,
++}
++#[allow(dead_code)] // Closed future consumer; source-only phase never invokes its oracle method.
++impl PairedOraclePhase {
++    pub(crate) fn new() -> Self {
++        Self {
++            report: Report::paired(),
++            oracles: 0,
++        }
++    }
++    /// Actual reservations in fixed order: oracle calls, Engine objects, train calls, external forwards.
++    pub(crate) fn actual_counts(&self) -> [usize; 4] {
++        [
++            self.oracles,
++            self.report.counts.engines,
++            self.report.counts.train,
++            self.report.counts.forward,
++        ]
++    }
++    pub(crate) fn check_complete(&self) -> std::result::Result<(), String> {
++        if self.oracles == PAIRED_ORACLES
++            && self.report.counts == PAIRED_LIMITS
++            && self.report.failures.is_empty()
++        {
++            Ok(())
++        } else {
++            Err(format!(
++                "paired oracle phase incomplete/failed: actual={:?} expected=[14,14,40,128] failures={:?}",
++                self.actual_counts(),
++                self.report.failures
++            ))
++        }
++    }
++    /// Same immutable recipe/baseline path and actual guarded sites, with one shared aggregate report.
++    pub(crate) fn oracle(
++        &mut self,
++        family: BlockFamily,
++    ) -> std::result::Result<BlockOracle, String> {
++        assert!(
++            self.oracles < PAIRED_ORACLES,
++            "actual oracle cap reached before call: {family:?}"
++        );
++        self.oracles += 1;
++        println!(
++            "NONSCIENTIFIC_TEST_EVIDENCE BEFORE_CALL kind=oracle actual={} cap={PAIRED_ORACLES} context={family:?}/paired",
++            self.oracles
++        );
++        let recipe = family.recipe();
++        manifest(&recipe, &mut self.report);
++        let oracle = baseline(recipe, &mut self.report);
++        if !self.report.failures.is_empty() || oracle.steps.len() != oracle.recipe.rates.len() {
++            Err(format!("{:?}", self.report))
++        } else {
++            Ok(oracle)
++        }
+     }
+ }
+ #[derive(Clone, Copy, Debug)]
+@@ -903,7 +975,7 @@
+     }
+ }
+ fn run_pure_sensitivity() -> Report {
+-    let mut report = Report::default();
++    let mut report = Report::pure();
+     println!(
+         "NONSCIENTIFIC_TEST_EVIDENCE MANIFEST version={VERSION} families=A,B,C,D train_cap=156 engine_cap=61 external_forward_cap=179 hidden_limit=0.75 required_margin=8 no_HE=true update_indices=zero_based"
+     );
+@@ -1049,3 +1121,12 @@
+     assert_eq!(report.counts.forward, 179);
+     assert!(report.failures.is_empty(), "{report:#?}");
+ }
++
++// Compile-only guard specification; no fixture, Engine or forward arithmetic.
++#[test]
++#[ignore = "source/static phase only; guard test is not numerical evidence"]
++fn p5_paired_oracle_phase_starts_empty_and_incomplete() {
++    let phase = PairedOraclePhase::new();
++    assert_eq!(phase.actual_counts(), [0, 0, 0, 0]);
++    assert!(phase.check_complete().is_err());
++}
