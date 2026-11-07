@@ -1,0 +1,552 @@
+{
+  "count": 78,
+  "all_match": true,
+  "files": [
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/ADOPTION.md",
+      "expected_sha256": "4dee53baabdae3d85206a146ac018a01a0f6a82f3c69836a21cda684ecb1e6dd",
+      "actual_sha256": "4dee53baabdae3d85206a146ac018a01a0f6a82f3c69836a21cda684ecb1e6dd",
+      "match": true,
+      "bytes": 1370
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/admission-gates.canonical.hex",
+      "expected_sha256": "7cecfb26e0de93a8f9255d69059e00b1b8136a2207bf9bb2ac5029092ab5673c",
+      "actual_sha256": "7cecfb26e0de93a8f9255d69059e00b1b8136a2207bf9bb2ac5029092ab5673c",
+      "match": true,
+      "bytes": 1245
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/binary64-components.json",
+      "expected_sha256": "8c8813ed6c3fda388a587a2846e0005d80e20d745694a64fabbf8e69ba525abc",
+      "actual_sha256": "8c8813ed6c3fda388a587a2846e0005d80e20d745694a64fabbf8e69ba525abc",
+      "match": true,
+      "bytes": 1699
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/binary64-vectors.json",
+      "expected_sha256": "f47763cb7515482de689ccbf3c573b5d0439141f0ab608e2ce577c632af74796",
+      "actual_sha256": "f47763cb7515482de689ccbf3c573b5d0439141f0ab608e2ce577c632af74796",
+      "match": true,
+      "bytes": 2897
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/bits-value-disagree.negative.json",
+      "expected_sha256": "380a8fc14c08c47005adb1ddbd7cb840bd559693c932b707404f4ad51869a3b3",
+      "actual_sha256": "380a8fc14c08c47005adb1ddbd7cb840bd559693c932b707404f4ad51869a3b3",
+      "match": true,
+      "bytes": 9156
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-0.canonical.hex",
+      "expected_sha256": "1badd1c6a23e65be290de805ded9793e732aa8a7a165f58abe9e5614bea85c8f",
+      "actual_sha256": "1badd1c6a23e65be290de805ded9793e732aa8a7a165f58abe9e5614bea85c8f",
+      "match": true,
+      "bytes": 10581
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-0.json",
+      "expected_sha256": "1df79615f1c4b40857c5296d4dcc993ca707d84a06ab3e9124694c63c6ae5187",
+      "actual_sha256": "1df79615f1c4b40857c5296d4dcc993ca707d84a06ab3e9124694c63c6ae5187",
+      "match": true,
+      "bytes": 10544
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-1.canonical.hex",
+      "expected_sha256": "5ce96e709bc1795325f9fce0210fa75712bb1d952387a63d3f7695669712c22b",
+      "actual_sha256": "5ce96e709bc1795325f9fce0210fa75712bb1d952387a63d3f7695669712c22b",
+      "match": true,
+      "bytes": 11035
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-1.json",
+      "expected_sha256": "bbf5fa3d57025df630288621249c6db20f51c3740d6dfa95bb6d1e31c753c4b4",
+      "actual_sha256": "bbf5fa3d57025df630288621249c6db20f51c3740d6dfa95bb6d1e31c753c4b4",
+      "match": true,
+      "bytes": 10860
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-2.canonical.hex",
+      "expected_sha256": "191bd71bbe9b8c1ba12f1b4e27b76c90aeab554ccd4c2074be57e9f9eb6a198a",
+      "actual_sha256": "191bd71bbe9b8c1ba12f1b4e27b76c90aeab554ccd4c2074be57e9f9eb6a198a",
+      "match": true,
+      "bytes": 10731
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-2.json",
+      "expected_sha256": "e9c2933022fffcc2736ada9f820c767edb0434da26440426b26d670882bf4483",
+      "actual_sha256": "e9c2933022fffcc2736ada9f820c767edb0434da26440426b26d670882bf4483",
+      "match": true,
+      "bytes": 10706
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-3.canonical.hex",
+      "expected_sha256": "806735f05de619056f8f6fa485d2b1c535a22aea17425fb82c0ea90bddbb09f7",
+      "actual_sha256": "806735f05de619056f8f6fa485d2b1c535a22aea17425fb82c0ea90bddbb09f7",
+      "match": true,
+      "bytes": 11035
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-3.json",
+      "expected_sha256": "4b28114196766145d19af184ab283d5b9dd2b4417dce3b51a829db2d1875f21b",
+      "actual_sha256": "4b28114196766145d19af184ab283d5b9dd2b4417dce3b51a829db2d1875f21b",
+      "match": true,
+      "bytes": 10883
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-4.canonical.hex",
+      "expected_sha256": "d1e4cb941daab2c487dbbb4b5e9c44efc29a2210c0401e2e0634e4a578781a01",
+      "actual_sha256": "d1e4cb941daab2c487dbbb4b5e9c44efc29a2210c0401e2e0634e4a578781a01",
+      "match": true,
+      "bytes": 10587
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-4.json",
+      "expected_sha256": "44fdcbacc16491180f27864bb9554de6cd67f5c54694f4a93790c8068dc5c39c",
+      "actual_sha256": "44fdcbacc16491180f27864bb9554de6cd67f5c54694f4a93790c8068dc5c39c",
+      "match": true,
+      "bytes": 10646
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-5.canonical.hex",
+      "expected_sha256": "dff16c00be7d2e234a3132afcb954652817ed86d5e065c882219c5b739df557d",
+      "actual_sha256": "dff16c00be7d2e234a3132afcb954652817ed86d5e065c882219c5b739df557d",
+      "match": true,
+      "bytes": 10725
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/branch-5.json",
+      "expected_sha256": "0e1bc1b87cc425de18f200b6b97cf515839fe07617874d3d6496fec13272152a",
+      "actual_sha256": "0e1bc1b87cc425de18f200b6b97cf515839fe07617874d3d6496fec13272152a",
+      "match": true,
+      "bytes": 10611
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/cap-accounting.json",
+      "expected_sha256": "b35ba58ecf16e53ee7b0aa3e59ec134d322085b28b1994a636c05cec4cfda645",
+      "actual_sha256": "b35ba58ecf16e53ee7b0aa3e59ec134d322085b28b1994a636c05cec4cfda645",
+      "match": true,
+      "bytes": 79461
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/cap-accounting.md",
+      "expected_sha256": "e977647ab4369c8b1feba7b9a24283d7f790f5bca081f7222136235bec6be67b",
+      "actual_sha256": "e977647ab4369c8b1feba7b9a24283d7f790f5bca081f7222136235bec6be67b",
+      "match": true,
+      "bytes": 5723
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-0.canonical.hex",
+      "expected_sha256": "ab38fcf05d19602e80e968056e67f5e5eeb19f737f74192e8201199458b8786a",
+      "actual_sha256": "ab38fcf05d19602e80e968056e67f5e5eeb19f737f74192e8201199458b8786a",
+      "match": true,
+      "bytes": 305
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-1.canonical.hex",
+      "expected_sha256": "61ee8e7ebf37bb85359065895230bfc380b6cf232341392eae5b42ca8c737084",
+      "actual_sha256": "61ee8e7ebf37bb85359065895230bfc380b6cf232341392eae5b42ca8c737084",
+      "match": true,
+      "bytes": 311
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-2.canonical.hex",
+      "expected_sha256": "217560eb44cc8461f6e04bb993fb7ea42e17a223cd39dfff43cc0738e636247e",
+      "actual_sha256": "217560eb44cc8461f6e04bb993fb7ea42e17a223cd39dfff43cc0738e636247e",
+      "match": true,
+      "bytes": 311
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-3.canonical.hex",
+      "expected_sha256": "0e717628cfae8d84624d2b8fb17bb86884ae988fc6c3278bd599a299e8467302",
+      "actual_sha256": "0e717628cfae8d84624d2b8fb17bb86884ae988fc6c3278bd599a299e8467302",
+      "match": true,
+      "bytes": 311
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-4.canonical.hex",
+      "expected_sha256": "6ea4f104e920cb1d967d24e03a80d9217cad616e4814f85d70ff3a0f82f75e49",
+      "actual_sha256": "6ea4f104e920cb1d967d24e03a80d9217cad616e4814f85d70ff3a0f82f75e49",
+      "match": true,
+      "bytes": 311
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-5.canonical.hex",
+      "expected_sha256": "82e70f98604a817336bee2ed837823b2ae514e01f66d18510c8bdc39671a6670",
+      "actual_sha256": "82e70f98604a817336bee2ed837823b2ae514e01f66d18510c8bdc39671a6670",
+      "match": true,
+      "bytes": 305
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/case-binding.canonical.hex",
+      "expected_sha256": "8275a245e58a5a097e041527c73cc082c17faec98ecfacd5881efad5f91a0147",
+      "actual_sha256": "8275a245e58a5a097e041527c73cc082c17faec98ecfacd5881efad5f91a0147",
+      "match": true,
+      "bytes": 1361
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/coverage.md",
+      "expected_sha256": "68e4bbe282ec64882917cafd0096019dc10cdc154b6e24f9ff2b2c5c7e157dcb",
+      "actual_sha256": "68e4bbe282ec64882917cafd0096019dc10cdc154b6e24f9ff2b2c5c7e157dcb",
+      "match": true,
+      "bytes": 7251
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/duplicate-escaped-key.negative.json",
+      "expected_sha256": "b0faf34e1077d9c57ea4cb2ab4355db315dda0442c4aee812ef8ba36cd055dc1",
+      "actual_sha256": "b0faf34e1077d9c57ea4cb2ab4355db315dda0442c4aee812ef8ba36cd055dc1",
+      "match": true,
+      "bytes": 9198
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/error-expectations.json",
+      "expected_sha256": "9f9ce855851dd058439c0dabbbc4a48a5679ec543f204831aae821666406e7bc",
+      "actual_sha256": "9f9ce855851dd058439c0dabbbc4a48a5679ec543f204831aae821666406e7bc",
+      "match": true,
+      "bytes": 8010
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/escaped-large-hex.negative.json",
+      "expected_sha256": "a63a0d19f1296d1f39dcfa855012cf7e844b0e46179d373170677be3e84863dd",
+      "actual_sha256": "a63a0d19f1296d1f39dcfa855012cf7e844b0e46179d373170677be3e84863dd",
+      "match": true,
+      "bytes": 9161
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-0.canonical.hex",
+      "expected_sha256": "f5dec878f4577d5a836e67562670d34b467ab79b6ab8b5e912310559b533e1ee",
+      "actual_sha256": "f5dec878f4577d5a836e67562670d34b467ab79b6ab8b5e912310559b533e1ee",
+      "match": true,
+      "bytes": 1209
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-1.canonical.hex",
+      "expected_sha256": "bc71ad9e3cbe30fd1a87c88940e32d08554fa380284469d668c8a57fea77670e",
+      "actual_sha256": "bc71ad9e3cbe30fd1a87c88940e32d08554fa380284469d668c8a57fea77670e",
+      "match": true,
+      "bytes": 1353
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-2.canonical.hex",
+      "expected_sha256": "11aba495d767ad802364c8fedc16875c9b1aefc873d838f2367d5ba37cdcd010",
+      "actual_sha256": "11aba495d767ad802364c8fedc16875c9b1aefc873d838f2367d5ba37cdcd010",
+      "match": true,
+      "bytes": 1353
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-3.canonical.hex",
+      "expected_sha256": "819c350b39cd3926e57d73d4879a8335cfc30221d81f229254d81420ca3ba0e5",
+      "actual_sha256": "819c350b39cd3926e57d73d4879a8335cfc30221d81f229254d81420ca3ba0e5",
+      "match": true,
+      "bytes": 1353
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-4.canonical.hex",
+      "expected_sha256": "0e3c3d9ecdc6523eb08d2c7e55ae1b266dbde8d1ece16b6a6e72349bcd096054",
+      "actual_sha256": "0e3c3d9ecdc6523eb08d2c7e55ae1b266dbde8d1ece16b6a6e72349bcd096054",
+      "match": true,
+      "bytes": 1209
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/execution-5.canonical.hex",
+      "expected_sha256": "b2db1f0b3543d88ece1c38a16467da91f611f9b85402495b956caaa19e1e73a7",
+      "actual_sha256": "b2db1f0b3543d88ece1c38a16467da91f611f9b85402495b956caaa19e1e73a7",
+      "match": true,
+      "bytes": 1353
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-0.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-1.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-2.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-3.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-4.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/gates-5.canonical.hex",
+      "expected_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "actual_sha256": "f6d3d0606e9f70afebc1277f167bdca5848ba3dbd371a71350f10f50c3846f90",
+      "match": true,
+      "bytes": 1087
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/initial.canonical.hex",
+      "expected_sha256": "9b3a0cba1f964847173c88fcdf4932d6fcbb83df355514340213ee1540de8987",
+      "actual_sha256": "9b3a0cba1f964847173c88fcdf4932d6fcbb83df355514340213ee1540de8987",
+      "match": true,
+      "bytes": 10585
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/initial.json",
+      "expected_sha256": "d2aabaaadcce564370f807c78793a31cff3843478613c4d689742c94a1874e6a",
+      "actual_sha256": "d2aabaaadcce564370f807c78793a31cff3843478613c4d689742c94a1874e6a",
+      "match": true,
+      "bytes": 10546
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-endpoint-negative.canonical.hex",
+      "expected_sha256": "55826701f46173e80bfabb85b652d9eed7c17c94624847be12a5719a491ac649",
+      "actual_sha256": "55826701f46173e80bfabb85b652d9eed7c17c94624847be12a5719a491ac649",
+      "match": true,
+      "bytes": 8375
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-endpoint-negative.json",
+      "expected_sha256": "faec41f62224052f1308aab7bd4d9793266fefe6e43744b06ac7d51b568346f7",
+      "actual_sha256": "faec41f62224052f1308aab7bd4d9793266fefe6e43744b06ac7d51b568346f7",
+      "match": true,
+      "bytes": 9239
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock-id.canonical.hex",
+      "expected_sha256": "9a6c4b69aa6b5cf4b42da363dd819d9d01a546ec121c59b6943be44c1913ac4a",
+      "actual_sha256": "9a6c4b69aa6b5cf4b42da363dd819d9d01a546ec121c59b6943be44c1913ac4a",
+      "match": true,
+      "bytes": 259
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock.canonical.hex",
+      "expected_sha256": "0bf7ca334a6270d2d34cfccda0485d73b4233b10c27a0c2c6d9beb08fed207dd",
+      "actual_sha256": "0bf7ca334a6270d2d34cfccda0485d73b4233b10c27a0c2c6d9beb08fed207dd",
+      "match": true,
+      "bytes": 8227
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/lock.json",
+      "expected_sha256": "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7",
+      "actual_sha256": "b71e6e056dcf7faeb8322a68b73b6189a12386e898d306549372a9f285ac26e7",
+      "match": true,
+      "bytes": 9156
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/manifest.json",
+      "expected_sha256": "5da1db0c629ed183d20a23b878289cae7dd727b846dc8441edb3024c2d1fe820",
+      "actual_sha256": "5da1db0c629ed183d20a23b878289cae7dd727b846dc8441edb3024c2d1fe820",
+      "match": true,
+      "bytes": 9033
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/mismatched-source-schema.negative.json",
+      "expected_sha256": "1d6910f0c975e9036ab5590dca1d2ca4adfccc90bc0e029576f0c4d6ef8794d7",
+      "actual_sha256": "1d6910f0c975e9036ab5590dca1d2ca4adfccc90bc0e029576f0c4d6ef8794d7",
+      "match": true,
+      "bytes": 9148
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-no-start.canonical.hex",
+      "expected_sha256": "d53a70d7ff00ffa8ad7ca51edc9f7faf307673688ee6269a7502bb0a78516d32",
+      "actual_sha256": "d53a70d7ff00ffa8ad7ca51edc9f7faf307673688ee6269a7502bb0a78516d32",
+      "match": true,
+      "bytes": 343
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-null.canonical.hex",
+      "expected_sha256": "d9b2aefb1febe2dd6e403f634e18917a8c0dd1a440c976e9fe126b465ae9fc8d",
+      "actual_sha256": "d9b2aefb1febe2dd6e403f634e18917a8c0dd1a440c976e9fe126b465ae9fc8d",
+      "match": true,
+      "bytes": 3
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/predecessor-with-start.canonical.hex",
+      "expected_sha256": "194a68b8a280f8f3dcd0dbe3183d5931441b3a68fe32c598201f2a93ac643e9e",
+      "actual_sha256": "194a68b8a280f8f3dcd0dbe3183d5931441b3a68fe32c598201f2a93ac643e9e",
+      "match": true,
+      "bytes": 631
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/prior-start-link-mismatch.negative.json",
+      "expected_sha256": "39de46af4a30c4250d1509e30407ece45a1f3c14b155555315e9c87f67b356d2",
+      "actual_sha256": "39de46af4a30c4250d1509e30407ece45a1f3c14b155555315e9c87f67b356d2",
+      "match": true,
+      "bytes": 11002
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/production-header-false.negative.json",
+      "expected_sha256": "0ae3bdc527c6ebc495c1e6341192746c27064ef2081032ab827eb690bc1e4d75",
+      "actual_sha256": "0ae3bdc527c6ebc495c1e6341192746c27064ef2081032ab827eb690bc1e4d75",
+      "match": true,
+      "bytes": 9158
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/production-header-true.negative.json",
+      "expected_sha256": "a5b724a83d443555867a93b7eae80dc80b09967115589135264a2f7fd12a3513",
+      "actual_sha256": "a5b724a83d443555867a93b7eae80dc80b09967115589135264a2f7fd12a3513",
+      "match": true,
+      "bytes": 9157
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/profile-slot.canonical.hex",
+      "expected_sha256": "083dea30656c48003aa02940a3afc61957b9e67a6ecbdbdd474976c0230eff25",
+      "actual_sha256": "083dea30656c48003aa02940a3afc61957b9e67a6ecbdbdd474976c0230eff25",
+      "match": true,
+      "bytes": 203
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/reference.canonical.hex",
+      "expected_sha256": "cd6a14193d9caf87719c704f455c7ec9bd0a20c391e7f37d2a5c653345444202",
+      "actual_sha256": "cd6a14193d9caf87719c704f455c7ec9bd0a20c391e7f37d2a5c653345444202",
+      "match": true,
+      "bytes": 6009
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/reference.json",
+      "expected_sha256": "3f1dfecb374523d1236a441e36e4dbe99ad648313aa811b8e3b2c57edaf5a768",
+      "actual_sha256": "3f1dfecb374523d1236a441e36e4dbe99ad648313aa811b8e3b2c57edaf5a768",
+      "match": true,
+      "bytes": 7857
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/registered-case.canonical.hex",
+      "expected_sha256": "38ae737e7f33624f980e2b3d345dc24eba4eec93dc19737ad28f4ec68022d845",
+      "actual_sha256": "38ae737e7f33624f980e2b3d345dc24eba4eec93dc19737ad28f4ec68022d845",
+      "match": true,
+      "bytes": 463
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/rejection-specs.json",
+      "expected_sha256": "e86a57d8462a45933204fd2a1a1e3847121bda053437b17b274389692ebc7fae",
+      "actual_sha256": "e86a57d8462a45933204fd2a1a1e3847121bda053437b17b274389692ebc7fae",
+      "match": true,
+      "bytes": 6075
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-no-start.canonical.hex",
+      "expected_sha256": "ae6bbdab09cc9096ce78056a17b10b42b24cca42a16655b12029cd50ce0d1287",
+      "actual_sha256": "ae6bbdab09cc9096ce78056a17b10b42b24cca42a16655b12029cd50ce0d1287",
+      "match": true,
+      "bytes": 10939
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-no-start.json",
+      "expected_sha256": "fff47b4f0426a23cef7795fb0fd28310becf2dec17cb6cf24c7a7f7182bef662",
+      "actual_sha256": "fff47b4f0426a23cef7795fb0fd28310becf2dec17cb6cf24c7a7f7182bef662",
+      "match": true,
+      "bytes": 10817
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-with-start.canonical.hex",
+      "expected_sha256": "66a2e1362242ddc9e4b4e205b98f722bc33ccc645e1027974c7391973dee5d8e",
+      "actual_sha256": "66a2e1362242ddc9e4b4e205b98f722bc33ccc645e1027974c7391973dee5d8e",
+      "match": true,
+      "bytes": 11231
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/retry-with-start.json",
+      "expected_sha256": "c4317d7f83dddd73f4e48202642f889a5549766d73989b7e29c75a54e8277bd1",
+      "actual_sha256": "c4317d7f83dddd73f4e48202642f889a5549766d73989b7e29c75a54e8277bd1",
+      "match": true,
+      "bytes": 11002
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-initial.canonical.hex",
+      "expected_sha256": "0c41e3bf79f9b544f7ca7f948f99a7730e86082e16d32f65fb008d16f9ae8fd9",
+      "actual_sha256": "0c41e3bf79f9b544f7ca7f948f99a7730e86082e16d32f65fb008d16f9ae8fd9",
+      "match": true,
+      "bytes": 7523
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-initial.json",
+      "expected_sha256": "e4577a9c9fadb3ea3f7bc231e1deca9dc7adeb0e0eb01b252034e4c897c2fcc1",
+      "actual_sha256": "e4577a9c9fadb3ea3f7bc231e1deca9dc7adeb0e0eb01b252034e4c897c2fcc1",
+      "match": true,
+      "bytes": 7690
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-retry.canonical.hex",
+      "expected_sha256": "3201f0216efa558d2f7ec5f93fea86742bd6a0df77222b30a04bcd0b3619f3f0",
+      "actual_sha256": "3201f0216efa558d2f7ec5f93fea86742bd6a0df77222b30a04bcd0b3619f3f0",
+      "match": true,
+      "bytes": 7541
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/start-retry.json",
+      "expected_sha256": "cf3a998fef266f720250ecbd074618ec303e301004d9e01ce8726385e52bab9e",
+      "actual_sha256": "cf3a998fef266f720250ecbd074618ec303e301004d9e01ce8726385e52bab9e",
+      "match": true,
+      "bytes": 7699
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/target-one-ulp-up.negative.json",
+      "expected_sha256": "9fffb9b56668bebb40ef277162fa22926e52b374f66c5201f7a1de19ce332c32",
+      "actual_sha256": "9fffb9b56668bebb40ef277162fa22926e52b374f66c5201f7a1de19ce332c32",
+      "match": true,
+      "bytes": 9157
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/test-header-false.negative.json",
+      "expected_sha256": "2d061319a6fd3e3b5b0a920663dce8d24cb8dbe05f061ea2c57fc03d51727448",
+      "actual_sha256": "2d061319a6fd3e3b5b0a920663dce8d24cb8dbe05f061ea2c57fc03d51727448",
+      "match": true,
+      "bytes": 9157
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unknown-field.negative.json",
+      "expected_sha256": "e972099a4d0c9fa639d9dfdfe82d08b1d2c3dd1d3feef1275d3bcf92c920cd24",
+      "actual_sha256": "e972099a4d0c9fa639d9dfdfe82d08b1d2c3dd1d3feef1275d3bcf92c920cd24",
+      "match": true,
+      "bytes": 9174
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unsupported-domain.negative.json",
+      "expected_sha256": "841da27e3f0b1b4bd6d93741cc6d4712056b94c06f94980dfe7866100b5994da",
+      "actual_sha256": "841da27e3f0b1b4bd6d93741cc6d4712056b94c06f94980dfe7866100b5994da",
+      "match": true,
+      "bytes": 9158
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/unsupported-hash.negative.json",
+      "expected_sha256": "e03eb63d6167aa05c3af65eaaa850f9478b1b8d671ee6d616cea3cba1a2902ed",
+      "actual_sha256": "e03eb63d6167aa05c3af65eaaa850f9478b1b8d671ee6d616cea3cba1a2902ed",
+      "match": true,
+      "bytes": 9156
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-identity-hash.negative.json",
+      "expected_sha256": "4d0671fffebd45af360abcdcf53c468de28a6b3b4eb3f97204dd800db7a62a8e",
+      "actual_sha256": "4d0671fffebd45af360abcdcf53c468de28a6b3b4eb3f97204dd800db7a62a8e",
+      "match": true,
+      "bytes": 9156
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-payload-hash.negative.json",
+      "expected_sha256": "051ccbcc1ae42aa65044202cc7369d082c0848b1a7a632f5beb90aa01cb8c684",
+      "actual_sha256": "051ccbcc1ae42aa65044202cc7369d082c0848b1a7a632f5beb90aa01cb8c684",
+      "match": true,
+      "bytes": 9156
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target_goldens/wrong-reference-link.negative.json",
+      "expected_sha256": "832f42980846a2f1ee6a174d55f7247897fbd7b6a5c8b98ba0795e751f37c3c6",
+      "actual_sha256": "832f42980846a2f1ee6a174d55f7247897fbd7b6a5c8b98ba0795e751f37c3c6",
+      "match": true,
+      "bytes": 9156
+    }
+  ]
+}

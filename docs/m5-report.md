@@ -634,4 +634,14 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 実際のnative contextによるbind_actual_cpu／run_owned成功、暗号学習、GPU、実gate・durable startは未実行であり、productionはMissingExecutionDependencyを維持する。残りは五つの実gateと証拠reader、admission／startの保存、開始後の所有者・lease接続、科学結果publisher、全実験である。Task54／M4／M5全体や物理メモリ適合の合格とはしない。
 
+## 2026-11-07追記: Full admission／startの記録形式
+
+[実装・検証証跡](../results/validation/task54-d7-admission-codec/README.md)を保存した。Full admission／startの厳密なparserとcanonical encodingを追加し、既存Reference／Lockと共通処理を再利用した。CaseIdentityは実際の登録ケースとparsed claimsが同じencodingを通り、ExecutionBindingも既存処理を共有する。既存78個のテストデータ、C／R／AとFullのbytes・上限は変更していない。
+
+独立ソースレビュー、default／parallel／cudaのno-run、strict Clippy、formatが合格した。新規9件と変更した共有部分の回帰4件を、default featureで一度ずつ逐次実行し、13件すべてが指定した1件を選択して合格した。Cargo子プロセス13件と元controller session76127はexit0、496個のsource／input pinと26個の生ログ（5247 bytes）を照合し、実行結果の独立レビューも合格した。
+
+回帰には実際の登録ケース2700件と補足7件のmetadata生成、19個の独立canonical値との比較が含まれる。新規9件は小さいfixtureによる記録・リンク・拒否・上限の検証で、上限サイズの巨大bufferや暗号処理は実行していない。documentのEncoderは実行しており、暗号用Encoderを生成していないことと区別する。
+
+実際のRetry readerは、現在と前回のadmissionの両方を同じ保持中のtarget／referenceと承認policyに照合してから、predecessor／startの整合性helperを組み合わせる必要がある。現在分のtarget確認だけでは足りず、前回のlock等を変更した拒否テストを次工程に残す。parserやhash一致は実gate・lease・実行開始権限にならない。保存protocol、durable start、Quick、科学結果publisherと全実験は未完了である。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

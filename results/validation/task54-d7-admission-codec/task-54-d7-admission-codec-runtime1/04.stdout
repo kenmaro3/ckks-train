@@ -1,0 +1,6 @@
+
+running 1 test
+test study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 237 filtered out; finished in 0.09s
+

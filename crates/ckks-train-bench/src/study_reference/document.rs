@@ -154,17 +154,21 @@ enum PathComponent {
 enum DocumentLayout {
     Reference,
     TargetLock,
+    Admission,
+    Start,
 }
 impl DocumentLayout {
     fn file_cap(self) -> usize {
         match self {
-            Self::Reference => J_MAX,
+            Self::Reference | Self::Admission => J_MAX,
+            Self::Start => A_MAX,
             Self::TargetLock => 7_324_204,
         }
     }
     fn canonical_cap(self) -> usize {
         match self {
-            Self::Reference => ENVELOPE_MAX,
+            Self::Reference | Self::Admission => ENVELOPE_MAX,
+            Self::Start => A_MAX,
             Self::TargetLock => 4_710_678,
         }
     }
@@ -222,10 +226,16 @@ impl Scan<'_> {
             && self.at_keys(&["identity", "seed_receipt", "canonical_bytes"])
         {
             Some(R_MAX)
-        } else if matches!(self.layout, DocumentLayout::TargetLock)
-            && self.at_keys(&["contract", "canonical_bytes"])
+        } else if matches!(
+            self.layout,
+            DocumentLayout::TargetLock | DocumentLayout::Admission
+        ) && self.at_keys(&["contract", "canonical_bytes"])
         {
             Some(C_MAX)
+        } else if matches!(self.layout, DocumentLayout::Admission)
+            && self.at_keys(&["selected_input", "seed_receipt", "canonical_bytes"])
+        {
+            Some(R_MAX)
         } else {
             None
         };
@@ -357,12 +367,18 @@ impl Scan<'_> {
 fn preflight(s: &[u8]) -> Result<()> {
     preflight_layout(s, DocumentLayout::Reference)
 }
-fn preflight_layout(s: &[u8], layout: DocumentLayout) -> Result<()> {
+fn check_file_size(len: usize, layout: DocumentLayout) -> Result<()> {
+    ensure(len <= layout.file_cap(), DocumentErrorCode::TooLarge, "")
+}
+fn check_outer_size(len: usize, excluded: usize) -> Result<()> {
     ensure(
-        s.len() <= layout.file_cap(),
+        len.checked_sub(excluded).is_some_and(|n| n <= A_MAX),
         DocumentErrorCode::TooLarge,
         "",
-    )?;
+    )
+}
+fn preflight_layout(s: &[u8], layout: DocumentLayout) -> Result<()> {
+    check_file_size(s.len(), layout)?;
     std::str::from_utf8(s).map_err(|_| err(DocumentErrorCode::BadJson, ""))?;
     let mut scan = Scan {
         layout,
@@ -374,13 +390,7 @@ fn preflight_layout(s: &[u8], layout: DocumentLayout) -> Result<()> {
     scan.value("", 0)?;
     scan.ws();
     ensure(scan.i == s.len(), DocumentErrorCode::BadJson, "")?;
-    ensure(
-        s.len()
-            .checked_sub(scan.excluded)
-            .is_some_and(|n| n <= A_MAX),
-        DocumentErrorCode::TooLarge,
-        "",
-    )
+    check_outer_size(s.len(), scan.excluded)
 }
 struct Fields<'a> {
     values: Vec<Option<&'a RawValue>>,
@@ -478,6 +488,9 @@ impl Encoder {
         if !blob {
             self.outer = bounded_add(self.outer, b.len(), A_MAX, "canonical")?;
         }
+        self.bytes
+            .try_reserve_exact(b.len())
+            .map_err(|_| err(DocumentErrorCode::TooLarge, "canonical.allocation"))?;
         self.bytes.extend_from_slice(b);
         Ok(())
     }
@@ -798,7 +811,9 @@ fn bytes(r: &RawValue, cap: usize, p: &str, opaque: bool) -> Result<Vec<u8>> {
     fn nibble(b: u8) -> u8 {
         if b <= b'9' { b - b'0' } else { b - b'a' + 10 }
     }
-    let mut out = Vec::with_capacity(len);
+    let mut out = Vec::new();
+    out.try_reserve_exact(len)
+        .map_err(|_| err(DocumentErrorCode::TooLarge, p))?;
     for pair in s.as_bytes().chunks_exact(2) {
         out.push(nibble(pair[0]) * 16 + nibble(pair[1]));
     }
@@ -1913,56 +1928,34 @@ mod tests;
 #[path = "document/target_tests.rs"]
 mod target_tests;
 
+record!(Policy {
+    scientific_revision: Revision,
+    scientific_sha256: Hash,
+    registry_sha256: Hash,
+    portable_lock_sha256: Hash,
+    design_documents: List<SourceFile,5>,
+    approval_sha256: Hash,
+});
+record!(Link {
+    file_sha256: Hash,
+    payload_sha256: Hash
+});
+record!(Clock {
+    wall_source: WallSource,
+    unix_ns: u64,
+    monotonic_source: MonotonicSource,
+    elapsed_since_operation_start_ns: u64
+});
+
+#[allow(dead_code)] // Inert codecs; live readers/owners are a separately released package.
+mod admission;
 pub(super) mod target;
 
 // Pure projection of an already registry-derived identity, not a claim parser.
 pub(super) fn registered_case_canonical(
     case: &crate::study_profile::RegisteredCase,
 ) -> Result<Vec<u8>> {
-    use crate::study_profile::CaseScope;
-    let s = case.selector();
-    ensure(
-        s.scope == CaseScope::Full && s.seed <= 9 && case.logical_batch() > 0,
-        DocumentErrorCode::OutOfRange,
-        "registered_case",
-    )?;
-    ensure(
-        s.registration_id.len() <= 128 && s.profile_id.len() <= 128,
-        DocumentErrorCode::OutOfRange,
-        "registered_case.id",
-    )?;
-    ensure(
-        case.registry_sha256().len() == 64 && lower_hex(case.registry_sha256()),
-        DocumentErrorCode::BadHex,
-        "registered_case.registry",
-    )?;
-    let mut e = Encoder::new(DocumentLayout::TargetLock);
-    e.text(ENCODING_VERSION)?;
-    e.text("hekit-study-registered-case-v1")?;
-    e.text(case.registry_sha256())?;
-    e.byte(s.origin as u8)?;
-    e.text(&s.registration_id)?;
-    e.text(&s.profile_id)?;
-    s.seed.encode(&mut e)?;
-    e.byte(s.scope as u8)?;
-    e.byte(case.role() as u8)?;
-    e.byte(s.backend as u8)?;
-    e.byte(s.mode as u8)?;
-    e.byte(s.placement as u8)?;
-    e.byte(s.packing as u8)?;
-    e.byte(case.security_policy() as u8)?;
-    case.logical_batch().encode(&mut e)?;
-    // Use the unchanged Option/Bool grammar without exposing private document DTOs.
-    struct Flags(crate::study_profile::CaseEvalConfig);
-    impl Encode for Flags {
-        fn encode(&self, e: &mut Encoder) -> Result<()> {
-            self.0.hoist.encode(e)?;
-            self.0.bsgs.encode(e)?;
-            self.0.lazy_relin.encode(e)
-        }
-    }
-    case.eval_config().map(Flags).encode(&mut e)?;
-    Ok(e.bytes)
+    admission::registered_case_bytes(case)
 }
 
 #[cfg(test)]

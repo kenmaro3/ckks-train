@@ -1,0 +1,17 @@
+{
+  "index": 9,
+  "name": "study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.956707,
+  "pid": 84078
+}

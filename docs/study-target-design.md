@@ -941,3 +941,9 @@ Independent complete synthetic goldens and maximal outer-field accounting,
 separately reviewed source packages, genuine D7 capabilities and actual Linux
 execution remain the stated future gates. This publication performs no input
 migration and grants no scientific execution or full encrypted-block release.
+
+## 10. Full wire-codec implementation status
+
+The [bounded source and runtime package](../results/validation/task54-d7-admission-codec/README.md) implements strict Full admission/start inert codecs, shared CaseIdentity/ExecutionBinding traversal and pure supplied-record consistency helpers. Existing78 oracle files and C/R/A/Full bytes remain unchanged. Independent source and outcome reviews passed; nine new exact tests plus four touched Reference/Lock/actual-case regressions passed once. This is not a live reader, store/publication protocol or admission/start capability.
+
+Required integration boundary C1: validate BOTH current and predecessor admissions against the same retained target/reference and approved policy before combining `check_predecessor_claims`. Checking only current-target plus that helper is insufficient; its stated contract does not compare prior target/policy links itself. Add changed prior lock/reference/policy rejection coverage in the live Retry reader. `check_start_claims` likewise needs composed target/reference/current-context verification. Parsed consistency and recovered records never grant live execution authority. Actual gates/leases/custody, durable start, before-allocation checks and full scientific runs remain required.

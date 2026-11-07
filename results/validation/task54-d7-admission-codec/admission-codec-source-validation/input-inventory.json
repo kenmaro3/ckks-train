@@ -1,0 +1,246 @@
+{
+  "runtime_executed": false,
+  "compile_time_include_files": [
+    {
+      "name": "admission-gates.canonical.hex",
+      "bytes": 1245
+    },
+    {
+      "name": "branch-0.canonical.hex",
+      "bytes": 10581
+    },
+    {
+      "name": "branch-0.json",
+      "bytes": 10544
+    },
+    {
+      "name": "branch-1.canonical.hex",
+      "bytes": 11035
+    },
+    {
+      "name": "branch-1.json",
+      "bytes": 10860
+    },
+    {
+      "name": "branch-2.canonical.hex",
+      "bytes": 10731
+    },
+    {
+      "name": "branch-2.json",
+      "bytes": 10706
+    },
+    {
+      "name": "branch-3.canonical.hex",
+      "bytes": 11035
+    },
+    {
+      "name": "branch-3.json",
+      "bytes": 10883
+    },
+    {
+      "name": "branch-4.canonical.hex",
+      "bytes": 10587
+    },
+    {
+      "name": "branch-4.json",
+      "bytes": 10646
+    },
+    {
+      "name": "branch-5.canonical.hex",
+      "bytes": 10725
+    },
+    {
+      "name": "branch-5.json",
+      "bytes": 10611
+    },
+    {
+      "name": "case-0.canonical.hex",
+      "bytes": 305
+    },
+    {
+      "name": "case-1.canonical.hex",
+      "bytes": 311
+    },
+    {
+      "name": "case-2.canonical.hex",
+      "bytes": 311
+    },
+    {
+      "name": "case-3.canonical.hex",
+      "bytes": 311
+    },
+    {
+      "name": "case-4.canonical.hex",
+      "bytes": 311
+    },
+    {
+      "name": "case-5.canonical.hex",
+      "bytes": 305
+    },
+    {
+      "name": "case-binding.canonical.hex",
+      "bytes": 1361
+    },
+    {
+      "name": "execution-0.canonical.hex",
+      "bytes": 1209
+    },
+    {
+      "name": "execution-1.canonical.hex",
+      "bytes": 1353
+    },
+    {
+      "name": "execution-2.canonical.hex",
+      "bytes": 1353
+    },
+    {
+      "name": "execution-3.canonical.hex",
+      "bytes": 1353
+    },
+    {
+      "name": "execution-4.canonical.hex",
+      "bytes": 1209
+    },
+    {
+      "name": "execution-5.canonical.hex",
+      "bytes": 1353
+    },
+    {
+      "name": "gates-0.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "gates-1.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "gates-2.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "gates-3.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "gates-4.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "gates-5.canonical.hex",
+      "bytes": 1087
+    },
+    {
+      "name": "initial.canonical.hex",
+      "bytes": 10585
+    },
+    {
+      "name": "initial.json",
+      "bytes": 10546
+    },
+    {
+      "name": "lock.json",
+      "bytes": 9156
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 9033
+    },
+    {
+      "name": "predecessor-no-start.canonical.hex",
+      "bytes": 343
+    },
+    {
+      "name": "predecessor-null.canonical.hex",
+      "bytes": 3
+    },
+    {
+      "name": "predecessor-with-start.canonical.hex",
+      "bytes": 631
+    },
+    {
+      "name": "prior-start-link-mismatch.negative.json",
+      "bytes": 11002
+    },
+    {
+      "name": "reference.json",
+      "bytes": 7857
+    },
+    {
+      "name": "registered-case.canonical.hex",
+      "bytes": 463
+    },
+    {
+      "name": "retry-no-start.canonical.hex",
+      "bytes": 10939
+    },
+    {
+      "name": "retry-no-start.json",
+      "bytes": 10817
+    },
+    {
+      "name": "retry-with-start.canonical.hex",
+      "bytes": 11231
+    },
+    {
+      "name": "retry-with-start.json",
+      "bytes": 11002
+    },
+    {
+      "name": "start-initial.canonical.hex",
+      "bytes": 7523
+    },
+    {
+      "name": "start-initial.json",
+      "bytes": 7690
+    },
+    {
+      "name": "start-retry.canonical.hex",
+      "bytes": 7541
+    },
+    {
+      "name": "start-retry.json",
+      "bytes": 7699
+    }
+  ],
+  "included_files": 50,
+  "test_functions": [
+    "d7_admission_frozen_documents_complete_bytes_and_hashes",
+    "d7_admission_six_frozen_branches_and_domain_components",
+    "d7_admission_target_start_and_explicit_predecessor_claim_links",
+    "d7_admission_required_nested_fields_unknowns_types_and_link_mutations",
+    "d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+    "d7_admission_rehashed_cross_record_fields_and_clock_ordering",
+    "d7_admission_production_rejects_rehashed_synthetic_markers",
+    "d7_admission_nested_aliases_hex_tokens_and_unsupported_schema",
+    "d7_admission_inherited_caps_and_small_oversize_witnesses"
+  ],
+  "small_oversize_list_json_arithmetic": [
+    {
+      "path": "provenance/value/build/features",
+      "count": 65,
+      "fixture_item_json_bytes": 13,
+      "generated_json_bytes_arithmetic": 8885
+    },
+    {
+      "path": "provenance/value/source/manifest",
+      "count": 513,
+      "fixture_item_json_bytes": 101,
+      "generated_json_bytes_arithmetic": 60125
+    },
+    {
+      "path": "provenance/value/invocation/argv",
+      "count": 257,
+      "fixture_item_json_bytes": 64,
+      "generated_json_bytes_arithmetic": 24525
+    },
+    {
+      "path": "provenance/value/thread_environment",
+      "count": 33,
+      "fixture_item_json_bytes": 69,
+      "generated_json_bytes_arithmetic": 9707
+    }
+  ],
+  "base_compact_fixture_json_bytes": 8004,
+  "boundary_size_buffers_generated": false,
+  "filesystem_reads_inside_new_tests": false
+}

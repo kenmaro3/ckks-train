@@ -1,0 +1,199 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: type `CaseIdentity` is more private than the item `Admission::case`
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:193:5
+    |
+193 |     pub(super) case: CaseIdentity,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `Admission::case` is reachable at visibility `pub(document)`
+    |
+note: but type `CaseIdentity` is only usable at visibility `pub(self)`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:648:9
+    |
+648 |           struct $name { $($field: $ty),* }
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/admission.rs:58:1
+    |
+58  | / record!(CaseIdentity {
+59  | |     registry_sha256:Hash, origin:CaseOrigin, registration_id:Text<128>, profile_id:Text<128>, seed:u64,
+60  | |     scope:CaseScope, role:CaseRole, backend:CaseBackend, mode:CaseMode, placement:CasePlacement,
+61  | |     packing:CasePacking, security_policy:SecurityPolicy, logical_batch:u64, eval_config:Option<CaseEvalConfig>,
+62  | | });
+    | |__- in this macro invocation
+    = note: `#[warn(private_interfaces)]` on by default
+    = note: this warning originates in the macro `record` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: type `Execution` is more private than the item `Admission::execution`
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:195:5
+    |
+195 |     pub(super) execution: Execution,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `Admission::execution` is reachable at visibility `pub(document)`
+    |
+note: but type `Execution` is only usable at visibility `pub(self)`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:648:9
+    |
+648 |           struct $name { $($field: $ty),* }
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/admission.rs:106:1
+    |
+106 | / record!(Execution {
+107 | |     implementation:Implementation,implementation_revision:Text<128>,implementation_manifest_sha256:Hash,
+108 | |     parameter_identity_sha256:Hash,bootstrap_descriptor_sha256:Option<Hash>,layout_plan_sha256:Hash,
+109 | |     trainer_plan_sha256:Hash,eval_config:CaseEvalConfig,bootstrap_engine:BootstrapEngine,
+110 | |     key_policy_sha256:Hash,security_policy_sha256:Hash,physical_binding_sha256:Hash,runtime_policy_sha256:Hash,
+111 | | });
+    | |__- in this macro invocation
+    = note: this warning originates in the macro `record` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: type `Predecessor` is more private than the item `Admission::predecessor`
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:198:5
+    |
+198 |     pub(super) predecessor: Option<Predecessor>,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `Admission::predecessor` is reachable at visibility `pub(document)`
+    |
+note: but type `Predecessor` is only usable at visibility `pub(self)`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:648:9
+    |
+648 |         struct $name { $($field: $ty),* }
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/admission.rs:146:1
+    |
+146 | record!(Predecessor { attempt_id:Text<128>,admission:Link,start:Option<Link> });
+    | ------------------------------------------------------------------------------- in this macro invocation
+    = note: this warning originates in the macro `record` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: type `Gates` is more private than the item `Admission::gates`
+   --> crates/ckks-train-bench/src/study_reference/document/admission.rs:199:5
+    |
+199 |     pub(super) gates: Gates,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^ field `Admission::gates` is reachable at visibility `pub(document)`
+    |
+note: but type `Gates` is only usable at visibility `pub(self)`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:648:9
+    |
+648 |           struct $name { $($field: $ty),* }
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/admission.rs:139:1
+    |
+139 | / record!(Gates {
+140 | |     inputs: Gate,
+141 | |     implementation: Gate,
+142 | |     layout: Gate,
+143 | |     resource: Gate,
+144 | |     user: Gate
+145 | | });
+    | |__- in this macro invocation
+    = note: this warning originates in the macro `record` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:130:20
+    |
+130 |         assert_eq!(component(None, &a.case).unwrap(), unhex(case));
+    |                    ^^^^^^^^^ private type
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:130:36
+    |
+130 |         assert_eq!(component(None, &a.case).unwrap(), unhex(case));
+    |                                    ^^^^^^^ private type
+
+error: type `Execution` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:131:20
+    |
+131 |         assert_eq!(component(None, &a.execution).unwrap(), unhex(execution));
+    |                    ^^^^^^^^^ private type
+
+error: type `Execution` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:131:36
+    |
+131 |         assert_eq!(component(None, &a.execution).unwrap(), unhex(execution));
+    |                                    ^^^^^^^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:132:20
+    |
+132 |         assert_eq!(component(None, &a.gates).unwrap(), unhex(gates));
+    |                    ^^^^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:132:36
+    |
+132 |         assert_eq!(component(None, &a.gates).unwrap(), unhex(gates));
+    |                                    ^^^^^^^^ private type
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:134:25
+    |
+134 |             sha256_hex(&component(Some("hekit-study-registered-case-v1"), &a.case).unwrap()),
+    |                         ^^^^^^^^^ private type
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:134:75
+    |
+134 |             sha256_hex(&component(Some("hekit-study-registered-case-v1"), &a.case).unwrap()),
+    |                                                                           ^^^^^^^ private type
+
+error: type `Execution` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:138:37
+    |
+138 |             sha256_hex(&a.execution.fields().binding_bytes().unwrap()),
+    |                                     ^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:142:25
+    |
+142 |             sha256_hex(&component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap()),
+    |                         ^^^^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:142:75
+    |
+142 |             sha256_hex(&component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap()),
+    |                                                                           ^^^^^^^^ private type
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:149:9
+    |
+149 |         component(Some("hekit-study-registered-case-v1"), &a.case).unwrap(),
+    |         ^^^^^^^^^ private type
+
+error: type `CaseIdentity` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:149:59
+    |
+149 |         component(Some("hekit-study-registered-case-v1"), &a.case).unwrap(),
+    |                                                           ^^^^^^^ private type
+
+error: type `Execution` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:155:21
+    |
+155 |         a.execution.fields().binding_bytes().unwrap(),
+    |                     ^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:159:9
+    |
+159 |         component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap(),
+    |         ^^^^^^^^^ private type
+
+error: type `Gates` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:159:59
+    |
+159 |         component(Some("hekit-study-admission-gates-v1"), &a.gates).unwrap(),
+    |                                                           ^^^^^^^^ private type
+
+error: type `Predecessor` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:179:20
+    |
+179 |         assert_eq!(component(None, &a.predecessor).unwrap(), unhex(hex));
+    |                    ^^^^^^^^^ private type
+
+error: type `Predecessor` is private
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:179:36
+    |
+179 |         assert_eq!(component(None, &a.predecessor).unwrap(), unhex(hex));
+    |                                    ^^^^^^^^^^^^^^ private type
+
+warning: `ckks-train-bench` (lib test) generated 4 warnings
+error: could not compile `ckks-train-bench` (lib test) due to 18 previous errors; 4 warnings emitted

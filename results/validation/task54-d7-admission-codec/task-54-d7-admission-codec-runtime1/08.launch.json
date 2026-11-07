@@ -1,0 +1,17 @@
+{
+  "index": 8,
+  "name": "study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.808162,
+  "pid": 84076
+}

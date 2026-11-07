@@ -1,0 +1,449 @@
+{
+  "kind": "unit_validation_not_scientific",
+  "complete": true,
+  "results": [
+    {
+      "index": 1,
+      "name": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059084.266512,
+      "pid": 83865,
+      "exit_code": 0,
+      "end": 1794059088.6968489,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 227,
+      "stdout_sha256": "33b0007e77f8cb9708612bb840b25cff73f94dd63327dbbd4292c7ec6b2fb032",
+      "stderr_bytes": 262,
+      "stderr_sha256": "c5f10b696947fdc10a64d530df0dd5008f879a95f7dbc594b8ffc37994f5a717"
+    },
+    {
+      "index": 2,
+      "name": "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059088.779278,
+      "pid": 84025,
+      "exit_code": 0,
+      "end": 1794059088.874796,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 226,
+      "stdout_sha256": "80292b013fd7e50528553d11ea1994daddbe9baa542cfed5565693990051fb9e",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 3,
+      "name": "study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059088.9376209,
+      "pid": 84028,
+      "exit_code": 0,
+      "end": 1794059089.030111,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 234,
+      "stdout_sha256": "dc96502a32b4129985c6600fd3d6dd1a654a2b6014089ddbb85202d09371d59f",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 4,
+      "name": "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.096713,
+      "pid": 84030,
+      "exit_code": 0,
+      "end": 1794059089.2730172,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 241,
+      "stdout_sha256": "a976e2de3579ccc83038e31105382dc119e5cc74158298548006f9cc3e1faa25",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 5,
+      "name": "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.3322182,
+      "pid": 84070,
+      "exit_code": 0,
+      "end": 1794059089.420513,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 238,
+      "stdout_sha256": "0ff25db15c53207f5ba5d9635d75537f6f8abf06f7e7ea023c6f0805c4e392cd",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 6,
+      "name": "study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.4857469,
+      "pid": 84072,
+      "exit_code": 0,
+      "end": 1794059089.581244,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 232,
+      "stdout_sha256": "90741d07d83cb3458a69ae34103c6bc4080d0a089744d4d30d24ace93be65f0e",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 7,
+      "name": "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.642945,
+      "pid": 84074,
+      "exit_code": 0,
+      "end": 1794059089.7379289,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 230,
+      "stdout_sha256": "9cc1446eb9e2ebb5404d0d6d44499f7c6c5b4f98b3b37ffc7659299577ee9a4e",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 8,
+      "name": "study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.808162,
+      "pid": 84076,
+      "exit_code": 0,
+      "end": 1794059089.8976488,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 233,
+      "stdout_sha256": "58bd6cc356f6597731bf6245d943d30f1c556d9a034a80f8431a56dd05e6c0b9",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 9,
+      "name": "study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059089.956707,
+      "pid": 84078,
+      "exit_code": 0,
+      "end": 1794059090.047127,
+      "named_successes": [
+        "study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 228,
+      "stdout_sha256": "76bf5e8ca4a3928ad7f55454249e8d185bc350bcd52923cf060b7cef9f160354",
+      "stderr_bytes": 159,
+      "stderr_sha256": "401d21e5d3529d4f0532c894f94f54e4a10d98697932ce2b8b774a827643a372"
+    },
+    {
+      "index": 10,
+      "name": "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059090.1095932,
+      "pid": 84080,
+      "exit_code": 0,
+      "end": 1794059090.195175,
+      "named_successes": [
+        "study_reference::document::tests::independent_python_exact_canonical_bytes_cover_all_domains_and_timing_options"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 238,
+      "stdout_sha256": "1d31a234166e27949c30fef709ab968dfab196873034b63abe5da94311bd2f2a",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 11,
+      "name": "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059090.257042,
+      "pid": 84082,
+      "exit_code": 0,
+      "end": 1794059090.352073,
+      "named_successes": [
+        "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 229,
+      "stdout_sha256": "d88be6bb8516b026a3323b8ec8edf21572884795518622db88bd2ad1e53fba36",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 12,
+      "name": "study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--lib",
+        "study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059090.417836,
+      "pid": 84122,
+      "exit_code": 0,
+      "end": 1794059090.509512,
+      "named_successes": [
+        "study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 220,
+      "stdout_sha256": "de9193d212520b5724742f219e727a7949272b1bb3fd5d149a2d09f52983d9c1",
+      "stderr_bytes": 159,
+      "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+    },
+    {
+      "index": 13,
+      "name": "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "ckks-train-bench",
+        "--test",
+        "registered_case",
+        "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "start": 1794059090.576858,
+      "pid": 84124,
+      "exit_code": 0,
+      "end": 1794059094.75045,
+      "named_successes": [
+        "canonical_header_fields_and_digests_match_nineteen_independent_vectors"
+      ],
+      "result_counts": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "expected_selected": true,
+      "stdout_bytes": 195,
+      "stdout_sha256": "58196673ee9d4a7926be1355489d6f0e2cbd323f4e056f04b019869273abe86d",
+      "stderr_bytes": 265,
+      "stderr_sha256": "960700e860d45d266a3bb472b62ce432d0ba2c44c7ccf5ea4011eb681a467812"
+    }
+  ]
+}

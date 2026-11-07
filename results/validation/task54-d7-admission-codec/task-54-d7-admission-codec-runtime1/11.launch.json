@@ -1,0 +1,17 @@
+{
+  "index": 11,
+  "name": "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::tests::fix1_genuine_structural_and_escaped_keys_keep_every_string_exception",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059090.257042,
+  "pid": 84082
+}

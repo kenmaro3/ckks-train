@@ -1,0 +1,34 @@
+{
+  "index": 7,
+  "name": "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.642945,
+  "pid": 84074,
+  "exit_code": 0,
+  "end": 1794059089.7379289,
+  "named_successes": [
+    "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 230,
+  "stdout_sha256": "9cc1446eb9e2ebb5404d0d6d44499f7c6c5b4f98b3b37ffc7659299577ee9a4e",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

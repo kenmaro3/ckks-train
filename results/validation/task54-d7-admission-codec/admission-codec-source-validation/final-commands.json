@@ -1,0 +1,77 @@
+[
+  {
+    "name": "default-final",
+    "argv": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--no-run"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "parallel-final",
+    "argv": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--features",
+      "parallel",
+      "--no-run"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "cuda-final",
+    "argv": [
+      "cargo",
+      "test",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--features",
+      "cuda",
+      "--no-run"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clippy-final",
+    "argv": [
+      "cargo",
+      "clippy",
+      "-p",
+      "ckks-train-bench",
+      "--lib",
+      "--tests",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "fmt-final",
+    "argv": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "diff-final",
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0
+  }
+]

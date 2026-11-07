@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [明示requestと実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2154)。
+最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2154)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -869,3 +869,15 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 対象はCLI・凍結wire形式・payload境界・未対応経路の拒否・Iris emlp1／2／3のI／NI各3ケースのcanonical準備とowner／budget確認である。テスト17の間接呼出しを含むBootParams生成27回、乱数初期化24回、NTT表216個などは元inventoryを訂正する補足として記録した。処理回数はsourceとassertionに基づき、独立イベント計測ではない。CLIのfresh usage確認だけでは設定された五つのwork capを証明しない軽微なcoverage debtを残す。値の引渡しはsourceで確認済みで、手動構築budgetの枯渇テストと区別する。
 
 実際のnative contextによるbind_actual_cpu／run_owned成功、暗号学習、GPU、実gate・durable startは未実行であり、productionはMissingExecutionDependencyを維持する。残りは五つの実gateと証拠reader、admission／startの保存、開始後の所有者・lease接続、科学結果publisher、全実験である。Task54／M4／M5全体や物理メモリ適合の合格とはしない。
+
+<a id="latest-evidence-20261107-d7-admission-codec"></a>
+
+## 2026-11-07追記: Full admission／startの記録形式
+
+[実装・検証証跡](../results/validation/task54-d7-admission-codec/README.md)を保存した。Full admission／startの厳密なparserとcanonical encodingを追加し、既存Reference／Lockと共通処理を再利用した。CaseIdentityは実際の登録ケースとparsed claimsが同じencodingを通り、ExecutionBindingも既存処理を共有する。既存78個のテストデータ、C／R／AとFullのbytes・上限は変更していない。
+
+独立ソースレビュー、default／parallel／cudaのno-run、strict Clippy、formatが合格した。新規9件と変更した共有部分の回帰4件を、default featureで一度ずつ逐次実行し、13件すべてが指定した1件を選択して合格した。Cargo子プロセス13件と元controller session76127はexit0、496個のsource／input pinと26個の生ログ（5247 bytes）を照合し、実行結果の独立レビューも合格した。
+
+回帰には実際の登録ケース2700件と補足7件のmetadata生成、19個の独立canonical値との比較が含まれる。新規9件は小さいfixtureによる記録・リンク・拒否・上限の検証で、上限サイズの巨大bufferや暗号処理は実行していない。documentのEncoderは実行しており、暗号用Encoderを生成していないことと区別する。
+
+実際のRetry readerは、現在と前回のadmissionの両方を同じ保持中のtarget／referenceと承認policyに照合してから、predecessor／startの整合性helperを組み合わせる必要がある。現在分のtarget確認だけでは足りず、前回のlock等を変更した拒否テストを次工程に残す。parserやhash一致は実gate・lease・実行開始権限にならない。保存protocol、durable start、Quick、科学結果publisherと全実験は未完了である。

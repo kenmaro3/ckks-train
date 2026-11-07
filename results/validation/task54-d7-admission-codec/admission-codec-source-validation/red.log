@@ -1,0 +1,98 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved import `super::admission`
+ --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:2:12
+  |
+2 | use super::admission::*;
+  |            ^^^^^^^^^ could not find `admission` in `super`
+
+error[E0599]: no variant or associated item named `Admission` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:124:32
+    |
+124 |     assert_eq!(DocumentLayout::Admission.file_cap(),70_492_488);
+    |                                ^^^^^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Admission` not found for this enum
+
+error[E0599]: no variant or associated item named `Admission` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:125:32
+    |
+125 |     assert_eq!(DocumentLayout::Admission.canonical_cap(),36_294_820);
+    |                                ^^^^^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Admission` not found for this enum
+
+error[E0599]: no variant or associated item named `Start` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:126:32
+    |
+126 |     assert_eq!(DocumentLayout::Start.file_cap(),A_MAX);
+    |                                ^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Start` not found for this enum
+
+error[E0599]: no variant or associated item named `Start` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:127:32
+    |
+127 |     assert_eq!(DocumentLayout::Start.canonical_cap(),A_MAX);
+    |                                ^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Start` not found for this enum
+
+error[E0599]: no variant or associated item named `Admission` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:142:68
+    |
+142 |     ] { assert_eq!(preflight_layout(raw.as_bytes(),DocumentLayout::Admission).is_ok(),allowed);assert!(preflight_layout(raw.as_bytes(),Do...
+    |                                                                    ^^^^^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Admission` not found for this enum
+
+error[E0599]: no variant or associated item named `Start` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:142:152
+    |
+142 | ...yout(raw.as_bytes(),DocumentLayout::Start).is_err()); }
+    |                                        ^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Start` not found for this enum
+
+error[E0599]: no variant or associated item named `Admission` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:143:36
+    |
+143 |     for layout in [DocumentLayout::Admission,DocumentLayout::Start] {
+    |                                    ^^^^^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Admission` not found for this enum
+
+error[E0599]: no variant or associated item named `Start` found for enum `document::DocumentLayout` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/admission_tests.rs:143:62
+    |
+143 |     for layout in [DocumentLayout::Admission,DocumentLayout::Start] {
+    |                                                              ^^^^^ variant or associated item not found in `DocumentLayout`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document.rs:154:1
+    |
+154 | enum DocumentLayout {
+    | ------------------- variant or associated item `Start` not found for this enum
+
+Some errors have detailed explanations: E0432, E0599.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `ckks-train-bench` (lib test) due to 9 previous errors

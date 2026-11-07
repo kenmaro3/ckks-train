@@ -1,0 +1,17 @@
+{
+  "index": 7,
+  "name": "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.642945,
+  "pid": 84074
+}

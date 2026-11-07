@@ -1,0 +1,18 @@
+{
+  "index": 13,
+  "name": "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--test",
+    "registered_case",
+    "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059090.576858,
+  "pid": 84124
+}

@@ -1,0 +1,35 @@
+{
+  "index": 13,
+  "name": "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--test",
+    "registered_case",
+    "canonical_header_fields_and_digests_match_nineteen_independent_vectors",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059090.576858,
+  "pid": 84124,
+  "exit_code": 0,
+  "end": 1794059094.75045,
+  "named_successes": [
+    "canonical_header_fields_and_digests_match_nineteen_independent_vectors"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 195,
+  "stdout_sha256": "58196673ee9d4a7926be1355489d6f0e2cbd323f4e056f04b019869273abe86d",
+  "stderr_bytes": 265,
+  "stderr_sha256": "960700e860d45d266a3bb472b62ce432d0ba2c44c7ccf5ea4011eb681a467812"
+}

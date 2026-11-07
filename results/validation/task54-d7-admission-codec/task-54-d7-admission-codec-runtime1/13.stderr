@@ -1,0 +1,3 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 3.75s
+     Running tests/registered_case.rs (target/debug/deps/registered_case-315ba332025e5988)

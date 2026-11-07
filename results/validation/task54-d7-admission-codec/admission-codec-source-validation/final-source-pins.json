@@ -1,0 +1,11 @@
+{
+  "source_base": "99b8e88c50af791b89975e3e781f710f5d59ce52",
+  "observed_head": "0254dc371555a0cff7a0c3a04ec065924cf6b5ef",
+  "source_sha256": {
+    "crates/ckks-train-bench/src/study_reference/document.rs": "98eb77b6a424413f0dba6d96c542989a79725a9aaf26d98d4cf05fd8bf053383",
+    "crates/ckks-train-bench/src/study_reference/document/admission.rs": "bc9e54a697cb8990dd85e2e6853f80fb9309a05960a1ba08969abe440b836d01",
+    "crates/ckks-train-bench/src/study_reference/document/admission_tests.rs": "57325c373e5a2e0d5c89b2282669588e6717958dc68ebe9a6dcfad9951eb5310",
+    "crates/ckks-train-bench/src/study_reference/document/target.rs": "1886cb46761708e3ee4b170b9b5189468eee5661db1fc908c33f59d7e6531363",
+    "crates/ckks-train-bench/src/study_reference/document/execution_binding.rs": "683c563e605d47e588e6de63fa9358eb55c608d9626d13587397872326591bc3"
+  }
+}

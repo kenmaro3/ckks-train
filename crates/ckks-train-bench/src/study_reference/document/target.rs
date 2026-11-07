@@ -16,24 +16,6 @@ const DESIGNS: [&str; 5] = [
 ];
 
 tags!(LockKind { Lock=0=>"target_lock" });
-record!(Policy {
-    scientific_revision: Revision,
-    scientific_sha256: Hash,
-    registry_sha256: Hash,
-    portable_lock_sha256: Hash,
-    design_documents: List<SourceFile,5>,
-    approval_sha256: Hash,
-});
-record!(Link {
-    file_sha256: Hash,
-    payload_sha256: Hash
-});
-record!(Clock {
-    wall_source: WallSource,
-    unix_ns: u64,
-    monotonic_source: MonotonicSource,
-    elapsed_since_operation_start_ns: u64
-});
 record!(CompletionProjection {
     origin_completed_updates: u64,
     origin_processed_samples: u64,
@@ -121,13 +103,13 @@ pub(in crate::study_reference) fn profile_slot(profile: &str) -> Result<String> 
         &[profile],
     )?))
 }
-fn lock_id(campaign: &str, profile: &str) -> Result<String> {
+pub(super) fn lock_id(campaign: &str, profile: &str) -> Result<String> {
     Ok(sha256_hex(&auxiliary(
         "hekit-study-target-lock-id-v1",
         &[campaign, profile],
     )?))
 }
-fn valid_id(value: &str, p: &str) -> Result<()> {
+pub(super) fn valid_id(value: &str, p: &str) -> Result<()> {
     ensure(
         !value.is_empty()
             && value.len() <= 128
@@ -285,22 +267,7 @@ fn validate(lock: &Lock, schema: &str, reference_schema: &str, synthetic: bool) 
         DocumentErrorCode::CrossLinkMismatch,
         "lock_id",
     )?;
-    ensure(
-        lock.policy.scientific_revision.0.0 == POLICY_REVISION
-            && lock.policy.scientific_sha256.0 == POLICY_SHA256,
-        DocumentErrorCode::CrossLinkMismatch,
-        "policy.scientific",
-    )?;
-    ensure(
-        lock.policy
-            .design_documents
-            .0
-            .iter()
-            .map(|d| d.path.0.as_str())
-            .eq(DESIGNS),
-        DocumentErrorCode::CrossLinkMismatch,
-        "policy.design_documents",
-    )?;
+    validate_policy(&lock.policy)?;
     ensure(
         matches!(lock.provenance, ProvenanceClaim::Captured(_)),
         DocumentErrorCode::CrossLinkMismatch,
@@ -415,8 +382,7 @@ fn encoded(value: &impl Encode) -> Result<Vec<u8>> {
     value.encode(&mut e)?;
     Ok(e.bytes)
 }
-fn projection(reference: &VerifiedReference) -> CompletionProjection {
-    let p = reference.parsed();
+fn projection(p: &ParsedReferenceDocument) -> CompletionProjection {
     let c = &p.body.completion;
     CompletionProjection {
         origin_completed_updates: c.origin_completed_updates,
@@ -435,7 +401,7 @@ fn projection(reference: &VerifiedReference) -> CompletionProjection {
             .endpoints
             .0
             .last()
-            .expect("verified endpoint")
+            .expect("parsed reference endpoint")
             .clone(),
         final_state_sha256: c.final_state_sha256.clone(),
     }
@@ -489,7 +455,7 @@ pub(in crate::study_reference) fn verify_link(
         writer_capsule_sha256: Hash(reference.writer_capsule_sha256().into()),
         start_unix_ns: p.body.timing.start_unix_ns,
         completion_unix_ns: p.body.timing.end_unix_ns,
-        completion: projection(reference),
+        completion: projection(reference.parsed()),
         final_observation: p.body.final_observation.clone(),
     };
     source_matches(lock, &expected, reference.contract().canonical_bytes())?;
@@ -558,3 +524,93 @@ pub(in crate::study_reference) fn serialize_lock(
 #[cfg(test)]
 #[path = "target_link_tests.rs"]
 mod linkage_tests;
+
+// Narrow inert projections shared with admission/start consistency checks.
+#[allow(dead_code)] // Used by the separately released inert admission codec.
+pub(super) struct LockClaims<'a> {
+    pub(super) synthetic: bool,
+    pub(super) campaign: &'a Text<128>,
+    pub(super) profile: &'a Text<128>,
+    pub(super) id: &'a Hash,
+    pub(super) policy: &'a Policy,
+    pub(super) contract: &'a ClaimedIdentityBytes,
+    pub(super) reference: &'a Link,
+    pub(super) created_unix_ns: u64,
+}
+impl Lock {
+    #[allow(dead_code)] // Future live reader supplies this inert projection.
+    pub(super) fn claims(&self) -> LockClaims<'_> {
+        LockClaims {
+            synthetic: self.synthetic,
+            campaign: &self.campaign_id,
+            profile: &self.profile_id,
+            id: &self.lock_id,
+            policy: &self.policy,
+            contract: &self.contract,
+            reference: &self.reference.link,
+            created_unix_ns: self.created.unix_ns,
+        }
+    }
+}
+#[cfg(test)]
+impl SyntheticTargetLock {
+    pub(super) fn claims_lock(&self) -> &Lock {
+        &self.0
+    }
+}
+pub(super) fn validate_policy(policy: &Policy) -> Result<()> {
+    ensure(
+        policy.scientific_revision.0.0 == POLICY_REVISION
+            && policy.scientific_sha256.0 == POLICY_SHA256,
+        DocumentErrorCode::CrossLinkMismatch,
+        "policy.scientific",
+    )?;
+    ensure(
+        policy
+            .design_documents
+            .0
+            .iter()
+            .map(|d| d.path.0.as_str())
+            .eq(DESIGNS),
+        DocumentErrorCode::CrossLinkMismatch,
+        "policy.design_documents",
+    )
+}
+
+impl Lock {
+    // All available duplicate claims; writer_capsule remains a claim that needs
+    // actual approved build-receipt verification by the future live reader.
+    #[allow(dead_code)]
+    pub(super) fn check_reference_claims(&self, p: &ParsedReferenceDocument) -> Result<()> {
+        let r = &self.reference;
+        let c = &p.common;
+        let b = &p.body;
+        let i = &b.identity;
+        ensure(
+            self.synthetic == c.synthetic
+                && r.run_id == c.run_id
+                && r.schema == c.schema
+                && r.kind == c.kind
+                && r.link.file_sha256.0 == c.file_sha256
+                && r.link.payload_sha256 == c.integrity.payload_sha256
+                && self.profile_id == i.profile_id
+                && r.seed == i.seed
+                && r.seed_receipt_sha256 == i.seed_receipt.sha256
+                && r.materialized_sha256 == i.materialized_sha256
+                && r.start_unix_ns == b.timing.start_unix_ns
+                && r.completion_unix_ns == b.timing.end_unix_ns
+                && r.final_observation == b.final_observation,
+            DocumentErrorCode::CrossLinkMismatch,
+            "reference.claims",
+        )?;
+        ensure(
+            encoded(&r.completion)? == encoded(&projection(p))?
+                && self.contract.schema == i.contract.schema
+                && self.contract.encoding == i.contract.encoding
+                && self.contract.bytes == i.contract.bytes
+                && self.contract.sha256 == i.contract.sha256,
+            DocumentErrorCode::CrossLinkMismatch,
+            "reference.projection",
+        )
+    }
+}

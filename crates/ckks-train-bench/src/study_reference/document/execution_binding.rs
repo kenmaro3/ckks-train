@@ -52,7 +52,6 @@ impl ExecutionFields<'_> {
         w.hash(self.physical)?;
         w.hash(self.runtime)
     }
-    #[cfg(test)]
     pub(super) fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
         traverse_domain(None, output, |w| self.write(w))
     }

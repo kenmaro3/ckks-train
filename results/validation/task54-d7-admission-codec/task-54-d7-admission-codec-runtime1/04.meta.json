@@ -1,0 +1,34 @@
+{
+  "index": 4,
+  "name": "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.096713,
+  "pid": 84030,
+  "exit_code": 0,
+  "end": 1794059089.2730172,
+  "named_successes": [
+    "study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 241,
+  "stdout_sha256": "a976e2de3579ccc83038e31105382dc119e5cc74158298548006f9cc3e1faa25",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

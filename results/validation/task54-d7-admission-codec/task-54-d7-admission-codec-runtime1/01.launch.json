@@ -1,0 +1,17 @@
+{
+  "index": 1,
+  "name": "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059084.266512,
+  "pid": 83865
+}

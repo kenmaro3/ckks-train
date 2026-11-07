@@ -1,0 +1,17 @@
+{
+  "index": 6,
+  "name": "study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059089.4857469,
+  "pid": 84072
+}

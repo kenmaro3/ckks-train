@@ -1,0 +1,17 @@
+{
+  "index": 12,
+  "name": "study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::target_tests::independent_literal_lock_canonical_and_file_identity",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794059090.417836,
+  "pid": 84122
+}

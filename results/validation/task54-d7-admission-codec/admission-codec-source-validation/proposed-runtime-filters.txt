@@ -1,0 +1,9 @@
+study_reference::document::admission::tests::d7_admission_frozen_documents_complete_bytes_and_hashes
+study_reference::document::admission::tests::d7_admission_six_frozen_branches_and_domain_components
+study_reference::document::admission::tests::d7_admission_target_start_and_explicit_predecessor_claim_links
+study_reference::document::admission::tests::d7_admission_required_nested_fields_unknowns_types_and_link_mutations
+study_reference::document::admission::tests::d7_admission_closed_layout_arithmetic_and_small_lexical_boundaries
+study_reference::document::admission::tests::d7_admission_rehashed_cross_record_fields_and_clock_ordering
+study_reference::document::admission::tests::d7_admission_production_rejects_rehashed_synthetic_markers
+study_reference::document::admission::tests::d7_admission_nested_aliases_hex_tokens_and_unsupported_schema
+study_reference::document::admission::tests::d7_admission_inherited_caps_and_small_oversize_witnesses
