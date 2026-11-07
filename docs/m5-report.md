@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-07）
 
-最新の実装: [入力結合・実行計画P3の限定検証](#latest-evidence-20261107-p3)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1349)。
+最新の実装: [入力結合・実行計画P3の限定検証](#latest-evidence-20261107-p3)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-1449)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -445,5 +445,12 @@ P3のソース段階を独立レビュー後に受け入れた。登録済みcas
 [Macの純粋検証記録](../results/validation/task54-p3/README.md)には、fix1のunit11件・integration5件の合格と実行前後のsource hashを保持した。その後のfix2は既存テスト内81行だけの追加で、製品コードと他のテストは同一のまま、変更した1件を実行して合格した。strict Clippy・formatと独立した修正レビューも確認済み。最終保存の容量超過で完了済み2更新が失われる問題と、失敗stageが欠ける問題は修正前に再現し、元の失敗ログを残した。構築時の上限値と実際の使用量を区別し、各係数・速度状態の値の省略や、異なるstageの教師ラベルの取り違えを検出するテストを追加した。
 
 この範囲の検証ではkeys／Encoder／evaluator／HEは0であり、full profileのメモリ適合・暗号精度・range・security・性能を証明しない。実際のP4／D7消費側での到達可能なkey factory spy、真正なgate／startへの接続は必須・未完了で、P3全体、Task54、M4／M5全体の完了を主張しない。全実験行列、full encrypted-block hold、FULL-2の評価条件は変更していない。
+
+<a id="latest-evidence-20261107-1449"></a>
+## 2026-11-07 14:49 JST追記: FULL-2の定期確認
+
+[読み取り専用の運用記録](../results/quadruped/raw/R-41-FULL2-OBS-20261107-1449/README.md)では、14:49:56 JSTに同一所有者・開始時刻のchain／queueが稼働中と確認した。FULL-2は289/1000更新、末尾6更新は各1369 key switches／4 bootstrapsで予測と一致した。最終結果JSONはまだなく、後続queueはowner.jsonのみ。1回の観測を同じcontroller handle62197で終端まで回収し、再試行やジョブ・キューの変更はしていない。
+
+これは途中経過で、最終精度やTask42／M4の合格を意味しない。次の通常確認は15:49 JST頃とする。context／captureの起動は行わず、既存計時ジョブ終了待ち条件、全登録範囲、full encrypted-block campaign holdを維持する。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
