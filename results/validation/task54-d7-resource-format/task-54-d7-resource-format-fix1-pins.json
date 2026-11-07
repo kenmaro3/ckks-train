@@ -1,0 +1,68 @@
+{
+  "status": "design-fix1-only-pending-independent-review",
+  "base": "3a65f42dac83a17112c84dc3f23d3eb0aae7d0a8",
+  "artifacts": [
+    {
+      "path": "task-54-d7-resource-format-contract-before-fix1.md",
+      "bytes": 29012,
+      "sha256": "7f9130f56d629247ec08fe0ed0739e984168caae0eaecdfe77e51f2898318044"
+    },
+    {
+      "path": "task-54-d7-resource-format-closure-report-before-fix1.md",
+      "bytes": 9328,
+      "sha256": "5298ef3a3203f1b140683ca3bc481c75179aeb4cf90bb3fd3d7ae665f23775d2"
+    },
+    {
+      "path": "task-54-d7-resource-format-contract.md",
+      "bytes": 30832,
+      "sha256": "a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429"
+    },
+    {
+      "path": "task-54-d7-resource-format-closure-report.md",
+      "bytes": 13775,
+      "sha256": "77e2fc1de6f9f7cfa36c89ff6475f72ea5ff81ee4c9c0e6e14c2e4266ece33c9"
+    },
+    {
+      "path": "task-54-d7-resource-format-fix1.diff",
+      "bytes": 12048,
+      "sha256": "35adb51a8288b21aa52cf0be5729e0773ba444b43a28cf0e8d236ac23f5af9dd"
+    },
+    {
+      "path": "task-54-d7-resource-format-review.md",
+      "bytes": 11817,
+      "sha256": "dac82a73edf6dfa800ac01dce63ec70b0e5b75ccd020cfba4be43ff08ee5f43e"
+    },
+    {
+      "path": "task-54-d7-resource-producer-proposal.md",
+      "bytes": 65108,
+      "sha256": "e72b99a7a599460ea3f2c206a5ecaa002bfa3ad9b62925f02da9d5d07f63604a"
+    },
+    {
+      "path": "task-54-d7-resource-oracle-report.md",
+      "bytes": 19235,
+      "sha256": "6c8bb195139b379d54fe6d0ad999d962fdf5e2e5c00a938fd440bebb7e25a402"
+    },
+    {
+      "path": "task-54-d7-typed-materializer-preallocation-map.md",
+      "bytes": 44480,
+      "sha256": "31504e7c3cda346de741448103ce1d9629003bd3fc4359d3d6916db9ac583f9c"
+    }
+  ],
+  "source_blobs": [
+    {
+      "path": "crates/ckks-train-bench/src/study_inputs.rs",
+      "bytes": 66327,
+      "sha256": "fd641f27fc454ad85eb3c1ef67db759459a1ad22dc2a42dff15373c9650063a9"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference.rs",
+      "bytes": 37212,
+      "sha256": "c04c340c754f17a674215f56e9d92bbdf643ab3cd3e33a1f01d482d8dd91e6c2"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "bytes": 23993,
+      "sha256": "ccb13e42286c80bf609ae6d2e05b7e9f059e664a22e3ad4e1acb20bd8620b69b"
+    }
+  ]
+}

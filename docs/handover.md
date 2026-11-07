@@ -1019,3 +1019,11 @@ Linux専用5件と既存のnative検証は未実行。保持した同じbytesを
 実際の確認時刻は2026-11-08T01:57:37.948338+09:00。R-41-FULL-2はupdate566（0始まり）、完了567/1000更新、ログ上のelapsed81451秒だった。同じ所有者・開始時刻のchain／queueは稼働中。直近6更新561〜566は各1415 KS・4 bootstrapで予測一致、最終結果JSONはなく、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0156/README.md)を保存した。
 
 予定時刻以降に実時刻・pins・未起動を確認して一度だけ起動し、元controller96564のterminal0とSSH exit0まで回収した。job再起動・queue変更・追加計測はない。次の通常確認は2026-11-08T02:57:38+09:00以降。部分ログから最終精度・RQ1・後続GPU計測の合否は判断しない。
+
+<a id="latest-evidence-20261108-d7-resource-format"></a>
+
+## 2026-11-08追記: 資源記録形式の確定
+
+[記録形式・判断理由・独立レビュー](../results/validation/task54-d7-resource-format/README.md)を保存した。6種類のJSONと最小bootstrapの項目・型・順序・参照関係を明記し、検証実行の参照は同一文書内の有限なIDで結ぶ。入力本体・receipt・共通契約のハッシュを区別し、既存入力の識別にはD6aのmaterialized identityを使う。完全なreceipt比較は維持する。初回の1指摘を修正し、仕様・品質の再レビューは合格した。
+
+bootstrapの704／703 bytesは形式上の長さであり、物理メモリモデルの検証値ではない。独立literal corpusの作成、実装、入力bytesをtyped loaderへ渡す接続、Linux実機検証は未完了。既存の外側の形式・数値ゲート・全実験行列・実行保留は変更していない。

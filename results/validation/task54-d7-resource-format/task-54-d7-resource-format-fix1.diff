@@ -1,0 +1,61 @@
+--- task-54-d7-resource-format-contract-before-fix1.md
++++ task-54-d7-resource-format-contract.md
+@@ -1,6 +1,6 @@
+ # Task54 D7 resource source-format contract addendum
+ 
+-Status: **PROPOSED FORMAT CLOSURE; independent review and root ratification pending.** Supplements immutable resource proposal e72b99a7; resolves normalization R1–R7 without changing its architecture, lifecycle or model obligations. This is an inner-source representation contract, not source/encoder/corpus/runtime authority. Existing outer Resource/FileRef/Full/Quick bytes and caps remain unchanged. Six JSON source records plus the already proposed binary bootstrap; no seventh JSON record.
++Status: **PROPOSED FORMAT CLOSURE FIX1; scoped re-review and root ratification pending.** Supplements immutable resource proposal e72b99a7; resolves normalization R1–R7 without changing its architecture, lifecycle or model obligations. This is an inner-source representation contract, not source/encoder/corpus/runtime authority. Existing outer Resource/FileRef/Full/Quick bytes and caps remain unchanged. Six JSON source records plus the already proposed binary bootstrap; no seventh JSON record.
+ 
+ ## 1. Common notation and JSON lift (R1)
+ 
+@@ -99,7 +99,9 @@
+ | SupportedWork Target2 | `kind:tag{2}, operation:tag{0,1}, profile_id:Text128, seeds:List<U64>`; read0/lock1; read has nonempty explicit seeds, lock exactly `[0]`. |
+ | ClaimWork Train0 | `kind:tag{0}, registration:Bytes, request:Bytes`; complete frozen registered-case canonical bytes and existing Request wrapper, not their digests. |
+ | ClaimWork Reference1 | `kind:tag{1}, operation:tag{0,1,2}, reference_id:Text128, expected_file:Option<Hash>, profile_id:Text128, seed:U64, document:FR`; seed0. expected_file Some iff recovery1, equal actual expected whole-file hash and acquired document.sha256; read/snapshot null. |
+-| ClaimWork Target2 | `kind:tag{2}, operation:tag{0,1}, campaign_id:Text128, profile_id:Text128, selected_seed:U64, target:Option<FR>, reference:FR, supplied_input:Option<Hash>`; target Some iff read0. Lock1 requires selected_seed0, target null and supplied_input null. Read supplied_input Some iff the input already exists under SAME live owner at selection; otherwise null and its future construction is included in the envelope. Never hash an unbuilt input to authorize it. |
++| ClaimWork Target2 | `kind:tag{2}, operation:tag{0,1}, campaign_id:Text128, profile_id:Text128, selected_seed:U64, target:Option<FR>, reference:FR, supplied_input:Option<Hash>`; target Some iff read0. Lock1 requires selected_seed0, target null and supplied_input null. Read supplied_input Some iff the input already exists under SAME live owner at selection; its value is exactly that retained supplied `MaterializedProfile.identity().digest()` (existing D6a materialized identity). Otherwise null and its future construction is included in the envelope. Never hash an unbuilt input to authorize it. |
++
++**FIX1 supplied-input identity/equality:** derive Some only from the actual retained supplied materialized owner. When its selected `SeedInputReceiptV1` is derived, require its Some value to equal both `retained_supplied.identity().digest()` and `supplied_receipt.materialized_digest()`. The value is **not** `SeedInputReceiptV1.digest()` (hash of the complete selected receipt canonical bytes), nor `StudyProfileContractV1.digest()` (hash of the shared contract canonical bytes). Keep the existing independent actual/selected reconstruction and complete `actual_receipt.canonical_bytes() == supplied_receipt.canonical_bytes()` check; matching materialized hashes alone never replaces it. None stays None when construction is future, with its work charged before allocation; the immutable claim is not rewritten afterward. Target lock retains null and seed0. Future oracle expectations must distinguish the selected D6a identity from receipt digest, contract digest and a one-byte wrong digest, while preserving all current option/operation controls. No new hash, field, preimage or outer wire is introduced.
+ 
+ For Train, decode/check the unchanged registration/request bodies, derive registration SHA256 and actual consumption, then match exactly one `(0,digest,consumption)` entry. Registry hash and actual selected membership must agree with Model.registry; Quick uses its registered seed0 provenance without Full promotion. For Reference/Target match kind+operation+profile and actual seed membership in its single seeds list. Profiles come from the existing registry's21 profile IDs; no new registration is created. Seed scalar is U64 in this contract; applicable existing registry/operation decides membership, not a new global seed ceiling. At fixed BASE current concrete cases and resolver use0..9; Reference/lock specifically remain0. Historical seed2020 and unresolved supplements are not silently promoted by permitting a U64 value.
+ 
+@@ -178,4 +180,6 @@
+ 
+ Fixed source BASE `3a65f42dac83a17112c84dc3f23d3eb0aae7d0a8` (retained source d1aa3af): `study_profile.rs:25–33,600–617,670–675` defines exact registry/input-lock identities, loads checked registry and resolves current seeds; `study_profile/registered_case.rs:130–158,212–246` separates registry hash/canonical-case digest and preserves full/Quick registration sets; `study_reference/document/admission.rs:58–99` supplies the existing canonical CaseIdentity body; `study_provenance/context.rs:816–819` returns approved compile-source manifest identity. Full paths/hashes are in the closure report. Source was inspected read-only; no registry/project constructor was executed.
+ 
++FIX1 accessor evidence at the SAME fixed BASE: `study_inputs.rs:285–289,388–390` exposes the combined D6a identity through the materialized owner; `study_reference.rs:95–103,114–133` distinguishes contract/receipt/materialized getters; `derive_identities:737–758` copies `p.identity().digest()` into the receipt materialized field; `study_reference/target.rs:364–369` retains the independent actual/supplied complete canonical-receipt comparison. Full source pins and the original contract/report snapshots are in the appended FIX1 closure report and separate fix pins.
++
+ R1/R2/R3/R4/R7 are concrete representation choices; R5/R6 clarify anchor-only fields and finite IDs, not established missing-field/cycle defects. Reasons/alternatives/costs are in the paired closure report. Proposal, reviews, maps and normalization report remain byte-identical. No outer wire/schema/cap/scientific threshold/model authority change; all21/full2680+20+7/quick268 and original holds remain. Independent literals and encoders wait for scoped review/ratification. Real typed wiring, actual physical model/host observations/helper lifetime and GPU/external obligations remain separate unfinished work.
+--- task-54-d7-resource-format-closure-report-before-fix1.md
++++ task-54-d7-resource-format-closure-report.md
+@@ -48,3 +48,30 @@
+ | `crates/ckks-train-bench/src/study_profile/registered_case.rs` | `4ce1738959718d23e6265c2ae17f4d4507a30ed0260fb13bc965affa26067404` | 131–158 registry versus canonical-case digest;212–246 actual full/Quick sets and membership |
+ | `crates/ckks-train-bench/src/study_reference/document/admission.rs` | `d140e6879af76174ab6d1f226143d9454052b915c6872625f56a7510a2387cb0` | 58–99 existing CaseIdentity fields and canonical construction |
+ | `crates/ckks-train-bench/src/study_provenance/context.rs` | `31454576d90d557ef1950d3b45e4d404a4630fc29b862d5fa6fd3e3360263aa3` | 816–819 existing approved compile-source manifest identity |
++
++## FORMAT FIX1 — selected supplied-input hash role
++
++Current status: **single Medium R3 finding addressed in proposed prose; scoped independent re-review pending**. The preceding original closure report is preserved byte-for-byte as historical submission5298ef3a. Review `task-54-d7-resource-format-review.md` (dac82a73) requested changes only for the identity carried by Target supplied_input; its R1/R2/R4/R5/R6/R7 findings were CLOSED. This append does not claim reviewer acceptance or authorize vectors/encoder/source/runtime.
++
++**Resolution:** Some is exactly the actual already-retained supplied `MaterializedProfile.identity().digest()` — the existing D6a combined materialized input/content/source identity. Derive it from that SAME live owner. Its later selected receipt must satisfy `Some value == SeedInputReceiptV1.materialized_digest()`. It is expressly not the receipt's complete canonical-byte digest or the shared contract digest. Independent actual/selected reconstruction and the complete actual/supplied receipt canonical-byte equality remain required, even when the materialized hashes match. Same-owner/existence predicates, Target lock null/seed0, None for future construction, preallocation accounting and immutable no-future-hash claim are unchanged.
++
++**Reason / alternative / cost:** D6a already names the supplied object and is copied into the selected receipt; choosing it reuses existing identity semantics without another field/hash/preimage. Selecting receipt.digest or contract.digest instead would represent a different artifact and require a distinct meaning/link; neither is substituted. Cost is one explicit source-derived equality and future oracle distinctions for D6a versus receipt hash, contract hash and a one-byte wrong digest, alongside existing Some/None/operation controls. These are future expectations only; no vectors or tests ran. Hash equality is not a replacement for the complete receipt byte comparison.
++
++**Source evidence, fixed BASE3a65f42:** `study_inputs.rs:285–289` returns MaterializedIdentity.digest; `388–390` exposes it from MaterializedProfile. `study_reference.rs:95–103` hashes shared contract canonical bytes; `114–133` separately exposes receipt digest and materialized_digest. `derive_identities:737–758` copies `p.identity().digest()` into the receipt's materialized field. `study_reference/target.rs:364–369` independently derives selected receipts from actual reconstruction and supplied profile, then compares their complete canonical bytes. These accessors were read, never executed.
++
++Only the contract received the one-field definition/equality clarification plus FIX1 status/source references. This report received this append only. Before-FIX1 contract7f9130f5/report5298ef3a snapshots are exact. Scoped diff covers those two text deltas; `task-54-d7-resource-format-fix1-pins.json` records final artifact/source hashes, including the diff, without a self-hash. Ratified proposal e72b99a7, normalization6c8bb195, reviewdac82a73 and prior maps/reviews are immutable. All outer formats/caps, scientific criteria, all21/full2680+20+7/quick268 and original holds remain unchanged.
++
++No source/Cargo/publicdocs, generator/vector/project-helper/test/--list/native/runtime/SSH/data/process scan, subagent, installation, commit or push. Read-only source/doc inspection and stdlib document snapshot/diff/hash bookkeeping only. No physical/model/host/lifetime evidence is established.
++
++| FIX1 input/output | Bytes | SHA256 |
++|---|---:|---|
++| `task-54-d7-resource-format-contract-before-fix1.md` | 29012 | `7f9130f56d629247ec08fe0ed0739e984168caae0eaecdfe77e51f2898318044` |
++| `task-54-d7-resource-format-closure-report-before-fix1.md` | 9328 | `5298ef3a3203f1b140683ca3bc481c75179aeb4cf90bb3fd3d7ae665f23775d2` |
++| `task-54-d7-resource-format-review.md` | 11817 | `dac82a73edf6dfa800ac01dce63ec70b0e5b75ccd020cfba4be43ff08ee5f43e` |
++| `task-54-d7-resource-format-contract.md` | 30832 | `a7c947fceca6cf7bb7415114838de0de87c7bbe21657efef4da792b4bd392429` |
++
++| Fixed BASE source | SHA256 |
++|---|---|
++| `crates/ckks-train-bench/src/study_inputs.rs` | `fd641f27fc454ad85eb3c1ef67db759459a1ad22dc2a42dff15373c9650063a9` |
++| `crates/ckks-train-bench/src/study_reference.rs` | `c04c340c754f17a674215f56e9d92bbdf643ab3cd3e33a1f01d482d8dd91e6c2` |
++| `crates/ckks-train-bench/src/study_reference/target.rs` | `ccb13e42286c80bf609ae6d2e05b7e9f059e664a22e3ad4e1acb20bd8620b69b` |
