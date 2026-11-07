@@ -1,0 +1,59 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: function `check_verified_target_history` is never used
+    --> crates/ckks-train-bench/src/study_reference/document.rs:1995:35
+     |
+1995 | pub(in crate::study_reference) fn check_verified_target_history(
+     |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` on by default
+
+warning: fields `held`, `verified`, and `context` are never read
+   --> crates/ckks-train-bench/src/study_reference/publication.rs:340:5
+    |
+339 | pub(super) struct OwnedReferenceSnapshot {
+    |                   ---------------------- fields in this struct
+340 |     held: crate::study_provenance::publication::HeldRead,
+    |     ^^^^
+341 |     verified: VerifiedReference,
+    |     ^^^^^^^^
+342 |     context: crate::study_provenance::ContextOwnerStamp,
+    |     ^^^^^^^
+
+warning: methods `bytes`, `reference`, and `recheck` are never used
+   --> crates/ckks-train-bench/src/study_reference/publication.rs:345:19
+    |
+344 | impl OwnedReferenceSnapshot {
+    | --------------------------- methods in this implementation
+345 |     pub(super) fn bytes(&self) -> &[u8] { self.held.bytes() }
+    |                   ^^^^^
+346 |     pub(super) fn reference(&self) -> &VerifiedReference { &self.verified }
+    |                   ^^^^^^^^^
+347 |     pub(super) fn recheck(&self, context: &VerifiedStudyContext) -> Result<(), PublicationError> {
+    |                   ^^^^^^^
+
+warning: fields `lock`, `reference`, `context`, and `store` are never read
+   --> crates/ckks-train-bench/src/study_reference/target.rs:156:5
+    |
+155 | pub struct VerifiedTargetForSeed {
+    |            --------------------- fields in this struct
+156 |     lock: crate::study_provenance::publication::HeldRead,
+    |     ^^^^
+157 |     reference: super::publication::OwnedReferenceSnapshot,
+    |     ^^^^^^^^^
+158 |     context: crate::study_provenance::ContextOwnerStamp,
+    |     ^^^^^^^
+159 |     store: usize,
+    |     ^^^^^
+
+warning: method `check_attempt_history` is never used
+   --> crates/ckks-train-bench/src/study_reference/target.rs:168:19
+    |
+165 | impl VerifiedTargetForSeed {
+    | -------------------------- method in this implementation
+...
+168 |     pub(crate) fn check_attempt_history(
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+
+warning: `ckks-train-bench` (lib test) generated 5 warnings
+    Finished `test` profile [optimized + debuginfo] target(s) in 13.94s
+  Executable unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)

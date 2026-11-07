@@ -1,0 +1,492 @@
+{
+  "base": "71d3f0937741a4ff8d156b36540332ea82203d3c",
+  "root_docs_only_head": "b9cef1664b5a5320de56323c0fe2871dc38876a2",
+  "source": [
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance.rs",
+      "bytes": 1594,
+      "sha256": "85c23881b074eedf1eb83f61bf5c22dcb8b65399be70749f038ce1e026ec6566",
+      "base_sha256": "0bb4200cab631d940cbf28c18d09e939af5751d441f8897746aeffe8b5524e35"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/context.rs",
+      "bytes": 52987,
+      "sha256": "31454576d90d557ef1950d3b45e4d404a4630fc29b862d5fa6fd3e3360263aa3",
+      "base_sha256": "f8d62d8561c6c3750d0c3538ec2d5959e706ebcd11f5fc143f12fba64b69b81a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/process.rs",
+      "bytes": 7363,
+      "sha256": "5f7e9c2e132a79b71c971d45ce34337659c56aa8980bff42edde9f5b98525f88",
+      "base_sha256": "258be3ca43e20e7a731bc7b2c49c2df8512a3a670cb15fe855c591ac9c14655e"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication.rs",
+      "bytes": 33347,
+      "sha256": "1d0882f6233da662fe10e2ad3f103a7f6fdfe002dc706fae0a936ca3ffe11aa3",
+      "base_sha256": "69a4731e5695d986702e079d7d900bb171cd602d07db3a76951a0bb378d61f47"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+      "bytes": 37223,
+      "sha256": "91a7f55f8fecaf2b77e486b983cb04ae6938f093648fbc1b0a13da163bbb1ddf",
+      "base_sha256": "089af33312b710057676e239d9b27cf98c9a1c416a3225c1cd9fc9f8892d3b5f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document.rs",
+      "bytes": 65310,
+      "sha256": "30c77a7181866d1aaacf2151f3a3f94cb64d594e3dfa643f885114c8ea60f7de",
+      "base_sha256": "1562c0754660d715c5d09addddc905b6547d899c03c7d39a9db7e2b5257be59a"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/admission.rs",
+      "bytes": 32968,
+      "sha256": "d140e6879af76174ab6d1f226143d9454052b915c6872625f56a7510a2387cb0",
+      "base_sha256": "92fcaaaa1dd2b53a8542ed16591e86128956ac7bbded3d3bd71909528313d8ad"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/admission_tests.rs",
+      "bytes": 30168,
+      "sha256": "1dfad6090b4b0d4a0d6a9b76530b7c616a6072d510e378b7c49ce3e813643802",
+      "base_sha256": "57325c373e5a2e0d5c89b2282669588e6717958dc68ebe9a6dcfad9951eb5310"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+      "bytes": 23187,
+      "sha256": "444b46d5546127486c419b568c119975ab7a519485b68d2103441a00d88d8cbb",
+      "base_sha256": "f1ff6d5154c3446a5ef131add86b2a834fbf1b83f498acabf3227c648744772b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/publication.rs",
+      "bytes": 13782,
+      "sha256": "721abcd70ec014b413999baeaa5a53219d1d6d36e3e0dc131cb733c8693d7598",
+      "base_sha256": "0085c0a9c23a5c4309ec0fb029dc6061860eaafbffb8f1b6502ecf94745e5d3f"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "bytes": 23693,
+      "sha256": "6550d97296afb2025f56e7cfe69f685e7632f090405b1fd28ee8839f099c33f7",
+      "base_sha256": "1c54c5918d0b73dabcf213bf43dacdaa3682951f471dd48a0c6de7579ad49d1b"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "bytes": 15808,
+      "sha256": "975e0a2d95c04abb42787e477a9e9ce324869e9c6e15216edaade688cd648f95",
+      "base_sha256": "a538047d3e128dd9b9c191ed2450da98fc9a02e27ed6a40bd21323ee3ce1b033"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
+      "bytes": 18603,
+      "sha256": "12b7d7a9b85cfbc0de1d8909242339b5f4aa676a82f5ad96ba823f7d738ab76c",
+      "base_sha256": null
+    }
+  ],
+  "inputs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
+      "bytes": 1032,
+      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-retained-acquisition-source-release.md",
+      "bytes": 8341,
+      "sha256": "f4ef324679ce05cc61c6c48d79ec2bc9ac53b28dd596c73660ebb9b70bec678f"
+    },
+    {
+      "path": "docs/study-execution-design.md",
+      "bytes": 31922,
+      "sha256": "c2a260dd299043b817bd6f7d1586918a3f48c800f8cc59f259ceafeac5b9a779"
+    },
+    {
+      "path": "docs/study-gates-design.md",
+      "bytes": 22604,
+      "sha256": "073f9fec30a4818ae78b990e02439948886573a65804f03bb21a47b2f37baf5d"
+    },
+    {
+      "path": "results/validation/task54-d7-dataset-acquisition-design/README.md",
+      "bytes": 1651,
+      "sha256": "558005845c73522b9cf3a5e6a7d3eaeed637f405746c0881019a2a8dc6b55baf"
+    },
+    {
+      "path": "results/validation/task54-d7-dataset-acquisition-design/task-54-d7-dataset-acquisition-refinement-review.md",
+      "bytes": 13125,
+      "sha256": "142300c3a429b8fa3f59f588b32f386f3ff07fe462407559e5c50d198e2241b9"
+    },
+    {
+      "path": "results/validation/task54-d7-dataset-acquisition-design/task-54-d7-dataset-acquisition-refinement.md",
+      "bytes": 8304,
+      "sha256": "83a29bb6dbad4cd93bb5d50ef8424b3cc5d2a3e52597d9783e72b73b717db840"
+    },
+    {
+      "path": "results/validation/task54-d7-dataset-acquisition-design/task-54-d7-retained-reader-integration-map.md",
+      "bytes": 46547,
+      "sha256": "4266520bb4a4237c1e68ee7c373ae7001b14aaa35aaa62cddd0e84dc663ec1a1"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/A/admission.json",
+      "bytes": 10517,
+      "sha256": "044c24637a420acc529223686f85149a841571536ad728c438e717613fe93529"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/A/start.json",
+      "bytes": 7685,
+      "sha256": "1071b99f719e4945d6fdebb9170cb36300cef9bf1dd01560cd13420821521158"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/B/admission.json",
+      "bytes": 10785,
+      "sha256": "e4c13758375d47ac3e3024a3c62b5c6ab58e7f75148401bdf452a9e7b3c3359c"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/C/admission.json",
+      "bytes": 10970,
+      "sha256": "8f397091a84b790e20870af05cb6d8bb591f9aa302eeafed637360cd47698a0f"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/lock.json",
+      "bytes": 9154,
+      "sha256": "b0d1cd56e57cc523120476ca1c875bc630fd2ecb59d5b30f2c665e2b566fc3d7"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/manifest.json",
+      "bytes": 102913,
+      "sha256": "14176a4bd20f326434f3dec8770afed4207537af70664d80c84f82b14e2ef4ef"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/admission-stale-self-hash.json",
+      "bytes": 10522,
+      "sha256": "a1cf6946fca9f57666e46534c6cb3c36ddc34d8d4a0eacb01c5cd35c325a299e"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/admission-whitespace.json",
+      "bytes": 10518,
+      "sha256": "a052cb95c21751eeb7e87a44c2ca99da6c6298e62c3775c98f73987d6e280dfa"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-lock/A/admission.json",
+      "bytes": 10517,
+      "sha256": "47f2847b0fa0d4c3e0df894c639b822e0f9c415c4f70807c0b06e963119fd034"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-lock/B/admission.json",
+      "bytes": 10785,
+      "sha256": "76caad93fc7d76f28fa64829a7355d29520b1c7cc44392b60ca7846e9c386af8"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-policy/A/admission.json",
+      "bytes": 10517,
+      "sha256": "479ddba84d07f9558507f7894b3fab9ca952d717d9e0dc79f436ab4ded5a4c49"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-policy/B/admission.json",
+      "bytes": 10785,
+      "sha256": "0cbe70d51d247218df39cdc12fdd151878996a7559d15eed6720ccf6237f96b9"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-reference/A/admission.json",
+      "bytes": 10517,
+      "sha256": "074119d77afd17088517912c24738268cc9a5afcff088f37bd2c45c40a18a497"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/c1-prior-reference/B/admission.json",
+      "bytes": 10785,
+      "sha256": "d91c613a5ac365c6f98b8174681351863afc97fe166fd98b84736e35c8d7e333"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/negative/start-wrong-payload-link.json",
+      "bytes": 7692,
+      "sha256": "5f11f96c0045b7d4fb8f45abdf713fe013cb7bc853ac2a7a2a838dab985d9c70"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/package-pins.json",
+      "bytes": 49558,
+      "sha256": "659e3c59fc5360cf73317a29f4449d9519fedd77c708f4b492f73381de05807c"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/reference.json",
+      "bytes": 7855,
+      "sha256": "3186d5a4176d611ed02aed625aa1bba7ff79994de3b8b1632da76608503228a7"
+    },
+    {
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle-review.md",
+      "bytes": 11044,
+      "sha256": "01329d807794b6f0f7f41cc7e384ff5bbf735262e50f3eec9ebff7c1f8528307"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-custody-design/README.md",
+      "bytes": 1206,
+      "sha256": "0ce5f5391ced9923c9651a9fa06e39f8281c7be0ddea266484fbb063a089d746"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-custody-design/task-54-d7-gate-custody-proposal.md",
+      "bytes": 33348,
+      "sha256": "fc93856110cb2e8c7382fe792b21cf0550a85007d9267d09f75d6e9637e8c73f"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-custody-design/task-54-d7-gate-custody-review.md",
+      "bytes": 11905,
+      "sha256": "31d9fb50a450c72d019e1bf6858184415e4c3c94113ebad32f62be78f4aaf3b3"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/README.md",
+      "bytes": 2893,
+      "sha256": "c6eaed73744fc0432d86bcb251c4c59674e8aa78a1a106a7eb3190a88b4c7c1b"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-design-brief.md",
+      "bytes": 4938,
+      "sha256": "e749971b4c9a60c5ea2c1f1af4b30c4c849cf298a1a1ecb28b7d4848e8506514"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-fix1-report.md",
+      "bytes": 8270,
+      "sha256": "326742ba143543cfd4e24afbd6e037bf4098a28cc65d21ae0eccf93e0b950c34"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-fix1-review.md",
+      "bytes": 5459,
+      "sha256": "b80acd28e69f7ca5e4c4ab16019c81ccc73c43a5f35f1cc762c612ae90b9b778"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-proposal.md",
+      "bytes": 39493,
+      "sha256": "1e54707536ee52c481cfa789c308d9f4605f096a1a720649c2eebe7a1dc6f50b"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-review.md",
+      "bytes": 10042,
+      "sha256": "d5f729d360344c86df35dd04e3dbc4d8a6e173d917117f539dcbefc2dabfd50e"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.implementation.evidence.bin",
+      "bytes": 7138,
+      "sha256": "c1308dd1d5dc4b880f4e9692de7d1593e30b7a5dc65df9600a6e46aabadf36d2"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.inputs.evidence.bin",
+      "bytes": 5571,
+      "sha256": "d0b8058dc8053c7881374bf23c4bc37bf5c0ec2f1a875c57d241a54c785efff1"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.layout.evidence.bin",
+      "bytes": 5359,
+      "sha256": "fe350f6a0a48be25985abf5f581fbe389a625ae595234217a51ff897bcf896ad"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.preflight.json",
+      "bytes": 7089,
+      "sha256": "ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.resource.evidence.bin",
+      "bytes": 6442,
+      "sha256": "704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.start.json",
+      "bytes": 1863,
+      "sha256": "f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df"
+    },
+    {
+      "path": "results/validation/task54-d7-gate-schema-design/task-54-d7-gate-schema-vectors/quick.user.evidence.bin",
+      "bytes": 5429,
+      "sha256": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/README.md",
+      "bytes": 1379,
+      "sha256": "e0a09c1ad6c679161fd73828b157922553bd843d0e8a5e5f406f70aa1b1eb19e"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/task-54-d7-live-gate-integration-fix1-report.md",
+      "bytes": 4134,
+      "sha256": "f1492a674d549a8b98dd0b5aeb7010c7e507361989a20c99010f4ee4e388c8a6"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/task-54-d7-live-gate-integration-fix1-review.md",
+      "bytes": 7020,
+      "sha256": "213f44ce6d095c0f51cac05b823990a7fbc2fdb1d11d5b3fc92d44d37af59c67"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/task-54-d7-live-gate-integration-proposal-before-fix1.md",
+      "bytes": 36300,
+      "sha256": "f007784a7ccbb99574dfe0a1586e186534d4c5ba9904e716e1880d3af239cf5b"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/task-54-d7-live-gate-integration-proposal.md",
+      "bytes": 45081,
+      "sha256": "c667176c41f1e5dda060e552c6fe9db1209446c76c3f2161ea949571cb539e5c"
+    },
+    {
+      "path": "results/validation/task54-d7-live-gate-design/task-54-d7-live-gate-integration-review.md",
+      "bytes": 11854,
+      "sha256": "2f629f5c28502703eefb66df695c97edd98db513a02e6fd6dba5f646c7182100"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-diff-check-frozen-20261108T011231.log",
+      "bytes": 27,
+      "sha256": "851756c7df6105eeae671bd02750c3634028d6ecf7e758434b458f499d38cc2b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-diff-check-lifetimes-20261108T011857.log",
+      "bytes": 27,
+      "sha256": "851756c7df6105eeae671bd02750c3634028d6ecf7e758434b458f499d38cc2b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-apply-2-20261108T011127.log",
+      "bytes": 26,
+      "sha256": "551f4fa56b3875ebf39cf3db7d191c993a2fcc7219b285b26f461fed6fb5a304"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-apply-20261108T010534.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-apply-20261108T010629.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-apply-20261108T010724.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-apply-20261108T010847.log",
+      "bytes": 26,
+      "sha256": "551f4fa56b3875ebf39cf3db7d191c993a2fcc7219b285b26f461fed6fb5a304"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-check-final-20261108T011008.log",
+      "bytes": 2167,
+      "sha256": "27be89ca4af9373c6da536d043e1dfaae39c6640a341899c3b9defaf27141904"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-check-frozen-20261108T011230.log",
+      "bytes": 37,
+      "sha256": "4176064ab79a5436e051f6b4776dc1970c08ff49b72225d0bea70b6ea2bab97a"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-check-lifetimes-20261108T011856.log",
+      "bytes": 37,
+      "sha256": "4176064ab79a5436e051f6b4776dc1970c08ff49b72225d0bea70b6ea2bab97a"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-fmt-lifetimes-20261108T011804.log",
+      "bytes": 26,
+      "sha256": "551f4fa56b3875ebf39cf3db7d191c993a2fcc7219b285b26f461fed6fb5a304"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-green-attempt-20261108T010131.log",
+      "bytes": 920,
+      "sha256": "e0b1507cdf637b1a73a323e3cc945ba4cf895314ed5fd050bd70a5533f3a8dd8"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-green-attempt-20261108T010303.log",
+      "bytes": 2605,
+      "sha256": "60acf13fdcefd58dfef83ce8d508cafef1f158ced4f827793b5822090ce6a083"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-green-default-20261108T010536.log",
+      "bytes": 2769,
+      "sha256": "e1220973c5c741dcc79bee16be38137c52e0311c3750d9672db0de3991f593fa"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-host-strict-final-20261108T010957.log",
+      "bytes": 262,
+      "sha256": "d4d1b8cef75a35916c3e13ffea8886ba2c003e8df480d1ac37a8818c0c51ad90"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-host-strict-frozen-20261108T011223.log",
+      "bytes": 262,
+      "sha256": "37b04042d4103972db59e48b32ad4d170d999f50b6158b59760463d010693d06"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-host-strict-lifetimes-20261108T011849.log",
+      "bytes": 262,
+      "sha256": "eca8801277dfcc61f8f697af8fb944b3834363e9643c62fe8b99e75bd3e476ae"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-linux-strict-20261108T010630.log",
+      "bytes": 609,
+      "sha256": "b546198a4aea35308527779fdb8d498430d09971393eb27b883645b74b255efa"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-linux-strict-20261108T010725.log",
+      "bytes": 175,
+      "sha256": "9d1af9ad30e5d9718fb7c0bed3d5f483ffc261adf88d759ac7574b73973c8a6e"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-linux-strict-final-20261108T011004.log",
+      "bytes": 296,
+      "sha256": "ad39890e5a70f88a5763d61df6def65722754c4a83ea760a7471af38e6882855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-linux-strict-frozen-20261108T011226.log",
+      "bytes": 296,
+      "sha256": "4ce7a4cae9e5a1f9c2f3736cb0a170eabfb0db5f2e7d496a1751dc8ab55f9e8b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-linux-strict-lifetimes-20261108T011852.log",
+      "bytes": 296,
+      "sha256": "b2766874cf9df6567b7bfe447adf8c6b8b50dcaacbd48d11644016d8d6880118"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-cuda-final-20261108T010933.log",
+      "bytes": 2835,
+      "sha256": "3501511fd952159f7f6276e1a1812198f76a6759957416cc53594010e72bd516"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-cuda-frozen-20261108T011206.log",
+      "bytes": 2835,
+      "sha256": "bf089fbdd1f59e98e33cb5cc859bfbb02681dd5b126b9e026fd350223e70636c"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-cuda-lifetimes-20261108T011835.log",
+      "bytes": 2835,
+      "sha256": "37f4e0dce7a1fbac3dab633270af98939cca302755524b108531d9617ee0206c"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-default-final-20261108T010848.log",
+      "bytes": 2819,
+      "sha256": "353ca670734441043f80508f638a3f68db87a0d2918c94fda302b04317823725"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-default-frozen-20261108T011130.log",
+      "bytes": 2819,
+      "sha256": "f0b2dcf2b82ede17942c3ba55815ffb745d5442c350746b70cb64aa3d9afaa0f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-default-lifetimes-20261108T011805.log",
+      "bytes": 2819,
+      "sha256": "dbd94ddab026418d910e33123c4be6608128d20bac1af1de0b87e923199dcade"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-parallel-final-20261108T010909.log",
+      "bytes": 2839,
+      "sha256": "8a6052070405616a98b2ecd401c22166afe6615f589ca813a2303c58396fba91"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-parallel-frozen-20261108T011148.log",
+      "bytes": 2839,
+      "sha256": "f71281ef65648fc13663d2fd38da205842c70ea1bb6ccc49405cdfd4c9c1ad79"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-no-run-parallel-lifetimes-20261108T011820.log",
+      "bytes": 2839,
+      "sha256": "65eda12c67637a5962604b603527e000bc658eb27866f9d9421da2c95203210b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/logs/retained-red-20261108T005749.log",
+      "bytes": 2604,
+      "sha256": "428a93553bb1990cfbb38994242c73e6c9e1e594272cde8f13ca0b7c95b04a67"
+    }
+  ],
+  "full_diff_sha256": "63f030103c806e11763d78ab54ac3a6910fd7c70fb0039d509fb583cb5e2526a",
+  "source_set_sha256": "07d5661acfdeb1bd8155b4549114bc1fbef6e2dc9646675a55645ac5f4cc5bf0",
+  "native_tests_executed": 0,
+  "all_tests_executed": 0
+}

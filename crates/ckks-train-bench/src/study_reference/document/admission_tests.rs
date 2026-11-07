@@ -646,3 +646,97 @@ fn d7_admission_inherited_caps_and_small_oversize_witnesses() {
     let overlong_numeric = format!("{{\"seed\":{}}}", "1".repeat(65));
     assert!(preflight_layout(overlong_numeric.as_bytes(), DocumentLayout::Admission).is_err());
 }
+
+// Explicit synthetic representation harness only. Never constructs live owners.
+fn linked_fixture(name: &str) -> Vec<u8> {
+    std::fs::read(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle").join(name)).unwrap()
+}
+#[test]
+fn retained_c1_current_and_prior_share_one_verified_target_representation() {
+    let lock =
+        super::super::target::SyntheticTargetLock::parse(&linked_fixture("lock.json")).unwrap();
+    let bytes = linked_fixture("reference.json");
+    let reference = synthetic_reference(&bytes);
+    let a = SyntheticAdmission::parse(&linked_fixture("A/admission.json"))
+        .unwrap()
+        .0;
+    let b = SyntheticAdmission::parse(&linked_fixture("B/admission.json"))
+        .unwrap()
+        .0;
+    let c = SyntheticAdmission::parse(&linked_fixture("C/admission.json"))
+        .unwrap()
+        .0;
+    let start = SyntheticStart::parse(&linked_fixture("A/start.json"))
+        .unwrap()
+        .0;
+    let lock = lock.claims_lock();
+    check_target_history_claims(&a, None, lock, &bytes, &reference).unwrap();
+    check_target_history_claims(&b, Some((&a, None)), lock, &bytes, &reference).unwrap();
+    check_target_history_claims(&c, Some((&a, Some(&start))), lock, &bytes, &reference).unwrap();
+    assert!(
+        check_target_history_claims(&b, Some((&a, Some(&start))), lock, &bytes, &reference)
+            .is_err()
+    );
+    assert!(check_target_history_claims(&c, Some((&a, None)), lock, &bytes, &reference).is_err());
+    for (name, path) in [
+        ("lock", "target.lock"),
+        ("reference", "target.reference"),
+        ("policy", "target.policy"),
+    ] {
+        let dir = format!("negative/c1-prior-{name}");
+        // Parsing verifies both rehashed self-integrities before comparisons.
+        let prior = SyntheticAdmission::parse(&linked_fixture(&format!("{dir}/A/admission.json")))
+            .unwrap()
+            .0;
+        let current =
+            SyntheticAdmission::parse(&linked_fixture(&format!("{dir}/B/admission.json")))
+                .unwrap()
+                .0;
+        check_predecessor_claims(&current, &prior, None).unwrap();
+        check_target_claims(&current, lock, &bytes, &reference).unwrap();
+        let error =
+            check_target_history_claims(&current, Some((&prior, None)), lock, &bytes, &reference)
+                .unwrap_err();
+        assert_eq!(error.path(), path, "{name}");
+    }
+}
+
+#[test]
+fn retained_c1_exact_file_payload_and_stale_self_are_distinct() {
+    let initial = SyntheticAdmission::parse(&linked_fixture("A/admission.json"))
+        .unwrap()
+        .0;
+    let whitespace =
+        SyntheticAdmission::parse(&linked_fixture("negative/admission-whitespace.json"))
+            .unwrap()
+            .0;
+    assert_eq!(
+        initial.integrity.payload_sha256,
+        whitespace.integrity.payload_sha256
+    );
+    assert_ne!(initial.file_sha256, whitespace.file_sha256);
+    let retry = SyntheticAdmission::parse(&linked_fixture("B/admission.json"))
+        .unwrap()
+        .0;
+    assert_eq!(
+        check_predecessor_claims(&retry, &whitespace, None)
+            .unwrap_err()
+            .path(),
+        "predecessor.admission"
+    );
+    let start = SyntheticStart::parse(&linked_fixture("negative/start-wrong-payload-link.json"))
+        .unwrap()
+        .0;
+    assert_eq!(start.admission.file_sha256.0, retry.file_sha256);
+    assert_eq!(
+        check_start_claims(&start, &retry).unwrap_err().path(),
+        "start.admission.link"
+    );
+    assert_eq!(
+        SyntheticAdmission::parse(&linked_fixture("negative/admission-stale-self-hash.json"))
+            .err()
+            .unwrap()
+            .code(),
+        DocumentErrorCode::DigestMismatch
+    );
+}

@@ -750,4 +750,16 @@ Linux実機の最小21ケース、追加caller／guard／fork／mount検証と�
 
 共有保存処理で直接利用するrustix1.1.6について、選択済みのMITライセンスと原文をTHIRD_PARTY_NOTICESへ追加した。[独立レビュー](../results/validation/task55-rustix-notice/README.md)で、原文1023 bytes・既存noticeの不変・依存設定・追加commit・benchのpublish=falseを確認した。依存や許可例外の追加変更はない。文書整備の合格であり、新しい配布パッケージ・最終CI・公開の合格ではない。
 
+<a id="latest-evidence-20261108-d7-retained-source"></a>
+
+## 2026-11-08追記: 入力保持と元の所有者の確認
+
+[実装・独立レビュー・限定テスト](../results/validation/task54-d7-retained-acquisition-source/README.md)を保存した。Reference／Targetの読取結果が、元のFile・祖先・不変の入力bytesを保持するようになった。現在と前回の記録を同じ検証済みTargetへ照合するC1処理、Quickの段階別チェック、11種類のDatasetInputに対する固定サイズの取得APIも加えた。取得APIは、既存materializerが先に行うファイル読込をまだ置き換えていない。
+
+初回レビューで、短い寿命のstoreが破棄された後、同じアドレスに作られた別storeを元の所有者と誤認し得る問題を発見した。元のstoreの私有Rc identityと元のguard FDを保持する修正を行い、独立再レビューは仕様・品質とも合格した。guard FDの保持はpublication flockの保持ではない。修正前の報告・diff・検査ログと4ファイルの修正前snapshotを残した。
+
+修正後のMacで14件を1件ずつ一度だけ実行し、各1 passed／0 failed／0 ignored、全Cargoと元controller83802がexit0だった。11件の小規模な純粋処理と3件の既存fixture照合であり、28生ログ5504 bytesとsource pinを照合した。最終sourceではall-feature no-run、host／Linux向けstrict検査、fmt／diffも合格。Linux cfgのコンパイル成功を実機実行とは扱わない。
+
+Linux専用5件と既存のnative検証は未実行。保持した同じbytesを実際のtyped materializerへ渡す接続、取得前の本物の物理メモリモデル・容量確認、live gate・開始処理・全行列の実行は未完了である。この合格を物理メモリ適合・暗号学習・RQ1・Task54全体の合格へ拡張しない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

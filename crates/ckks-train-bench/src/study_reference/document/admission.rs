@@ -785,6 +785,28 @@ pub(super) fn check_target_claims(
         "admitted",
     )
 }
+/// Representation-level C1 composition against ONE verified target/current policy.
+/// It cannot supply live eligibility, filesystem absence, gates or authority.
+pub(super) fn check_target_history_claims(
+    current: &Admission,
+    prior: Option<(&Admission, Option<&Start>)>,
+    lock: &target::Lock,
+    reference_bytes: &[u8],
+    reference: &ParsedReferenceDocument,
+) -> Result<()> {
+    check_target_claims(current, lock, reference_bytes, reference)?;
+    match (current.predecessor.as_ref(), prior) {
+        (None, None) => Ok(()),
+        (Some(_), Some((prior, start))) => {
+            check_target_claims(prior, lock, reference_bytes, reference)?;
+            check_predecessor_claims(current, prior, start)
+        }
+        _ => Err(err(
+            DocumentErrorCode::CrossLinkMismatch,
+            "predecessor.presence",
+        )),
+    }
+}
 #[cfg(test)]
 pub(super) struct SyntheticAdmission(pub(super) Admission);
 #[cfg(test)]

@@ -1,0 +1,18 @@
+{
+  "index": 3,
+  "name": "study_provenance::context::context_instance_tests::retained_context_instance_never_reuses_and_overflow_refuses",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::context::context_instance_tests::retained_context_instance_never_reuses_and_overflow_refuses",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069756.335289,
+  "pid": 50809
+}

@@ -510,15 +510,17 @@ mod linux {
                 files: vec![d.file.try_clone().unwrap()],
                 names: vec![],
                 private_from: 0,
+                mount_from: 0,
                 root_mount,
             };
             if selector == 3 {
-                let expected = d.guard();
-                let store = TargetStore {
+                d.guard();
+                let store = TargetStore::from_opened(
                     anchors,
-                    path: d.path.clone(),
-                    guard: expected,
-                };
+                    d.path.clone(),
+                    existing_profile_guard(&d.file).unwrap(),
+                )
+                .unwrap();
                 let guard = store.acquire().unwrap();
                 Self::Target(store, guard)
             } else {

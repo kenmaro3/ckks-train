@@ -31,6 +31,14 @@ impl ProcessStamp {
             Err(ProvenanceError("process stamp requires native Linux"))
         }
     }
+    // Copy only an actual captured owner association, never decode a new stamp.
+    pub(crate) fn owner_association(&self) -> Self {
+        Self {
+            pid: self.pid,
+            start_ticks: self.start_ticks,
+            boot: self.boot,
+        }
+    }
     pub(crate) fn recheck(&self) -> Result<()> {
         self.require_same(&Self::capture()?)
     }

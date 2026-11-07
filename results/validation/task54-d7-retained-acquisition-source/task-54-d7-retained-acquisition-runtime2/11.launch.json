@@ -1,0 +1,18 @@
+{
+  "index": 11,
+  "name": "study_provenance::publication::retained_tests::retained_store_identity_original_owner_accepts",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::retained_tests::retained_store_identity_original_owner_accepts",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069758.336123,
+  "pid": 50863
+}

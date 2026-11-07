@@ -10,7 +10,9 @@ pub(crate) mod publication;
 pub(crate) mod role;
 
 #[allow(unused_imports)]
-pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
+pub(crate) use context::{
+    BuildFacts, ContextOwnerStamp, Host, Observation, RuntimeCapture, RuntimeRecheck,
+};
 pub use context::{ContextRequest, VerifiedStudyContext, VerifiedStudyTrainContext};
 #[allow(unused_imports)]
 pub(crate) use context::{RecheckedTrainCapture, TrainCapture};

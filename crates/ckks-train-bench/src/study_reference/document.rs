@@ -1989,3 +1989,32 @@ mod execution_descriptor_tests;
 mod execution_binding_tests;
 
 mod evidence;
+
+// Actual verified-target adapter calls production parsers; synthetic tests invoke
+// the same representation composition only through the private harness.
+#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
+pub(in crate::study_reference) fn check_verified_target_history(
+    current: &[u8],
+    prior: Option<(&[u8], Option<&[u8]>)>,
+    lock: &target::Lock,
+    reference_bytes: &[u8],
+    reference: &reader::VerifiedReference,
+) -> Result<()> {
+    let reference = reference.parsed();
+    let current = admission::parse_admission(current)?;
+    let prior = prior
+        .map(|(a, s)| {
+            Ok((
+                admission::parse_admission(a)?,
+                s.map(admission::parse_start).transpose()?,
+            ))
+        })
+        .transpose()?;
+    admission::check_target_history_claims(
+        &current,
+        prior.as_ref().map(|(a, s)| (a, s.as_ref())),
+        lock,
+        reference_bytes,
+        reference,
+    )
+}

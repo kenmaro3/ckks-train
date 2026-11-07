@@ -1,0 +1,5 @@
+$ cargo clippy -p ckks-train-bench --all-targets --all-features -- -D warnings
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.76s
+
+EXIT 0

@@ -1,0 +1,54 @@
+$ cargo test -p ckks-train-bench --lib --no-run
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0412]: cannot find type `TargetStoreIdentity` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1016:47
+     |
+1016 |     fn owner(guard: (u64,u64)) -> std::rc::Rc<TargetStoreIdentity> {
+     |                                               ^^^^^^^^^^^^^^^^^^^ not found in this scope
+     |
+help: you might be missing a type parameter
+     |
+1016 |     fn owner<TargetStoreIdentity>(guard: (u64,u64)) -> std::rc::Rc<TargetStoreIdentity> {
+     |             +++++++++++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `TargetStoreIdentity` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1017:26
+     |
+1017 |         std::rc::Rc::new(TargetStoreIdentity { guard })
+     |                          ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `require_same_store_owner` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1023:9
+     |
+1023 |         require_same_store_owner(&original, &snapshot).unwrap();
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `require_same_store_owner` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1029:17
+     |
+1029 |         assert!(require_same_store_owner(&replacement, &original).is_err());
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `require_same_store_owner` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1038:17
+     |
+1038 |         assert!(require_same_store_owner(&current, &snapshot).is_err());
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `require_same_store_owner` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1047:9
+     |
+1047 |         require_same_store_owner(&held, &snapshot).unwrap();
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `require_same_store_owner` in this scope
+    --> crates/ckks-train-bench/src/study_provenance/publication.rs:1048:17
+     |
+1048 |         assert!(require_same_store_owner(&owner((3,7)), &snapshot).is_err());
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0412, E0422, E0425.
+For more information about an error, try `rustc --explain E0412`.
+error: could not compile `ckks-train-bench` (lib test) due to 7 previous errors
+
+EXIT 101

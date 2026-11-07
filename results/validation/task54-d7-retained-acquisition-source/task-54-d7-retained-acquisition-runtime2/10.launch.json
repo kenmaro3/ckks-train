@@ -1,0 +1,18 @@
+{
+  "index": 10,
+  "name": "study_reference::document::admission::tests::retained_c1_exact_file_payload_and_stale_self_are_distinct",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::retained_c1_exact_file_payload_and_stale_self_are_distinct",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069758.080543,
+  "pid": 50861
+}

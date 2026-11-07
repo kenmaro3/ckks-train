@@ -426,46 +426,28 @@ fn check_gate_hashes(g: &admission::Gates, mode: Mode, sidecars: &[Evidence<'_>]
     }
     Ok(())
 }
-/// All inputs are inert supplied claims. Retained frame/process/clock/argv origin,
-/// actual completion count, resource/user lease freshness remain live duties.
-pub(super) fn check_quick_events(
+/// Pure staged validation: no future start/end is invented.
+pub(super) fn check_quick_preflight(
     preflight: &QuickEvent,
-    start: &QuickEvent,
-    end: &QuickEvent,
     sidecars: &[Evidence<'_>],
     captured_argv: &[Vec<u8>],
 ) -> Result<()> {
-    same(
-        preflight.mode == start.mode && preflight.mode == end.mode,
-        "quick.events.domain",
-    )?;
-    let p = decode_event(preflight.kind, &preflight.canonical, preflight.mode)?;
-    let s = decode_event(start.kind, &start.canonical, start.mode)?;
-    let e = decode_event(end.kind, &end.canonical, end.mode)?;
-    let (p, s, e) = match (p, s, e) {
-        (EventBody::Preflight(p), EventBody::Start(s), EventBody::End(e)) => (p, s, e),
-        _ => {
-            return Err(err(
-                DocumentErrorCode::CrossLinkMismatch,
-                "quick.events.order",
-            ));
-        }
+    let EventBody::Preflight(p) =
+        decode_event(preflight.kind, &preflight.canonical, preflight.mode)?
+    else {
+        return Err(err(
+            DocumentErrorCode::CrossLinkMismatch,
+            "quick.events.order",
+        ));
     };
     check_evidence_bundle(sidecars)?;
     let identity = QuickIdentity::decode(p.identity.0, preflight.mode)?;
-    same(
-        s.identity_sha256 == p.identity_sha256 && e.identity_sha256 == p.identity_sha256,
-        "quick.events.identity",
-    )?;
     for sidecar in sidecars {
-        let branch = match &sidecar.branch {
-            Branch::Quick(q) => q,
-            _ => {
-                return Err(err(
-                    DocumentErrorCode::CrossLinkMismatch,
-                    "quick.events.scope",
-                ));
-            }
+        let Branch::Quick(branch) = &sidecar.branch else {
+            return Err(err(
+                DocumentErrorCode::CrossLinkMismatch,
+                "quick.events.scope",
+            ));
         };
         same(
             sidecar.mode == preflight.mode
@@ -484,25 +466,95 @@ pub(super) fn check_quick_events(
             "quick.events.context",
         )?;
     }
-    for g in [&p.gates, &s.gates, &e.gates] {
-        check_gate_hashes(g, preflight.mode, sidecars)?;
-    }
-
+    check_gate_hashes(&p.gates, preflight.mode, sidecars)?;
     same(
         p.argv.0.len() == captured_argv.len()
             && p.argv.0.iter().zip(captured_argv).all(|(a, b)| a.0 == b),
         "quick.argv.retained_bytes",
+    )
+}
+/// Start checks only already-existing preflight/start claims, never a fake end.
+pub(super) fn check_quick_start(
+    preflight: &QuickEvent,
+    start: &QuickEvent,
+    sidecars: &[Evidence<'_>],
+    captured_argv: &[Vec<u8>],
+) -> Result<()> {
+    check_quick_preflight(preflight, sidecars, captured_argv)?;
+    same(preflight.mode == start.mode, "quick.events.domain")?;
+    let EventBody::Preflight(p) =
+        decode_event(preflight.kind, &preflight.canonical, preflight.mode)?
+    else {
+        unreachable!("checked preflight")
+    };
+    let EventBody::Start(s) = decode_event(start.kind, &start.canonical, start.mode)? else {
+        return Err(err(
+            DocumentErrorCode::CrossLinkMismatch,
+            "quick.events.order",
+        ));
+    };
+    same(
+        s.identity_sha256 == p.identity_sha256,
+        "quick.events.identity",
     )?;
+    check_gate_hashes(&s.gates, preflight.mode, sidecars)?;
     link(&s.preflight, preflight)?;
+    clock_order(&p.observed, &s.started)
+}
+/// Complete inert three-event comparison remains available. Live owners, actual
+/// completion count, clocks and lease freshness are separate obligations.
+pub(super) fn check_quick_events(
+    preflight: &QuickEvent,
+    start: &QuickEvent,
+    end: &QuickEvent,
+    sidecars: &[Evidence<'_>],
+    captured_argv: &[Vec<u8>],
+) -> Result<()> {
+    check_quick_start(preflight, start, sidecars, captured_argv)?;
+    same(preflight.mode == end.mode, "quick.events.domain")?;
+    let EventBody::Start(s) = decode_event(start.kind, &start.canonical, start.mode)? else {
+        unreachable!("checked start")
+    };
+    let EventBody::End(e) = decode_event(end.kind, &end.canonical, end.mode)? else {
+        return Err(err(
+            DocumentErrorCode::CrossLinkMismatch,
+            "quick.events.order",
+        ));
+    };
+    same(
+        e.identity_sha256 == s.identity_sha256,
+        "quick.events.identity",
+    )?;
+    check_gate_hashes(&e.gates, preflight.mode, sidecars)?;
     link(&e.preflight, preflight)?;
     link(&e.start, start)?;
-    clock_order(&p.observed, &s.started)?;
     clock_order(&s.started, &e.ended)
 }
 #[cfg(test)]
 mod tests {
     use super::super::tests::fixture;
     use super::*;
+    #[test]
+    fn retained_quick_staged_checks_require_no_future_end() {
+        let preflight = QuickEvent::parse_json_oracle(&fixture("quick.preflight.json")).unwrap();
+        let start = QuickEvent::parse_json_oracle(&fixture("quick.start.json")).unwrap();
+        let bytes: Vec<_> = GATE_NAMES
+            .iter()
+            .map(|n| fixture(&format!("quick.{n}.evidence.bin")))
+            .collect();
+        let sidecars: Vec<_> = bytes
+            .iter()
+            .map(|b| Evidence::parse_oracle(b).unwrap())
+            .collect();
+        let argv = preflight.argv().unwrap();
+        check_quick_preflight(&preflight, &sidecars, &argv).unwrap();
+        check_quick_start(&preflight, &start, &sidecars, &argv).unwrap();
+        assert!(check_quick_preflight(&start, &sidecars, &argv).is_err());
+        assert!(check_quick_start(&preflight, &preflight, &sidecars, &argv).is_err());
+        let mut wrong = argv;
+        wrong[0].push(1);
+        assert!(check_quick_preflight(&preflight, &sidecars, &wrong).is_err());
+    }
     fn permutations(values: &mut [usize; 5], at: usize, out: &mut Vec<[usize; 5]>) {
         if at == 5 {
             out.push(*values);

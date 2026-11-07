@@ -1,6 +1,10 @@
 //! Descriptor-relative foundation. No scientific publication type is exposed.
 use super::{ProvenanceError, Result, ensure};
+pub(super) mod retained;
 use crate::data::sha256_hex;
+pub(crate) use retained::HeldRead;
+#[cfg(test)]
+use retained::{ReadBound, dataset_size};
 use std::{
     ffi::{CStr, CString, OsStr, OsString},
     fs::File,
@@ -171,10 +175,13 @@ fn mount(_: &File) -> Result<Mount> {
         "production publication requires Linux ext4/XFS",
     ))
 }
+fn effective_uid() -> u32 {
+    unsafe { libc::geteuid() }
+}
 fn safe_directory(f: &File, private: bool) -> Result<()> {
     let m = f.metadata()?;
     ensure(m.is_dir(), "directory required")?;
-    let uid = unsafe { libc::geteuid() };
+    let uid = effective_uid();
     if private {
         ensure(
             m.uid() == uid && m.mode() & 0o7777 == 0o700,
@@ -471,7 +478,7 @@ fn inode(f: &File) -> Result<(u64, u64)> {
 fn safe_file(f: &File) -> Result<()> {
     let m = f.metadata()?;
     ensure(
-        m.is_file() && m.uid() == unsafe { libc::geteuid() } && m.mode() & 0o7777 == 0o600,
+        m.is_file() && m.uid() == effective_uid() && m.mode() & 0o7777 == 0o600,
         "private regular file owner/mode",
     )
 }
@@ -481,9 +488,13 @@ struct Anchors {
     names: Vec<OsString>,
     private_from: usize,
     root_mount: Mount,
+    mount_from: usize,
 }
 impl Anchors {
     fn open(path: &Path) -> Result<Self> {
+        Self::open_mode(path, true)
+    }
+    fn open_mode(path: &Path, private: bool) -> Result<Self> {
         ensure(
             path.is_absolute() && path.as_os_str().as_bytes().len() <= 4096,
             "absolute bounded root",
@@ -507,16 +518,30 @@ impl Anchors {
             }
         }
         let private_from = files.len() - 1;
-        safe_directory(&files[private_from], true)?;
+        safe_directory(&files[private_from], private)?;
         let root_mount = mount(&files[private_from])?;
         let result = Self {
             files,
             names,
-            private_from,
+            private_from: if private { private_from } else { usize::MAX },
             root_mount,
+            mount_from: private_from,
         };
         result.recheck()?;
         Ok(result)
+    }
+    fn duplicate(&self) -> Result<Self> {
+        Ok(Self {
+            files: self
+                .files
+                .iter()
+                .map(File::try_clone)
+                .collect::<std::io::Result<_>>()?,
+            names: self.names.clone(),
+            private_from: self.private_from,
+            root_mount: self.root_mount,
+            mount_from: self.mount_from,
+        })
     }
     fn last(&self) -> &File {
         self.files.last().expect("held directory")
@@ -527,7 +552,7 @@ impl Anchors {
             if i > 0 {
                 check_child(&self.files[i - 1], file, &self.names[i - 1])?;
             }
-            if i >= self.private_from {
+            if i >= self.mount_from {
                 same_publication_mount(self.root_mount, mount(file)?)?;
             }
         }
@@ -586,6 +611,19 @@ fn read_stamped_on(
     Ok((bytes, stamp))
 }
 impl Store {
+    pub(crate) fn read_held(&self, id: &str, cap: usize) -> Result<HeldRead> {
+        self.recheck()?;
+        let mut anchors = self.anchors.duplicate()?;
+        anchors.child_existing(self.kind.directory())?;
+        let held = HeldRead::acquire(
+            anchors,
+            self.basename(id)?,
+            retained::ReadBound::AtMost(cap),
+            retained::ReadRole::Published(self.kind),
+        )?;
+        self.recheck()?;
+        Ok(held)
+    }
     pub(crate) fn read_stamped(&self, id: &str, cap: usize) -> Result<(Vec<u8>, ReadStamp)> {
         self.recheck()?;
         let expected = mount(&self.root)?;
@@ -601,6 +639,29 @@ pub(crate) struct TargetStore {
     anchors: Anchors,
     path: PathBuf,
     guard: (u64, u64),
+    guard_file: File,
+    owner: std::rc::Rc<TargetStoreIdentity>,
+}
+// The retained allocation, rather than the address of a movable store, identifies
+// the original owner. Guard metadata comes only from that owner's actual open FD.
+struct TargetStoreIdentity {
+    guard: (u64, u64),
+}
+fn require_same_store_owner(
+    current: &std::rc::Rc<TargetStoreIdentity>,
+    original: &std::rc::Rc<TargetStoreIdentity>,
+) -> Result<()> {
+    ensure(
+        std::rc::Rc::ptr_eq(current, original) && current.guard == original.guard,
+        "target original store changed",
+    )
+}
+// Private non-Clone/non-serializable owner projection, not a gate or permission.
+// Keeping both the allocation and original guard FD prevents allocation/inode ABA
+// after the shorter store object is dropped. This FD holds no publication flock.
+pub(crate) struct TargetReadOrigin {
+    owner: std::rc::Rc<TargetStoreIdentity>,
+    guard_file: File,
 }
 pub(crate) struct ProfileGuard {
     file: File,
@@ -697,19 +758,49 @@ impl TargetStore {
                 f
             }
         };
+        Self::from_opened(anchors, path, f)
+    }
+    fn from_opened(anchors: Anchors, path: PathBuf, guard_file: File) -> Result<Self> {
+        let guard = inode(&guard_file)?;
         let result = Self {
             anchors,
             path,
-            guard: inode(&f)?,
+            guard,
+            guard_file,
+            owner: std::rc::Rc::new(TargetStoreIdentity { guard }),
         };
         result.recheck()?;
         Ok(result)
+    }
+    pub(crate) fn retained_origin(&self) -> Result<TargetReadOrigin> {
+        self.recheck()?;
+        Ok(TargetReadOrigin {
+            owner: std::rc::Rc::clone(&self.owner),
+            guard_file: self.guard_file.try_clone()?,
+        })
+    }
+    fn recheck_origin(&self, original: &TargetReadOrigin) -> Result<()> {
+        require_same_store_owner(&self.owner, &original.owner)?;
+        validate_guard(&original.guard_file)?;
+        ensure(
+            inode(&original.guard_file)? == original.owner.guard
+                && self.guard == original.owner.guard,
+            "target original guard changed",
+        )?;
+        same_publication_mount(self.anchors.root_mount, mount(&original.guard_file)?)?;
+        self.recheck()
     }
     pub(crate) fn path(&self) -> PathBuf {
         self.path.join("target.lock.json")
     }
     fn recheck(&self) -> Result<()> {
         self.anchors.recheck()?;
+        validate_guard(&self.guard_file)?;
+        ensure(
+            inode(&self.guard_file)? == self.guard && self.owner.guard == self.guard,
+            "held original profile guard changed",
+        )?;
+        same_publication_mount(self.anchors.root_mount, mount(&self.guard_file)?)?;
         let f = openat(
             self.anchors.last().as_raw_fd(),
             OsStr::new(".profile-guard"),
@@ -742,6 +833,22 @@ impl TargetStore {
         read_stamped_on(self.anchors.last(), "target.lock.json", 7_324_204, |file| {
             same_publication_mount(self.anchors.root_mount, mount(file)?)
         })
+    }
+    pub(crate) fn recheck_read(&self, read: &HeldRead, original: &TargetReadOrigin) -> Result<()> {
+        self.recheck_origin(original)?;
+        read.recheck_target(self.anchors.last())?;
+        self.recheck_origin(original)
+    }
+    pub(crate) fn read_held(&self) -> Result<HeldRead> {
+        self.recheck()?;
+        let held = HeldRead::acquire(
+            self.anchors.duplicate()?,
+            "target.lock.json".into(),
+            retained::ReadBound::AtMost(7_324_204),
+            retained::ReadRole::Target,
+        )?;
+        self.recheck()?;
+        Ok(held)
     }
     pub(crate) fn read(&self) -> Result<Vec<u8>> {
         self.recheck()?;
@@ -954,4 +1061,64 @@ fn create_or_open_profile_guard(parent: &File) -> Result<File> {
     };
     validate_guard(&f)?;
     Ok(f)
+}
+
+#[cfg(test)]
+mod retained_tests {
+    use super::*;
+    fn owner(guard: (u64, u64)) -> std::rc::Rc<TargetStoreIdentity> {
+        std::rc::Rc::new(TargetStoreIdentity { guard })
+    }
+    #[test]
+    fn retained_store_identity_original_owner_accepts() {
+        let original = owner((3, 7));
+        let snapshot = std::rc::Rc::clone(&original);
+        require_same_store_owner(&original, &snapshot).unwrap();
+    }
+    #[test]
+    fn retained_store_identity_equal_metadata_distinct_owner_refuses() {
+        let original = owner((3, 7));
+        let replacement = owner((3, 7));
+        assert!(require_same_store_owner(&replacement, &original).is_err());
+    }
+    #[test]
+    fn retained_store_identity_same_address_replacement_refuses() {
+        let mut current = owner((3, 7));
+        let snapshot = std::rc::Rc::clone(&current);
+        let address = &current as *const _ as usize;
+        current = owner((3, 7));
+        assert_eq!(address, &current as *const _ as usize);
+        assert!(require_same_store_owner(&current, &snapshot).is_err());
+    }
+    #[test]
+    fn retained_store_identity_survives_original_store_drop() {
+        let original = owner((3, 7));
+        let weak = std::rc::Rc::downgrade(&original);
+        let snapshot = std::rc::Rc::clone(&original);
+        drop(original);
+        let held = weak
+            .upgrade()
+            .expect("snapshot retains original allocation");
+        require_same_store_owner(&held, &snapshot).unwrap();
+        assert!(require_same_store_owner(&owner((3, 7)), &snapshot).is_err());
+        drop(held);
+        drop(snapshot);
+        assert!(weak.upgrade().is_none());
+    }
+    #[test]
+    fn retained_exact_size_is_checked_before_allocation() {
+        assert!(ReadBound::Exact(4).check(3).is_err());
+        assert!(ReadBound::Exact(4).check(5).is_err());
+        assert_eq!(ReadBound::Exact(4).check(4).unwrap(), 4);
+        assert!(ReadBound::AtMost(4).check(5).is_err());
+    }
+    #[test]
+    fn retained_dataset_policy_is_closed_and_exact() {
+        assert_eq!(
+            dataset_size("data/fashion_mnist/train-images-idx3-ubyte").unwrap(),
+            47_040_016
+        );
+        assert!(dataset_size("../data/fashion_mnist/train-images-idx3-ubyte").is_err());
+        assert!(dataset_size("data/other.npy").is_err());
+    }
 }

@@ -1,0 +1,18 @@
+{
+  "index": 2,
+  "name": "study_provenance::publication::retained_tests::retained_dataset_policy_is_closed_and_exact",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::retained_tests::retained_dataset_policy_is_closed_and_exact",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069756.08806,
+  "pid": 50807
+}

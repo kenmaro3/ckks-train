@@ -1,0 +1,1498 @@
+diff --git a/crates/ckks-train-bench/src/study_provenance.rs b/crates/ckks-train-bench/src/study_provenance.rs
+index f65e279..e572ec2 100644
+--- a/crates/ckks-train-bench/src/study_provenance.rs
++++ b/crates/ckks-train-bench/src/study_provenance.rs
+@@ -10,7 +10,9 @@ pub(crate) mod publication;
+ pub(crate) mod role;
+ 
+ #[allow(unused_imports)]
+-pub(crate) use context::{BuildFacts, Host, Observation, RuntimeCapture, RuntimeRecheck};
++pub(crate) use context::{
++    BuildFacts, ContextOwnerStamp, Host, Observation, RuntimeCapture, RuntimeRecheck,
++};
+ pub use context::{ContextRequest, VerifiedStudyContext, VerifiedStudyTrainContext};
+ #[allow(unused_imports)]
+ pub(crate) use context::{RecheckedTrainCapture, TrainCapture};
+diff --git a/crates/ckks-train-bench/src/study_provenance/context.rs b/crates/ckks-train-bench/src/study_provenance/context.rs
+index c95166b..82a23cd 100644
+--- a/crates/ckks-train-bench/src/study_provenance/context.rs
++++ b/crates/ckks-train-bench/src/study_provenance/context.rs
+@@ -93,6 +93,7 @@ pub struct VerifiedStudyContext {
+     core: VerifiedContextCore,
+ }
+ struct VerifiedContextCore {
++    instance: ContextInstance,
+     runtime: CurrentRuntime,
+     request: ContextRequest,
+     approval_bytes: Vec<u8>,
+@@ -791,6 +792,7 @@ impl VerifiedStudyContext {
+         let m = std::fs::metadata(&executable)?;
+         let result = Self {
+             core: VerifiedContextCore {
++                instance: ContextInstance::next()?,
+                 runtime,
+                 request,
+                 approval_bytes,
+@@ -963,6 +965,7 @@ impl VerifiedStudyContext {
+         )?;
+         Ok(CheckedMaterializedInput {
+             context: self,
++            owner: self.owner_stamp(),
+             facts,
+         })
+     }
+@@ -972,6 +975,7 @@ impl VerifiedStudyContext {
+         start: &CheckedMaterializedInput<'_>,
+     ) -> Result<()> {
+         require_same_context(self, start.context)?;
++        self.recheck_owner(&start.owner)?;
+         let current = self.check_materialized_input_now(p)?;
+         ensure(
+             current.facts == start.facts,
+@@ -1009,6 +1013,137 @@ impl VerifiedStudyContext {
+         })
+     }
+ }
++// Process-wide identity never wraps or reuses a successful reservation. No test resets it.
++struct ContextInstance(u64);
++static NEXT_CONTEXT_INSTANCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
++impl ContextInstance {
++    fn next() -> Result<Self> {
++        Self::take(&NEXT_CONTEXT_INSTANCE)
++    }
++    fn take(counter: &std::sync::atomic::AtomicU64) -> Result<Self> {
++        counter
++            .fetch_update(
++                std::sync::atomic::Ordering::Relaxed,
++                std::sync::atomic::Ordering::Relaxed,
++                |n| n.checked_add(1),
++            )
++            .map(Self)
++            .map_err(|_| ProvenanceError("context identity exhausted"))
++    }
++}
++// Inert actual-owner association. A stored address is compared only, never dereferenced.
++pub(crate) struct ContextOwnerStamp {
++    instance: u64,
++    original: usize,
++    process: Option<super::process::ProcessStamp>,
++    _not_send_sync: std::marker::PhantomData<std::rc::Rc<()>>,
++}
++impl VerifiedStudyContext {
++    pub(crate) fn owner_stamp(&self) -> ContextOwnerStamp {
++        ContextOwnerStamp {
++            instance: self.core.instance.0,
++            original: self as *const Self as usize,
++            process: match &self.core.runtime {
++                CurrentRuntime::Reference => None,
++                CurrentRuntime::Train(runtime) => Some(runtime.process_association()),
++            },
++            _not_send_sync: std::marker::PhantomData,
++        }
++    }
++    pub(crate) fn recheck_owner(&self, owner: &ContextOwnerStamp) -> Result<()> {
++        ensure(
++            owner.instance == self.core.instance.0
++                && owner.original == self as *const Self as usize,
++            "context original owner changed",
++        )?;
++        if let Some(process) = &owner.process {
++            process.recheck()?;
++        }
++        self.core.runtime.recheck()
++    }
++    pub(crate) fn retained_selected_sources<'c, 'p>(
++        &'c self,
++        profile: &'p MaterializedProfile,
++    ) -> Result<RetainedSelectedSources<'c, 'p>> {
++        self.recheck()?;
++        let files = super::publication::retained::selected_sources(
++            self.root(),
++            profile.selected_sources(),
++        )?;
++        self.recheck()?;
++        Ok(RetainedSelectedSources {
++            context: self,
++            profile,
++            owner: self.owner_stamp(),
++            files,
++        })
++    }
++}
++// Actual selected owners have independent lifetimes. This is retained source
++// custody only, never a materializer/resource readiness token.
++pub(crate) struct RetainedSelectedSources<'c, 'p> {
++    context: &'c VerifiedStudyContext,
++    profile: &'p MaterializedProfile,
++    owner: ContextOwnerStamp,
++    files: Vec<super::publication::HeldRead>,
++}
++impl RetainedSelectedSources<'_, '_> {
++    pub(crate) fn source(
++        &self,
++        index: usize,
++    ) -> Option<(&crate::study_profile::StudySource, &[u8])> {
++        Some((
++            self.profile.selected_sources().get(index)?,
++            self.files.get(index)?.bytes(),
++        ))
++    }
++    pub(crate) fn recheck(
++        &self,
++        context: &VerifiedStudyContext,
++        profile: &MaterializedProfile,
++    ) -> Result<()> {
++        require_same_context(context, self.context)?;
++        require_same_context(profile, self.profile)?;
++        context.recheck_owner(&self.owner)?;
++        for file in &self.files {
++            file.recheck()?;
++        }
++        context.recheck()
++    }
++}
++#[cfg(test)]
++mod context_instance_tests {
++    use super::*;
++    // Compile-only ownership obligation; never invoked by a test or hidden runtime.
++    // No context-outlives-input relation is available to the compiler here.
++    #[allow(dead_code)]
++    fn independent_source_lifetimes<'c, 'p>(
++        context: &'c VerifiedStudyContext,
++        profile: &'p MaterializedProfile,
++    ) -> Result<RetainedSelectedSources<'c, 'p>> {
++        context.retained_selected_sources(profile)
++    }
++    #[test]
++    fn retained_equal_values_are_not_original_owner() {
++        let original = Box::new([7u8; 4]);
++        let other = Box::new([7u8; 4]);
++        assert_eq!(original, other);
++        require_same_context(original.as_ref(), original.as_ref()).unwrap();
++        assert!(require_same_context(original.as_ref(), other.as_ref()).is_err());
++    }
++    #[test]
++    fn retained_context_instance_never_reuses_and_overflow_refuses() {
++        let counter = std::sync::atomic::AtomicU64::new(1);
++        assert_ne!(
++            ContextInstance::take(&counter).unwrap().0,
++            ContextInstance::take(&counter).unwrap().0
++        );
++        let counter = std::sync::atomic::AtomicU64::new(u64::MAX - 1);
++        assert_eq!(ContextInstance::take(&counter).unwrap().0, u64::MAX - 1);
++        assert!(ContextInstance::take(&counter).is_err());
++        assert!(ContextInstance::take(&counter).is_err());
++    }
++}
+ // Non-authoritative inspection values: no constructor is exposed outside this module.
+ #[derive(Debug, PartialEq, Eq)]
+ struct MaterializedInputFacts {
+@@ -1020,6 +1155,7 @@ struct MaterializedInputFacts {
+ }
+ pub(crate) struct CheckedMaterializedInput<'a> {
+     context: &'a VerifiedStudyContext,
++    owner: ContextOwnerStamp,
+     facts: MaterializedInputFacts,
+ }
+ fn require_same_context<T>(current: &T, previous: &T) -> Result<()> {
+diff --git a/crates/ckks-train-bench/src/study_provenance/process.rs b/crates/ckks-train-bench/src/study_provenance/process.rs
+index 60695cb..27022ec 100644
+--- a/crates/ckks-train-bench/src/study_provenance/process.rs
++++ b/crates/ckks-train-bench/src/study_provenance/process.rs
+@@ -31,6 +31,14 @@ impl ProcessStamp {
+             Err(ProvenanceError("process stamp requires native Linux"))
+         }
+     }
++    // Copy only an actual captured owner association, never decode a new stamp.
++    pub(crate) fn owner_association(&self) -> Self {
++        Self {
++            pid: self.pid,
++            start_ticks: self.start_ticks,
++            boot: self.boot,
++        }
++    }
+     pub(crate) fn recheck(&self) -> Result<()> {
+         self.require_same(&Self::capture()?)
+     }
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication.rs b/crates/ckks-train-bench/src/study_provenance/publication.rs
+index 79a34c5..59e4e6c 100644
+--- a/crates/ckks-train-bench/src/study_provenance/publication.rs
++++ b/crates/ckks-train-bench/src/study_provenance/publication.rs
+@@ -1,6 +1,10 @@
+ //! Descriptor-relative foundation. No scientific publication type is exposed.
+ use super::{ProvenanceError, Result, ensure};
++pub(super) mod retained;
+ use crate::data::sha256_hex;
++pub(crate) use retained::HeldRead;
++#[cfg(test)]
++use retained::{ReadBound, dataset_size};
+ use std::{
+     ffi::{CStr, CString, OsStr, OsString},
+     fs::File,
+@@ -171,10 +175,13 @@ fn mount(_: &File) -> Result<Mount> {
+         "production publication requires Linux ext4/XFS",
+     ))
+ }
++fn effective_uid() -> u32 {
++    unsafe { libc::geteuid() }
++}
+ fn safe_directory(f: &File, private: bool) -> Result<()> {
+     let m = f.metadata()?;
+     ensure(m.is_dir(), "directory required")?;
+-    let uid = unsafe { libc::geteuid() };
++    let uid = effective_uid();
+     if private {
+         ensure(
+             m.uid() == uid && m.mode() & 0o7777 == 0o700,
+@@ -471,7 +478,7 @@ fn inode(f: &File) -> Result<(u64, u64)> {
+ fn safe_file(f: &File) -> Result<()> {
+     let m = f.metadata()?;
+     ensure(
+-        m.is_file() && m.uid() == unsafe { libc::geteuid() } && m.mode() & 0o7777 == 0o600,
++        m.is_file() && m.uid() == effective_uid() && m.mode() & 0o7777 == 0o600,
+         "private regular file owner/mode",
+     )
+ }
+@@ -481,9 +488,13 @@ struct Anchors {
+     names: Vec<OsString>,
+     private_from: usize,
+     root_mount: Mount,
++    mount_from: usize,
+ }
+ impl Anchors {
+     fn open(path: &Path) -> Result<Self> {
++        Self::open_mode(path, true)
++    }
++    fn open_mode(path: &Path, private: bool) -> Result<Self> {
+         ensure(
+             path.is_absolute() && path.as_os_str().as_bytes().len() <= 4096,
+             "absolute bounded root",
+@@ -507,17 +518,31 @@ impl Anchors {
+             }
+         }
+         let private_from = files.len() - 1;
+-        safe_directory(&files[private_from], true)?;
++        safe_directory(&files[private_from], private)?;
+         let root_mount = mount(&files[private_from])?;
+         let result = Self {
+             files,
+             names,
+-            private_from,
++            private_from: if private { private_from } else { usize::MAX },
+             root_mount,
++            mount_from: private_from,
+         };
+         result.recheck()?;
+         Ok(result)
+     }
++    fn duplicate(&self) -> Result<Self> {
++        Ok(Self {
++            files: self
++                .files
++                .iter()
++                .map(File::try_clone)
++                .collect::<std::io::Result<_>>()?,
++            names: self.names.clone(),
++            private_from: self.private_from,
++            root_mount: self.root_mount,
++            mount_from: self.mount_from,
++        })
++    }
+     fn last(&self) -> &File {
+         self.files.last().expect("held directory")
+     }
+@@ -527,7 +552,7 @@ impl Anchors {
+             if i > 0 {
+                 check_child(&self.files[i - 1], file, &self.names[i - 1])?;
+             }
+-            if i >= self.private_from {
++            if i >= self.mount_from {
+                 same_publication_mount(self.root_mount, mount(file)?)?;
+             }
+         }
+@@ -586,6 +611,19 @@ fn read_stamped_on(
+     Ok((bytes, stamp))
+ }
+ impl Store {
++    pub(crate) fn read_held(&self, id: &str, cap: usize) -> Result<HeldRead> {
++        self.recheck()?;
++        let mut anchors = self.anchors.duplicate()?;
++        anchors.child_existing(self.kind.directory())?;
++        let held = HeldRead::acquire(
++            anchors,
++            self.basename(id)?,
++            retained::ReadBound::AtMost(cap),
++            retained::ReadRole::Published(self.kind),
++        )?;
++        self.recheck()?;
++        Ok(held)
++    }
+     pub(crate) fn read_stamped(&self, id: &str, cap: usize) -> Result<(Vec<u8>, ReadStamp)> {
+         self.recheck()?;
+         let expected = mount(&self.root)?;
+@@ -743,6 +781,22 @@ impl TargetStore {
+             same_publication_mount(self.anchors.root_mount, mount(file)?)
+         })
+     }
++    pub(crate) fn recheck_read(&self, read: &HeldRead) -> Result<()> {
++        self.recheck()?;
++        read.recheck_target(self.anchors.last())?;
++        self.recheck()
++    }
++    pub(crate) fn read_held(&self) -> Result<HeldRead> {
++        self.recheck()?;
++        let held = HeldRead::acquire(
++            self.anchors.duplicate()?,
++            "target.lock.json".into(),
++            retained::ReadBound::AtMost(7_324_204),
++            retained::ReadRole::Target,
++        )?;
++        self.recheck()?;
++        Ok(held)
++    }
+     pub(crate) fn read(&self) -> Result<Vec<u8>> {
+         self.recheck()?;
+         let (bytes, _) = self.read_snapshot()?;
+@@ -955,3 +1009,24 @@ fn create_or_open_profile_guard(parent: &File) -> Result<File> {
+     validate_guard(&f)?;
+     Ok(f)
+ }
++
++#[cfg(test)]
++mod retained_tests {
++    use super::*;
++    #[test]
++    fn retained_exact_size_is_checked_before_allocation() {
++        assert!(ReadBound::Exact(4).check(3).is_err());
++        assert!(ReadBound::Exact(4).check(5).is_err());
++        assert_eq!(ReadBound::Exact(4).check(4).unwrap(), 4);
++        assert!(ReadBound::AtMost(4).check(5).is_err());
++    }
++    #[test]
++    fn retained_dataset_policy_is_closed_and_exact() {
++        assert_eq!(
++            dataset_size("data/fashion_mnist/train-images-idx3-ubyte").unwrap(),
++            47_040_016
++        );
++        assert!(dataset_size("../data/fashion_mnist/train-images-idx3-ubyte").is_err());
++        assert!(dataset_size("data/other.npy").is_err());
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs b/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
+index 282162f..ee75f17 100644
+--- a/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
++++ b/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
+@@ -510,6 +510,7 @@ mod linux {
+                 files: vec![d.file.try_clone().unwrap()],
+                 names: vec![],
+                 private_from: 0,
++                mount_from: 0,
+                 root_mount,
+             };
+             if selector == 3 {
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index d161db0..8c98cc4 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -1989,3 +1989,32 @@ mod execution_descriptor_tests;
+ mod execution_binding_tests;
+ 
+ mod evidence;
++
++// Actual verified-target adapter calls production parsers; synthetic tests invoke
++// the same representation composition only through the private harness.
++#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
++pub(in crate::study_reference) fn check_verified_target_history(
++    current: &[u8],
++    prior: Option<(&[u8], Option<&[u8]>)>,
++    lock: &target::Lock,
++    reference_bytes: &[u8],
++    reference: &reader::VerifiedReference,
++) -> Result<()> {
++    let reference = reference.parsed();
++    let current = admission::parse_admission(current)?;
++    let prior = prior
++        .map(|(a, s)| {
++            Ok((
++                admission::parse_admission(a)?,
++                s.map(admission::parse_start).transpose()?,
++            ))
++        })
++        .transpose()?;
++    admission::check_target_history_claims(
++        &current,
++        prior.as_ref().map(|(a, s)| (a, s.as_ref())),
++        lock,
++        reference_bytes,
++        reference,
++    )
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/admission.rs b/crates/ckks-train-bench/src/study_reference/document/admission.rs
+index 416bc7f..d53a78d 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/admission.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/admission.rs
+@@ -785,6 +785,28 @@ pub(super) fn check_target_claims(
+         "admitted",
+     )
+ }
++/// Representation-level C1 composition against ONE verified target/current policy.
++/// It cannot supply live eligibility, filesystem absence, gates or authority.
++pub(super) fn check_target_history_claims(
++    current: &Admission,
++    prior: Option<(&Admission, Option<&Start>)>,
++    lock: &target::Lock,
++    reference_bytes: &[u8],
++    reference: &ParsedReferenceDocument,
++) -> Result<()> {
++    check_target_claims(current, lock, reference_bytes, reference)?;
++    match (current.predecessor.as_ref(), prior) {
++        (None, None) => Ok(()),
++        (Some(_), Some((prior, start))) => {
++            check_target_claims(prior, lock, reference_bytes, reference)?;
++            check_predecessor_claims(current, prior, start)
++        }
++        _ => Err(err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "predecessor.presence",
++        )),
++    }
++}
+ #[cfg(test)]
+ pub(super) struct SyntheticAdmission(pub(super) Admission);
+ #[cfg(test)]
+diff --git a/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs b/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
+index fa2d145..24aff2b 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/admission_tests.rs
+@@ -646,3 +646,97 @@ fn d7_admission_inherited_caps_and_small_oversize_witnesses() {
+     let overlong_numeric = format!("{{\"seed\":{}}}", "1".repeat(65));
+     assert!(preflight_layout(overlong_numeric.as_bytes(), DocumentLayout::Admission).is_err());
+ }
++
++// Explicit synthetic representation harness only. Never constructs live owners.
++fn linked_fixture(name: &str) -> Vec<u8> {
++    std::fs::read(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle").join(name)).unwrap()
++}
++#[test]
++fn retained_c1_current_and_prior_share_one_verified_target_representation() {
++    let lock =
++        super::super::target::SyntheticTargetLock::parse(&linked_fixture("lock.json")).unwrap();
++    let bytes = linked_fixture("reference.json");
++    let reference = synthetic_reference(&bytes);
++    let a = SyntheticAdmission::parse(&linked_fixture("A/admission.json"))
++        .unwrap()
++        .0;
++    let b = SyntheticAdmission::parse(&linked_fixture("B/admission.json"))
++        .unwrap()
++        .0;
++    let c = SyntheticAdmission::parse(&linked_fixture("C/admission.json"))
++        .unwrap()
++        .0;
++    let start = SyntheticStart::parse(&linked_fixture("A/start.json"))
++        .unwrap()
++        .0;
++    let lock = lock.claims_lock();
++    check_target_history_claims(&a, None, lock, &bytes, &reference).unwrap();
++    check_target_history_claims(&b, Some((&a, None)), lock, &bytes, &reference).unwrap();
++    check_target_history_claims(&c, Some((&a, Some(&start))), lock, &bytes, &reference).unwrap();
++    assert!(
++        check_target_history_claims(&b, Some((&a, Some(&start))), lock, &bytes, &reference)
++            .is_err()
++    );
++    assert!(check_target_history_claims(&c, Some((&a, None)), lock, &bytes, &reference).is_err());
++    for (name, path) in [
++        ("lock", "target.lock"),
++        ("reference", "target.reference"),
++        ("policy", "target.policy"),
++    ] {
++        let dir = format!("negative/c1-prior-{name}");
++        // Parsing verifies both rehashed self-integrities before comparisons.
++        let prior = SyntheticAdmission::parse(&linked_fixture(&format!("{dir}/A/admission.json")))
++            .unwrap()
++            .0;
++        let current =
++            SyntheticAdmission::parse(&linked_fixture(&format!("{dir}/B/admission.json")))
++                .unwrap()
++                .0;
++        check_predecessor_claims(&current, &prior, None).unwrap();
++        check_target_claims(&current, lock, &bytes, &reference).unwrap();
++        let error =
++            check_target_history_claims(&current, Some((&prior, None)), lock, &bytes, &reference)
++                .unwrap_err();
++        assert_eq!(error.path(), path, "{name}");
++    }
++}
++
++#[test]
++fn retained_c1_exact_file_payload_and_stale_self_are_distinct() {
++    let initial = SyntheticAdmission::parse(&linked_fixture("A/admission.json"))
++        .unwrap()
++        .0;
++    let whitespace =
++        SyntheticAdmission::parse(&linked_fixture("negative/admission-whitespace.json"))
++            .unwrap()
++            .0;
++    assert_eq!(
++        initial.integrity.payload_sha256,
++        whitespace.integrity.payload_sha256
++    );
++    assert_ne!(initial.file_sha256, whitespace.file_sha256);
++    let retry = SyntheticAdmission::parse(&linked_fixture("B/admission.json"))
++        .unwrap()
++        .0;
++    assert_eq!(
++        check_predecessor_claims(&retry, &whitespace, None)
++            .unwrap_err()
++            .path(),
++        "predecessor.admission"
++    );
++    let start = SyntheticStart::parse(&linked_fixture("negative/start-wrong-payload-link.json"))
++        .unwrap()
++        .0;
++    assert_eq!(start.admission.file_sha256.0, retry.file_sha256);
++    assert_eq!(
++        check_start_claims(&start, &retry).unwrap_err().path(),
++        "start.admission.link"
++    );
++    assert_eq!(
++        SyntheticAdmission::parse(&linked_fixture("negative/admission-stale-self-hash.json"))
++            .err()
++            .unwrap()
++            .code(),
++        DocumentErrorCode::DigestMismatch
++    );
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs
+index c75d058..1f784f5 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs
+@@ -426,46 +426,28 @@ fn check_gate_hashes(g: &admission::Gates, mode: Mode, sidecars: &[Evidence<'_>]
+     }
+     Ok(())
+ }
+-/// All inputs are inert supplied claims. Retained frame/process/clock/argv origin,
+-/// actual completion count, resource/user lease freshness remain live duties.
+-pub(super) fn check_quick_events(
++/// Pure staged validation: no future start/end is invented.
++pub(super) fn check_quick_preflight(
+     preflight: &QuickEvent,
+-    start: &QuickEvent,
+-    end: &QuickEvent,
+     sidecars: &[Evidence<'_>],
+     captured_argv: &[Vec<u8>],
+ ) -> Result<()> {
+-    same(
+-        preflight.mode == start.mode && preflight.mode == end.mode,
+-        "quick.events.domain",
+-    )?;
+-    let p = decode_event(preflight.kind, &preflight.canonical, preflight.mode)?;
+-    let s = decode_event(start.kind, &start.canonical, start.mode)?;
+-    let e = decode_event(end.kind, &end.canonical, end.mode)?;
+-    let (p, s, e) = match (p, s, e) {
+-        (EventBody::Preflight(p), EventBody::Start(s), EventBody::End(e)) => (p, s, e),
+-        _ => {
+-            return Err(err(
+-                DocumentErrorCode::CrossLinkMismatch,
+-                "quick.events.order",
+-            ));
+-        }
++    let EventBody::Preflight(p) =
++        decode_event(preflight.kind, &preflight.canonical, preflight.mode)?
++    else {
++        return Err(err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "quick.events.order",
++        ));
+     };
+     check_evidence_bundle(sidecars)?;
+     let identity = QuickIdentity::decode(p.identity.0, preflight.mode)?;
+-    same(
+-        s.identity_sha256 == p.identity_sha256 && e.identity_sha256 == p.identity_sha256,
+-        "quick.events.identity",
+-    )?;
+     for sidecar in sidecars {
+-        let branch = match &sidecar.branch {
+-            Branch::Quick(q) => q,
+-            _ => {
+-                return Err(err(
+-                    DocumentErrorCode::CrossLinkMismatch,
+-                    "quick.events.scope",
+-                ));
+-            }
++        let Branch::Quick(branch) = &sidecar.branch else {
++            return Err(err(
++                DocumentErrorCode::CrossLinkMismatch,
++                "quick.events.scope",
++            ));
+         };
+         same(
+             sidecar.mode == preflight.mode
+@@ -484,25 +466,95 @@ pub(super) fn check_quick_events(
+             "quick.events.context",
+         )?;
+     }
+-    for g in [&p.gates, &s.gates, &e.gates] {
+-        check_gate_hashes(g, preflight.mode, sidecars)?;
+-    }
+-
++    check_gate_hashes(&p.gates, preflight.mode, sidecars)?;
+     same(
+         p.argv.0.len() == captured_argv.len()
+             && p.argv.0.iter().zip(captured_argv).all(|(a, b)| a.0 == b),
+         "quick.argv.retained_bytes",
++    )
++}
++/// Start checks only already-existing preflight/start claims, never a fake end.
++pub(super) fn check_quick_start(
++    preflight: &QuickEvent,
++    start: &QuickEvent,
++    sidecars: &[Evidence<'_>],
++    captured_argv: &[Vec<u8>],
++) -> Result<()> {
++    check_quick_preflight(preflight, sidecars, captured_argv)?;
++    same(preflight.mode == start.mode, "quick.events.domain")?;
++    let EventBody::Preflight(p) =
++        decode_event(preflight.kind, &preflight.canonical, preflight.mode)?
++    else {
++        unreachable!("checked preflight")
++    };
++    let EventBody::Start(s) = decode_event(start.kind, &start.canonical, start.mode)? else {
++        return Err(err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "quick.events.order",
++        ));
++    };
++    same(
++        s.identity_sha256 == p.identity_sha256,
++        "quick.events.identity",
+     )?;
++    check_gate_hashes(&s.gates, preflight.mode, sidecars)?;
+     link(&s.preflight, preflight)?;
++    clock_order(&p.observed, &s.started)
++}
++/// Complete inert three-event comparison remains available. Live owners, actual
++/// completion count, clocks and lease freshness are separate obligations.
++pub(super) fn check_quick_events(
++    preflight: &QuickEvent,
++    start: &QuickEvent,
++    end: &QuickEvent,
++    sidecars: &[Evidence<'_>],
++    captured_argv: &[Vec<u8>],
++) -> Result<()> {
++    check_quick_start(preflight, start, sidecars, captured_argv)?;
++    same(preflight.mode == end.mode, "quick.events.domain")?;
++    let EventBody::Start(s) = decode_event(start.kind, &start.canonical, start.mode)? else {
++        unreachable!("checked start")
++    };
++    let EventBody::End(e) = decode_event(end.kind, &end.canonical, end.mode)? else {
++        return Err(err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "quick.events.order",
++        ));
++    };
++    same(
++        e.identity_sha256 == s.identity_sha256,
++        "quick.events.identity",
++    )?;
++    check_gate_hashes(&e.gates, preflight.mode, sidecars)?;
+     link(&e.preflight, preflight)?;
+     link(&e.start, start)?;
+-    clock_order(&p.observed, &s.started)?;
+     clock_order(&s.started, &e.ended)
+ }
+ #[cfg(test)]
+ mod tests {
+     use super::super::tests::fixture;
+     use super::*;
++    #[test]
++    fn retained_quick_staged_checks_require_no_future_end() {
++        let preflight = QuickEvent::parse_json_oracle(&fixture("quick.preflight.json")).unwrap();
++        let start = QuickEvent::parse_json_oracle(&fixture("quick.start.json")).unwrap();
++        let bytes: Vec<_> = GATE_NAMES
++            .iter()
++            .map(|n| fixture(&format!("quick.{n}.evidence.bin")))
++            .collect();
++        let sidecars: Vec<_> = bytes
++            .iter()
++            .map(|b| Evidence::parse_oracle(b).unwrap())
++            .collect();
++        let argv = preflight.argv().unwrap();
++        check_quick_preflight(&preflight, &sidecars, &argv).unwrap();
++        check_quick_start(&preflight, &start, &sidecars, &argv).unwrap();
++        assert!(check_quick_preflight(&start, &sidecars, &argv).is_err());
++        assert!(check_quick_start(&preflight, &preflight, &sidecars, &argv).is_err());
++        let mut wrong = argv;
++        wrong[0].push(1);
++        assert!(check_quick_preflight(&preflight, &sidecars, &wrong).is_err());
++    }
+     fn permutations(values: &mut [usize; 5], at: usize, out: &mut Vec<[usize; 5]>) {
+         if at == 5 {
+             out.push(*values);
+diff --git a/crates/ckks-train-bench/src/study_reference/publication.rs b/crates/ckks-train-bench/src/study_reference/publication.rs
+index 1b381b5..d311d7d 100644
+--- a/crates/ckks-train-bench/src/study_reference/publication.rs
++++ b/crates/ckks-train-bench/src/study_reference/publication.rs
+@@ -284,33 +284,32 @@ impl<'c> ReferenceStore<'c> {
+ /// ```
+ /// ```compile_fail
+ /// use ckks_train_bench::study_reference::VerifiedReferenceSnapshot;
+-/// fn construct() { let _ = VerifiedReferenceSnapshot { origin: todo!(), bytes: todo!(), verified: todo!(), stamp: todo!() }; }
++/// fn construct() { let _ = VerifiedReferenceSnapshot { origin: todo!(), held: todo!(), verified: todo!() }; }
+ /// ```
+ pub struct VerifiedReferenceSnapshot<'r, 'c: 'r> {
+     origin: &'r ReferenceStore<'c>,
+-    bytes: Box<[u8]>,
++    held: crate::study_provenance::publication::HeldRead,
+     verified: VerifiedReference,
+-    stamp: crate::study_provenance::publication::ReadStamp,
+ }
+ impl<'c> ReferenceStore<'c> {
+-    /// Read exactly once through the held origin, verify normally and retain inode/namespace stamps.
++    /// Acquire through the held origin, verify normally and retain File/ancestor/byte custody.
+     pub fn read_reference_snapshot<'r>(
+         &'r self,
+         id: &str,
+     ) -> Result<VerifiedReferenceSnapshot<'r, 'c>, PublicationError> {
+-        let (bytes, stamp) = self
++        let held = self
+             .inner
+-            .read_stamped(id, CAP)
++            .read_held(id, CAP)
+             .map_err(|_| PublicationError::Validation)?;
+-        let verified = document::verify_reference(&bytes, self.context, id)?;
++        let verified = document::verify_reference(held.bytes(), self.context, id)?;
+         if verified.receipt().seed() != 0 {
+             return Err(PublicationError::Validation);
+         }
++        held.recheck().map_err(|_| PublicationError::Validation)?;
+         Ok(VerifiedReferenceSnapshot {
+             origin: self,
+-            bytes: bytes.into_boxed_slice(),
++            held,
+             verified,
+-            stamp,
+         })
+     }
+     pub(super) fn context(&self) -> &'c VerifiedStudyContext {
+@@ -319,14 +318,9 @@ impl<'c> ReferenceStore<'c> {
+ }
+ impl VerifiedReferenceSnapshot<'_, '_> {
+     pub(super) fn recheck(&self) -> Result<(), PublicationError> {
+-        let (bytes, stamp) = self
+-            .origin
+-            .inner
+-            .read_stamped(self.verified.run_id(), CAP)
++        self.held
++            .recheck()
+             .map_err(|_| PublicationError::Validation)?;
+-        if bytes.as_slice() != self.bytes.as_ref() || stamp != self.stamp {
+-            return Err(PublicationError::Validation);
+-        }
+         self.origin
+             .context
+             .recheck()
+@@ -339,9 +333,36 @@ impl VerifiedReferenceSnapshot<'_, '_> {
+         &self.verified
+     }
+     pub(super) fn bytes(&self) -> &[u8] {
+-        &self.bytes
++        self.held.bytes()
+     }
+-    pub(super) fn into_owned(self) -> (Box<[u8]>, VerifiedReference) {
+-        (self.bytes, self.verified)
++    pub(super) fn into_owned(self) -> OwnedReferenceSnapshot {
++        OwnedReferenceSnapshot {
++            held: self.held,
++            verified: self.verified,
++            context: self.origin.context.owner_stamp(),
++        }
++    }
++}
++#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
++pub(super) struct OwnedReferenceSnapshot {
++    held: crate::study_provenance::publication::HeldRead,
++    verified: VerifiedReference,
++    context: crate::study_provenance::ContextOwnerStamp,
++}
++#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
++impl OwnedReferenceSnapshot {
++    pub(super) fn bytes(&self) -> &[u8] {
++        self.held.bytes()
++    }
++    pub(super) fn reference(&self) -> &VerifiedReference {
++        &self.verified
++    }
++    pub(super) fn recheck(&self, context: &VerifiedStudyContext) -> Result<(), PublicationError> {
++        context
++            .recheck_owner(&self.context)
++            .map_err(|_| PublicationError::Validation)?;
++        self.held
++            .recheck()
++            .map_err(|_| PublicationError::Validation)
+     }
+ }
+diff --git a/crates/ckks-train-bench/src/study_reference/target.rs b/crates/ckks-train-bench/src/study_reference/target.rs
+index 968e02c..352924f 100644
+--- a/crates/ckks-train-bench/src/study_reference/target.rs
++++ b/crates/ckks-train-bench/src/study_reference/target.rs
+@@ -152,16 +152,69 @@ impl PublishedTargetLock {
+ /// use ckks_train_bench::study_reference::VerifiedTargetForSeed;
+ /// let _:VerifiedTargetForSeed=serde_json::from_str("{}").unwrap();
+ /// ```
++#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
+ pub struct VerifiedTargetForSeed {
+-    _lock_bytes: Box<[u8]>,
+-    _reference_bytes: Box<[u8]>,
+-    _reference: VerifiedReference,
++    lock: crate::study_provenance::publication::HeldRead,
++    reference: super::publication::OwnedReferenceSnapshot,
++    context: crate::study_provenance::ContextOwnerStamp,
++    store: usize,
+     file_hash: String,
+     receipt: SeedInputReceiptV1,
+     threshold: u64,
+     payload: String,
+ }
++#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
+ impl VerifiedTargetForSeed {
++    // Retained source owner, SAME store/context and current approved policy are
++    // required before the inert current+prior composition. No admission token.
++    pub(crate) fn check_attempt_history(
++        &self,
++        store: &ProfileTargetStore<'_>,
++        current: &[u8],
++        prior: Option<(&[u8], Option<&[u8]>)>,
++    ) -> Result<()> {
++        require(
++            self.store == store as *const ProfileTargetStore<'_> as usize,
++            TargetError::ContextChanged,
++        )?;
++        store
++            .context
++            .recheck_owner(&self.context)
++            .map_err(|_| TargetError::ContextChanged)?;
++        store
++            .context
++            .recheck()
++            .map_err(|_| TargetError::ContextChanged)?;
++        store
++            .inner
++            .recheck_read(&self.lock)
++            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
++        self.reference
++            .recheck(store.context)
++            .map_err(reference_error)?;
++        let lock = codec::parse_lock(self.lock.bytes())?;
++        codec::verify_link(
++            &lock,
++            self.reference.reference(),
++            store.context,
++            &store.campaign,
++            &store.profile,
++        )?;
++        super::document::check_verified_target_history(
++            current,
++            prior,
++            &lock,
++            self.reference.bytes(),
++            self.reference.reference(),
++        )?;
++        store
++            .inner
++            .recheck_read(&self.lock)
++            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
++        self.reference
++            .recheck(store.context)
++            .map_err(reference_error)
++    }
+     /// Exact binary64 threshold bits.
+     pub fn threshold_bits(&self) -> u64 {
+         self.threshold
+@@ -182,7 +235,8 @@ impl VerifiedTargetForSeed {
+ }
+ fn compatible(a: &VerifiedStudyContext, b: &VerifiedStudyContext) -> Result<()> {
+     require(
+-        a.approval_sha256() == b.approval_sha256()
++        std::ptr::eq(a, b)
++            && a.approval_sha256() == b.approval_sha256()
+             && a.source_manifest_sha256() == b.source_manifest_sha256()
+             && a.source_commit() == b.source_commit()
+             && a.root() == b.root(),
+@@ -287,11 +341,11 @@ impl<'c> ProfileTargetStore<'c> {
+         self.context
+             .recheck()
+             .map_err(|_| TargetError::ContextChanged)?;
+-        let bytes = self
++        let held = self
+             .inner
+-            .read()
++            .read_held()
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+-        let lock = codec::parse_lock(&bytes)?;
++        let lock = codec::parse_lock(held.bytes())?;
+         let source = references
+             .read_reference_snapshot(lock.run_id())
+             .map_err(reference_error)?;
+@@ -318,11 +372,15 @@ impl<'c> ProfileTargetStore<'c> {
+             .map_err(|_| TargetError::ContextChanged)?;
+         source.recheck().map_err(reference_error)?;
+         time.sample(&mut clock)?;
+-        let (reference_bytes, reference) = source.into_owned();
++        self.inner
++            .recheck_read(&held)
++            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
++        let reference = source.into_owned();
+         Ok(VerifiedTargetForSeed {
+-            _lock_bytes: bytes.into_boxed_slice(),
+-            _reference_bytes: reference_bytes,
+-            _reference: reference,
++            lock: held,
++            reference,
++            context: self.context.owner_stamp(),
++            store: self as *const Self as usize,
+             receipt,
+             threshold: lock.threshold_bits(),
+             payload: lock.payload_sha256().into(),
+@@ -586,3 +644,19 @@ impl ClockTracker {
+ #[cfg(test)]
+ #[path = "target_tests.rs"]
+ mod tests;
++
++// Compile-only proof that the installed outer context/input frame can own the
++// returned retained snapshot after both shorter store objects are destroyed.
++// Not a test function: no reader/materializer invocation occurs during tests.
++#[cfg(test)]
++#[allow(dead_code)]
++fn retained_target_after_short_stores<'c>(
++    target: ProfileTargetStore<'c>,
++    references: ReferenceStore<'c>,
++    profile: &MaterializedProfile,
++) -> Result<VerifiedTargetForSeed> {
++    let snapshot = target.read_target(&references, profile)?;
++    drop(target);
++    drop(references);
++    Ok(snapshot)
++}
+diff --git a/crates/ckks-train-bench/src/study_runtime.rs b/crates/ckks-train-bench/src/study_runtime.rs
+index 322e2eb..e900d13 100644
+--- a/crates/ckks-train-bench/src/study_runtime.rs
++++ b/crates/ckks-train-bench/src/study_runtime.rs
+@@ -229,6 +229,9 @@ fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
+     }
+ }
+ impl CaseRuntimeLease {
++    pub(crate) fn process_association(&self) -> ProcessStamp {
++        self.process.owner_association()
++    }
+     pub(crate) fn descriptor_facts(&self) -> Result<RuntimeDescriptorFacts<'_>> {
+         self.recheck()?;
+         let facts = RuntimeDescriptorFacts {
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication/retained.rs b/crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+new file mode 100644
+index 0000000..04e871d
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+@@ -0,0 +1,503 @@
++//! Closed read custody. No publication, gate, or caller-authored FileRef authority.
++#![forbid(unsafe_code)]
++use super::*;
++use crate::study_profile::{StudySource, StudySourceRole};
++use std::os::unix::fs::FileExt;
++
++pub(super) enum ReadBound {
++    AtMost(usize),
++    Exact(usize),
++}
++impl ReadBound {
++    pub(super) fn check(&self, length: u64) -> Result<usize> {
++        let length = usize::try_from(length).map_err(|_| ProvenanceError("file size overflow"))?;
++        ensure(
++            match self {
++                Self::AtMost(cap) => length <= *cap,
++                Self::Exact(size) => length == *size,
++            },
++            "retained read size policy",
++        )?;
++        Ok(length)
++    }
++}
++pub(super) enum ReadRole {
++    Published(Kind),
++    Target,
++    Source(StudySourceRole),
++}
++/// Final FD and every ancestor remain held, independently of the short store borrow.
++/// Owned bytes are immutable; parsing is always transient under a borrow.
++pub(crate) struct HeldRead {
++    file: File,
++    anchors: Anchors,
++    name: String,
++    stamp: ReadStamp,
++    bytes: Box<[u8]>,
++    role: ReadRole,
++    _not_send_sync: std::marker::PhantomData<std::rc::Rc<()>>,
++}
++impl HeldRead {
++    pub(super) fn acquire(
++        anchors: Anchors,
++        name: String,
++        bound: ReadBound,
++        role: ReadRole,
++    ) -> Result<Self> {
++        Self::acquire_on(anchors, name, bound, role, |_| Ok(()))
++    }
++    // Per-invocation seam only. No global mutation, production callers or gate constructor.
++    fn acquire_on(
++        anchors: Anchors,
++        name: String,
++        bound: ReadBound,
++        role: ReadRole,
++        mut phase: impl FnMut(ReadPhase) -> Result<()>,
++    ) -> Result<Self> {
++        anchors.recheck()?;
++        let mut file = openat(anchors.last().as_raw_fd(), OsStr::new(&name), FILE_FLAGS, 0)?;
++        let metadata = file.metadata()?;
++        bound.check(metadata.len())?; // Before raw allocation.
++        validate_file(&file, &role)?;
++        same_publication_mount(anchors.root_mount, mount(&file)?)?;
++        let stamp = ReadStamp {
++            file: identity(&metadata),
++            parent: inode(anchors.last())?,
++        };
++        let length = bound.check(metadata.len())?;
++        phase(ReadPhase::Opened)?;
++        let bytes =
++            read_exact_on(&mut file, length, || phase(ReadPhase::DuringRead))?.into_boxed_slice();
++        phase(ReadPhase::AfterRead)?;
++        ensure(
++            identity(&file.metadata()?) == stamp.file,
++            "retained acquisition changed",
++        )?;
++        let result = Self {
++            file,
++            anchors,
++            name,
++            stamp,
++            bytes,
++            role,
++            _not_send_sync: std::marker::PhantomData,
++        };
++        result.recheck()?;
++        Ok(result)
++    }
++    pub(super) fn recheck_target(&self, parent: &File) -> Result<()> {
++        ensure(
++            matches!(self.role, ReadRole::Target)
++                && self.name == "target.lock.json"
++                && self.stamp.parent == inode(parent)?,
++            "target read origin changed",
++        )?;
++        self.recheck()
++    }
++    pub(crate) fn bytes(&self) -> &[u8] {
++        &self.bytes
++    }
++    pub(crate) fn recheck(&self) -> Result<()> {
++        self.anchors.recheck()?;
++        ensure(
++            inode(self.anchors.last())? == self.stamp.parent,
++            "retained parent changed",
++        )?;
++        validate_file(&self.file, &self.role)?;
++        same_publication_mount(self.anchors.root_mount, mount(&self.file)?)?;
++        ensure(
++            identity(&self.file.metadata()?) == self.stamp.file,
++            "retained file changed",
++        )?;
++        let current = openat(
++            self.anchors.last().as_raw_fd(),
++            OsStr::new(&self.name),
++            FILE_FLAGS,
++            0,
++        )?;
++        validate_file(&current, &self.role)?;
++        same_publication_mount(self.anchors.root_mount, mount(&current)?)?;
++        ensure(
++            identity(&current.metadata()?) == self.stamp.file,
++            "retained file namespace changed",
++        )?;
++        // Compare using the original FD. Namespace reopen is identity checking only.
++        let mut scratch = [0u8; 65536];
++        let mut offset = 0;
++        while offset < self.bytes.len() {
++            let n = (self.bytes.len() - offset).min(scratch.len());
++            self.file.read_exact_at(&mut scratch[..n], offset as u64)?;
++            ensure(
++                scratch[..n] == self.bytes[offset..offset + n],
++                "retained bytes changed",
++            )?;
++            offset += n;
++        }
++        ensure(
++            self.file.read_at(&mut scratch[..1], offset as u64)? == 0,
++            "retained file grew",
++        )?;
++        ensure(
++            identity(&self.file.metadata()?) == self.stamp.file
++                && identity(&current.metadata()?) == self.stamp.file,
++            "retained read changed",
++        )?;
++        // check_child is directory-only (O_DIRECTORY); final files use FILE_FLAGS.
++        let after = openat(
++            self.anchors.last().as_raw_fd(),
++            OsStr::new(&self.name),
++            FILE_FLAGS,
++            0,
++        )?;
++        validate_file(&after, &self.role)?;
++        same_publication_mount(self.anchors.root_mount, mount(&after)?)?;
++        ensure(
++            identity(&after.metadata()?) == self.stamp.file,
++            "retained final namespace changed",
++        )?;
++        self.anchors.recheck()
++    }
++}
++#[derive(Clone, Copy, PartialEq, Eq)]
++enum ReadPhase {
++    Opened,
++    DuringRead,
++    AfterRead,
++}
++#[cfg(test)]
++fn read_exact_bounded(reader: &mut impl Read, length: usize) -> Result<Vec<u8>> {
++    read_exact_on(reader, length, || Ok(()))
++}
++fn read_exact_on(
++    reader: &mut impl Read,
++    length: usize,
++    halfway: impl FnOnce() -> Result<()>,
++) -> Result<Vec<u8>> {
++    let mut bytes = Vec::new();
++    bytes
++        .try_reserve_exact(length)
++        .map_err(|_| ProvenanceError("retained raw allocation unavailable"))?;
++    bytes.resize(length, 0);
++    let half = length / 2;
++    reader.read_exact(&mut bytes[..half])?;
++    halfway()?;
++    reader.read_exact(&mut bytes[half..])?;
++    let mut extra = [0];
++    ensure(
++        reader.read(&mut extra)? == 0,
++        "retained oversized/growing read",
++    )?;
++    Ok(bytes)
++}
++fn validate_file(file: &File, role: &ReadRole) -> Result<()> {
++    match role {
++        ReadRole::Published(kind) => {
++            let _ = kind.directory();
++            safe_file(file)
++        }
++        ReadRole::Target => safe_file(file),
++        ReadRole::Source(role) => {
++            let _ = role;
++            let m = file.metadata()?;
++            // Source checkout permits read/executable modes, never group/world writable
++            // or special permission bits. Publication records retain their exact0600 rule.
++            ensure(
++                source_metadata(m.is_file(), m.uid(), m.mode(), effective_uid()),
++                "source file owner/mode/type",
++            )
++        }
++    }
++}
++fn source_metadata(regular: bool, uid: u32, mode: u32, effective: u32) -> bool {
++    regular && (uid == 0 || uid == effective) && mode & 0o7022 == 0
++}
++pub(super) fn dataset_size(path: &str) -> Result<usize> {
++    match path {
++        "crates/ckks-train-bench/data/iris.csv" => Ok(2756),
++        "crates/ckks-train-bench/data/iris_split_seed2020.txt" => Ok(705),
++        "crates/ckks-train-bench/data/breast_cancer.csv" => Ok(124103),
++        "results/quadruped/data/reboot_emlp1_full/train_images_14x14.npy" => Ok(3763328),
++        "results/quadruped/data/reboot_emlp1_full/train_labels.npy" => Ok(4928),
++        "results/quadruped/data/reboot_emlp1_full/test_images_14x14.npy" => Ok(7840128),
++        "results/quadruped/data/reboot_emlp1_full/test_labels.npy" => Ok(10128),
++        "data/fashion_mnist/train-images-idx3-ubyte" => Ok(47040016),
++        "data/fashion_mnist/train-labels-idx1-ubyte" => Ok(60008),
++        "data/fashion_mnist/t10k-images-idx3-ubyte" => Ok(7840016),
++        "data/fashion_mnist/t10k-labels-idx1-ubyte" => Ok(10008),
++        _ => Err(ProvenanceError("unregistered DatasetInput representation")),
++    }
++}
++fn check_source_digest(bytes: &[u8], expected: &str) -> Result<()> {
++    ensure(
++        sha256_hex(bytes) == expected,
++        "selected retained source digest",
++    )
++}
++/// Only the actual context's complete resolver-selected inventory can call this.
++/// This acquisition does not retroactively bound earlier materialization work.
++pub(in crate::study_provenance) fn selected_sources(
++    root: &Path,
++    sources: &[StudySource],
++) -> Result<Vec<HeldRead>> {
++    let root = Anchors::open_source(root)?;
++    root.recheck()?;
++    let mut held = Vec::new();
++    held.try_reserve_exact(sources.len())
++        .map_err(|_| ProvenanceError("source custody allocation"))?;
++    for source in sources {
++        let path = Path::new(source.path());
++        ensure(
++            !path.is_absolute() && path.components().all(|c| matches!(c, Component::Normal(_))),
++            "source relative path",
++        )?;
++        let mut anchors = root.duplicate()?;
++        let mut names = path.components().peekable();
++        let mut final_name = None;
++        while let Some(Component::Normal(name)) = names.next() {
++            if names.peek().is_none() {
++                final_name = Some(
++                    name.to_str()
++                        .ok_or(ProvenanceError("source path encoding"))?
++                        .to_owned(),
++                );
++            } else {
++                anchors.source_child(name)?;
++            }
++        }
++        let bound = if source.role() == StudySourceRole::DatasetInput {
++            ReadBound::Exact(dataset_size(source.path())?)
++        } else {
++            ReadBound::AtMost(8 * 1024 * 1024)
++        };
++        let file = HeldRead::acquire(
++            anchors,
++            final_name.ok_or(ProvenanceError("source filename"))?,
++            bound,
++            ReadRole::Source(source.role()),
++        )?;
++        check_source_digest(file.bytes(), source.sha256())?;
++        held.push(file);
++    }
++    for file in &held {
++        file.recheck()?;
++    }
++    root.recheck()?;
++    Ok(held)
++}
++impl Anchors {
++    fn open_source(path: &Path) -> Result<Self> {
++        // Reuse the same descriptor walk but source roots need not be private0700.
++        let mut result = Self::open_mode(path, false)?;
++        result.private_from = usize::MAX;
++        result.recheck()?;
++        Ok(result)
++    }
++    fn source_child(&mut self, name: &OsStr) -> Result<()> {
++        self.recheck()?;
++        let file = openat(self.last().as_raw_fd(), name, DIR_FLAGS, 0)?;
++        safe_directory(&file, false)?;
++        same_publication_mount(self.root_mount, mount(&file)?)?;
++        self.files.push(file);
++        self.names.push(name.into());
++        self.recheck()
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn retained_bounded_reads_short_truncated_growing_and_complete() {
++        for n in [0, 1, 3, 4, 5] {
++            let data = vec![9; n];
++            let result = read_exact_bounded(&mut data.as_slice(), 4);
++            assert_eq!(result.is_ok(), n == 4);
++        }
++        // One-byte reads cover a complete bounded read independently of Read's chunking.
++        struct Short<'a>(&'a [u8]);
++        impl Read for Short<'_> {
++            fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
++                if output.is_empty() || self.0.is_empty() {
++                    return Ok(0);
++                }
++                output[0] = self.0[0];
++                self.0 = &self.0[1..];
++                Ok(1)
++            }
++        }
++        assert_eq!(read_exact_bounded(&mut Short(b"data"), 4).unwrap(), b"data");
++        assert!(
++            read_exact_on(&mut b"data".as_slice(), 4, || Err(ProvenanceError(
++                "mid-read failure"
++            )))
++            .is_err()
++        );
++    }
++    #[test]
++    fn retained_source_type_owner_and_mode_policy() {
++        assert!(source_metadata(true, 42, 0o100644, 42));
++        assert!(source_metadata(true, 0, 0o100755, 42));
++        assert!(!source_metadata(true, 43, 0o100644, 42));
++        assert!(!source_metadata(false, 42, 0o100644, 42));
++        for mode in [0o666, 0o664, 0o4755, 0o2755, 0o1755] {
++            assert!(!source_metadata(true, 42, mode, 42));
++        }
++    }
++    #[test]
++    fn retained_same_size_wrong_digest_refuses() {
++        const HASH: &str = "3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7";
++        check_source_digest(b"data", HASH).unwrap();
++        assert!(check_source_digest(b"date", HASH).is_err());
++    }
++    #[cfg(target_os = "linux")]
++    struct Scratch(PathBuf);
++    #[cfg(target_os = "linux")]
++    impl Scratch {
++        fn new(label: &str) -> Self {
++            use std::os::unix::fs::PermissionsExt;
++            let root = PathBuf::from(
++                std::env::var_os("HEKIT_PUBLICATION_NATIVE_SCRATCH")
++                    .expect("separately released safe ext4/XFS scratch required"),
++            );
++            let anchors = Anchors::open(&root).unwrap();
++            assert_ne!(
++                anchors.last().metadata().unwrap().uid(),
++                0,
++                "unprivileged native actor required"
++            );
++            let path = root.join(format!("retained-{label}-{}", std::process::id()));
++            std::fs::create_dir(&path).unwrap();
++            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).unwrap();
++            Self(path)
++        }
++        fn write(&self, name: &str, bytes: &[u8]) {
++            use std::os::unix::fs::PermissionsExt;
++            std::fs::write(self.0.join(name), bytes).unwrap();
++            std::fs::set_permissions(self.0.join(name), std::fs::Permissions::from_mode(0o600))
++                .unwrap();
++        }
++        fn acquire(&self) -> Result<HeldRead> {
++            HeldRead::acquire(
++                Anchors::open(&self.0)?,
++                "input".into(),
++                ReadBound::Exact(4),
++                ReadRole::Target,
++            )
++        }
++    }
++    #[cfg(target_os = "linux")]
++    impl Drop for Scratch {
++        fn drop(&mut self) {
++            std::fs::remove_dir_all(&self.0).unwrap();
++        }
++    }
++    #[cfg(target_os = "linux")]
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
++    fn retained_native_fd_ancestors_survive_store_scope_and_replacement_refuses() {
++        let d = Scratch::new("original-fd");
++        d.write("input", b"same");
++        let held = d.acquire().unwrap();
++        let original = held.file.as_raw_fd();
++        held.recheck().unwrap();
++        assert_eq!(original, held.file.as_raw_fd());
++        std::fs::rename(d.0.join("input"), d.0.join("old")).unwrap();
++        d.write("input", b"same");
++        assert!(held.recheck().is_err());
++        let mut bytes = [0; 4];
++        held.file.read_exact_at(&mut bytes, 0).unwrap();
++        assert_eq!(&bytes, b"same");
++        assert_ne!(
++            inode(&held.file).unwrap(),
++            inode(&File::open(d.0.join("input")).unwrap()).unwrap()
++        );
++    }
++    #[cfg(target_os = "linux")]
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
++    fn retained_native_before_during_after_equal_byte_namespace_races() {
++        for (index, selected) in [
++            ReadPhase::Opened,
++            ReadPhase::DuringRead,
++            ReadPhase::AfterRead,
++        ]
++        .into_iter()
++        .enumerate()
++        {
++            let d = Scratch::new(&format!("race-{index}"));
++            d.write("input", b"same");
++            let result = HeldRead::acquire_on(
++                Anchors::open(&d.0).unwrap(),
++                "input".into(),
++                ReadBound::Exact(4),
++                ReadRole::Target,
++                |phase| {
++                    if phase == selected {
++                        std::fs::rename(d.0.join("input"), d.0.join("old"))?;
++                        d.write("input", b"same");
++                    }
++                    Ok(())
++                },
++            );
++            assert!(result.is_err());
++        }
++    }
++    #[cfg(target_os = "linux")]
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
++    fn retained_native_truncated_growing_and_equal_size_inplace_reads() {
++        for (index, bytes) in [&b"x"[..], &b"extra"[..], &b"else"[..]]
++            .into_iter()
++            .enumerate()
++        {
++            let d = Scratch::new(&format!("size-race-{index}"));
++            d.write("input", b"data");
++            let result = HeldRead::acquire_on(
++                Anchors::open(&d.0).unwrap(),
++                "input".into(),
++                ReadBound::Exact(4),
++                ReadRole::Target,
++                |phase| {
++                    if phase == ReadPhase::DuringRead {
++                        d.write("input", bytes);
++                    }
++                    Ok(())
++                },
++            );
++            assert!(result.is_err());
++        }
++    }
++    #[cfg(target_os = "linux")]
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
++    fn retained_native_wrong_size_type_mode_and_ancestor_replacement() {
++        use std::os::unix::fs::{PermissionsExt, symlink};
++        let d = Scratch::new("invalid");
++        for bytes in [&b"abc"[..], &b"abcde"[..]] {
++            d.write("input", bytes);
++            assert!(d.acquire().is_err());
++        }
++        d.write("input", b"data");
++        std::fs::set_permissions(d.0.join("input"), std::fs::Permissions::from_mode(0o644))
++            .unwrap();
++        assert!(d.acquire().is_err());
++        std::fs::remove_file(d.0.join("input")).unwrap();
++        std::fs::create_dir(d.0.join("input")).unwrap();
++        assert!(d.acquire().is_err());
++        std::fs::remove_dir(d.0.join("input")).unwrap();
++        d.write("other", b"data");
++        symlink(d.0.join("other"), d.0.join("input")).unwrap();
++        assert!(d.acquire().is_err());
++        std::fs::remove_file(d.0.join("input")).unwrap();
++        d.write("input", b"data");
++        let held = d.acquire().unwrap();
++        let moved = d.0.with_extension("moved");
++        std::fs::rename(&d.0, &moved).unwrap();
++        std::fs::create_dir(&d.0).unwrap();
++        std::fs::set_permissions(&d.0, std::fs::Permissions::from_mode(0o700)).unwrap();
++        assert!(held.recheck().is_err());
++        std::fs::remove_dir_all(moved).unwrap();
++        std::fs::set_permissions(&d.0, std::fs::Permissions::from_mode(0o777)).unwrap();
++        assert!(Anchors::open(&d.0).is_err());
++    }
++}

@@ -1,0 +1,18 @@
+{
+  "index": 9,
+  "name": "study_reference::document::admission::tests::retained_c1_current_and_prior_share_one_verified_target_representation",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::admission::tests::retained_c1_current_and_prior_share_one_verified_target_representation",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069757.834764,
+  "pid": 50859
+}

@@ -284,33 +284,32 @@ impl<'c> ReferenceStore<'c> {
 /// ```
 /// ```compile_fail
 /// use ckks_train_bench::study_reference::VerifiedReferenceSnapshot;
-/// fn construct() { let _ = VerifiedReferenceSnapshot { origin: todo!(), bytes: todo!(), verified: todo!(), stamp: todo!() }; }
+/// fn construct() { let _ = VerifiedReferenceSnapshot { origin: todo!(), held: todo!(), verified: todo!() }; }
 /// ```
 pub struct VerifiedReferenceSnapshot<'r, 'c: 'r> {
     origin: &'r ReferenceStore<'c>,
-    bytes: Box<[u8]>,
+    held: crate::study_provenance::publication::HeldRead,
     verified: VerifiedReference,
-    stamp: crate::study_provenance::publication::ReadStamp,
 }
 impl<'c> ReferenceStore<'c> {
-    /// Read exactly once through the held origin, verify normally and retain inode/namespace stamps.
+    /// Acquire through the held origin, verify normally and retain File/ancestor/byte custody.
     pub fn read_reference_snapshot<'r>(
         &'r self,
         id: &str,
     ) -> Result<VerifiedReferenceSnapshot<'r, 'c>, PublicationError> {
-        let (bytes, stamp) = self
+        let held = self
             .inner
-            .read_stamped(id, CAP)
+            .read_held(id, CAP)
             .map_err(|_| PublicationError::Validation)?;
-        let verified = document::verify_reference(&bytes, self.context, id)?;
+        let verified = document::verify_reference(held.bytes(), self.context, id)?;
         if verified.receipt().seed() != 0 {
             return Err(PublicationError::Validation);
         }
+        held.recheck().map_err(|_| PublicationError::Validation)?;
         Ok(VerifiedReferenceSnapshot {
             origin: self,
-            bytes: bytes.into_boxed_slice(),
+            held,
             verified,
-            stamp,
         })
     }
     pub(super) fn context(&self) -> &'c VerifiedStudyContext {
@@ -319,14 +318,9 @@ impl<'c> ReferenceStore<'c> {
 }
 impl VerifiedReferenceSnapshot<'_, '_> {
     pub(super) fn recheck(&self) -> Result<(), PublicationError> {
-        let (bytes, stamp) = self
-            .origin
-            .inner
-            .read_stamped(self.verified.run_id(), CAP)
+        self.held
+            .recheck()
             .map_err(|_| PublicationError::Validation)?;
-        if bytes.as_slice() != self.bytes.as_ref() || stamp != self.stamp {
-            return Err(PublicationError::Validation);
-        }
         self.origin
             .context
             .recheck()
@@ -339,9 +333,36 @@ impl VerifiedReferenceSnapshot<'_, '_> {
         &self.verified
     }
     pub(super) fn bytes(&self) -> &[u8] {
-        &self.bytes
+        self.held.bytes()
     }
-    pub(super) fn into_owned(self) -> (Box<[u8]>, VerifiedReference) {
-        (self.bytes, self.verified)
+    pub(super) fn into_owned(self) -> OwnedReferenceSnapshot {
+        OwnedReferenceSnapshot {
+            held: self.held,
+            verified: self.verified,
+            context: self.origin.context.owner_stamp(),
+        }
+    }
+}
+#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
+pub(super) struct OwnedReferenceSnapshot {
+    held: crate::study_provenance::publication::HeldRead,
+    verified: VerifiedReference,
+    context: crate::study_provenance::ContextOwnerStamp,
+}
+#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
+impl OwnedReferenceSnapshot {
+    pub(super) fn bytes(&self) -> &[u8] {
+        self.held.bytes()
+    }
+    pub(super) fn reference(&self) -> &VerifiedReference {
+        &self.verified
+    }
+    pub(super) fn recheck(&self, context: &VerifiedStudyContext) -> Result<(), PublicationError> {
+        context
+            .recheck_owner(&self.context)
+            .map_err(|_| PublicationError::Validation)?;
+        self.held
+            .recheck()
+            .map_err(|_| PublicationError::Validation)
     }
 }

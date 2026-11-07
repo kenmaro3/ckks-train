@@ -1,0 +1,10 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0063]: missing field `mount_from` in initializer of `study_provenance::publication::Anchors`
+   --> crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs:509:27
+    |
+509 |             let anchors = Anchors {
+    |                           ^^^^^^^ missing `mount_from`
+
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

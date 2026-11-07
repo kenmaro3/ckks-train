@@ -1,0 +1,55 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+warning: unused import: `super::*`
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:961:9
+    |
+961 |     use super::*;
+    |         ^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared type `ReadBound`
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:964:17
+    |
+964 |         assert!(ReadBound::Exact(4).check(3).is_err());
+    |                 ^^^^^^^^^ use of undeclared type `ReadBound`
+
+error[E0433]: failed to resolve: use of undeclared type `ReadBound`
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:965:17
+    |
+965 |         assert!(ReadBound::Exact(4).check(5).is_err());
+    |                 ^^^^^^^^^ use of undeclared type `ReadBound`
+
+error[E0433]: failed to resolve: use of undeclared type `ReadBound`
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:966:20
+    |
+966 |         assert_eq!(ReadBound::Exact(4).check(4).unwrap(), 4);
+    |                    ^^^^^^^^^ use of undeclared type `ReadBound`
+
+error[E0433]: failed to resolve: use of undeclared type `ReadBound`
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:967:17
+    |
+967 |         assert!(ReadBound::AtMost(4).check(5).is_err());
+    |                 ^^^^^^^^^ use of undeclared type `ReadBound`
+
+error[E0425]: cannot find function `dataset_size` in this scope
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:971:20
+    |
+971 |         assert_eq!(dataset_size("data/fashion_mnist/train-images-idx3-ubyte").unwrap(), 47_040_016);
+    |                    ^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `dataset_size` in this scope
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:972:17
+    |
+972 |         assert!(dataset_size("../data/fashion_mnist/train-images-idx3-ubyte").is_err());
+    |                 ^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `dataset_size` in this scope
+   --> crates/ckks-train-bench/src/study_provenance/publication.rs:973:17
+    |
+973 |         assert!(dataset_size("data/other.npy").is_err());
+    |                 ^^^^^^^^^^^^ not found in this scope
+
+Some errors have detailed explanations: E0425, E0433.
+For more information about an error, try `rustc --explain E0425`.
+warning: `ckks-train-bench` (lib test) generated 1 warning
+error: could not compile `ckks-train-bench` (lib test) due to 7 previous errors; 1 warning emitted

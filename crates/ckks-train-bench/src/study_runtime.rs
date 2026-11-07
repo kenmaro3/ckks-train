@@ -229,6 +229,9 @@ fn host_identity(host: &Host) -> Result<(&str, &str, &str)> {
     }
 }
 impl CaseRuntimeLease {
+    pub(crate) fn process_association(&self) -> ProcessStamp {
+        self.process.owner_association()
+    }
     pub(crate) fn descriptor_facts(&self) -> Result<RuntimeDescriptorFacts<'_>> {
         self.recheck()?;
         let facts = RuntimeDescriptorFacts {

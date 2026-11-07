@@ -1,0 +1,18 @@
+{
+  "index": 1,
+  "name": "study_provenance::publication::retained_tests::retained_exact_size_is_checked_before_allocation",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::publication::retained_tests::retained_exact_size_is_checked_before_allocation",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069743.058121,
+  "pid": 50530
+}

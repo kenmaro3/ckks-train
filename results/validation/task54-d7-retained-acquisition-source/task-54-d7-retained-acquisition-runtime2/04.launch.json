@@ -1,0 +1,18 @@
+{
+  "index": 4,
+  "name": "study_provenance::context::context_instance_tests::retained_equal_values_are_not_original_owner",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_provenance::context::context_instance_tests::retained_equal_values_are_not_original_owner",
+    "--",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "start": 1794069756.587043,
+  "pid": 50811
+}

@@ -1,0 +1,47 @@
+$ cargo fmt --all -- --check
+Diff in /Users/marconi/Documents/research/hekit/crates/ckks-train-bench/src/study_provenance/publication/retained.rs:86:
+         Ok(result)
+     }
+     pub(super) fn recheck_target(&self, parent: &File) -> Result<()> {
+[31m-        ensure(matches!(self.role, ReadRole::Target) && self.name == "target.lock.json" && self.stamp.parent == inode(parent)?, "target read origin changed")?;
+(B[m[32m+        ensure(
+(B[m[32m+            matches!(self.role, ReadRole::Target)
+(B[m[32m+                && self.name == "target.lock.json"
+(B[m[32m+                && self.stamp.parent == inode(parent)?,
+(B[m[32m+            "target read origin changed",
+(B[m[32m+        )?;
+(B[m         self.recheck()
+     }
+     pub(crate) fn bytes(&self) -> &[u8] {
+Diff in /Users/marconi/Documents/research/hekit/crates/ckks-train-bench/src/study_reference/target.rs:185:
+             .context
+             .recheck()
+             .map_err(|_| TargetError::ContextChanged)?;
+[31m-        store.inner
+(B[m[32m+        store
+(B[m[32m+            .inner
+(B[m             .recheck_read(&self.lock)
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         self.reference
+Diff in /Users/marconi/Documents/research/hekit/crates/ckks-train-bench/src/study_reference/target.rs:206:
+             self.reference.bytes(),
+             self.reference.reference(),
+         )?;
+[31m-        store.inner
+(B[m[32m+        store
+(B[m[32m+            .inner
+(B[m             .recheck_read(&self.lock)
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         self.reference
+Diff in /Users/marconi/Documents/research/hekit/crates/ckks-train-bench/src/study_reference/target.rs:370:
+             .map_err(|_| TargetError::ContextChanged)?;
+         source.recheck().map_err(reference_error)?;
+         time.sample(&mut clock)?;
+[31m-        self.inner.recheck_read(&held)
+(B[m[32m+        self.inner
+(B[m[32m+            .recheck_read(&held)
+(B[m             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         let reference = source.into_owned();
+         Ok(VerifiedTargetForSeed {
+
+EXIT 1

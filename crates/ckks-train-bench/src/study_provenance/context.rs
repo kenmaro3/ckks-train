@@ -93,6 +93,7 @@ pub struct VerifiedStudyContext {
     core: VerifiedContextCore,
 }
 struct VerifiedContextCore {
+    instance: ContextInstance,
     runtime: CurrentRuntime,
     request: ContextRequest,
     approval_bytes: Vec<u8>,
@@ -791,6 +792,7 @@ impl VerifiedStudyContext {
         let m = std::fs::metadata(&executable)?;
         let result = Self {
             core: VerifiedContextCore {
+                instance: ContextInstance::next()?,
                 runtime,
                 request,
                 approval_bytes,
@@ -963,6 +965,7 @@ impl VerifiedStudyContext {
         )?;
         Ok(CheckedMaterializedInput {
             context: self,
+            owner: self.owner_stamp(),
             facts,
         })
     }
@@ -972,6 +975,7 @@ impl VerifiedStudyContext {
         start: &CheckedMaterializedInput<'_>,
     ) -> Result<()> {
         require_same_context(self, start.context)?;
+        self.recheck_owner(&start.owner)?;
         let current = self.check_materialized_input_now(p)?;
         ensure(
             current.facts == start.facts,
@@ -1009,6 +1013,137 @@ impl VerifiedStudyContext {
         })
     }
 }
+// Process-wide identity never wraps or reuses a successful reservation. No test resets it.
+struct ContextInstance(u64);
+static NEXT_CONTEXT_INSTANCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+impl ContextInstance {
+    fn next() -> Result<Self> {
+        Self::take(&NEXT_CONTEXT_INSTANCE)
+    }
+    fn take(counter: &std::sync::atomic::AtomicU64) -> Result<Self> {
+        counter
+            .fetch_update(
+                std::sync::atomic::Ordering::Relaxed,
+                std::sync::atomic::Ordering::Relaxed,
+                |n| n.checked_add(1),
+            )
+            .map(Self)
+            .map_err(|_| ProvenanceError("context identity exhausted"))
+    }
+}
+// Inert actual-owner association. A stored address is compared only, never dereferenced.
+pub(crate) struct ContextOwnerStamp {
+    instance: u64,
+    original: usize,
+    process: Option<super::process::ProcessStamp>,
+    _not_send_sync: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+impl VerifiedStudyContext {
+    pub(crate) fn owner_stamp(&self) -> ContextOwnerStamp {
+        ContextOwnerStamp {
+            instance: self.core.instance.0,
+            original: self as *const Self as usize,
+            process: match &self.core.runtime {
+                CurrentRuntime::Reference => None,
+                CurrentRuntime::Train(runtime) => Some(runtime.process_association()),
+            },
+            _not_send_sync: std::marker::PhantomData,
+        }
+    }
+    pub(crate) fn recheck_owner(&self, owner: &ContextOwnerStamp) -> Result<()> {
+        ensure(
+            owner.instance == self.core.instance.0
+                && owner.original == self as *const Self as usize,
+            "context original owner changed",
+        )?;
+        if let Some(process) = &owner.process {
+            process.recheck()?;
+        }
+        self.core.runtime.recheck()
+    }
+    pub(crate) fn retained_selected_sources<'c, 'p>(
+        &'c self,
+        profile: &'p MaterializedProfile,
+    ) -> Result<RetainedSelectedSources<'c, 'p>> {
+        self.recheck()?;
+        let files = super::publication::retained::selected_sources(
+            self.root(),
+            profile.selected_sources(),
+        )?;
+        self.recheck()?;
+        Ok(RetainedSelectedSources {
+            context: self,
+            profile,
+            owner: self.owner_stamp(),
+            files,
+        })
+    }
+}
+// Actual selected owners have independent lifetimes. This is retained source
+// custody only, never a materializer/resource readiness token.
+pub(crate) struct RetainedSelectedSources<'c, 'p> {
+    context: &'c VerifiedStudyContext,
+    profile: &'p MaterializedProfile,
+    owner: ContextOwnerStamp,
+    files: Vec<super::publication::HeldRead>,
+}
+impl RetainedSelectedSources<'_, '_> {
+    pub(crate) fn source(
+        &self,
+        index: usize,
+    ) -> Option<(&crate::study_profile::StudySource, &[u8])> {
+        Some((
+            self.profile.selected_sources().get(index)?,
+            self.files.get(index)?.bytes(),
+        ))
+    }
+    pub(crate) fn recheck(
+        &self,
+        context: &VerifiedStudyContext,
+        profile: &MaterializedProfile,
+    ) -> Result<()> {
+        require_same_context(context, self.context)?;
+        require_same_context(profile, self.profile)?;
+        context.recheck_owner(&self.owner)?;
+        for file in &self.files {
+            file.recheck()?;
+        }
+        context.recheck()
+    }
+}
+#[cfg(test)]
+mod context_instance_tests {
+    use super::*;
+    // Compile-only ownership obligation; never invoked by a test or hidden runtime.
+    // No context-outlives-input relation is available to the compiler here.
+    #[allow(dead_code)]
+    fn independent_source_lifetimes<'c, 'p>(
+        context: &'c VerifiedStudyContext,
+        profile: &'p MaterializedProfile,
+    ) -> Result<RetainedSelectedSources<'c, 'p>> {
+        context.retained_selected_sources(profile)
+    }
+    #[test]
+    fn retained_equal_values_are_not_original_owner() {
+        let original = Box::new([7u8; 4]);
+        let other = Box::new([7u8; 4]);
+        assert_eq!(original, other);
+        require_same_context(original.as_ref(), original.as_ref()).unwrap();
+        assert!(require_same_context(original.as_ref(), other.as_ref()).is_err());
+    }
+    #[test]
+    fn retained_context_instance_never_reuses_and_overflow_refuses() {
+        let counter = std::sync::atomic::AtomicU64::new(1);
+        assert_ne!(
+            ContextInstance::take(&counter).unwrap().0,
+            ContextInstance::take(&counter).unwrap().0
+        );
+        let counter = std::sync::atomic::AtomicU64::new(u64::MAX - 1);
+        assert_eq!(ContextInstance::take(&counter).unwrap().0, u64::MAX - 1);
+        assert!(ContextInstance::take(&counter).is_err());
+        assert!(ContextInstance::take(&counter).is_err());
+    }
+}
 // Non-authoritative inspection values: no constructor is exposed outside this module.
 #[derive(Debug, PartialEq, Eq)]
 struct MaterializedInputFacts {
@@ -1020,6 +1155,7 @@ struct MaterializedInputFacts {
 }
 pub(crate) struct CheckedMaterializedInput<'a> {
     context: &'a VerifiedStudyContext,
+    owner: ContextOwnerStamp,
     facts: MaterializedInputFacts,
 }
 fn require_same_context<T>(current: &T, previous: &T) -> Result<()> {

@@ -1,0 +1,22 @@
+[
+  {
+    "source": "crates/ckks-train-bench/src/study_provenance/publication.rs",
+    "snapshot": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-retained-acquisition-fix1-artifacts/before/study_provenance/publication.rs",
+    "sha256": "1d0882f6233da662fe10e2ad3f103a7f6fdfe002dc706fae0a936ca3ffe11aa3"
+  },
+  {
+    "source": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
+    "snapshot": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-retained-acquisition-fix1-artifacts/before/study_provenance/publication/retained.rs",
+    "sha256": "12b7d7a9b85cfbc0de1d8909242339b5f4aa676a82f5ad96ba823f7d738ab76c"
+  },
+  {
+    "source": "crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs",
+    "snapshot": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-retained-acquisition-fix1-artifacts/before/study_provenance/publication_anonymous_tests.rs",
+    "sha256": "91a7f55f8fecaf2b77e486b983cb04ae6938f093648fbc1b0a13da163bbb1ddf"
+  },
+  {
+    "source": "crates/ckks-train-bench/src/study_reference/target.rs",
+    "snapshot": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-retained-acquisition-fix1-artifacts/before/study_reference/target.rs",
+    "sha256": "6550d97296afb2025f56e7cfe69f685e7632f090405b1fd28ee8839f099c33f7"
+  }
+]

@@ -1,0 +1,267 @@
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication.rs b/crates/ckks-train-bench/src/study_provenance/publication.rs
+--- a/crates/ckks-train-bench/src/study_provenance/publication.rs
++++ b/crates/ckks-train-bench/src/study_provenance/publication.rs
+@@ -639,6 +639,29 @@
+     anchors: Anchors,
+     path: PathBuf,
+     guard: (u64, u64),
++    guard_file: File,
++    owner: std::rc::Rc<TargetStoreIdentity>,
++}
++// The retained allocation, rather than the address of a movable store, identifies
++// the original owner. Guard metadata comes only from that owner's actual open FD.
++struct TargetStoreIdentity {
++    guard: (u64, u64),
++}
++fn require_same_store_owner(
++    current: &std::rc::Rc<TargetStoreIdentity>,
++    original: &std::rc::Rc<TargetStoreIdentity>,
++) -> Result<()> {
++    ensure(
++        std::rc::Rc::ptr_eq(current, original) && current.guard == original.guard,
++        "target original store changed",
++    )
++}
++// Private non-Clone/non-serializable owner projection, not a gate or permission.
++// Keeping both the allocation and original guard FD prevents allocation/inode ABA
++// after the shorter store object is dropped. This FD holds no publication flock.
++pub(crate) struct TargetReadOrigin {
++    owner: std::rc::Rc<TargetStoreIdentity>,
++    guard_file: File,
+ }
+ pub(crate) struct ProfileGuard {
+     file: File,
+@@ -735,19 +758,49 @@
+                 f
+             }
+         };
++        Self::from_opened(anchors, path, f)
++    }
++    fn from_opened(anchors: Anchors, path: PathBuf, guard_file: File) -> Result<Self> {
++        let guard = inode(&guard_file)?;
+         let result = Self {
+             anchors,
+             path,
+-            guard: inode(&f)?,
++            guard,
++            guard_file,
++            owner: std::rc::Rc::new(TargetStoreIdentity { guard }),
+         };
+         result.recheck()?;
+         Ok(result)
+     }
++    pub(crate) fn retained_origin(&self) -> Result<TargetReadOrigin> {
++        self.recheck()?;
++        Ok(TargetReadOrigin {
++            owner: std::rc::Rc::clone(&self.owner),
++            guard_file: self.guard_file.try_clone()?,
++        })
++    }
++    fn recheck_origin(&self, original: &TargetReadOrigin) -> Result<()> {
++        require_same_store_owner(&self.owner, &original.owner)?;
++        validate_guard(&original.guard_file)?;
++        ensure(
++            inode(&original.guard_file)? == original.owner.guard
++                && self.guard == original.owner.guard,
++            "target original guard changed",
++        )?;
++        same_publication_mount(self.anchors.root_mount, mount(&original.guard_file)?)?;
++        self.recheck()
++    }
+     pub(crate) fn path(&self) -> PathBuf {
+         self.path.join("target.lock.json")
+     }
+     fn recheck(&self) -> Result<()> {
+         self.anchors.recheck()?;
++        validate_guard(&self.guard_file)?;
++        ensure(
++            inode(&self.guard_file)? == self.guard && self.owner.guard == self.guard,
++            "held original profile guard changed",
++        )?;
++        same_publication_mount(self.anchors.root_mount, mount(&self.guard_file)?)?;
+         let f = openat(
+             self.anchors.last().as_raw_fd(),
+             OsStr::new(".profile-guard"),
+@@ -781,10 +834,10 @@
+             same_publication_mount(self.anchors.root_mount, mount(file)?)
+         })
+     }
+-    pub(crate) fn recheck_read(&self, read: &HeldRead) -> Result<()> {
+-        self.recheck()?;
++    pub(crate) fn recheck_read(&self, read: &HeldRead, original: &TargetReadOrigin) -> Result<()> {
++        self.recheck_origin(original)?;
+         read.recheck_target(self.anchors.last())?;
+-        self.recheck()
++        self.recheck_origin(original)
+     }
+     pub(crate) fn read_held(&self) -> Result<HeldRead> {
+         self.recheck()?;
+@@ -1013,6 +1066,45 @@
+ #[cfg(test)]
+ mod retained_tests {
+     use super::*;
++    fn owner(guard: (u64, u64)) -> std::rc::Rc<TargetStoreIdentity> {
++        std::rc::Rc::new(TargetStoreIdentity { guard })
++    }
++    #[test]
++    fn retained_store_identity_original_owner_accepts() {
++        let original = owner((3, 7));
++        let snapshot = std::rc::Rc::clone(&original);
++        require_same_store_owner(&original, &snapshot).unwrap();
++    }
++    #[test]
++    fn retained_store_identity_equal_metadata_distinct_owner_refuses() {
++        let original = owner((3, 7));
++        let replacement = owner((3, 7));
++        assert!(require_same_store_owner(&replacement, &original).is_err());
++    }
++    #[test]
++    fn retained_store_identity_same_address_replacement_refuses() {
++        let mut current = owner((3, 7));
++        let snapshot = std::rc::Rc::clone(&current);
++        let address = &current as *const _ as usize;
++        current = owner((3, 7));
++        assert_eq!(address, &current as *const _ as usize);
++        assert!(require_same_store_owner(&current, &snapshot).is_err());
++    }
++    #[test]
++    fn retained_store_identity_survives_original_store_drop() {
++        let original = owner((3, 7));
++        let weak = std::rc::Rc::downgrade(&original);
++        let snapshot = std::rc::Rc::clone(&original);
++        drop(original);
++        let held = weak
++            .upgrade()
++            .expect("snapshot retains original allocation");
++        require_same_store_owner(&held, &snapshot).unwrap();
++        assert!(require_same_store_owner(&owner((3, 7)), &snapshot).is_err());
++        drop(held);
++        drop(snapshot);
++        assert!(weak.upgrade().is_none());
++    }
+     #[test]
+     fn retained_exact_size_is_checked_before_allocation() {
+         assert!(ReadBound::Exact(4).check(3).is_err());
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication/retained.rs b/crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+--- a/crates/ckks-train-bench/src/study_provenance/publication/retained.rs
++++ b/crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+@@ -470,6 +470,40 @@
+     #[cfg(target_os = "linux")]
+     #[test]
+     #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
++    fn retained_native_original_guard_and_same_address_store_replacement_refuse() {
++        let d = Scratch::new("original-guard-owner");
++        d.write(".profile-guard", b"");
++        d.write("target.lock.json", b"data");
++        let open = || {
++            TargetStore::from_opened(
++                Anchors::open(&d.0).unwrap(),
++                d.0.clone(),
++                existing_profile_guard(&File::open(&d.0).unwrap()).unwrap(),
++            )
++            .unwrap()
++        };
++        let mut store = open();
++        let address = &store as *const TargetStore as usize;
++        let original = store.retained_origin().unwrap();
++        let held = store.read_held().unwrap();
++        store.recheck_read(&held, &original).unwrap();
++        std::fs::rename(d.0.join(".profile-guard"), d.0.join("original-guard")).unwrap();
++        d.write(".profile-guard", b"");
++        assert!(store.recheck_read(&held, &original).is_err());
++        let original_inode = inode(&original.guard_file).unwrap();
++        store = open();
++        assert_eq!(address, &store as *const TargetStore as usize);
++        store.recheck().unwrap(); // Replacement agrees with its NEW guard only.
++        assert_ne!(store.guard, original_inode);
++        assert!(store.recheck_read(&held, &original).is_err());
++        drop(store);
++        // The original guard inode and owner allocation survive the old store.
++        assert_eq!(inode(&original.guard_file).unwrap(), original_inode);
++        held.recheck().unwrap(); // Lock itself was not replaced; rejection is owner/guard continuity.
++    }
++    #[cfg(target_os = "linux")]
++    #[test]
++    #[ignore = "requires separately released Linux ext4/XFS scratch and native execution"]
+     fn retained_native_wrong_size_type_mode_and_ancestor_replacement() {
+         use std::os::unix::fs::{PermissionsExt, symlink};
+         let d = Scratch::new("invalid");
+diff --git a/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs b/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
+--- a/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
++++ b/crates/ckks-train-bench/src/study_provenance/publication_anonymous_tests.rs
+@@ -514,12 +514,13 @@
+                 root_mount,
+             };
+             if selector == 3 {
+-                let expected = d.guard();
+-                let store = TargetStore {
++                d.guard();
++                let store = TargetStore::from_opened(
+                     anchors,
+-                    path: d.path.clone(),
+-                    guard: expected,
+-                };
++                    d.path.clone(),
++                    existing_profile_guard(&d.file).unwrap(),
++                )
++                .unwrap();
+                 let guard = store.acquire().unwrap();
+                 Self::Target(store, guard)
+             } else {
+diff --git a/crates/ckks-train-bench/src/study_reference/target.rs b/crates/ckks-train-bench/src/study_reference/target.rs
+--- a/crates/ckks-train-bench/src/study_reference/target.rs
++++ b/crates/ckks-train-bench/src/study_reference/target.rs
+@@ -158,6 +158,7 @@
+     reference: super::publication::OwnedReferenceSnapshot,
+     context: crate::study_provenance::ContextOwnerStamp,
+     store: usize,
++    store_origin: crate::study_provenance::publication::TargetReadOrigin,
+     file_hash: String,
+     receipt: SeedInputReceiptV1,
+     threshold: u64,
+@@ -187,7 +188,7 @@
+             .map_err(|_| TargetError::ContextChanged)?;
+         store
+             .inner
+-            .recheck_read(&self.lock)
++            .recheck_read(&self.lock, &self.store_origin)
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         self.reference
+             .recheck(store.context)
+@@ -209,7 +210,7 @@
+         )?;
+         store
+             .inner
+-            .recheck_read(&self.lock)
++            .recheck_read(&self.lock, &self.store_origin)
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         self.reference
+             .recheck(store.context)
+@@ -341,6 +342,10 @@
+         self.context
+             .recheck()
+             .map_err(|_| TargetError::ContextChanged)?;
++        let store_origin = self
++            .inner
++            .retained_origin()
++            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         let held = self
+             .inner
+             .read_held()
+@@ -373,7 +378,7 @@
+         source.recheck().map_err(reference_error)?;
+         time.sample(&mut clock)?;
+         self.inner
+-            .recheck_read(&held)
++            .recheck_read(&held, &store_origin)
+             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+         let reference = source.into_owned();
+         Ok(VerifiedTargetForSeed {
+@@ -381,6 +386,7 @@
+             reference,
+             context: self.context.owner_stamp(),
+             store: self as *const Self as usize,
++            store_origin,
+             receipt,
+             threshold: lock.threshold_bits(),
+             payload: lock.payload_sha256().into(),

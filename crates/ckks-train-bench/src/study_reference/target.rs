@@ -152,16 +152,70 @@ impl PublishedTargetLock {
 /// use ckks_train_bench::study_reference::VerifiedTargetForSeed;
 /// let _:VerifiedTargetForSeed=serde_json::from_str("{}").unwrap();
 /// ```
+#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
 pub struct VerifiedTargetForSeed {
-    _lock_bytes: Box<[u8]>,
-    _reference_bytes: Box<[u8]>,
-    _reference: VerifiedReference,
+    lock: crate::study_provenance::publication::HeldRead,
+    reference: super::publication::OwnedReferenceSnapshot,
+    context: crate::study_provenance::ContextOwnerStamp,
+    store: usize,
+    store_origin: crate::study_provenance::publication::TargetReadOrigin,
     file_hash: String,
     receipt: SeedInputReceiptV1,
     threshold: u64,
     payload: String,
 }
+#[allow(dead_code)] // Retained real reader custody; live gate/admission wiring is the next dependency.
 impl VerifiedTargetForSeed {
+    // Retained source owner, SAME store/context and current approved policy are
+    // required before the inert current+prior composition. No admission token.
+    pub(crate) fn check_attempt_history(
+        &self,
+        store: &ProfileTargetStore<'_>,
+        current: &[u8],
+        prior: Option<(&[u8], Option<&[u8]>)>,
+    ) -> Result<()> {
+        require(
+            self.store == store as *const ProfileTargetStore<'_> as usize,
+            TargetError::ContextChanged,
+        )?;
+        store
+            .context
+            .recheck_owner(&self.context)
+            .map_err(|_| TargetError::ContextChanged)?;
+        store
+            .context
+            .recheck()
+            .map_err(|_| TargetError::ContextChanged)?;
+        store
+            .inner
+            .recheck_read(&self.lock, &self.store_origin)
+            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+        self.reference
+            .recheck(store.context)
+            .map_err(reference_error)?;
+        let lock = codec::parse_lock(self.lock.bytes())?;
+        codec::verify_link(
+            &lock,
+            self.reference.reference(),
+            store.context,
+            &store.campaign,
+            &store.profile,
+        )?;
+        super::document::check_verified_target_history(
+            current,
+            prior,
+            &lock,
+            self.reference.bytes(),
+            self.reference.reference(),
+        )?;
+        store
+            .inner
+            .recheck_read(&self.lock, &self.store_origin)
+            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+        self.reference
+            .recheck(store.context)
+            .map_err(reference_error)
+    }
     /// Exact binary64 threshold bits.
     pub fn threshold_bits(&self) -> u64 {
         self.threshold
@@ -182,7 +236,8 @@ impl VerifiedTargetForSeed {
 }
 fn compatible(a: &VerifiedStudyContext, b: &VerifiedStudyContext) -> Result<()> {
     require(
-        a.approval_sha256() == b.approval_sha256()
+        std::ptr::eq(a, b)
+            && a.approval_sha256() == b.approval_sha256()
             && a.source_manifest_sha256() == b.source_manifest_sha256()
             && a.source_commit() == b.source_commit()
             && a.root() == b.root(),
@@ -287,11 +342,15 @@ impl<'c> ProfileTargetStore<'c> {
         self.context
             .recheck()
             .map_err(|_| TargetError::ContextChanged)?;
-        let bytes = self
+        let store_origin = self
             .inner
-            .read()
+            .retained_origin()
             .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
-        let lock = codec::parse_lock(&bytes)?;
+        let held = self
+            .inner
+            .read_held()
+            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+        let lock = codec::parse_lock(held.bytes())?;
         let source = references
             .read_reference_snapshot(lock.run_id())
             .map_err(reference_error)?;
@@ -318,11 +377,16 @@ impl<'c> ProfileTargetStore<'c> {
             .map_err(|_| TargetError::ContextChanged)?;
         source.recheck().map_err(reference_error)?;
         time.sample(&mut clock)?;
-        let (reference_bytes, reference) = source.into_owned();
+        self.inner
+            .recheck_read(&held, &store_origin)
+            .map_err(|_| TargetError::ByteOrPayloadMismatch)?;
+        let reference = source.into_owned();
         Ok(VerifiedTargetForSeed {
-            _lock_bytes: bytes.into_boxed_slice(),
-            _reference_bytes: reference_bytes,
-            _reference: reference,
+            lock: held,
+            reference,
+            context: self.context.owner_stamp(),
+            store: self as *const Self as usize,
+            store_origin,
             receipt,
             threshold: lock.threshold_bits(),
             payload: lock.payload_sha256().into(),
@@ -586,3 +650,19 @@ impl ClockTracker {
 #[cfg(test)]
 #[path = "target_tests.rs"]
 mod tests;
+
+// Compile-only proof that the installed outer context/input frame can own the
+// returned retained snapshot after both shorter store objects are destroyed.
+// Not a test function: no reader/materializer invocation occurs during tests.
+#[cfg(test)]
+#[allow(dead_code)]
+fn retained_target_after_short_stores<'c>(
+    target: ProfileTargetStore<'c>,
+    references: ReferenceStore<'c>,
+    profile: &MaterializedProfile,
+) -> Result<VerifiedTargetForSeed> {
+    let snapshot = target.read_target(&references, profile)?;
+    drop(target);
+    drop(references);
+    Ok(snapshot)
+}
