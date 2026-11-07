@@ -33,7 +33,9 @@ The workspace crates use the `ckks-train-*` names. Historical measurements retai
 - **Comparison with ReBoot** (AAAI-26): the benchmarks compare key switches per training
   sample and wall-clock time with ReBoot's published implementation on the same machine, with
   its configuration, initial weights and sample order. The figures and their caveats are in
-  `docs/m3-report.md`; the full-length runs are still pending.
+  [docs/m3-report.md](docs/m3-report.md). The first full-length run (FULL-1, B=64,
+  one initial-weight seed) is archived. FULL-2 is still pending; equal-security comparison
+  and full-setting official ReBoot CPU timing remain unresolved.
 
 Architecture: [docs/architecture.md](docs/architecture.md). Changes:
 [CHANGELOG.md](CHANGELOG.md).
@@ -69,8 +71,18 @@ proof that a GPU test ran.
 
 ## Reproducing the benchmarks
 
-`scripts/run_all.sh` runs the paper's experiments and regenerates the tables; see
-`results/README.md` for what each run produces and how long it takes. The datasets that are not
+`scripts/run_all.sh` currently runs a **partial experiment matrix**. The complete registered
+matrix and its CPU/GPU training connections are still being implemented; the full `--quick`
+validation has not completed. See [results/README.md](results/README.md) for supported rows,
+missing measurements, and runtime estimates. To regenerate the draft's tables from archived
+outputs without building or launching experiments, run:
+
+```sh
+scripts/run_all.sh --tables-only
+```
+
+The [paper draft](paper/README.md) describes the available results and unresolved comparisons;
+it is not submission-ready. The datasets that are not
 in the repository are fetched by `scripts/fetch_mnist.sh` and `scripts/fetch_fashion_mnist.sh`.
 Every binary records its own provenance (commit, command line, threads, load, memory) in its
 result JSON. Comparisons of wall-clock time are only meaningful on the same machine with the

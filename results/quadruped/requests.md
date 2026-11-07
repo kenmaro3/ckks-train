@@ -868,3 +868,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261107-1449.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
 - **status:** done; SSH exit0, actual14:49:56 JST, own chain/queue live, FULL-2 update288 =>289/1000; final JSON absent, queue owner.json only. Exact source/custody archive `raw/R-41-FULL2-OBS-20261107-1449/`; same controller handle62197 retained to terminal, no retry or job changes.
+
+## R-41-FULL2-OBS-20261107-1549: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than15:49JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261107-1549-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, bounded8KiB tail, connect90s; retained async controller and terminal streams. Observation delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261107-1549.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared; not invoked. Earliest15:49JST is enforced locally before SSH. No new observation or job-state claim yet.

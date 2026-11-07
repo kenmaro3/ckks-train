@@ -242,3 +242,13 @@ The first pure run used the section10 caps unchanged and executed136 actual D6b 
 Before any HE, retain the signal fixture and8x separation requirement while tightening NI epsilon to4e-4; I stays1e-5. The measured minimum divided by8 is approximately4.39453125e-4, so the selected smaller cap implies at least8.789x separation for all prescribed signal witnesses. This is the disposition's permitted choice of a stricter cap from measured pure margins. Lowering the required separation, silently changing fixture/rates, or selecting tolerance after observing HE errors would weaken the test and is rejected. The original source/logs/caps and FAIL statuses remain immutable; a versioned pure rerun must validate the two-constant change before adoption.
 
 This decision does not prove that HE can meet4e-4. Later HE validation must independently satisfy the fixed all-entry bound and the required mutant separation; a failure remains unmet and cannot be silently converted to success by loosening the cap. Scientific presets, final-accuracy criteria, P3/P4/D7 authority and all campaign holds are unchanged.
+
+## 12. P4 CPU接続の実装裁定（2026-11-07、実測前）
+
+単一stageのCPU接続は、既存の計画結合検証後にcandidateから配置を取得する。candidateの仮の初期学習率は利用せず、実際の初期状態・更新前後の状態は不変の計画から取得する。配置の再構築に必要なgeometry／initial各1回の余裕を最初のrequestに含め、hash確定後に制限を増やさない。P3に全配置を保持する代替案は、保持量と寿命の変更を伴うため採用しない。
+
+全ciphertextの状態と個数、7種類の演算カウンタ、設定された係数・reference・refresh／bootstrap判断を照合する。公開されているtraceとhidden状態も記録するが、型付きの完全なP3 traceとの一致は未検証として残す。完全なtraceを新規に保持・復号する方式はこの接続には追加しない。
+
+鍵と平文はclient側が所有し、server sessionは暗号化packetと評価資材、対話方式の場合のみ狭いrefreshハンドルを受け取る。同じ暗号パラメータでも異なる鍵所有者のpacketを受理しないため、setupごとに内部のcontext識別子を関連付ける。これは同一プロセス内の役割分離であり、プロセス隔離や暗号学的認証の証明ではない。処理途中の失敗はsessionを再利用不可にし、成功した更新数を増やさない。
+
+検証は既存のSignal平文Engineと既存の学習器を使う。合成planはprivateな別型とし、正式なmaterializationや実行許可へ変換しない。局所的なfactory呼出順序テストを、正式なD7のgate／start検証の代用にしない。数値許容誤差は暗号実行前に固定済みのI=1e-5、NI=4e-4を維持する。まずテストと実装を作成し、compile／静的検査と独立レビュー後に実行対象を固定する。元の32成功＋2失敗、最大85 bootstrapの検証範囲は削減しない。正式なrunnerと全実験行列の完了は引き続き未達である。
