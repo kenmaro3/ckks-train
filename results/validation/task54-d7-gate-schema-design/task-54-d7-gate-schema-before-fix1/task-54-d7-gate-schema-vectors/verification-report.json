@@ -1,0 +1,11 @@
+{
+  "classification": "SYNTHETIC BYTE CONSISTENCY ONLY; NO PRODUCTION SEMANTIC VALIDATION",
+  "exit": 0,
+  "literal_records": 25,
+  "primitive_spans_verified": 1134,
+  "generation_manifest_files_verified": 129,
+  "checksum_entries_verified": 133,
+  "quick_exact_event_links_verified": 3,
+  "source_or_HE_calls": 0,
+  "mutation_rejections_executed": 0
+}

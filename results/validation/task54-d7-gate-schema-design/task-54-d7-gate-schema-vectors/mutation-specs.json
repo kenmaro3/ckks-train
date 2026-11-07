@@ -1,0 +1,389 @@
+{
+  "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+  "concrete": [
+    {
+      "name": "branch-tag",
+      "base": "full.inputs.evidence.bin",
+      "field": "scope",
+      "offset": 109,
+      "length": 1,
+      "replacement": 1,
+      "file": "negative/branch-tag.bin",
+      "expected": "Quick branch body mismatch; no scope promotion",
+      "sha256": "aa1c48e076f1ee19d9f9ceac490015d92054fd4a22066967c0de5228c25018a6",
+      "bytes": 3486,
+      "validation_executed": false
+    },
+    {
+      "name": "unknown-tag",
+      "base": "quick.inputs.evidence.bin",
+      "field": "scope",
+      "offset": 109,
+      "length": 1,
+      "replacement": 2,
+      "file": "negative/unknown-tag.bin",
+      "expected": "Unknown closed scope tag",
+      "sha256": "42fd3192a73cbc2ec31dcca54cf813ae6862d9712d2ab0cae2775b4d91f8dc27",
+      "bytes": 5571,
+      "validation_executed": false
+    },
+    {
+      "name": "synthetic-bit",
+      "base": "quick.inputs.evidence.bin",
+      "field": "header.synthetic",
+      "offset": 83,
+      "length": 1,
+      "replacement": 0,
+      "file": "negative/synthetic-bit.bin",
+      "expected": "Test-domain/synthetic mismatch; production always rejects test domain",
+      "sha256": "44feb65ac43add489ea8b4c2a0410d7fef463d390ab3aa842b5df7f86e672212",
+      "bytes": 5571,
+      "validation_executed": false
+    },
+    {
+      "name": "identity",
+      "base": "quick.inputs.evidence.bin",
+      "field": "quick.operational_id",
+      "offset": 4057,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/identity.bin",
+      "expected": "Operational identity hash mismatch",
+      "sha256": "712c0a848d61cbeceb5bab8cf5ec3aea001cbccd0648605d4dcb12bd0bd5004c",
+      "bytes": 5571,
+      "validation_executed": false
+    },
+    {
+      "name": "input-receipt",
+      "base": "full.inputs.evidence.bin",
+      "field": "inputs.independent_target_receipt.sha256",
+      "offset": 3342,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/input-receipt.bin",
+      "expected": "Independent target receipt mismatch",
+      "sha256": "0569c72fdbdb3b9d63dbf59cf219269f2c369ab5ce8fb6ed505e9619e3eb6929",
+      "bytes": 3486,
+      "validation_executed": false
+    },
+    {
+      "name": "target-link",
+      "base": "full.inputs.evidence.bin",
+      "field": "full.lock.file_sha256",
+      "offset": 1738,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/target-link.bin",
+      "expected": "Verified target link mismatch; zero is not authority",
+      "sha256": "f57164cc17d6aae6c3b7258c1a0f4a9c63b584260bc5d75473e74997a1eac196",
+      "bytes": 3486,
+      "validation_executed": false
+    },
+    {
+      "name": "threshold-placeholder",
+      "base": "full.inputs.evidence.bin",
+      "field": "full.threshold_bits",
+      "offset": 2098,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/threshold-placeholder.bin",
+      "expected": "Threshold differs from independently verified target",
+      "sha256": "58da74ea259800656437ef5f230bbc7fe1d4bab3cab04d8c81a2e75096db41fd",
+      "bytes": 3486,
+      "validation_executed": false
+    },
+    {
+      "name": "quick-seed",
+      "base": "quick.consumption.bin",
+      "field": "seed",
+      "offset": 81,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/quick-seed.bin",
+      "expected": "Quick seed must be zero",
+      "sha256": "0a02ccf238194f4651db111a8c260e00a4ed4604d010397337ce1063343a6ea1",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "quick-one-update",
+      "base": "quick.consumption.bin",
+      "field": "updates.count",
+      "offset": 305,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/quick-one-update.bin",
+      "expected": "Quick count must be exactly two; trailing update remains",
+      "sha256": "462dd2420414c00df74b77ff4cab0159b9a225611ce78d95a7cdbfd1cd19a228",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "quick-three-updates",
+      "base": "quick.consumption.bin",
+      "field": "updates.count",
+      "offset": 305,
+      "length": 8,
+      "replacement": 3,
+      "file": "negative/quick-three-updates.bin",
+      "expected": "Quick count must be exactly two; missing third update",
+      "sha256": "9165c5244f43136865f59529e4bfd86662d126697da4799d28e2e2d0eb809a23",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "order",
+      "base": "quick.consumption.bin",
+      "field": "updates[0].sample_indices[0]",
+      "offset": 345,
+      "length": 8,
+      "replacement": 3,
+      "file": "negative/order.bin",
+      "expected": "Canonical first-update sample order mismatch",
+      "sha256": "dc22635df34266bd4de3c3b4380b984cb1edfc5b41b7728628debb2ec11932fb",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "partition",
+      "base": "quick.consumption.bin",
+      "field": "updates[0].parts[0].start",
+      "offset": 369,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/partition.bin",
+      "expected": "Partition gap; first start must be zero",
+      "sha256": "b77bf45d725e6f0d35c54619847d56d2fd2c1cf483cb89142ae730385af6e264",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "request",
+      "base": "quick.request.bin",
+      "field": "limits.max_bytes",
+      "offset": 90,
+      "length": 8,
+      "replacement": 65537,
+      "file": "negative/request.bin",
+      "expected": "Original request mismatch even if enclosing hashes recomputed",
+      "sha256": "a71a82028a2d6dad58f04b54b92c355343a79e60d3654308dbac00b90d672f7e",
+      "bytes": 146,
+      "validation_executed": false
+    },
+    {
+      "name": "full-consumption",
+      "base": "quick.consumption.bin",
+      "field": "consumption",
+      "offset": 80,
+      "length": 1,
+      "replacement": 0,
+      "file": "negative/full-consumption.bin",
+      "expected": "Full/Quick consumed-plan branch mismatch",
+      "sha256": "efa0b57741a7d717636491ffb0540b3da6eb1846099bc6b87a775ccc27ca86a0",
+      "bytes": 457,
+      "validation_executed": false
+    },
+    {
+      "name": "event-evidence",
+      "base": "quick.preflight.bin",
+      "field": "gates.layout.evidence_sha256",
+      "offset": 2697,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/event-evidence.bin",
+      "expected": "Retained sidecar bytes/hash mismatch",
+      "sha256": "c8b9896cde03faab0a9988ddeb6c866728a4917c04c966decf3c0884e5c78e3d",
+      "bytes": 3411,
+      "validation_executed": false
+    },
+    {
+      "name": "event-link",
+      "base": "quick.start.bin",
+      "field": "preflight.file_sha256",
+      "offset": 640,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/event-link.bin",
+      "expected": "Exact preflight whole-file link mismatch",
+      "sha256": "1a750670c765c1905f4386014281e6133bd98fe3d868b6f7db160cfd61a367ce",
+      "bytes": 802,
+      "validation_executed": false
+    },
+    {
+      "name": "end-link",
+      "base": "quick.end.bin",
+      "field": "start.payload_sha256",
+      "offset": 854,
+      "length": 72,
+      "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+      "file": "negative/end-link.bin",
+      "expected": "Exact start canonical link mismatch",
+      "sha256": "adeb0508ff17e9ad71e79d9eafaf201822850c98fe0bf33e10d6ae2e31b4c35f",
+      "bytes": 954,
+      "validation_executed": false
+    },
+    {
+      "name": "end-incomplete",
+      "base": "quick.end.bin",
+      "field": "completed_updates",
+      "offset": 927,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/end-incomplete.bin",
+      "expected": "Complete outcome requires exactly two completed updates",
+      "sha256": "67314c2f788e8c9c06217b70ebdb62bed90dd7a273947df71269b1728c4be5a7",
+      "bytes": 954,
+      "validation_executed": false
+    },
+    {
+      "name": "resource-peak",
+      "base": "quick.resource.evidence.bin",
+      "field": "resource.requirements.peak_host_bytes",
+      "offset": 5643,
+      "length": 8,
+      "replacement": 1,
+      "file": "negative/resource-peak.bin",
+      "expected": "Requirement phase sum mismatch; no fabricated capacity pass",
+      "sha256": "25e40024d5528e2bf0939acfdae0bc6d61b57d9c8d1b0440fe42316a95f06923",
+      "bytes": 6442,
+      "validation_executed": false
+    },
+    {
+      "name": "authority-revoked",
+      "base": "quick.authority.current.bin",
+      "field": "revoked_all",
+      "offset": 219,
+      "length": 1,
+      "replacement": 1,
+      "file": "negative/authority-revoked.bin",
+      "expected": "Current authority revoked; hashes cannot override",
+      "sha256": "1f98beb1fb1dfa7c0d07cd25c446d5acfc95e37112b3f43cd8098040b095cd99",
+      "bytes": 238,
+      "validation_executed": false
+    },
+    {
+      "name": "authority-generation",
+      "base": "quick.authority.current.bin",
+      "field": "scope_generation",
+      "offset": 131,
+      "length": 8,
+      "replacement": 2,
+      "file": "negative/authority-generation.bin",
+      "expected": "Authority/current source generation mismatch",
+      "sha256": "9152329492d720c3bd4678cf8638b927e0394af2ad6d9c65ba8018d0a5fad91e",
+      "bytes": 238,
+      "validation_executed": false
+    },
+    {
+      "name": "argv-byte-tampering",
+      "base": "quick.preflight.bin",
+      "field": "argv[2]",
+      "offset": 3015,
+      "length": 42,
+      "replacement": "2d2d726563656970743d2f73796e7468657469632ffe726563656970742e6a736f6e",
+      "file": "negative/argv-byte-tampering.bin",
+      "expected": "Exact retained argv byte mismatch despite equal length, valid Bytes encoding and recomputed payload hash; no lossy UTF8 conversion",
+      "sha256": "3ead0349443b51dc4cb86315dffc25573e3173c44f1103dd42edd79e9de4d686",
+      "bytes": 3411,
+      "validation_executed": false
+    }
+  ],
+  "specifications": [
+    {
+      "name": "placeholder-tail",
+      "base": "quick.inputs.evidence.bin",
+      "operation": "append 00",
+      "expected": "Trailing Full target placeholder forbidden"
+    },
+    {
+      "name": "different-operational-attempt",
+      "base": "quick.identity.bin",
+      "operation": "Replace SYNTHETIC-ATTEMPT by SYNTHETIC-ATTEMPX in operational_attempt; recompute local identity hash",
+      "expected": "Scope/authority/held attempt mismatch"
+    },
+    {
+      "name": "gate-policy",
+      "base": "quick.preflight.bin",
+      "operation": "Change final v1 to v2 in gates.inputs.policy_revision",
+      "expected": "Unknown exact compiled policy revision; no fallback"
+    },
+    {
+      "name": "raw-json-whitespace-cap",
+      "base": "quick.start.json",
+      "operation": "Use bounded-reader advertised raw length A+1; no allocation",
+      "expected": "RawFileCap"
+    },
+    {
+      "name": "binary-cap",
+      "base": "quick.inputs.evidence.bin",
+      "operation": "Bounded reader length A+1",
+      "expected": "EvidenceFileCap before allocation"
+    },
+    {
+      "name": "quick-canonical-cap",
+      "base": "quick.start.json",
+      "operation": "Canonical hex decoded length K+1 in length-only harness",
+      "expected": "CanonicalCap before allocation"
+    },
+    {
+      "name": "u64-length-overflow",
+      "base": "quick.inputs.evidence.bin",
+      "operation": "Replace execution Bytes length by 18446744073709551615",
+      "expected": "Checked length/cap refusal before allocation"
+    },
+    {
+      "name": "unknown-source-record",
+      "base": "quick.inputs.evidence.bin",
+      "operation": "Change source_files[0].path to same-size unregistered relative path",
+      "expected": "Expected canonical source inventory mismatch; never open artifact path"
+    },
+    {
+      "name": "missing-verified-target",
+      "base": "full.inputs.evidence.bin",
+      "operation": "Retain exact bytes but omit private verified-target owner in harness",
+      "expected": "Missing target; bytes alone cannot form Full scope"
+    },
+    {
+      "name": "zero-threshold-without-origin",
+      "base": "full.inputs.evidence.bin",
+      "operation": "Retain existing numeric zero threshold but supply no independently verified target",
+      "expected": "No origin; numeric equality not authority"
+    },
+    {
+      "name": "mixed-gates",
+      "base": "quick.preflight.bin",
+      "operation": "For each of five gate slots substitute corresponding full evidence digest and bytes",
+      "expected": "Five separate scope mismatch refusals"
+    },
+    {
+      "name": "stale-current-source",
+      "base": "quick.user.evidence.bin",
+      "operation": "Keep all hashes and old bytes, origin source head revokes chosen scope",
+      "expected": "Live source-currentness refusal; old record hash insufficient"
+    },
+    {
+      "name": "production-parser",
+      "base": "all core vectors",
+      "operation": "Offer each synthetic vector to production parser",
+      "expected": "All fourteen refuse test domain/synthetic marker"
+    },
+    {
+      "name": "missing-resource-component",
+      "base": "quick.resource.evidence.bin",
+      "operation": "Remove component21 and decrement list count to21",
+      "expected": "Incomplete required fixed22 component inventory"
+    },
+    {
+      "name": "json-duplicate-key",
+      "base": "quick.start.json",
+      "operation": "Insert duplicate decoded schema key using escaped alias",
+      "expected": "Duplicate decoded key"
+    },
+    {
+      "name": "escaped-hex",
+      "base": "quick.start.json",
+      "operation": "Escape one canonical_bytes character as unicode",
+      "expected": "Raw lowercase unescaped hex required"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+# Synthetic gate/Quick byte oracle
+
+Every file is **SYNTHETIC TEST ORACLE ONLY**. Fictional source/parameter/report/resource/authority values and matching hashes establish byte representation, not actual gate applicability or scientific/resource availability. Production rejects all fourteen core vectors through the outer test domain and synthetic marker. Nested frozen CaseIdentity/ExecutionBinding grammar is preserved; it is not an admitted case. No production positive or live capability is constructed.
+
+Normative tables: [proposal](../task-54-d7-gate-schema-proposal.md). `literal-inputs.json` gives every ordered primitive value, absolute byte offset and length for each record; `.bin` and `.hex` contain complete identical canonical outputs. It includes auxiliary request/consumption/registration/execution/authority records, so nested byte fields are independently inspectable. `retained/synthetic/` gives the exact small fictional raw bytes used for FileRef hashes. These raw text stubs intentionally do **not** purport to be real security/correctness/resource report schemas or executable parameter descriptors. The positive oracle is a codec/control representation, never a positive genuine evidence-reader test.
+
+Core vectors are five `full.<gate>.evidence.bin`, five `quick.<gate>.evidence.bin`, `quick.identity.bin`, and `quick.preflight/start/end.bin`. Each event also has complete exact compact JSON+LF transport and independent raw-file/payload hashes. The synthetic Full numerical threshold is0, but no actual target owner is supplied; a production gate must reject these bytes. A future private fixture harness must explicitly model verified-target ownership when testing numeric zero's structural legality.
+
+`generate.py` is standalone Python stdlib only, hand-transcribed from the tables, not imported from production encoders. `verify_literals.py` independently rebuilds individual primitive spans from the literal-input ledger, verifies offsets, whole files, nested digest links, event JSON links and synthetic resource arithmetic. It does not implement semantic production gate validation. `mutation-specs.json` provides21 complete fixed-size negative files plus16 mutation specifications; their rejection is a frozen future source-test obligation, **not** a claim that a production parser ran. The exact eight named branch tests/call inventory are proposal §8. Native custody fault inventory remains the already-ratified separate custody proposal C01–C10.
+
+Commands from repository root:
+
+```sh
+python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py
+python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verify_literals.py
+```
+
+Generation asserts the existing78 Full golden files still equal the preexisting `task-54-d7-admission-codec-frozen-goldens.txt` manifest. They are read-only and never regenerated. `boundary-arithmetic.json` checks A/K and exact compact-envelope costs without allocating cap-sized files. No Cargo, Rust, parameters/P1/planner/materializer/registry, native observer, SSH, HE, real gate or scientific output calls occur. Only this new directory and proposal are written.
+
+`generation-report.json` records per-invocation counts, sizes and canonical hashes; `manifest.json` includes offsets and file identities; `SHA256SUMS` covers the new directory's files except itself. `verification-report.json` is written by the independent verifier after generation and deliberately is not in the generation manifest/checksum set. A later generator run would include any existing report in SHA256SUMS; delete no evidence to conceal runs. Final reporting must state actual generator/verifier invocation counts separately from the per-invocation inventory.

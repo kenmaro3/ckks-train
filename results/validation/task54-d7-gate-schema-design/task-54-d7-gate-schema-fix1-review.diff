@@ -1,0 +1,1313 @@
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-proposal.md b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-proposal.md
+index 6182477..d406993 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-proposal.md
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-proposal.md
+@@ -1,11 +1,11 @@
+ # Task54 D7 gate evidence and Quick operational bytes
+ 
+-Status: unratified pre-encoder proposal and independent synthetic byte oracle, 2026-11-07. Read `task-54-brief.md` first. Implements the representation duties of ratified `docs/study-gates-design.md` §§2–6, the FIX1 live-gate proposal §§3–5/8–10 and custody proposal §9. This is not a gate, live capability, source release, resource model, scientific result or experiment authorization. The five-capability decision, Full/Quick split, custody namespace and Full wire are unchanged. Root independent SPEC/QUALITY review is required before ratification/source.
++Status: unratified pre-encoder proposal and independent synthetic byte oracle, FIX1 for review I1, 2026-11-07. Read `task-54-brief.md` first. Implements the representation duties of ratified `docs/study-gates-design.md` §§2–6, the FIX1 live-gate proposal §§3–5/8–10 and custody proposal §9. This is not a gate, live capability, source release, resource model, scientific result or experiment authorization. The five-capability decision, Full/Quick split, custody namespace and Full wire are unchanged. Root independent SPEC/QUALITY review is required before ratification/source.
+ 
+ ## 1. Boundaries, primitives and exact domains
+ 
+ Use `docs/study-target-design.md` §3 primitives unchanged: U64 little endian; tag/Bool one byte; Text U64 UTF8-length plus bytes; Bytes U64 length plus raw bytes; Hash Text of 64 lowercase SHA256 hex; List U64 count plus values; Option 00 or 01+value. Text128 identifiers retain `[A-Za-z0-9_-]{1,128}`; revision identifiers are Text128, Git40 is exactly 40 lowercase hex; other text is Text4096. All counts use checked U64→usize conversion. No unspecified fields, extensions, pass booleans, default values, sentinel hashes, fallback revisions or trailing bytes. Hashes may numerically be zero only if derived from actual checked bytes; zero threshold is legal only from the independently verified Full target. Every new record begins `Text("hekit-study-reference-encoding-v1"),Text(domain)`.
+ 
+ Production evidence domains are exactly `hekit-study-gate-inputs-evidence-v1`, `hekit-study-gate-implementation-evidence-v1`, `hekit-study-gate-layout-evidence-v1`, `hekit-study-gate-resource-evidence-v1`, `hekit-study-gate-user-evidence-v1`. Immediately after header encode `synthetic:Bool=false`, then the common prefix below. Private oracle substitutes `hekit-test-` for the leading `hekit-study-` and encodes true; production rejects either test domain or true, including mixed-domain nested records. No mode flag enables synthetic production parsing.
+ 
+ Additional exact production domains: `hekit-study-quick-identity-v1`, `hekit-study-gate-request-v1`, `hekit-study-gate-consumption-v1`, `hekit-study-user-scope-v1`, `hekit-study-user-current-v1`, `hekit-study-quick-preflight-v1`, `hekit-study-quick-start-v1`, `hekit-study-quick-end-v1`. These also encode synthetic immediately after their header. New request/consumption wrappers are projections of retained existing objects, not alternative planning or authority. Existing CaseIdentity/case-binding/parameter/layout/key/security/trainer/runtime domains and their bytes remain unchanged, even when nested inside a synthetic outer fixture.
+@@ -112,23 +112,23 @@ The root-owned authority inputs use closed loader names `authority.scope.bin` an
+ Five evidence sidecars follow the already-ratified custody proposal verbatim: guarded eligibility before any attempt mutation; fixed order inputs→implementation→layout→resource→user; no-clobber sync; held final-file descriptors, exact byte/hash equality and identity rechecks; durable admission/preflight only after all five finals. Unknown entries/partial attempts/recovery cannot yield live capabilities. Publication caps/path/temporary IDs/Initial/Retry, Full start bytes and `begin_checked_he` lifetime signature are unchanged. Source implementation of this reader, accepted evidence applicability and physical model completeness remain required; this specification establishes none of them. Existing security and correctness evidence maps locate retained raw files and historical measurements with different coverage; absent prospective readers do not mean those measurements never existed. Neither map passes this reader by itself. Historical `hekit-*` to `ckks-train-*` source renames must be mapped before substantive applicability comparison; path-only diffs cannot establish changed algorithms.
+ 
+ ## 6. Quick event canonical bodies
+ 
+ Header/synthetic per §1, followed by exact table order:
+ 
+ | Event | Ordered body |
+ |---|---|
+-| Preflight | `identity:Bytes,identity_sha256:Hash,gates:Gates,argv:List<Text4096>,source_manifest_sha256:Hash,source_revision:Git40,approval_sha256:Hash,train_receipt_sha256:Hash,executable_sha256:Hash,observed:Clock` |
++| Preflight | `identity:Bytes,identity_sha256:Hash,gates:Gates,argv:List<Bytes≤4096>,source_manifest_sha256:Hash,source_revision:Git40,approval_sha256:Hash,train_receipt_sha256:Hash,executable_sha256:Hash,observed:Clock` |
+ | Start | `identity_sha256:Hash,gates:Gates,preflight:Link,started:Clock` |
+ | End | `identity_sha256:Hash,gates:Gates,preflight:Link,start:Link,outcome:tag complete0/failed1,completed_updates:U64,failure:Option<Failure>,ended:Clock` |
+ 
+ `Failure = phase:tag setup0/update1/endpoint2/live_recheck3,code:tag input0/implementation1/layout2/resource3/authority4/allocation5/execution6`. These are closed operational categories with no arbitrary error log inside the event. Extra diagnostics use separately authorized namespace. Complete requires completed_updates2/failure None; failed requires failure Some and completed_updates0..2 exactly actual completed updates (endpoint failure may follow2). A setup failure after durable start may report0. No end without valid preflight/start; only actual same-origin retained continuation may write it. A crash or lost continuation leaves no end; recovery never invents one. Neither complete nor start proves a scientific result, full prospective threshold or all268-row Quick pass.
+ 
+-All five gate revisions/hashes in all three events match the same exact five retained Quick sidecars. Identity common facts and request/consumption must match those sidecars; argv is the actual checked capture argv, not a second requested command. Preflight has no event links; start links exact preflight file/payload; end links exact preflight and start. Clocks captured from same operation origin, nondecreasing elapsed and existing lifecycle wall requirements; static canonical parsing is not proof of clock capture or current leases. End written by retained Quick frame without flock during HE. K/A checked before any namespace mutation; oversized planned records remain unavailable, not truncated. Quick is Initial only in its separate tree.
++All five gate revisions/hashes in all three events match the same exact five retained Quick sidecars. Identity common facts and request/consumption must match those sidecars; argv is the actual checked capture argv as lossless ordered Unix byte vectors: count≤256, each decoded argument≤4096 bytes, no NUL byte; empty arguments remain permitted if present in the actual capture. Require byte-for-byte equality including argv0, ordering and nonUTF8 path bytes, with no UTF8 validation, normalization or lossy conversion. These are capture facts, not a second requested command. Preflight has no event links; start links exact preflight file/payload; end links exact preflight and start. Clocks captured from same operation origin, nondecreasing elapsed and existing lifecycle wall requirements; static canonical parsing is not proof of clock capture or current leases. End written by retained Quick frame without flock during HE. K/A checked before any namespace mutation; oversized planned records remain unavailable, not truncated. Quick is Initial only in its separate tree.
+ 
+ ## 7. Why these remaining routine choices
+ 
+ Compact IdentityRef avoids embedding a31MB receipt into A; duplicating full receipt is rejected. Full consumption binds complete existing receipt/trainer instead of duplicating every index; Quick explicitly retains exactly two actual updates so its projection is inspectable. A request-domain wrapper gives the existing P3 request body an unambiguous independently hashable identity; hashing debug/argv or the whole trainer as a substitute loses original limits. Closed five revision strings avoid arbitrary policy selection. FileRef is a retained identity, not a file-opening instruction or new evidence registry. A fixed typed resource breakdown preserves missing-term detection and separates payload/physical/observation; guessed multipliers, union-key cardinalities and arbitrary pass flags were rejected. Source-current authority snapshots record existing scope without inventing signatures/approvals; static text hashes cannot establish ongoing authority. Compact Quick canonical hex JSON permits exact whole-file and payload links with a calculable K budget and no new parser family; directly copying Full JSON would introduce target placeholders and change meaning. Fixed event outcome tags avoid arbitrary claimed scientific metrics. All are representation choices; unresolved genuine applicability/resource/currentness mechanisms remain explicit missing dependencies. No architectural conflict with the ratified five-gate/custody design is asserted.
+ 
+ ## 8. Eight named branch fixtures and exact call inventory
+ 
+ These are frozen future test plans, not executed runtime tests. `S` means private scope fixture harness; `V` pure syntax/link validator; `G` the five-gate assembler spy; `W` attempt namespace mutation spy. The synthetic harness cannot call genuine capability constructors or HE. Every row has actual parameter/P1/planner/materializer/observer/registry/native/Cargo/HE calls0. Production rejection test invokes production **parser** only, not production capability construction. `positive` means synthetic representation/control acceptance only.
+@@ -139,60 +139,62 @@ These are frozen future test plans, not executed runtime tests. `S` means privat
+ | `quick_without_target_canonical_inputs` | Quick identity + five Quick evidence + all3 events; V9,S1,G1,W0 | synthetic target-free control accepts; five real constructors0 |
+ | `quick_bundle_cannot_enter_full_admission` | all-Quick bundle and five mixtures (one Quick at each Full slot); S6,G6,W0 | all6 refuse Full; compile-fail live type conversion separately1 compile case, not run here |
+ | `full_target_threshold_placeholders_rejected` | Full inputs: missing owner, zero fabricated lock, zero fabricated reference, absent threshold, zero threshold without origin; S5,G0,W0 | all5 reject; a truly verified zero numeric target is separately required positive owner test, not forged here |
+ | `equal_registration_input_no_scope_promotion` | Full/Quick pair with equal seed0 registration/contract/receipt/materialized; S2,G2,W0 | correct branch accepted once each; cross-scope consume V2 rejects |
+ | `quick_exact_consumption_bound` | seed1, count1, count3, swap first two indices, partition gap, Full tag, other attempt, altered request limit; V8,S8,G0,W0 | all8 reject |
+ | `full_independent_target_receipt_mismatch_rejected` | independent receipt hash changed; independent materialized hash changed; lock link changed; threshold one-bit changed; S4,V4,G0,W0 | all4 reject despite common inputs |
+ | `full_frozen_bytes_and_branch_evidence_distinct` | read-only original Full golden manifest; all10 new evidence; V10; original file hash comparisons once/file,W0 | exact old files unchanged; new mandatory branch bytes differ |
+ 
+-Additional mandatory source tests: every closed tag wrong; header test↔production or synthetic false/true mismatch; domain↔tail mismatch; field truncation/trailing bytes; inconsistent IdentityRef length; digest versus retained file substitution; every gate policy/hash permutation; start/preflight/end link mismatch; argv/source/context mismatch; request limit/consumption/order/partition mutation; absent correctness/security/model/currentness; partial resource term/overflow/stale capacity/claim; revoked hold/overlap/retry scope; whole-file A+1 and Quick K+1; raw JSON whitespace A+1 and escaped hex. Cap boundary checks use length arithmetic/simulated bounded readers, no huge allocations by default. The vector directory includes concrete offset/value mutations and exact expected semantic refusal reasons; these are specifications until a separate reviewed production decoder exists.
++Additional mandatory source tests: every closed tag wrong; header test↔production or synthetic false/true mismatch; domain↔tail mismatch; field truncation/trailing bytes; inconsistent IdentityRef length; digest versus retained file substitution; every gate policy/hash permutation; start/preflight/end link mismatch; argv/source/context mismatch (including single-byte nonUTF8 argument tampering); request limit/consumption/order/partition mutation; absent correctness/security/model/currentness; partial resource term/overflow/stale capacity/claim; revoked hold/overlap/retry scope; whole-file A+1 and Quick K+1; raw JSON whitespace A+1 and escaped hex. Cap boundary checks use length arithmetic/simulated bounded readers, no huge allocations by default. The vector directory includes concrete offset/value mutations and exact expected semantic refusal reasons; these are specifications until a separate reviewed production decoder exists.
+ 
+ ## 9. Oracle generation and remaining work
+ 
+ `task-54-d7-gate-schema-vectors/` contains standalone stdlib `generate.py`, literal leaf inputs (including nested-record inputs), complete `.bin`/`.hex` and Quick `.json` files, offsets/lengths/hashes manifest, mutation specifications and README. No project encoder imported and no Rust/HE/source test run. All synthetic oracle data has explicit test domains/labels. Original Full golden files are read solely for hash preservation, never regenerated or edited. `generation-report.json` records exact command/counts/hashes and arithmetic. The generator's production-encoding representation is not a gate implementation.
+ 
+ Remaining before production: independent SPEC/QUALITY design review/ratification; closed source readers/decoders and actual applicability criteria; genuine accepted KAT/NI/security evidence; complete validated physical liveness model and real observations/cooperative leases; root-origin authority currentness loader; custody/publication and consuming lifetime source/tests; actual runtime lineage and scientific results. Retain21 profiles, full2680+20+7 and quick268, all existing holds/baselines/security/Task5 and license boundaries. No source/native/runtime availability, resource-fit or scientific success claim follows from these bytes.
+ 
+-## 10. Frozen generation/verification report
++## 10. Frozen generation/verification report (refreshed for FIX1)
+ 
+-Executed only standalone Python stdlib: generator twice (initial draft exit0, revised final exit0); independent literal verifier once, exit0. Final verifier checked25 records /1,134 primitive spans,129 generation-manifest files,133 checksum entries, and three exact Quick event link sets. All78 old Full golden files matched the preexisting frozen hashes. There are135 files in this new vector directory, including the post-generation verifier report. Final output has14 core vectors,21 concrete mutation files and16 additional mutation specifications. Semantic negative rejection remains unexecuted; no production parser, live constructor, parameter/P1/planner/materializer/registry, Cargo/Rust/native observer/SSH/HE or scientific output was invoked. The script report counts one generator invocation per run; the actual total for this task is two.
++FIX1 current identities and counts are recorded after regeneration below. Original proposal and complete original vector directory were copied byte-for-byte before editing to `task-54-d7-gate-schema-before-fix1/`; original author runs were generator2/verifier1. The independent review record remains unchanged.
+ 
+-Commands (cwd `/Users/marconi/Documents/research/hekit`), both exit0:
++Actual FIX1 commands, both exit0:
+ 
+ ```sh
+ python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py
+ python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verify_literals.py
+ ```
+ 
+-| Core canonical file | Bytes | SHA256 (binary whole file = canonical payload) |
++FIX1 author ran generator1/verifier1; cumulative author runs generator3/verifier2. The independent review ran its own read-only inline inspection1, not either script; do not merge that into author script counts. Current output:14 core vectors,25 literal records,22 concrete mutation files,16 additional mutation specifications. Verifier checked1,135 primitive spans,131 generation-manifest files,135 checksum entries and three event link sets; it confirmed one nonUTF8 representation and one single-byte argv mismatch oracle. All78 old Full goldens remain unchanged. Semantic mutation rejection, real process capture, production parsers/gates and runtime execution remain unexecuted. Original136 archived proposal/vector files remain byte-identical.
++
++| Core canonical file | Bytes | SHA256 |
+ |---|---:|---|
+ | `quick.identity.bin` | 2311 | `b872e944869801d2d72aaaee5b2e84c46d4dd13f3aa4186503bbc8a7b6eb89ca` |
+ | `full.inputs.evidence.bin` | 3486 | `5286b1a7dd10f97f38780797a6518c8f2646968a7514234ffd476b5af448b414` |
+ | `full.implementation.evidence.bin` | 4962 | `c4845f24991ef111d57336a8e643f99e92c95422a2c73e3d360bc992883d6e60` |
+ | `full.layout.evidence.bin` | 3040 | `fbb08ae16b1a253a37eaae5f3a8755ea6dc40d6e3b1a10e2c9a1639d4dab17eb` |
+ | `full.resource.evidence.bin` | 4265 | `988156ca6ec4dfbe2519f6ef3913299687b82df1efa49b8c04582129cfd4e3dd` |
+ | `full.user.evidence.bin` | 3252 | `80937a3e8f88b574de45e8efc29f29731aa6fc003fc042ea753788567e886692` |
+ | `quick.inputs.evidence.bin` | 5571 | `d0b8058dc8053c7881374bf23c4bc37bf5c0ec2f1a875c57d241a54c785efff1` |
+ | `quick.implementation.evidence.bin` | 7138 | `c1308dd1d5dc4b880f4e9692de7d1593e30b7a5dc65df9600a6e46aabadf36d2` |
+ | `quick.layout.evidence.bin` | 5359 | `fe350f6a0a48be25985abf5f581fbe389a625ae595234217a51ff897bcf896ad` |
+ | `quick.resource.evidence.bin` | 6442 | `704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6` |
+ | `quick.user.evidence.bin` | 5429 | `1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492` |
+-| `quick.preflight.bin` | 3369 | `880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7` |
+-| `quick.start.bin` | 802 | `b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed` |
+-| `quick.end.bin` | 954 | `6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14` |
++| `quick.preflight.bin` | 3411 | `6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941` |
++| `quick.start.bin` | 802 | `d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e` |
++| `quick.end.bin` | 954 | `6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d` |
+ 
+ | Quick JSON | Raw bytes | Exact raw-file SHA256 |
+ |---|---:|---|
+-| `quick.preflight.json` | 7005 | `6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9` |
+-| `quick.start.json` | 1863 | `5f6ac7dad2c858cdfbeb9d7215ad83a74855b91b65c30ef4fadd0ef55b151663` |
+-| `quick.end.json` | 2163 | `f45b89c689f01af22703f4afb911cbe2ab46a383c6a91c00322d101f08536473` |
++| `quick.preflight.json` | 7089 | `ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4` |
++| `quick.start.json` | 1863 | `f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df` |
++| `quick.end.json` | 2163 | `b1c9df83963fcefe842b7ea1ada0468a02737bc700da2dceb65342a18f2313df` |
+ 
+ | Audit file | SHA256 |
+ |---|---|
+-| `generate.py` | `7a59795c065c953f286ae2e61844eb304a8adb92521585fc05cb6a426d0bc198` |
+-| `manifest.json` | `8dd99cc4f068b2f3209bd497a06cc31a772227a5f49d6ae1111bfb7d30ff88bb` |
+-| `literal-inputs.json` | `a68a295df7c948923d98064a114e514baa1ef9ed9ac8aff02d6b01496c198ff5` |
+-| `generation-report.json` | `ab2ca38c511b5343507ef3d78bf0752bfecf2627ebcb314f7fa5cc7bd71e25a6` |
+-| `verification-report.json` | `8c635ed389ad734cd6d475b628a149375b4bbe866105816c4524f9eb34608336` |
+-| `SHA256SUMS` | `13f0017cfa425b079d8994a64296da632440994a62bf3367055bf5fe7c4fe00a` |
+-
+-Root feedback incorporated before final bytes: resource terms explicitly separate already-charged resident owners from incremental allocations and compare only incremental need with capacity headroom; approved source-manifest cap512 remains; authority currentness uses the minimal root-controlled fresh current-record check, with source-update dependency explicit and no new confirmation/service. Historical correctness/security evidence remains available with distinct applicability; crate rename mapping is required before source comparison.
++| `generate.py` | `e058ccebf6ff6831c2a3ba1837aa806715cce3ce45fc27621e51b7fa36c9229c` |
++| `manifest.json` | `5e765a3ecce98341939dcb33078729ad71766a0b6912783ce579ead8f431ffe4` |
++| `literal-inputs.json` | `8cd5a3b684713c422b0fab01827272ac00744da6c84d7991dc5b85464ef62243` |
++| `generation-report.json` | `616aff82bfc64f07531124b14f9155b3f3389dbe47d55f14bca4662035c3b639` |
++| `verification-report.json` | `e31746b7759e65c19c4226d9c34351eba327241634aad96699e9976c9dd2445e` |
++| `SHA256SUMS` | `472b762defd7ca16ccd2f87cc5412c3f71cb2307544c122a9397cef2dcc33a7b` |
++
++FIX1 changes only argv representation and required fixtures/bookkeeping. Earlier accepted resource resident/incremental distinction, source-manifest cap512, root-current authority mechanism, five-gate architecture, Full/Quick custody and missing genuine evidence obligations are unchanged. Detailed preserved-original/changed-file pins and invocation history: `task-54-d7-gate-schema-fix1-report.md`.
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/README.md b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/README.md
+index 9fbbaef..716518a 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/README.md
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/README.md
+@@ -1,20 +1,20 @@
+ # Synthetic gate/Quick byte oracle
+ 
+ Every file is **SYNTHETIC TEST ORACLE ONLY**. Fictional source/parameter/report/resource/authority values and matching hashes establish byte representation, not actual gate applicability or scientific/resource availability. Production rejects all fourteen core vectors through the outer test domain and synthetic marker. Nested frozen CaseIdentity/ExecutionBinding grammar is preserved; it is not an admitted case. No production positive or live capability is constructed.
+ 
+ Normative tables: [proposal](../task-54-d7-gate-schema-proposal.md). `literal-inputs.json` gives every ordered primitive value, absolute byte offset and length for each record; `.bin` and `.hex` contain complete identical canonical outputs. It includes auxiliary request/consumption/registration/execution/authority records, so nested byte fields are independently inspectable. `retained/synthetic/` gives the exact small fictional raw bytes used for FileRef hashes. These raw text stubs intentionally do **not** purport to be real security/correctness/resource report schemas or executable parameter descriptors. The positive oracle is a codec/control representation, never a positive genuine evidence-reader test.
+ 
+-Core vectors are five `full.<gate>.evidence.bin`, five `quick.<gate>.evidence.bin`, `quick.identity.bin`, and `quick.preflight/start/end.bin`. Each event also has complete exact compact JSON+LF transport and independent raw-file/payload hashes. The synthetic Full numerical threshold is0, but no actual target owner is supplied; a production gate must reject these bytes. A future private fixture harness must explicitly model verified-target ownership when testing numeric zero's structural legality.
++Core vectors are five `full.<gate>.evidence.bin`, five `quick.<gate>.evidence.bin`, `quick.identity.bin`, and `quick.preflight/start/end.bin`. Each event also has complete exact compact JSON+LF transport and independent raw-file/payload hashes. FIX1 preflight argv is lossless `List<Bytes>` (count≤256, each≤4096 bytes, no NUL, exact order). Its third argument contains byte ff, invalid UTF8; `captured-argv.json` retains the fictional expected byte sequence. `negative/argv-byte-tampering.bin` changes only ff to fe and must fail exact captured-byte equality even if payload hashes are recomputed. This is a pure representation/mismatch oracle, not a live process capture or executed production rejection. The synthetic Full numerical threshold is0, but no actual target owner is supplied; a production gate must reject these bytes. A future private fixture harness must explicitly model verified-target ownership when testing numeric zero's structural legality.
+ 
+-`generate.py` is standalone Python stdlib only, hand-transcribed from the tables, not imported from production encoders. `verify_literals.py` independently rebuilds individual primitive spans from the literal-input ledger, verifies offsets, whole files, nested digest links, event JSON links and synthetic resource arithmetic. It does not implement semantic production gate validation. `mutation-specs.json` provides21 complete fixed-size negative files plus16 mutation specifications; their rejection is a frozen future source-test obligation, **not** a claim that a production parser ran. The exact eight named branch tests/call inventory are proposal §8. Native custody fault inventory remains the already-ratified separate custody proposal C01–C10.
++`generate.py` is standalone Python stdlib only, hand-transcribed from the tables, not imported from production encoders. `verify_literals.py` independently rebuilds individual primitive spans from the literal-input ledger, verifies offsets, whole files, nested digest links, event JSON links and synthetic resource arithmetic. It does not implement semantic production gate validation. `mutation-specs.json` provides22 complete fixed-size negative files plus16 mutation specifications; their rejection is a frozen future source-test obligation, **not** a claim that a production parser ran. The exact eight named branch tests/call inventory are proposal §8. Native custody fault inventory remains the already-ratified separate custody proposal C01–C10.
+ 
+ Commands from repository root:
+ 
+ ```sh
+ python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py
+ python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verify_literals.py
+ ```
+ 
+ Generation asserts the existing78 Full golden files still equal the preexisting `task-54-d7-admission-codec-frozen-goldens.txt` manifest. They are read-only and never regenerated. `boundary-arithmetic.json` checks A/K and exact compact-envelope costs without allocating cap-sized files. No Cargo, Rust, parameters/P1/planner/materializer/registry, native observer, SSH, HE, real gate or scientific output calls occur. Only this new directory and proposal are written.
+ 
+-`generation-report.json` records per-invocation counts, sizes and canonical hashes; `manifest.json` includes offsets and file identities; `SHA256SUMS` covers the new directory's files except itself. `verification-report.json` is written by the independent verifier after generation and deliberately is not in the generation manifest/checksum set. A later generator run would include any existing report in SHA256SUMS; delete no evidence to conceal runs. Final reporting must state actual generator/verifier invocation counts separately from the per-invocation inventory.
++`generation-report.json` records per-invocation counts, sizes and canonical hashes; `manifest.json` includes offsets and file identities; `SHA256SUMS` covers the new directory's files except itself. `verification-report.json` is written by the independent verifier after generation and deliberately is always excluded from the generation manifest/checksum set, including regeneration, to avoid pinning the previous verification report before it is refreshed. The original report is preserved in the FIX1 archive; no evidence was deleted. Final reporting must state actual generator/verifier invocation counts separately from the per-invocation inventory.
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/SHA256SUMS b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/SHA256SUMS
+index 0c2f325..0439c84 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/SHA256SUMS
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/SHA256SUMS
+@@ -1,10 +1,11 @@
+-7d9107af368b3b4804e0f8babcb8c0e5d0eac8f8a48be4364b6768cebc2bea2c  README.md
++85d827e228b3925071bc18ac4b9333e980c13789e2cc942a538caf6e37b3fda3  README.md
+ 04a2734d5bbcec1a6a70e1f86945c59394c2cb786d3d817df7f4dec27549759a  boundary-arithmetic.json
++25efd39ab02adb04acbbb5933461ec45fac13214acfd66a12371354e49a36856  captured-argv.json
+ 79a4ee7f7969b6931b2899d579d4783d6fe947cbf019330e4f6ae47e5374e2ea  full-frozen-preservation.json
+ ee8c8d654eea2c3496bc06549c0756920bbce66f3f58c31b4cd8692f45de385f  full.authority.current.bin
+ e7686d7617e9739a4199288c090ec77ba1d48c159017b032d980c7eccce1b8cb  full.authority.current.hex
+ f04860751a9fb493b12d0a54defae48f20cb6e89861b1490d0806cc50e3d2131  full.authority.scope.bin
+ 962fef69a190be05c9bfe801571a5f37366d1942cbb4fb79cc31673451c4c220  full.authority.scope.hex
+ f09a3cd6262c2cbf28d89ed608e139e7e03caeb1ada60f14f4d19d4d715c530e  full.consumption.bin
+ 8aae2c1ec5631c476d3e09209b04b6ea4f6d1f11c7292501e56c5027937eb75e  full.consumption.hex
+ 461ddc5fda1915b6514e52e922bbb16f38b2568b025bd04b9dd636244f852b96  full.execution.bin
+@@ -16,28 +17,29 @@ ea4b10a1e6878afa6dc6f1bdb8861c2eb79660735bf9d773c671e51e13e6cf81  full.implement
+ fbb08ae16b1a253a37eaae5f3a8755ea6dc40d6e3b1a10e2c9a1639d4dab17eb  full.layout.evidence.bin
+ a72f79759ad873fc347b03fd2e6235e4eb7578c5ffd383b6243dd90846be506b  full.layout.evidence.hex
+ a562c189bd92609ebbf6ce135d8472b952871f409731ce34b13365aa04d03399  full.request.bin
+ 730bad9221828f89130870ee2019dd5ebd26bb8ccc128ff128ebcb07fa949a1c  full.request.hex
+ 988156ca6ec4dfbe2519f6ef3913299687b82df1efa49b8c04582129cfd4e3dd  full.resource.evidence.bin
+ 837653075953ed75465d349a331afc784e5036fe11c876db4da7abcce6867b99  full.resource.evidence.hex
+ 80937a3e8f88b574de45e8efc29f29731aa6fc003fc042ea753788567e886692  full.user.evidence.bin
+ 55788eade452039ee5f1652a5a6088d42f85dcd2817ca81d150961beacc4de6b  full.user.evidence.hex
+-7a59795c065c953f286ae2e61844eb304a8adb92521585fc05cb6a426d0bc198  generate.py
+-ab2ca38c511b5343507ef3d78bf0752bfecf2627ebcb314f7fa5cc7bd71e25a6  generation-report.json
+-a68a295df7c948923d98064a114e514baa1ef9ed9ac8aff02d6b01496c198ff5  literal-inputs.json
+-8dd99cc4f068b2f3209bd497a06cc31a772227a5f49d6ae1111bfb7d30ff88bb  manifest.json
+-b9514aa296d7047256ce763bb59eb8f5861d9124fe574aa4366438bfc0836153  mutation-specs.json
++e058ccebf6ff6831c2a3ba1837aa806715cce3ce45fc27621e51b7fa36c9229c  generate.py
++616aff82bfc64f07531124b14f9155b3f3389dbe47d55f14bca4662035c3b639  generation-report.json
++8cd5a3b684713c422b0fab01827272ac00744da6c84d7991dc5b85464ef62243  literal-inputs.json
++5e765a3ecce98341939dcb33078729ad71766a0b6912783ce579ead8f431ffe4  manifest.json
++0b69ae003b2a6688f1f18c5cd10f2701c20fdd5e1bfe55f76415b9e3f3ecf8df  mutation-specs.json
++3ead0349443b51dc4cb86315dffc25573e3173c44f1103dd42edd79e9de4d686  negative/argv-byte-tampering.bin
+ 9152329492d720c3bd4678cf8638b927e0394af2ad6d9c65ba8018d0a5fad91e  negative/authority-generation.bin
+ 1f98beb1fb1dfa7c0d07cd25c446d5acfc95e37112b3f43cd8098040b095cd99  negative/authority-revoked.bin
+ aa1c48e076f1ee19d9f9ceac490015d92054fd4a22066967c0de5228c25018a6  negative/branch-tag.bin
+-f7ce2bd3727812aebaeb2e4d727eaea8c22c66190d0c9f9e960f7e3c1fdcb5c0  negative/end-incomplete.bin
+-79458b20de5ffea65dde45c0d79b93d9812e7c1194e6c5bddaddb2c0305995a3  negative/end-link.bin
+-b237617b4c32c561706cf84cdeeeffffc9b64fdf279386ad8cbf03f9fadb7454  negative/event-evidence.bin
+-97eba3d7879083dc2c8dff8f910af5926961d3e8a035ed8a4bdf54c470e811cc  negative/event-link.bin
++67314c2f788e8c9c06217b70ebdb62bed90dd7a273947df71269b1728c4be5a7  negative/end-incomplete.bin
++adeb0508ff17e9ad71e79d9eafaf201822850c98fe0bf33e10d6ae2e31b4c35f  negative/end-link.bin
++c8b9896cde03faab0a9988ddeb6c866728a4917c04c966decf3c0884e5c78e3d  negative/event-evidence.bin
++1a750670c765c1905f4386014281e6133bd98fe3d868b6f7db160cfd61a367ce  negative/event-link.bin
+ efa0b57741a7d717636491ffb0540b3da6eb1846099bc6b87a775ccc27ca86a0  negative/full-consumption.bin
+ 712c0a848d61cbeceb5bab8cf5ec3aea001cbccd0648605d4dcb12bd0bd5004c  negative/identity.bin
+ 0569c72fdbdb3b9d63dbf59cf219269f2c369ab5ce8fb6ed505e9619e3eb6929  negative/input-receipt.bin
+ dc22635df34266bd4de3c3b4380b984cb1edfc5b41b7728628debb2ec11932fb  negative/order.bin
+ b77bf45d725e6f0d35c54619847d56d2fd2c1cf483cb89142ae730385af6e264  negative/partition.bin
+ 462dd2420414c00df74b77ff4cab0159b9a225611ce78d95a7cdbfd1cd19a228  negative/quick-one-update.bin
+ 0a02ccf238194f4651db111a8c260e00a4ed4604d010397337ce1063343a6ea1  negative/quick-seed.bin
+ 9165c5244f43136865f59529e4bfd86662d126697da4799d28e2e2d0eb809a23  negative/quick-three-updates.bin
+@@ -48,39 +50,39 @@ f57164cc17d6aae6c3b7258c1a0f4a9c63b584260bc5d75473e74997a1eac196  negative/targe
+ 58da74ea259800656437ef5f230bbc7fe1d4bab3cab04d8c81a2e75096db41fd  negative/threshold-placeholder.bin
+ 42fd3192a73cbc2ec31dcca54cf813ae6862d9712d2ab0cae2775b4d91f8dc27  negative/unknown-tag.bin
+ 56f53f561098cfe08b8233560b9b709aae8d68f04f308c96c83a678cd14fa115  quick.authority.current.bin
+ 486783991bcfd4150eed1d419ca28cc44e726e07516c5fa25705bb7bfa634965  quick.authority.current.hex
+ 898850b667a549cf635fd4bc33bf14ed5cf66ee314bb2cd6521bab82fc7e5402  quick.authority.scope.bin
+ 7c0a96f86c9b714a5be234c1f0937cefa4d0d07822d24415c4c450c0738e6a60  quick.authority.scope.hex
+ 7f5b9d91dece64bf54d4237258ed839a7022bbb62a2c02ffcf06d405b3a702cc  quick.consumption.bin
+ 6bc5f983602a65f5e9cecfb387980ea70aa74eac3011f1e6945843fbf4a8b767  quick.consumption.hex
+-6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14  quick.end.bin
+-030258548b44e6b03ab7355568536aaa295f2a6747daa5911366623cf27ab878  quick.end.hex
+-f45b89c689f01af22703f4afb911cbe2ab46a383c6a91c00322d101f08536473  quick.end.json
++6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d  quick.end.bin
++c5ddbdd31e5ac22b59b36137eab147bb42fbcbcb8e299b4f5820ce261fb6a3c1  quick.end.hex
++b1c9df83963fcefe842b7ea1ada0468a02737bc700da2dceb65342a18f2313df  quick.end.json
+ f503b1bac7c1562790735e80d04c26f57fcb22e23216f8f723c1cc2aa2565b33  quick.execution.bin
+ a5182f8e7fd92aaedc3762dd212fca5bb2f40d92499014e6a393ab3c5861147f  quick.execution.hex
+ b872e944869801d2d72aaaee5b2e84c46d4dd13f3aa4186503bbc8a7b6eb89ca  quick.identity.bin
+ a6e6dd3c8fc0678c00790e224df8a935663fbf57bc862abae93c839f0cf1fa9e  quick.identity.hex
+ c1308dd1d5dc4b880f4e9692de7d1593e30b7a5dc65df9600a6e46aabadf36d2  quick.implementation.evidence.bin
+ 290e1d38fa72c0f69f2923eb8c9ad82c225c1026ae2e1d1ec6b0e1c63af58f34  quick.implementation.evidence.hex
+ d0b8058dc8053c7881374bf23c4bc37bf5c0ec2f1a875c57d241a54c785efff1  quick.inputs.evidence.bin
+ c92fe5b8865e565de5f4424f2f48df6f8ed50f063800969dcc0cb5e231af0f39  quick.inputs.evidence.hex
+ fe350f6a0a48be25985abf5f581fbe389a625ae595234217a51ff897bcf896ad  quick.layout.evidence.bin
+ b832853cc7f09bedf19ed7599ee0661fc227d74af0e695fd393692f79e3a4a41  quick.layout.evidence.hex
+-880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7  quick.preflight.bin
+-b4a81781dac117aac258625b235c38e4b60e2b33b660efdd07a7dc8b7ae91ea6  quick.preflight.hex
+-6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9  quick.preflight.json
++6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941  quick.preflight.bin
++f1bb0fbcd7b0667e9882b9b1a10d364e8dced17adcb231af20b92cae3a592b0b  quick.preflight.hex
++ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4  quick.preflight.json
+ e00a908554241308e374f0684eba187de2259d6e822c430c4ac74c9d5ba928fd  quick.request.bin
+ 7731dbbe00536afa33ff23ce10a62fceb48d6fe2d1da9a4199a7202cd56d2890  quick.request.hex
+ 704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6  quick.resource.evidence.bin
+ 659ff684e64a13f8b1b07537dd1ce73508d33ba4c629d59c1f318149572a5155  quick.resource.evidence.hex
+-b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed  quick.start.bin
+-b57704833e44928e08ca6aa053357814450f66f6e35e0c9821a59ca4bec03ae1  quick.start.hex
+-5f6ac7dad2c858cdfbeb9d7215ad83a74855b91b65c30ef4fadd0ef55b151663  quick.start.json
++d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e  quick.start.bin
++ba7f307a2639e3aaa69d2eb88058523cb7e45a911e678890f0e7794eb96baf38  quick.start.hex
++f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df  quick.start.json
+ 1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492  quick.user.evidence.bin
+ dadd118b4e969adf08ff291fbe25e9a38ef2cfb62b37a6e359258ad30de95633  quick.user.evidence.hex
+ dcff7d12bd198ccefc357452d6f2db28b5e3e5bf4db6f32541ac9e2cda669aed  registration.bin
+ 7fe4be24d264c98c185ba67f25212a3f075a3e97ce373cf4ee4b784af2f60d11  registration.hex
+ fc39ca39d85882c49695be5f04258c378ee307d1202fb60ffbd4d0b524e37c8f  retained/synthetic/approval.txt
+ 3c527a4bcc4e1ceeccaa21bf5101b24baf27f67878f0f8a3872e53ff404b4057  retained/synthetic/cgroup-current_raw.txt
+ a04ed5fdc70e3481711e7f335d667ee60a53b382bbaa4dce985dcd2c58ad3b3e  retained/synthetic/cgroup-limit_raw.txt
+ 83625b144b71aecf2c86dc434f5318dd1e3521f73c775ed2defe09e1244004f2  retained/synthetic/claim-record.txt
+@@ -125,9 +127,9 @@ bf871d8ebc771b01e0764cb148b742667a103db76cf850048cd6829e16ea5dac  retained/synth
+ 4c2d84dd0d27910a9b8e21036156339f620d4e9a21fdc4185ae384af9b64ae37  retained/synthetic/security-main-bdgl16_raw.txt
+ e2e0b3646218e1858892815134d5206761a86ed328f8ba34a32ebbb7685ad867  retained/synthetic/security-main-matzov_raw.txt
+ cc590a817ca324ad87a964f1099f7e2b2c2cebe92866f4d183255d880b3e994c  retained/synthetic/security-main-problem.txt
+ 61246b17d4a16d178d2c126ae52b8c8561c3df18d9d638301002dc82f516551a  retained/synthetic/security-model_config.txt
+ 8c922d591714d883f5b7f9c8a08c32a6be05dd0846e5bc64b39782455726927a  retained/synthetic/security-parameters.txt
+ f5c645200c33231aec3f38867d91a61aa88c0290942532052277023180341286  retained/synthetic/security-policy.txt
+ 5adcf546c9260582568e54a17fcfa689d4f6fa4d8e3d00cb7ad0b3e61b6ff4c6  retained/synthetic/source-manifest.txt
+ f2ebc849a56b66138df27677e4010baebe8f3e74ab7a79799ebb4f88f7f0f519  retained/synthetic/train-receipt.txt
+-068f58554f8c5ed20858d89585052bdebb08adce1d65039ed73ce4698332df33  verify_literals.py
++80bf3ba242139bf579161409a24a7e5046319f0a5d2a122e3d4187ab7b44636b  verify_literals.py
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/captured-argv.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/captured-argv.json
+new file mode 100644
+index 0000000..ffac30b
+--- /dev/null
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/captured-argv.json
+@@ -0,0 +1,15 @@
++{
++  "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
++  "meaning": "Fictional retained Unix-byte argv for pure representation equality; not an actual process capture",
++  "argv_hex": [
++    "53594e5448455449432d73747564792d747261696e",
++    "2d2d717569636b",
++    "2d2d726563656970743d2f73796e7468657469632fff726563656970742e6a736f6e"
++  ],
++  "non_utf8_argument_index": 2,
++  "byte_tamper": {
++    "argument_index": 2,
++    "from_hex": "ff",
++    "to_hex": "fe"
++  }
++}
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/generate.py b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py
+index d342dd3..5714e93 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/generate.py
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py
+@@ -490,28 +490,35 @@ for branch in ("full", "quick"):
+ 
+ def gates(r):
+     for name in NAMES:
+         r.text("gates." + name + ".policy_revision", "test-d7-" + name + "-v1")
+         r.h("gates." + name + ".evidence_sha256", sha(RECORDS["quick." + name + ".evidence"]))
+ 
+ 
+ EVENT_LINKS = {}
++CAPTURE_ARGV = [b"SYNTHETIC-study-train", b"--quick", b"--receipt=/synthetic/\xffreceipt.json"]
++assert len(CAPTURE_ARGV) <= 256
++assert all(len(arg) <= 4096 and b"\x00" not in arg for arg in CAPTURE_ARGV)
++js("captured-argv.json", {"classification": LABEL,
++    "meaning": "Fictional retained Unix-byte argv for pure representation equality; not an actual process capture",
++    "argv_hex": [arg.hex() for arg in CAPTURE_ARGV],
++    "non_utf8_argument_index": 2, "byte_tamper": {"argument_index": 2, "from_hex": "ff", "to_hex": "fe"}})
+ 
+ 
+ def event(kind):
+     r = new("quick." + kind, "quick-" + kind)
+     if kind == "preflight":
+         r.blob("identity", QID)
+     r.h("identity_sha256", sha(QID))
+     gates(r)
+     if kind == "preflight":
+-        r.u("argv.count", 2)
+-        r.text("argv[0]", "SYNTHETIC-study-train")
+-        r.text("argv[1]", "--quick")
++        r.u("argv.count", len(CAPTURE_ARGV))
++        for i, arg in enumerate(CAPTURE_ARGV):
++            r.blob("argv[%d]" % i, arg)
+         r.h("source_manifest_sha256", rawhash(SOURCE))
+         r.text("source_revision", REV)
+         for key, p in (("approval_sha256", APPROVAL), ("train_receipt_sha256", TRAIN), ("executable_sha256", EXE)):
+             r.h(key, rawhash(p))
+         clock(r, "observed", 2)
+     else:
+         link(r, "preflight", EVENT_LINKS["preflight"])
+         if kind == "end":
+@@ -542,16 +549,19 @@ def mutation(name, base, field, replacement, reason):
+     f = next(x for x in INPUTS[base]["fields"] if x["path"] == field)
+     raw = RECORDS[base]
+     if f["type"] == "tag":
+         patch = bytes([replacement])
+     elif f["type"] == "U64":
+         patch = struct.pack("<Q", replacement)
+     elif f["type"] == "Hash":
+         patch = struct.pack("<Q", 64) + replacement.encode()
++    elif f["type"] == "Bytes":
++        value = bytes.fromhex(replacement)
++        patch = struct.pack("<Q", len(value)) + value
+     else:
+         raise AssertionError("Only explicit fixed-size mutations here")
+     assert len(patch) == f["length"]
+     out = raw[:f["offset"]] + patch + raw[f["offset"] + f["length"]:]
+     dump("negative/" + name + ".bin", out)
+     MANIFEST["mutations"].append({"name": name, "base": base + ".bin", "field": field,
+         "offset": f["offset"], "length": f["length"], "replacement": replacement,
+         "file": "negative/" + name + ".bin", "expected": reason,
+@@ -574,16 +584,19 @@ mutation("request", "quick.request", "limits.max_bytes", 65537, "Original reques
+ mutation("full-consumption", "quick.consumption", "consumption", 0, "Full/Quick consumed-plan branch mismatch")
+ mutation("event-evidence", "quick.preflight", "gates.layout.evidence_sha256", "0" * 64, "Retained sidecar bytes/hash mismatch")
+ mutation("event-link", "quick.start", "preflight.file_sha256", "0" * 64, "Exact preflight whole-file link mismatch")
+ mutation("end-link", "quick.end", "start.payload_sha256", "0" * 64, "Exact start canonical link mismatch")
+ mutation("end-incomplete", "quick.end", "completed_updates", 1, "Complete outcome requires exactly two completed updates")
+ mutation("resource-peak", "quick.resource.evidence", "resource.requirements.peak_host_bytes", 1, "Requirement phase sum mismatch; no fabricated capacity pass")
+ mutation("authority-revoked", "quick.authority.current", "revoked_all", 1, "Current authority revoked; hashes cannot override")
+ mutation("authority-generation", "quick.authority.current", "scope_generation", 2, "Authority/current source generation mismatch")
++mutation("argv-byte-tampering", "quick.preflight", "argv[2]",
++         CAPTURE_ARGV[2].replace(b"\xff", b"\xfe").hex(),
++         "Exact retained argv byte mismatch despite equal length, valid Bytes encoding and recomputed payload hash; no lossy UTF8 conversion")
+ 
+ # Structural mutation specs avoid generating large boundary fixtures.
+ specs = [
+  {"name": "placeholder-tail", "base": "quick.inputs.evidence.bin", "operation": "append 00", "expected": "Trailing Full target placeholder forbidden"},
+  {"name": "different-operational-attempt", "base": "quick.identity.bin", "operation": "Replace SYNTHETIC-ATTEMPT by SYNTHETIC-ATTEMPX in operational_attempt; recompute local identity hash", "expected": "Scope/authority/held attempt mismatch"},
+  {"name": "gate-policy", "base": "quick.preflight.bin", "operation": "Change final v1 to v2 in gates.inputs.policy_revision", "expected": "Unknown exact compiled policy revision; no fallback"},
+  {"name": "raw-json-whitespace-cap", "base": "quick.start.json", "operation": "Use bounded-reader advertised raw length A+1; no allocation", "expected": "RawFileCap"},
+  {"name": "binary-cap", "base": "quick.inputs.evidence.bin", "operation": "Bounded reader length A+1", "expected": "EvidenceFileCap before allocation"},
+@@ -639,14 +652,14 @@ report = {"classification": LABEL, "command": "python3 " + str(Path(__file__).re
+                "Rust": 0, "Cargo": 0, "HE": 0, "native_observer": 0, "SSH": 0,
+                "parameters": 0, "P1": 0, "materializer": 0, "registry": 0, "live_gate_constructors": 0,
+                "production_positive_records": 0, "scientific_outputs": 0},
+           "validation": "assertions check byte lengths, scalar ranges, arithmetic, link construction, old file hashes; semantic mutation refusals are future tests, not executed here"}
+ js("generation-report.json", report)
+ js("manifest.json", MANIFEST)
+ entries = []
+ for p in sorted(HERE.rglob("*")):
+-    if p.is_file() and p.name not in ("SHA256SUMS",):
++    if p.is_file() and p.name not in ("SHA256SUMS", "verification-report.json"):
+         entries.append(sha(p.read_bytes()) + "  " + str(p.relative_to(HERE)))
+ (HERE / "SHA256SUMS").write_text("\n".join(entries) + "\n")
+ print(json.dumps({"core_vectors": len(core), "literal_records": len(RECORDS),
+                   "mutations": len(MANIFEST["mutations"]), "old_full_unchanged": len(old),
+                   "manifest_sha256": sha((HERE / "manifest.json").read_bytes())}, sort_keys=True))
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/generation-report.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generation-report.json
+index 1a01328..63debb4 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/generation-report.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generation-report.json
+@@ -43,33 +43,33 @@
+       "bytes": 6442,
+       "canonical_sha256": "704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6"
+     },
+     "quick.user.evidence": {
+       "bytes": 5429,
+       "canonical_sha256": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492"
+     },
+     "quick.preflight": {
+-      "bytes": 3369,
+-      "canonical_sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7"
++      "bytes": 3411,
++      "canonical_sha256": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941"
+     },
+     "quick.start": {
+       "bytes": 802,
+-      "canonical_sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed"
++      "canonical_sha256": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e"
+     },
+     "quick.end": {
+       "bytes": 954,
+-      "canonical_sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14"
++      "canonical_sha256": "6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d"
+     }
+   },
+   "counts": {
+     "binary_evidence": 10,
+     "quick_identity": 1,
+     "quick_events": 3,
+-    "concrete_mutations": 21,
++    "concrete_mutations": 22,
+     "mutation_specs": 16,
+     "old_full_files_unchanged": 78,
+     "all_literal_records": 25
+   },
+   "source_free_calls": {
+     "python_stdlib_generator_invocations": 1,
+     "project_encoder_imports": 0,
+     "Rust": 0,
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/literal-inputs.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/literal-inputs.json
+index 5b56281..a932d22 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/literal-inputs.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/literal-inputs.json
+@@ -7651,95 +7651,102 @@
+           "type": "Hash",
+           "value": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492",
+           "offset": 2891,
+           "length": 72
+         },
+         {
+           "path": "argv.count",
+           "type": "U64",
+-          "value": 2,
++          "value": 3,
+           "offset": 2963,
+           "length": 8
+         },
+         {
+           "path": "argv[0]",
+-          "type": "Text",
+-          "value": "SYNTHETIC-study-train",
++          "type": "Bytes",
++          "value": "53594e5448455449432d73747564792d747261696e",
+           "offset": 2971,
+           "length": 29
+         },
+         {
+           "path": "argv[1]",
+-          "type": "Text",
+-          "value": "--quick",
++          "type": "Bytes",
++          "value": "2d2d717569636b",
+           "offset": 3000,
+           "length": 15
+         },
++        {
++          "path": "argv[2]",
++          "type": "Bytes",
++          "value": "2d2d726563656970743d2f73796e7468657469632fff726563656970742e6a736f6e",
++          "offset": 3015,
++          "length": 42
++        },
+         {
+           "path": "source_manifest_sha256",
+           "type": "Hash",
+           "value": "5adcf546c9260582568e54a17fcfa689d4f6fa4d8e3d00cb7ad0b3e61b6ff4c6",
+-          "offset": 3015,
++          "offset": 3057,
+           "length": 72
+         },
+         {
+           "path": "source_revision",
+           "type": "Text",
+           "value": "75d703a3e2c80abac7704e8f42aced04ec9e1fad",
+-          "offset": 3087,
++          "offset": 3129,
+           "length": 48
+         },
+         {
+           "path": "approval_sha256",
+           "type": "Hash",
+           "value": "fc39ca39d85882c49695be5f04258c378ee307d1202fb60ffbd4d0b524e37c8f",
+-          "offset": 3135,
++          "offset": 3177,
+           "length": 72
+         },
+         {
+           "path": "train_receipt_sha256",
+           "type": "Hash",
+           "value": "f2ebc849a56b66138df27677e4010baebe8f3e74ab7a79799ebb4f88f7f0f519",
+-          "offset": 3207,
++          "offset": 3249,
+           "length": 72
+         },
+         {
+           "path": "executable_sha256",
+           "type": "Hash",
+           "value": "8b72129a0cbfa07b08a6a9eee59677c2587ae0f2323e15411c7aaa3f53806473",
+-          "offset": 3279,
++          "offset": 3321,
+           "length": 72
+         },
+         {
+           "path": "observed.wall_source",
+           "type": "tag",
+           "value": 0,
+-          "offset": 3351,
++          "offset": 3393,
+           "length": 1
+         },
+         {
+           "path": "observed.unix_ns",
+           "type": "U64",
+           "value": 1000002,
+-          "offset": 3352,
++          "offset": 3394,
+           "length": 8
+         },
+         {
+           "path": "observed.monotonic_source",
+           "type": "tag",
+           "value": 0,
+-          "offset": 3360,
++          "offset": 3402,
+           "length": 1
+         },
+         {
+           "path": "observed.elapsed_since_operation_start_ns",
+           "type": "U64",
+           "value": 2,
+-          "offset": 3361,
++          "offset": 3403,
+           "length": 8
+         }
+       ]
+     },
+     "quick.start": {
+       "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+       "fields": [
+         {
+@@ -7838,24 +7845,24 @@
+           "type": "Hash",
+           "value": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492",
+           "offset": 568,
+           "length": 72
+         },
+         {
+           "path": "preflight.file_sha256",
+           "type": "Hash",
+-          "value": "6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9",
++          "value": "ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4",
+           "offset": 640,
+           "length": 72
+         },
+         {
+           "path": "preflight.payload_sha256",
+           "type": "Hash",
+-          "value": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7",
++          "value": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941",
+           "offset": 712,
+           "length": 72
+         },
+         {
+           "path": "started.wall_source",
+           "type": "tag",
+           "value": 0,
+           "offset": 784,
+@@ -7983,38 +7990,38 @@
+           "type": "Hash",
+           "value": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492",
+           "offset": 566,
+           "length": 72
+         },
+         {
+           "path": "preflight.file_sha256",
+           "type": "Hash",
+-          "value": "6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9",
++          "value": "ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4",
+           "offset": 638,
+           "length": 72
+         },
+         {
+           "path": "preflight.payload_sha256",
+           "type": "Hash",
+-          "value": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7",
++          "value": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941",
+           "offset": 710,
+           "length": 72
+         },
+         {
+           "path": "start.file_sha256",
+           "type": "Hash",
+-          "value": "5f6ac7dad2c858cdfbeb9d7215ad83a74855b91b65c30ef4fadd0ef55b151663",
++          "value": "f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df",
+           "offset": 782,
+           "length": 72
+         },
+         {
+           "path": "start.payload_sha256",
+           "type": "Hash",
+-          "value": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed",
++          "value": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e",
+           "offset": 854,
+           "length": 72
+         },
+         {
+           "path": "outcome",
+           "type": "tag",
+           "value": 0,
+           "offset": 926,
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/manifest.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/manifest.json
+index 949f318..5cf3670 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/manifest.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/manifest.json
+@@ -372,51 +372,55 @@
+     "quick.user.evidence.bin": {
+       "bytes": 5429,
+       "sha256": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492"
+     },
+     "quick.user.evidence.hex": {
+       "bytes": 10859,
+       "sha256": "dadd118b4e969adf08ff291fbe25e9a38ef2cfb62b37a6e359258ad30de95633"
+     },
++    "captured-argv.json": {
++      "bytes": 506,
++      "sha256": "25efd39ab02adb04acbbb5933461ec45fac13214acfd66a12371354e49a36856"
++    },
+     "quick.preflight.bin": {
+-      "bytes": 3369,
+-      "sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7"
++      "bytes": 3411,
++      "sha256": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941"
+     },
+     "quick.preflight.hex": {
+-      "bytes": 6739,
+-      "sha256": "b4a81781dac117aac258625b235c38e4b60e2b33b660efdd07a7dc8b7ae91ea6"
++      "bytes": 6823,
++      "sha256": "f1bb0fbcd7b0667e9882b9b1a10d364e8dced17adcb231af20b92cae3a592b0b"
+     },
+     "quick.preflight.json": {
+-      "bytes": 7005,
+-      "sha256": "6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9"
++      "bytes": 7089,
++      "sha256": "ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4"
+     },
+     "quick.start.bin": {
+       "bytes": 802,
+-      "sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed"
++      "sha256": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e"
+     },
+     "quick.start.hex": {
+       "bytes": 1605,
+-      "sha256": "b57704833e44928e08ca6aa053357814450f66f6e35e0c9821a59ca4bec03ae1"
++      "sha256": "ba7f307a2639e3aaa69d2eb88058523cb7e45a911e678890f0e7794eb96baf38"
+     },
+     "quick.start.json": {
+       "bytes": 1863,
+-      "sha256": "5f6ac7dad2c858cdfbeb9d7215ad83a74855b91b65c30ef4fadd0ef55b151663"
++      "sha256": "f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df"
+     },
+     "quick.end.bin": {
+       "bytes": 954,
+-      "sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14"
++      "sha256": "6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d"
+     },
+     "quick.end.hex": {
+       "bytes": 1909,
+-      "sha256": "030258548b44e6b03ab7355568536aaa295f2a6747daa5911366623cf27ab878"
++      "sha256": "c5ddbdd31e5ac22b59b36137eab147bb42fbcbcb8e299b4f5820ce261fb6a3c1"
+     },
+     "quick.end.json": {
+       "bytes": 2163,
+-      "sha256": "f45b89c689f01af22703f4afb911cbe2ab46a383c6a91c00322d101f08536473"
++      "sha256": "b1c9df83963fcefe842b7ea1ada0468a02737bc700da2dceb65342a18f2313df"
+     },
+     "negative/branch-tag.bin": {
+       "bytes": 3486,
+       "sha256": "aa1c48e076f1ee19d9f9ceac490015d92054fd4a22066967c0de5228c25018a6"
+     },
+     "negative/unknown-tag.bin": {
+       "bytes": 5571,
+       "sha256": "42fd3192a73cbc2ec31dcca54cf813ae6862d9712d2ab0cae2775b4d91f8dc27"
+@@ -465,62 +469,66 @@
+       "bytes": 146,
+       "sha256": "a71a82028a2d6dad58f04b54b92c355343a79e60d3654308dbac00b90d672f7e"
+     },
+     "negative/full-consumption.bin": {
+       "bytes": 457,
+       "sha256": "efa0b57741a7d717636491ffb0540b3da6eb1846099bc6b87a775ccc27ca86a0"
+     },
+     "negative/event-evidence.bin": {
+-      "bytes": 3369,
+-      "sha256": "b237617b4c32c561706cf84cdeeeffffc9b64fdf279386ad8cbf03f9fadb7454"
++      "bytes": 3411,
++      "sha256": "c8b9896cde03faab0a9988ddeb6c866728a4917c04c966decf3c0884e5c78e3d"
+     },
+     "negative/event-link.bin": {
+       "bytes": 802,
+-      "sha256": "97eba3d7879083dc2c8dff8f910af5926961d3e8a035ed8a4bdf54c470e811cc"
++      "sha256": "1a750670c765c1905f4386014281e6133bd98fe3d868b6f7db160cfd61a367ce"
+     },
+     "negative/end-link.bin": {
+       "bytes": 954,
+-      "sha256": "79458b20de5ffea65dde45c0d79b93d9812e7c1194e6c5bddaddb2c0305995a3"
++      "sha256": "adeb0508ff17e9ad71e79d9eafaf201822850c98fe0bf33e10d6ae2e31b4c35f"
+     },
+     "negative/end-incomplete.bin": {
+       "bytes": 954,
+-      "sha256": "f7ce2bd3727812aebaeb2e4d727eaea8c22c66190d0c9f9e960f7e3c1fdcb5c0"
++      "sha256": "67314c2f788e8c9c06217b70ebdb62bed90dd7a273947df71269b1728c4be5a7"
+     },
+     "negative/resource-peak.bin": {
+       "bytes": 6442,
+       "sha256": "25e40024d5528e2bf0939acfdae0bc6d61b57d9c8d1b0440fe42316a95f06923"
+     },
+     "negative/authority-revoked.bin": {
+       "bytes": 238,
+       "sha256": "1f98beb1fb1dfa7c0d07cd25c446d5acfc95e37112b3f43cd8098040b095cd99"
+     },
+     "negative/authority-generation.bin": {
+       "bytes": 238,
+       "sha256": "9152329492d720c3bd4678cf8638b927e0394af2ad6d9c65ba8018d0a5fad91e"
+     },
++    "negative/argv-byte-tampering.bin": {
++      "bytes": 3411,
++      "sha256": "3ead0349443b51dc4cb86315dffc25573e3173c44f1103dd42edd79e9de4d686"
++    },
+     "mutation-specs.json": {
+-      "bytes": 13386,
+-      "sha256": "b9514aa296d7047256ce763bb59eb8f5861d9124fe574aa4366438bfc0836153"
++      "bytes": 13976,
++      "sha256": "0b69ae003b2a6688f1f18c5cd10f2701c20fdd5e1bfe55f76415b9e3f3ecf8df"
+     },
+     "full-frozen-preservation.json": {
+       "bytes": 19289,
+       "sha256": "79a4ee7f7969b6931b2899d579d4783d6fe947cbf019330e4f6ae47e5374e2ea"
+     },
+     "boundary-arithmetic.json": {
+       "bytes": 756,
+       "sha256": "04a2734d5bbcec1a6a70e1f86945c59394c2cb786d3d817df7f4dec27549759a"
+     },
+     "literal-inputs.json": {
+-      "bytes": 278391,
+-      "sha256": "a68a295df7c948923d98064a114e514baa1ef9ed9ac8aff02d6b01496c198ff5"
++      "bytes": 278638,
++      "sha256": "8cd5a3b684713c422b0fab01827272ac00744da6c84d7991dc5b85464ef62243"
+     },
+     "generation-report.json": {
+       "bytes": 3144,
+-      "sha256": "ab2ca38c511b5343507ef3d78bf0752bfecf2627ebcb314f7fa5cc7bd71e25a6"
++      "sha256": "616aff82bfc64f07531124b14f9155b3f3389dbe47d55f14bca4662035c3b639"
+     }
+   },
+   "records": {
+     "registration": {
+       "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+       "core_vector": false,
+       "bytes": 231,
+       "canonical_sha256": "dcff7d12bd198ccefc357452d6f2db28b5e3e5bf4db6f32541ac9e2cda669aed",
+@@ -7087,19 +7095,19 @@
+           "offset": 5421,
+           "length": 8
+         }
+       ]
+     },
+     "quick.preflight": {
+       "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+       "core_vector": true,
+-      "bytes": 3369,
+-      "canonical_sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7",
+-      "raw_file_sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7",
++      "bytes": 3411,
++      "canonical_sha256": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941",
++      "raw_file_sha256": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941",
+       "offsets": [
+         {
+           "path": "header.encoding",
+           "type": "Text",
+           "offset": 0,
+           "length": 41
+         },
+         {
+@@ -7189,94 +7197,100 @@
+         {
+           "path": "argv.count",
+           "type": "U64",
+           "offset": 2963,
+           "length": 8
+         },
+         {
+           "path": "argv[0]",
+-          "type": "Text",
++          "type": "Bytes",
+           "offset": 2971,
+           "length": 29
+         },
+         {
+           "path": "argv[1]",
+-          "type": "Text",
++          "type": "Bytes",
+           "offset": 3000,
+           "length": 15
+         },
++        {
++          "path": "argv[2]",
++          "type": "Bytes",
++          "offset": 3015,
++          "length": 42
++        },
+         {
+           "path": "source_manifest_sha256",
+           "type": "Hash",
+-          "offset": 3015,
++          "offset": 3057,
+           "length": 72
+         },
+         {
+           "path": "source_revision",
+           "type": "Text",
+-          "offset": 3087,
++          "offset": 3129,
+           "length": 48
+         },
+         {
+           "path": "approval_sha256",
+           "type": "Hash",
+-          "offset": 3135,
++          "offset": 3177,
+           "length": 72
+         },
+         {
+           "path": "train_receipt_sha256",
+           "type": "Hash",
+-          "offset": 3207,
++          "offset": 3249,
+           "length": 72
+         },
+         {
+           "path": "executable_sha256",
+           "type": "Hash",
+-          "offset": 3279,
++          "offset": 3321,
+           "length": 72
+         },
+         {
+           "path": "observed.wall_source",
+           "type": "tag",
+-          "offset": 3351,
++          "offset": 3393,
+           "length": 1
+         },
+         {
+           "path": "observed.unix_ns",
+           "type": "U64",
+-          "offset": 3352,
++          "offset": 3394,
+           "length": 8
+         },
+         {
+           "path": "observed.monotonic_source",
+           "type": "tag",
+-          "offset": 3360,
++          "offset": 3402,
+           "length": 1
+         },
+         {
+           "path": "observed.elapsed_since_operation_start_ns",
+           "type": "U64",
+-          "offset": 3361,
++          "offset": 3403,
+           "length": 8
+         }
+       ],
+       "json": {
+-        "raw_file_bytes": 7005,
+-        "raw_file_sha256": "6c81186a0bd46ee75da3d7d6818965e05888ac47d97848fa6524ccd5625c54a9",
+-        "payload_sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7",
++        "raw_file_bytes": 7089,
++        "raw_file_sha256": "ac5b4fd71e3079fd0f42cf89510ebd2b3e8aff2e8bcd2e6da633efb0f7aa91b4",
++        "payload_sha256": "6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941",
+         "envelope_bytes_excluding_hex": 267
+       }
+     },
+     "quick.start": {
+       "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+       "core_vector": true,
+       "bytes": 802,
+-      "canonical_sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed",
+-      "raw_file_sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed",
++      "canonical_sha256": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e",
++      "raw_file_sha256": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e",
+       "offsets": [
+         {
+           "path": "header.encoding",
+           "type": "Text",
+           "offset": 0,
+           "length": 41
+         },
+         {
+@@ -7391,27 +7405,27 @@
+           "path": "started.elapsed_since_operation_start_ns",
+           "type": "U64",
+           "offset": 794,
+           "length": 8
+         }
+       ],
+       "json": {
+         "raw_file_bytes": 1863,
+-        "raw_file_sha256": "5f6ac7dad2c858cdfbeb9d7215ad83a74855b91b65c30ef4fadd0ef55b151663",
+-        "payload_sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed",
++        "raw_file_sha256": "f73899f149b74e0527c389d895a3f49ce29d2b692fc3b570b28f16785fd628df",
++        "payload_sha256": "d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e",
+         "envelope_bytes_excluding_hex": 259
+       }
+     },
+     "quick.end": {
+       "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+       "core_vector": true,
+       "bytes": 954,
+-      "canonical_sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14",
+-      "raw_file_sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14",
++      "canonical_sha256": "6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d",
++      "raw_file_sha256": "6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d",
+       "offsets": [
+         {
+           "path": "header.encoding",
+           "type": "Text",
+           "offset": 0,
+           "length": 41
+         },
+         {
+@@ -7556,18 +7570,18 @@
+           "path": "ended.elapsed_since_operation_start_ns",
+           "type": "U64",
+           "offset": 946,
+           "length": 8
+         }
+       ],
+       "json": {
+         "raw_file_bytes": 2163,
+-        "raw_file_sha256": "f45b89c689f01af22703f4afb911cbe2ab46a383c6a91c00322d101f08536473",
+-        "payload_sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14",
++        "raw_file_sha256": "b1c9df83963fcefe842b7ea1ada0468a02737bc700da2dceb65342a18f2313df",
++        "payload_sha256": "6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d",
+         "envelope_bytes_excluding_hex": 255
+       }
+     }
+   },
+   "mutations": [
+     {
+       "name": "branch-tag",
+       "base": "full.inputs.evidence.bin",
+@@ -7754,56 +7768,56 @@
+       "name": "event-evidence",
+       "base": "quick.preflight.bin",
+       "field": "gates.layout.evidence_sha256",
+       "offset": 2697,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/event-evidence.bin",
+       "expected": "Retained sidecar bytes/hash mismatch",
+-      "sha256": "b237617b4c32c561706cf84cdeeeffffc9b64fdf279386ad8cbf03f9fadb7454",
+-      "bytes": 3369,
++      "sha256": "c8b9896cde03faab0a9988ddeb6c866728a4917c04c966decf3c0884e5c78e3d",
++      "bytes": 3411,
+       "validation_executed": false
+     },
+     {
+       "name": "event-link",
+       "base": "quick.start.bin",
+       "field": "preflight.file_sha256",
+       "offset": 640,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/event-link.bin",
+       "expected": "Exact preflight whole-file link mismatch",
+-      "sha256": "97eba3d7879083dc2c8dff8f910af5926961d3e8a035ed8a4bdf54c470e811cc",
++      "sha256": "1a750670c765c1905f4386014281e6133bd98fe3d868b6f7db160cfd61a367ce",
+       "bytes": 802,
+       "validation_executed": false
+     },
+     {
+       "name": "end-link",
+       "base": "quick.end.bin",
+       "field": "start.payload_sha256",
+       "offset": 854,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/end-link.bin",
+       "expected": "Exact start canonical link mismatch",
+-      "sha256": "79458b20de5ffea65dde45c0d79b93d9812e7c1194e6c5bddaddb2c0305995a3",
++      "sha256": "adeb0508ff17e9ad71e79d9eafaf201822850c98fe0bf33e10d6ae2e31b4c35f",
+       "bytes": 954,
+       "validation_executed": false
+     },
+     {
+       "name": "end-incomplete",
+       "base": "quick.end.bin",
+       "field": "completed_updates",
+       "offset": 927,
+       "length": 8,
+       "replacement": 1,
+       "file": "negative/end-incomplete.bin",
+       "expected": "Complete outcome requires exactly two completed updates",
+-      "sha256": "f7ce2bd3727812aebaeb2e4d727eaea8c22c66190d0c9f9e960f7e3c1fdcb5c0",
++      "sha256": "67314c2f788e8c9c06217b70ebdb62bed90dd7a273947df71269b1728c4be5a7",
+       "bytes": 954,
+       "validation_executed": false
+     },
+     {
+       "name": "resource-peak",
+       "base": "quick.resource.evidence.bin",
+       "field": "resource.requirements.peak_host_bytes",
+       "offset": 5643,
+@@ -7835,11 +7849,24 @@
+       "offset": 131,
+       "length": 8,
+       "replacement": 2,
+       "file": "negative/authority-generation.bin",
+       "expected": "Authority/current source generation mismatch",
+       "sha256": "9152329492d720c3bd4678cf8638b927e0394af2ad6d9c65ba8018d0a5fad91e",
+       "bytes": 238,
+       "validation_executed": false
++    },
++    {
++      "name": "argv-byte-tampering",
++      "base": "quick.preflight.bin",
++      "field": "argv[2]",
++      "offset": 3015,
++      "length": 42,
++      "replacement": "2d2d726563656970743d2f73796e7468657469632ffe726563656970742e6a736f6e",
++      "file": "negative/argv-byte-tampering.bin",
++      "expected": "Exact retained argv byte mismatch despite equal length, valid Bytes encoding and recomputed payload hash; no lossy UTF8 conversion",
++      "sha256": "3ead0349443b51dc4cb86315dffc25573e3173c44f1103dd42edd79e9de4d686",
++      "bytes": 3411,
++      "validation_executed": false
+     }
+   ]
+ }
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/mutation-specs.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/mutation-specs.json
+index 96a81d8..44877ee 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/mutation-specs.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/mutation-specs.json
+@@ -187,56 +187,56 @@
+       "name": "event-evidence",
+       "base": "quick.preflight.bin",
+       "field": "gates.layout.evidence_sha256",
+       "offset": 2697,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/event-evidence.bin",
+       "expected": "Retained sidecar bytes/hash mismatch",
+-      "sha256": "b237617b4c32c561706cf84cdeeeffffc9b64fdf279386ad8cbf03f9fadb7454",
+-      "bytes": 3369,
++      "sha256": "c8b9896cde03faab0a9988ddeb6c866728a4917c04c966decf3c0884e5c78e3d",
++      "bytes": 3411,
+       "validation_executed": false
+     },
+     {
+       "name": "event-link",
+       "base": "quick.start.bin",
+       "field": "preflight.file_sha256",
+       "offset": 640,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/event-link.bin",
+       "expected": "Exact preflight whole-file link mismatch",
+-      "sha256": "97eba3d7879083dc2c8dff8f910af5926961d3e8a035ed8a4bdf54c470e811cc",
++      "sha256": "1a750670c765c1905f4386014281e6133bd98fe3d868b6f7db160cfd61a367ce",
+       "bytes": 802,
+       "validation_executed": false
+     },
+     {
+       "name": "end-link",
+       "base": "quick.end.bin",
+       "field": "start.payload_sha256",
+       "offset": 854,
+       "length": 72,
+       "replacement": "0000000000000000000000000000000000000000000000000000000000000000",
+       "file": "negative/end-link.bin",
+       "expected": "Exact start canonical link mismatch",
+-      "sha256": "79458b20de5ffea65dde45c0d79b93d9812e7c1194e6c5bddaddb2c0305995a3",
++      "sha256": "adeb0508ff17e9ad71e79d9eafaf201822850c98fe0bf33e10d6ae2e31b4c35f",
+       "bytes": 954,
+       "validation_executed": false
+     },
+     {
+       "name": "end-incomplete",
+       "base": "quick.end.bin",
+       "field": "completed_updates",
+       "offset": 927,
+       "length": 8,
+       "replacement": 1,
+       "file": "negative/end-incomplete.bin",
+       "expected": "Complete outcome requires exactly two completed updates",
+-      "sha256": "f7ce2bd3727812aebaeb2e4d727eaea8c22c66190d0c9f9e960f7e3c1fdcb5c0",
++      "sha256": "67314c2f788e8c9c06217b70ebdb62bed90dd7a273947df71269b1728c4be5a7",
+       "bytes": 954,
+       "validation_executed": false
+     },
+     {
+       "name": "resource-peak",
+       "base": "quick.resource.evidence.bin",
+       "field": "resource.requirements.peak_host_bytes",
+       "offset": 5643,
+@@ -268,16 +268,29 @@
+       "offset": 131,
+       "length": 8,
+       "replacement": 2,
+       "file": "negative/authority-generation.bin",
+       "expected": "Authority/current source generation mismatch",
+       "sha256": "9152329492d720c3bd4678cf8638b927e0394af2ad6d9c65ba8018d0a5fad91e",
+       "bytes": 238,
+       "validation_executed": false
++    },
++    {
++      "name": "argv-byte-tampering",
++      "base": "quick.preflight.bin",
++      "field": "argv[2]",
++      "offset": 3015,
++      "length": 42,
++      "replacement": "2d2d726563656970743d2f73796e7468657469632ffe726563656970742e6a736f6e",
++      "file": "negative/argv-byte-tampering.bin",
++      "expected": "Exact retained argv byte mismatch despite equal length, valid Bytes encoding and recomputed payload hash; no lossy UTF8 conversion",
++      "sha256": "3ead0349443b51dc4cb86315dffc25573e3173c44f1103dd42edd79e9de4d686",
++      "bytes": 3411,
++      "validation_executed": false
+     }
+   ],
+   "specifications": [
+     {
+       "name": "placeholder-tail",
+       "base": "quick.inputs.evidence.bin",
+       "operation": "append 00",
+       "expected": "Trailing Full target placeholder forbidden"
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/argv-byte-tampering.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/argv-byte-tampering.bin
+new file mode 100644
+index 0000000..1b80e0d
+Binary files /dev/null and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/argv-byte-tampering.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/end-incomplete.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/end-incomplete.bin
+index ef6d1b4..cc349bb 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/end-incomplete.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/end-incomplete.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/end-link.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/end-link.bin
+index 3e2e88c..a5b3fb1 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/end-link.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/end-link.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/event-evidence.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/event-evidence.bin
+index 6e787ed..aea5350 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/event-evidence.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/event-evidence.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/event-link.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/event-link.bin
+index ece49e5..f12bca8 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/negative/event-link.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/negative/event-link.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.bin
+index 22a310a..7c3fe5a 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.hex b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.hex
+index fb136bf..3f16266 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.hex
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.hex
+@@ -1 +1 @@
+-210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631170000000000000068656b69742d746573742d717569636b2d656e642d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d7631400000000000000031636363306437656564343933356530646633303838333932646264613166626665393363343834623937363962373637353130613437303865313361343932400000000000000036633831313836613062643436656537356461336437643638313839363565303538383861633437643937383438666136353234636364353632356335346139400000000000000038383033393231393762616437383930386132376662653565373662663661646262656635663939326635653563303232383836633665323663643865346437400000000000000035663661633764616432633835386364666265623964373231356164383361373438353562393162363563333065663466616464306566353562313531363633400000000000000062373666653839383263353539366366656436333038656264303334343132333132366563333164663662376166306138373431333864656163316265336564000200000000000000000044420f0000000000000400000000000000
++210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631170000000000000068656b69742d746573742d717569636b2d656e642d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d7631400000000000000031636363306437656564343933356530646633303838333932646264613166626665393363343834623937363962373637353130613437303865313361343932400000000000000061633562346664373165333037396664306634326366383935313065626432623365386166663265386263643265366461363333656662306637616139316234400000000000000036666239646534643366336538656564386363303966646331646634323065633666666261336262306663313861616234313162646135383739633064393431400000000000000066373338393966313439623734653035323763333839643839356133663439636532396432623639326663336235373062323866313637383566643632386466400000000000000064396336363139653162646361653235336437323861643739373964633130666566363730623936303262346136623061306464396334323733643739383365000200000000000000000044420f0000000000000400000000000000
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.json
+index f3f473c..0420918 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.end.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.end.json
+@@ -1 +1 @@
+-{"schema":"hekit-test-quick-end-v1","kind":"quick_end","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631170000000000000068656b69742d746573742d717569636b2d656e642d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d7631400000000000000031636363306437656564343933356530646633303838333932646264613166626665393363343834623937363962373637353130613437303865313361343932400000000000000036633831313836613062643436656537356461336437643638313839363565303538383861633437643937383438666136353234636364353632356335346139400000000000000038383033393231393762616437383930386132376662653565373662663661646262656635663939326635653563303232383836633665323663643865346437400000000000000035663661633764616432633835386364666265623964373231356164383361373438353562393162363563333065663466616464306566353562313531363633400000000000000062373666653839383263353539366366656436333038656264303334343132333132366563333164663662376166306138373431333864656163316265336564000200000000000000000044420f0000000000000400000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14"}}
++{"schema":"hekit-test-quick-end-v1","kind":"quick_end","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631170000000000000068656b69742d746573742d717569636b2d656e642d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d7631400000000000000031636363306437656564343933356530646633303838333932646264613166626665393363343834623937363962373637353130613437303865313361343932400000000000000061633562346664373165333037396664306634326366383935313065626432623365386166663265386263643265366461363333656662306637616139316234400000000000000036666239646534643366336538656564386363303966646331646634323065633666666261336262306663313861616234313162646135383739633064393431400000000000000066373338393966313439623734653035323763333839643839356133663439636532396432623639326663336235373062323866313637383566643632386466400000000000000064396336363139653162646361653235336437323861643739373964633130666566363730623936303262346136623061306464396334323733643739383365000200000000000000000044420f0000000000000400000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"6c724624e846f7870da407641ff1f6e6d07357ec5e1aac087208a7ac0db0805d"}}
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.bin
+index 11bb307..500d968 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.hex b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.hex
+index 55de9d9..a194aea 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.hex
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.hex
+@@ -1 +1 @@
+-210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311d0000000000000068656b69742d746573742d717569636b2d707265666c696768742d7631010709000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311c0000000000000068656b69742d746573742d717569636b2d6964656e746974792d763101e700000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d763140000000000000006135366333316138373738646636333034643436376133643766326664663138343463386438643735313137656262303137633665366532633466666132366600160000000000000053594e5448455449432d524547495354524154494f4e110000000000000053594e5448455449432d50524f46494c45000000000000000000000000000000020000000000000000400000000000000064636666376431326264313938636365666333353734353264366632646232386235653365356266346462366633323534316163396532636461363639616564c202000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311b0000000000000068656b69742d73747564792d636173652d62696e64696e672d7631002800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463364000000000000000623763376164313036366333306363666132346330353336313364633335666335663736636261636234386562626139366437653464393037623132353032370040000000000000006231363833333736366663643135373666343561316236353665383837616162376538633563323432356639356631326563643038303961663666633162653040000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633900000000400000000000000062623031653062633761383362346531613561373766383337663930633032373038613664386565366666613530366133636332646333336562323764313964400000000000000064353933363839313562343235623433646136343736373062616430613665323963373864393234633462313237313762616666343138646465303633666339400000000000000063393662353236656336373561366333663432666237373061323437363764633163653336336465316562386530353734653930353965376332663134333862400000000000000064623631613732333638303965323461646262363033623962386132356465326234383762393637316130663166626132643537383138383166623061303162400000000000000066353033623162616337633135363237393037333565383064303463323666353766636232326532333231366638663732336331636332616132353635623333400000000000000039356138336364356431396332346462313961303165303132623732386537326466633165333133613036633435313438626566356431376465646136613430400000000000000030623765396234613737613965306336616161373138623233336234323966636437333037666339353631393564613264326264393562396336666261333164400000000000000032346130353863643139656432623136643136646130376561643339633539303439316631383364653434363735613833393037333062356632393038306339120000000000000053594e5448455449432d43414d504149474e110000000000000053594e5448455449432d50524f46494c45000000000000000001c901000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d746573742d676174652d636f6e73756d7074696f6e2d76310101000000000000000040000000000000006530306139303835353432343133303865333734663036383465626131383764653232353964366538323263343330633461633734633964356261393238666440000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633940000000000000003062376539623461373761396530633661616137313862323333623432396663643733303766633935363139356461326432626439356239633666626133316402000000000000000000000000000000000000000000000000000000000000000200000000000000020000000000000000000000000000000100000000000000000000000000000002000000000000000100000000000000000000000000000001000000000000000200000000000000030000000000000001000000000000000100000000000000000000000000000002000000000000004000000000000000376635623964393164656365363462663534643432333732353865643833396137303232626262363261326330326666636630366434303562336137303263639200000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311a0000000000000068656b69742d746573742d676174652d726571756573742d76310101010200000000000000000000000000010000000000400000000000000001000000000000000100000000000000040000000000000000000000000000000300000000000000400000000000000065303061393038353534323431333038653337346630363834656261313837646532323539643665383232633433306334616337346339643562613932386664400000000000000064346132376630643666643037663035336130653266323964386163613462306237396539353836666431353235396631623834633036383765373238636339110000000000000053594e5448455449432d415454454d50544000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439320200000000000000150000000000000053594e5448455449432d73747564792d747261696e07000000000000002d2d717569636b4000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463362800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000666333396361333964383538383263343936393562653566303432353863333738656533303764313230326662363066666264346430623532346533376338664000000000000000663265626338343961353662363631333864663237363737653430313062616562653866336537346162376137393739396562623466383866376630663531394000000000000000386237323132396130636266613037623038613661396565653539363737633235383761653066323332336531353431316337616161336635333830363437330042420f0000000000000200000000000000
++210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311d0000000000000068656b69742d746573742d717569636b2d707265666c696768742d7631010709000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311c0000000000000068656b69742d746573742d717569636b2d6964656e746974792d763101e700000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d763140000000000000006135366333316138373738646636333034643436376133643766326664663138343463386438643735313137656262303137633665366532633466666132366600160000000000000053594e5448455449432d524547495354524154494f4e110000000000000053594e5448455449432d50524f46494c45000000000000000000000000000000020000000000000000400000000000000064636666376431326264313938636365666333353734353264366632646232386235653365356266346462366633323534316163396532636461363639616564c202000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311b0000000000000068656b69742d73747564792d636173652d62696e64696e672d7631002800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463364000000000000000623763376164313036366333306363666132346330353336313364633335666335663736636261636234386562626139366437653464393037623132353032370040000000000000006231363833333736366663643135373666343561316236353665383837616162376538633563323432356639356631326563643038303961663666633162653040000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633900000000400000000000000062623031653062633761383362346531613561373766383337663930633032373038613664386565366666613530366133636332646333336562323764313964400000000000000064353933363839313562343235623433646136343736373062616430613665323963373864393234633462313237313762616666343138646465303633666339400000000000000063393662353236656336373561366333663432666237373061323437363764633163653336336465316562386530353734653930353965376332663134333862400000000000000064623631613732333638303965323461646262363033623962386132356465326234383762393637316130663166626132643537383138383166623061303162400000000000000066353033623162616337633135363237393037333565383064303463323666353766636232326532333231366638663732336331636332616132353635623333400000000000000039356138336364356431396332346462313961303165303132623732386537326466633165333133613036633435313438626566356431376465646136613430400000000000000030623765396234613737613965306336616161373138623233336234323966636437333037666339353631393564613264326264393562396336666261333164400000000000000032346130353863643139656432623136643136646130376561643339633539303439316631383364653434363735613833393037333062356632393038306339120000000000000053594e5448455449432d43414d504149474e110000000000000053594e5448455449432d50524f46494c45000000000000000001c901000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d746573742d676174652d636f6e73756d7074696f6e2d76310101000000000000000040000000000000006530306139303835353432343133303865333734663036383465626131383764653232353964366538323263343330633461633734633964356261393238666440000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633940000000000000003062376539623461373761396530633661616137313862323333623432396663643733303766633935363139356461326432626439356239633666626133316402000000000000000000000000000000000000000000000000000000000000000200000000000000020000000000000000000000000000000100000000000000000000000000000002000000000000000100000000000000000000000000000001000000000000000200000000000000030000000000000001000000000000000100000000000000000000000000000002000000000000004000000000000000376635623964393164656365363462663534643432333732353865643833396137303232626262363261326330326666636630366434303562336137303263639200000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311a0000000000000068656b69742d746573742d676174652d726571756573742d76310101010200000000000000000000000000010000000000400000000000000001000000000000000100000000000000040000000000000000000000000000000300000000000000400000000000000065303061393038353534323431333038653337346630363834656261313837646532323539643665383232633433306334616337346339643562613932386664400000000000000064346132376630643666643037663035336130653266323964386163613462306237396539353836666431353235396631623834633036383765373238636339110000000000000053594e5448455449432d415454454d50544000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439320300000000000000150000000000000053594e5448455449432d73747564792d747261696e07000000000000002d2d717569636b22000000000000002d2d726563656970743d2f73796e7468657469632fff726563656970742e6a736f6e4000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463362800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000666333396361333964383538383263343936393562653566303432353863333738656533303764313230326662363066666264346430623532346533376338664000000000000000663265626338343961353662363631333864663237363737653430313062616562653866336537346162376137393739396562623466383866376630663531394000000000000000386237323132396130636266613037623038613661396565653539363737633235383761653066323332336531353431316337616161336635333830363437330042420f0000000000000200000000000000
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.json
+index 55f9b8b..a762f31 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.preflight.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.preflight.json
+@@ -1 +1 @@
+-{"schema":"hekit-test-quick-preflight-v1","kind":"quick_preflight","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311d0000000000000068656b69742d746573742d717569636b2d707265666c696768742d7631010709000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311c0000000000000068656b69742d746573742d717569636b2d6964656e746974792d763101e700000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d763140000000000000006135366333316138373738646636333034643436376133643766326664663138343463386438643735313137656262303137633665366532633466666132366600160000000000000053594e5448455449432d524547495354524154494f4e110000000000000053594e5448455449432d50524f46494c45000000000000000000000000000000020000000000000000400000000000000064636666376431326264313938636365666333353734353264366632646232386235653365356266346462366633323534316163396532636461363639616564c202000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311b0000000000000068656b69742d73747564792d636173652d62696e64696e672d7631002800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463364000000000000000623763376164313036366333306363666132346330353336313364633335666335663736636261636234386562626139366437653464393037623132353032370040000000000000006231363833333736366663643135373666343561316236353665383837616162376538633563323432356639356631326563643038303961663666633162653040000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633900000000400000000000000062623031653062633761383362346531613561373766383337663930633032373038613664386565366666613530366133636332646333336562323764313964400000000000000064353933363839313562343235623433646136343736373062616430613665323963373864393234633462313237313762616666343138646465303633666339400000000000000063393662353236656336373561366333663432666237373061323437363764633163653336336465316562386530353734653930353965376332663134333862400000000000000064623631613732333638303965323461646262363033623962386132356465326234383762393637316130663166626132643537383138383166623061303162400000000000000066353033623162616337633135363237393037333565383064303463323666353766636232326532333231366638663732336331636332616132353635623333400000000000000039356138336364356431396332346462313961303165303132623732386537326466633165333133613036633435313438626566356431376465646136613430400000000000000030623765396234613737613965306336616161373138623233336234323966636437333037666339353631393564613264326264393562396336666261333164400000000000000032346130353863643139656432623136643136646130376561643339633539303439316631383364653434363735613833393037333062356632393038306339120000000000000053594e5448455449432d43414d504149474e110000000000000053594e5448455449432d50524f46494c45000000000000000001c901000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d746573742d676174652d636f6e73756d7074696f6e2d76310101000000000000000040000000000000006530306139303835353432343133303865333734663036383465626131383764653232353964366538323263343330633461633734633964356261393238666440000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633940000000000000003062376539623461373761396530633661616137313862323333623432396663643733303766633935363139356461326432626439356239633666626133316402000000000000000000000000000000000000000000000000000000000000000200000000000000020000000000000000000000000000000100000000000000000000000000000002000000000000000100000000000000000000000000000001000000000000000200000000000000030000000000000001000000000000000100000000000000000000000000000002000000000000004000000000000000376635623964393164656365363462663534643432333732353865643833396137303232626262363261326330326666636630366434303562336137303263639200000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311a0000000000000068656b69742d746573742d676174652d726571756573742d76310101010200000000000000000000000000010000000000400000000000000001000000000000000100000000000000040000000000000000000000000000000300000000000000400000000000000065303061393038353534323431333038653337346630363834656261313837646532323539643665383232633433306334616337346339643562613932386664400000000000000064346132376630643666643037663035336130653266323964386163613462306237396539353836666431353235396631623834633036383765373238636339110000000000000053594e5448455449432d415454454d50544000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439320200000000000000150000000000000053594e5448455449432d73747564792d747261696e07000000000000002d2d717569636b4000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463362800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000666333396361333964383538383263343936393562653566303432353863333738656533303764313230326662363066666264346430623532346533376338664000000000000000663265626338343961353662363631333864663237363737653430313062616562653866336537346162376137393739396562623466383866376630663531394000000000000000386237323132396130636266613037623038613661396565653539363737633235383761653066323332336531353431316337616161336635333830363437330042420f0000000000000200000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7"}}
++{"schema":"hekit-test-quick-preflight-v1","kind":"quick_preflight","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311d0000000000000068656b69742d746573742d717569636b2d707265666c696768742d7631010709000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311c0000000000000068656b69742d746573742d717569636b2d6964656e746974792d763101e700000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d73747564792d726567697374657265642d636173652d763140000000000000006135366333316138373738646636333034643436376133643766326664663138343463386438643735313137656262303137633665366532633466666132366600160000000000000053594e5448455449432d524547495354524154494f4e110000000000000053594e5448455449432d50524f46494c45000000000000000000000000000000020000000000000000400000000000000064636666376431326264313938636365666333353734353264366632646232386235653365356266346462366633323534316163396532636461363639616564c202000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311b0000000000000068656b69742d73747564792d636173652d62696e64696e672d7631002800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463364000000000000000623763376164313036366333306363666132346330353336313364633335666335663736636261636234386562626139366437653464393037623132353032370040000000000000006231363833333736366663643135373666343561316236353665383837616162376538633563323432356639356631326563643038303961663666633162653040000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633900000000400000000000000062623031653062633761383362346531613561373766383337663930633032373038613664386565366666613530366133636332646333336562323764313964400000000000000064353933363839313562343235623433646136343736373062616430613665323963373864393234633462313237313762616666343138646465303633666339400000000000000063393662353236656336373561366333663432666237373061323437363764633163653336336465316562386530353734653930353965376332663134333862400000000000000064623631613732333638303965323461646262363033623962386132356465326234383762393637316130663166626132643537383138383166623061303162400000000000000066353033623162616337633135363237393037333565383064303463323666353766636232326532333231366638663732336331636332616132353635623333400000000000000039356138336364356431396332346462313961303165303132623732386537326466633165333133613036633435313438626566356431376465646136613430400000000000000030623765396234613737613965306336616161373138623233336234323966636437333037666339353631393564613264326264393562396336666261333164400000000000000032346130353863643139656432623136643136646130376561643339633539303439316631383364653434363735613833393037333062356632393038306339120000000000000053594e5448455449432d43414d504149474e110000000000000053594e5448455449432d50524f46494c45000000000000000001c901000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311e0000000000000068656b69742d746573742d676174652d636f6e73756d7074696f6e2d76310101000000000000000040000000000000006530306139303835353432343133303865333734663036383465626131383764653232353964366538323263343330633461633734633964356261393238666440000000000000006434613237663064366664303766303533613065326632396438616361346230623739653935383666643135323539663162383463303638376537323863633940000000000000003062376539623461373761396530633661616137313862323333623432396663643733303766633935363139356461326432626439356239633666626133316402000000000000000000000000000000000000000000000000000000000000000200000000000000020000000000000000000000000000000100000000000000000000000000000002000000000000000100000000000000000000000000000001000000000000000200000000000000030000000000000001000000000000000100000000000000000000000000000002000000000000004000000000000000376635623964393164656365363462663534643432333732353865643833396137303232626262363261326330326666636630366434303562336137303263639200000000000000210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d76311a0000000000000068656b69742d746573742d676174652d726571756573742d76310101010200000000000000000000000000010000000000400000000000000001000000000000000100000000000000040000000000000000000000000000000300000000000000400000000000000065303061393038353534323431333038653337346630363834656261313837646532323539643665383232633433306334616337346339643562613932386664400000000000000064346132376630643666643037663035336130653266323964386163613462306237396539353836666431353235396631623834633036383765373238636339110000000000000053594e5448455449432d415454454d50544000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439320300000000000000150000000000000053594e5448455449432d73747564792d747261696e07000000000000002d2d717569636b22000000000000002d2d726563656970743d2f73796e7468657469632fff726563656970742e6a736f6e4000000000000000356164636635343663393236303538323536386535346131376663666136383964346636666134643865336430306362376164306233653631623666663463362800000000000000373564373033613365326338306162616337373034653866343261636564303465633965316661644000000000000000666333396361333964383538383263343936393562653566303432353863333738656533303764313230326662363066666264346430623532346533376338664000000000000000663265626338343961353662363631333864663237363737653430313062616562653866336537346162376137393739396562623466383866376630663531394000000000000000386237323132396130636266613037623038613661396565653539363737633235383761653066323332336531353431316337616161336635333830363437330042420f0000000000000200000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"6fb9de4d3f3e8eed8cc09fdc1df420ec6ffba3bb0fc18aab411bda5879c0d941"}}
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.bin b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.bin
+index 2e08040..c9645ad 100644
+Binary files a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.bin and b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.bin differ
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.hex b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.hex
+index 7382b65..4594d4a 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.hex
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.hex
+@@ -1 +1 @@
+-210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631190000000000000068656b69742d746573742d717569636b2d73746172742d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439324000000000000000366338313138366130626434366565373564613364376436383138393635653035383838616334376439373834386661363532346363643536323563353461394000000000000000383830333932313937626164373839303861323766626535653736626636616462626566356639393266356535633032323838366336653236636438653464370043420f0000000000000300000000000000
++210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631190000000000000068656b69742d746573742d717569636b2d73746172742d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439324000000000000000616335623466643731653330373966643066343263663839353130656264326233653861666632653862636432653664613633336566623066376161393162344000000000000000366662396465346433663365386565643863633039666463316466343230656336666662613362623066633138616162343131626461353837396330643934310043420f0000000000000300000000000000
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.json
+index 7361f2f..775687f 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/quick.start.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/quick.start.json
+@@ -1 +1 @@
+-{"schema":"hekit-test-quick-start-v1","kind":"quick_start","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631190000000000000068656b69742d746573742d717569636b2d73746172742d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439324000000000000000366338313138366130626434366565373564613364376436383138393635653035383838616334376439373834386661363532346363643536323563353461394000000000000000383830333932313937626164373839303861323766626535653736626636616462626566356639393266356535633032323838366336653236636438653464370043420f0000000000000300000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed"}}
++{"schema":"hekit-test-quick-start-v1","kind":"quick_start","synthetic":true,"canonical_bytes":"210000000000000068656b69742d73747564792d7265666572656e63652d656e636f64696e672d7631190000000000000068656b69742d746573742d717569636b2d73746172742d7631014000000000000000623837326539343438363938303164326437326161616565356232653834633436643464643133663361613431383635303362626338613762366562383963611100000000000000746573742d64372d696e707574732d76314000000000000000643062383035386463383035336337383831333734626632336334626333376266356330656332663161383735633537643234316135346337383565666666311900000000000000746573742d64372d696d706c656d656e746174696f6e2d76314000000000000000633133303864643164356463346238383066346539363932646537643135393365333062376135646336356466393630306136653436616162616466333664321100000000000000746573742d64372d6c61796f75742d76314000000000000000666533353066366130613438626532353938356162663566353831666265333839613632356165353935323334323137613531666638393762636638393661641300000000000000746573742d64372d7265736f757263652d76314000000000000000373034636162366266356633373736393331653761333736336333333065636235336362353037383930323230313661356337343033646132303061353663360f00000000000000746573742d64372d757365722d76314000000000000000316363633064376565643439333565306466333038383339326462646131666266653933633438346239373639623736373531306134373038653133613439324000000000000000616335623466643731653330373966643066343263663839353130656264326233653861666632653862636432653664613633336566623066376161393162344000000000000000366662396465346433663365386565643863633039666463316466343230656336666662613362623066633138616162343131626461353837396330643934310043420f0000000000000300000000000000","integrity":{"encoding":"hekit-study-reference-encoding-v1","hash":"sha256","payload_sha256":"d9c6619e1bdcae253d728ad7979dc10fef670b9602b4a6b0a0dd9c4273d7983e"}}
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/verification-report.json b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verification-report.json
+index b79fae7..6b1205c 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/verification-report.json
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verification-report.json
+@@ -1,11 +1,13 @@
+ {
+   "classification": "SYNTHETIC BYTE CONSISTENCY ONLY; NO PRODUCTION SEMANTIC VALIDATION",
+   "exit": 0,
+   "literal_records": 25,
+-  "primitive_spans_verified": 1134,
+-  "generation_manifest_files_verified": 129,
+-  "checksum_entries_verified": 133,
++  "primitive_spans_verified": 1135,
++  "generation_manifest_files_verified": 131,
++  "checksum_entries_verified": 135,
+   "quick_exact_event_links_verified": 3,
+   "source_or_HE_calls": 0,
++  "non_utf8_argument_positive_representations": 1,
++  "argv_single_byte_mismatch_oracles_verified": 1,
+   "mutation_rejections_executed": 0
+ }
+diff --git a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/verify_literals.py b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verify_literals.py
+index 567cc77..336aead 100644
+--- a/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-before-fix1/task-54-d7-gate-schema-vectors/verify_literals.py
++++ b/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/verify_literals.py
+@@ -85,42 +85,72 @@ for branch in ("full", "quick"):
+     assert sha(bytes.fromhex(u["user.current_bytes"])) == u["user.current_sha256"]
+ 
+ q = values("quick.identity")
+ for field, digest in (("registration", "registration_id"), ("execution", "execution_sha256"),
+                       ("consumed_plan", "consumed_plan_sha256"), ("request", "request_sha256")):
+     assert sha(bytes.fromhex(q[field])) == q[digest]
+ 
+ events = {}
++capture = json.loads((P / "captured-argv.json").read_text())
++captured_args = [bytes.fromhex(arg) for arg in capture["argv_hex"]]
++assert len(captured_args) <= 256
++assert all(len(arg) <= 4096 and b"\x00" not in arg for arg in captured_args)
++try:
++    captured_args[capture["non_utf8_argument_index"]].decode("utf-8")
++except UnicodeDecodeError:
++    pass
++else:
++    raise AssertionError("Non-UTF8 positive fixture must actually be invalid UTF8")
+ for kind in ("preflight", "start", "end"):
+     name = "quick." + kind
+     raw = (P / (name + ".json")).read_bytes()
+     doc = json.loads(raw)
+     canonical = bytes.fromhex(doc["canonical_bytes"])
+     assert canonical == (P / (name + ".bin")).read_bytes()
+     assert sha(canonical) == doc["integrity"]["payload_sha256"]
+     assert len(raw) <= 2097152 and len(canonical) <= 1048000
+     assert doc["synthetic"] is True
+     v = values(name)
++    if kind == "preflight":
++        assert v["argv.count"] == len(captured_args)
++        for i, arg in enumerate(captured_args):
++            field = next(f for f in inputs[name]["fields"] if f["path"] == "argv[%d]" % i)
++            assert field["type"] == "Bytes"
++            assert bytes.fromhex(field["value"]) == arg
+     assert v["identity_sha256"] == sha((P / "quick.identity.bin").read_bytes())
+     for gate in ("inputs", "implementation", "layout", "resource", "user"):
+         assert v["gates." + gate + ".evidence_sha256"] == sha((P / ("quick." + gate + ".evidence.bin")).read_bytes())
+     if kind != "preflight":
+         assert (v["preflight.file_sha256"], v["preflight.payload_sha256"]) == events["preflight"]
+     if kind == "end":
+         assert (v["start.file_sha256"], v["start.payload_sha256"]) == events["start"]
+         assert v["outcome"] == 0 and v["completed_updates"] == 2 and v["failure.present"] == 0
+     events[kind] = (sha(raw), sha(canonical))
+ 
++# Check literal mismatch without asserting any production parser/gate rejection.
++tamper = next(m for m in manifest["mutations"] if m["name"] == "argv-byte-tampering")
++before = (P / tamper["base"]).read_bytes()
++after = (P / tamper["file"]).read_bytes()
++assert len(before) == len(after)
++changes = [i for i, (x, y) in enumerate(zip(before, after)) if x != y]
++assert len(changes) == 1 and before[changes[0]] == 255 and after[changes[0]] == 254
++off = tamper["offset"]
++size = int.from_bytes(after[off:off+8], "little")
++assert after[off+8:off+8+size] != captured_args[2]
++assert sha(after) == tamper["sha256"]
++
+ checksum_count = 0
+ for line in (P / "SHA256SUMS").read_text().splitlines():
+     digest, path = line.split("  ", 1)
+     assert sha((P / path).read_bytes()) == digest, path
+     checksum_count += 1
+ 
+ result = {"classification": "SYNTHETIC BYTE CONSISTENCY ONLY; NO PRODUCTION SEMANTIC VALIDATION",
+           "exit": 0, "literal_records": len(inputs), "primitive_spans_verified": count,
+           "generation_manifest_files_verified": len(manifest["files"]),
+           "checksum_entries_verified": checksum_count,
+           "quick_exact_event_links_verified": 3, "source_or_HE_calls": 0,
++          "non_utf8_argument_positive_representations": 1,
++          "argv_single_byte_mismatch_oracles_verified": 1,
+           "mutation_rejections_executed": 0}
+ (P / "verification-report.json").write_text(json.dumps(result, indent=2) + "\n")
+ print(json.dumps(result, sort_keys=True))

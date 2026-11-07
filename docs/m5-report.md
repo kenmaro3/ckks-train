@@ -644,4 +644,12 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 実際のRetry readerは、現在と前回のadmissionの両方を同じ保持中のtarget／referenceと承認policyに照合してから、predecessor／startの整合性helperを組み合わせる必要がある。現在分のtarget確認だけでは足りず、前回のlock等を変更した拒否テストを次工程に残す。parserやhash一致は実gate・lease・実行開始権限にならない。保存protocol、durable start、Quick、科学結果publisherと全実験は未完了である。
 
+## 2026-11-07追記: 五つの証拠形式とQuick記録の確定
+
+[形式仕様・独立テスト値・レビュー](../results/validation/task54-d7-gate-schema-design/README.md)を保存し、FIX1の独立SPEC／QUALITYレビュー合格後に設計を確定した。五つの証拠はFull／Quickを必須分岐で区別し、Fullにはtarget／reference等を要求、Quickには別identityと2更新の消費を記録する。巨大なreceiptを重複保存せず、元のidentityと保持中の実体を照合する。
+
+資源の記録はpayload量、物理メモリの全体見積もり、既に保持している領域、追加で必要な領域、実際の容量観測を区別する。user記録は既存の指示・保留・取消状態をroot管理のcurrent記録に結び付け、新たな一律確認を要求しない。理由と代替案、具体的な保持・更新・再確認の条件を仕様に残した。実際の証拠reader、完全なメモリモデル、current記録の更新経路はまだ未実装である。
+
+初回レビューの重要指摘は、Quickの引数をTextとすると既存Unixバイト列を保存できない点だった。Bytesへ修正し、非UTF8の正例と1バイト変更の負例、依存するイベントリンクを更新した。元の136ファイルと既存Fullの78ファイルは保持した。14個の主要テスト値、計25レコード、22個の具体的負例を独立照合済みだが、production parserによる拒否テストや実gate・Quick実行の合格ではない。次はこの形式と保存・復旧仕様に沿った実装・検証へ進む。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

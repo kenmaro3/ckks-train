@@ -1,0 +1,15 @@
+{
+  "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+  "meaning": "Fictional retained Unix-byte argv for pure representation equality; not an actual process capture",
+  "argv_hex": [
+    "53594e5448455449432d73747564792d747261696e",
+    "2d2d717569636b",
+    "2d2d726563656970743d2f73796e7468657469632fff726563656970742e6a736f6e"
+  ],
+  "non_utf8_argument_index": 2,
+  "byte_tamper": {
+    "argument_index": 2,
+    "from_hex": "ff",
+    "to_hex": "fe"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "classification": "SYNTHETIC TEST ORACLE ONLY; NO LIVE CAPABILITY OR SCIENTIFIC/RESOURCE CLAIM",
+  "command": "python3 .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-gate-schema-vectors/generate.py",
+  "expected_exit": 0,
+  "core_vectors": {
+    "quick.identity": {
+      "bytes": 2311,
+      "canonical_sha256": "b872e944869801d2d72aaaee5b2e84c46d4dd13f3aa4186503bbc8a7b6eb89ca"
+    },
+    "full.inputs.evidence": {
+      "bytes": 3486,
+      "canonical_sha256": "5286b1a7dd10f97f38780797a6518c8f2646968a7514234ffd476b5af448b414"
+    },
+    "full.implementation.evidence": {
+      "bytes": 4962,
+      "canonical_sha256": "c4845f24991ef111d57336a8e643f99e92c95422a2c73e3d360bc992883d6e60"
+    },
+    "full.layout.evidence": {
+      "bytes": 3040,
+      "canonical_sha256": "fbb08ae16b1a253a37eaae5f3a8755ea6dc40d6e3b1a10e2c9a1639d4dab17eb"
+    },
+    "full.resource.evidence": {
+      "bytes": 4265,
+      "canonical_sha256": "988156ca6ec4dfbe2519f6ef3913299687b82df1efa49b8c04582129cfd4e3dd"
+    },
+    "full.user.evidence": {
+      "bytes": 3252,
+      "canonical_sha256": "80937a3e8f88b574de45e8efc29f29731aa6fc003fc042ea753788567e886692"
+    },
+    "quick.inputs.evidence": {
+      "bytes": 5571,
+      "canonical_sha256": "d0b8058dc8053c7881374bf23c4bc37bf5c0ec2f1a875c57d241a54c785efff1"
+    },
+    "quick.implementation.evidence": {
+      "bytes": 7138,
+      "canonical_sha256": "c1308dd1d5dc4b880f4e9692de7d1593e30b7a5dc65df9600a6e46aabadf36d2"
+    },
+    "quick.layout.evidence": {
+      "bytes": 5359,
+      "canonical_sha256": "fe350f6a0a48be25985abf5f581fbe389a625ae595234217a51ff897bcf896ad"
+    },
+    "quick.resource.evidence": {
+      "bytes": 6442,
+      "canonical_sha256": "704cab6bf5f3776931e7a3763c330ecb53cb50789022016a5c7403da200a56c6"
+    },
+    "quick.user.evidence": {
+      "bytes": 5429,
+      "canonical_sha256": "1ccc0d7eed4935e0df3088392dbda1fbfe93c484b9769b767510a4708e13a492"
+    },
+    "quick.preflight": {
+      "bytes": 3369,
+      "canonical_sha256": "880392197bad78908a27fbe5e76bf6adbbef5f992f5e5c022886c6e26cd8e4d7"
+    },
+    "quick.start": {
+      "bytes": 802,
+      "canonical_sha256": "b76fe8982c5596cfed6308ebd0344123126ec31df6b7af0a874138deac1be3ed"
+    },
+    "quick.end": {
+      "bytes": 954,
+      "canonical_sha256": "6169fa0135a27b778dd21500c5d1058f471ff9356d6ad58321741ff377e8eb14"
+    }
+  },
+  "counts": {
+    "binary_evidence": 10,
+    "quick_identity": 1,
+    "quick_events": 3,
+    "concrete_mutations": 21,
+    "mutation_specs": 16,
+    "old_full_files_unchanged": 78,
+    "all_literal_records": 25
+  },
+  "source_free_calls": {
+    "python_stdlib_generator_invocations": 1,
+    "project_encoder_imports": 0,
+    "Rust": 0,
+    "Cargo": 0,
+    "HE": 0,
+    "native_observer": 0,
+    "SSH": 0,
+    "parameters": 0,
+    "P1": 0,
+    "materializer": 0,
+    "registry": 0,
+    "live_gate_constructors": 0,
+    "production_positive_records": 0,
+    "scientific_outputs": 0
+  },
+  "validation": "assertions check byte lengths, scalar ranges, arithmetic, link construction, old file hashes; semantic mutation refusals are future tests, not executed here"
+}

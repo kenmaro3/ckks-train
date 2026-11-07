@@ -1,0 +1,29 @@
+{
+  "A": 2097152,
+  "K": 1048000,
+  "binary_A_allowed_length": 2097152,
+  "binary_A_plus_1_rejected_length": 2097153,
+  "quick_K_allowed_length": 1048000,
+  "quick_K_plus_1_rejected_length": 1048001,
+  "large_allocations": 0,
+  "quick_envelope": {
+    "preflight": {
+      "test_overhead": 267,
+      "production_overhead": 269,
+      "production_raw_at_K": 2096269,
+      "remaining_raw_whitespace_budget": 883
+    },
+    "start": {
+      "test_overhead": 259,
+      "production_overhead": 261,
+      "production_raw_at_K": 2096261,
+      "remaining_raw_whitespace_budget": 891
+    },
+    "end": {
+      "test_overhead": 255,
+      "production_overhead": 257,
+      "production_raw_at_K": 2096257,
+      "remaining_raw_whitespace_budget": 895
+    }
+  }
+}
