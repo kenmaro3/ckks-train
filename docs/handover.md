@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2053)。
+最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2154)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -843,3 +843,9 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 [実行開始条件の設計](study-gates-design.md)を、独立FIX1レビュー合格後に確定した。既存の正当性・セキュリティ条件を維持し、開始前の前提、鍵生成後の構成確認、精度・速度等の実測結果を区別する。本実験の結果を本実験の開始条件にする循環は作らない。Fullは実際のtarget／reference／thresholdを必須とし、Quickは別の運用identityと2更新分の消費を保持する。QuickからFullの実行権限へ変換できない閉じた分岐で、初回レビューの重要指摘を解消した。
 
 同一contextの識別と独立したlifetime、五つの実gate、durable startからCPU所有者への移譲を具体化した。既存user権限を記録するだけで新たな一律確認は要求しない。evidence sidecarの保存・途中失敗・復旧規則はprotocol実装前の必須事項として残す。設計の確定であり、gate／durable startの実装・実測ではない。科学しきい値、既存hold、全実験範囲は変更しない。
+
+<a id="latest-evidence-20261107-2154"></a>
+
+## 2026-11-07 21:55 JST追記: FULL-2の定期確認
+
+実際の確認時刻は2026-11-07T21:55:08.282123+09:00。R-41-FULL-2の最新ログはupdate 466で、完了更新は467/1000、ログ上のelapsedは66839秒だった。直近6更新は各1369 KS・4 bootstrap。固定した起動時刻と一致する自分のchain／後続queueは生存しており、最終結果JSONは未出力、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2154/README.md)を保存し、同じcontroller handle15031のterminal0まで確認した。再実行やjob／queue変更はしていない。次回の通常確認は22:55:09JST以降。途中経過であり、最終精度・RQ1の合格や後続計測完了とは扱わない。

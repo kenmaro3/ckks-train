@@ -614,4 +614,8 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 同一contextの識別と独立したlifetime、五つの実gate、durable startからCPU所有者への移譲を具体化した。既存user権限を記録するだけで新たな一律確認は要求しない。evidence sidecarの保存・途中失敗・復旧規則はprotocol実装前の必須事項として残す。設計の確定であり、gate／durable startの実装・実測ではない。科学しきい値、既存hold、全実験範囲は変更しない。
 
+## 2026-11-07 21:55 JST追記: FULL-2の定期確認
+
+実際の確認時刻は2026-11-07T21:55:08.282123+09:00。R-41-FULL-2の最新ログはupdate 466で、完了更新は467/1000、ログ上のelapsedは66839秒だった。直近6更新は各1369 KS・4 bootstrap。固定した起動時刻と一致する自分のchain／後続queueは生存しており、最終結果JSONは未出力、queueはowner.jsonのみだった。[元ログ・実行証跡](../results/quadruped/raw/R-41-FULL2-OBS-20261107-2154/README.md)を保存し、同じcontroller handle15031のterminal0まで確認した。再実行やjob／queue変更はしていない。次回の通常確認は22:55:09JST以降。途中経過であり、最終精度・RQ1の合格や後続計測完了とは扱わない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
