@@ -1,0 +1,17 @@
+{
+  "index": 7,
+  "name": "study_run::tests::d7_request_group_is_explicit_all_or_none_and_preserves_caps",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::d7_request_group_is_explicit_all_or_none_and_preserves_caps",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.846101,
+  "pid": 36530
+}

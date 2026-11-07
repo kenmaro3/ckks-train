@@ -1,0 +1,487 @@
+diff --git a/crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs b/crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs
+new file mode 100644
+index 0000000..da0f44f
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs
+@@ -0,0 +1,135 @@
++//! Metadata only: no keys, HE, native context, Linux stamp or readiness token.
++use super::*;
++use crate::study_admission::{Consumption, PlanningBudget, PlanningUsage};
++use crate::study_profile::{CaseBackend, CasePacking, CasePlacement, CaseRole, StudyRegistry};
++use ckks_train_ckks::EvalConfig;
++use ckks_train_nn::dense::TransposeKeys;
++use std::path::Path;
++#[test]
++fn d7_actual_route_six_sources_original_budget_and_owner_refusals() {
++    let registry =
++        StudyRegistry::load(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap();
++    let cases = registry.registered_cases().unwrap();
++    for stages in 1..=3 {
++        let id = format!("iris__emlp{stages}");
++        let materialized =
++            crate::study_inputs::materialize(&registry.resolve(&id, 0).unwrap()).unwrap();
++        let other_materialized =
++            crate::study_inputs::materialize(&registry.resolve(&id, 0).unwrap()).unwrap();
++        for ni in [false, true] {
++            let case = cases
++                .family_cases()
++                .iter()
++                .find(|c| {
++                    c.role() == CaseRole::Main
++                        && c.selector().backend == CaseBackend::Cpu
++                        && c.selector().profile_id == id
++                        && c.selector().seed == 0
++                        && c.selector().packing == CasePacking::BatchedDiagonal
++                        && c.selector().placement
++                            == if ni {
++                                CasePlacement::WhenNeeded
++                            } else {
++                                CasePlacement::ClientRefresh
++                            }
++                })
++                .unwrap();
++            let parameters = RegisteredCpuParameters::for_case(case).unwrap().unwrap();
++            let actual = parameters.actual();
++            let request = DiagonalRequest {
++                consumption: Consumption::Quick,
++                physical_lanes: None,
++                transpose: TransposeKeys::Dedicated,
++                eval_config: EvalConfig::OPTIMIZED,
++                partitions: None,
++                limits: ReceiptLimits {
++                    max_bytes: 64 << 20,
++                    max_records: 1000000,
++                },
++                work_budget: Arc::new(PlanningBudget::new(PlanningUsage {
++                    geometries: 2 * stages,
++                    initial_states: 2 * stages,
++                    updates: 2 * stages,
++                    handoffs: 2 * (stages - 1),
++                    wrapper_calls: 1,
++                })),
++            };
++            let budget = request.work_budget.clone();
++            let plan = Arc::new(
++                crate::study_admission::plan_diagonal(&materialized, case, actual, &request)
++                    .unwrap(),
++            );
++            let route = PreparedCpuRoute::prepare(CanonicalPreparationInput {
++                materialized: &materialized,
++                registered: case,
++                plan: plan.clone(),
++                request: &request,
++                actual,
++            })
++            .unwrap();
++            assert_eq!(route.is_block(), stages > 1);
++            assert_eq!(route.bootstrap_engine(), u8::from(ni));
++            assert!(std::ptr::eq(route.facts().parameters(), actual.params));
++            assert!(std::ptr::eq(route.facts().plan(), plan.as_ref()));
++            route.require_owners(&materialized, case, &request).unwrap();
++            let copy = request.clone();
++            assert!(route.require_owners(&materialized, case, &copy).is_err());
++            assert!(
++                route
++                    .require_owners(&other_materialized, case, &request)
++                    .is_err()
++            );
++            let other_case = cases
++                .family_cases()
++                .iter()
++                .find(|other| other.selector().profile_id == id && other.selector().seed == 1)
++                .unwrap();
++            assert!(
++                route
++                    .require_owners(&materialized, other_case, &request)
++                    .is_err()
++            );
++            let mut wrong_actual = actual;
++            wrong_actual.bootstrap = if ni { None } else { actual.bootstrap };
++            if ni {
++                let wrong = PreparedCpuRoute::prepare(CanonicalPreparationInput {
++                    materialized: &materialized,
++                    registered: case,
++                    plan: plan.clone(),
++                    request: &request,
++                    actual: wrong_actual,
++                });
++                assert!(wrong.is_err());
++            }
++            assert!(Arc::ptr_eq(&budget, &request.work_budget));
++            assert_eq!(
++                budget.usage(),
++                PlanningUsage {
++                    geometries: 2 * stages,
++                    initial_states: 2 * stages,
++                    updates: 2 * stages,
++                    handoffs: 2 * (stages - 1),
++                    wrapper_calls: 1,
++                }
++            );
++            let again = PreparedCpuRoute::prepare(CanonicalPreparationInput {
++                materialized: &materialized,
++                registered: case,
++                plan: plan.clone(),
++                request: &request,
++                actual,
++            });
++            assert!(again.is_err());
++            assert_eq!(request.limits.max_bytes, 64 << 20);
++            assert_eq!(request.limits.max_records, 1000000);
++            assert_eq!(route.accounting_live_temporary(), 0);
++        }
++    }
++    for case in cases.family_cases().iter().filter(|c| {
++        c.role() != CaseRole::Main
++            || c.selector().backend != CaseBackend::Cpu
++            || c.selector().packing != CasePacking::BatchedDiagonal
++    }) {
++        assert!(RegisteredCpuParameters::for_case(case).unwrap().is_none());
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_binding.rs b/crates/ckks-train-bench/src/study_reference/document/execution_binding.rs
+new file mode 100644
+index 0000000..3fac849
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_binding.rs
+@@ -0,0 +1,210 @@
++//! Exact outer wire and retained actual CPU producer. Parsed claims are inert.
++use super::execution_descriptors::traverse_domain;
++use super::runtime_descriptors::{CpuPolicyProjection, DescriptorBytes, PhysicalDescriptor};
++use super::*;
++use crate::study_admission::GeometryWriter;
++use crate::study_client::{CpuPreparationError, CpuPreparationResult};
++use crate::study_execution::{ActualBindingDescriptors, PreparedCpuRoute};
++use crate::study_provenance::RecheckedTrainCapture;
++use ckks_train_ckks::EvalConfig;
++const BINDING: &str = "hekit-study-case-binding-v1";
++// Borrowed transport fields only. No DTO constructs an actual route or readiness.
++pub(super) struct ExecutionFields<'a> {
++    pub(super) implementation: u8,
++    pub(super) revision: &'a str,
++    pub(super) manifest: &'a str,
++    pub(super) parameter: &'a str,
++    pub(super) bootstrap: Option<&'a str>,
++    pub(super) layout: &'a str,
++    pub(super) trainer: &'a str,
++    pub(super) eval: EvalConfig,
++    pub(super) engine: u8,
++    pub(super) keys: &'a str,
++    pub(super) security: &'a str,
++    pub(super) physical: &'a str,
++    pub(super) runtime: &'a str,
++}
++impl ExecutionFields<'_> {
++    fn write(&self, w: &mut execution_descriptors::Writer) -> Result<()> {
++        ensure(
++            self.implementation <= 4 && self.engine <= 3,
++            DocumentErrorCode::UnsupportedTag,
++            "binding.tags",
++        )?;
++        ensure(
++            self.revision.len() <= 128,
++            DocumentErrorCode::TooLarge,
++            "binding.revision",
++        )?;
++        w.tag(self.implementation)?;
++        w.text(self.revision)?;
++        w.hash(self.manifest)?;
++        w.hash(self.parameter)?;
++        w.optional_hash(self.bootstrap)?;
++        w.hash(self.layout)?;
++        w.hash(self.trainer)?;
++        w.boolean(self.eval.hoist)?;
++        w.boolean(self.eval.bsgs)?;
++        w.boolean(self.eval.lazy_relin)?;
++        w.tag(self.engine)?;
++        w.hash(self.keys)?;
++        w.hash(self.security)?;
++        w.hash(self.physical)?;
++        w.hash(self.runtime)
++    }
++    #[cfg(test)]
++    pub(super) fn traverse(&self, output: bool) -> Result<(usize, Vec<u8>)> {
++        traverse_domain(None, output, |w| self.write(w))
++    }
++    fn binding_size(&self) -> Result<usize> {
++        Ok(traverse_domain(Some(BINDING), false, |w| self.write(w))?.0)
++    }
++    pub(super) fn binding_bytes(&self) -> Result<Vec<u8>> {
++        Ok(traverse_domain(Some(BINDING), true, |w| self.write(w))?.1)
++    }
++}
++// Mutates only the descriptor tail of the complete retained route. This never
++// returns a detached proof or success state, and cannot construct gate authority.
++pub(crate) fn bind_actual_cpu(
++    route: &mut PreparedCpuRoute<'_, '_>,
++    capture: &RecheckedTrainCapture<'_>,
++    physical: &PhysicalDescriptor,
++) -> CpuPreparationResult<()> {
++    let document = CpuPreparationError::Descriptor;
++    let provenance = |_| crate::study_diagonal::mismatch("actual capture/source/runtime");
++    let (materialized, case, request) = route.owners();
++    route.require_owners(materialized, case, request)?;
++    let (shared, selected) = crate::study_reference::identity_payload_sizes(materialized)
++        .map_err(|_| crate::study_diagonal::mismatch("capture identity sizing"))?;
++    // derive_identities retains two buffers and four hash strings; the existing
++    // checked_materialized_facts then copies five hashes before those drop.
++    let identity_recheck = crate::study_execution::sum([shared, selected, 4 * 64, 5 * 64])?;
++    {
++        let (_, _, accounting) = route.binding_parts();
++        let _reservation = accounting.reserve(identity_recheck)?;
++        capture
++            .recheck_binding_owners(case, materialized)
++            .map_err(provenance)?;
++    }
++    let before = capture.runtime_descriptor_facts().map_err(provenance)?;
++    let projection = CpuPolicyProjection::actual(route, &before, physical).map_err(document)?;
++    let engine = route.bootstrap_engine();
++    let context = capture.artifact_context();
++    let source = context.train_source_manifest_bytes().map_err(provenance)?;
++    // Borrow exact source/P1/plan bytes. Sizing uses fixed-width placeholders;
++    // they cannot reach output, and no full transcript is copied or hashed yet.
++    let (descriptors, facts, accounting) = route.binding_parts();
++    ensure(
++        descriptors.actual_binding.is_none(),
++        DocumentErrorCode::CrossLinkMismatch,
++        "binding.already_retained",
++    )
++    .map_err(document)?;
++    let eval = facts.geometry(0).eval_config();
++    for stage in 1..facts.stage_count() {
++        ensure(
++            facts.geometry(stage).eval_config() == eval,
++            DocumentErrorCode::CrossLinkMismatch,
++            "binding.stage_eval",
++        )
++        .map_err(document)?;
++    }
++    const HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";
++    let fields = |manifest, trainer, runtime| ExecutionFields {
++        implementation: 0,
++        revision: context.source_commit(),
++        manifest,
++        parameter: &descriptors.parameter_digest,
++        bootstrap: descriptors.bootstrap_digest.as_deref(),
++        layout: &descriptors.layout_digest,
++        trainer,
++        eval,
++        engine,
++        keys: &descriptors.keys_digest,
++        security: &descriptors.security_digest,
++        physical: physical.sha256(),
++        runtime,
++    };
++    let runtime_size = projection.size().map_err(document)?;
++    let outer_size = fields(HASH, HASH, HASH).binding_size().map_err(document)?;
++    let (retained_payload, peak) = binding_payload(
++        runtime_size,
++        outer_size,
++        projection.temporary_payload(),
++        identity_recheck,
++    )?;
++    let mut reservation = accounting.reserve(peak)?;
++    let digest = |bytes: &[u8]| {
++        crate::data::try_sha256_hex(bytes)
++            .map_err(|_| crate::study_execution::AccountingError::Allocation)
++    };
++    let manifest = digest(source)?;
++    ensure(
++        manifest == context.source_manifest_sha256(),
++        DocumentErrorCode::CrossLinkMismatch,
++        "binding.source_manifest",
++    )
++    .map_err(document)?;
++    let trainer = digest(facts.plan().canonical_bytes())?;
++    let runtime = projection.encode_retained(&before).map_err(document)?;
++    let execution = DescriptorBytes::new(
++        fields(&manifest, &trainer, runtime.sha256())
++            .binding_bytes()
++            .map_err(document)?,
++    )
++    .map_err(document)?;
++    ensure(
++        runtime.canonical_bytes().len() == runtime_size
++            && execution.canonical_bytes().len() == outer_size,
++        DocumentErrorCode::CrossLinkMismatch,
++        "binding.size_changed",
++    )
++    .map_err(document)?;
++    // Recheck the same original owners/capture/source/runtime after projection.
++    // No fake gate recheck is implied by these actual provenance rechecks.
++    let after = capture.runtime_descriptor_facts().map_err(provenance)?;
++    ensure(
++        std::ptr::eq(before.host(), after.host())
++            && before.execution_threads() == after.execution_threads()
++            && before.recipe() == after.recipe(),
++        DocumentErrorCode::CrossLinkMismatch,
++        "binding.runtime_changed",
++    )
++    .map_err(document)?;
++    ensure(
++        std::ptr::eq(
++            source,
++            context.train_source_manifest_bytes().map_err(provenance)?,
++        ),
++        DocumentErrorCode::CrossLinkMismatch,
++        "binding.source_owner",
++    )
++    .map_err(document)?;
++    // Free temporary hash strings before releasing that part of the reservation.
++    drop(trainer);
++    drop(manifest);
++    capture
++        .recheck_binding_owners(case, materialized)
++        .map_err(provenance)?;
++    reservation.retain(retained_payload)?;
++    descriptors.actual_binding = Some(ActualBindingDescriptors { runtime, execution });
++    drop(reservation);
++    Ok(())
++}
++
++// Exact application payload live intervals: runtime encoding (policy strings),
++// outer encoding (two temporary hashes), then capture identity recheck. This is
++// requested payload, not allocator capacity, context/OS inventory work or RSS.
++pub(super) fn binding_payload(
++    runtime: usize,
++    outer: usize,
++    policy_strings: usize,
++    identity_recheck: usize,
++) -> crate::study_execution::AccountingResult<(usize, usize)> {
++    use crate::study_execution::sum;
++    let retained = sum([runtime, outer, 2 * 64])?;
++    let runtime_phase = sum([runtime, 64, 2 * 64, policy_strings])?;
++    let outer_phase = sum([retained, 2 * 64])?;
++    let recheck_phase = sum([retained, identity_recheck])?;
++    Ok((retained, runtime_phase.max(outer_phase).max(recheck_phase)))
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs b/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
+new file mode 100644
+index 0000000..9107ee7
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
+@@ -0,0 +1,124 @@
++//! Independent frozen outer fixtures; fictional claims never supply actual owners.
++use super::execution_binding::ExecutionFields;
++use ckks_train_ckks::EvalConfig;
++use serde_json::Value;
++fn fixture(name: &str) -> String {
++    std::fs::read_to_string(
++        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
++            .join("src/study_reference/target_goldens")
++            .join(name),
++    )
++    .unwrap()
++}
++fn literal(s: &str) -> Vec<u8> {
++    s.trim()
++        .as_bytes()
++        .chunks_exact(2)
++        .map(|v| u8::from_str_radix(std::str::from_utf8(v).unwrap(), 16).unwrap())
++        .collect()
++}
++#[test]
++fn d7_outer_six_frozen_independent_vectors() {
++    for branch in 0..6 {
++        let v: Value = serde_json::from_str(&fixture(&format!("branch-{branch}.json"))).unwrap();
++        let e = &v["execution"];
++        let s = |k: &str| e[k].as_str().unwrap();
++        let f = ExecutionFields {
++            implementation: match s("implementation") {
++                "main_diagonal" => 0,
++                "matched_row2020" => 1,
++                "matched_diagonal2020" => 2,
++                "packed_c" => 3,
++                "external_b" => 4,
++                _ => panic!(),
++            },
++            revision: s("implementation_revision"),
++            manifest: s("implementation_manifest_sha256"),
++            parameter: s("parameter_identity_sha256"),
++            bootstrap: e["bootstrap_descriptor_sha256"].as_str(),
++            layout: s("layout_plan_sha256"),
++            trainer: s("trainer_plan_sha256"),
++            eval: EvalConfig {
++                hoist: e["eval_config"]["hoist"].as_bool().unwrap(),
++                bsgs: e["eval_config"]["bsgs"].as_bool().unwrap(),
++                lazy_relin: e["eval_config"]["lazy_relin"].as_bool().unwrap(),
++            },
++            engine: match s("bootstrap_engine") {
++                "none" => 0,
++                "host" => 1,
++                "native_cuda" => 2,
++                "upstream" => 3,
++                _ => panic!(),
++            },
++            keys: s("key_policy_sha256"),
++            security: s("security_policy_sha256"),
++            physical: s("physical_binding_sha256"),
++            runtime: s("runtime_policy_sha256"),
++        };
++        let (n, body) = f.traverse(true).unwrap();
++        assert_eq!(n, f.traverse(false).unwrap().0);
++        assert_eq!(
++            body,
++            literal(&fixture(&format!("execution-{branch}.canonical.hex")))
++        );
++        let binding = f.binding_bytes().unwrap();
++        assert_eq!(
++            crate::data::sha256_hex(&binding),
++            v["execution_binding_sha256"].as_str().unwrap()
++        );
++        if branch == 0 {
++            assert_eq!(binding, literal(&fixture("case-binding.canonical.hex")));
++        }
++    }
++}
++
++#[test]
++fn d7_outer_payload_checked_live_intervals() {
++    use super::execution_binding::binding_payload;
++    assert_eq!(binding_payload(209, 680, 101, 1000).unwrap(), (1017, 2017));
++    assert_eq!(binding_payload(209, 680, 101, 0).unwrap(), (1017, 1145));
++    assert!(binding_payload(usize::MAX, 680, 101, 1000).is_err());
++    assert!(binding_payload(209, 680, usize::MAX, 1000).is_err());
++    assert!(binding_payload(209, 680, 101, usize::MAX).is_err());
++}
++
++#[test]
++fn d7_outer_transport_bounds_refuse_without_route_authority() {
++    const H: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
++    let fields = || ExecutionFields {
++        implementation: 0,
++        revision: "fixture",
++        manifest: H,
++        parameter: H,
++        bootstrap: None,
++        layout: H,
++        trainer: H,
++        eval: EvalConfig::OPTIMIZED,
++        engine: 0,
++        keys: H,
++        security: H,
++        physical: H,
++        runtime: H,
++    };
++    let mut f = fields();
++    f.implementation = 5;
++    assert!(f.binding_bytes().is_err());
++    let mut f = fields();
++    f.engine = 4;
++    assert!(f.binding_bytes().is_err());
++    let revision = "x".repeat(129);
++    let mut f = fields();
++    f.revision = &revision;
++    assert!(f.binding_bytes().is_err());
++    for bad in [
++        "a",
++        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
++    ] {
++        let mut f = fields();
++        f.parameter = bad;
++        assert!(f.binding_bytes().is_err());
++        let mut f = fields();
++        f.bootstrap = Some(bad);
++        assert!(f.binding_bytes().is_err());
++    }
++}

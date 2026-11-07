@@ -1,0 +1,34 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved import `super::execution_binding`
+ --> crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs:2:12
+  |
+2 | use super::execution_binding::ExecutionFields;
+  |            ^^^^^^^^^^^^^^^^^ could not find `execution_binding` in `super`
+
+error[E0433]: failed to resolve: use of undeclared type `RegisteredCpuParameters`
+  --> crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs:22:30
+   |
+22 |             let parameters = RegisteredCpuParameters::for_case(case).unwrap().unwrap();
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `RegisteredCpuParameters`
+
+error[E0433]: failed to resolve: use of undeclared type `PreparedCpuRoute`
+  --> crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs:35:25
+   |
+35 |             let route = PreparedCpuRoute::prepare(CanonicalPreparationInput {
+   |                         ^^^^^^^^^^^^^^^^ use of undeclared type `PreparedCpuRoute`
+
+error[E0433]: failed to resolve: use of undeclared type `PreparedCpuRoute`
+  --> crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs:50:25
+   |
+50 |             let again = PreparedCpuRoute::prepare(CanonicalPreparationInput {
+   |                         ^^^^^^^^^^^^^^^^ use of undeclared type `PreparedCpuRoute`
+
+error[E0433]: failed to resolve: use of undeclared type `RegisteredCpuParameters`
+  --> crates/ckks-train-bench/src/study_execution/actual_binding_tests.rs:63:17
+   |
+63 |         assert!(RegisteredCpuParameters::for_case(case).unwrap().is_none());
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^ use of undeclared type `RegisteredCpuParameters`
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `ckks-train-bench` (lib test) due to 5 previous errors

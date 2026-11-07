@@ -1,0 +1,4 @@
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-ckks)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-nn)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.95s

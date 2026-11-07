@@ -1,0 +1,34 @@
+{
+  "index": 1,
+  "name": "study_run::tests::study_run_explicit_options_and_runtime_forms",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_explicit_options_and_runtime_forms",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057421.994457,
+  "pid": 36363,
+  "exit_code": 0,
+  "end": 1794057425.885673,
+  "named_successes": [
+    "study_run::tests::study_run_explicit_options_and_runtime_forms"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 189,
+  "stdout_sha256": "dceb28e31a0e05fcc49a8f13a24b7a77d02fd2c775b6f701c09a0baad97b1f6e",
+  "stderr_bytes": 262,
+  "stderr_sha256": "84c85d004be464c401b54b07441e0b05cdbca1f6e0aef75494ebde7cb7475165"
+}

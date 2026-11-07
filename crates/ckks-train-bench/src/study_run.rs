@@ -9,14 +9,14 @@ use std::{collections::BTreeMap, ffi::OsString, fmt, os::unix::ffi::OsStrExt, pa
 /// An owned refusal diagnostic; this frontend has no successful execution state.
 #[derive(Debug, PartialEq, Eq)]
 pub enum RunDiagnostic {
-    /// Real D7 descriptors, gate leases and checked execution remain unavailable.
+    /// Genuine live gate leases, admission/start and checked execution remain unavailable.
     MissingExecutionDependency,
 }
 impl fmt::Display for RunDiagnostic {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingExecutionDependency => f.write_str(
-                "missing execution dependency: D7 checked binding, descriptors and gates",
+                "missing execution dependency: live gates, admission, durable start and scientific execution",
             ),
         }
     }
@@ -37,6 +37,7 @@ struct ParsedRequest {
     receipts: Vec<PathBuf>,
     case: CaseSelector,
     runtime: RuntimeRequest,
+    planning: Option<crate::study_admission::DiagonalRequest>,
 }
 fn require(ok: bool, why: &'static str) -> Result<(), RequestError> {
     if ok { Ok(()) } else { Err(RequestError(why)) }
@@ -101,6 +102,21 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
                     | "--runtime"
                     | "--workers"
                     | "--device-ordinal"
+                    | "--consumption"
+                    | "--physical-lanes"
+                    | "--transpose"
+                    | "--transpose-pool"
+                    | "--eval-hoist"
+                    | "--eval-bsgs"
+                    | "--eval-lazy-relin"
+                    | "--partitions"
+                    | "--receipt-max-bytes"
+                    | "--receipt-max-records"
+                    | "--work-geometries"
+                    | "--work-initial-states"
+                    | "--work-updates"
+                    | "--work-handoffs"
+                    | "--work-wrappers"
             ),
             "unknown option",
         )?;
@@ -173,6 +189,7 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
         }
         _ => return Err(RequestError("unknown runtime form")),
     };
+    let planning = parse_planning(&fields, case.seed)?;
     let approval_sha256 = semantic("--approval-sha256")?;
     require(
         approval_sha256.len() == 64
@@ -194,7 +211,118 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
         receipts,
         case,
         runtime,
+        planning,
     })
+}
+// The complete group is an untrusted immutable request, never gate authority.
+fn parse_planning(
+    fields: &BTreeMap<String, OsString>,
+    seed: u64,
+) -> Result<Option<crate::study_admission::DiagonalRequest>, RequestError> {
+    use crate::study_admission::{
+        Consumption, DiagonalRequest, PlanningBudget, PlanningUsage, ReceiptLimits,
+    };
+    use ckks_train_ckks::EvalConfig;
+    use ckks_train_nn::dense::TransposeKeys;
+    const GROUP: [&str; 15] = [
+        "--consumption",
+        "--physical-lanes",
+        "--transpose",
+        "--transpose-pool",
+        "--eval-hoist",
+        "--eval-bsgs",
+        "--eval-lazy-relin",
+        "--partitions",
+        "--receipt-max-bytes",
+        "--receipt-max-records",
+        "--work-geometries",
+        "--work-initial-states",
+        "--work-updates",
+        "--work-handoffs",
+        "--work-wrappers",
+    ];
+    let supplied = GROUP.iter().filter(|k| fields.contains_key(**k)).count();
+    if supplied == 0 {
+        return Ok(None);
+    }
+    require(supplied == GROUP.len(), "partial planning option group")?;
+    let get = |key: &str| text(fields.get(key).expect("complete planning group"));
+    let number = |key: &str| -> Result<usize, RequestError> {
+        usize::try_from(integer(get(key)?)?).map_err(|_| RequestError("planning integer overflow"))
+    };
+    let flag = |key: &str| -> Result<bool, RequestError> {
+        match get(key)? {
+            "0" => Ok(false),
+            "1" => Ok(true),
+            _ => Err(RequestError("invalid planning flag")),
+        }
+    };
+    let consumption = match get("--consumption")? {
+        "full" => Consumption::Full,
+        "quick" => {
+            require(seed == 0, "Quick consumption requires seed0")?;
+            Consumption::Quick
+        }
+        _ => return Err(RequestError("unknown consumption")),
+    };
+    let physical_lanes = if get("--physical-lanes")? == "auto" {
+        None
+    } else {
+        let n = number("--physical-lanes")?;
+        require(n > 0, "physical lanes must be positive")?;
+        Some(n)
+    };
+    let pool = get("--transpose-pool")?;
+    let transpose = match get("--transpose")? {
+        "dedicated" => {
+            require(pool == "none", "dedicated transpose requires none")?;
+            TransposeKeys::Dedicated
+        }
+        "reuse" => {
+            require(
+                !pool.is_empty() && pool != "none",
+                "reuse requires explicit pool",
+            )?;
+            let pool = pool
+                .split(',')
+                .map(|s| {
+                    let n = s
+                        .parse::<i32>()
+                        .map_err(|_| RequestError("invalid transpose step"))?;
+                    require(n.to_string() == s, "noncanonical transpose step")?;
+                    Ok(n)
+                })
+                .collect::<Result<Vec<_>, RequestError>>()?;
+            TransposeKeys::Reuse(pool)
+        }
+        _ => return Err(RequestError("unknown transpose policy")),
+    };
+    require(
+        get("--partitions")? == "contiguous",
+        "unknown partition policy",
+    )?;
+    Ok(Some(DiagonalRequest {
+        consumption,
+        physical_lanes,
+        transpose,
+        eval_config: EvalConfig {
+            hoist: flag("--eval-hoist")?,
+            bsgs: flag("--eval-bsgs")?,
+            lazy_relin: flag("--eval-lazy-relin")?,
+        },
+        partitions: None,
+        limits: ReceiptLimits {
+            max_bytes: number("--receipt-max-bytes")?,
+            max_records: number("--receipt-max-records")?,
+        },
+        work_budget: std::sync::Arc::new(PlanningBudget::new(PlanningUsage {
+            geometries: number("--work-geometries")?,
+            initial_states: number("--work-initial-states")?,
+            updates: number("--work-updates")?,
+            handoffs: number("--work-handoffs")?,
+            wrapper_calls: number("--work-wrappers")?,
+        })),
+    }))
 }
 /// Parse explicit arguments excluding argv0 and enter the one concrete dispatcher.
 /// Returns only an owned refusal or error; emits no artifacts and grants no capability.
@@ -204,6 +332,7 @@ pub fn run(args: Vec<OsString>) -> Result<RunDiagnostic, RequestError> {
         locations: ContextRequest::new(r.root, r.approval, r.approval_sha256, r.receipts),
         runtime: r.runtime,
         case: r.case,
+        planning: r.planning,
     };
     match study_runtime::dispatch(request).map_err(|_| {
         RequestError("study runtime/context/registration unavailable or inconsistent")

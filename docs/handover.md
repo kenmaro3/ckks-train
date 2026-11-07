@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-07 時点)
 
-最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [固定CPU処理](#latest-evidence-20261107-d7-fixed-cpu)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2154)。
+最新の設計: [実行開始条件とFull／Quick](#latest-evidence-20261107-d7-live-gates)。最新の実装: [明示requestと実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261107-2154)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -857,3 +857,15 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 [証拠ファイルの保存・復旧設計](study-gates-design.md#6-evidence-custody-and-recovery)を独立レビュー合格後に確定した。五つの固定binary sidecarをguard取得・実行対象の適格性確認後、admissionより前に順序どおり保存し、同じファイルとbytesをstart／beginまで保持する。途中失敗の空・一部保存状態を成功や未使用に戻さず、完全な記録だけを検査・再同期する。Quickは別の運用用namespaceとInitial-onlyの処理を持ち、Fullのtargetや実行権限へ変換しない。
 
 これで設計上のM1（保存場所・順序・途中失敗・復旧）が解消した。新しいevidence／Quick形式の独立テスト値と具体的な障害注入手順、protocol実装、Linux実測は未完了である。数値ゲートや既存user権限を変更せず、新たな一律確認も要求しない。
+
+<a id="latest-evidence-20261107-d7-actual-binding"></a>
+
+## 2026-11-07追記: 明示requestと実CPU構成の接続
+
+[実装・検証証跡](../results/validation/task54-d7-actual-binding/README.md)を保存した。CLIの計画指定を全項目必須の一組として受け取り、実際の登録条件からCPU parameter／P1を生成し、同じ入力・request・plan・単一段／複数段の準備結果を保持する経路を接続した。実runtimeと同じcaptureからRuntimePolicy／ExecutionBindingを作る処理を追加し、そのbytesと一時payloadを元の計上owner・制限内で保持する。指定がない既存の検査呼出しは維持し、部分指定は拒否する。
+
+独立ソースレビュー、default／parallel／cudaのno-runとstrict Clippy、formatが合格した。対象17件をdefault featureで一度ずつ逐次実行し、全件が指定した1件を選択して合格、Cargo子プロセス17件と元controller session13446の終了コードは0だった。494個のsource／input pinと34個の生ログ（計6441 bytes）を照合し、結果記録の独立レビューも合格した。
+
+対象はCLI・凍結wire形式・payload境界・未対応経路の拒否・Iris emlp1／2／3のI／NI各3ケースのcanonical準備とowner／budget確認である。テスト17の間接呼出しを含むBootParams生成27回、乱数初期化24回、NTT表216個などは元inventoryを訂正する補足として記録した。処理回数はsourceとassertionに基づき、独立イベント計測ではない。CLIのfresh usage確認だけでは設定された五つのwork capを証明しない軽微なcoverage debtを残す。値の引渡しはsourceで確認済みで、手動構築budgetの枯渇テストと区別する。
+
+実際のnative contextによるbind_actual_cpu／run_owned成功、暗号学習、GPU、実gate・durable startは未実行であり、productionはMissingExecutionDependencyを維持する。残りは五つの実gateと証拠reader、admission／startの保存、開始後の所有者・lease接続、科学結果publisher、全実験である。Task54／M4／M5全体や物理メモリ適合の合格とはしない。

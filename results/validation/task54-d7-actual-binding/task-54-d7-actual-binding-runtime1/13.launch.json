@@ -1,0 +1,17 @@
+{
+  "index": 13,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_four_independent_literals",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::runtime_descriptor_tests::synthetic_descriptor_four_independent_literals",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057427.958783,
+  "pid": 36545
+}

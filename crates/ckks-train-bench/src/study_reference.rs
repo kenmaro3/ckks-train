@@ -6,7 +6,8 @@
 mod digests;
 mod document;
 pub(crate) use document::{
-    collect_block_preparation_descriptors, collect_single_preparation_descriptors,
+    DescriptorBytes, bind_actual_cpu, collect_block_preparation_descriptors,
+    collect_single_preparation_descriptors,
 };
 mod publication;
 mod session;

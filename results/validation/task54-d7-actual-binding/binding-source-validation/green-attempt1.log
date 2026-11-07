@@ -1,0 +1,43 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0624]: method `current_build_facts` is private
+    --> crates/ckks-train-bench/src/study_reference/document/execution_binding.rs:91:32
+     |
+91   |     ensure(manifest == context.current_build_facts().source_manifest_sha256(), DocumentErrorCode::CrossLinkMismatch, "binding.source_mani...
+     |                                ^^^^^^^^^^^^^^^^^^^ private method
+     |
+    ::: crates/ckks-train-bench/src/study_provenance/context.rs:1258:5
+     |
+1258 |     fn current_build_facts(&self) -> BuildFacts<'_> {
+     |     ----------------------------------------------- private method defined here
+
+error[E0277]: `?` couldn't convert the error to `study_client::CpuPreparationError`
+   --> crates/ckks-train-bench/src/study_execution.rs:305:58
+    |
+305 |             let proof = DftSupportProof::verify_current()?;
+    |                                                          ^ the trait `From<BootstrapMetadataError>` is not implemented for `study_client::CpuPreparationError`
+    |
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+    = help: the following other types implement trait `From<T>`:
+              `study_client::CpuPreparationError` implements `From<ckks_train_core::HekitError>`
+              `study_client::CpuPreparationError` implements `From<study_execution::AccountingError>`
+    = note: required for `Result<Option<RegisteredCpuParameters>, CpuPreparationError>` to implement `FromResidual<std::result::Result<Infallible, BootstrapMetadataError>>`
+    = note: the full name for the type has been written to '/Users/marconi/Documents/research/hekit/target/debug/deps/ckks_train_bench-c3000792d73ef8e0.long-type-13945746929779127302.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: `?` couldn't convert the error to `study_client::CpuPreparationError`
+   --> crates/ckks-train-bench/src/study_execution.rs:306:109
+    |
+306 |             let metadata = Arc::new(BootstrapMetadata::new_with_verified_support(&parameters, &boot, &proof)?);
+    |                                                                                                             ^ the trait `From<BootstrapMetadataError>` is not implemented for `study_client::CpuPreparationError`
+    |
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+    = help: the following other types implement trait `From<T>`:
+              `study_client::CpuPreparationError` implements `From<ckks_train_core::HekitError>`
+              `study_client::CpuPreparationError` implements `From<study_execution::AccountingError>`
+    = note: required for `Result<Option<RegisteredCpuParameters>, CpuPreparationError>` to implement `FromResidual<std::result::Result<Infallible, BootstrapMetadataError>>`
+    = note: the full name for the type has been written to '/Users/marconi/Documents/research/hekit/target/debug/deps/ckks_train_bench-c3000792d73ef8e0.long-type-13945746929779127302.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0277, E0624.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `ckks-train-bench` (lib test) due to 3 previous errors

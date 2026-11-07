@@ -1,0 +1,1102 @@
+diff --git a/crates/ckks-train-bench/README.md b/crates/ckks-train-bench/README.md
+index 04c44c1..b2c3efb 100644
+--- a/crates/ckks-train-bench/README.md
++++ b/crates/ckks-train-bench/README.md
+@@ -15,3 +15,33 @@ Benchmarks and the experiment binaries of the paper:
+ Every binary writes its own provenance (commit, command line, threads, load, memory) into its
+ result JSON. See `scripts/run_all.sh` and `results/README.md` in the repository for
+ reproduction. Data credits are in `data/README.md` and `THIRD_PARTY_NOTICES`.
++
++### Explicit StudyTrain planning inspection
++
++`study_train` still refuses execution: live gates, admission, durable start and scientific
++publication are unavailable. Existing invocations without planning options retain their
++provenance inspection behavior. To inspect a canonical CPU Main/BatchedDiagonal plan,
++supply **all** of the following options together with the existing authority, case and
++runtime options; a partial group, duplicate or unknown option is rejected:
++
++```text
++--consumption full|quick
++--physical-lanes auto|<positive usize>
++--transpose dedicated|reuse
++--transpose-pool none|<ordered comma-separated i32 pool>
++--eval-hoist 0|1 --eval-bsgs 0|1 --eval-lazy-relin 0|1
++--partitions contiguous
++--receipt-max-bytes <usize> --receipt-max-records <usize>
++--work-geometries <usize> --work-initial-states <usize> --work-updates <usize>
++--work-handoffs <usize> --work-wrappers <usize>
++```
++
++Integers use canonical decimal spelling: no leading zeroes, plus signs, spaces or
++negative zero. `auto` explicitly requests the registered batch's existing next-power-of-two
++lane rule. Dedicated transpose requires `none`; reuse requires an explicit nonempty pool
++in the supplied order, with reachability checked by the existing geometry validator.
++`quick` consumes exactly the seed0 two-update prefix while `--scope full` still names the
++full registration. Receipt/work caps are the original unchanged request limits, including
++zero caps; no defaults enlarge them. Eval flags must match the sealed registration.
++These requests do not clear any gates or the encrypted-block hold, enable unsupported
++baseline/CUDA/packed/external adapters, or invoke the CPU continuation.
+diff --git a/crates/ckks-train-bench/src/study_execution.rs b/crates/ckks-train-bench/src/study_execution.rs
+index cb87f60..69e8647 100644
+--- a/crates/ckks-train-bench/src/study_execution.rs
++++ b/crates/ckks-train-bench/src/study_execution.rs
+@@ -1,5 +1,5 @@
+ //! Retained canonical CPU preparation. No start or execution capability.
+-#![allow(dead_code)] // Intentionally disconnected until genuine live gates and durable start exist.
++#![allow(dead_code)] // Continuation remains disconnected until genuine live gates and durable start.
+ use crate::{
+     study_admission::{
+         DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters, ReceiptLimits,
+@@ -174,6 +174,7 @@ pub(crate) struct CanonicalDescriptors {
+     pub(crate) layout_digest: String,
+     pub(crate) keys_digest: String,
+     pub(crate) security_digest: String,
++    pub(crate) actual_binding: Option<ActualBindingDescriptors>,
+ }
+ // Descriptors drop before preparation; neither checked state nor accounting is extracted.
+ pub(crate) struct PreparedCanonicalBundle<'i, T> {
+@@ -279,6 +280,193 @@ pub(crate) fn collect_blocks<'i, 'p>(
+ ) -> CpuPreparationResult<PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>> {
+     crate::study_reference::collect_block_preparation_descriptors(preparation)
+ }
++// Runtime/outer payload stays in the exact descriptor tail transferred by the
++// already accepted single/block factories. Bytes die before the SAME accounting.
++pub(crate) struct ActualBindingDescriptors {
++    pub(crate) runtime: crate::study_reference::DescriptorBytes,
++    pub(crate) execution: crate::study_reference::DescriptorBytes,
++}
++pub(crate) struct RegisteredCpuParameters {
++    parameters: Arc<ckks_train_ckks::CkksParams>,
++    bootstrap: Option<study_client::CpuBootstrapDescription>,
++}
++impl RegisteredCpuParameters {
++    pub(crate) fn for_case(case: &RegisteredCase) -> CpuPreparationResult<Option<Self>> {
++        use crate::study_profile::{CaseBackend, CaseMode, CasePacking, CaseRole};
++        use ckks_train_ckks::{
++            CkksParams,
++            bootstrap::{
++                BootParams,
++                metadata::{BootstrapMetadata, DftSupportProof},
++            },
++        };
++        if case.role() != CaseRole::Main
++            || case.selector().backend != CaseBackend::Cpu
++            || case.selector().packing != CasePacking::BatchedDiagonal
++        {
++            return Ok(None);
++        }
++        let ni = case.selector().mode == CaseMode::Noninteractive;
++        let parameters = Arc::new(if ni {
++            CkksParams::n16_boot()
++        } else {
++            CkksParams::n16_train()
++        });
++        let bootstrap = if ni {
++            let boot = BootParams::default_n16();
++            let proof = DftSupportProof::verify_current()
++                .map_err(|_| crate::study_diagonal::mismatch("registered P1 structural proof"))?;
++            let metadata = Arc::new(
++                BootstrapMetadata::new_with_verified_support(&parameters, &boot, &proof).map_err(
++                    |_| crate::study_diagonal::mismatch("registered P1 bootstrap metadata"),
++                )?,
++            );
++            Some(study_client::CpuBootstrapDescription {
++                parameters: boot,
++                metadata,
++            })
++        } else {
++            None
++        };
++        Ok(Some(Self {
++            parameters,
++            bootstrap,
++        }))
++    }
++    pub(crate) fn actual(&self) -> PlanningParameters<'_> {
++        PlanningParameters {
++            params: &self.parameters,
++            bootstrap: self.bootstrap.as_ref().map(|b| b.metadata.as_ref()),
++            boot_params: self.bootstrap.as_ref().map(|b| &b.parameters),
++        }
++    }
++}
++// Closed branch ownership is also the fixed consuming body selection. Metadata
++// cannot instantiate a post-key continuation or any gate/start capability.
++#[allow(clippy::large_enum_variant)]
++enum CpuRoute<'i, 'p> {
++    Single(PreparedCanonicalBundle<'i, CheckedPreparation<'p>>),
++    Block(PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>),
++}
++pub(crate) struct PreparedCpuRoute<'i, 'p> {
++    route: CpuRoute<'i, 'p>,
++    not_send_sync: std::marker::PhantomData<std::rc::Rc<()>>,
++}
++impl<'i, 'p> PreparedCpuRoute<'i, 'p> {
++    pub(crate) fn prepare(input: CanonicalPreparationInput<'i, 'p>) -> CpuPreparationResult<Self> {
++        let parts = input.plan.clone();
++        let route = if input.materialized.graph().stages().len() == 1 {
++            CpuRoute::Single(collect_single(prepare_canonical(
++                input,
++                parts.partitions(),
++            )?)?)
++        } else {
++            CpuRoute::Block(collect_blocks(prepare_blocks_canonical(
++                input,
++                parts.partitions(),
++            )?)?)
++        };
++        Ok(Self {
++            route,
++            not_send_sync: std::marker::PhantomData,
++        })
++    }
++    pub(crate) fn facts(&self) -> study_client::PreparationDescriptorFacts<'_> {
++        match &self.route {
++            CpuRoute::Single(b) => b.preparation.checked.descriptor_facts(),
++            CpuRoute::Block(b) => b.preparation.checked.descriptor_facts(),
++        }
++        .expect("retained canonical route")
++    }
++    pub(crate) fn owners(
++        &self,
++    ) -> (
++        &'i MaterializedProfile,
++        &'i RegisteredCase,
++        &'i DiagonalRequest,
++    ) {
++        match &self.route {
++            CpuRoute::Single(b) => (
++                b.preparation.materialized,
++                b.preparation.registered,
++                b.preparation.request,
++            ),
++            CpuRoute::Block(b) => (
++                b.preparation.materialized,
++                b.preparation.registered,
++                b.preparation.request,
++            ),
++        }
++    }
++    pub(crate) fn require_owners(
++        &self,
++        m: &MaterializedProfile,
++        c: &RegisteredCase,
++        r: &DiagonalRequest,
++    ) -> CpuPreparationResult<()> {
++        let (om, oc, or) = self.owners();
++        if !std::ptr::eq(m, om) || !std::ptr::eq(c, oc) || !std::ptr::eq(r, or) {
++            return Err(crate::study_diagonal::mismatch("retained route owners").into());
++        }
++        Ok(())
++    }
++    pub(crate) fn is_block(&self) -> bool {
++        matches!(self.route, CpuRoute::Block(_))
++    }
++    pub(crate) fn bootstrap_engine(&self) -> u8 {
++        u8::from(self.facts().bootstrap().is_some())
++    }
++    pub(crate) fn binding_parts(
++        &mut self,
++    ) -> (
++        &mut CanonicalDescriptors,
++        study_client::PreparationDescriptorFacts<'_>,
++        &mut PreparationAccounting,
++    ) {
++        match &mut self.route {
++            CpuRoute::Single(b) => {
++                let (facts, accounting) = b.preparation.descriptor_parts();
++                (&mut b.descriptors, facts, accounting)
++            }
++            CpuRoute::Block(b) => {
++                let (facts, accounting) = b.preparation.descriptor_parts();
++                (&mut b.descriptors, facts, accounting)
++            }
++        }
++    }
++    #[cfg(test)]
++    fn accounting_live_temporary(&self) -> usize {
++        match &self.route {
++            CpuRoute::Single(b) => b.preparation.accounting.live_temporary,
++            CpuRoute::Block(b) => b.preparation.accounting.live_temporary,
++        }
++    }
++    // Future genuine begin consumes this exact branch; no geometry rebuild.
++    pub(crate) fn into_continuation(
++        self,
++        parameters: Arc<ckks_train_ckks::CkksParams>,
++        boot: Option<study_client::CpuBootstrapDescription>,
++        key_rng: ckks_train_core::sampler::Rng,
++        encryption_rng: ckks_train_core::sampler::Rng,
++    ) -> CpuPreparationResult<cpu_continuation::CpuContinuation<'i, 'p>> {
++        match self.route {
++            CpuRoute::Single(b) => cpu_continuation::CpuContinuation::single(
++                b,
++                parameters,
++                boot,
++                key_rng,
++                encryption_rng,
++            ),
++            CpuRoute::Block(b) => cpu_continuation::CpuContinuation::block(
++                b,
++                parameters,
++                boot,
++                key_rng,
++                encryption_rng,
++            ),
++        }
++    }
++}
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+@@ -571,3 +759,6 @@ mod tests {
+         assert_eq!(d.security_digest, crate::data::sha256_hex(&d.security));
+     }
+ }
++
++#[cfg(test)]
++mod actual_binding_tests;
+diff --git a/crates/ckks-train-bench/src/study_provenance/train_capture.rs b/crates/ckks-train-bench/src/study_provenance/train_capture.rs
+index 8ea6546..8264711 100644
+--- a/crates/ckks-train-bench/src/study_provenance/train_capture.rs
++++ b/crates/ckks-train-bench/src/study_provenance/train_capture.rs
+@@ -171,6 +171,49 @@ impl VerifiedStudyTrainContext {
+     }
+ }
+ impl RecheckedTrainCapture<'_> {
++    // Narrow source projection check for the same retained pre-key route. It
++    // reuses the original checked input and capture; no equal-hash owner swap.
++    pub(crate) fn recheck_binding_owners(
++        &self,
++        case: &RegisteredCase,
++        input: &MaterializedProfile,
++    ) -> Result<()> {
++        let start = &self.start;
++        require_capture_owners(
++            start.context,
++            start.context,
++            case,
++            start.case,
++            input,
++            start.input,
++        )?;
++        let runtime = start.context.retained_train_runtime()?;
++        check_case_materialized(case, input, runtime.recipe())?;
++        start
++            .context
++            .artifact
++            .recheck_materialized_input_now(input, &start.checked)?;
++        ensure(
++            TrainInvocation::observe(start.context.artifact.root())? == start.invocation,
++            "Train invocation changed",
++        )?;
++        ensure(
++            start
++                .context
++                .artifact
++                .current_build_facts()
++                .executable_sha256()
++                == start.executable_start,
++            "Train captured executable changed",
++        )?;
++        let facts = self.runtime_descriptor_facts()?;
++        ensure(
++            std::ptr::eq(facts.host(), start.runtime.host())
++                && facts.execution_threads() == start.runtime.execution_threads(),
++            "Train retained binding changed",
++        )?;
++        start.context.artifact.recheck()
++    }
+     pub(crate) fn runtime_descriptor_facts(
+         &self,
+     ) -> Result<crate::study_runtime::RuntimeDescriptorFacts<'_>> {
+diff --git a/crates/ckks-train-bench/src/study_reference.rs b/crates/ckks-train-bench/src/study_reference.rs
+index 8be69f1..5db80a0 100644
+--- a/crates/ckks-train-bench/src/study_reference.rs
++++ b/crates/ckks-train-bench/src/study_reference.rs
+@@ -6,7 +6,8 @@
+ mod digests;
+ mod document;
+ pub(crate) use document::{
+-    collect_block_preparation_descriptors, collect_single_preparation_descriptors,
++    DescriptorBytes, bind_actual_cpu, collect_block_preparation_descriptors,
++    collect_single_preparation_descriptors,
+ };
+ mod publication;
+ mod session;
+diff --git a/crates/ckks-train-bench/src/study_reference/document.rs b/crates/ckks-train-bench/src/study_reference/document.rs
+index 21e1305..8564fe1 100644
+--- a/crates/ckks-train-bench/src/study_reference/document.rs
++++ b/crates/ckks-train-bench/src/study_reference/document.rs
+@@ -10,11 +10,13 @@ pub(crate) use execution_descriptors::{
+     collect_blocks as collect_block_preparation_descriptors,
+     collect_single as collect_single_preparation_descriptors,
+ };
++mod execution_binding;
+ mod producer;
+ mod reader;
+ mod runtime_descriptors;
+ use super::{CONTRACT_VERSION, ENCODING_VERSION, RECEIPT_VERSION};
+ use crate::data::sha256_hex;
++pub(crate) use execution_binding::bind_actual_cpu;
+ pub(in crate::study_reference) use producer::{
+     serialize_diagnostic, serialize_failure, serialize_local_quick, serialize_local_quick_f64,
+     serialize_reference,
+@@ -23,6 +25,7 @@ pub(in crate::study_reference) use reader::verify_reference;
+ pub use reader::{
+     ReferenceCompletionView, ReferenceEndpointView, ReferenceTimeView, VerifiedReference,
+ };
++pub(crate) use runtime_descriptors::DescriptorBytes;
+ use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
+ use serde_json::value::RawValue;
+ use std::{fmt, marker::PhantomData};
+@@ -1983,3 +1986,6 @@ mod runtime_descriptor_tests;
+ 
+ #[cfg(test)]
+ mod execution_descriptor_tests;
++
++#[cfg(test)]
++mod execution_binding_tests;
+diff --git a/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+index 30c150c..4eaa22d 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+@@ -1,6 +1,6 @@
+ //! Four private inner representations. Inspection bytes and source projections are
+ //! never a prepared route, admission, live gate, start token or scientific result.
+-#![allow(dead_code)] // The real retained pre-key route/ExecutionBinding producer is subsequent work.
++#![allow(dead_code)] // Pure transport validators remain non-authorizing inspection helpers.
+ use super::*;
+ use crate::study_admission::{
+     Consumption, GeometryBody, GeometryWriter, MicroPart, encode_geometry_body,
+@@ -72,30 +72,30 @@ fn hash_valid(s: &str) -> Result<()> {
+ // One borrowed size pass, one reserved output pass. No geometry/partition clone,
+ // allocation or digest occurs during sizing. Encoder supplies the existing LE,
+ // Text/Hash/Bool/Option primitives; every append remains independently bounded.
+-struct Writer {
++pub(super) struct Writer {
+     length: u64,
+     output: Option<Encoder>,
+ }
+ impl Writer {
+-    fn u64(&mut self, n: u64) -> Result<()> {
++    pub(super) fn u64(&mut self, n: u64) -> Result<()> {
+         self.raw(&n.to_le_bytes())
+     }
+-    fn text(&mut self, s: &str) -> Result<()> {
++    pub(super) fn text(&mut self, s: &str) -> Result<()> {
+         self.u64(s.len() as u64)?;
+         self.raw(s.as_bytes())
+     }
+-    fn hash(&mut self, s: &str) -> Result<()> {
++    pub(super) fn hash(&mut self, s: &str) -> Result<()> {
+         hash_valid(s)?;
+         self.text(s)
+     }
+-    fn optional_hash(&mut self, s: Option<&str>) -> Result<()> {
++    pub(super) fn optional_hash(&mut self, s: Option<&str>) -> Result<()> {
+         self.tag(u8::from(s.is_some()))?;
+         if let Some(s) = s {
+             self.hash(s)?;
+         }
+         Ok(())
+     }
+-    fn boolean(&mut self, b: bool) -> Result<()> {
++    pub(super) fn boolean(&mut self, b: bool) -> Result<()> {
+         self.tag(u8::from(b))
+     }
+     fn secret(&mut self, n: Option<u64>) -> Result<()> {
+@@ -105,10 +105,6 @@ impl Writer {
+         }
+         Ok(())
+     }
+-    fn header(&mut self, k: Kind) -> Result<()> {
+-        self.text(ENCODING_VERSION)?;
+-        self.text(k.domain())
+-    }
+ }
+ impl GeometryWriter for Writer {
+     type Error = DocumentError;
+@@ -129,11 +125,26 @@ fn traverse(
+     output: bool,
+     body: impl Fn(&mut Writer) -> Result<()>,
+ ) -> Result<(usize, Vec<u8>)> {
++    traverse_domain(Some(kind.domain()), output, body)
++}
++// Shared two-pass primitives; None is the exact preexisting raw outer body.
++pub(super) fn traverse_domain(
++    domain: Option<&str>,
++    output: bool,
++    body: impl Fn(&mut Writer) -> Result<()>,
++) -> Result<(usize, Vec<u8>)> {
++    let header = |w: &mut Writer| -> Result<()> {
++        if let Some(domain) = domain {
++            w.text(ENCODING_VERSION)?;
++            w.text(domain)?;
++        }
++        Ok(())
++    };
+     let mut size = Writer {
+         length: 0,
+         output: None,
+     };
+-    size.header(kind)?;
++    header(&mut size)?;
+     body(&mut size)?;
+     let n = checked_size(size.length)?;
+     if !output {
+@@ -148,7 +159,7 @@ fn traverse(
+         length: 0,
+         output: Some(output),
+     };
+-    writer.header(kind)?;
++    header(&mut writer)?;
+     body(&mut writer)?;
+     valid(writer.length == size.length, "execution.size_changed")?;
+     Ok((n, writer.output.expect("output pass").bytes))
+@@ -766,6 +777,7 @@ fn collect_descriptors(
+         layout_digest,
+         keys_digest,
+         security_digest,
++        actual_binding: None,
+     })
+ }
+ // Only these fixed collectors may use the private hash cache. The complete owner
+diff --git a/crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs b/crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs
+index 7ce0022..09d42e5 100644
+--- a/crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs
+@@ -1,5 +1,5 @@
+ //! Private D7 inspection codecs. None of these values is a checked route or gate.
+-#![allow(dead_code)] // Runtime policy awaits the genuine checked implementation-route adapter.
++#![allow(dead_code)] // Parsed CUDA/inspection codecs remain separate from the actual CPU producer.
+ use super::*;
+ use crate::study_profile::{CaseBackend, CaseMode, CasePlacement};
+ use crate::study_provenance::{
+@@ -45,14 +45,15 @@ pub(crate) struct DescriptorBytes {
+     hash: String,
+ }
+ impl DescriptorBytes {
+-    fn new(bytes: Vec<u8>) -> Result<Self> {
++    pub(super) fn new(bytes: Vec<u8>) -> Result<Self> {
+         ensure(
+             bytes.len() <= A_MAX,
+             DocumentErrorCode::TooLarge,
+             "descriptor",
+         )?;
+         Ok(Self {
+-            hash: sha256_hex(&bytes),
++            hash: crate::data::try_sha256_hex(&bytes)
++                .map_err(|_| err(DocumentErrorCode::TooLarge, "descriptor.digest_reserve"))?,
+             bytes,
+         })
+     }
+@@ -412,6 +413,17 @@ impl RuntimePolicy {
+         Ok(())
+     }
+     fn bytes(&self) -> Result<Vec<u8>> {
++        if self.form <= 1 && self.stream_count.is_none() && self.cuda_runtime.is_none() {
++            return Ok(cpu_policy_wire(
++                self.form,
++                &self.recipe.0,
++                self.execution_threads,
++                self.refresh_route,
++                &self.physical_binding_sha256.0,
++                true,
++            )?
++            .1);
++        }
+         let mut e = header(POLICY)?;
+         e.byte(self.form)?;
+         self.recipe.encode(&mut e)?;
+@@ -450,7 +462,11 @@ impl RuntimePolicy {
+         valid(
+             self.form == form
+                 && self.execution_threads == f.execution_threads()
+-                && p.canonical_bytes() == PhysicalBody::from_facts(f)?.encode()?,
++                && if form == 2 {
++                    p.canonical_bytes() == PhysicalBody::from_facts(f)?.encode()?
++                } else {
++                    p.body.cuda_device.is_none() && observed_host_matches(&p.body, f.host())
++                },
+             "runtime.retained",
+         )?;
+         #[cfg(feature = "cuda")]
+@@ -484,6 +500,128 @@ impl RuntimePolicy {
+         Ok(policy)
+     }
+ }
++// Shared CPU branch of the existing RuntimePolicy wire, with a borrowed sizing
++// traversal. CUDA keeps its existing complete codec; no CUDA producer is added.
++fn cpu_policy_wire(
++    form: u8,
++    recipe: &str,
++    threads: u64,
++    refresh: u8,
++    physical: &str,
++    output: bool,
++) -> Result<(usize, Vec<u8>)> {
++    use crate::study_admission::GeometryWriter;
++    execution_descriptors::traverse_domain(Some(POLICY), output, |w| {
++        w.tag(form)?;
++        w.text(recipe)?;
++        w.tag(0)?;
++        w.u64(threads)?;
++        w.tag(0)?;
++        w.tag(0)?;
++        w.tag(refresh)?;
++        w.hash(physical)?;
++        w.tag(0)
++    })
++}
++fn observed_host_matches(p: &PhysicalBody, host: &CapturedHost) -> bool {
++    let matches = |p: &Observation<Text<4096>>, f: &CapturedObservation<String>| matches!((p, f), (Observation::Available(p), CapturedObservation::Available(f)) if &p.0 == f);
++    matches(&p.cpu_model, host.cpu_model())
++        && matches(&p.os, host.os())
++        && matches(&p.hostname, host.hostname())
++}
++pub(super) struct CpuPolicyProjection<'a> {
++    form: u8,
++    threads: u64,
++    selection: PolicySelection,
++    physical: &'a PhysicalDescriptor,
++}
++impl<'a> CpuPolicyProjection<'a> {
++    // The only actual constructor needs a closed prepared route and retained facts.
++    // Copied scalar fields cannot grant any gate/start/execution authority.
++    pub(super) fn actual(
++        route: &crate::study_execution::PreparedCpuRoute<'_, '_>,
++        f: &RuntimeDescriptorFacts<'_>,
++        physical: &'a PhysicalDescriptor,
++    ) -> Result<Self> {
++        let form = match f.recipe() {
++            Recipe::TrainCpuSerial => 0,
++            Recipe::TrainCpuRayon => 1,
++            _ => {
++                return Err(err(
++                    DocumentErrorCode::CrossLinkMismatch,
++                    "runtime.cpu_route",
++                ));
++            }
++        };
++        let (_, case, _) = route.owners();
++        let ni = route.bootstrap_engine() == 1;
++        valid(
++            case.selector().backend == CaseBackend::Cpu
++                && case.selector().mode
++                    == if ni {
++                        CaseMode::Noninteractive
++                    } else {
++                        CaseMode::Interactive
++                    },
++            "runtime.actual_mode",
++        )?;
++        Ok(Self {
++            form,
++            threads: f.execution_threads(),
++            selection: PolicySelection {
++                backend: CaseBackend::Cpu,
++                mode: if ni {
++                    CaseMode::Noninteractive
++                } else {
++                    CaseMode::Interactive
++                },
++                placement: case.selector().placement,
++                bootstrap_engine: u8::from(ni),
++            },
++            physical,
++        })
++    }
++    pub(super) fn size(&self) -> Result<usize> {
++        Ok(cpu_policy_wire(
++            self.form,
++            RECIPES[self.form as usize],
++            self.threads,
++            self.selection.bootstrap_engine,
++            self.physical.sha256(),
++            false,
++        )?
++        .0)
++    }
++    pub(super) fn temporary_payload(&self) -> usize {
++        RECIPES[self.form as usize].len() + 64
++    }
++    pub(super) fn encode_retained(
++        &self,
++        facts: &RuntimeDescriptorFacts<'_>,
++    ) -> Result<DescriptorBytes> {
++        let owned = |s: &str| -> Result<String> {
++            let mut output = String::new();
++            output
++                .try_reserve_exact(s.len())
++                .map_err(|_| err(DocumentErrorCode::TooLarge, "runtime.reserve"))?;
++            output.push_str(s);
++            Ok(output)
++        };
++        let policy = RuntimePolicy {
++            form: self.form,
++            recipe: Text(owned(RECIPES[self.form as usize])?),
++            backend: 0,
++            execution_threads: self.threads,
++            matvec_order: 0,
++            stream_count: None,
++            refresh_route: self.selection.bootstrap_engine,
++            physical_binding_sha256: Hash(owned(self.physical.sha256())?),
++            cuda_runtime: None,
++        };
++        policy.validate_retained(self.physical, self.selection, facts)?;
++        policy.encode(self.physical, self.selection)
++    }
++}
+ // A narrow bounded decoder for these two fixed bodies. Nested values are the
+ // existing document primitives, and all output goes through their Encode impls.
+ struct Cursor<'a> {
+diff --git a/crates/ckks-train-bench/src/study_run.rs b/crates/ckks-train-bench/src/study_run.rs
+index 6f36fca..a76c4a0 100644
+--- a/crates/ckks-train-bench/src/study_run.rs
++++ b/crates/ckks-train-bench/src/study_run.rs
+@@ -9,14 +9,14 @@ use std::{collections::BTreeMap, ffi::OsString, fmt, os::unix::ffi::OsStrExt, pa
+ /// An owned refusal diagnostic; this frontend has no successful execution state.
+ #[derive(Debug, PartialEq, Eq)]
+ pub enum RunDiagnostic {
+-    /// Real D7 descriptors, gate leases and checked execution remain unavailable.
++    /// Genuine live gate leases, admission/start and checked execution remain unavailable.
+     MissingExecutionDependency,
+ }
+ impl fmt::Display for RunDiagnostic {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         match self {
+             Self::MissingExecutionDependency => f.write_str(
+-                "missing execution dependency: D7 checked binding, descriptors and gates",
++                "missing execution dependency: live gates, admission, durable start and scientific execution",
+             ),
+         }
+     }
+@@ -37,6 +37,7 @@ struct ParsedRequest {
+     receipts: Vec<PathBuf>,
+     case: CaseSelector,
+     runtime: RuntimeRequest,
++    planning: Option<crate::study_admission::DiagonalRequest>,
+ }
+ fn require(ok: bool, why: &'static str) -> Result<(), RequestError> {
+     if ok { Ok(()) } else { Err(RequestError(why)) }
+@@ -101,6 +102,21 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
+                     | "--runtime"
+                     | "--workers"
+                     | "--device-ordinal"
++                    | "--consumption"
++                    | "--physical-lanes"
++                    | "--transpose"
++                    | "--transpose-pool"
++                    | "--eval-hoist"
++                    | "--eval-bsgs"
++                    | "--eval-lazy-relin"
++                    | "--partitions"
++                    | "--receipt-max-bytes"
++                    | "--receipt-max-records"
++                    | "--work-geometries"
++                    | "--work-initial-states"
++                    | "--work-updates"
++                    | "--work-handoffs"
++                    | "--work-wrappers"
+             ),
+             "unknown option",
+         )?;
+@@ -173,6 +189,7 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
+         }
+         _ => return Err(RequestError("unknown runtime form")),
+     };
++    let planning = parse_planning(&fields, case.seed)?;
+     let approval_sha256 = semantic("--approval-sha256")?;
+     require(
+         approval_sha256.len() == 64
+@@ -194,8 +211,119 @@ fn parse(args: Vec<OsString>) -> Result<ParsedRequest, RequestError> {
+         receipts,
+         case,
+         runtime,
++        planning,
+     })
+ }
++// The complete group is an untrusted immutable request, never gate authority.
++fn parse_planning(
++    fields: &BTreeMap<String, OsString>,
++    seed: u64,
++) -> Result<Option<crate::study_admission::DiagonalRequest>, RequestError> {
++    use crate::study_admission::{
++        Consumption, DiagonalRequest, PlanningBudget, PlanningUsage, ReceiptLimits,
++    };
++    use ckks_train_ckks::EvalConfig;
++    use ckks_train_nn::dense::TransposeKeys;
++    const GROUP: [&str; 15] = [
++        "--consumption",
++        "--physical-lanes",
++        "--transpose",
++        "--transpose-pool",
++        "--eval-hoist",
++        "--eval-bsgs",
++        "--eval-lazy-relin",
++        "--partitions",
++        "--receipt-max-bytes",
++        "--receipt-max-records",
++        "--work-geometries",
++        "--work-initial-states",
++        "--work-updates",
++        "--work-handoffs",
++        "--work-wrappers",
++    ];
++    let supplied = GROUP.iter().filter(|k| fields.contains_key(**k)).count();
++    if supplied == 0 {
++        return Ok(None);
++    }
++    require(supplied == GROUP.len(), "partial planning option group")?;
++    let get = |key: &str| text(fields.get(key).expect("complete planning group"));
++    let number = |key: &str| -> Result<usize, RequestError> {
++        usize::try_from(integer(get(key)?)?).map_err(|_| RequestError("planning integer overflow"))
++    };
++    let flag = |key: &str| -> Result<bool, RequestError> {
++        match get(key)? {
++            "0" => Ok(false),
++            "1" => Ok(true),
++            _ => Err(RequestError("invalid planning flag")),
++        }
++    };
++    let consumption = match get("--consumption")? {
++        "full" => Consumption::Full,
++        "quick" => {
++            require(seed == 0, "Quick consumption requires seed0")?;
++            Consumption::Quick
++        }
++        _ => return Err(RequestError("unknown consumption")),
++    };
++    let physical_lanes = if get("--physical-lanes")? == "auto" {
++        None
++    } else {
++        let n = number("--physical-lanes")?;
++        require(n > 0, "physical lanes must be positive")?;
++        Some(n)
++    };
++    let pool = get("--transpose-pool")?;
++    let transpose = match get("--transpose")? {
++        "dedicated" => {
++            require(pool == "none", "dedicated transpose requires none")?;
++            TransposeKeys::Dedicated
++        }
++        "reuse" => {
++            require(
++                !pool.is_empty() && pool != "none",
++                "reuse requires explicit pool",
++            )?;
++            let pool = pool
++                .split(',')
++                .map(|s| {
++                    let n = s
++                        .parse::<i32>()
++                        .map_err(|_| RequestError("invalid transpose step"))?;
++                    require(n.to_string() == s, "noncanonical transpose step")?;
++                    Ok(n)
++                })
++                .collect::<Result<Vec<_>, RequestError>>()?;
++            TransposeKeys::Reuse(pool)
++        }
++        _ => return Err(RequestError("unknown transpose policy")),
++    };
++    require(
++        get("--partitions")? == "contiguous",
++        "unknown partition policy",
++    )?;
++    Ok(Some(DiagonalRequest {
++        consumption,
++        physical_lanes,
++        transpose,
++        eval_config: EvalConfig {
++            hoist: flag("--eval-hoist")?,
++            bsgs: flag("--eval-bsgs")?,
++            lazy_relin: flag("--eval-lazy-relin")?,
++        },
++        partitions: None,
++        limits: ReceiptLimits {
++            max_bytes: number("--receipt-max-bytes")?,
++            max_records: number("--receipt-max-records")?,
++        },
++        work_budget: std::sync::Arc::new(PlanningBudget::new(PlanningUsage {
++            geometries: number("--work-geometries")?,
++            initial_states: number("--work-initial-states")?,
++            updates: number("--work-updates")?,
++            handoffs: number("--work-handoffs")?,
++            wrapper_calls: number("--work-wrappers")?,
++        })),
++    }))
++}
+ /// Parse explicit arguments excluding argv0 and enter the one concrete dispatcher.
+ /// Returns only an owned refusal or error; emits no artifacts and grants no capability.
+ pub fn run(args: Vec<OsString>) -> Result<RunDiagnostic, RequestError> {
+@@ -204,6 +332,7 @@ pub fn run(args: Vec<OsString>) -> Result<RunDiagnostic, RequestError> {
+         locations: ContextRequest::new(r.root, r.approval, r.approval_sha256, r.receipts),
+         runtime: r.runtime,
+         case: r.case,
++        planning: r.planning,
+     };
+     match study_runtime::dispatch(request).map_err(|_| {
+         RequestError("study runtime/context/registration unavailable or inconsistent")
+diff --git a/crates/ckks-train-bench/src/study_run_tests.rs b/crates/ckks-train-bench/src/study_run_tests.rs
+index 770d19b..e6d1257 100644
+--- a/crates/ckks-train-bench/src/study_run_tests.rs
++++ b/crates/ckks-train-bench/src/study_run_tests.rs
+@@ -202,3 +202,160 @@ fn study_run_parsed_request_selects_real_registration_without_readiness() {
+     assert_eq!(cases.exact_iris_cases().len(), 20);
+     assert_eq!(cases.supplements().len(), 7);
+ }
++
++fn planning_args() -> Vec<OsString> {
++    [
++        "--consumption",
++        "quick",
++        "--physical-lanes",
++        "auto",
++        "--transpose",
++        "dedicated",
++        "--transpose-pool",
++        "none",
++        "--eval-hoist",
++        "1",
++        "--eval-bsgs",
++        "1",
++        "--eval-lazy-relin",
++        "1",
++        "--partitions",
++        "contiguous",
++        "--receipt-max-bytes",
++        "1234567",
++        "--receipt-max-records",
++        "456",
++        "--work-geometries",
++        "6",
++        "--work-initial-states",
++        "6",
++        "--work-updates",
++        "6",
++        "--work-handoffs",
++        "4",
++        "--work-wrappers",
++        "1",
++    ]
++    .into_iter()
++    .map(Into::into)
++    .collect()
++}
++#[test]
++fn d7_request_group_is_explicit_all_or_none_and_preserves_caps() {
++    assert!(parse(valid("cpu-serial")).unwrap().planning.is_none());
++    let group = planning_args();
++    let mut args = valid("cpu-serial");
++    args.extend(group.clone());
++    let request = parse(args).unwrap().planning.unwrap();
++    assert_eq!(
++        request.consumption,
++        crate::study_admission::Consumption::Quick
++    );
++    assert_eq!(request.physical_lanes, None);
++    assert!(request.partitions.is_none());
++    assert_eq!(request.limits.max_bytes, 1234567);
++    assert_eq!(request.limits.max_records, 456);
++    assert_eq!(
++        request.work_budget.usage(),
++        crate::study_admission::PlanningUsage::default()
++    );
++    for i in (0..group.len()).step_by(2) {
++        let mut args = valid("cpu-serial");
++        let mut partial = group.clone();
++        partial.drain(i..i + 2);
++        args.extend(partial);
++        assert!(parse(args).is_err(), "omitted {:?}", group[i]);
++        let mut args = valid("cpu-serial");
++        args.extend(group.clone());
++        args.extend([group[i].clone(), group[i + 1].clone()]);
++        assert!(parse(args).is_err(), "duplicate {:?}", group[i]);
++    }
++}
++#[test]
++fn d7_request_canonical_values_and_quick_seed() {
++    let mut base = valid("cpu-serial");
++    base.extend(planning_args());
++    for (key, values) in [
++        ("--consumption", vec!["Quick", "none"]),
++        (
++            "--physical-lanes",
++            vec!["0", "01", "+1", "-1", "18446744073709551616"],
++        ),
++        ("--transpose", vec!["other"]),
++        ("--transpose-pool", vec!["", "1", "0"]),
++        ("--eval-hoist", vec!["true", "2"]),
++        ("--eval-bsgs", vec!["false", "01"]),
++        ("--eval-lazy-relin", vec!["-1"]),
++        ("--partitions", vec!["none", "explicit"]),
++        (
++            "--receipt-max-bytes",
++            vec!["01", "-1", "1.0", "18446744073709551616"],
++        ),
++        ("--work-updates", vec!["+1", "1e0"]),
++    ] {
++        for value in values {
++            let mut args = base.clone();
++            replace(&mut args, key, value);
++            assert!(parse(args).is_err(), "{key}={value}");
++        }
++    }
++    let mut args = base.clone();
++    replace(&mut args, "--seed", "1");
++    assert!(parse(args.clone()).is_err());
++    replace(&mut args, "--consumption", "full");
++    assert!(parse(args).is_ok());
++    let mut args = base;
++    replace(&mut args, "--transpose", "reuse");
++    for bad in [
++        "none",
++        "",
++        "+1",
++        "-0",
++        "01",
++        "-01",
++        "1,",
++        ",1",
++        "2147483648",
++        "-2147483649",
++        "1, 2",
++    ] {
++        replace(&mut args, "--transpose-pool", bad);
++        assert!(parse(args.clone()).is_err(), "{bad}");
++    }
++    replace(
++        &mut args,
++        "--transpose-pool",
++        "-2147483648,0,2,-1,2147483647",
++    );
++    let request = parse(args).unwrap().planning.unwrap();
++    match request.transpose {
++        ckks_train_nn::dense::TransposeKeys::Reuse(pool) => {
++            assert_eq!(pool, vec![i32::MIN, 0, 2, -1, i32::MAX])
++        }
++        _ => panic!("explicit ordered reuse pool"),
++    }
++}
++
++#[test]
++fn d7_request_zero_caps_are_original_requests_without_default_reset() {
++    let mut args = valid("cpu-serial");
++    args.extend(planning_args());
++    for key in [
++        "--receipt-max-bytes",
++        "--receipt-max-records",
++        "--work-geometries",
++        "--work-initial-states",
++        "--work-updates",
++        "--work-handoffs",
++        "--work-wrappers",
++    ] {
++        replace(&mut args, key, "0");
++    }
++    let request = parse(args).unwrap().planning.unwrap();
++    assert_eq!(request.limits.max_bytes, 0);
++    assert_eq!(request.limits.max_records, 0);
++    assert_eq!(
++        request.work_budget.usage(),
++        crate::study_admission::PlanningUsage::default()
++    );
++}
+diff --git a/crates/ckks-train-bench/src/study_runtime.rs b/crates/ckks-train-bench/src/study_runtime.rs
+index 8714209..322e2eb 100644
+--- a/crates/ckks-train-bench/src/study_runtime.rs
++++ b/crates/ckks-train-bench/src/study_runtime.rs
+@@ -34,6 +34,7 @@ pub(crate) struct StudyRunRequest {
+     pub(crate) locations: ContextRequest,
+     pub(crate) runtime: RuntimeRequest,
+     pub(crate) case: CaseSelector,
++    pub(crate) planning: Option<crate::study_admission::DiagonalRequest>,
+ }
+ #[derive(Debug, PartialEq, Eq)]
+ pub(crate) enum RunOutcome {
+@@ -334,17 +335,61 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
+         .map_err(|_| ProvenanceError("selected study input resolution failed"))?;
+     let input = crate::study_inputs::materialize(&resolved)
+         .map_err(|_| ProvenanceError("selected study input materialization failed"))?;
+-    let capture = context.capture_train(case, &input)?;
+-    let rechecked = context.finish_train_capture(case, &input, capture)?;
+-    let _component = rechecked
+-        .case_provenance()
+-        .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
+-    let _physical = rechecked
+-        .physical_descriptor()
+-        .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
+-    // Captured Case/physical bytes are inspection only. Checked runtime route,
+-    // remaining canonical D7 descriptors,
+-    // live gates/admission/start, scientific output and HE continuation are absent.
++    // Old inspection invocations supply no planning request. They retain their
++    // previous observation/refusal semantics and never inherit Quick defaults.
++    let Some(planning) = request.planning.as_ref() else {
++        let capture = context.capture_train(case, &input)?;
++        let rechecked = context.finish_train_capture(case, &input, capture)?;
++        let _component = rechecked
++            .case_provenance()
++            .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
++        let _physical = rechecked
++            .physical_descriptor()
++            .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
++        return Ok(RunOutcome::MissingExecutionDependency);
++    };
++    // No CPU fallback for unsupported roles/backends/packing. Supported CPU
++    // parameters are the exact registered Main n16_train/n16_boot owners only.
++    let Some(parameters) = crate::study_execution::RegisteredCpuParameters::for_case(case)
++        .map_err(|_| ProvenanceError("registered CPU parameters unavailable"))?
++    else {
++        return Ok(RunOutcome::MissingExecutionDependency);
++    };
++    let actual = parameters.actual();
++    let plan = std::sync::Arc::new(
++        crate::study_admission::plan_diagonal(&input, case, actual, planning)
++            .map_err(|_| ProvenanceError("explicit canonical planning request refused"))?,
++    );
++    let mut route = crate::study_execution::PreparedCpuRoute::prepare(
++        crate::study_execution::CanonicalPreparationInput {
++            materialized: &input,
++            registered: case,
++            plan: plan.clone(),
++            request: planning,
++            actual,
++        },
++    )
++    .map_err(|_| ProvenanceError("retained CPU preparation refused"))?;
++    // Keep the single-lifetime Train capture short. Only owned identity snapshots
++    // and the actual prepared descriptor tail survive this local scope.
++    let (_component, _physical) = {
++        let capture = context.capture_train(case, &input)?;
++        let rechecked = context.finish_train_capture(case, &input, capture)?;
++        let component = rechecked
++            .case_provenance()
++            .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
++        let physical = rechecked
++            .physical_descriptor()
++            .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
++        crate::study_reference::bind_actual_cpu(&mut route, &rechecked, &physical)
++            .map_err(|_| ProvenanceError("actual retained CPU execution binding refused"))?;
++        (component, physical)
++    };
++    context.artifact_context().recheck()?;
++    // Route, runtime/outer bytes, SAME accounting, context, case/input/request,
++    // parameters/P1 and plan stay in this installed frame through the refusal.
++    // Real gates, admission/start and scientific output remain unavailable. No
++    // continuation, key/HE constructor, session or GPU allocation is called here.
+     Ok(RunOutcome::MissingExecutionDependency)
+ }
+ pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {
+diff --git a/crates/ckks-train-bench/src/study_runtime/tests.rs b/crates/ckks-train-bench/src/study_runtime/tests.rs
+index c9d1ef6..0f9b1f7 100644
+--- a/crates/ckks-train-bench/src/study_runtime/tests.rs
++++ b/crates/ckks-train-bench/src/study_runtime/tests.rs
+@@ -129,6 +129,7 @@ fn runtime_retained_count_drift_fails_even_inside_exact_pool() {
+ fn runtime_owned_selector_refuses_backend_before_context_or_pool() {
+     use crate::study_profile::{CaseMode, CaseOrigin, CasePacking, CasePlacement, CaseScope};
+     let request = StudyRunRequest {
++        planning: None,
+         locations: ContextRequest::new(
+             "/nonexistent".into(),
+             "/nonexistent/approval".into(),

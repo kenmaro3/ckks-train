@@ -1,0 +1,1 @@
+3873f08466775c3ac9d9e50734680dd450d7e8a20971a62385ddd1bd2f653d03  crates/ckks-train-bench/src/study_reference/document/runtime_descriptor_tests.rs  BASE1072d84 unchanged literal oracle

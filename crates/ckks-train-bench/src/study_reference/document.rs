@@ -10,11 +10,13 @@ pub(crate) use execution_descriptors::{
     collect_blocks as collect_block_preparation_descriptors,
     collect_single as collect_single_preparation_descriptors,
 };
+mod execution_binding;
 mod producer;
 mod reader;
 mod runtime_descriptors;
 use super::{CONTRACT_VERSION, ENCODING_VERSION, RECEIPT_VERSION};
 use crate::data::sha256_hex;
+pub(crate) use execution_binding::bind_actual_cpu;
 pub(in crate::study_reference) use producer::{
     serialize_diagnostic, serialize_failure, serialize_local_quick, serialize_local_quick_f64,
     serialize_reference,
@@ -23,6 +25,7 @@ pub(in crate::study_reference) use reader::verify_reference;
 pub use reader::{
     ReferenceCompletionView, ReferenceEndpointView, ReferenceTimeView, VerifiedReference,
 };
+pub(crate) use runtime_descriptors::DescriptorBytes;
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::value::RawValue;
 use std::{fmt, marker::PhantomData};
@@ -1983,3 +1986,6 @@ mod runtime_descriptor_tests;
 
 #[cfg(test)]
 mod execution_descriptor_tests;
+
+#[cfg(test)]
+mod execution_binding_tests;

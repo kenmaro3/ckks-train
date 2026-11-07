@@ -202,3 +202,160 @@ fn study_run_parsed_request_selects_real_registration_without_readiness() {
     assert_eq!(cases.exact_iris_cases().len(), 20);
     assert_eq!(cases.supplements().len(), 7);
 }
+
+fn planning_args() -> Vec<OsString> {
+    [
+        "--consumption",
+        "quick",
+        "--physical-lanes",
+        "auto",
+        "--transpose",
+        "dedicated",
+        "--transpose-pool",
+        "none",
+        "--eval-hoist",
+        "1",
+        "--eval-bsgs",
+        "1",
+        "--eval-lazy-relin",
+        "1",
+        "--partitions",
+        "contiguous",
+        "--receipt-max-bytes",
+        "1234567",
+        "--receipt-max-records",
+        "456",
+        "--work-geometries",
+        "6",
+        "--work-initial-states",
+        "6",
+        "--work-updates",
+        "6",
+        "--work-handoffs",
+        "4",
+        "--work-wrappers",
+        "1",
+    ]
+    .into_iter()
+    .map(Into::into)
+    .collect()
+}
+#[test]
+fn d7_request_group_is_explicit_all_or_none_and_preserves_caps() {
+    assert!(parse(valid("cpu-serial")).unwrap().planning.is_none());
+    let group = planning_args();
+    let mut args = valid("cpu-serial");
+    args.extend(group.clone());
+    let request = parse(args).unwrap().planning.unwrap();
+    assert_eq!(
+        request.consumption,
+        crate::study_admission::Consumption::Quick
+    );
+    assert_eq!(request.physical_lanes, None);
+    assert!(request.partitions.is_none());
+    assert_eq!(request.limits.max_bytes, 1234567);
+    assert_eq!(request.limits.max_records, 456);
+    assert_eq!(
+        request.work_budget.usage(),
+        crate::study_admission::PlanningUsage::default()
+    );
+    for i in (0..group.len()).step_by(2) {
+        let mut args = valid("cpu-serial");
+        let mut partial = group.clone();
+        partial.drain(i..i + 2);
+        args.extend(partial);
+        assert!(parse(args).is_err(), "omitted {:?}", group[i]);
+        let mut args = valid("cpu-serial");
+        args.extend(group.clone());
+        args.extend([group[i].clone(), group[i + 1].clone()]);
+        assert!(parse(args).is_err(), "duplicate {:?}", group[i]);
+    }
+}
+#[test]
+fn d7_request_canonical_values_and_quick_seed() {
+    let mut base = valid("cpu-serial");
+    base.extend(planning_args());
+    for (key, values) in [
+        ("--consumption", vec!["Quick", "none"]),
+        (
+            "--physical-lanes",
+            vec!["0", "01", "+1", "-1", "18446744073709551616"],
+        ),
+        ("--transpose", vec!["other"]),
+        ("--transpose-pool", vec!["", "1", "0"]),
+        ("--eval-hoist", vec!["true", "2"]),
+        ("--eval-bsgs", vec!["false", "01"]),
+        ("--eval-lazy-relin", vec!["-1"]),
+        ("--partitions", vec!["none", "explicit"]),
+        (
+            "--receipt-max-bytes",
+            vec!["01", "-1", "1.0", "18446744073709551616"],
+        ),
+        ("--work-updates", vec!["+1", "1e0"]),
+    ] {
+        for value in values {
+            let mut args = base.clone();
+            replace(&mut args, key, value);
+            assert!(parse(args).is_err(), "{key}={value}");
+        }
+    }
+    let mut args = base.clone();
+    replace(&mut args, "--seed", "1");
+    assert!(parse(args.clone()).is_err());
+    replace(&mut args, "--consumption", "full");
+    assert!(parse(args).is_ok());
+    let mut args = base;
+    replace(&mut args, "--transpose", "reuse");
+    for bad in [
+        "none",
+        "",
+        "+1",
+        "-0",
+        "01",
+        "-01",
+        "1,",
+        ",1",
+        "2147483648",
+        "-2147483649",
+        "1, 2",
+    ] {
+        replace(&mut args, "--transpose-pool", bad);
+        assert!(parse(args.clone()).is_err(), "{bad}");
+    }
+    replace(
+        &mut args,
+        "--transpose-pool",
+        "-2147483648,0,2,-1,2147483647",
+    );
+    let request = parse(args).unwrap().planning.unwrap();
+    match request.transpose {
+        ckks_train_nn::dense::TransposeKeys::Reuse(pool) => {
+            assert_eq!(pool, vec![i32::MIN, 0, 2, -1, i32::MAX])
+        }
+        _ => panic!("explicit ordered reuse pool"),
+    }
+}
+
+#[test]
+fn d7_request_zero_caps_are_original_requests_without_default_reset() {
+    let mut args = valid("cpu-serial");
+    args.extend(planning_args());
+    for key in [
+        "--receipt-max-bytes",
+        "--receipt-max-records",
+        "--work-geometries",
+        "--work-initial-states",
+        "--work-updates",
+        "--work-handoffs",
+        "--work-wrappers",
+    ] {
+        replace(&mut args, key, "0");
+    }
+    let request = parse(args).unwrap().planning.unwrap();
+    assert_eq!(request.limits.max_bytes, 0);
+    assert_eq!(request.limits.max_records, 0);
+    assert_eq!(
+        request.work_budget.usage(),
+        crate::study_admission::PlanningUsage::default()
+    );
+}

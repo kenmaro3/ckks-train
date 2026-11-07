@@ -171,6 +171,49 @@ impl VerifiedStudyTrainContext {
     }
 }
 impl RecheckedTrainCapture<'_> {
+    // Narrow source projection check for the same retained pre-key route. It
+    // reuses the original checked input and capture; no equal-hash owner swap.
+    pub(crate) fn recheck_binding_owners(
+        &self,
+        case: &RegisteredCase,
+        input: &MaterializedProfile,
+    ) -> Result<()> {
+        let start = &self.start;
+        require_capture_owners(
+            start.context,
+            start.context,
+            case,
+            start.case,
+            input,
+            start.input,
+        )?;
+        let runtime = start.context.retained_train_runtime()?;
+        check_case_materialized(case, input, runtime.recipe())?;
+        start
+            .context
+            .artifact
+            .recheck_materialized_input_now(input, &start.checked)?;
+        ensure(
+            TrainInvocation::observe(start.context.artifact.root())? == start.invocation,
+            "Train invocation changed",
+        )?;
+        ensure(
+            start
+                .context
+                .artifact
+                .current_build_facts()
+                .executable_sha256()
+                == start.executable_start,
+            "Train captured executable changed",
+        )?;
+        let facts = self.runtime_descriptor_facts()?;
+        ensure(
+            std::ptr::eq(facts.host(), start.runtime.host())
+                && facts.execution_threads() == start.runtime.execution_threads(),
+            "Train retained binding changed",
+        )?;
+        start.context.artifact.recheck()
+    }
     pub(crate) fn runtime_descriptor_facts(
         &self,
     ) -> Result<crate::study_runtime::RuntimeDescriptorFacts<'_>> {

@@ -1,0 +1,34 @@
+{
+  "index": 16,
+  "name": "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057428.472456,
+  "pid": 36589,
+  "exit_code": 0,
+  "end": 1794057428.567277,
+  "named_successes": [
+    "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 210,
+  "stdout_sha256": "3fb850b808ccf702d441f92de42a30fe531ec0d0eb97413532be10e8149ae167",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

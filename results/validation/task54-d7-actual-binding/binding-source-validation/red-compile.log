@@ -1,0 +1,34 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved import `super::execution_binding`
+ --> crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs:2:12
+  |
+2 | use super::execution_binding::ExecutionFields;
+  |            ^^^^^^^^^^^^^^^^^ could not find `execution_binding` in `super`
+
+error[E0609]: no field `planning` on type `ParsedRequest`
+   --> crates/ckks-train-bench/src/study_run_tests.rs:219:49
+    |
+219 |     assert!(parse(valid("cpu-serial")).unwrap().planning.is_none());
+    |                                                 ^^^^^^^^ unknown field
+    |
+    = note: available fields are: `root`, `approval`, `approval_sha256`, `receipts`, `case`, `runtime`
+
+error[E0609]: no field `planning` on type `ParsedRequest`
+   --> crates/ckks-train-bench/src/study_run_tests.rs:223:40
+    |
+223 |     let request = parse(args).unwrap().planning.unwrap();
+    |                                        ^^^^^^^^ unknown field
+    |
+    = note: available fields are: `root`, `approval`, `approval_sha256`, `receipts`, `case`, `runtime`
+
+error[E0609]: no field `planning` on type `ParsedRequest`
+   --> crates/ckks-train-bench/src/study_run_tests.rs:279:40
+    |
+279 |     let request = parse(args).unwrap().planning.unwrap();
+    |                                        ^^^^^^^^ unknown field
+    |
+    = note: available fields are: `root`, `approval`, `approval_sha256`, `receipts`, `case`, `runtime`
+
+Some errors have detailed explanations: E0432, E0609.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `ckks-train-bench` (lib test) due to 4 previous errors

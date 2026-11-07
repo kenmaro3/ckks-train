@@ -1,0 +1,17 @@
+{
+  "index": 17,
+  "name": "study_execution::actual_binding_tests::d7_actual_route_six_sources_original_budget_and_owner_refusals",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_execution::actual_binding_tests::d7_actual_route_six_sources_original_budget_and_owner_refusals",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057428.642092,
+  "pid": 36591
+}

@@ -1,0 +1,13 @@
+# Actual request, CPU route and execution binding
+
+Task54 dependency; not completed runner or scientific evidence. Source base1072d84, final reviewed source retained across docs-only HEAD61be30e. Fourteen source/README paths wire an explicit all-or-none planning request to registered CPU parameter/P1 owners, one retained Single/Block preparation, and actual RuntimePolicy/ExecutionBinding projection in the installed run_owned frame. Same plan, request, inputs and original accounting are retained. Production still returns MissingExecutionDependency until genuine gates and durable start exist.
+
+Independent source review: [SPEC/QUALITY PASS with two Minor findings](task-54-d7-actual-binding-source-review.md). Actual native producer positive was not invoked. Default/parallel/cuda no-run and strict Clippy plus fmt/diff are recorded in binding-source-validation; RED and intermediate failures remain preserved.
+
+Root released17 exact default-feature tests once sequentially; all17 selected the single expected test and passed, all Cargo children exit0. Root observed original tool session13446 terminal0. [Outcome report](task-54-d7-actual-binding-runtime1-report.md) and [independent outcome review](task-54-d7-actual-binding-runtime1-review.md) preserve exact argv/PIDs/raw hashes and limits.494 source/input pins and34 raw streams(6441bytes) were verified. No successful native Train/HE/GPU/gate/start/scientific execution was tested.
+
+Q1 corrects the preserved proposed inventory: filter17 makes27 BootParams defaults(3direct+24nested),24 seeded RNGs,12 RnsBasis/216 NttTable objects,3 P1/proofs with196605 scalar-root checks,6 complete input materializations,18 binding traversals and12complete+3early sizing traversals. Successful work-budget assertions total geometry24/initial24/update24/handoff12/wrapper6. These are source-derived completed-body/assertion counts, not independent runtime instrumentation or resource fitness.
+
+Q2 remains coverage debt: CLI tests observe fresh usage, not configured five work caps; exact value handoff is source-reviewed and manual shared-budget exhaustion is tested separately. Native bind_actual_cpu/installed-frame success and whole-process memory/cryptographic validation remain unverified. The full21 profiles,2680 family+20 exact-Iris+7 supplement Full rows,268 Quick projections and encrypted-block hold remain unchanged.
+
+All files except this README and SHA256SUMS are exact copies from this plan's ignored ledger; original inventory, RED logs and failed attempts were not rewritten. SHA256SUMS covers every other archive file. Runtime JSON is explicitly unit-validation metadata, never scientific result JSON. No dependency, license, mathematical kernel, frozen fixture or scientific threshold changed.

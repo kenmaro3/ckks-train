@@ -34,6 +34,7 @@ pub(crate) struct StudyRunRequest {
     pub(crate) locations: ContextRequest,
     pub(crate) runtime: RuntimeRequest,
     pub(crate) case: CaseSelector,
+    pub(crate) planning: Option<crate::study_admission::DiagonalRequest>,
 }
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum RunOutcome {
@@ -334,17 +335,61 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
         .map_err(|_| ProvenanceError("selected study input resolution failed"))?;
     let input = crate::study_inputs::materialize(&resolved)
         .map_err(|_| ProvenanceError("selected study input materialization failed"))?;
-    let capture = context.capture_train(case, &input)?;
-    let rechecked = context.finish_train_capture(case, &input, capture)?;
-    let _component = rechecked
-        .case_provenance()
-        .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
-    let _physical = rechecked
-        .physical_descriptor()
-        .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
-    // Captured Case/physical bytes are inspection only. Checked runtime route,
-    // remaining canonical D7 descriptors,
-    // live gates/admission/start, scientific output and HE continuation are absent.
+    // Old inspection invocations supply no planning request. They retain their
+    // previous observation/refusal semantics and never inherit Quick defaults.
+    let Some(planning) = request.planning.as_ref() else {
+        let capture = context.capture_train(case, &input)?;
+        let rechecked = context.finish_train_capture(case, &input, capture)?;
+        let _component = rechecked
+            .case_provenance()
+            .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
+        let _physical = rechecked
+            .physical_descriptor()
+            .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
+        return Ok(RunOutcome::MissingExecutionDependency);
+    };
+    // No CPU fallback for unsupported roles/backends/packing. Supported CPU
+    // parameters are the exact registered Main n16_train/n16_boot owners only.
+    let Some(parameters) = crate::study_execution::RegisteredCpuParameters::for_case(case)
+        .map_err(|_| ProvenanceError("registered CPU parameters unavailable"))?
+    else {
+        return Ok(RunOutcome::MissingExecutionDependency);
+    };
+    let actual = parameters.actual();
+    let plan = std::sync::Arc::new(
+        crate::study_admission::plan_diagonal(&input, case, actual, planning)
+            .map_err(|_| ProvenanceError("explicit canonical planning request refused"))?,
+    );
+    let mut route = crate::study_execution::PreparedCpuRoute::prepare(
+        crate::study_execution::CanonicalPreparationInput {
+            materialized: &input,
+            registered: case,
+            plan: plan.clone(),
+            request: planning,
+            actual,
+        },
+    )
+    .map_err(|_| ProvenanceError("retained CPU preparation refused"))?;
+    // Keep the single-lifetime Train capture short. Only owned identity snapshots
+    // and the actual prepared descriptor tail survive this local scope.
+    let (_component, _physical) = {
+        let capture = context.capture_train(case, &input)?;
+        let rechecked = context.finish_train_capture(case, &input, capture)?;
+        let component = rechecked
+            .case_provenance()
+            .map_err(|_| ProvenanceError("captured study Case component encoding failed"))?;
+        let physical = rechecked
+            .physical_descriptor()
+            .map_err(|_| ProvenanceError("captured study physical descriptor encoding failed"))?;
+        crate::study_reference::bind_actual_cpu(&mut route, &rechecked, &physical)
+            .map_err(|_| ProvenanceError("actual retained CPU execution binding refused"))?;
+        (component, physical)
+    };
+    context.artifact_context().recheck()?;
+    // Route, runtime/outer bytes, SAME accounting, context, case/input/request,
+    // parameters/P1 and plan stay in this installed frame through the refusal.
+    // Real gates, admission/start and scientific output remain unavailable. No
+    // continuation, key/HE constructor, session or GPU allocation is called here.
     Ok(RunOutcome::MissingExecutionDependency)
 }
 pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {

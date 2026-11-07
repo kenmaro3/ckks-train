@@ -1,0 +1,17 @@
+{
+  "index": 5,
+  "name": "study_run::tests::study_run_existing_argument_byte_count_and_path_bounds",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_existing_argument_byte_count_and_path_bounds",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.4969652,
+  "pid": 36526
+}

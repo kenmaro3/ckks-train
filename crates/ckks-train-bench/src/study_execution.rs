@@ -1,5 +1,5 @@
 //! Retained canonical CPU preparation. No start or execution capability.
-#![allow(dead_code)] // Intentionally disconnected until genuine live gates and durable start exist.
+#![allow(dead_code)] // Continuation remains disconnected until genuine live gates and durable start.
 use crate::{
     study_admission::{
         DiagonalPlan, DiagonalRequest, MicroPart, PlanningParameters, ReceiptLimits,
@@ -174,6 +174,7 @@ pub(crate) struct CanonicalDescriptors {
     pub(crate) layout_digest: String,
     pub(crate) keys_digest: String,
     pub(crate) security_digest: String,
+    pub(crate) actual_binding: Option<ActualBindingDescriptors>,
 }
 // Descriptors drop before preparation; neither checked state nor accounting is extracted.
 pub(crate) struct PreparedCanonicalBundle<'i, T> {
@@ -278,6 +279,193 @@ pub(crate) fn collect_blocks<'i, 'p>(
     preparation: RetainedPreparation<'i, CheckedBlockPreparation<'p>>,
 ) -> CpuPreparationResult<PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>> {
     crate::study_reference::collect_block_preparation_descriptors(preparation)
+}
+// Runtime/outer payload stays in the exact descriptor tail transferred by the
+// already accepted single/block factories. Bytes die before the SAME accounting.
+pub(crate) struct ActualBindingDescriptors {
+    pub(crate) runtime: crate::study_reference::DescriptorBytes,
+    pub(crate) execution: crate::study_reference::DescriptorBytes,
+}
+pub(crate) struct RegisteredCpuParameters {
+    parameters: Arc<ckks_train_ckks::CkksParams>,
+    bootstrap: Option<study_client::CpuBootstrapDescription>,
+}
+impl RegisteredCpuParameters {
+    pub(crate) fn for_case(case: &RegisteredCase) -> CpuPreparationResult<Option<Self>> {
+        use crate::study_profile::{CaseBackend, CaseMode, CasePacking, CaseRole};
+        use ckks_train_ckks::{
+            CkksParams,
+            bootstrap::{
+                BootParams,
+                metadata::{BootstrapMetadata, DftSupportProof},
+            },
+        };
+        if case.role() != CaseRole::Main
+            || case.selector().backend != CaseBackend::Cpu
+            || case.selector().packing != CasePacking::BatchedDiagonal
+        {
+            return Ok(None);
+        }
+        let ni = case.selector().mode == CaseMode::Noninteractive;
+        let parameters = Arc::new(if ni {
+            CkksParams::n16_boot()
+        } else {
+            CkksParams::n16_train()
+        });
+        let bootstrap = if ni {
+            let boot = BootParams::default_n16();
+            let proof = DftSupportProof::verify_current()
+                .map_err(|_| crate::study_diagonal::mismatch("registered P1 structural proof"))?;
+            let metadata = Arc::new(
+                BootstrapMetadata::new_with_verified_support(&parameters, &boot, &proof).map_err(
+                    |_| crate::study_diagonal::mismatch("registered P1 bootstrap metadata"),
+                )?,
+            );
+            Some(study_client::CpuBootstrapDescription {
+                parameters: boot,
+                metadata,
+            })
+        } else {
+            None
+        };
+        Ok(Some(Self {
+            parameters,
+            bootstrap,
+        }))
+    }
+    pub(crate) fn actual(&self) -> PlanningParameters<'_> {
+        PlanningParameters {
+            params: &self.parameters,
+            bootstrap: self.bootstrap.as_ref().map(|b| b.metadata.as_ref()),
+            boot_params: self.bootstrap.as_ref().map(|b| &b.parameters),
+        }
+    }
+}
+// Closed branch ownership is also the fixed consuming body selection. Metadata
+// cannot instantiate a post-key continuation or any gate/start capability.
+#[allow(clippy::large_enum_variant)]
+enum CpuRoute<'i, 'p> {
+    Single(PreparedCanonicalBundle<'i, CheckedPreparation<'p>>),
+    Block(PreparedCanonicalBundle<'i, CheckedBlockPreparation<'p>>),
+}
+pub(crate) struct PreparedCpuRoute<'i, 'p> {
+    route: CpuRoute<'i, 'p>,
+    not_send_sync: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+impl<'i, 'p> PreparedCpuRoute<'i, 'p> {
+    pub(crate) fn prepare(input: CanonicalPreparationInput<'i, 'p>) -> CpuPreparationResult<Self> {
+        let parts = input.plan.clone();
+        let route = if input.materialized.graph().stages().len() == 1 {
+            CpuRoute::Single(collect_single(prepare_canonical(
+                input,
+                parts.partitions(),
+            )?)?)
+        } else {
+            CpuRoute::Block(collect_blocks(prepare_blocks_canonical(
+                input,
+                parts.partitions(),
+            )?)?)
+        };
+        Ok(Self {
+            route,
+            not_send_sync: std::marker::PhantomData,
+        })
+    }
+    pub(crate) fn facts(&self) -> study_client::PreparationDescriptorFacts<'_> {
+        match &self.route {
+            CpuRoute::Single(b) => b.preparation.checked.descriptor_facts(),
+            CpuRoute::Block(b) => b.preparation.checked.descriptor_facts(),
+        }
+        .expect("retained canonical route")
+    }
+    pub(crate) fn owners(
+        &self,
+    ) -> (
+        &'i MaterializedProfile,
+        &'i RegisteredCase,
+        &'i DiagonalRequest,
+    ) {
+        match &self.route {
+            CpuRoute::Single(b) => (
+                b.preparation.materialized,
+                b.preparation.registered,
+                b.preparation.request,
+            ),
+            CpuRoute::Block(b) => (
+                b.preparation.materialized,
+                b.preparation.registered,
+                b.preparation.request,
+            ),
+        }
+    }
+    pub(crate) fn require_owners(
+        &self,
+        m: &MaterializedProfile,
+        c: &RegisteredCase,
+        r: &DiagonalRequest,
+    ) -> CpuPreparationResult<()> {
+        let (om, oc, or) = self.owners();
+        if !std::ptr::eq(m, om) || !std::ptr::eq(c, oc) || !std::ptr::eq(r, or) {
+            return Err(crate::study_diagonal::mismatch("retained route owners").into());
+        }
+        Ok(())
+    }
+    pub(crate) fn is_block(&self) -> bool {
+        matches!(self.route, CpuRoute::Block(_))
+    }
+    pub(crate) fn bootstrap_engine(&self) -> u8 {
+        u8::from(self.facts().bootstrap().is_some())
+    }
+    pub(crate) fn binding_parts(
+        &mut self,
+    ) -> (
+        &mut CanonicalDescriptors,
+        study_client::PreparationDescriptorFacts<'_>,
+        &mut PreparationAccounting,
+    ) {
+        match &mut self.route {
+            CpuRoute::Single(b) => {
+                let (facts, accounting) = b.preparation.descriptor_parts();
+                (&mut b.descriptors, facts, accounting)
+            }
+            CpuRoute::Block(b) => {
+                let (facts, accounting) = b.preparation.descriptor_parts();
+                (&mut b.descriptors, facts, accounting)
+            }
+        }
+    }
+    #[cfg(test)]
+    fn accounting_live_temporary(&self) -> usize {
+        match &self.route {
+            CpuRoute::Single(b) => b.preparation.accounting.live_temporary,
+            CpuRoute::Block(b) => b.preparation.accounting.live_temporary,
+        }
+    }
+    // Future genuine begin consumes this exact branch; no geometry rebuild.
+    pub(crate) fn into_continuation(
+        self,
+        parameters: Arc<ckks_train_ckks::CkksParams>,
+        boot: Option<study_client::CpuBootstrapDescription>,
+        key_rng: ckks_train_core::sampler::Rng,
+        encryption_rng: ckks_train_core::sampler::Rng,
+    ) -> CpuPreparationResult<cpu_continuation::CpuContinuation<'i, 'p>> {
+        match self.route {
+            CpuRoute::Single(b) => cpu_continuation::CpuContinuation::single(
+                b,
+                parameters,
+                boot,
+                key_rng,
+                encryption_rng,
+            ),
+            CpuRoute::Block(b) => cpu_continuation::CpuContinuation::block(
+                b,
+                parameters,
+                boot,
+                key_rng,
+                encryption_rng,
+            ),
+        }
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -571,3 +759,6 @@ mod tests {
         assert_eq!(d.security_digest, crate::data::sha256_hex(&d.security));
     }
 }
+
+#[cfg(test)]
+mod actual_binding_tests;

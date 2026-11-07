@@ -1,0 +1,17 @@
+{
+  "index": 9,
+  "name": "study_run::tests::d7_request_zero_caps_are_original_requests_without_default_reset",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::d7_request_zero_caps_are_original_requests_without_default_reset",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057427.207204,
+  "pid": 36535
+}

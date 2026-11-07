@@ -624,4 +624,14 @@ Iris emlp1／2／3の実際のcanonical入力を用い、I／NI各3ケースの�
 
 これで設計上のM1（保存場所・順序・途中失敗・復旧）が解消した。新しいevidence／Quick形式の独立テスト値と具体的な障害注入手順、protocol実装、Linux実測は未完了である。数値ゲートや既存user権限を変更せず、新たな一律確認も要求しない。
 
+## 2026-11-07追記: 明示requestと実CPU構成の接続
+
+[実装・検証証跡](../results/validation/task54-d7-actual-binding/README.md)を保存した。CLIの計画指定を全項目必須の一組として受け取り、実際の登録条件からCPU parameter／P1を生成し、同じ入力・request・plan・単一段／複数段の準備結果を保持する経路を接続した。実runtimeと同じcaptureからRuntimePolicy／ExecutionBindingを作る処理を追加し、そのbytesと一時payloadを元の計上owner・制限内で保持する。指定がない既存の検査呼出しは維持し、部分指定は拒否する。
+
+独立ソースレビュー、default／parallel／cudaのno-runとstrict Clippy、formatが合格した。対象17件をdefault featureで一度ずつ逐次実行し、全件が指定した1件を選択して合格、Cargo子プロセス17件と元controller session13446の終了コードは0だった。494個のsource／input pinと34個の生ログ（計6441 bytes）を照合し、結果記録の独立レビューも合格した。
+
+対象はCLI・凍結wire形式・payload境界・未対応経路の拒否・Iris emlp1／2／3のI／NI各3ケースのcanonical準備とowner／budget確認である。テスト17の間接呼出しを含むBootParams生成27回、乱数初期化24回、NTT表216個などは元inventoryを訂正する補足として記録した。処理回数はsourceとassertionに基づき、独立イベント計測ではない。CLIのfresh usage確認だけでは設定された五つのwork capを証明しない軽微なcoverage debtを残す。値の引渡しはsourceで確認済みで、手動構築budgetの枯渇テストと区別する。
+
+実際のnative contextによるbind_actual_cpu／run_owned成功、暗号学習、GPU、実gate・durable startは未実行であり、productionはMissingExecutionDependencyを維持する。残りは五つの実gateと証拠reader、admission／startの保存、開始後の所有者・lease接続、科学結果publisher、全実験である。Task54／M4／M5全体や物理メモリ適合の合格とはしない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

@@ -1,0 +1,17 @@
+{
+  "index": 15,
+  "name": "study_reference::document::runtime_descriptor_tests::synthetic_runtime_other_supported_routes_and_missing_cuda_rejected",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::runtime_descriptor_tests::synthetic_runtime_other_supported_routes_and_missing_cuda_rejected",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057428.308007,
+  "pid": 36587
+}

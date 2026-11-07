@@ -1,0 +1,17 @@
+{
+  "index": 11,
+  "name": "study_reference::document::execution_binding_tests::d7_outer_payload_checked_live_intervals",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_reference::document::execution_binding_tests::d7_outer_payload_checked_live_intervals",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057427.579063,
+  "pid": 36541
+}

@@ -129,6 +129,7 @@ fn runtime_retained_count_drift_fails_even_inside_exact_pool() {
 fn runtime_owned_selector_refuses_backend_before_context_or_pool() {
     use crate::study_profile::{CaseMode, CaseOrigin, CasePacking, CasePlacement, CaseScope};
     let request = StudyRunRequest {
+        planning: None,
         locations: ContextRequest::new(
             "/nonexistent".into(),
             "/nonexistent/approval".into(),

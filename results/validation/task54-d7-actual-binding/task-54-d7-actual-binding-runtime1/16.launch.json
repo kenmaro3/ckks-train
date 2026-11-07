@@ -1,0 +1,17 @@
+{
+  "index": 16,
+  "name": "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_runtime::tests::runtime_owned_selector_refuses_backend_before_context_or_pool",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057428.472456,
+  "pid": 36589
+}

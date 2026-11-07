@@ -1,0 +1,17 @@
+{
+  "index": 6,
+  "name": "study_run::tests::study_run_parsed_request_selects_real_registration_without_readiness",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_parsed_request_selects_real_registration_without_readiness",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.674776,
+  "pid": 36528
+}

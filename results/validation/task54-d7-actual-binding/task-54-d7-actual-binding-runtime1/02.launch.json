@@ -1,0 +1,17 @@
+{
+  "index": 2,
+  "name": "study_run::tests::study_run_no_defaults_ignored_options_or_duplicate_singletons",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_no_defaults_ignored_options_or_duplicate_singletons",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057425.974045,
+  "pid": 36482
+}

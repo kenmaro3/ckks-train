@@ -1,0 +1,3 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 2.68s
+  Executable unittests src/lib.rs (target/debug/deps/ckks_train_bench-282aedb1c6ac4981)

@@ -1,0 +1,17 @@
+{
+  "index": 4,
+  "name": "study_run::tests::study_run_preserves_raw_paths_but_rejects_non_utf8_semantics",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_preserves_raw_paths_but_rejects_non_utf8_semantics",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.319854,
+  "pid": 36524
+}

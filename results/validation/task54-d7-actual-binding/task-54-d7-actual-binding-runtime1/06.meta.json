@@ -1,0 +1,34 @@
+{
+  "index": 6,
+  "name": "study_run::tests::study_run_parsed_request_selects_real_registration_without_readiness",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_parsed_request_selects_real_registration_without_readiness",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.674776,
+  "pid": 36528,
+  "exit_code": 0,
+  "end": 1794057426.7728279,
+  "named_successes": [
+    "study_run::tests::study_run_parsed_request_selects_real_registration_without_readiness"
+  ],
+  "result_counts": [
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "expected_selected": true,
+  "stdout_bytes": 213,
+  "stdout_sha256": "2961f54629fd627b67f6870df63a611db806dcbf7d6c86f52ac171d7ef9df66d",
+  "stderr_bytes": 159,
+  "stderr_sha256": "829a1ffaa320ac0945de5f0eba37ddb6859d3bfd20b35de2cd746d619484cfe4"
+}

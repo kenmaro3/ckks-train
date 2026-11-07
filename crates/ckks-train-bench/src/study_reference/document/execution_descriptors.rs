@@ -1,6 +1,6 @@
 //! Four private inner representations. Inspection bytes and source projections are
 //! never a prepared route, admission, live gate, start token or scientific result.
-#![allow(dead_code)] // The real retained pre-key route/ExecutionBinding producer is subsequent work.
+#![allow(dead_code)] // Pure transport validators remain non-authorizing inspection helpers.
 use super::*;
 use crate::study_admission::{
     Consumption, GeometryBody, GeometryWriter, MicroPart, encode_geometry_body,
@@ -72,30 +72,30 @@ fn hash_valid(s: &str) -> Result<()> {
 // One borrowed size pass, one reserved output pass. No geometry/partition clone,
 // allocation or digest occurs during sizing. Encoder supplies the existing LE,
 // Text/Hash/Bool/Option primitives; every append remains independently bounded.
-struct Writer {
+pub(super) struct Writer {
     length: u64,
     output: Option<Encoder>,
 }
 impl Writer {
-    fn u64(&mut self, n: u64) -> Result<()> {
+    pub(super) fn u64(&mut self, n: u64) -> Result<()> {
         self.raw(&n.to_le_bytes())
     }
-    fn text(&mut self, s: &str) -> Result<()> {
+    pub(super) fn text(&mut self, s: &str) -> Result<()> {
         self.u64(s.len() as u64)?;
         self.raw(s.as_bytes())
     }
-    fn hash(&mut self, s: &str) -> Result<()> {
+    pub(super) fn hash(&mut self, s: &str) -> Result<()> {
         hash_valid(s)?;
         self.text(s)
     }
-    fn optional_hash(&mut self, s: Option<&str>) -> Result<()> {
+    pub(super) fn optional_hash(&mut self, s: Option<&str>) -> Result<()> {
         self.tag(u8::from(s.is_some()))?;
         if let Some(s) = s {
             self.hash(s)?;
         }
         Ok(())
     }
-    fn boolean(&mut self, b: bool) -> Result<()> {
+    pub(super) fn boolean(&mut self, b: bool) -> Result<()> {
         self.tag(u8::from(b))
     }
     fn secret(&mut self, n: Option<u64>) -> Result<()> {
@@ -104,10 +104,6 @@ impl Writer {
             self.u64(n)?;
         }
         Ok(())
-    }
-    fn header(&mut self, k: Kind) -> Result<()> {
-        self.text(ENCODING_VERSION)?;
-        self.text(k.domain())
     }
 }
 impl GeometryWriter for Writer {
@@ -129,11 +125,26 @@ fn traverse(
     output: bool,
     body: impl Fn(&mut Writer) -> Result<()>,
 ) -> Result<(usize, Vec<u8>)> {
+    traverse_domain(Some(kind.domain()), output, body)
+}
+// Shared two-pass primitives; None is the exact preexisting raw outer body.
+pub(super) fn traverse_domain(
+    domain: Option<&str>,
+    output: bool,
+    body: impl Fn(&mut Writer) -> Result<()>,
+) -> Result<(usize, Vec<u8>)> {
+    let header = |w: &mut Writer| -> Result<()> {
+        if let Some(domain) = domain {
+            w.text(ENCODING_VERSION)?;
+            w.text(domain)?;
+        }
+        Ok(())
+    };
     let mut size = Writer {
         length: 0,
         output: None,
     };
-    size.header(kind)?;
+    header(&mut size)?;
     body(&mut size)?;
     let n = checked_size(size.length)?;
     if !output {
@@ -148,7 +159,7 @@ fn traverse(
         length: 0,
         output: Some(output),
     };
-    writer.header(kind)?;
+    header(&mut writer)?;
     body(&mut writer)?;
     valid(writer.length == size.length, "execution.size_changed")?;
     Ok((n, writer.output.expect("output pass").bytes))
@@ -766,6 +777,7 @@ fn collect_descriptors(
         layout_digest,
         keys_digest,
         security_digest,
+        actual_binding: None,
     })
 }
 // Only these fixed collectors may use the private hash cache. The complete owner

@@ -1,0 +1,17 @@
+{
+  "index": 3,
+  "name": "study_run::tests::study_run_rejects_bad_vocabulary_bounds_and_incompatible_runtime",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::study_run_rejects_bad_vocabulary_bounds_and_incompatible_runtime",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057426.152458,
+  "pid": 36522
+}

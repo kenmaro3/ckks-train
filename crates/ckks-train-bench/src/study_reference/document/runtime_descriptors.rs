@@ -1,5 +1,5 @@
 //! Private D7 inspection codecs. None of these values is a checked route or gate.
-#![allow(dead_code)] // Runtime policy awaits the genuine checked implementation-route adapter.
+#![allow(dead_code)] // Parsed CUDA/inspection codecs remain separate from the actual CPU producer.
 use super::*;
 use crate::study_profile::{CaseBackend, CaseMode, CasePlacement};
 use crate::study_provenance::{
@@ -45,14 +45,15 @@ pub(crate) struct DescriptorBytes {
     hash: String,
 }
 impl DescriptorBytes {
-    fn new(bytes: Vec<u8>) -> Result<Self> {
+    pub(super) fn new(bytes: Vec<u8>) -> Result<Self> {
         ensure(
             bytes.len() <= A_MAX,
             DocumentErrorCode::TooLarge,
             "descriptor",
         )?;
         Ok(Self {
-            hash: sha256_hex(&bytes),
+            hash: crate::data::try_sha256_hex(&bytes)
+                .map_err(|_| err(DocumentErrorCode::TooLarge, "descriptor.digest_reserve"))?,
             bytes,
         })
     }
@@ -412,6 +413,17 @@ impl RuntimePolicy {
         Ok(())
     }
     fn bytes(&self) -> Result<Vec<u8>> {
+        if self.form <= 1 && self.stream_count.is_none() && self.cuda_runtime.is_none() {
+            return Ok(cpu_policy_wire(
+                self.form,
+                &self.recipe.0,
+                self.execution_threads,
+                self.refresh_route,
+                &self.physical_binding_sha256.0,
+                true,
+            )?
+            .1);
+        }
         let mut e = header(POLICY)?;
         e.byte(self.form)?;
         self.recipe.encode(&mut e)?;
@@ -450,7 +462,11 @@ impl RuntimePolicy {
         valid(
             self.form == form
                 && self.execution_threads == f.execution_threads()
-                && p.canonical_bytes() == PhysicalBody::from_facts(f)?.encode()?,
+                && if form == 2 {
+                    p.canonical_bytes() == PhysicalBody::from_facts(f)?.encode()?
+                } else {
+                    p.body.cuda_device.is_none() && observed_host_matches(&p.body, f.host())
+                },
             "runtime.retained",
         )?;
         #[cfg(feature = "cuda")]
@@ -482,6 +498,128 @@ impl RuntimePolicy {
             "runtime.canonical",
         )?;
         Ok(policy)
+    }
+}
+// Shared CPU branch of the existing RuntimePolicy wire, with a borrowed sizing
+// traversal. CUDA keeps its existing complete codec; no CUDA producer is added.
+fn cpu_policy_wire(
+    form: u8,
+    recipe: &str,
+    threads: u64,
+    refresh: u8,
+    physical: &str,
+    output: bool,
+) -> Result<(usize, Vec<u8>)> {
+    use crate::study_admission::GeometryWriter;
+    execution_descriptors::traverse_domain(Some(POLICY), output, |w| {
+        w.tag(form)?;
+        w.text(recipe)?;
+        w.tag(0)?;
+        w.u64(threads)?;
+        w.tag(0)?;
+        w.tag(0)?;
+        w.tag(refresh)?;
+        w.hash(physical)?;
+        w.tag(0)
+    })
+}
+fn observed_host_matches(p: &PhysicalBody, host: &CapturedHost) -> bool {
+    let matches = |p: &Observation<Text<4096>>, f: &CapturedObservation<String>| matches!((p, f), (Observation::Available(p), CapturedObservation::Available(f)) if &p.0 == f);
+    matches(&p.cpu_model, host.cpu_model())
+        && matches(&p.os, host.os())
+        && matches(&p.hostname, host.hostname())
+}
+pub(super) struct CpuPolicyProjection<'a> {
+    form: u8,
+    threads: u64,
+    selection: PolicySelection,
+    physical: &'a PhysicalDescriptor,
+}
+impl<'a> CpuPolicyProjection<'a> {
+    // The only actual constructor needs a closed prepared route and retained facts.
+    // Copied scalar fields cannot grant any gate/start/execution authority.
+    pub(super) fn actual(
+        route: &crate::study_execution::PreparedCpuRoute<'_, '_>,
+        f: &RuntimeDescriptorFacts<'_>,
+        physical: &'a PhysicalDescriptor,
+    ) -> Result<Self> {
+        let form = match f.recipe() {
+            Recipe::TrainCpuSerial => 0,
+            Recipe::TrainCpuRayon => 1,
+            _ => {
+                return Err(err(
+                    DocumentErrorCode::CrossLinkMismatch,
+                    "runtime.cpu_route",
+                ));
+            }
+        };
+        let (_, case, _) = route.owners();
+        let ni = route.bootstrap_engine() == 1;
+        valid(
+            case.selector().backend == CaseBackend::Cpu
+                && case.selector().mode
+                    == if ni {
+                        CaseMode::Noninteractive
+                    } else {
+                        CaseMode::Interactive
+                    },
+            "runtime.actual_mode",
+        )?;
+        Ok(Self {
+            form,
+            threads: f.execution_threads(),
+            selection: PolicySelection {
+                backend: CaseBackend::Cpu,
+                mode: if ni {
+                    CaseMode::Noninteractive
+                } else {
+                    CaseMode::Interactive
+                },
+                placement: case.selector().placement,
+                bootstrap_engine: u8::from(ni),
+            },
+            physical,
+        })
+    }
+    pub(super) fn size(&self) -> Result<usize> {
+        Ok(cpu_policy_wire(
+            self.form,
+            RECIPES[self.form as usize],
+            self.threads,
+            self.selection.bootstrap_engine,
+            self.physical.sha256(),
+            false,
+        )?
+        .0)
+    }
+    pub(super) fn temporary_payload(&self) -> usize {
+        RECIPES[self.form as usize].len() + 64
+    }
+    pub(super) fn encode_retained(
+        &self,
+        facts: &RuntimeDescriptorFacts<'_>,
+    ) -> Result<DescriptorBytes> {
+        let owned = |s: &str| -> Result<String> {
+            let mut output = String::new();
+            output
+                .try_reserve_exact(s.len())
+                .map_err(|_| err(DocumentErrorCode::TooLarge, "runtime.reserve"))?;
+            output.push_str(s);
+            Ok(output)
+        };
+        let policy = RuntimePolicy {
+            form: self.form,
+            recipe: Text(owned(RECIPES[self.form as usize])?),
+            backend: 0,
+            execution_threads: self.threads,
+            matvec_order: 0,
+            stream_count: None,
+            refresh_route: self.selection.bootstrap_engine,
+            physical_binding_sha256: Hash(owned(self.physical.sha256())?),
+            cuda_runtime: None,
+        };
+        policy.validate_retained(self.physical, self.selection, facts)?;
+        policy.encode(self.physical, self.selection)
     }
 }
 // A narrow bounded decoder for these two fixed bodies. Nested values are the

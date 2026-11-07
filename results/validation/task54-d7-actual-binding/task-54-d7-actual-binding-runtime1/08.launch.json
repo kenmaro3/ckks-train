@@ -1,0 +1,17 @@
+{
+  "index": 8,
+  "name": "study_run::tests::d7_request_canonical_values_and_quick_seed",
+  "argv": [
+    "cargo",
+    "test",
+    "-p",
+    "ckks-train-bench",
+    "--lib",
+    "study_run::tests::d7_request_canonical_values_and_quick_seed",
+    "--",
+    "--exact",
+    "--test-threads=1"
+  ],
+  "start": 1794057427.0212622,
+  "pid": 36532
+}
