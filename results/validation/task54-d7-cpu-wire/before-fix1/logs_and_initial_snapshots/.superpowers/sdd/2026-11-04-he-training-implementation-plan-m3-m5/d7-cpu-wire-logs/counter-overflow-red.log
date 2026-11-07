@@ -1,0 +1,19 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 27.60s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+
+thread 'study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_full_terminal_records' panicked at crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:160:595:
+assertion failed: r.validate(Mode::Oracle).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_full_terminal_records ... FAILED
+
+failures:
+
+failures:
+    study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_full_terminal_records
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 295 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`

@@ -1,0 +1,9 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+test study_reference::document::evidence::cpu_wire_fix1_tests::cw04_registered_full_checkpoint_prefix ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 0.00s
+
+exit=0

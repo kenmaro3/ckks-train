@@ -1,0 +1,12 @@
+{
+  "classification": "root independent byte-custody verification; not semantic acceptance, authority, native, or science",
+  "observed_utc": "2026-11-07T20:37:04.117948+00:00",
+  "members": 137,
+  "aggregate_expanded_bytes": 5809880,
+  "max_member_bytes": 168536,
+  "compact_bytes": 2626323,
+  "compact_sha256": "cce1b560087df832926d4eae36e098694f926c1d5a8a770fc47307dcb6621847",
+  "original78_sha256": "aa73aa530c039532e2c72867bd7c73bbf357d87ffe33bf44602d21c2f9ea7549",
+  "method": "Duplicate-key-rejecting JSON; DAG cycle check; forward immutable-base slicing independently of Rust reverse splice; every name/length/SHA256 equals frozen manifest. No project encoder or fixture writer invoked.",
+  "result": "PASS"
+}

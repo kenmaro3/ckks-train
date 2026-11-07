@@ -4,7 +4,7 @@ use super::*;
 use crate::study_profile::{CaseBackend, CaseMode};
 wire_record!(FileRef {root:Tag<5>,path:Str<'a,4096>,length:u64,sha256:H<'a>});
 impl FileRef<'_> {
-    fn validate(&self) -> Result<()> {
+    pub(in crate::study_reference::document::evidence) fn validate(&self) -> Result<()> {
         let p = self.path.0;
         same(
             !p.is_empty()
@@ -144,6 +144,14 @@ impl Applicability<'_> {
         x: &ExecutionFields<'_>,
         case: &admission::CaseIdentity,
     ) -> Result<()> {
+        self.matches_common(&e.common, x, case)
+    }
+    pub(in crate::study_reference::document::evidence) fn matches_common(
+        &self,
+        common: &Common<'_>,
+        x: &ExecutionFields<'_>,
+        case: &admission::CaseIdentity,
+    ) -> Result<()> {
         same(
             self.implementation_manifest.0 == x.manifest
                 && self.implementation_revision.0 == x.revision
@@ -157,7 +165,7 @@ impl Applicability<'_> {
                 && self.implementation.0 == x.implementation
                 && self.backend.0 == case.backend as u8
                 && self.mode.0 == case.mode as u8
-                && self.consumption == e.common.scope,
+                && self.consumption == common.scope,
             "applicability.exact",
         )
     }

@@ -711,3 +711,17 @@ fn closed_inventory_counts_refuse_during_preflight() {
     assert_eq!(e.code(), DocumentErrorCode::TooLarge);
     assert_eq!(e.path(), "runs.*.covered_components");
 }
+
+#[test]
+fn observed_cpu_bootstrap_mode_matches_static_baseline() {
+    let baseline = baseline(Mode::Production);
+    let raw = bytes("inert-production/bootstrap.bin");
+    let mut anchor = Bootstrap::parse(&raw, Mode::Production).unwrap();
+    anchor.mode = Mode::Oracle;
+    let encoded = anchor.encode_fixed().unwrap();
+    let oracle = Bootstrap::parse(encoded.as_slice(), Mode::Oracle).unwrap();
+    assert!(
+        baseline.check_bootstrap(&oracle, &oracle).is_err(),
+        "Q1 cross-baseline mode must refuse even in cfg(test)"
+    );
+}

@@ -151,3 +151,23 @@ fn validate(p: &mut CaseValue) -> Result<()> {
         "provenance.recheck",
     )
 }
+
+impl ParsedCaseProvenance {
+    /// Equality of supplied source/build/executable claims, not current custody.
+    pub(super) fn check_observed_context(
+        &self,
+        common: &super::evidence::Common<'_>,
+    ) -> Result<()> {
+        let p = &self.0;
+        ensure(
+            p.build.source_manifest_sha256.0 == common.source_manifest_sha256.0
+                && p.source.commit.available().map(|r| r.0.0.as_str())
+                    == Some(common.source_revision.0)
+                && p.build.receipt_file_sha256.0 == common.train_receipt_sha256.0
+                && p.executable.start_sha256.0 == common.executable_sha256.0
+                && p.executable.end_sha256.0 == common.executable_sha256.0,
+            DocumentErrorCode::CrossLinkMismatch,
+            "full.bundle.context",
+        )
+    }
+}

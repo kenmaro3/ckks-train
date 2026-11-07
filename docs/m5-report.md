@@ -1,6 +1,6 @@
 # M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0258)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
 
@@ -847,5 +847,17 @@ canonical prepare_datasetでは先行読込のbytesをまだ破棄して再取�
 最初の接続対象は登録済みIris/eMLP-1/seed0のCPU I/NIで、run_allから最終モデル評価・FP32比較・実行ファイル生成JSON・表生成までを含む。レビューで入力展開前の要求記録の生成順序、逐次実行の認可一致、同じownerの内部Target/Reference呼び出しを修正した。QuickはTargetを持たず、比較用FP32の計算時間はHEのtime-to-targetへ含めない。
 
 仕様・品質の設計レビューは合格した。コード、39件の追加W/O/N検査とその他の契約検査、Linux監視・publisher検証、実際のsecure Quick I/NIと残りの全adapterは未完了。全21profiles・Full2680+20+7・Quick268・10seedの範囲は維持し、初回CPU接続をTask54全体の完了とは扱わない。FULL-2と既存queueの順序も維持する。
+
+<a id="latest-evidence-20261108-d7-cpu-wire"></a>
+
+## 2026-11-08追記: CPU実行記録の読取・整合性検査
+
+[ソース・元ログ・独立レビュー](../results/validation/task54-d7-cpu-wire/README.md)を保存した。入力展開前の要求記録、RSS監視条件の記録、証拠の組合せ、Quick v2、結果binary／JSON／同一bytesのexport、Full／Quickの開始から終了までの記録を検査する処理を実装した。既存形式のbytesを保持し、旧static資源記録のmode照合漏れも修正した。
+
+初回レビューの指摘を再現し、Full記録の連結、Quickの実行identity・context、準備操作のseed、登録されたFull評価点、開始と結果の時刻順序を修正した。修正時の限定テスト21件、strict Clippy、formatは合格し、仕様・品質の独立再レビューも合格した。これは渡された記録の整合性検査であり、実際のCPU学習・Linux監視・測定結果の証明ではない。
+
+**手順上の未達CW06は残る。** 最初の25件のliteralは実装前に作成したが、追加53件は初期encoder実装より後だった。中間の完全なsource snapshotも無く、全件で「テスト用期待値が実装より先」を満たしたとは主張しない。失敗を後付けで再現して履歴を作る案や既知の期待値からの書き直しではこの不足を回復できないため、元証拠を保存し、独立した形式確認・修正前の反例・独立再レビューを条件として修正済みソースを採用した。概念上の誤りを共有する可能性は制約として残す。修正用137件と既存78件のbytes照合は別途確認した。
+
+実際のsupervisor／broker、保持した入力と同じowner、Reference／Targetと開始条件、最終モデル・FP32・計時・結果保存、run_allからの通し実行は未完了。ソースmanifestの512件上限も現状では超過しているため、既存fixtureのbytesを保った集約が次の前提修正となる。上限や全登録範囲を削減せず、FULL-2と既存queueの実行順序を維持する。Task54全体・M5の合格ではない。
 
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

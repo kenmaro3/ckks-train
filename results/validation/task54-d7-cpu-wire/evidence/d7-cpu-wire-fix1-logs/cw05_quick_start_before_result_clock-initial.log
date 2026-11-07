@@ -1,0 +1,19 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.15s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 1 test
+
+thread 'study_reference::document::evidence::cpu_wire_fix1_tests::cw05_quick_start_before_result_clock' panicked at crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs:40:2:
+result-ended0/0 precedes linked start104/4
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test study_reference::document::evidence::cpu_wire_fix1_tests::cw05_quick_start_before_result_clock ... FAILED
+
+failures:
+
+failures:
+    study_reference::document::evidence::cpu_wire_fix1_tests::cw05_quick_start_before_result_clock
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 300 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p ckks-train-bench --lib`
+exit=101

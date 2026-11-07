@@ -1,0 +1,9 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved import `super::observed`
+ --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:2:12
+  |
+2 | use super::observed::*;
+  |            ^^^^^^^^ could not find `observed` in `super`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error

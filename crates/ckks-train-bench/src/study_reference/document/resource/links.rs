@@ -333,7 +333,8 @@ impl<'a> Baseline<'a> {
             "bootstrap.kernel_profile",
         )?;
         require(
-            a.mode == expected.mode
+            a.mode == self.policy.mode
+                && expected.mode == self.policy.mode
                 && a.generation == expected.generation
                 && a.account_uid == expected.account_uid
                 && a.host_key == expected.host_key

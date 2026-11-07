@@ -207,7 +207,7 @@ impl EventBody<'_> {
         }
     }
 }
-fn gates(g: &admission::Gates) -> [&admission::Gate; 5] {
+pub(super) fn gates(g: &admission::Gates) -> [&admission::Gate; 5] {
     [
         &g.inputs,
         &g.implementation,

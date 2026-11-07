@@ -1,0 +1,149 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: unused import: `policy::*`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:72:16
+   |
+72 | pub(super) use policy::*;
+   |                ^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: unused import: `terminal::*`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:74:16
+   |
+74 | pub(super) use terminal::*;
+   |                ^^^^^^^^^^^
+
+error: manual `RangeInclusive::contains` implementation
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:281:14
+    |
+281 |             (root >= 3 && root <= 5 && parent == root && child == 2)
+    |              ^^^^^^^^^^^^^^^^^^^^^^ help: use: `(3..=5).contains(&root)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_range_contains
+    = note: `-D clippy::manual-range-contains` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_range_contains)]`
+
+error: large size difference between variants
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:245:1
+    |
+245 | / pub(in crate::study_reference::document::evidence) enum RecordBody<'a> {
+246 | |     Bootstrap(Bootstrap<'a>),
+247 | |     Pending(Pending<'a>),
+248 | |     Claim(ClaimRecord<'a>),
+...   |
+252 | |     SupervisorEnd(SupervisorEnd<'a>),
+    | |     -------------------------------- the second-largest variant contains at least 368 bytes
+253 | |     FullEnd(FullEnd<'a>),
+254 | |     Result(CpuResult<'a>),
+    | |     --------------------- the largest variant contains at least 1000 bytes
+255 | | }
+    | |_^ the entire enum is at least 1000 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields to reduce the total size of the enum
+    |
+254 |     Result(Box<CpuResult<'a>>),
+    |            ~~~~~~~~~~~~~~~~~~
+
+error: the following explicit lifetimes could be elided: 'a
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:20:6
+   |
+20 | impl<'a> JsonWire<'a> for u64 {
+   |      ^^           ^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+   = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_lifetimes)]`
+help: elide the lifetimes
+   |
+20 - impl<'a> JsonWire<'a> for u64 {
+20 + impl JsonWire<'_> for u64 {
+   |
+
+error: the following explicit lifetimes could be elided: 'a
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:28:6
+   |
+28 | impl<'a> JsonWire<'a> for bool {
+   |      ^^           ^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+   |
+28 - impl<'a> JsonWire<'a> for bool {
+28 + impl JsonWire<'_> for bool {
+   |
+
+error: the following explicit lifetimes could be elided: 'a
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:36:6
+   |
+36 | impl<'a, const M: u8> JsonWire<'a> for Tag<M> {
+   |      ^^                        ^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+   |
+36 - impl<'a, const M: u8> JsonWire<'a> for Tag<M> {
+36 + impl<const M: u8> JsonWire<'_> for Tag<M> {
+   |
+
+error: the following explicit lifetimes could be elided: 'a
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:257:6
+    |
+257 | impl<'a> JsonWire<'a> for Counter {
+    |      ^^           ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+    |
+257 - impl<'a> JsonWire<'a> for Counter {
+257 + impl JsonWire<'_> for Counter {
+    |
+
+error: the following explicit lifetimes could be elided: 'a
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:268:6
+    |
+268 | impl<'a> JsonWire<'a> for Times {
+    |      ^^           ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+    |
+268 - impl<'a> JsonWire<'a> for Times {
+268 + impl JsonWire<'_> for Times {
+    |
+
+error: the following explicit lifetimes could be elided: 'a
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:327:6
+    |
+327 | impl<'a> JsonWire<'a> for Clock {
+    |      ^^           ^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+help: elide the lifetimes
+    |
+327 - impl<'a> JsonWire<'a> for Clock {
+327 + impl JsonWire<'_> for Clock {
+    |
+
+error: this function has too many arguments (8/7)
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:98:1
+    |
+98  | / fn check_result_files(
+99  | |     bin: &Option<FileRef<'_>>,
+100 | |     json: &Option<FileRef<'_>>,
+101 | |     export: &Option<FileRef<'_>>,
+...   |
+106 | |     mode: Mode,
+107 | | ) -> Result<()> {
+    | |_______________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: could not compile `ckks-train-bench` (lib) due to 11 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `ckks-train-bench` (lib test) due to 9 previous errors

@@ -1,0 +1,620 @@
+FIX1 code/test diff: exact full patch except ONE identified new fixture JSON hunk.
+Full patch: .superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fix1.diff
+Full patch bytes=2652094 SHA256=018f2a97cc834e3747972c968abcc25729d379929abd1d8418a6faed4df7944c
+Omitted fixture is independently checked root-cpu-wire-fix1-byte-custody.json; full contents and independent reference writer remain review inputs. No production/test source hunk omitted.
+
+diff --git a/crates/ckks-train-bench/src/study_reference/document/admission.rs b/crates/ckks-train-bench/src/study_reference/document/admission.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/admission.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/admission.rs
+@@ -949,3 +949,63 @@
+     )?;
+     Ok(value)
+ }
++
++// Supplied observed-policy composition only. The generic Full parser/traversal
++// above is unchanged and no capture/owner/start capability is constructed.
++impl Admission {
++    pub(super) fn gates(&self) -> &Gates {
++        &self.gates
++    }
++    pub(super) fn admitted(&self) -> &Clock {
++        &self.admitted
++    }
++    pub(super) fn check_observed_claims(
++        &self,
++        common: &super::evidence::Common<'_>,
++        branch: &super::evidence::FullBody<'_>,
++        contract_length: u64,
++        receipt_length: u64,
++    ) -> Result<()> {
++        ensure(
++            self.campaign_id.0 == common.campaign_id.0
++                && self.profile_id.0 == common.profile_id.0
++                && self.attempt_id.0 == branch.attempt_id.0
++                && self.lock_id.0 == branch.lock_id.0
++                && component(Some(CASE_DOMAIN), &self.case)? == branch.case.0
++                && self.case_id.0 == branch.case_id.0,
++            DocumentErrorCode::CrossLinkMismatch,
++            "full.bundle.branch",
++        )?;
++        equal(&self.lock, &branch.lock, "full.bundle.lock")?;
++        equal(&self.reference, &branch.reference, "full.bundle.reference")?;
++        equal(
++            &self.predecessor,
++            &branch.predecessor,
++            "full.bundle.predecessor",
++        )?;
++        ensure(
++            self.execution.fields().binding_bytes()? == common.execution.0
++                && self.contract.sha256.0 == common.contract_sha256.0
++                && self.contract.bytes.len() as u64 == contract_length
++                && self.selected_input.seed == self.case.seed
++                && self.selected_input.materialized_sha256.0 == common.materialized_sha256.0
++                && self.selected_input.seed_receipt.sha256.0 == common.selected_receipt_sha256.0
++                && self.selected_input.seed_receipt.bytes.len() as u64 == receipt_length
++                && self.policy.approval_sha256.0 == common.approval_sha256.0,
++            DocumentErrorCode::CrossLinkMismatch,
++            "full.bundle.source_input",
++        )?;
++        self.provenance.check_observed_context(common)
++    }
++}
++impl Start {
++    pub(super) fn started(&self) -> &Clock {
++        &self.started
++    }
++    pub(super) fn check_observed_context(
++        &self,
++        common: &super::evidence::Common<'_>,
++    ) -> Result<()> {
++        self.provenance.check_observed_context(common)
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs b/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
+@@ -151,3 +151,23 @@
+         "provenance.recheck",
+     )
+ }
++
++impl ParsedCaseProvenance {
++    /// Equality of supplied source/build/executable claims, not current custody.
++    pub(super) fn check_observed_context(
++        &self,
++        common: &super::evidence::Common<'_>,
++    ) -> Result<()> {
++        let p = &self.0;
++        ensure(
++            p.build.source_manifest_sha256.0 == common.source_manifest_sha256.0
++                && p.source.commit.available().map(|r| r.0.0.as_str())
++                    == Some(common.source_revision.0)
++                && p.build.receipt_file_sha256.0 == common.train_receipt_sha256.0
++                && p.executable.start_sha256.0 == common.executable_sha256.0
++                && p.executable.end_sha256.0 == common.executable_sha256.0,
++            DocumentErrorCode::CrossLinkMismatch,
++            "full.bundle.context",
++        )
++    }
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence.rs b/crates/ckks-train-bench/src/study_reference/document/evidence.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence.rs
+@@ -455,3 +455,6 @@
+     }
+     Ok((execution, case))
+ }
++
++#[cfg(test)]
++mod cpu_wire_fix1_tests;
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs
+@@ -0,0 +1,275 @@
++//! FIX1 contract-derived counterexamples, no live or numerical constructors.
++use super::observed::*;
++use super::*;
++fn old(name: &str) -> Vec<u8> {
++    let v: serde_json::Value =
++        serde_json::from_str(include_str!("observed/literals.json")).unwrap();
++    unhex(v[name].as_str().unwrap())
++}
++fn unhex(s: &str) -> Vec<u8> {
++    s.as_bytes()
++        .chunks_exact(2)
++        .map(|p| u8::from_str_radix(std::str::from_utf8(p).unwrap(), 16).unwrap())
++        .collect()
++}
++#[test]
++fn cw03_preparation_child_selected_seed() {
++    let mut accepted = Vec::new();
++    for (op, id) in [(4, "W09"), (5, "W10")] {
++        let b = old(id);
++        let w = RequestedWork::decode(&b, Mode::Oracle).unwrap();
++        w.bind_preparation_root(op, "iris__emlp1", &[0]).unwrap();
++        if w.check_child(op, 2, "iris__emlp1", 1).is_ok() {
++            accepted.push(op);
++        }
++    }
++    let b = old("W08");
++    let mut b = b[..b.len() - 16].to_vec();
++    for n in [2u64, 0, 1] {
++        b.extend_from_slice(&n.to_le_bytes());
++    }
++    let w = RequestedWork::decode(&b, Mode::Oracle).unwrap();
++    w.bind_preparation_root(3, "iris__emlp1", &[0, 1]).unwrap();
++    w.check_child(3, 2, "iris__emlp1", 1).unwrap();
++    assert!(
++        accepted.is_empty(),
++        "seed0-only roots accepted selected1: {accepted:?}"
++    );
++}
++#[test]
++fn cw04_registered_full_checkpoint_prefix() {
++    let b = old("0-1-result");
++    let rec = ObservedRecord::decode(RecordKind::Result, &b, Mode::Oracle).unwrap();
++    let RecordBody::Result(mut r) = rec.body else {
++        unreachable!()
++    };
++    r.scope = Tag(0);
++    r.status = Tag(2);
++    r.completed_updates = 6;
++    r.processed_samples = 120;
++    r.checkpoints.truncate(1);
++    r.checkpoints[0].updates = 6;
++    r.checkpoints[0].samples = 120;
++    r.checkpoints[0].crossed = vec![1];
++    r.final_endpoint = None;
++    r.model_digest = None;
++    r.target = Some(TargetOutcome {
++        lock: r.start.clone(),
++        threshold_bits: 0,
++        reached: true,
++        first_checkpoint: Some(6),
++        time_basis: Id("cumulative_update_ns"),
++        time_ns: Some(10),
++        censor_ns: 10,
++    });
++    r.validate(Mode::Oracle).unwrap();
++    let mut accepted = Vec::new();
++    for (updates, crossed) in [(1, vec![1]), (12, vec![2]), (6, vec![2]), (6, vec![])] {
++        let mut wrong = r.clone();
++        wrong.completed_updates = updates;
++        wrong.processed_samples = updates * 20;
++        wrong.checkpoints[0].updates = updates;
++        wrong.checkpoints[0].samples = updates * 20;
++        wrong.checkpoints[0].crossed = crossed;
++        wrong.target.as_mut().unwrap().first_checkpoint = Some(updates);
++        if wrong.validate(Mode::Oracle).is_ok() {
++            accepted.push((updates, wrong.checkpoints[0].crossed.clone()));
++        }
++    }
++    assert!(
++        accepted.is_empty(),
++        "invalid prefixes accepted: {accepted:?}"
++    );
++}
++fn fix(name: &str) -> Vec<u8> {
++    static VALUES: std::sync::OnceLock<serde_json::Value> = std::sync::OnceLock::new();
++    let values = VALUES
++        .get_or_init(|| serde_json::from_str(include_str!("observed/fix1_literals.json")).unwrap());
++    let v = &values[name];
++    if let Some(s) = v.as_str() {
++        return unhex(s);
++    }
++    let base = v["base"].as_str().unwrap();
++    let mut b = if let Some(name) = base.strip_prefix("old:") {
++        old(name)
++    } else {
++        fix(base)
++    };
++    for p in v["patches"].as_array().unwrap().iter().rev() {
++        let start = p[0].as_u64().unwrap() as usize;
++        let remove = p[1].as_u64().unwrap() as usize;
++        let replacement = unhex(p[2].as_str().unwrap());
++        assert!(start + remove <= b.len());
++        b.splice(start..start + remove, replacement);
++        assert!(b.len() <= 524288);
++    }
++    b
++}
++fn with_old_bundle(check: impl FnOnce(&CurrentEvidenceBundle<'_, '_>)) {
++    let b: [Vec<u8>; 6] = [
++        "inputs",
++        "implementation",
++        "layout",
++        "user",
++        "resource",
++        "claim",
++    ]
++    .map(|n| old(&format!("0-1-{n}")));
++    with_bundle_bytes(&b, check);
++}
++fn with_full_bundle(mode: &str, check: impl FnOnce(&CurrentEvidenceBundle<'_, '_>)) {
++    let b: [Vec<u8>; 6] = [
++        "inputs",
++        "implementation",
++        "layout",
++        "user",
++        "resource",
++        "claim",
++    ]
++    .map(|n| fix(&format!("full-{mode}-{n}")));
++    with_bundle_bytes(&b, check);
++}
++fn with_bundle_bytes(b: &[Vec<u8>; 6], check: impl FnOnce(&CurrentEvidenceBundle<'_, '_>)) {
++    let records: Vec<_> = b[..4]
++        .iter()
++        .map(|v| Evidence::parse_oracle(v).unwrap())
++        .collect();
++    let resource = OperationalResourceEvidence::decode(&b[4], Mode::Oracle).unwrap();
++    let claim = ObservedRecord::decode(RecordKind::Claim, &b[5], Mode::Oracle).unwrap();
++    let bundle = CurrentEvidenceBundle {
++        non_resource: [&records[0], &records[1], &records[2], &records[3]],
++        resource: &resource,
++        claim: &claim,
++    };
++    bundle.check().unwrap();
++    check(&bundle);
++}
++#[test]
++fn cw02_quick_exact_preflight_bundle_binding() {
++    with_old_bundle(|bundle| {
++        let mut accepted = Vec::new();
++        for variant in ["attempt", "approval", "receipt", "executable"] {
++            let pre = fix(&format!("quick-{variant}-preflight-json"));
++            let start = fix(&format!("quick-{variant}-start-json"));
++            let end = fix(&format!("quick-{variant}-end-json"));
++            if check_quick_v2_chain(&pre, &start, &end, bundle).is_ok() {
++                accepted.push(variant);
++            }
++        }
++        assert!(
++            accepted.is_empty(),
++            "consistently rehashed mismatches accepted: {accepted:?}"
++        );
++    });
++}
++#[test]
++fn cw05_quick_start_before_result_clock() {
++    with_old_bundle(|bundle| {
++        let r = fix("quick-clock-result");
++        let j = fix("quick-clock-result-json");
++        let x = fix("quick-clock-result-export");
++        let p = fix("quick-clock-preflight-json");
++        let s = fix("quick-clock-start-json");
++        let e = fix("quick-clock-end-json");
++        let u = fix("quick-clock-supervisor-end");
++        check_three_outputs(&r, &j, &x, Mode::Oracle).unwrap();
++        check_quick_v2_chain(&p, &s, &e, bundle).unwrap();
++        let result = ObservedRecord::decode(RecordKind::Result, &r, Mode::Oracle).unwrap();
++        let RecordBody::Result(result) = result.body else {
++            unreachable!()
++        };
++        result.check_bundle(bundle).unwrap();
++        assert_eq!(result.ended.unix_ns, 0);
++        assert!(
++            QuickTerminal {
++                result: &r,
++                result_json: &j,
++                result_export: &x,
++                preflight: &p,
++                start: &s,
++                end: &e,
++                supervisor_end: &u
++            }
++            .check(bundle)
++            .is_err(),
++            "result-ended0/0 precedes linked start104/4"
++        );
++    });
++}
++#[test]
++fn cw01_frozen_full_generic_components() {
++    for mode in ["i", "ni"] {
++        let a = fix(&format!("full-{mode}-admission"));
++        let s = fix(&format!("full-{mode}-start"));
++        let a = admission::SyntheticAdmission::parse(&a).unwrap();
++        let s = admission::SyntheticStart::parse(&s).unwrap();
++        assert_eq!(
++            a.0.canonical().unwrap(),
++            fix(&format!("full-{mode}-admission-canonical"))
++        );
++        assert_eq!(
++            s.0.canonical().unwrap(),
++            fix(&format!("full-{mode}-start-canonical"))
++        );
++        admission::check_start_claims(&s.0, &a.0).unwrap();
++        with_full_bundle(mode, |b| b.check().unwrap());
++    }
++}
++fn full_terminal_members(prefix: &str) -> [Vec<u8>; 7] {
++    [
++        "admission",
++        "start",
++        "result",
++        "result-json",
++        "result-export",
++        "end",
++        "supervisor-end",
++    ]
++    .map(|name| fix(&format!("full-{prefix}-{name}")))
++}
++fn check_full_members(b: &[Vec<u8>; 7], bundle: &CurrentEvidenceBundle<'_, '_>) -> Result<()> {
++    FullTerminal {
++        admission: &b[0],
++        start: &b[1],
++        result: &b[2],
++        result_json: &b[3],
++        result_export: &b[4],
++        end: &b[5],
++        supervisor_end: &b[6],
++    }
++    .check(bundle)
++}
++#[test]
++fn cw01_full_supplied_terminal_chain() {
++    for mode in ["i", "ni"] {
++        let b = full_terminal_members(mode);
++        with_full_bundle(mode, |bundle| check_full_members(&b, bundle).unwrap());
++    }
++    with_full_bundle("i", |bundle| {
++        for (variant, expected) in [
++            ("tuple", "current.policy.tuple"),
++            ("attempt", "full.bundle.branch"),
++            ("admission-start", "start.admission.link"),
++            ("target-lock", "result.bundle.target"),
++            ("target-threshold", "result.bundle.target"),
++            ("source", "result.bundle.provenance"),
++            ("case", "result.bundle.provenance"),
++            ("output", "file.retained_bytes"),
++            ("evidence", "file.retained_bytes"),
++            ("closure", "terminal.supervisor.closed"),
++            ("clock", "quick.clock_order"),
++            ("scope", "terminal.full.result"),
++        ] {
++            let b = full_terminal_members(variant);
++            check_three_outputs(&b[2], &b[3], &b[4], Mode::Oracle).unwrap();
++            let error = check_full_members(&b, bundle).expect_err(variant);
++            assert_eq!(
++                error.path(),
++                expected,
++                "wrong negative frontier for {variant}: {error}"
++            );
++        }
++    });
++    let b = full_terminal_members("i");
++    with_old_bundle(|bundle| assert!(check_full_members(&b, bundle).is_err()));
++}
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs
+@@ -409,6 +409,7 @@
+     r.checkpoints.truncate(1);
+     r.checkpoints[0].updates = 6;
+     r.checkpoints[0].samples = 120;
++    r.checkpoints[0].crossed = vec![1];
+     r.final_endpoint = None;
+     r.model_digest = None;
+     r.target = Some(TargetOutcome {
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs
+@@ -226,8 +226,28 @@
+         p.identity_sha256 == s.identity_sha256 && s.identity_sha256 == e.original.identity_sha256,
+         "quickv2.chain.identity",
+     )?;
++    let Branch::Quick(selected) = &bundle.resource.branch else {
++        return Err(err(
++            DocumentErrorCode::CrossLinkMismatch,
++            "quickv2.chain.scope",
++        ));
++    };
++    same(
++        p.identity.0 == selected.operational_identity.0
++            && p.identity_sha256 == selected.operational_id,
++        "quickv2.chain.selected_identity",
++    )?;
++    let common = &bundle.resource.common;
++    same(
++        p.source_manifest_sha256 == common.source_manifest_sha256
++            && p.source_revision == common.source_revision
++            && p.approval_sha256 == common.approval_sha256
++            && p.train_receipt_sha256 == common.train_receipt_sha256
++            && p.executable_sha256 == common.executable_sha256,
++        "quickv2.chain.context",
++    )?;
+     let q = QuickIdentity::decode(p.identity.0, mode)?;
+-    q.check_common(&bundle.resource.common)?;
++    q.check_common(common)?;
+     same(
+         q.body.registration.0 == bundle.resource.branch.registration(),
+         "quickv2.chain.registration",
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs
+@@ -244,7 +244,9 @@
+         }
+         Ok(())
+     }
+-    /// Closed graph relation only. SAME originating owner is separately required.
++    /// Closed graph relation only. `selected` is the actual selected reconstruction
++    /// seed; recovery/lock roots4/5 and this compiled Train root6 are seed0-only.
++    /// SAME originating owner is separately required.
+     pub(in crate::study_reference::document::evidence) fn check_child(
+         &self,
+         parent: u8,
+@@ -262,7 +264,7 @@
+             } => (profile.0, *operation, false, Some(&seeds[..*count])),
+         };
+         same(
+-            profile == p && selected < 10 && (root != 6 || selected == 0),
++            profile == p && selected < 10 && (!matches!(root, 4..=6) || selected == 0),
+             "work.child.profile.seed",
+         )?;
+         let expected = [0, selected];
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs
+@@ -435,7 +435,7 @@
+         )?;
+         same(self.checkpoints.len() <= 400, "result.checkpoints.count")?;
+         let mut previous = None;
+-        for endpoint in &self.checkpoints {
++        for (index, endpoint) in self.checkpoints.iter().enumerate() {
+             same(
+                 endpoint.updates > 0
+                     && endpoint.updates <= self.completed_updates
+@@ -445,6 +445,18 @@
+                     && endpoint.fp32_correct <= 30,
+                 "result.endpoint.counts",
+             )?;
++            // This separately versioned CPU slice is exactly registered Iris:
++            // checkpoint k (one-based) is6*k updates/120*k samples/boundary[k].
++            // Actual plan/custody is still the later runtime owner's obligation.
++            if self.scope.0 == 0 {
++                let k = index as u64 + 1;
++                same(
++                    endpoint.updates == 6 * k
++                        && endpoint.samples == 120 * k
++                        && endpoint.crossed.as_slice() == [k],
++                    "result.full.registered_schedule",
++                )?;
++            }
+             same(
+                 endpoint.crossed.windows(2).all(|w| w[0] < w[1]),
+                 "result.endpoint.crossed",
+diff --git a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs
+--- a/crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs
++++ b/crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs
+@@ -26,6 +26,12 @@
+         r.check_bundle(bundle)?;
+         r.start.check_bytes(self.start)?;
+         r.admission_or_preflight.check_bytes(self.preflight)?;
++        let start_bytes = decode_quick_v2_json(self.start, mode)?;
++        let start = QuickEventV2::decode(EventKind::Start, &start_bytes, mode)?;
++        let QuickV2Body::Start(start) = start.body else {
++            unreachable!()
++        };
++        clock_order(&start.started, &r.ended)?;
+         let end = decode_quick_v2_json(self.end, mode)?;
+         let end = QuickEventV2::decode(EventKind::End, &end, mode)?;
+         let QuickV2Body::End(end) = end.body else {
+@@ -59,6 +65,7 @@
+         &self,
+         bundle: &CurrentEvidenceBundle<'_, '_>,
+     ) -> Result<()> {
++        self.validate(bundle.resource.mode)?;
+         bundle.check()?;
+         let e = &bundle.resource;
+         let c = &e.common;
+@@ -81,6 +88,13 @@
+             } else {
+                 bundle.non_resource[if i == 4 { 3 } else { i }].bytes
+             })?;
++        }
++        if let (Branch::Full(branch), Some(target)) = (&e.branch, &self.target) {
++            same(
++                target.lock.sha256.0 == branch.lock.file_sha256.0
++                    && target.threshold_bits == branch.threshold_bits,
++                "result.bundle.target",
++            )?;
+         }
+         let Tail::Inputs(inputs) = &bundle.non_resource[0].tail else {
+             unreachable!()
+@@ -154,3 +168,94 @@
+     same(a.bytes == b.bytes, "terminal.supervisor.pending")?;
+     clock_order(ended, &s.ended)
+ }
++
++/// Complete Full supplied-record composition, never a retained/live capability.
++pub(in crate::study_reference::document::evidence) struct FullTerminal<'a> {
++    pub(in crate::study_reference::document::evidence) admission: &'a [u8],
++    pub(in crate::study_reference::document::evidence) start: &'a [u8],
++    pub(in crate::study_reference::document::evidence) result: &'a [u8],
++    pub(in crate::study_reference::document::evidence) result_json: &'a [u8],
++    pub(in crate::study_reference::document::evidence) result_export: &'a [u8],
++    pub(in crate::study_reference::document::evidence) end: &'a [u8],
++    pub(in crate::study_reference::document::evidence) supervisor_end: &'a [u8],
++}
++impl FullTerminal<'_> {
++    pub(in crate::study_reference::document::evidence) fn check(
++        &self,
++        bundle: &CurrentEvidenceBundle<'_, '_>,
++    ) -> Result<()> {
++        bundle.check()?;
++        let Branch::Full(branch) = &bundle.resource.branch else {
++            return Err(err(
++                DocumentErrorCode::CrossLinkMismatch,
++                "terminal.full.scope",
++            ));
++        };
++        let mode = bundle.resource.mode;
++        // Reuse the unchanged generic parsers in both production and cfg(test) oracle.
++        let admission = match mode {
++            Mode::Production => admission::parse_admission(self.admission)?,
++            #[cfg(test)]
++            Mode::Oracle => admission::SyntheticAdmission::parse(self.admission)?.0,
++        };
++        let start = match mode {
++            Mode::Production => admission::parse_start(self.start)?,
++            #[cfg(test)]
++            Mode::Oracle => admission::SyntheticStart::parse(self.start)?.0,
++        };
++        bundle.check_gate_hashes(admission.gates())?;
++        admission::check_start_claims(&start, &admission)?;
++        let Tail::Inputs(inputs) = &bundle.non_resource[0].tail else {
++            unreachable!()
++        };
++        admission.check_observed_claims(
++            &bundle.resource.common,
++            branch,
++            inputs.contract.canonical_length,
++            inputs.selected_receipt.canonical_length,
++        )?;
++        start.check_observed_context(&bundle.resource.common)?;
++        clock_order(admission.admitted(), start.started())?;
++        check_three_outputs(self.result, self.result_json, self.result_export, mode)?;
++        let result = ObservedRecord::decode(RecordKind::Result, self.result, mode)?;
++        let RecordBody::Result(result) = result.body else {
++            unreachable!()
++        };
++        same(
++            result.scope.0 == 0 && result.status.0 == 0,
++            "terminal.full.result",
++        )?;
++        result.check_bundle(bundle)?;
++        result.start.check_bytes(self.start)?;
++        result.admission_or_preflight.check_bytes(self.admission)?;
++        let end = ObservedRecord::decode(RecordKind::FullEnd, self.end, mode)?;
++        let RecordBody::FullEnd(end) = end.body else {
++            unreachable!()
++        };
++        same(
++            end.attempt == branch.attempt_id
++                && end.outcome.0 == 0
++                && end.completed_updates == result.completed_updates
++                && end.processed_samples == result.processed_samples,
++            "terminal.full.end",
++        )?;
++        end.admission.check_bytes(self.admission)?;
++        end.start.check_bytes(self.start)?;
++        check_result_files(
++            [&end.result, &end.result_json, &end.result_export],
++            [self.result, self.result_json, self.result_export],
++            &result,
++            mode,
++        )?;
++        clock_order(start.started(), &result.ended)?;
++        clock_order(&result.ended, &end.ended)?;
++        check_supervisor(
++            self.supervisor_end,
++            self.result,
++            self.start,
++            self.end,
++            bundle,
++            &end.ended,
++        )
++    }
++}

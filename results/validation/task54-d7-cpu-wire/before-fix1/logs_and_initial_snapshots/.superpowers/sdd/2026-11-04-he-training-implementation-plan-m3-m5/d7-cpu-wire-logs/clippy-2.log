@@ -1,0 +1,68 @@
+    Checking ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0425]: cannot find value `bin` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:106:5
+    |
+106 |     bin.as_ref().ok_or_else(missing)?.check_bytes(b)?;
+    |     ^^^ not found in this scope
+
+error[E0425]: cannot find value `b` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:106:51
+    |
+106 |       bin.as_ref().ok_or_else(missing)?.check_bytes(b)?;
+    |                                                     ^ help: a tuple struct with a similar name exists: `H`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:118:1
+    |
+118 | / pub(in crate::study_reference::document) struct H<'a>(
+119 | |     pub(in crate::study_reference::document) &'a str,
+120 | | );
+    | |__- similarly named tuple struct `H` defined here
+
+error[E0425]: cannot find value `json` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:107:5
+    |
+107 |     json.as_ref().ok_or_else(missing)?.check_bytes(j)?;
+    |     ^^^^ not found in this scope
+    |
+note: function `crate::study_profile::json` exists but is inaccessible
+   --> crates/ckks-train-bench/src/study_profile.rs:108:1
+    |
+108 | fn json(bytes: &[u8]) -> Result<Value> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find value `j` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:107:52
+    |
+107 |       json.as_ref().ok_or_else(missing)?.check_bytes(j)?;
+    |                                                      ^ help: a tuple struct with a similar name exists: `H`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:118:1
+    |
+118 | / pub(in crate::study_reference::document) struct H<'a>(
+119 | |     pub(in crate::study_reference::document) &'a str,
+120 | | );
+    | |__- similarly named tuple struct `H` defined here
+
+error[E0425]: cannot find value `export` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:108:18
+    |
+108 |     let export = export.as_ref().ok_or_else(missing)?;
+    |                  ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `x` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:109:24
+    |
+109 |       export.check_bytes(x)?;
+    |                          ^ help: a tuple struct with a similar name exists: `H`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:118:1
+    |
+118 | / pub(in crate::study_reference::document) struct H<'a>(
+119 | |     pub(in crate::study_reference::document) &'a str,
+120 | | );
+    | |__- similarly named tuple struct `H` defined here
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (lib) due to 6 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `ckks-train-bench` (lib test) due to 6 previous errors

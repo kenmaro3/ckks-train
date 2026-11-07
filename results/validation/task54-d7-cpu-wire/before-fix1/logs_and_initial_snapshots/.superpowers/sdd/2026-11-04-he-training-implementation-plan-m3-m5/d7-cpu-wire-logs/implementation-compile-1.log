@@ -1,0 +1,857 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error: `match` arm body without braces
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:96:507
+   |
+96 | ...write(&mut e)?,RecordBody::Result(v)=>v.write(&mut e)?;}let cap=if matches!(self.kind,RecordKind::Bootstrap|RecordKind::HostPending|Re...
+   |                                        --^^^^^^^^^^^^^^^^ this statement is not surrounded by a body
+   |                                        |
+   |                                        while parsing the `match` arm starting here
+   |
+help: replace `;` with `,` to end a `match` arm expression
+   |
+96 |     pub(super) fn canonical(&self)->Result<Vec<u8>> {self.validate()?;let mut e=encoder(self.kind.name(),1,self.mode)?;match &self.body{RecordBody::Bootstrap(v)=>v.write(&mut e)?,RecordBody::Pending(v)=>v.write(&mut e)?,RecordBody::Claim(v)=>v.write(&mut e)?,RecordBody::HostPending(v)=>v.write(&mut e)?,RecordBody::HostClosed(v)=>v.write(&mut e)?,RecordBody::InitialSample(v)=>v.write(&mut e)?,RecordBody::SupervisorEnd(v)=>v.write(&mut e)?,RecordBody::FullEnd(v)=>v.write(&mut e)?,RecordBody::Result(v)=>v.write(&mut e)?,}let cap=if matches!(self.kind,RecordKind::Bootstrap|RecordKind::HostPending|RecordKind::HostClosed){4096}else{A_MAX};ensure(e.bytes.len()<=cap,DocumentErrorCode::TooLarge,"observed.length")?;Ok(e.bytes)}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ~
+
+error: `match` arm body without braces
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs:21:259
+   |
+21 | ...v.write(&mut e)?,QuickV2Body::End(v)=>v.write(&mut e)?;}ensure(e.bytes.len()<=QUICK_K_MAX,DocumentErrorCode::TooLarge,"quickv2.length"...
+   |                                        --^^^^^^^^^^^^^^^^ this statement is not surrounded by a body
+   |                                        |
+   |                                        while parsing the `match` arm starting here
+   |
+help: replace `;` with `,` to end a `match` arm expression
+   |
+21 |  pub(super) fn canonical(&self)->Result<Vec<u8>>{self.validate()?;let mut e=encoder(&format!("quick-{}",self.kind.name()),2,self.mode)?;match &self.body{QuickV2Body::Preflight(v)=>v.write(&mut e)?,QuickV2Body::Start(v)=>v.write(&mut e)?,QuickV2Body::End(v)=>v.write(&mut e)?,}ensure(e.bytes.len()<=QUICK_K_MAX,DocumentErrorCode::TooLarge,"quickv2.length")?;Ok(e.bytes)}
+   |                                                                                                                                                                                                                                                                                   ~
+
+error: no rules expected `=`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:90:83
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   | ---------------------- when calling this macro
+...
+90 | json_wire!(Endpoint{updates:u64=>"updates",samples:u64=>"samples",crossed:Vec<u64>=>"crossed",counter:Counter=>"counter",times:Times=>"ti...
+   |                                                                                   ^ no rules expected this token in macro call
+   |
+note: while trying to match `=>`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:64:49
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   |                                                 ^^
+
+error: no rules expected `=`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:92:57
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   | ---------------------- when calling this macro
+...
+92 | json_wire!(Failure<'a>{update:u64=>"update",phase:Id<'a>=>"phase",counter:Counter=>"counter"});
+   |                                                         ^ no rules expected this token in macro call
+   |
+note: while trying to match `=>`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:64:49
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   |                                                 ^^
+
+error: no rules expected `=`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:94:46
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   | ---------------------- when calling this macro
+...
+94 | json_wire!(TargetOutcome<'a>{lock:FileRef<'a>=>"lock",threshold_bits:u64=>"threshold_bits",reached:bool=>"reached",first_checkpoint:Optio...
+   |                                              ^ no rules expected this token in macro call
+   |
+note: while trying to match `=>`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:64:49
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   |                                                 ^^
+
+error: no rules expected `=`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:95:35
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   | ---------------------- when calling this macro
+...
+95 | json_wire!(FileRef<'a>{root:Tag<5>=>"root",path:Str<'a,4096>=>"path",length:u64=>"length",sha256:H<'a>=>"sha256"});
+   |                                   ^ no rules expected this token in macro call
+   |
+note: while trying to match `=>`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:64:49
+   |
+64 | macro_rules! json_wire {($n:ty {$($f:ident:$t:ty=>$key:literal),*$(,)?})=>{
+   |                                                 ^^
+
+error: no rules expected `=`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:102:58
+    |
+102 | macro_rules! result_fields {($m:ident)=>{$m!(scope:Tag<1>=>"scope",case:Bytes<'a>=>"case",execution:Bytes<'a>=>"execution",attempt:Id<'a>...
+    |                                                          ^ no rules expected this token in macro call
+103 | macro_rules! cpu_result_wire {($($f:ident:$t:ty=>$k:literal),*)=>{
+    | ---------------------------- when calling this macro
+...
+107 | result_fields!(cpu_result_wire);
+    | ------------------------------- in this macro invocation
+    |
+note: while trying to match `=>`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:103:48
+    |
+103 | macro_rules! cpu_result_wire {($($f:ident:$t:ty=>$k:literal),*)=>{
+    |                                                ^^
+    = note: this error originates in the macro `result_fields` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:13:17
+   |
+13 |         let w = RequestedWork::decode(&b, Mode::Oracle).unwrap();
+   |                 ^^^^^^^^^^^^^
+   |                 |
+   |                 use of undeclared type `RequestedWork`
+   |                 help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:15:17
+   |
+15 |         assert!(RequestedWork::decode(&b, Mode::Production).is_err());
+   |                 ^^^^^^^^^^^^^
+   |                 |
+   |                 use of undeclared type `RequestedWork`
+   |                 help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:22:37
+   |
+22 |     for end in 0..b.len() { assert!(RequestedWork::decode(&b[..end], Mode::Oracle).is_err()); }
+   |                                     ^^^^^^^^^^^^^
+   |                                     |
+   |                                     use of undeclared type `RequestedWork`
+   |                                     help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:23:45
+   |
+23 |     let mut v=b.clone(); v.push(0); assert!(RequestedWork::decode(&v,Mode::Oracle).is_err());
+   |                                             ^^^^^^^^^^^^^
+   |                                             |
+   |                                             use of undeclared type `RequestedWork`
+   |                                             help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:26:13
+   |
+26 |     assert!(RequestedWork::decode(&v,Mode::Oracle).is_err());
+   |             ^^^^^^^^^^^^^
+   |             |
+   |             use of undeclared type `RequestedWork`
+   |             help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:28:13
+   |
+28 |     assert!(RequestedWork::decode(&v,Mode::Oracle).is_err());
+   |             ^^^^^^^^^^^^^
+   |             |
+   |             use of undeclared type `RequestedWork`
+   |             help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:30:48
+   |
+30 |     let mut v=base.clone(); v[kind]=2; assert!(RequestedWork::decode(&v,Mode::Oracle).is_err());
+   |                                                ^^^^^^^^^^^^^
+   |                                                |
+   |                                                use of undeclared type `RequestedWork`
+   |                                                help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:34:17
+   |
+34 |         assert!(RequestedWork::decode(&v,Mode::Oracle).is_err());
+   |                 ^^^^^^^^^^^^^
+   |                 |
+   |                 use of undeclared type `RequestedWork`
+   |                 help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:36:13
+   |
+36 |     assert!(RequestedWork::decode(&[0;4097],Mode::Oracle).is_err());
+   |             ^^^^^^^^^^^^^
+   |             |
+   |             use of undeclared type `RequestedWork`
+   |             help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:41:36
+   |
+41 |         let b=literal(work); let w=RequestedWork::decode(&b,Mode::Oracle).unwrap();
+   |                                    ^^^^^^^^^^^^^
+   |                                    |
+   |                                    use of undeclared type `RequestedWork`
+   |                                    help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find value `TRAIN_RECIPE` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:43:25
+   |
+43 |         w.bind_train(&c,TRAIN_RECIPE,req,None).unwrap();
+   |                         ^^^^^^^^^^^^ not found in this scope
+   |
+note: constant `crate::study_reference::document::evidence::observed::TRAIN_RECIPE` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:3:1
+   |
+3  | pub(super) const TRAIN_RECIPE:&str="study-train-cpu-serial-linux-clean-v2";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find value `TRAIN_RECIPE` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:44:86
+   |
+44 |         assert!(w.bind_train(&literal(if case=="case-i" {"case-ni"} else {"case-i"}),TRAIN_RECIPE,req,None).is_err());
+   |                                                                                      ^^^^^^^^^^^^ not found in this scope
+   |
+note: constant `crate::study_reference::document::evidence::observed::TRAIN_RECIPE` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:3:1
+   |
+3  | pub(super) const TRAIN_RECIPE:&str="study-train-cpu-serial-linux-clean-v2";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find value `TRAIN_RECIPE` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:46:33
+   |
+46 |         assert!(w.bind_train(&c,TRAIN_RECIPE,req,Some(1)).is_err());
+   |                                 ^^^^^^^^^^^^ not found in this scope
+   |
+note: constant `crate::study_reference::document::evidence::observed::TRAIN_RECIPE` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:3:1
+   |
+3  | pub(super) const TRAIN_RECIPE:&str="study-train-cpu-serial-linux-clean-v2";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0425]: cannot find value `TRAIN_RECIPE` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:48:33
+   |
+48 |         assert!(w.bind_train(&c,TRAIN_RECIPE,RequestedWork::decode(&other,Mode::Oracle).unwrap().train_request().unwrap(),None).is_err());
+   |                                 ^^^^^^^^^^^^ not found in this scope
+   |
+note: constant `crate::study_reference::document::evidence::observed::TRAIN_RECIPE` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:3:1
+   |
+3  | pub(super) const TRAIN_RECIPE:&str="study-train-cpu-serial-linux-clean-v2";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:48:46
+   |
+48 |         assert!(w.bind_train(&c,TRAIN_RECIPE,RequestedWork::decode(&other,Mode::Oracle).unwrap().train_request().unwrap(),None).is_err());
+   |                                              ^^^^^^^^^^^^^
+   |                                              |
+   |                                              use of undeclared type `RequestedWork`
+   |                                              help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:54:55
+   |
+54 |         let b=literal(&format!("W{:02}",op+5)); let w=RequestedWork::decode(&b,Mode::Oracle).unwrap();
+   |                                                       ^^^^^^^^^^^^^
+   |                                                       |
+   |                                                       use of undeclared type `RequestedWork`
+   |                                                       help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:61:58
+   |
+61 |     for name in ["W01","W03"] {let b=literal(name);let w=RequestedWork::decode(&b,Mode::Oracle).unwrap();w.check_child(6,3,"iris__emlp1",...
+   |                                                          ^^^^^^^^^^^^^
+   |                                                          |
+   |                                                          use of undeclared type `RequestedWork`
+   |                                                          help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RequestedWork`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:62:34
+   |
+62 |     let b=literal("W04");assert!(RequestedWork::decode(&b,Mode::Oracle).unwrap().check_child(6,3,"iris__emlp1",0).is_err());
+   |                                  ^^^^^^^^^^^^^
+   |                                  |
+   |                                  use of undeclared type `RequestedWork`
+   |                                  help: a struct with a similar name exists: `Requested`
+   |
+note: struct `crate::study_reference::document::evidence::observed::RequestedWork` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:10:1
+   |
+10 | pub(super) struct RequestedWork<'a> {pub(super) mode:Mode,pub(super) body:Work<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:38
+   |
+66 |     for (name,kind) in [("bootstrap",RecordKind::Bootstrap),("pending",RecordKind::Pending),("claim",RecordKind::Claim),("host-pending",R...
+   |                                      ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:72
+   |
+66 |     for (name,kind) in [("bootstrap",RecordKind::Bootstrap),("pending",RecordKind::Pending),("claim",RecordKind::Claim),("host-pending",R...
+   |                                                                        ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:102
+   |
+66 | ...p),("pending",RecordKind::Pending),("claim",RecordKind::Claim),("host-pending",RecordKind::HostPending),("host-closed",RecordKind::Hos...
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:137
+   |
+66 | ...("claim",RecordKind::Claim),("host-pending",RecordKind::HostPending),("host-closed",RecordKind::HostClosed),("supervisor-end",RecordKi...
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:177
+   |
+66 | ...ng",RecordKind::HostPending),("host-closed",RecordKind::HostClosed),("supervisor-end",RecordKind::SupervisorEnd),("full-end",RecordKin...
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:219
+   |
+66 | ...",RecordKind::HostClosed),("supervisor-end",RecordKind::SupervisorEnd),("full-end",RecordKind::FullEnd),("result",RecordKind::Result)] {
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:258
+   |
+66 | ...end",RecordKind::SupervisorEnd),("full-end",RecordKind::FullEnd),("result",RecordKind::Result)] {
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `RecordKind`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:66:289
+   |
+66 | ...,("full-end",RecordKind::FullEnd),("result",RecordKind::Result)] {
+   |                                                ^^^^^^^^^^ use of undeclared type `RecordKind`
+   |
+note: enum `crate::study_reference::document::evidence::observed::RecordKind` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:69:1
+   |
+69 | pub(super) enum RecordKind {Bootstrap,Pending,Claim,HostPending,HostClosed,InitialSample,SupervisorEnd,FullEnd,Result}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedRecord`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:67:35
+   |
+67 |         let b=literal(name);let r=ObservedRecord::decode(kind,&b,Mode::Oracle).unwrap();assert_eq!(r.canonical().unwrap(),b);
+   |                                   ^^^^^^^^^^^^^^ use of undeclared type `ObservedRecord`
+   |
+note: struct `crate::study_reference::document::evidence::observed::ObservedRecord` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:76:1
+   |
+76 | pub(super) struct ObservedRecord<'a>{pub(super) mode:Mode,pub(super) kind:RecordKind,pub(super) body:RecordBody<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedRecord`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:68:17
+   |
+68 |         assert!(ObservedRecord::decode(kind,&b,Mode::Production).is_err());
+   |                 ^^^^^^^^^^^^^^ use of undeclared type `ObservedRecord`
+   |
+note: struct `crate::study_reference::document::evidence::observed::ObservedRecord` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:76:1
+   |
+76 | pub(super) struct ObservedRecord<'a>{pub(super) mode:Mode,pub(super) kind:RecordKind,pub(super) body:RecordBody<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedRecord`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:69:55
+   |
+69 |         let mut extra=b.clone();extra.push(0);assert!(ObservedRecord::decode(kind,&extra,Mode::Oracle).is_err());
+   |                                                       ^^^^^^^^^^^^^^ use of undeclared type `ObservedRecord`
+   |
+note: struct `crate::study_reference::document::evidence::observed::ObservedRecord` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:76:1
+   |
+76 | pub(super) struct ObservedRecord<'a>{pub(super) mode:Mode,pub(super) kind:RecordKind,pub(super) body:RecordBody<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedRecord`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:70:17
+   |
+70 |         assert!(ObservedRecord::decode(kind,&b[..b.len()-1],Mode::Oracle).is_err());
+   |                 ^^^^^^^^^^^^^^ use of undeclared type `ObservedRecord`
+   |
+note: struct `crate::study_reference::document::evidence::observed::ObservedRecord` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:76:1
+   |
+76 | pub(super) struct ObservedRecord<'a>{pub(super) mode:Mode,pub(super) kind:RecordKind,pub(super) body:RecordBody<'a>}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+error[E0433]: failed to resolve: use of undeclared type `SourceDemand`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:75:61
+   |
+75 |     let b=literal("demand");let mut c=Cursor::new(&b);let d=SourceDemand::read(&mut c).unwrap();c.finish().unwrap();d.validate().unwrap();
+   |                                                             ^^^^^^^^^^^^ use of undeclared type `SourceDemand`
+   |
+note: struct `crate::study_reference::document::evidence::observed::SourceDemand` exists but is inaccessible
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:18:1
+   |
+18 | pub(super) struct SourceDemand<'a>{pub(super) phase:Tag<4>,pub(super) retained_payload_bytes:u64,pub(super) additional_payload_bytes:u64,...
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not accessible
+
+warning: `Observation` is ambiguous
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:36:52
+   |
+36 |     pub(super) fn check_supplied_capacity(&self,o:&Observation<'_>)->Result<()> {
+   |                                                    ^^^^^^^^^^^ ambiguous name
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Observation` could refer to the enum imported here
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:6:5
+   |
+6  | use super::*;
+   |     ^^^^^^^^
+   = help: consider adding an explicit import of `Observation` to disambiguate
+note: `Observation` could also refer to the struct imported here
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:12:5
+   |
+12 | use tails::*;
+   |     ^^^^^^^^
+   = help: consider adding an explicit import of `Observation` to disambiguate
+   = note: `#[warn(ambiguous_glob_imports)]` on by default
+
+warning: `Observation` is ambiguous
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:42:210
+   |
+42 | ...mand:SourceDemand<'a>,requested:Requested,observation:Observation<'a>,supervisor:SupervisorBinding<'a>,claim:FileRef<'a>});
+   |                                                          ^^^^^^^^^^^ ambiguous name
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Observation` could refer to the enum imported here
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:6:5
+   |
+6  | use super::*;
+   |     ^^^^^^^^
+   = help: consider adding an explicit import of `Observation` to disambiguate
+note: `Observation` could also refer to the struct imported here
+  --> crates/ckks-train-bench/src/study_reference/document/evidence.rs:12:5
+   |
+12 | use tails::*;
+   |     ^^^^^^^^
+   = help: consider adding an explicit import of `Observation` to disambiguate
+
+warning: glob import doesn't reexport anything with visibility `pub(evidence)` because no imported item is public enough
+ --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:6:16
+  |
+6 | pub(super) use requested::*;
+  |                ^^^^^^^^^^^^
+  |
+note: the most public imported item is `pub(self)`
+ --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:6:16
+  |
+6 | pub(super) use requested::*;
+  |                ^^^^^^^^^^^^
+  = help: reduce the glob import's visibility or increase visibility of imported items
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: glob import doesn't reexport anything with visibility `pub(evidence)` because no imported item is public enough
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:12:16
+   |
+12 | pub(super) use bundle::*;
+   |                ^^^^^^^^^
+   |
+note: the most public imported item is `pub(self)`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:12:16
+   |
+12 | pub(super) use bundle::*;
+   |                ^^^^^^^^^
+   = help: reduce the glob import's visibility or increase visibility of imported items
+
+warning: glob import doesn't reexport anything with visibility `pub(evidence)` because no imported item is public enough
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:14:16
+   |
+14 | pub(super) use quick_v2::*;
+   |                ^^^^^^^^^^^
+   |
+note: the most public imported item is `pub(self)`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:14:16
+   |
+14 | pub(super) use quick_v2::*;
+   |                ^^^^^^^^^^^
+   = help: reduce the glob import's visibility or increase visibility of imported items
+
+warning: unused import: `quick_v2::*`
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs:14:16
+   |
+14 | pub(super) use quick_v2::*;
+   |                ^^^^^^^^^^^
+
+error[E0107]: enum takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:42:210
+    |
+42  | ...and<'a>,requested:Requested,observation:Observation<'a>,supervisor:SupervisorBinding<'a>,claim:FileRef<'a>});
+    |                                            ^^^^^^^^^^^---- help: remove the unnecessary generics
+    |                                            |
+    |                                            expected 0 lifetime arguments
+    |
+note: enum defined here, with 0 lifetime parameters
+   --> crates/ckks-train-bench/src/study_reference/document.rs:805:6
+    |
+805 | enum Observation<T> {
+    |      ^^^^^^^^^^^
+
+error[E0107]: enum takes 1 generic argument but 0 generic arguments were supplied
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:42:210
+    |
+42  | ...urceDemand<'a>,requested:Requested,observation:Observation<'a>,supervisor:SupervisorBinding<'a>,claim:FileRef<'a>});
+    |                                                   ^^^^^^^^^^^ expected 1 generic argument
+    |
+note: enum defined here, with 1 generic parameter: `T`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:805:6
+    |
+805 | enum Observation<T> {
+    |      ^^^^^^^^^^^ -
+help: add missing generic argument
+    |
+42  | wire_record!(OperationalResource {applicability:Applicability<'a>,physical:H<'a>,policy:FileRef<'a>,native_validation:FileRef<'a>,sizing_revision:Id<'a>,demand:SourceDemand<'a>,requested:Requested,observation:Observation<'a, T>,supervisor:SupervisorBinding<'a>,claim:FileRef<'a>});
+    |                                                                                                                                                                                                                                +++
+
+error[E0107]: enum takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:36:52
+    |
+36  |     pub(super) fn check_supplied_capacity(&self,o:&Observation<'_>)->Result<()> {
+    |                                                    ^^^^^^^^^^^---- help: remove the unnecessary generics
+    |                                                    |
+    |                                                    expected 0 lifetime arguments
+    |
+note: enum defined here, with 0 lifetime parameters
+   --> crates/ckks-train-bench/src/study_reference/document.rs:805:6
+    |
+805 | enum Observation<T> {
+    |      ^^^^^^^^^^^
+
+error[E0107]: enum takes 1 generic argument but 0 generic arguments were supplied
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:36:52
+    |
+36  |     pub(super) fn check_supplied_capacity(&self,o:&Observation<'_>)->Result<()> {
+    |                                                    ^^^^^^^^^^^ expected 1 generic argument
+    |
+note: enum defined here, with 1 generic parameter: `T`
+   --> crates/ckks-train-bench/src/study_reference/document.rs:805:6
+    |
+805 | enum Observation<T> {
+    |      ^^^^^^^^^^^ -
+help: add missing generic argument
+    |
+36  |     pub(super) fn check_supplied_capacity(&self,o:&Observation<'_, T>)->Result<()> {
+    |                                                                  +++
+
+error[E0599]: no function or associated item named `read` found for struct `observed::result::CpuResult` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:80:663
+    |
+80  | ...sult=>RecordBody::Result(CpuResult::read(&mut c)?)};
+    |                                        ^^^^ function or associated item not found in `CpuResult<'_>`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:101:1
+    |
+101 | pub(super) struct CpuResult<'a>{pub(super) scope:Tag<1>,pub(super) case:Bytes<'a>,pub(super) execution:Bytes<'a>,pub(super) attempt:Id<'a...
+    | ------------------------------- function or associated item `read` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `read`, perhaps you need to implement one of them:
+            candidate #1: `document::evidence::wire::Wire`
+            candidate #2: `std::io::Read`
+            candidate #3: `zerocopy::pointer::invariant::Alignment`
+
+error[E0599]: no method named `json` found for reference `&tails::FileRef<'_>` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:142:203
+    |
+142 | ...ord.mode)?,"canonical_result":canonical_result.json(),"payload":r.json()});
+    |                                                   ^^^^ method not found in `&FileRef<'_>`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `JsonWire` defines an item `json`, perhaps you need to implement it
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:9:1
+    |
+9   | trait JsonWire<'a>:Wire<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: some of the expressions' fields have a method of the same name
+    |
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.length.json(),"payload":r.json()});
+    |                                                                                                                                                                                                           +++++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.path.json(),"payload":r.json()});
+    |                                                                                                                                                                                                           +++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.root.json(),"payload":r.json()});
+    |                                                                                                                                                                                                           +++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.sha256.json(),"payload":r.json()});
+    |                                                                                                                                                                                                           +++++++
+
+error[E0599]: no method named `json` found for reference `&observed::result::CpuResult<'_>` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:142:222
+    |
+142 | ...l_result":canonical_result.json(),"payload":r.json()});
+    |                                                  ^^^^ method not found in `&CpuResult<'_>`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `JsonWire` defines an item `json`, perhaps you need to implement it
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:9:1
+    |
+9   | trait JsonWire<'a>:Wire<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: some of the expressions' fields have a method of the same name
+    |
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.json(),"payload":r.admission_or_preflight.root.json()});
+    |                                                                                                                                                                                                                              ++++++++++++++++++++++++++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.json(),"payload":r.attempt.json()});
+    |                                                                                                                                                                                                                              ++++++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.json(),"payload":r.case.json()});
+    |                                                                                                                                                                                                                              +++++
+142 |  let value=json!({"schema":domain(record.mode,"cpu-result-json",1),"synthetic":record.mode.synthetic(),"export_id":export_id(r.scope.0,r.start.sha256.0,record.mode)?,"canonical_result":canonical_result.json(),"payload":r.completed_updates.json()});
+    |                                                                                                                                                                                                                              ++++++++++++++++++
+      and 16 other candidates
+
+error[E0599]: no function or associated item named `encode_json` found for struct `tails::FileRef` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:148:60
+    |
+148 |  let mut link=Encoder::new(DocumentLayout::Start);FileRef::encode_json(f.get("canonical_result","result")?,"canonical_result",&mut link)?...
+    |                                                            ^^^^^^^^^^^ function or associated item not found in `FileRef<'_>`
+    |
+   ::: crates/ckks-train-bench/src/study_reference/document/evidence/wire.rs:248:9
+    |
+248 |         pub(in crate::study_reference::document) struct $name<'a> {$(pub(in crate::study_reference::document) $f:$t,)*}
+    |         --------------------------------------------------------------------------------------------------------------- function or associated item `encode_json` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `JsonWire` defines an item `encode_json`, perhaps you need to implement it
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:9:1
+    |
+9   | trait JsonWire<'a>:Wire<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no function or associated item named `encode_json` found for struct `observed::result::CpuResult` in the current scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:149:53
+    |
+101 | pub(super) struct CpuResult<'a>{pub(super) scope:Tag<1>,pub(super) case:Bytes<'a>,pub(super) execution:Bytes<'a>,pub(super) attempt:Id<'a...
+    | ------------------------------- function or associated item `encode_json` not found for this struct
+...
+149 |  let mut e=encoder("cpu-result",1,mode)?;CpuResult::encode_json(f.get("payload","result")?,"payload",&mut e)?;same(e.bytes==binary,"resul...
+    |                                                     ^^^^^^^^^^^ function or associated item not found in `CpuResult<'_>`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+note: `JsonWire` defines an item `encode_json`, perhaps you need to implement it
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:9:1
+    |
+9   | trait JsonWire<'a>:Wire<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0624]: method `validate` is private
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:79:116
+   |
+79 | ...w(&b);let s=SupervisorBinding::read(&mut c).unwrap();s.validate().unwrap();let mut s=s.clone();s.max_processes=5;assert!(s.validate()....
+   |                                                           ^^^^^^^^ private method
+   |
+  ::: crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:7:5
+   |
+7  |     pub(super) fn validate(&self)->Result<()> {
+   |     ----------------------------------------- private method defined here
+
+error[E0624]: method `validate` is private
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:79:184
+   |
+79 | ...wrap();let mut s=s.clone();s.max_processes=5;assert!(s.validate().is_err());
+   |                                                           ^^^^^^^^ private method
+   |
+  ::: crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs:7:5
+   |
+7  |     pub(super) fn validate(&self)->Result<()> {
+   |     ----------------------------------------- private method defined here
+
+error[E0597]: `w` does not live long enough
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:54:22
+   |
+25 | impl<'a> RequestedWork<'a> {
+   |      -- lifetime `'a` defined here
+...
+47 |         let mut w=FixedWork{bytes:[0;4096],len:0};w.b(ENCODING_VERSION.as_bytes())?;
+   |             ----- binding `w` declared here
+...
+54 |         Self::decode(w.as_slice(),self.mode)?;Ok(w)
+   |         -------------^----------------------
+   |         |            |
+   |         |            borrowed value does not live long enough
+   |         argument requires that `w` is borrowed for `'a`
+55 |     }
+   |     - `w` dropped here while still borrowed
+
+error[E0505]: cannot move out of `w` because it is borrowed
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:54:50
+   |
+25 | impl<'a> RequestedWork<'a> {
+   |      -- lifetime `'a` defined here
+...
+47 |         let mut w=FixedWork{bytes:[0;4096],len:0};w.b(ENCODING_VERSION.as_bytes())?;
+   |             ----- binding `w` declared here
+...
+54 |         Self::decode(w.as_slice(),self.mode)?;Ok(w)
+   |         ------------------------------------     ^ move out of `w` occurs here
+   |         |            |
+   |         |            borrow of `w` occurs here
+   |         argument requires that `w` is borrowed for `'a`
+   |
+note: if `FixedWork` implemented `Clone`, you could clone the value
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs:11:1
+   |
+11 | pub(super) struct FixedWork {bytes:[u8;4096],len:usize}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+54 |         Self::decode(w.as_slice(),self.mode)?;Ok(w)
+   |                      - you could clone this value
+
+error[E0521]: borrowed data escapes outside of function
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:79:88
+   |
+79 | ...&mut Encoder,keys:&[&str])->Result<()>{let mut f=Fields::new(r,keys,p)?;for key in keys{f.field::<u64>(key,p)?.write(e)?;}Ok(())}
+   |                 ---- -                              ^^^^^^^^^^^^^^^^^^^^^
+   |                 |    |                              |
+   |                 |    |                              `keys` escapes the function body here
+   |                 |    |                              argument requires that `'1` must outlive `'static`
+   |                 |    let's call the lifetime of this reference `'1`
+   |                 `keys` is a reference that is only valid in the function body
+
+error[E0521]: borrowed data escapes outside of function
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs:79:88
+   |
+79 | ...&mut Encoder,keys:&[&str])->Result<()>{let mut f=Fields::new(r,keys,p)?;for key in keys{f.field::<u64>(key,p)?.write(e)?;}Ok(())}
+   |                 ----   -                            ^^^^^^^^^^^^^^^^^^^^^
+   |                 |      |                            |
+   |                 |      |                            `keys` escapes the function body here
+   |                 |      |                            argument requires that `'2` must outlive `'static`
+   |                 |      let's call the lifetime of this reference `'2`
+   |                 `keys` is a reference that is only valid in the function body
+
+Some errors have detailed explanations: E0107, E0425, E0433, E0505, E0521, E0597, E0599, E0624.
+For more information about an error, try `rustc --explain E0107`.
+warning: `ckks-train-bench` (lib test) generated 6 warnings
+error: could not compile `ckks-train-bench` (lib test) due to 57 previous errors; 6 warnings emitted

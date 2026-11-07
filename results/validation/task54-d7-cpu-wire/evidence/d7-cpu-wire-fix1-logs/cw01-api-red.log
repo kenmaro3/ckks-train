@@ -1,0 +1,15 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0422]: cannot find struct, variant or union type `FullTerminal` in this scope
+  --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_fix1_tests.rs:47:88
+   |
+47 | ...enceBundle<'_,'_>)->Result<()>{FullTerminal{admission:&b[0],start:&b[1],result:&b[2],result_json:&b[3],result_export:&b[4],end:&b[5],s...
+   |                                   ^^^^^^^^^^^^ help: a struct with a similar name exists: `QuickTerminal`
+   |
+  ::: crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs:3:1
+   |
+3  | pub(in crate::study_reference::document::evidence) struct QuickTerminal<'a> {
+   | --------------------------------------------------------------------------- similarly named struct `QuickTerminal` defined here
+
+For more information about this error, try `rustc --explain E0422`.
+error: could not compile `ckks-train-bench` (lib test) due to 1 previous error
+exit=101

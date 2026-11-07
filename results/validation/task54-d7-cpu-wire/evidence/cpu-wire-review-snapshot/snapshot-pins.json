@@ -1,0 +1,349 @@
+{
+  "kind": "frozen_source_review_snapshot_not_intermediate_history",
+  "created_utc": "2026-11-07T20:19:52.271595+00:00",
+  "source_base": "abd6c3393b843d7d80fff4ebc890526866682c3b",
+  "files": [
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "bytes": 16392,
+      "sha256": "7de957126cb7562c88651c6837dd1db032a0bd2d7c3fe7de9009dbafadb205cc"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs",
+      "bytes": 21130,
+      "sha256": "c99272ba912ee1b7dbfa2b6da74fe027308b6b777196acd1ced2f362eb800a83"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed.rs",
+      "bytes": 2355,
+      "sha256": "d5280441b72888ad71c6ad5b626821102f42c5198a8f041ff0ad6090fedcf530"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/bundle.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/bundle.rs",
+      "bytes": 9246,
+      "sha256": "9cda83b53fbf05199471850b4542ca6507cae2f1841909504bbfb6c6f4d273be"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/literals.json",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/literals.json",
+      "bytes": 354262,
+      "sha256": "aa73aa530c039532e2c72867bd7c73bbf357d87ffe33bf44602d21c2f9ea7549"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/policy.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/policy.rs",
+      "bytes": 4438,
+      "sha256": "8259399e9b20c9aaa7a42deb45b9cc510f36a9d0f053719169de88661c619a8c"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/quick_v2.rs",
+      "bytes": 9295,
+      "sha256": "8e7795be4f3b3a8e360906f2a36c0137bd92be2302bc6ef28e0460b227f47586"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/records.rs",
+      "bytes": 19034,
+      "sha256": "604866923868d010c82b11e1a05dcdbf6e82fe2cb54a598d74a4e927b0ee7eca"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/requested.rs",
+      "bytes": 9839,
+      "sha256": "d0e066f2f20fcfd11b736383f738aed8d26291671ab572d0ce645b30d45caba0"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/result.rs",
+      "bytes": 26916,
+      "sha256": "7e13adc4f4f3efbf983764f8c4c71b6ff6788adae6219d5fca49849449fd8d0c"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/observed/terminal.rs",
+      "bytes": 5740,
+      "sha256": "009cf61fc07831c55cc2cc4516badeda78a1cbd0de82253f74acb380f55971b5"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/quick.rs",
+      "bytes": 23198,
+      "sha256": "7a0c36998785fac7c4ed55aaebb3ece242eda5aea2107beb7f8e7162688f3413"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/evidence/tails.rs",
+      "bytes": 23105,
+      "sha256": "36dde5187b8525152f4af9835177e03b5fb565b20238a165a61fb2cf940ec629"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/resource.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/resource.rs",
+      "bytes": 38787,
+      "sha256": "35fd46b3b3dad36de951c6ba4c747230c84f07873bbb0a05b849e75dcfbb857e"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/resource/links.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/resource/links.rs",
+      "bytes": 13412,
+      "sha256": "c1e9fe9a2e1b5b60916194a15913b07c70cab0e189a6e73a1f367eaf060e5fc7"
+    },
+    {
+      "original": "crates/ckks-train-bench/src/study_reference/document/resource/tests.rs",
+      "snapshot": "source_files/crates/ckks-train-bench/src/study_reference/document/resource/tests.rs",
+      "bytes": 28830,
+      "sha256": "5d6c161c7ff0500595163dc0ad805467d9e388c069cb82134516a0e0c682f890"
+    },
+    {
+      "original": "results/validation/task54-d7-cpu-integration-design/task-54-d7-cpu-integration-contract-fix2.md",
+      "snapshot": "inputs/results/validation/task54-d7-cpu-integration-design/task-54-d7-cpu-integration-contract-fix2.md",
+      "bytes": 48850,
+      "sha256": "7f1f4b3ed796735a09a44ccc033a26dd517bac21390c404229050869c12244f6"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-brief.md",
+      "snapshot": "inputs/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-brief.md",
+      "bytes": 6371,
+      "sha256": "4d16faf751c40d4154cca6df273781220ce50751a511bb821dc22a90086791d2"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-rulings.md",
+      "snapshot": "inputs/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-rulings.md",
+      "bytes": 7912,
+      "sha256": "c08d21b7433f790993000a5fc39846faf1c0bca59facfe4f09ddbe1b1315ba1f"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-report.md",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-report.md",
+      "bytes": 18975,
+      "sha256": "c66ae5e7c9dc0c0253547e63ddd7ffba25c4d60cf0495e3429a92c153c8dac33"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-source.diff",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-source.diff",
+      "bytes": 479418,
+      "sha256": "0e7fd07e72cc0275153dec7626eaef873d76ea1e57f605fd4747b75caa16ae6a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-test-inventory.md",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-test-inventory.md",
+      "bytes": 9670,
+      "sha256": "4cb9ff0fd15972513e9f8a4f977747d0fa5bf1e91715418aa3e551c34652f32d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixtures.py",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixtures.py",
+      "bytes": 5818,
+      "sha256": "50c3ffee17e68f6854d980a66bf3eb2974831cc38b3e7b3d33efdcb98a23fb23"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixtures-extension.py",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixtures-extension.py",
+      "bytes": 9664,
+      "sha256": "86638340c338d4ef543840f797a2cf550e832ad82f894656a174a900346dd7a4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixture-manifest.json",
+      "snapshot": "artifacts/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-wire-fixture-manifest.json",
+      "bytes": 10470,
+      "sha256": "0c9b21e9ace940e57def412e95bd9e7e60f0cce0931741ef782d48e96afcbd7a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-1.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-1.log",
+      "bytes": 6189,
+      "sha256": "af3a70a487e1a2eda10a0ffac6e6f5990ae35fa1643349de483ff4ebe01c0900"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-2.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-2.log",
+      "bytes": 3220,
+      "sha256": "d748c2c8dafa69b6f34d1032578709e9ab83e03534a13524a6c69794ceb3ab9e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-final.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/clippy-final.log",
+      "bytes": 175,
+      "sha256": "8bce75ad164b17ff5871a774446432cc028cc3af41c1fd0894b25c978bbb1760"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/counter-overflow-red.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/counter-overflow-red.log",
+      "bytes": 987,
+      "sha256": "004fb53b448caf6906ac7955db2e56d28f469c3d30ec1a89fa8533237375d25b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-extension.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-extension.log",
+      "bytes": 232,
+      "sha256": "d8f93a6825eac759cac5a997a0357974254276345f98377a9e714c0248e1e97c"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-manifest-initial.json",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-manifest-initial.json",
+      "bytes": 3432,
+      "sha256": "1e6464ba1a6d37311cb4388b0613642ce1f64e42346b3ade460933bddb5dbaae"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-writer-initial.py",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fixture-writer-initial.py",
+      "bytes": 5818,
+      "sha256": "50c3ffee17e68f6854d980a66bf3eb2974831cc38b3e7b3d33efdcb98a23fb23"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply-2.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply-3.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-apply.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-final.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/fmt-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-expanded-1.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-expanded-1.log",
+      "bytes": 2148,
+      "sha256": "0fdbe21c4dfe1e24b7b5f265a78475616ec16b3f7d0cb6b3fea163c1f106c9bd"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-expanded-2.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-expanded-2.log",
+      "bytes": 1624,
+      "sha256": "7dd90822e5a1e50b43bbe03fe47fc5f9a8830584f027a1e4b2b1ace3e6b9f09a"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-final-new.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/green-final-new.log",
+      "bytes": 1625,
+      "sha256": "f9fcf220f9a724aa51ca29e18f90d54872a4788f1338e60724b8e1acaab82bd4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-1.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-1.log",
+      "bytes": 54172,
+      "sha256": "e5dd86a2fd670dd2fa691d084fd43f38980d67b311cd7c7e236188e6c80ecf8e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-2.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-2.log",
+      "bytes": 2323,
+      "sha256": "2a5663ce7f1470f8ec37cabf59f936c4da03ac654b79b75864cb9aa4f0bef1f1"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-3.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/implementation-compile-3.log",
+      "bytes": 1313,
+      "sha256": "f6fdf3fab9e379c58e374ee18ab4bd25a2042f5805793dab4c27be081ce6f2e3"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/initial-tool-output-notes.txt",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/initial-tool-output-notes.txt",
+      "bytes": 604,
+      "sha256": "4ed7c3a55a638d5f655c6be63db93bf0dcf49298d1a6f0324b58e7676aec8c22"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/literals-initial.json",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/literals-initial.json",
+      "bytes": 19293,
+      "sha256": "a8bab670bc010b50053777f761abb8998ba8d62f0f86590512c215fc8d8c2a9d"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-filter-mismatch.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-filter-mismatch.log",
+      "bytes": 377,
+      "sha256": "2924e9b7bd226bdc67f35f04b50e3025ab4cbcb6b36d4b292a19208585d8f0b4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-green.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-green.log",
+      "bytes": 381,
+      "sha256": "af0adcba89ae9f3c4fd7c8cc7ca05413e573f714db29aaacd52dda23c1631eec"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-red.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/q1-red.log",
+      "bytes": 1004,
+      "sha256": "ab80b4992f27cd209569fed9e3cbc928eb4f3c3d47f25dbe09542c4bb4d0489c"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/red-missing-api.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/red-missing-api.log",
+      "bytes": 484,
+      "sha256": "262a4aa68d5ecf9d0fcde478adb55062ba9946b0561e0ed21b8822678afee07b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/red-policy-terminal-api.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/red-policy-terminal-api.log",
+      "bytes": 1954,
+      "sha256": "fede083137cb1c2784e27f5e3340a587dfd8d95360b66014df7200ca7fbfbf92"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_auxiliary_and_quick_exact_json.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_auxiliary_and_quick_exact_json.log",
+      "bytes": 372,
+      "sha256": "85546b5a6c824c54adbd600e5b16d6bc0f2b45b8f78b77290afb002916490a6e"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_full_quick_exact_claims_and_nonpromotion.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_full_quick_exact_claims_and_nonpromotion.log",
+      "bytes": 382,
+      "sha256": "2c6b5cb01c323040263c675a459d48707a05145899745efbefab6c081fdeac98"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_independent_all_ten_branches.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-d7_evidence_independent_all_ten_branches.log",
+      "bytes": 474,
+      "sha256": "e0a95166386e3306a5a87b36a49287dfa800b0a2f76cf2235d9ac221a84ef631"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-frozen_bootstrap_literal_bytes_and_projections.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-frozen_bootstrap_literal_bytes_and_projections.log",
+      "bytes": 376,
+      "sha256": "13620873894c7642389363ea0bfc8940953c3203d35f34d7371abb1d765daf97"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-legacy_outer_full_quick_resource_bytes_unchanged.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/regression-legacy_outer_full_quick_resource_bytes_unchanged.log",
+      "bytes": 378,
+      "sha256": "401757964978f8e47b8e9fd908b61af679b227aacfca75b59416ec5107897f62"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/seed-counter-red.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/seed-counter-red.log",
+      "bytes": 2137,
+      "sha256": "9e079fcaa6c5f7347950668321b24e285367a3450e85cf3555cdc4ed4fe9256b"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/terminal-after-lint-green.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/terminal-after-lint-green.log",
+      "bytes": 365,
+      "sha256": "1e792423994a792eda5e84e10f95b296c38b4a7ae0191c7ef0a2f3221563e9f4"
+    },
+    {
+      "original": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/writer-order-red.log",
+      "snapshot": "logs_and_initial_snapshots/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/d7-cpu-wire-logs/writer-order-red.log",
+      "bytes": 45325,
+      "sha256": "1a8deb5c4aa405b87ab90a713e5863381cbe06d788e3a9c0146a7589d2dc3a17"
+    }
+  ]
+}

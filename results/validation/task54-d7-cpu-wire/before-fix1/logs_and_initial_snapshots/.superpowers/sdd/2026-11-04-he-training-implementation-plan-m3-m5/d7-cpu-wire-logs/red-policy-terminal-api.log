@@ -1,0 +1,28 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0422]: cannot find struct, variant or union type `QuickTerminal` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:125:22
+    |
+125 | ...   let terminal=QuickTerminal{result:&result,result_json:&json,result_export:&json,preflight:&preflight,start:&start,end:&end,supervis...
+    |                    ^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `QuickTerminal` in this scope
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:126:82
+    |
+126 | ...   let mut wrong=supervisor.clone();let n=wrong.len();wrong[n-19]=0;assert!(QuickTerminal{supervisor_end:&wrong,..terminal}.check(bund...
+    |                                                                                ^^^^^^^^^^^^^ not found in this scope
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedPolicy`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:119:34
+    |
+119 |     let b=literal("policy-json");ObservedPolicy::decode(&b,Mode::Oracle).unwrap();assert!(ObservedPolicy::decode(&b,Mode::Production).is_...
+    |                                  ^^^^^^^^^^^^^^ use of undeclared type `ObservedPolicy`
+
+error[E0433]: failed to resolve: use of undeclared type `ObservedPolicy`
+   --> crates/ckks-train-bench/src/study_reference/document/evidence/cpu_wire_tests.rs:119:91
+    |
+119 | ...ecode(&b,Mode::Oracle).unwrap();assert!(ObservedPolicy::decode(&b,Mode::Production).is_err());
+    |                                            ^^^^^^^^^^^^^^ use of undeclared type `ObservedPolicy`
+
+Some errors have detailed explanations: E0422, E0433.
+For more information about an error, try `rustc --explain E0422`.
+error: could not compile `ckks-train-bench` (lib test) due to 4 previous errors

@@ -1,0 +1,5 @@
+Original first fixture writer tool stdout (the initial bundle/manifest/writer are separately retained byte-for-byte):
+{"classification": "fictional inert wire only", "bundle_files": 1, "bundle_bytes": 19293, "bundle_sha256": "a8bab670bc010b50053777f761abb8998ba8d62f0f86590512c215fc8d8c2a9d", "literal_count": 25, "aggregate_decoded_bytes": 9486}
+Original RED wrapper tool stderr after the preserved Cargo log had already been written:
+zsh:93: read-only variable: status
+These are transcribed from original tool outputs, not a reexecution or a replacement for their preserved fixture manifest/Cargo log.

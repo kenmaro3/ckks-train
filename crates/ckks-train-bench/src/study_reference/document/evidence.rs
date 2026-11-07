@@ -10,6 +10,7 @@ mod auxiliary;
 use auxiliary::*;
 mod tails;
 use tails::*;
+mod observed;
 mod quick;
 use quick::*;
 pub(super) const QUICK_K_MAX: usize = 1_048_000;
@@ -210,58 +211,8 @@ impl<'a> Evidence<'a> {
             DocumentErrorCode::UnsupportedSchema,
             "evidence.policy",
         )?;
-        let execution = admission::parse_execution_binary(c.execution.0)?;
+        let (execution, case) = validate_common_branch(c, &self.branch, self.mode)?;
         let x = execution.fields();
-        same(
-            x.manifest == c.source_manifest_sha256.0 && x.revision == c.source_revision.0,
-            "evidence.source",
-        )?;
-        let registration = self.branch.registration();
-        let case = admission::parse_case_binary(registration)?;
-        digest(
-            registration,
-            self.branch.registration_id(),
-            "evidence.registration_id",
-        )?;
-        same(case.profile_id.0 == c.profile_id.0, "evidence.profile")?;
-        case_binding_matches(&case, &x)?;
-        match &self.branch {
-            Branch::Full(v) => {
-                let threshold = f64::from_bits(v.threshold_bits);
-                ensure(
-                    threshold.is_finite() && !threshold.is_sign_negative() && threshold <= 1.,
-                    DocumentErrorCode::OutOfRange,
-                    "evidence.threshold",
-                )?;
-                if let Some(p) = &v.predecessor {
-                    same(
-                        p.attempt_id.0 != v.attempt_id.0,
-                        "evidence.predecessor.self",
-                    )?;
-                }
-            }
-            Branch::Quick(v) => {
-                same(
-                    case.seed == 0 && v.seed == 0 && v.consumption.0 == 1,
-                    "evidence.quick.scope",
-                )?;
-                digest(
-                    v.operational_identity.0,
-                    v.operational_id,
-                    "evidence.quick.identity",
-                )?;
-                let q = QuickIdentity::decode(v.operational_identity.0, self.mode)?;
-                q.check_common(c)?;
-                same(
-                    q.body.registration.0 == v.registration.0
-                        && q.body.registration_id == v.registration_id
-                        && q.body.operational_attempt == v.operational_attempt
-                        && q.body.consumed_plan_sha256 == v.consumed_plan_sha256
-                        && q.body.request_sha256 == v.request_sha256,
-                    "evidence.quick.duplicates",
-                )?;
-            }
-        }
         match &self.tail {
             Tail::Inputs(v) => v.validate(self, &case)?,
             Tail::Implementation(v) => v.validate(self, &x, &case)?,
@@ -441,3 +392,69 @@ pub(super) fn resource_request_consumption(bytes: &[u8], mode: Mode) -> Result<u
         .consumption
         .0)
 }
+
+#[cfg(test)]
+mod cpu_wire_tests;
+
+fn validate_common_branch(
+    c: &Common<'_>,
+    branch: &Branch<'_>,
+    mode: Mode,
+) -> Result<(admission::Execution, admission::CaseIdentity)> {
+    let execution = admission::parse_execution_binary(c.execution.0)?;
+    let x = execution.fields();
+    same(
+        x.manifest == c.source_manifest_sha256.0 && x.revision == c.source_revision.0,
+        "evidence.source",
+    )?;
+    let registration = branch.registration();
+    let case = admission::parse_case_binary(registration)?;
+    digest(
+        registration,
+        branch.registration_id(),
+        "evidence.registration_id",
+    )?;
+    same(case.profile_id.0 == c.profile_id.0, "evidence.profile")?;
+    case_binding_matches(&case, &x)?;
+    match branch {
+        Branch::Full(v) => {
+            let threshold = f64::from_bits(v.threshold_bits);
+            ensure(
+                threshold.is_finite() && !threshold.is_sign_negative() && threshold <= 1.,
+                DocumentErrorCode::OutOfRange,
+                "evidence.threshold",
+            )?;
+            if let Some(p) = &v.predecessor {
+                same(
+                    p.attempt_id.0 != v.attempt_id.0,
+                    "evidence.predecessor.self",
+                )?;
+            }
+        }
+        Branch::Quick(v) => {
+            same(
+                case.seed == 0 && v.seed == 0 && v.consumption.0 == 1,
+                "evidence.quick.scope",
+            )?;
+            digest(
+                v.operational_identity.0,
+                v.operational_id,
+                "evidence.quick.identity",
+            )?;
+            let q = QuickIdentity::decode(v.operational_identity.0, mode)?;
+            q.check_common(c)?;
+            same(
+                q.body.registration.0 == v.registration.0
+                    && q.body.registration_id == v.registration_id
+                    && q.body.operational_attempt == v.operational_attempt
+                    && q.body.consumed_plan_sha256 == v.consumed_plan_sha256
+                    && q.body.request_sha256 == v.request_sha256,
+                "evidence.quick.duplicates",
+            )?;
+        }
+    }
+    Ok((execution, case))
+}
+
+#[cfg(test)]
+mod cpu_wire_fix1_tests;

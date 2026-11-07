@@ -89,7 +89,7 @@ fn ordered<T: Ord>(v: &[T]) -> bool {
     v.windows(2).all(|p| p[0] < p[1])
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-struct Tag<const N: u8>(u8);
+pub(super) struct Tag<const N: u8>(pub(super) u8);
 impl<const N: u8> Decode for Tag<N> {
     fn decode(r: &RawValue, p: &str) -> Result<Self> {
         let n = u64::decode(r, p)?;
@@ -203,11 +203,11 @@ macro_rules! source_record {($n:ident {$($f:ident:$t:ty),*$(,)?})=>{
 impl Decode for $n {fn decode(r:&RawValue,p:&str)->Result<Self>{let mut f=Fields::new(r,&[$(stringify!($f)),*],p)?;Ok(Self{$($f:f.field(stringify!($f),p)?),*})}}
 };}
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct FileRef {
-    root: Tag<5>,
-    path: Text<4096>,
-    length: u64,
-    sha256: Hash,
+pub(super) struct FileRef {
+    pub(super) root: Tag<5>,
+    pub(super) path: Text<4096>,
+    pub(super) length: u64,
+    pub(super) sha256: Hash,
 }
 impl Decode for FileRef {
     fn decode(r: &RawValue, p: &str) -> Result<Self> {

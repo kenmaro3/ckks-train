@@ -1,0 +1,22 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 30.25s
+     Running unittests src/lib.rs (target/debug/deps/ckks_train_bench-c3000792d73ef8e0)
+
+running 13 tests
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_resource_arithmetic ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_requested_rejects ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_full_terminal_records ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_target_coordinate_and_writer_order ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_records_literals ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_request_case_binding ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_root_child_graph ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_requested_literals ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_result_json ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_closed_domains_and_caps ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_current_bundle ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_quick_v2 ... ok
+test study_reference::document::evidence::cpu_wire_tests::d7_cpu_wire_terminal_links ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 0.01s
+
+exit=0

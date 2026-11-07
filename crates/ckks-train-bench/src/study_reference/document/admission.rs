@@ -949,3 +949,63 @@ pub(super) fn parse_execution_binary(bytes: &[u8]) -> Result<Execution> {
     )?;
     Ok(value)
 }
+
+// Supplied observed-policy composition only. The generic Full parser/traversal
+// above is unchanged and no capture/owner/start capability is constructed.
+impl Admission {
+    pub(super) fn gates(&self) -> &Gates {
+        &self.gates
+    }
+    pub(super) fn admitted(&self) -> &Clock {
+        &self.admitted
+    }
+    pub(super) fn check_observed_claims(
+        &self,
+        common: &super::evidence::Common<'_>,
+        branch: &super::evidence::FullBody<'_>,
+        contract_length: u64,
+        receipt_length: u64,
+    ) -> Result<()> {
+        ensure(
+            self.campaign_id.0 == common.campaign_id.0
+                && self.profile_id.0 == common.profile_id.0
+                && self.attempt_id.0 == branch.attempt_id.0
+                && self.lock_id.0 == branch.lock_id.0
+                && component(Some(CASE_DOMAIN), &self.case)? == branch.case.0
+                && self.case_id.0 == branch.case_id.0,
+            DocumentErrorCode::CrossLinkMismatch,
+            "full.bundle.branch",
+        )?;
+        equal(&self.lock, &branch.lock, "full.bundle.lock")?;
+        equal(&self.reference, &branch.reference, "full.bundle.reference")?;
+        equal(
+            &self.predecessor,
+            &branch.predecessor,
+            "full.bundle.predecessor",
+        )?;
+        ensure(
+            self.execution.fields().binding_bytes()? == common.execution.0
+                && self.contract.sha256.0 == common.contract_sha256.0
+                && self.contract.bytes.len() as u64 == contract_length
+                && self.selected_input.seed == self.case.seed
+                && self.selected_input.materialized_sha256.0 == common.materialized_sha256.0
+                && self.selected_input.seed_receipt.sha256.0 == common.selected_receipt_sha256.0
+                && self.selected_input.seed_receipt.bytes.len() as u64 == receipt_length
+                && self.policy.approval_sha256.0 == common.approval_sha256.0,
+            DocumentErrorCode::CrossLinkMismatch,
+            "full.bundle.source_input",
+        )?;
+        self.provenance.check_observed_context(common)
+    }
+}
+impl Start {
+    pub(super) fn started(&self) -> &Clock {
+        &self.started
+    }
+    pub(super) fn check_observed_context(
+        &self,
+        common: &super::evidence::Common<'_>,
+    ) -> Result<()> {
+        self.provenance.check_observed_context(common)
+    }
+}
