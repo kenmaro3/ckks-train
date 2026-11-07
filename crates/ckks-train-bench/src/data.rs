@@ -203,9 +203,15 @@ pub fn mnist_from_idx(images: &IdxU8, labels: &IdxU8, limit: Option<usize>) -> i
 /// [`read_idx_u8`] and [`mnist_from_idx`].
 pub fn load_mnist(dir: &Path, split: Split, limit: Option<usize>) -> io::Result<Mnist> {
     let (img, lab) = split.files();
-    let images = read_idx_u8(&dir.join(img))?;
-    let labels = read_idx_u8(&dir.join(lab))?;
-    mnist_from_idx(&images, &labels, limit)
+    let images = fs::read(dir.join(img))?;
+    let labels = fs::read(dir.join(lab))?;
+    mnist_from_bytes(&images, &labels, limit)
+}
+
+/// Decodes the exact borrowed IDX image/label bytes with the same scaling and limits as
+/// [`load_mnist`]. This pure decoder performs no pathname reads.
+pub fn mnist_from_bytes(images: &[u8], labels: &[u8], limit: Option<usize>) -> io::Result<Mnist> {
+    mnist_from_idx(&parse_idx_u8(images)?, &parse_idx_u8(labels)?, limit)
 }
 
 /// One-hot targets: row `i` has a 1 in column `labels[i]`.
@@ -557,17 +563,78 @@ fn npy_labels(m: &Array2<f64>, what: &str) -> io::Result<Vec<u8>> {
 /// digest mismatch, a malformed array, image and label counts that differ, or train and test
 /// widths that differ.
 pub fn load_npy_dataset(dir: &Path) -> io::Result<(Mnist, Mnist)> {
-    let manifest = fs::read_to_string(dir.join("data_manifest.json"))?;
+    let manifest = fs::read(dir.join("data_manifest.json"))?;
+    let arrays = [
+        fs::read(dir.join(NPY_DATASET_FILES[0]))?,
+        fs::read(dir.join(NPY_DATASET_FILES[1]))?,
+        fs::read(dir.join(NPY_DATASET_FILES[2]))?,
+        fs::read(dir.join(NPY_DATASET_FILES[3]))?,
+    ];
+    npy_dataset_from_bytes(
+        &manifest,
+        arrays.each_ref().map(Vec::as_slice),
+        NpyManifestPolicy::LegacyText,
+    )
+}
+
+// The standalone loader keeps its documented legacy text format. Profile loading adds
+// the independent structured file-specific defense and label-vector check, while sharing
+// this one decoder and numerical assembly path.
+pub(crate) enum NpyManifestPolicy {
+    LegacyText,
+    Structured,
+}
+
+pub(crate) fn npy_dataset_from_bytes(
+    manifest: &[u8],
+    sources: [&[u8]; 4],
+    policy: NpyManifestPolicy,
+) -> io::Result<(Mnist, Mnist)> {
+    let text =
+        std::str::from_utf8(manifest).map_err(|_| invalid("NPY manifest is not UTF-8".into()))?;
+    let structured = match policy {
+        NpyManifestPolicy::LegacyText => None,
+        NpyManifestPolicy::Structured => Some(
+            serde_json::from_slice::<serde_json::Value>(manifest)
+                .map_err(|e| invalid(format!("invalid NPY manifest: {e}")))?,
+        ),
+    };
     let mut arrays = Vec::with_capacity(4);
-    for file in NPY_DATASET_FILES {
-        let bytes = fs::read(dir.join(file))?;
-        let want = manifest_sha256(&manifest, file)
+    for (i, (file, bytes)) in NPY_DATASET_FILES.into_iter().zip(sources).enumerate() {
+        let got = sha256_hex(bytes);
+        if let Some(manifest) = &structured {
+            let digest = manifest
+                .get(file)
+                .and_then(serde_json::Value::as_str)
+                .or_else(|| {
+                    manifest
+                        .get("files")?
+                        .as_array()?
+                        .iter()
+                        .find(|v| v.get("file").and_then(serde_json::Value::as_str) == Some(file))?
+                        .get("sha256_npy_file")?
+                        .as_str()
+                })
+                .ok_or_else(|| {
+                    invalid(format!("manifest missing file-specific sha256 for {file}"))
+                })?;
+            if digest.len() != 64
+                || !digest.bytes().all(|c| c.is_ascii_hexdigit())
+                || !got.eq_ignore_ascii_case(digest)
+            {
+                return Err(invalid(format!("{file}: manifest sha256 mismatch")));
+            }
+        }
+        let want = manifest_sha256(text, file)
             .ok_or_else(|| invalid(format!("data_manifest.json lists no sha256 for {file}")))?;
-        let got = sha256_hex(&bytes);
         if got != want {
             return Err(invalid(format!("{file}: sha256 {got}, manifest {want}")));
         }
-        arrays.push(parse_npy_f64(&bytes)?);
+        let array = parse_npy_f64(bytes)?;
+        if structured.is_some() && (i == 1 || i == 3) && array.nrows() != 1 && array.ncols() != 1 {
+            return Err(invalid("NPY labels must be a vector".into()));
+        }
+        arrays.push(array);
     }
     let set = |images: &Array2<f64>, labels: &Array2<f64>, what: &str| -> io::Result<Mnist> {
         let labels = npy_labels(labels, what)?;
@@ -794,16 +861,20 @@ pub fn parse_wdbc(text: &str) -> io::Result<Tabular> {
 pub fn load_wdbc(path: &Path) -> io::Result<Tabular> {
     let bytes =
         fs::read(path).map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
-    let got = sha256_hex(&bytes);
+    wdbc_from_bytes(&bytes).map_err(|e| invalid(format!("{}: {e}", path.display())))
+}
+
+/// Checks the mandatory original UCI [`WDBC_SHA256`] before UTF-8 and WDBC decoding.
+/// Consumes only these borrowed bytes; it cannot bypass the production source pin.
+pub fn wdbc_from_bytes(bytes: &[u8]) -> io::Result<Tabular> {
+    let got = sha256_hex(bytes);
     if got != WDBC_SHA256 {
         return Err(invalid(format!(
-            "{}: sha256 {got}, want UCI's wdbc.data {WDBC_SHA256}",
-            path.display()
+            "sha256 {got}, want UCI's wdbc.data {WDBC_SHA256}"
         )));
     }
-    let text = std::str::from_utf8(&bytes)
-        .map_err(|_| invalid(format!("{}: not UTF-8", path.display())))?;
-    parse_wdbc(text).map_err(|e| invalid(format!("{}: {e}", path.display())))
+    let text = std::str::from_utf8(bytes).map_err(|_| invalid("WDBC: not UTF-8".into()))?;
+    parse_wdbc(text)
 }
 
 /// A stratified train/test split: class `c` with `n_c` of the `n` samples puts

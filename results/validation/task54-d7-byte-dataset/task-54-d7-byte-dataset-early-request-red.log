@@ -1,0 +1,24 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.45s
+     Running tests/byte_dataset.rs (target/debug/deps/byte_dataset-29f9ad2e37db59d3)
+
+running 1 test
+test byte_dataset_rejects_missing_wrong_variant_utf8_and_declared_shape ... FAILED
+
+failures:
+
+---- byte_dataset_rejects_missing_wrong_variant_utf8_and_declared_shape stdout ----
+
+thread 'byte_dataset_rejects_missing_wrong_variant_utf8_and_declared_shape' panicked at crates/ckks-train-bench/tests/byte_dataset.rs:351:5:
+assertion `left == right` failed: invalid declarations are refused before any pathname acquisition
+  left: NotFound
+ right: InvalidData
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    byte_dataset_rejects_missing_wrong_variant_utf8_and_declared_shape
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p ckks-train-bench --test byte_dataset`

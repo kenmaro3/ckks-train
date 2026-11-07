@@ -62,6 +62,43 @@ pub enum DataSource {
     },
 }
 
+/// Borrowed source content with closed roles matching [`DataSource`]. The request supplies
+/// path identity labels; these slices supply both the decoded values and reported hashes.
+/// This ordinary data view confers no acquisition, custody, resource or runner authority.
+#[derive(Debug, Clone, Copy)]
+pub enum DatasetBytes<'a> {
+    /// Iris CSV and fixed ordered partition bytes.
+    IrisCsv {
+        /// CSV content.
+        csv: &'a [u8],
+        /// Partition content.
+        split: &'a [u8],
+    },
+    /// Original pinned UCI CSV bytes.
+    Wdbc {
+        /// CSV content, subject to the mandatory UCI digest.
+        csv: &'a [u8],
+    },
+    /// Four IDX roles; names are never inferred from content or supplied basenames.
+    Idx {
+        /// Training images.
+        train_images: &'a [u8],
+        /// Training labels.
+        train_labels: &'a [u8],
+        /// Held-out images.
+        test_images: &'a [u8],
+        /// Held-out labels.
+        test_labels: &'a [u8],
+    },
+    /// Captured NPY roles, in [`data::NPY_DATASET_FILES`] order.
+    Npy {
+        /// Structured per-file manifest content.
+        manifest: &'a [u8],
+        /// Train images, train labels, test images, test labels.
+        arrays: [&'a [u8]; 4],
+    },
+}
+
 /// Explicit expected data contract; declaring a profile does not execute the matrix.
 #[derive(Debug, Clone)]
 pub struct DataRequest {
@@ -110,11 +147,11 @@ pub struct Dataset {
     pub test_indices: Vec<usize>,
 }
 
-fn file_sha(path: &Path) -> io::Result<(String, String)> {
-    Ok((
-        path.display().to_string(),
-        data::sha256_hex(&fs::read(path)?),
-    ))
+fn bytes_sha(path: &Path, bytes: &[u8]) -> (String, String) {
+    (path.display().to_string(), data::sha256_hex(bytes))
+}
+fn utf8(bytes: &[u8]) -> io::Result<&str> {
+    std::str::from_utf8(bytes).map_err(|_| invalid("dataset text is not UTF-8"))
 }
 fn validate_arrays(x: &Array2<f64>, labels: &[u8], classes: usize) -> io::Result<()> {
     if !(2..=256).contains(&classes) || x.nrows() == 0 || x.ncols() == 0 {
@@ -268,60 +305,89 @@ pub fn tabular_dataset(
     Ok(d)
 }
 
-// Require a structured, file-specific digest before using the existing manifest loader.
-// Its legacy permissive text scanner alone can otherwise find a later file's digest.
-fn verify_npy_manifest(dir: &Path) -> io::Result<Vec<(String, String)>> {
-    let path = dir.join("data_manifest.json");
-    let manifest: Value = serde_json::from_slice(&fs::read(&path)?)
-        .map_err(|e| invalid(format!("invalid NPY manifest: {e}")))?;
-    let mut files = Vec::new();
-    for name in data::NPY_DATASET_FILES {
-        let digest = manifest
-            .get(name)
-            .and_then(Value::as_str)
-            .or_else(|| {
-                manifest
-                    .get("files")?
-                    .as_array()?
-                    .iter()
-                    .find(|v| v.get("file").and_then(Value::as_str) == Some(name))?
-                    .get("sha256_npy_file")?
-                    .as_str()
-            })
-            .ok_or_else(|| invalid(format!("manifest missing file-specific sha256 for {name}")))?;
-        let got = file_sha(&dir.join(name))?;
-        if digest.len() != 64
-            || !digest.bytes().all(|c| c.is_ascii_hexdigit())
-            || !got.1.eq_ignore_ascii_case(digest)
-        {
-            return Err(invalid(format!("{name}: manifest sha256 mismatch")));
+/// Pathname utility for standalone callers. Acquires each required file once, then uses
+/// [`decode_dataset`] for all numerical processing and consumed-byte identities. Canonical
+/// retained acquisition must call the pure decoder directly after its own resource checks.
+pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
+    validate_request(q)?;
+    match &q.source {
+        DataSource::IrisCsv { csv, split } => {
+            let csv = fs::read(csv)?;
+            let split = fs::read(split)?;
+            decode_dataset(
+                q,
+                DatasetBytes::IrisCsv {
+                    csv: &csv,
+                    split: &split,
+                },
+            )
         }
-        if name.contains("labels") {
-            let labels = data::read_npy_f64(&dir.join(name))?;
-            if labels.nrows() != 1 && labels.ncols() != 1 {
-                return Err(invalid("NPY labels must be a vector"));
-            }
+        DataSource::Wdbc { path, .. } => {
+            let csv = fs::read(path)?;
+            decode_dataset(q, DatasetBytes::Wdbc { csv: &csv })
         }
-        files.push(got);
+        DataSource::Idx { dir, .. } => {
+            let (tr_images, tr_labels) = Split::Train.files();
+            let (te_images, te_labels) = Split::Test.files();
+            let train_images = fs::read(dir.join(tr_images))?;
+            let train_labels = fs::read(dir.join(tr_labels))?;
+            let test_images = fs::read(dir.join(te_images))?;
+            let test_labels = fs::read(dir.join(te_labels))?;
+            decode_dataset(
+                q,
+                DatasetBytes::Idx {
+                    train_images: &train_images,
+                    train_labels: &train_labels,
+                    test_images: &test_images,
+                    test_labels: &test_labels,
+                },
+            )
+        }
+        DataSource::Npy { dir } => {
+            let manifest = fs::read(dir.join("data_manifest.json"))?;
+            let arrays = [
+                fs::read(dir.join(data::NPY_DATASET_FILES[0]))?,
+                fs::read(dir.join(data::NPY_DATASET_FILES[1]))?,
+                fs::read(dir.join(data::NPY_DATASET_FILES[2]))?,
+                fs::read(dir.join(data::NPY_DATASET_FILES[3]))?,
+            ];
+            decode_dataset(
+                q,
+                DatasetBytes::Npy {
+                    manifest: &manifest,
+                    arrays: arrays.each_ref().map(Vec::as_slice),
+                },
+            )
+        }
     }
-    files.push(file_sha(&path)?);
-    Ok(files)
 }
 
-/// Loads and validates all data inputs before a caller allocates any HE state.
-///
-/// Captured NPY preprocessing/order is unchanged. Hash policy remains mandatory; neither
-/// this loader nor pure fixture preprocessing disables production source verification.
-pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
+fn validate_request(q: &DataRequest) -> io::Result<()> {
     if q.profile_id.is_empty() || q.dataset_id.is_empty() || q.features == 0 {
         return Err(invalid(
             "profile/dataset identity and feature width required",
         ));
     }
-    let mut d = match &q.source {
-        DataSource::IrisCsv { csv, split } => {
-            let table = parse_iris(&fs::read_to_string(csv)?)?;
-            let (tr, te) = parse_partition(&fs::read_to_string(split)?, table.labels.len())?;
+    Ok(())
+}
+
+/// Pure dataset decoding, verification and preprocessing of the exact supplied slices.
+///
+/// Missing/malformed content or a variant differing from the request fails; no pathname
+/// fallback exists. Request paths are identity labels, not evidence of source custody.
+/// Captured NPY order, structured manifest defenses, and the fixed WDBC pin are preserved.
+pub fn decode_dataset(q: &DataRequest, bytes: DatasetBytes<'_>) -> io::Result<Dataset> {
+    validate_request(q)?;
+    let mut d = match (&q.source, bytes) {
+        (
+            DataSource::IrisCsv { csv, split },
+            DatasetBytes::IrisCsv {
+                csv: csv_bytes,
+                split: split_bytes,
+            },
+        ) => {
+            let table = parse_iris(utf8(csv_bytes)?)?;
+            let (tr, te) = parse_partition(utf8(split_bytes)?, table.labels.len())?;
             let mut d = tabular_dataset(
                 &q.profile_id,
                 &q.dataset_id,
@@ -331,17 +397,20 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                 q.classes,
                 Scaling::Standardize,
             )?;
-            d.files = vec![file_sha(csv)?, file_sha(split)?];
+            d.files = vec![bytes_sha(csv, csv_bytes), bytes_sha(split, split_bytes)];
             d.split_identity = "fixed ordered CSV partition; no study-seed redraw".into();
             d
         }
-        DataSource::Wdbc {
-            path,
-            test_size,
-            split_seed,
-            scaling,
-        } => {
-            let table = data::load_wdbc(path)?;
+        (
+            DataSource::Wdbc {
+                path,
+                test_size,
+                split_seed,
+                scaling,
+            },
+            DatasetBytes::Wdbc { csv },
+        ) => {
+            let table = data::wdbc_from_bytes(csv)?;
             if *test_size == 0 || *test_size >= table.labels.len() {
                 return Err(invalid("WDBC split requires nonempty train/test"));
             }
@@ -356,7 +425,7 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                 q.classes,
                 *scaling,
             )?;
-            d.files = vec![file_sha(path)?];
+            d.files = vec![bytes_sha(path, csv)];
             d.prep = format!(
                 "stratified split ({} train / {} test, ChaCha20 rng(split_seed = {split_seed}, 4), data::stratified_split), then {}",
                 tr.len(),
@@ -367,21 +436,33 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                 format!("stratified source-row partition; split seed {split_seed}, stream4");
             d
         }
-        source => {
+        source @ ((DataSource::Idx { .. }, DatasetBytes::Idx { .. })
+        | (DataSource::Npy { .. }, DatasetBytes::Npy { .. })) => {
             let (tr, te, prep, files) = match source {
-                DataSource::Idx { dir, resize } => {
-                    let tr = data::load_mnist(dir, Split::Train, None)?;
-                    let te = data::load_mnist(dir, Split::Test, None)?;
+                (
+                    DataSource::Idx { dir, resize },
+                    DatasetBytes::Idx {
+                        train_images,
+                        train_labels,
+                        test_images,
+                        test_labels,
+                    },
+                ) => {
+                    let tr = data::mnist_from_bytes(train_images, train_labels, None)?;
+                    let te = data::mnist_from_bytes(test_images, test_labels, None)?;
                     validate_arrays(&tr.images, &tr.labels, q.classes)?;
                     validate_arrays(&te.images, &te.labels, q.classes)?;
                     if tr.rows == 0 || tr.cols == 0 || (tr.rows, tr.cols) != (te.rows, te.cols) {
                         return Err(invalid("IDX image shapes differ or are empty"));
                     }
                     let mut files = Vec::new();
-                    for split in [Split::Train, Split::Test] {
+                    for (split, images, labels) in [
+                        (Split::Train, train_images, train_labels),
+                        (Split::Test, test_images, test_labels),
+                    ] {
                         let (a, b) = split.files();
-                        files.push(file_sha(&dir.join(a))?);
-                        files.push(file_sha(&dir.join(b))?);
+                        files.push(bytes_sha(&dir.join(a), images));
+                        files.push(bytes_sha(&dir.join(b), labels));
                     }
                     match resize {
                         Some(side) => {
@@ -420,9 +501,18 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                         None => (tr, te, "pixels byte / 255".into(), files),
                     }
                 }
-                DataSource::Npy { dir } => {
-                    let files = verify_npy_manifest(dir)?;
-                    let (a, b) = data::load_npy_dataset(dir)?;
+                (DataSource::Npy { dir }, DatasetBytes::Npy { manifest, arrays }) => {
+                    let (a, b) = data::npy_dataset_from_bytes(
+                        manifest,
+                        arrays,
+                        data::NpyManifestPolicy::Structured,
+                    )?;
+                    let mut files = data::NPY_DATASET_FILES
+                        .into_iter()
+                        .zip(arrays)
+                        .map(|(name, bytes)| bytes_sha(&dir.join(name), bytes))
+                        .collect::<Vec<_>>();
+                    files.push(bytes_sha(&dir.join("data_manifest.json"), manifest));
                     (
                         a,
                         b,
@@ -430,7 +520,7 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                         files,
                     )
                 }
-                _ => unreachable!("tabular sources handled above"),
+                _ => unreachable!("matched image source and byte variants above"),
             };
             let train_indices = (0..tr.labels.len()).collect();
             let test_indices = (0..te.labels.len()).collect();
@@ -448,6 +538,11 @@ pub fn load_dataset(q: &DataRequest) -> io::Result<Dataset> {
                 train_indices,
                 test_indices,
             }
+        }
+        _ => {
+            return Err(invalid(
+                "dataset byte variant differs from requested source",
+            ));
         }
     };
     validate_dataset(&d)?;

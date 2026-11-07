@@ -1,0 +1,25 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+error[E0432]: unresolved imports `ckks_train_bench::profile_data::DatasetBytes`, `ckks_train_bench::profile_data::decode_dataset`
+ --> crates/ckks-train-bench/tests/byte_dataset.rs:4:39
+  |
+4 |     DataRequest, DataSource, Dataset, DatasetBytes, Scaling, decode_dataset, load_dataset,
+  |                                       ^^^^^^^^^^^^           ^^^^^^^^^^^^^^ no `decode_dataset` in `profile_data`
+  |                                       |
+  |                                       no `DatasetBytes` in `profile_data`
+
+error[E0425]: cannot find function `wdbc_from_bytes` in module `data`
+   --> crates/ckks-train-bench/tests/byte_dataset.rs:189:19
+    |
+189 |     assert!(data::wdbc_from_bytes(&changed).is_err());
+    |                   ^^^^^^^^^^^^^^^ not found in `data`
+
+error[E0425]: cannot find function `wdbc_from_bytes` in module `data`
+   --> crates/ckks-train-bench/tests/byte_dataset.rs:190:19
+    |
+190 |     assert!(data::wdbc_from_bytes(&[255]).is_err());
+    |                   ^^^^^^^^^^^^^^^ not found in `data`
+
+Some errors have detailed explanations: E0425, E0432.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `ckks-train-bench` (test "byte_dataset") due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...

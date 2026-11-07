@@ -1,0 +1,156 @@
+{
+  "source_base": "edecc0a4424c7efc444cb025d5561f9e6b120a25",
+  "status": "source frozen for independent SPEC/QUALITY review; no commit/push, real fit, positive gate or scientific result",
+  "source_pins": [
+    {
+      "path": "crates/ckks-train-bench/src/data.rs",
+      "bytes": 61527,
+      "sha256": "d9c3e97d2ae37bf22d5a960fd5b4997235bdff4bd4db0f0a82e2be697685fa94"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/profile_data.rs",
+      "bytes": 32199,
+      "sha256": "046206dba711343487bf9a40d41b124e0a65eb5bbfc684838d6b77224152de14"
+    },
+    {
+      "path": "crates/ckks-train-bench/tests/byte_dataset.rs",
+      "bytes": 13401,
+      "sha256": "00493360740862db3bade3d9bfe564d5bc328513ff0b092d7c7a31492fec7b7d"
+    }
+  ],
+  "unchanged_source_pins": [
+    {
+      "path": "crates/ckks-train-bench/src/study_profile.rs",
+      "bytes": 79141,
+      "sha256": "eaaf3ad085f1a347b664099f720a1ad2fb068ada66939baf60c3c6bbefe3670f"
+    }
+  ],
+  "source_base_pins": [
+    {
+      "path": "crates/ckks-train-bench/src/data.rs",
+      "bytes": 58637,
+      "sha256": "548c647d832e860d6daadd48ac8832fb185c788365798b32941ee650ee752225"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/profile_data.rs",
+      "bytes": 28565,
+      "sha256": "1de6c85f1baaf4a292a66598e679125ba511f4cf50b340d3ae92693a54d957dd"
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile.rs",
+      "bytes": 79141,
+      "sha256": "eaaf3ad085f1a347b664099f720a1ad2fb068ada66939baf60c3c6bbefe3670f"
+    }
+  ],
+  "input_pins": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-brief.md",
+      "bytes": 6632,
+      "sha256": "5066de209104c6066b5d7cdce4799d928d455770a4a2d7d31cb664280ca476c6"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-brief.md",
+      "bytes": 1032,
+      "sha256": "f935214f80bbedf0033dae1decf0b5a789ec4d589336342493b35342a1af31fb"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-typed-materializer-preallocation-map.md",
+      "bytes": 44480,
+      "sha256": "31504e7c3cda346de741448103ce1d9629003bd3fc4359d3d6916db9ac583f9c"
+    },
+    {
+      "path": "crates/ckks-train-bench/data/breast_cancer.csv",
+      "bytes": 124103,
+      "sha256": "d606af411f3e5be8a317a5a8b652b425aaf0ff38ca683d5327ffff94c3695f4a"
+    }
+  ],
+  "verification_logs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-red.log",
+      "bytes": 1413,
+      "sha256": "25e93cbdb306f9939bea3d9956e57c006b9d9e30253e7063ad7f27dfcaa274fa",
+      "exit_code": 101
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-green-1.log",
+      "bytes": 805,
+      "sha256": "95fa9c1ae013a07a108c330246522fe92d4040de73eac47689c4513fd3d318f9",
+      "exit_code": 0
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-early-request-red.log",
+      "bytes": 1069,
+      "sha256": "aa94732bcb5a44db087a238c111f66ad8678bdfe3cb7911205e76b52f80ccf72",
+      "exit_code": 101
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-green-2.log",
+      "bytes": 805,
+      "sha256": "17cb88901a968a324a8d615fa30fc90144843fdb60234b41c3f2d97c71e72ea4",
+      "exit_code": 0
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-clippy.log",
+      "bytes": 1432,
+      "sha256": "93d269b23600a7f0dd790d98a5f72381d46582ccf45749f5c98c372d7abe7fbd",
+      "exit_code": 101
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-wrapper-green.log",
+      "bytes": 434,
+      "sha256": "e0cf74079dfae3537c6cc34b6915339d44bc4ce3dbceb8f6451ba157e47a1fa8",
+      "exit_code": 0
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-clippy-2.log",
+      "bytes": 175,
+      "sha256": "38ae27437272847c60520a07519423e0f249a4f4865ce70ea45d9438a5c0c9c2",
+      "exit_code": 0
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-fmt-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-report.md",
+      "bytes": 14331,
+      "sha256": "96b01e9ff8594eead06094e6aad3ffb026187114644af85d545c858e026fa132"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset.diff",
+      "bytes": 34075,
+      "sha256": "cbdcbdec8f4172418f033c8549771bf23f056172e400123ec095b293613f50f1"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-byte-dataset-test-inventory.md",
+      "bytes": 5207,
+      "sha256": "0dcb0715f1daad6b90401e602337bdef328d25ca1631142112a097ad3efe682f"
+    }
+  ],
+  "test_scope": {
+    "tests": 6,
+    "existing_dataset_files": 1,
+    "existing_dataset_bytes": 124103,
+    "synthetic_base_iris_bytes": 69,
+    "synthetic_base_idx_bytes": 63,
+    "synthetic_base_npy_bytes": 703,
+    "maximum_synthetic_matrix": [
+      2,
+      2
+    ],
+    "wrapper_temp_files": 11,
+    "wrapper_temp_base_bytes": 835,
+    "final_production_source_full_filter_log": "task-54-d7-byte-dataset-green-2.log",
+    "final_test_helper_exact_filter_log": "task-54-d7-byte-dataset-wrapper-green.log"
+  }
+}

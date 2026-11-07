@@ -1,0 +1,9 @@
+# Shared borrowed-byte dataset decoding
+
+Accepted bounded source change against edecc0a4424c7efc444cb025d5561f9e6b120a25. Independent SPEC and QUALITY PASS: [review](task-54-d7-byte-dataset-review.md). [Author report](task-54-d7-byte-dataset-report.md), [source diff](task-54-d7-byte-dataset.diff), [exact pins](task-54-d7-byte-dataset-pins.json), and original RED/failure/GREEN logs are retained unchanged. Ledger paths inside historical artifacts identify original locations; same basenames here are exact copies.
+
+All four dataset routes use one pure borrowed-byte numerical decoder. Existing pathname wrappers read each required content once, and reported hashes describe those same consumed bytes. WDBC's mandatory UCI pin and NPY structured file-specific checks remain. Six focused tests passed on final production source; a later test-helper-only lint correction was covered by its exact wrapper test. Strict all-feature/all-target Clippy and format passed. These are Mac decoder validations, not scientific timings or native/GPU evidence.
+
+Q1, low priority, deferred to the next touching implementation/final integration review: the WDBC test comment overstates independent stream/scaling coverage. Actual assertions check dimensions, class counts, sorted indices, pin and shared-wrapper parity; unchanged source establishes preserved stream/scaling. Do not treat this test as a new independent complete numerical oracle. No expectations were regenerated.
+
+Canonical prepare_dataset still reads and discards locked bytes before invoking the pathname wrapper. Retained acquisition, captured seed/order/schedule decoding, resource-owner integration, reference/target reconstruction and actual full runner remain unfinished. Raw buffers now overlap during decoding; no physical fit or positive gate is claimed. Task54 and the complete research goal remain incomplete.

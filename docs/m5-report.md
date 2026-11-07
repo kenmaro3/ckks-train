@@ -828,4 +828,14 @@ bootstrapの704／703 bytesは形式上の長さであり、物理メモリモ�
 
 初回レビューで、BSGSの出力収集・集約中も残る行データの計上漏れを発見した。両方の処理段階へ明示的に加え、仕様・品質の再レビューが合格した。数値演算の一時領域・コンテナ容量・allocator・runtime・実ホストの確認は未完了であり、未知の項をゼロに置かない。この式は非parallelビルドを対象とし、Rayonの1 workerへ自動適用しない。実装・実機計測・研究結果の追加ではない。
 
+<a id="latest-evidence-20261108-d7-byte-dataset"></a>
+
+## 2026-11-08追記: 同じ入力bytesからのデータ読込とハッシュ
+
+[実装・元ログ・独立レビュー](../results/validation/task54-d7-byte-dataset/README.md)を保存した。Iris／WDBC／IDX／NPYの数値処理を共通の借用bytesデコーダへまとめ、既存のパス指定wrapperは各入力を1回だけ読む。数値変換とハッシュは同じbytesを使い、WDBCの固定digestとNPYのファイル別manifest検査を維持した。
+
+限定テスト6件、変更したテストhelperの個別テスト、strict Clippy、formatが合格し、仕様・品質レビューも合格した。入力宣言の検査順序の回帰は実際の失敗テストで検出して修正し、元ログを保持した。WDBCテストのコメントが検証範囲を広く表現している軽微なQ1は、次の関連変更・最終レビューへ残す。乱数streamとscalingの維持は不変のソースから確認しており、このテストを独立した全数値oracleとは扱わない。
+
+canonical prepare_datasetでは先行読込のbytesをまだ破棄して再取得しているため、保持した入力・資源owner・seed/order/schedule・Reference／Targetへの接続は未完了。wrapperの生bytes同時保持も資源計上に必要である。Task54全体・実学習・メモリ適合の合格ではない。
+
 本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。

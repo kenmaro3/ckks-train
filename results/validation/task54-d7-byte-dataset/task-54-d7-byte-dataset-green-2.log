@@ -1,0 +1,14 @@
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 16.71s
+     Running tests/byte_dataset.rs (target/debug/deps/byte_dataset-29f9ad2e37db59d3)
+
+running 6 tests
+test byte_dataset_idx_preserves_scaling_and_rejects_shape_and_labels ... ok
+test byte_dataset_iris_uses_supplied_slices_and_request_identity ... ok
+test byte_dataset_npy_checks_exact_manifest_arrays_and_vector_labels ... ok
+test byte_dataset_path_wrappers_share_the_pure_decoders ... ok
+test byte_dataset_rejects_missing_wrong_variant_utf8_and_declared_shape ... ok
+test byte_dataset_wdbc_keeps_pinned_digest_and_fixed_split ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
