@@ -1,0 +1,37 @@
+[
+  {
+    "command": [
+      "python3",
+      "-B",
+      ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-48-52-terminal-controller-tests.py",
+      "-v"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "test_fixed_family_preconditions (__main__.Precondition.test_fixed_family_preconditions) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.071s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-48-terminal-controller.py",
+      "--check-only",
+      ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/post-full-observation-20261108-1523"
+    ],
+    "exit": 2,
+    "stdout": "",
+    "stderr": "Controller refused before/around launch: FULL-2 result has not been observed\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-52-terminal-controller.py",
+      "--check-only",
+      ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/post-full-observation-20261108-1523"
+    ],
+    "exit": 2,
+    "stdout": "",
+    "stderr": "Controller refused before/around launch: FULL-2 result has not been observed\n"
+  }
+]

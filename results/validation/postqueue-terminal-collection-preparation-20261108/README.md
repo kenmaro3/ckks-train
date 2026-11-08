@@ -1,0 +1,9 @@
+# R48/R52 terminal collection preparation
+
+The fixed-family collector and two one-shot controllers passed independent source review. Collector: 20 synthetic tests passed independently. Controllers: one unittest with 20 synthetic precondition subcases passed independently; both check-only calls using the archived 15:23 FULL2 observation refused with exit2 before SSH/output creation. The initial REDs establish missing-source behavior; the collector's additional type-RED reproduces a gate-configuration primitive-type bug, fixed before final GREEN. Complete original transcripts and reports are preserved here.
+
+No remote collection has occurred. These are operational tools, not research-result JSON. Failed jobs' binary output is retained unchanged, including R52's write-before-failure behavior. Missing terminal records do not prove that a job never ran. R48's ten possible test outputs and conditional SGD paths are finite; R52 partial/projection records remain original evidence. Scientific validation is downstream.
+
+Each request needs root review of an actual registered observation: FULL2 final path present, original chain terminal/gone, released gate, and the respective last-job state or queue terminal. The collector then checks current original job metadata. Six fresh-only local output files, key-only SSH, nice10,110s new-local-SSH-child-only timeout and no automatic retry remain. The raw bound is8MiB/file and32MiB total including rereads;64MiB encoded stdout checking is post-capture, not a streaming/stderr hard cap. Production transport/timeout branches remain unexecuted.
+
+`manifest.json` maps byte-exact originals to plain or lossless gzip copies. Earlier R47 source is included solely as the reviewed helper/transport comparison base. Source hashes identify bytes, not historical execution or scientific acceptance. Controllers are registered as prepared in requests.md; neither request has been invoked.

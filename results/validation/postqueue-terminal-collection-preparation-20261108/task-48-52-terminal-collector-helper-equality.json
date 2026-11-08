@@ -1,0 +1,23 @@
+{
+  "original_sha256": "8e40fb7efa1cfdb90f826fe4b8b8c6046a876616f695790d5e5c27975c2a0d5a",
+  "helpers": [
+    {
+      "helper": "unique_object",
+      "bytes": 173,
+      "sha256": "5257a0749a852fcf11a4ab7d0c0fa271c1936afa08bf6e84f30b697a7b3bf5cf",
+      "unchanged": true
+    },
+    {
+      "helper": "stamp",
+      "bytes": 107,
+      "sha256": "8f78aba7e9c8d5cffdf7ef3a154af75ed8e39f619d5056d3b69c4625a74810a7",
+      "unchanged": true
+    },
+    {
+      "helper": "read_stable",
+      "bytes": 2665,
+      "sha256": "c276420d527c7a628a5f02e56286bdd0c5b2c9d9fa9776a9b432386c1510234c",
+      "unchanged": true
+    }
+  ]
+}

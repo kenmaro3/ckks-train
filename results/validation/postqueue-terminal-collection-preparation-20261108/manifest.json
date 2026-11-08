@@ -1,0 +1,160 @@
+{
+  "kind": "local_operations_preparation_not_measurement",
+  "files": [
+    {
+      "original": "task-48-52-terminal-collector.remote.py",
+      "archive": "task-48-52-terminal-collector.remote.py",
+      "bytes": 19552,
+      "sha256": "354b7787086d4a708579b90b115d598ef6217668f173a73cf4f0c79f2e42d2ea",
+      "archive_sha256": "354b7787086d4a708579b90b115d598ef6217668f173a73cf4f0c79f2e42d2ea"
+    },
+    {
+      "original": "test_task_48_52_terminal_collector.py",
+      "archive": "test_task_48_52_terminal_collector.py",
+      "bytes": 23174,
+      "sha256": "d76b90d0ae1c75b70e72e4b5f522f4ed82e718b9f5147f3f5eaa9b90e6118ef8",
+      "archive_sha256": "d76b90d0ae1c75b70e72e4b5f522f4ed82e718b9f5147f3f5eaa9b90e6118ef8"
+    },
+    {
+      "original": "task-48-52-terminal-collector-brief.md",
+      "archive": "task-48-52-terminal-collector-brief.md",
+      "bytes": 4647,
+      "sha256": "1d970e8412c3d4ef0531fb40464fb8ae22b0c4e9dd2a6dd339897965d8275701",
+      "archive_sha256": "1d970e8412c3d4ef0531fb40464fb8ae22b0c4e9dd2a6dd339897965d8275701"
+    },
+    {
+      "original": "task-48-52-terminal-collector-preparation.md",
+      "archive": "task-48-52-terminal-collector-preparation.md.gz",
+      "bytes": 37205,
+      "sha256": "1d5bd2a609d041299f278d4c7c382c940b60c232b1e800e41cb9f73441124dc2",
+      "archive_sha256": "7f07b7a898fee050ddc909499691e5c1cde6a2c9e439e1b7be70bc38cb92c1a8"
+    },
+    {
+      "original": "task-48-52-terminal-collector-red.json",
+      "archive": "task-48-52-terminal-collector-red.json.gz",
+      "bytes": 14789,
+      "sha256": "7750a44480afa7dba2aeeb251893d31997a6777336b516ecc0011f31e18183e3",
+      "archive_sha256": "26d8f7d153ba0aa74250c96aab5b37e4ebf18ad46ba102f943578551efb08546"
+    },
+    {
+      "original": "task-48-52-terminal-collector-first-green.json",
+      "archive": "task-48-52-terminal-collector-first-green.json",
+      "bytes": 2665,
+      "sha256": "2219297d8f7973b0fbb5d9fbe26331404eeb101d11065ce84bf3033fd9d97052",
+      "archive_sha256": "2219297d8f7973b0fbb5d9fbe26331404eeb101d11065ce84bf3033fd9d97052"
+    },
+    {
+      "original": "task-48-52-terminal-collector-type-red.json",
+      "archive": "task-48-52-terminal-collector-type-red.json",
+      "bytes": 3923,
+      "sha256": "7f660c28ae377689f774ca90d0f20b21a054c8f3fda049e349bed380b0669ea5",
+      "archive_sha256": "7f660c28ae377689f774ca90d0f20b21a054c8f3fda049e349bed380b0669ea5"
+    },
+    {
+      "original": "task-48-52-terminal-collector-green.json",
+      "archive": "task-48-52-terminal-collector-green.json",
+      "bytes": 3261,
+      "sha256": "94d2bcbc737b63c2088f432a6bebdee473e2e4b68040a773ef63c593a40baffd",
+      "archive_sha256": "94d2bcbc737b63c2088f432a6bebdee473e2e4b68040a773ef63c593a40baffd"
+    },
+    {
+      "original": "task-48-52-terminal-collector-helper-equality.json",
+      "archive": "task-48-52-terminal-collector-helper-equality.json",
+      "bytes": 623,
+      "sha256": "09371b281f08f8746cc64290a0b139fdea2ac06cb6668bf4b295b9cfe89700e6",
+      "archive_sha256": "09371b281f08f8746cc64290a0b139fdea2ac06cb6668bf4b295b9cfe89700e6"
+    },
+    {
+      "original": "task-48-52-terminal-collector-review.md",
+      "archive": "task-48-52-terminal-collector-review.md.gz",
+      "bytes": 11908,
+      "sha256": "ed226271d30ef44509da7fcce2bd9f531e3245331c5d8d4a0b8e6408d4f1e383",
+      "archive_sha256": "b50f1acc754211d780106a0a0c732b3695242fd05c7185c86c472be1696300f5"
+    },
+    {
+      "original": "task-48-terminal-controller.py",
+      "archive": "task-48-terminal-controller.py",
+      "bytes": 7611,
+      "sha256": "a2ada1a88e64d77372e728e30700e5798c7b02038fe79d81b459ca10efbbd01e",
+      "archive_sha256": "a2ada1a88e64d77372e728e30700e5798c7b02038fe79d81b459ca10efbbd01e"
+    },
+    {
+      "original": "task-52-terminal-controller.py",
+      "archive": "task-52-terminal-controller.py",
+      "bytes": 7611,
+      "sha256": "24b142678ad57812625093994bfa5159ef57214d0d3b9846d2631104798388f1",
+      "archive_sha256": "24b142678ad57812625093994bfa5159ef57214d0d3b9846d2631104798388f1"
+    },
+    {
+      "original": "task-48-52-terminal-controller-tests.py",
+      "archive": "task-48-52-terminal-controller-tests.py",
+      "bytes": 3469,
+      "sha256": "cb5dfcd7bc185c526fc531786ded5348629cd26723cd0fa191925a0f2d6f2124",
+      "archive_sha256": "cb5dfcd7bc185c526fc531786ded5348629cd26723cd0fa191925a0f2d6f2124"
+    },
+    {
+      "original": "task-48-52-terminal-controller-plan.md",
+      "archive": "task-48-52-terminal-controller-plan.md",
+      "bytes": 1598,
+      "sha256": "be23308fbdc1a1fa7f5b093c8fd9d9b7f2250a9c070ee1fe9fec51d0f57629d0",
+      "archive_sha256": "be23308fbdc1a1fa7f5b093c8fd9d9b7f2250a9c070ee1fe9fec51d0f57629d0"
+    },
+    {
+      "original": "task-48-52-terminal-controller-preparation.md",
+      "archive": "task-48-52-terminal-controller-preparation.md",
+      "bytes": 3285,
+      "sha256": "057e0b643446f12f645f1e612183062c1934f8e24458d80d8cb6ed414e17916e",
+      "archive_sha256": "057e0b643446f12f645f1e612183062c1934f8e24458d80d8cb6ed414e17916e"
+    },
+    {
+      "original": "task-48-52-terminal-controller-red.json",
+      "archive": "task-48-52-terminal-controller-red.json.gz",
+      "bytes": 24001,
+      "sha256": "8e72429b76075087c937d7db687cf17ea5cbc6b88b247807b5b2869ec1a4bbc7",
+      "archive_sha256": "3e2fc4054936780fbfdb99dabddbb98b4c784141b59600bb22b9bd3d54d95f72"
+    },
+    {
+      "original": "task-48-52-terminal-controller-green.json",
+      "archive": "task-48-52-terminal-controller-green.json",
+      "bytes": 1295,
+      "sha256": "e0759920e330fe67c1dd2ce662dfe4d24df83898c023459d81f9f33acb97bace",
+      "archive_sha256": "e0759920e330fe67c1dd2ce662dfe4d24df83898c023459d81f9f33acb97bace"
+    },
+    {
+      "original": "task-48-52-terminal-controller-review.md",
+      "archive": "task-48-52-terminal-controller-review.md.gz",
+      "bytes": 9142,
+      "sha256": "bb0a2695780eac430f4291ba7a2965342e8fd0f81461672d0f7dd0d42091d027",
+      "archive_sha256": "01efdec64abef75d1e1cc8b886ccab94affbd58cdbb3f38cff9e725fc0807ee5"
+    },
+    {
+      "original": "task-48-terminal-controller-vs-r47.diff",
+      "archive": "task-48-terminal-controller-vs-r47.diff.gz",
+      "bytes": 2162,
+      "sha256": "b824005976cf65d41aaf0fd499ca532531d2f0ada8c75436a1343a7754f89110",
+      "archive_sha256": "24d7577d3b632cbb038af98fb1a7f425c3074d1b477b8a66df09f23b7589c544"
+    },
+    {
+      "original": "task-52-terminal-controller-vs-r47.diff",
+      "archive": "task-52-terminal-controller-vs-r47.diff.gz",
+      "bytes": 2162,
+      "sha256": "bea136ff5939e1746652a0a6515997392f8daf7299a7e6aa0a0c84fd93b1841b",
+      "archive_sha256": "f39d1e752327cea29c7fe059e0933ac9c043e4e34855ba2fc436adee7dea3d31"
+    },
+    {
+      "original": "task-47-terminal-collector.remote.py",
+      "archive": "task-47-terminal-collector.remote.py",
+      "bytes": 11201,
+      "sha256": "8e40fb7efa1cfdb90f826fe4b8b8c6046a876616f695790d5e5c27975c2a0d5a",
+      "archive_sha256": "8e40fb7efa1cfdb90f826fe4b8b8c6046a876616f695790d5e5c27975c2a0d5a"
+    },
+    {
+      "original": "task-47-terminal-controller.py",
+      "archive": "task-47-terminal-controller.py",
+      "bytes": 7653,
+      "sha256": "4de62d14af065aee39ae9c74e9e82b6bd71e39f921a0936901961beb7cc8a6d6",
+      "archive_sha256": "4de62d14af065aee39ae9c74e9e82b6bd71e39f921a0936901961beb7cc8a6d6"
+    }
+  ],
+  "scientific_acceptance": false
+}

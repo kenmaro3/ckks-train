@@ -1203,3 +1203,29 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261108-1625.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
 - **status:** prepared, not invoked; earliest 2026-11-08T16:25:00+09:00. Same observer/controller logic; no new training.
+
+
+## R-48-COLLECT-1: one-shot read-only R48 terminal collection
+
+- **purpose:** Preserve original R48 terminal records and binary outputs after root reviews a qualifying actual observation: FULL2 result present, original chain terminal/gone, released gate and either `R-48-4.json` or queue `terminal.json`. A released queue can fail before this family; missing state remains unknown, not a not-run claim.
+- **commit to sync:** none; reviewed shared19552-byte collector SHA256 `354b7787086d4a708579b90b115d598ef6217668f173a73cf4f0c79f2e42d2ea` sent unchanged on stdin. No remote writes.
+- **working dir:** fixed own `/home/kmihara/hekit-runs/post-full-v1`, corresponding registered `out/` and `logs/`, and `/home/kmihara/hekit-post-full-clones/hekit-post-full-r48`. Only compiled family/job/output paths.
+- **command:** ledger `task-48-terminal-controller.py OBSERVATION_PREFIX`,7611B SHA256 `a2ada1a88e64d77372e728e30700e5798c7b02038fe79d81b459ca10efbbd01e`; exact key-only SSH argv, one attempt, `nice -n 10 /usr/bin/python3.14 -I -B - r48`. Actual observer prefix only.
+- **expected duration:** seconds after connection;110-second local SSH-child timeout. Only that new local child can be terminated; no research process/queue/master signals, no inferred remote completion or automatic retry.
+- **GPU memory need:**0. **RAM need:** under256MiB expected, unmeasured; one Python process,8MiB/file and32MiB aggregate original bytes including rereads.64MiB encoded stdout post-capture validation is not a streaming cap or stderr bound.
+- **output path:** six fresh-only ledger files `task-48-terminal-fetch-v1.{launch.json,stdout,stderr,meta.json,observation.stdout,observation.meta.json}`; preserve raw refusal output and source mappings before archive intake.
+- **pass criterion:** operational fixed owner/gate/job/source/command/terminal consistency and unchanged original bytes; only terminal-job logs/output are read. Failed/partial/skip/watchdog records and any failed binary JSON remain evidence, not accepted science. `scientific_acceptance=false` always.
+- **status:** prepared and independently reviewed, not invoked. Collector20 synthetic tests and controller20 pure subcases passed; actual1523 pending observation refused check-only before output/SSH. Positive production transport/timeouts remain unexecuted. [Preparation evidence](../validation/postqueue-terminal-collection-preparation-20261108/README.md).
+
+
+## R-52-COLLECT-1: one-shot read-only R52 terminal collection
+
+- **purpose:** Preserve original R52 terminal records and binary outputs after root reviews a qualifying actual observation: FULL2 result present, original chain terminal/gone, released gate and either `R-52-2.json` or queue `terminal.json`. A released queue can fail before this family; missing state remains unknown, not a not-run claim.
+- **commit to sync:** none; reviewed shared19552-byte collector SHA256 `354b7787086d4a708579b90b115d598ef6217668f173a73cf4f0c79f2e42d2ea` sent unchanged on stdin. No remote writes.
+- **working dir:** fixed own `/home/kmihara/hekit-runs/post-full-v1`, corresponding registered `out/` and `logs/`, and `/home/kmihara/hekit-post-full-clones/hekit-post-full-r52`. Only compiled family/job/output paths.
+- **command:** ledger `task-52-terminal-controller.py OBSERVATION_PREFIX`,7611B SHA256 `24b142678ad57812625093994bfa5159ef57214d0d3b9846d2631104798388f1`; exact key-only SSH argv, one attempt, `nice -n 10 /usr/bin/python3.14 -I -B - r52`. Actual observer prefix only.
+- **expected duration:** seconds after connection;110-second local SSH-child timeout. Only that new local child can be terminated; no research process/queue/master signals, no inferred remote completion or automatic retry.
+- **GPU memory need:**0. **RAM need:** under256MiB expected, unmeasured; one Python process,8MiB/file and32MiB aggregate original bytes including rereads.64MiB encoded stdout post-capture validation is not a streaming cap or stderr bound.
+- **output path:** six fresh-only ledger files `task-52-terminal-fetch-v1.{launch.json,stdout,stderr,meta.json,observation.stdout,observation.meta.json}`; preserve raw refusal output and source mappings before archive intake.
+- **pass criterion:** operational fixed owner/gate/job/source/command/terminal consistency and unchanged original bytes; only terminal-job logs/output are read. Failed/partial/skip/watchdog records and any failed binary JSON remain evidence, not accepted science. `scientific_acceptance=false` always.
+- **status:** prepared and independently reviewed, not invoked. Collector20 synthetic tests and controller20 pure subcases passed; actual1523 pending observation refused check-only before output/SSH. Positive production transport/timeouts remain unexecuted. [Preparation evidence](../validation/postqueue-terminal-collection-preparation-20261108/README.md).
