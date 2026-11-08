@@ -1,10 +1,11 @@
 # Releasing ckks-train v1.0.0
 
 Current publication state (2026-11-08): the repository and
-[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)
-are **public as a research preview**. Release437943352 contains the fixed source,
-10-page PDF and arXiv preparation ZIP. Stable v1.0 and arXiv submission remain incomplete.
-[Current publication evidence](../results/validation/research-preview-public-release-6fba46c/README.md).
+[v1.0.0-preview.2](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.2)
+are **public as a research preview**. Release438276716 contains fixed source `e93cec4`,
+the FULL-2/R-47-3 ten-page PDF and arXiv preparation ZIP among nine verified assets.
+Stable v1.0 and arXiv submission remain incomplete; the author handles arXiv submission.
+[Current publication evidence](../results/validation/research-preview2-publication/README.md).
 The dated private-state observations below are historical.
 
 State on 2026-11-06 (Task 55): the release is prepared, nothing is published. The GitHub
@@ -13,9 +14,12 @@ whether the crates go to crates.io. The user has authorized milestone pushes to 
 main branch and the ckks-train crate rename. Making the repository public, publishing crates,
 and creating a public release remain separate publication decisions.
 
-Current qualification (2026-11-08): the published preview is fixed at `6fba46c`;
-its exact Linux CI completed successfully in all six jobs, and the distribution
-passed independent review. Later source changes require their own validation.
+Current qualification (2026-11-08): preview 2 is fixed at `e93cec4`;
+its exact Linux CI completed successfully in all six jobs, the distribution was
+read back against Git and the previously reviewed paper, and every public asset
+was downloaded anonymously and hash-verified. Preview 1 at `6fba46c` and its
+independent distribution review remain historical. Later source changes require
+their own validation.
 The dated Task55 preparation and two unstarted CI runs in the 07:09 JST observation
 below remain historical. Preview publication does not establish stable-release or
 research-plan completion.

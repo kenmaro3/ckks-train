@@ -1,9 +1,13 @@
 # arXiv submission metadata draft
 
-Prepared 2026-11-08 from the current interim manuscript. **Not submitted.**
-Account checking is deferred at the user's request; login and category endorsement
-have not been verified. Refresh this file after the evidence cutoff and compare
-with the final source and arXiv-generated PDF before submission.
+Prepared 2026-11-08 for the evidence-frozen `v1.0.0-preview.2` manuscript. **Not submitted.**
+The author will perform arXiv submission, including account/endorsement checks and
+the final arXiv-generated PDF review. The agent has not logged in or submitted it.
+Use this public [source ZIP](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.2/ckks-train-arxiv-source.zip)
+and compare the server-built output with the [reviewed PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.2/ckks-train-paper-preview.pdf).
+Its checksum is recorded in the release's `SHA256SUMS`; no further experiment is
+required for this version's evidence selection. Future evidence updates require
+a separately reviewed package and matching metadata.
 
 | Field | Prepared value |
 |---|---|
@@ -41,8 +45,9 @@ The current locally tested upload package is
 `/Volumes/Untitled/ckks-train-storage/archives/arxiv-source-full2-r47-20261108/ckks-train-arxiv-source.zip`.
 Its manifest and isolated-build result are archived with the
 [paper verification](../results/validation/paper-full2-r47-20261108/README.md).
-This remains an interim artifact before the evidence cutoff, not a substitute for
-arXiv's own source-build and preview check. This metadata file is submission
+The exact same ZIP bytes are now published in preview 2; its evidence selection
+is frozen for this version. This is not a substitute for arXiv's own source-build
+and preview check. This metadata file is submission
 assistance; it need not be included in the TeX source ZIP. No account action,
 upload, license acceptance, endorsement request or submission was performed while
 preparing it.
@@ -64,10 +69,10 @@ page breaks or class versions. The existing `main.bbl` uses ordinary BibTeX,
 not biblatex/Biber. Source and bibliography preparation follows the
 [official TeX instructions](https://info.arxiv.org/help/submit_tex.html).
 
-After the evidence cutoff, regenerate the upload ZIP, update this abstract and
-page count to match that final paper, and repeat the package and PDF checks.
-The public preview remains fixed; an updated final submission is a separate
-artifact. Account/endorsement checks remain deferred at the author's request.
+For a future evidence update, regenerate the upload ZIP, update the abstract and
+page count, and repeat the package and PDF checks. Preview 2 is fixed and ready
+for the author's submission workflow; account/endorsement checks and the server
+preview remain the author's responsibility.
 
 ## Local manuscript update, 2026-11-08 12:31 JST
 

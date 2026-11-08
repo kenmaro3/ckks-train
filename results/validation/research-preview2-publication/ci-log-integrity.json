@@ -1,0 +1,6 @@
+{
+  "uncompressed_bytes": 364939,
+  "uncompressed_sha256": "b6dcc0005fd0f19f08a10a92b839911aa00c3f22d5f747ab5f58965a054e04bb",
+  "gzip_sha256": "0be521c24be5781372c08674906befd7568486f9adc78079271880451f12e19c",
+  "reason": "lossless retention of raw CI whitespace"
+}

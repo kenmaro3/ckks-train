@@ -1,5 +1,13 @@
 # 48-hour publication schedule — 2026-11-08
 
+**Current update:** preview 2 is public at fixed `e93cec4`, including the reviewed
+FULL-2/R-47-3 paper and source ZIP. Its evidence selection is frozen for this version;
+the previous future cutoff below is historical. The user retained arXiv submission
+responsibility. Agent work covers the public artifacts and matching metadata;
+no account operation, submission or server build has occurred.
+[Publication evidence](../results/validation/research-preview2-publication/README.md).
+Extended research gates and later experiment updates remain separate work.
+
 The user explicitly requires a preview within one day and the paper/publication within
 two days. Received at approximately2026-11-08 09:14 JST. Use conservative deadlines:
 

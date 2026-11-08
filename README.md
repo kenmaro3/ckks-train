@@ -9,8 +9,8 @@ The workspace crates use the `ckks-train-*` names. Historical measurements retai
 `hekit-*` names they were produced with; see [docs/release.md](docs/release.md).
 
 The current artifact is a **research preview**, not a completed stable v1.0 release.
-[Download the 10-page paper PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
-or the [source and arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1).
+[Download the 10-page paper PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.2/ckks-train-paper-preview.pdf)
+or the [source and arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.2).
 [Preview evidence and remaining work](docs/research-preview.md) distinguish local
 validation, completed measurements and pending experiments.
 
@@ -184,9 +184,10 @@ Sources and checksums are in `crates/ckks-train-bench/data/README.md`.
   Some key-switch performance targets remain unmet; `docs/m1-report.md`.
 - **M2** (interactive encrypted training): done. Iris reproduction (test accuracy 0.967) and
   MNIST eMLP-1; `docs/m2-report.md`.
-- **M3** (bootstrapping, non-interactive training, ReBoot comparison): implemented; final RQ1
-  assessment awaits FULL-2 (4800 samples x 10 epochs); FULL-1 is archived. It retains the
-  security-comparability limitation. `docs/m3-report.md`.
+- **M3** (bootstrapping, non-interactive training, ReBoot comparison): FULL-1 and FULL-2
+  completed. FULL-2 passes the registered accuracy gate but misses key-switch criterion
+  (b); overall RQ1 remains unmet. The common-security condition is unmet and full-setting
+  ReBoot CPU time is unmeasured. `docs/m3-report.md`.
 - **M4** (CUDA backend): executed GPU operator cases matched the CPU bit-for-bit on an
   RTX 4090; memory-skipped cases remain unverified. GPU bootstrapping is implemented
   but its measurement on hardware is deferred.

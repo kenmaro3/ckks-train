@@ -2,6 +2,23 @@
 
 **コード・PDF付き研究プレビューを公開済み。arXiv投稿・安定版v1.0・研究計画完了は未達。**
 
+## 最新版：preview 2（2026-11-08）
+
+[v1.0.0-preview.2](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.2)
+を固定 `e93cec4` から公開した。FULL-2とR-47-3を反映した10ページPDF、
+19ファイルのarXiv用ZIP、MITソース、各ライセンス、manifest、チェックサム等の9 assetを配布する。
+この版は既存の採用済み証拠で確定し、後続実験の完了を待たない。preview 1は保持する。
+
+対象SHAのLinux CIは全6ジョブ成功。ソース6,113ファイルをGit内容・modeと照合し、
+公開後は認証なしで全9 assetを取得してサイズ・SHA256を照合した。
+[今回の公開証拠](../results/validation/research-preview2-publication/README.md)。
+既存の表再生成・論文ビルド証拠を保持し、この公開作業で実験を再実行したとは扱わない。
+
+FULL-2は精度基準に合格したがKS比(b)は未達。共通安全性条件未達、全長ReBoot CPU時間未計測、
+GPU学習等の未計測を維持する。arXiv投稿は本人が担当し、
+[投稿metadata](../paper/arxiv-metadata.md)と公開ZIP・PDFを利用できる。
+以下は各時点の履歴であり、旧版・ローカル準備時点の未公開という記述は現在状態ではない。
+
 ## 現在の公開版（2026-11-08 10:42 JST）
 
 [v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)

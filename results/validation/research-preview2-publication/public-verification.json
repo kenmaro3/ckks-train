@@ -1,0 +1,66 @@
+{
+  "verified_utc": "2026-11-08T13:51:43.431814+00:00",
+  "release_id": 438276716,
+  "published_at": "2026-11-08T13:49:32Z",
+  "url": "https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.2",
+  "source_commit": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "release_page_anonymous_http": 200,
+  "all_assets_downloaded": true,
+  "assets": [
+    {
+      "name": "ckks-train-arxiv-source.zip",
+      "bytes": 40079,
+      "sha256": "2fa463bb471257b89d83414694de18f758bb40459e1b3e5e0f813297252a01c2",
+      "anonymous_http": 200
+    },
+    {
+      "name": "ckks-train-e93cec4-source.tar.gz",
+      "bytes": 68962151,
+      "sha256": "6ed70b22d53afdfc105a9d1179dde76cb00d0fbc9118f42cd3c429b68ecf4817",
+      "anonymous_http": 200
+    },
+    {
+      "name": "ckks-train-paper-preview.pdf",
+      "bytes": 532092,
+      "sha256": "9d896a45296754a22de0ba4a4daa5f832a7900f689b62363588a02d2eb22699c",
+      "anonymous_http": 200
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1732,
+      "sha256": "58206f00400cfbbc5a7fcedb856300d85939486eae05d147e93224e9d0ca1ffe",
+      "anonymous_http": 200
+    },
+    {
+      "name": "PAPER_LICENSE.txt",
+      "bytes": 1053,
+      "sha256": "36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e",
+      "anonymous_http": 200
+    },
+    {
+      "name": "PREVIEW.md",
+      "bytes": 3662,
+      "sha256": "ac4f0a05da49018e8e679bfe95c9cae54a471cef5be73c0d34814454b0325ff6",
+      "anonymous_http": 200
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 704,
+      "sha256": "e5872a342126f70306700f43b99553bb316d65ddee44fa1a4ffd0c888aef6aab",
+      "anonymous_http": 200
+    },
+    {
+      "name": "SOFTWARE_LICENSE.txt",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+      "anonymous_http": 200
+    },
+    {
+      "name": "source-inventory.json",
+      "bytes": 1785523,
+      "sha256": "50d3fccb0f23ef756a3dfd161128073a4c5185fb5c1191c282162c2e1cb7488c",
+      "anonymous_http": 200
+    }
+  ],
+  "arxiv_submitted": false
+}

@@ -1,12 +1,14 @@
 # ckks-train interim paper draft
 
-The named 10-page [preview PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
-and [arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)
-were published on 2026-11-08 as `v1.0.0-preview.1`, source `6fba46c`.
-The sole author is Kentaro Mihara (Independent Researcher). The fixed public
-preview contains the FULL-1 interim paper. Current source also incorporates
-FULL-2 and R-47-3; GPU training and additional encrypted-model results remain pending. No arXiv submission or
-arXiv server build is claimed. The build notes below include earlier dated artifacts.
+The named 10-page [preview PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.2/ckks-train-paper-preview.pdf)
+and [arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.2/ckks-train-arxiv-source.zip)
+were published on 2026-11-08 as `v1.0.0-preview.2`, source `e93cec4`.
+The sole author is Kentaro Mihara (Independent Researcher). This version freezes
+FULL-1, FULL-2 and R-47-3 evidence; GPU training and additional encrypted-model results
+remain pending. Preview 1 remains available unchanged. The author handles arXiv
+submission using the [prepared metadata](arxiv-metadata.md); no arXiv submission or
+server build is claimed. [Publication verification](../results/validation/research-preview2-publication/README.md).
+The build notes below include earlier dated artifacts and their then-current pending states.
 
 Task56 owns `main.tex`, `sections/*.tex`, `refs.bib`, `figs/*`, and `tools/figs.py` plus its focused test. Task54 owns `tables/*` and `tools/paper_tables.py`; the paper consumes those outputs unchanged. This is a full English draft, not a submission-ready claim of research success. FULL-1 and FULL-2 are completed full-setting runs at B64 and B48, each with initial-weight seed0. FULL-2 passes the registered accuracy gate but misses the common-baseline-bootstrap KS threshold; full-setting ReBoot CPU timing, GPU training ablations, GPU bootstrap measurements and peak GPU memory remain unmeasured. The FULL-1 source/table update was rebuilt on 2026-11-07: anonymous and author-placeholder variants each have 10 pages. The reviewed anonymous output is `tools/latex/_ext/task56/full1-20261107/anonymous/main.pdf`; the placeholder format check is `tools/latex/_ext/task56/full1-20261107/authors/author-wrapper.pdf`. Anonymous pages 1–10 and the placeholder first page were visually inspected; both final logs have no overflow, undefined-reference/citation or missing-character errors. These checks do not close the remaining scientific gates.
 

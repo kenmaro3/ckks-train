@@ -1,0 +1,53 @@
+{
+  "source_commit": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "tag": "v1.0.0-preview.2",
+  "created_utc": "2026-11-08T13:48:29.166471+00:00",
+  "paper_pages": 10,
+  "paper_inputs": 18,
+  "zip_members": 19,
+  "source_files": 6113,
+  "ci_url": "https://github.com/kenmaro3/ckks-train/actions/runs/42484163158",
+  "ci_conclusion": "success",
+  "scope": "research preview; archived-evidence reproduction; no new experiment",
+  "software_license": "MIT",
+  "manuscript_notice": "PAPER_LICENSE.txt",
+  "arxiv_submitted": false,
+  "assets": [
+    {
+      "name": "PAPER_LICENSE.txt",
+      "bytes": 1053,
+      "sha256": "36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e"
+    },
+    {
+      "name": "PREVIEW.md",
+      "bytes": 3662,
+      "sha256": "ac4f0a05da49018e8e679bfe95c9cae54a471cef5be73c0d34814454b0325ff6"
+    },
+    {
+      "name": "SOFTWARE_LICENSE.txt",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+    },
+    {
+      "name": "ckks-train-arxiv-source.zip",
+      "bytes": 40079,
+      "sha256": "2fa463bb471257b89d83414694de18f758bb40459e1b3e5e0f813297252a01c2"
+    },
+    {
+      "name": "ckks-train-e93cec4-source.tar.gz",
+      "bytes": 68962151,
+      "sha256": "6ed70b22d53afdfc105a9d1179dde76cb00d0fbc9118f42cd3c429b68ecf4817"
+    },
+    {
+      "name": "ckks-train-paper-preview.pdf",
+      "bytes": 532092,
+      "sha256": "9d896a45296754a22de0ba4a4daa5f832a7900f689b62363588a02d2eb22699c"
+    },
+    {
+      "name": "source-inventory.json",
+      "bytes": 1785523,
+      "sha256": "50d3fccb0f23ef756a3dfd161128073a4c5185fb5c1191c282162c2e1cb7488c"
+    }
+  ],
+  "manifest_scope": "payload assets; SHA256SUMS also covers this manifest"
+}

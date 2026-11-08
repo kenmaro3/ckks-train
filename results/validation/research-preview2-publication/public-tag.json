@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/v1.0.0-preview.2",
+  "node_id": "REF_kwDOVkh8-bpyZWZzL3RhZ3MvdjEuMC4wLXByZXZpZXcuMg",
+  "url": "https://api.github.com/repos/kenmaro3/ckks-train/git/refs/tags/v1.0.0-preview.2",
+  "object": {
+    "sha": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+    "type": "commit",
+    "url": "https://api.github.com/repos/kenmaro3/ckks-train/git/commits/e93cec434652a8c9f8c48becc6eb3045a3f78a7f"
+  }
+}

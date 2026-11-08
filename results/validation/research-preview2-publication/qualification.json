@@ -1,0 +1,15 @@
+{
+  "source_commit": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "verified_utc": "2026-11-08T13:48:29.270811+00:00",
+  "all_source_blobs_modes_and_inventory_match": true,
+  "source_files": 6113,
+  "paper_input_hashes_match": true,
+  "zip_members_match": true,
+  "pdf_pages": 10,
+  "asset_count": 9,
+  "ci_jobs_passed": 6,
+  "retained_reproduction": "results/validation/research-preview2-e93cec4/reproduction.json",
+  "new_training_runs": false,
+  "pdf_rebuilt": false,
+  "arxiv_submitted": false
+}
