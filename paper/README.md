@@ -149,3 +149,12 @@ The [verification archive](../results/validation/paper-full2-r47-20261108/README
 records the exact inputs, commands, logs and hashes. The
 [submission metadata](arxiv-metadata.md) matches the current title and abstract.
 Final evidence selection and arXiv upload/build/submission remain outstanding.
+
+The default anonymous review variant was also rebuilt from source `6910b14` with
+the same 18 TeX/BibTeX input hashes. It has 10 pages; all were rendered and visually
+inspected. The first-page author block is anonymous, and extracted text contains
+neither the author's email nor the repository-account URL; the bibliography retains
+the earlier-work citation. This is a limited display/metadata check, not a complete
+deanonymization audit or confirmation of WAHC 2027 rules. The
+[anonymous-build record](../results/validation/paper-anonymous-full2-r47-20261108/README.md)
+contains the exact command, logs and hashes. No manuscript content changed.

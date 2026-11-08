@@ -41,9 +41,12 @@ validation, completed measurements and pending experiments.
 - **Comparison with ReBoot** (AAAI-26): the benchmarks compare key switches per training
   sample and wall-clock time with ReBoot's published implementation on the same machine, with
   its configuration, initial weights and sample order. The figures and their caveats are in
-  [docs/m3-report.md](docs/m3-report.md). The first full-length run (FULL-1, B=64,
-  one initial-weight seed) is archived. FULL-2 is still pending; equal-security comparison
-  and full-setting official ReBoot CPU timing remain unresolved.
+  [docs/m3-report.md](docs/m3-report.md). Both full-length runs are archived, each with
+  one initial-weight seed: FULL-1 at B=64 meets all four key-switch count criteria;
+  FULL-2 at B=48 meets the registered accuracy tolerance but misses the count criterion
+  that charges both sides the baseline bootstrap cost. These separate batch results
+  do not establish an all-conditions pass. The common-security condition is unmet,
+  and full-setting official ReBoot CPU timing is unmeasured.
 
 Architecture: [docs/architecture.md](docs/architecture.md). Changes:
 [CHANGELOG.md](CHANGELOG.md).

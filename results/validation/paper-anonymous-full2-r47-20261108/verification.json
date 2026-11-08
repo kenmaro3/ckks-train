@@ -1,0 +1,63 @@
+{
+  "kind": "local_anonymous_build_validation_not_submission",
+  "checked_utc": "2026-11-08T11:49:37.994616+00:00",
+  "pdf": {
+    "path": "/Volumes/Untitled/ckks-train-storage/exports/paper-full2-r47-20261108-anonymous/main.pdf",
+    "bytes": 534419,
+    "sha256": "63d89a196977ce827323b9a6f42c6384fc0c2377956fcd9e963d15d6eb8c767f"
+  },
+  "text_sha256": "5adfb41f0bab1920d56be5de3f5a134bd39895188d0e69a98eaae631e7edd5cd",
+  "pages": 10,
+  "page_renders": [
+    {
+      "page": 1,
+      "sha256": "78737ca05b82497baa6c585f34a4f0e4ab9b206714539be608599ee537d376a6"
+    },
+    {
+      "page": 2,
+      "sha256": "d1b9f586b965b1d5294bc663fe90cf94583d2c5222ff8d70f11e01f782476cc3"
+    },
+    {
+      "page": 3,
+      "sha256": "970db290b1cc36069b976d457f6b4e6108daf2948357489083e4ae748a628ba7"
+    },
+    {
+      "page": 4,
+      "sha256": "d17ca4134cc189977c95f9b7bef13529a2fbb6b74ae797d5f99a236f2b513a79"
+    },
+    {
+      "page": 5,
+      "sha256": "af6d2352c9cb94b4c52e41bfbd161bf5aaae8ff5a2431e20cc361ce80ccd9570"
+    },
+    {
+      "page": 6,
+      "sha256": "63eb4c16a960edd43fe9cc335e12d5da4c63b6734dd292d5de1a2ed0fcd5ee84"
+    },
+    {
+      "page": 7,
+      "sha256": "f1a402ade105bd1bf269346b40b041d9d4a020fb6e0a8ed1270e6557ffdd362a"
+    },
+    {
+      "page": 8,
+      "sha256": "0cebbf845a157ef17ed221da3686201c004c7d537e86d92127f2803e4a966387"
+    },
+    {
+      "page": 9,
+      "sha256": "71568bac5280d0583feb2bee0ae18571c84c39a1c3595bf85b48ee5f9090e255"
+    },
+    {
+      "page": 10,
+      "sha256": "804173d001d94b08ecc52740a355435097aece9aafeb8896c96d623c27516e9b"
+    }
+  ],
+  "root_visual_review": "All ten pages inspected individually. No clipping, overlap or orphan last page. Review line numbers, equations, dense full-width tables and references displayed. Anonymous Author(s) first page; no author email or repository-account URL in extracted document. Bibliographic self-citation remains.",
+  "anonymous_identity_check_scope": "first-page author block, author email and repository account URL only; not a complete deanonymization audit",
+  "scientific_source_changes": false,
+  "conference_submission": false,
+  "wahc2027_rules_verified": false,
+  "warnings": [
+    "Shell escape disabled",
+    "Text page 5 contains only floats",
+    "ACM reference format suppressed for venue-unassigned draft"
+  ]
+}

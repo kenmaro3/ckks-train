@@ -1,0 +1,40 @@
+{
+  "kind": "local_anonymous_pdf_validation_not_submission",
+  "started_utc": "2026-11-08T11:48:01.859191+00:00",
+  "command": [
+    "/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/bin/universal-darwin/latexmk",
+    "-pdf",
+    "-interaction=nonstopmode",
+    "-halt-on-error",
+    "-no-shell-escape",
+    "-outdir=/Volumes/Untitled/ckks-train-storage/exports/paper-full2-r47-20261108-anonymous",
+    "main.tex"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/paper",
+  "source_head": "6910b149172b67b07e69b92132cb05152df8ba6e",
+  "paper_inputs_sha256": {
+    "paper/figs/rq1_ratios.tex": "92eb4b1b82fa2cfec2b016c862ebe510bdfeaf382f40fa2f777148478df341de",
+    "paper/main.tex": "924d994b1f863a8fb2316e22b0eb263a111695800a66088667e043c72dd3e367",
+    "paper/refs.bib": "16fd704def307c0cd833735c55d650389e8e6bfc0b0e94fd9b87df215fda67f7",
+    "paper/sections/appendix.tex": "2860523513668d311e41774a58227d381c21893fae7cbfaa2975af02de4d1537",
+    "paper/sections/discussion.tex": "e2a419ae4bde6776e70ac70c136fa021e5fa2798121e8aa5191c133b67babeb3",
+    "paper/sections/evaluation.tex": "20d9030013780b736a3db31cbbe344dfce8b525e2289628ca5e1e6aef192f2d3",
+    "paper/sections/gpu.tex": "82f7be2adcc0c45362e5d463597721bdfeaf92e4062cef40da0e543b651f9006",
+    "paper/sections/introduction.tex": "f233d8b3dd745f98c79e989d2833c499e30dc4a5cb0c148b52128fd113d2acdb",
+    "paper/sections/noninteractive.tex": "ff680d5fbb65b6fb7bd3f4715593cd39b6c016fb8875651bee827848f5ff7d8f",
+    "paper/sections/packing.tex": "51747a73c24cb897bd3ca631d9be13c4f4f62201e31cd0e5eb8f986f2b1be136",
+    "paper/sections/preliminaries.tex": "3ac6b82f79f43f9bb13f38bf2f61c0d1c58461a193bd3c6b1a5443daade79c4f",
+    "paper/tables/accuracy_vs_reboot.tex": "08eafc7dec34a0bb791a77789c02369fe61c5a54a6aad03c1651c50ea3a33270",
+    "paper/tables/gpu_vs_cpu_ops.tex": "3baea336bd2cb9e2904c89e8aed89d9b2092eb1493df9a58e2f9237533e3ccb8",
+    "paper/tables/plain_datasets.tex": "1667a75790194a9dc0fef7b36af3fc6cc5aeda22ac87b395ef19d82d9db7a6fe",
+    "paper/tables/rq1_ks.tex": "a8d57e0199cf1c6927f51ed946baed0ed98a5834031bed690ac5d1b99b9a8e9d",
+    "paper/tables/rq3_ablation.tex": "de38d3727aecf170b18a3ce0ed4db28f5984bf6938934081236e53d7f6db7cba",
+    "paper/tables/security.tex": "3b30d20da49c757d274b6b30501bb524ab448150301d0f153b3e2d60d31c019e",
+    "paper/tables/wallclock_same_cpu.tex": "292f2cdb74aa92101a8f68974c7fc11010e3e6581f78080fe455461aff8fbb32"
+  },
+  "output_directory": "/Volumes/Untitled/ckks-train-storage/exports/paper-full2-r47-20261108-anonymous",
+  "conference_submission": false,
+  "exit_code": 0,
+  "finished_utc": "2026-11-08T11:48:06.754930+00:00",
+  "inputs_unchanged": true
+}

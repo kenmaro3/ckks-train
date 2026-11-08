@@ -7,6 +7,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Finalized the M3 report using both full-setting encrypted training runs. The
+  baseline-batch accuracy criterion passes, while one normalized key-switch count
+  criterion and the common-security condition remain unmet; full-setting ReBoot
+  CPU timing is unmeasured.
+- Adopted the repaired R-47-3 GPU independent-product measurements, separating
+  within-run latency comparisons, memory-skipped tests and pending GPU training.
+- Updated the paper and arXiv metadata with those results. The new local 10-page
+  PDF and 19-member source ZIP pass content review and isolated-source rebuild
+  checks; the published preview assets remain unchanged and arXiv is not submitted.
+
 ## [1.0.0] - unreleased
 
 Stable release preparation; the research preview below is already public.
