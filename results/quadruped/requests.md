@@ -1253,4 +1253,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261108-1832.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared, not invoked; earliest 2026-11-08T18:32:00+09:00. Same observer/controller logic; no new training.
+- **status:** executed once, exit0. Actual observation 2026-11-08T18:33:06.166896+09:00: 965/1000 updates, final JSON absent, same own chain/queue identities live, owner.json only. No terminal collector invoked; [original records](raw/R-41-FULL2-OBS-20261108-1832/README.md).
+
+## R-41-FULL2-OBS-20261108-1935: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than 19:35:00 JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs 1700979/start 465769819 and 1739838/start 467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261108-1935-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged 1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA 17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, snapshot last 8 KiB seek then read to EOF (concurrent appends may add bytes), connect 90s; retained async controller and terminal streams. Delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261108-1935.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared, not invoked; earliest 2026-11-08T19:35:00+09:00. Same observer/controller logic; no new training.

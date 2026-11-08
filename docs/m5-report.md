@@ -6,30 +6,30 @@
 
 この報告は Task 57 の現状整理である。後続の測定を「完了」と見なす代わりにはならない。数値の一次資料と条件は [M3](m3-report.md)、[M4](m4-report.md)、[再現手順](../results/README.md)、[セキュリティ推定](security.md)を参照する。
 
-## 0. 公開までの残り（2026-11-08 17:28 JSTの実験観測に基づく）
+## 0. 公開までの残り（2026-11-08 18:33 JSTの実験観測に基づく）
 
 プレビューは期限前に公開済み。最終論文の証拠選択は11月9日18:00 JSTまで、GitHub最終版とarXiv投稿は11月10日09:00 JSTまでを目標に進める。[本人指定の日程と範囲](publication-schedule.md)に従い、未達・未計測は残したまま報告する。arXivの受付・公開時刻は外部条件であり、アカウント確認は本人の指示で待機している。
 
 | 残りの作業 | 現在の根拠 | 完了に必要なこと |
 |---|---|---|
-| M3 / Task42の確定 | FULL-1は回収済み。FULL-2は940/1000更新、最終JSONなし | FULL-2の元JSONとrunner終了を照合し、4比率とseed0=0.9041に対する精度差を確定。安全性同条件の未達・全長ReBoot CPU時間の未計測は別に残す |
+| M3 / Task42の確定 | FULL-1は回収済み。FULL-2は965/1000更新、最終JSONなし | FULL-2の元JSONとrunner終了を照合し、4比率とseed0=0.9041に対する精度差を確定。安全性同条件の未達・全長ReBoot CPU時間の未計測は別に残す |
 | M4 / Task50の確定 | R47/R48/R52の後続キューは待機中 | R47再計測とR48の実結果を反映。GPUメモリ不足・OOM・成功を区別し、未計測行を埋めない。Task49は実機未計測のままコードのみ |
 | Task54の再現経路 | 表の再生成は可能。Step2採用済み、Step3作業中 | 入力・実行条件・保存・学習の接続、独立レビュー、対応する実環境検証。全21 profiles / 10 seedsとQuick通し試験は未完であり、先行公開後も残る |
 | 最終配布物・論文・arXiv | 固定ソースのpackageビルドと中間原稿の再レビューは合格 | 採用する最終sourceと結果を固定し、表・図・PDF・TeX ZIPを再生成・検証して公開。arXiv側のbuild/PDF確認と実投稿は未実施 |
 
-[最新の実験観測](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1728/README.md)、[Step2のLinux CI](../results/validation/task54-step2-linux-ci-71ac728/README.md)、[固定2dc049aのpackage検証](../results/validation/task55-current-packages-20261108/README.md)、[中間論文の修正・検証](../results/validation/paper-cutoff-readiness-20261108/README.md)を根拠とする。進行中Step3の未commitコードに、これらの合格を適用しない。
+[最新の実験観測](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1832/README.md)、[Step2のLinux CI](../results/validation/task54-step2-linux-ci-71ac728/README.md)、[固定2dc049aのpackage検証](../results/validation/task55-current-packages-20261108/README.md)、[中間論文の修正・検証](../results/validation/paper-cutoff-readiness-20261108/README.md)を根拠とする。進行中Step3の未commitコードに、これらの合格を適用しない。
 
 ## 1. 実装・測定・判定
 
 | Task | 実装とレビュー | 測定・検証 | 現時点の判定 / 残り |
 |---|---|---|---|
 | 42: M3 / RQ1 | 草稿、4 比率の検証付き集計器、ReBoot 安全性追補をレビュー済み | 784 入力 subset は測定済み。196入力FULL-1は回収・4比率合格。FULL-2は未回収 | **未確定**。FULL-2 と公開コード seed 0 の 0.9041 を ±0.5 pt で比較。FULL-1 の B = 64 精度は別に示す |
-| 47: CUDA 演算 | プールとバッチ処理の修正をレビュー済み | R-47-2 回収済み、R-47-3 は17:28観測でもキュー待機・未計測 | 修正前のバッチ時間を修正後の性能と呼ばない |
-| 48: GPU 訓練 / RQ3 | provenance 修正を含めレビュー済み | 小さい CPU smoke の計数のみ確認。R-48-1〜4 は17:28観測でもキュー待機・未計測 | GPU 訓練の速さ・精度・実ピークメモリは未判定 |
+| 47: CUDA 演算 | プールとバッチ処理の修正をレビュー済み | R-47-2 回収済み、R-47-3 は18:33観測でもキュー待機・未計測 | 修正前のバッチ時間を修正後の性能と呼ばない |
+| 48: GPU 訓練 / RQ3 | provenance 修正を含めレビュー済み | 小さい CPU smoke の計数のみ確認。R-48-1〜4 は18:33観測でもキュー待機・未計測 | GPU 訓練の速さ・精度・実ピークメモリは未判定 |
 | 49: GPU bootstrap（stretch） | `f64a617`、独立レビュー済み | CPU 全スロット精度・計数と CUDA コンパイルを確認。GPU 実機は未実行 | **コードのみ**。220 ms 目標・GPU 精度・ビット一致・メモリは未計測 |
 | 50: M4 報告 | `docs/m4-report.md` の報告準備をレビュー済み | 測定済みと欠測を分離 | **報告あり、M4 合格未判定** |
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
-| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は17:28観測でもキュー待機・未計測。全長の暗号化学習は未実行 |
+| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は18:33観測でもキュー待機・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
 | 54: 実験・表生成 | 既存の表生成・登録行列・CPU準備に加え、Step2 supervisorを独立レビュー後に採用。Step3は実装中 | Step2固定71ac728のLinux CIは全6ジョブ成功、workspace1,101合格・0失敗・47 ignored。`--tables-only`で既存表を再生成可能 | **全実験行列は未完**。Step3/4の入力・実gate・開始・学習・FP32比較・結果保存への接続とnative検証が残る。R-54-1は未投入、post-full-v1対象外 |
 | 55: v1.0 準備 | README・Cargo metadata・notices整備、crate rename適用。固定2dc049aの配布検証を独立レビュー済み | core/ckks/nn/cudaとcuda featureの計5回のoffline・locked package検証ビルドがMacで合格。実archive内容・ライセンス全文・内部依存を照合 | **研究プレビュー公開済み、stable v1.0は未完了**。公開版6fba46cのLinux CI・8添付物は確認済み。packageビルドはGPU計測・crates.io公開・作業中Step3の検証ではない |
@@ -978,3 +978,8 @@ Task54のeMLP-2/3 subset入力を、元バイナリJSONとrunner・queue終端�
 ## 2026-11-08 17:28 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T17:28:49.965574+09:00。FULL-2はupdate939（0始まり）＝**940/1000更新**、ログ内elapsed137223s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1728/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T18:32:00+09:00以降のR-41-FULL2-OBS-20261108-1832として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。
+
+
+## 2026-11-08 18:33 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T18:33:06.166896+09:00。FULL-2はupdate964（0始まり）＝**965/1000更新**、ログ内elapsed141038s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1832/README.md)。1832は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T19:35:00+09:00以降のR-41-FULL2-OBS-20261108-1935として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。
