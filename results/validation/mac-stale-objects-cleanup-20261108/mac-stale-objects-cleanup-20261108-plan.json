@@ -1,0 +1,12 @@
+{
+  "kind": "operational_cleanup_plan_not_scientific_result",
+  "prepared_utc": "2026-11-08T04:54:53.905501+00:00",
+  "directory": "/Users/marconi/Documents/research/hekit/target/debug/deps",
+  "selection": "own regular target/debug/deps/*.o older than120 seconds; no active Cargo/rustc",
+  "count": 9070,
+  "bytes": 1799611832,
+  "allocated_bytes": 1818169344,
+  "manifest_path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/mac-stale-objects-cleanup-20261108-paths.json.gz",
+  "manifest_sha256": "8e6207a659ea0d2f9ca6284dcea66cbbcf0628c09d4ed1f2c000889a03a2a4a8",
+  "raw_manifest_sha256": "0df86d5a13accb0a2617a6e1fc90b608aafd9cffd4c884e568509806853da562"
+}

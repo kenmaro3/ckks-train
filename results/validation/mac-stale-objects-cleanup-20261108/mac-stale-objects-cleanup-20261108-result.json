@@ -1,0 +1,15 @@
+{
+  "kind": "operational_cache_cleanup_not_scientific_result",
+  "started_utc": "2026-11-08T05:21:09.837735+00:00",
+  "directory": "/Users/marconi/Documents/research/hekit/target/debug/deps",
+  "manifest_sha256": "8e6207a659ea0d2f9ca6284dcea66cbbcf0628c09d4ed1f2c000889a03a2a4a8",
+  "own_cargo_rustc_before": [],
+  "writer_state": "errored/terminal confirmed; no new writer started",
+  "deleted_count": 9070,
+  "deleted_logical_bytes": 1799611832,
+  "deleted_allocated_bytes": 1818169344,
+  "free_bytes_before": 565059584,
+  "complete": true,
+  "free_bytes_after": 2393018368,
+  "finished_utc": "2026-11-08T05:21:13.857872+00:00"
+}

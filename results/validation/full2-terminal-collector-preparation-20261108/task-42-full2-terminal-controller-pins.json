@@ -1,0 +1,17 @@
+[
+  {
+    "path": "task-42-full2-terminal-controller.py",
+    "bytes": 6461,
+    "sha256": "decdd1ed38f15b9d84cec1df03f54584309d9e359abbe39f98373246e238d1e6"
+  },
+  {
+    "path": "task-42-full2-terminal-controller-pending-check.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "task-42-full2-terminal-controller-pending-check.stderr",
+    "bytes": 77,
+    "sha256": "a919e698e1ee2eee8405ecccfb44a24e0ec015c6f7a6fe0910c6d788f12c5ae2"
+  }
+]

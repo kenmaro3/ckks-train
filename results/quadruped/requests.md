@@ -1150,4 +1150,30 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261108-1408.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared, not invoked; earliest 2026-11-08T14:08:00+09:00. Same observer/controller logic; no new training.
+- **status:** done; actual 2026-11-08T14:22:14.580956+09:00, SSH exit0 / original session69253 terminal chunk423089. Own chain/queue live, update864 =>865/1000, final absent, queue owner.json only. One invocation / no retry. Exact archive `raw/R-41-FULL2-OBS-20261108-1408/`.
+
+
+## R-41-FULL2-COLLECT-1: one-shot read-only terminal collection
+
+- **purpose:** Collect original FULL-2 result/log/runner metadata only after root reviews an actual registered observation showing final result present and original chain identity terminal/gone. Independently check the actual runner metadata before interpreting success.
+- **commit to sync:** none; reviewed 8408-byte collector SHA256 `50f2cf22ca3f540a86117c06664c6606f23fd9e2532f72cfa2eaabea168058ef` is held and sent on stdin. No remote files are written.
+- **working dir:** fixed own `/home/kmihara/hekit-runs/out/R-41-FULL-2`, actual log `/home/kmihara/hekit-runs/logs/R-41-FULL-2.log`, and result `/home/kmihara/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json`.
+- **command:** ledger `task-42-full2-terminal-controller.py OBSERVATION_PREFIX`; reviewed controller6461B SHA256 `decdd1ed38f15b9d84cec1df03f54584309d9e359abbe39f98373246e238d1e6` contains the exact key-only SSH argv for `quadruped-gpu`, one connection attempt, `nice -n 10 /usr/bin/python3.14 -I -B -`. Root supplies the actual qualifying registered observer prefix; no synthetic terminal record.
+- **expected duration:** seconds after connection; local communicate timeout110s. Timeout can terminate only this newly created local SSH child, never a research process/master/queue. It does not prove remote completion; no automatic retry.
+- **GPU memory need:**0. **RAM need:** under256MiB expected, unmeasured; collector per-file8MiB/aggregate32MiB original-byte bounds, base64 transport overhead separate. One Python process, no heavy computation.
+- **output path:** fresh-only ignored ledger `task-42-full2-terminal-fetch-v1.{launch.json,stdout,stderr,meta.json,observation.stdout,observation.meta.json}`. Review transport and collector status before any fresh raw archive publication.
+- **pass criterion:** exact job/workdir/parsed command/end/exit/watchdog metadata, original bounded bytes and hashes, explicit missing/error records, separate initial/final metadata observations. Collector refusal2, failed/incomplete terminal3, successful transport/capture0 remain distinct; scientific acceptance is always false until separate provenance/config/RQ1 checks.
+- **status:** prepared and independently reviewed, not invoked. Local check-only against actual1306 pending observation refused before outputs/SSH. No result retrieval, experiment restart, process/queue mutation, or scientific result edit.
+
+
+## R-41-FULL2-OBS-20261108-1523: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than 15:23:00 JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs 1700979/start 465769819 and 1739838/start 467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261108-1523-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged 1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA 17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, snapshot last 8 KiB seek then read to EOF (concurrent appends may add bytes), connect 90s; retained async controller and terminal streams. Delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261108-1523.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared, not invoked; earliest 2026-11-08T15:23:00+09:00. Same observer/controller logic; no new training.

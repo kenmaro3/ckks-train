@@ -35,3 +35,22 @@ The whole staged whitespace check reported preserved whitespace in the raw RED
 stderr and unified fix diff. Those evidence bytes were kept unchanged. The
 whitespace check passed for all other archived files; this is an explicit
 evidence-format exception, not an unreported all-files pass.
+
+
+## One-shot controller preparation
+
+The controller was subsequently independently reviewed: SPEC PASS / QUALITY PASS,
+review SHA256 `d8f78ed4547ddf87f4b9e1d17040efae206073809402cce8f678188b59decbc3`.
+Pinned controller6461B SHA256
+`decdd1ed38f15b9d84cec1df03f54584309d9e359abbe39f98373246e238d1e6`.
+Root read the complete review and registered R-41-FULL2-COLLECT-1 as prepared only.
+The archived controller is an exact copy of its original ledger execution source;
+its explicit observer prefix must belong to that execution ledger.
+
+Actual `--check-only` on the retained1306 pending observation exited2 before
+output creation or SSH. Positive SSH/timeout branches remain untested. The
+controller requires a qualifying root-reviewed actual observation, pins/holds the
+collector bytes, reserves six fresh outputs, uses key-only nice10 SSH and a110s
+local wait, and preserves originals/status without automatic retry. Timeout may
+terminate only its new local SSH child; it cannot prove remote completion.
+No remote launch or terminal/scientific result is claimed by this archive.
