@@ -1,0 +1,9 @@
+# Task54 Step2: actual Linux CI for 71ac728
+
+[Run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378), attempt1, verifies exact commit `71ac7280be8f29f42dba3908d8b4f8b9514ddd93`. GitHub reports completed/success for all six jobs (test, clippy, cuda-check, fmt, deny, research-tools). Captured at 2026-11-08T02:23:24.641085+00:00 after the original watch exited0; no rerun was launched.
+
+The actual `cargo test --workspace` log contains76 target summaries: **1,101 passed,0 failed,47 ignored**, including doctests. The Linux-only descriptor check `study_supervisor::handshake::operational_fix2_private_aliases_are_cloexec` actually ran and passed. The previously corrected CLI regression `study_train_invalid_and_ordinary_builds_refuse_without_artifacts` also actually passed in this run. These Linux totals are separate from earlier Mac checks and their preserved failure/fix history.
+
+This CI validates the adopted Step2 source, not changing Step3 work or later commits. The descriptor test checks actual atomic CLOEXEC aliases/shared open-file description/socket bytes without spawning a child; it does **not** establish the native16 helper inheritance/EOF, lock, process/subreaper/pidfd, clock-fault or filesystem/provisioning suite. Those native checks remain unexecuted. CUDA compilation is not GPU hardware execution. This archive is CI verification metadata and original logs, not a binary-produced scientific result or a new secure-profile measurement.
+
+`run.json`, `jobs.json`, and `logs.zip` are unedited GitHub API outputs; `capture.json` is a derived validation summary and per-ZIP-member inventory. `capture.py` is the capture/check source, preserved with its original ledger paths. `watch.result.json` records terminal status. Empty stderr files are retained. SHA256SUMS covers every other archive file.

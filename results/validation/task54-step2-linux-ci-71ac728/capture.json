@@ -1,0 +1,313 @@
+{
+  "kind": "ci_validation_not_scientific_result",
+  "observed_utc": "2026-11-08T02:23:24.641085+00:00",
+  "source_commit": "71ac7280be8f29f42dba3908d8b4f8b9514ddd93",
+  "run_id": 42436964378,
+  "run_attempt": 1,
+  "run_url": "https://github.com/kenmaro3/ckks-train/actions/runs/42436964378",
+  "conclusion": "success",
+  "jobs": {
+    "deny": "success",
+    "research-tools": "success",
+    "test": "success",
+    "fmt": "success",
+    "clippy": "success",
+    "cuda-check": "success"
+  },
+  "workspace_summary_count": 76,
+  "workspace_passed": 1101,
+  "workspace_failed": 0,
+  "workspace_ignored": 47,
+  "linux_descriptor_test": [
+    "2026-11-08T02:09:27.7714936Z test study_supervisor::handshake::operational_fix2_private_aliases_are_cloexec ... ok"
+  ],
+  "native16_status": "not established by this CI",
+  "logs_sha256": "bd494f872f9dca7312479c995b83585862f24356c6096684cafa2fb94987eabd",
+  "members": [
+    {
+      "name": "0_clippy.txt",
+      "bytes": 39976,
+      "sha256": "c46f6cfec794828e2704ba38917546e3e29e55e8aa7429d386a2c318e5e7081c"
+    },
+    {
+      "name": "clippy/system.txt",
+      "bytes": 569,
+      "sha256": "b42ad6daa60e4bc433d33fbcbd90e4e06992d4b6ed2d21ac91213017056147e1"
+    },
+    {
+      "name": "clippy/1_Set up job.txt",
+      "bytes": 2072,
+      "sha256": "af134e3da6e23cf8802ca537ebf35fcf329e0c75e70397d7e544fd5739967461"
+    },
+    {
+      "name": "clippy/2_Run actions_checkout@v4.txt",
+      "bytes": 5865,
+      "sha256": "7f16df46d99938b2695f0c2539d4bb9dffdbd1e4069db5c9a31d4aa2e6ce2cd1"
+    },
+    {
+      "name": "clippy/3_Run dtolnay_rust-toolchain@1.85.txt",
+      "bytes": 15945,
+      "sha256": "1f3e9bcd14fa8211a9084d771c8e8f0be16276eb28d4871a3757f579a6858941"
+    },
+    {
+      "name": "clippy/4_Run cargo clippy --workspace --all-targets -- -D warnings.txt",
+      "bytes": 11725,
+      "sha256": "5301bcf83a03f928e339d70e24227cfcb33433a85c8f3124011aa174614a6c4d"
+    },
+    {
+      "name": "clippy/5_Run cargo clippy --workspace --all-targets --features cuda -- -D warnings.txt",
+      "bytes": 2324,
+      "sha256": "71c07e67702f4d11cf593123faae4d16faa679dcf7fd4c92d345b42ad7297e2a"
+    },
+    {
+      "name": "clippy/10_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "af9a0ae5513b599d95d8698de5f08654cb34ce5224d2522fbb541ee19f3c7a2e"
+    },
+    {
+      "name": "clippy/11_Complete job.txt",
+      "bytes": 348,
+      "sha256": "59ad76536883b3a99a3e8e5961d02ad6ee89cde53f7de328c6f5fd7a2ea51b15"
+    },
+    {
+      "name": "1_fmt.txt",
+      "bytes": 26971,
+      "sha256": "f8d8aa184f2902a7e858da19b9ee7b075748894c074ebf5a83326bdfcbd5692a"
+    },
+    {
+      "name": "fmt/system.txt",
+      "bytes": 566,
+      "sha256": "4966d4d0b807ec174d297c795454e9caf342f7edc2065cf367384ca03ccfedcd"
+    },
+    {
+      "name": "fmt/1_Set up job.txt",
+      "bytes": 2067,
+      "sha256": "1b13f328c5b8d075090a1a4a50c56a42c37dbba33f8901860fab9b88a44ee963"
+    },
+    {
+      "name": "fmt/2_Run actions_checkout@v4.txt",
+      "bytes": 5865,
+      "sha256": "4bf7594640345cf00087813e099414dc59b73ff0c0f6a07f1a8e37571320b907"
+    },
+    {
+      "name": "fmt/3_Run dtolnay_rust-toolchain@1.85.txt",
+      "bytes": 15947,
+      "sha256": "dbcca89aa010bcbe792faa64a2b57fa236338a028bee4402c4ae10b94b65af41"
+    },
+    {
+      "name": "fmt/4_Run cargo fmt --all --check.txt",
+      "bytes": 1044,
+      "sha256": "9d8dfaad830adcf687ab079515661591b1d5b0924d100262235d609bf5c21aba"
+    },
+    {
+      "name": "fmt/8_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "189f7a46077ec60d3958907a5ed3b666d14946c433f5973fba86449e638d3bf5"
+    },
+    {
+      "name": "fmt/9_Complete job.txt",
+      "bytes": 348,
+      "sha256": "746f1f425fdc07bffac8a527b2dbe9b4e635e3b531ee9f2e708837b7eabefe83"
+    },
+    {
+      "name": "2_research-tools.txt",
+      "bytes": 15666,
+      "sha256": "b886372679544947e7246586d57f7b64079c12d432df69f2494b98afc08b884e"
+    },
+    {
+      "name": "research-tools/system.txt",
+      "bytes": 577,
+      "sha256": "dcb1c2b5551889822b8dbe80859cc3f67f9543b5022a9a81989f2e7bb5b11d0d"
+    },
+    {
+      "name": "research-tools/1_Set up job.txt",
+      "bytes": 2081,
+      "sha256": "8a33fcebac71ffe255be9872bad7a8776d69d0aa2017f961a05d20ff47e0e5f5"
+    },
+    {
+      "name": "research-tools/2_Run actions_checkout@v4.txt",
+      "bytes": 6187,
+      "sha256": "edb10e77b181d555ce9dc4d1e74b03da5ba251d7792eac710e1cd8d1bf363c82"
+    },
+    {
+      "name": "research-tools/3_Run actions_setup-python@v5.txt",
+      "bytes": 965,
+      "sha256": "2ef837d2e5e962605cad5762b9c32dcf40ea31368fa266515608568a4d0e60d4"
+    },
+    {
+      "name": "research-tools/4_Run python3 -m unittest discover -s tools -p 'test_.py'.txt",
+      "bytes": 1289,
+      "sha256": "027bf007b747ac10f73491a7a888d187910891ab4271d942f6fdbb2e417f1c09"
+    },
+    {
+      "name": "research-tools/5_Run bash -n scripts_run_all.sh && bash -n scripts_rename.sh.txt",
+      "bytes": 933,
+      "sha256": "f54f7b13016296532f82c7a11891f4089ef1b1b3ac22f559555825214b3bfccd"
+    },
+    {
+      "name": "research-tools/6_Run python3 tools_tables.py --check.txt",
+      "bytes": 885,
+      "sha256": "08a7929554b7b8f992f112e20c41a0d2ed4c2184017b83e0a4faa187c7993b01"
+    },
+    {
+      "name": "research-tools/7_Run python3 tools_figs.py --check.txt",
+      "bytes": 960,
+      "sha256": "d1e42dfebfd5663cf542fe70a3bd93ecd0939a6636932f6fed0a771446354424"
+    },
+    {
+      "name": "research-tools/13_Post Run actions_setup-python@v5.txt",
+      "bytes": 305,
+      "sha256": "c330bca5dfbd9df5320da7350fce31917933a43407169b2c63914bc0fd1e14b8"
+    },
+    {
+      "name": "research-tools/14_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "ecbb50612935944a8e2e77a2fd737dddf4548177331a8984b1fae5579c361d89"
+    },
+    {
+      "name": "research-tools/15_Complete job.txt",
+      "bytes": 373,
+      "sha256": "4f1cbfc26fe038d8a2ebbc28a27184661e8092f5aacbf0ba627a0b2162c8fb01"
+    },
+    {
+      "name": "3_cuda-check.txt",
+      "bytes": 38647,
+      "sha256": "1490ed90826f53ca4b2b86b634661ff111d6d512b5d3dc1d30504a8fde14e661"
+    },
+    {
+      "name": "cuda-check/system.txt",
+      "bytes": 573,
+      "sha256": "38f78cef5f4b50266a5fadc00349b5bb17853104759473278940bf84346d0eee"
+    },
+    {
+      "name": "cuda-check/1_Set up job.txt",
+      "bytes": 2076,
+      "sha256": "88159e8a671df667d1200f7bedb4fbe89c547551f4bdf5eacffbafcb132377fe"
+    },
+    {
+      "name": "cuda-check/2_Run actions_checkout@v4.txt",
+      "bytes": 5865,
+      "sha256": "fb5a554aaf7a3887362305b3f6d69776d9c3b257c13e0f2034d153d937b11182"
+    },
+    {
+      "name": "cuda-check/3_Run dtolnay_rust-toolchain@1.85.txt",
+      "bytes": 15889,
+      "sha256": "b7c7f842bdc49f053bc61cbee21f9322a83aa0680cd13348670f4906bb012cb6"
+    },
+    {
+      "name": "cuda-check/4_Run cargo check --workspace --all-targets --features cuda.txt",
+      "bytes": 12769,
+      "sha256": "952b70bc8ffedf41079dcbbc7573b2f1c516f9b50187d9584d40ffdbfde6316a"
+    },
+    {
+      "name": "cuda-check/8_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "20c583859c8b03125a0a51b822bb88a44f308943b58d0eb8918d8ec70c405b6a"
+    },
+    {
+      "name": "cuda-check/9_Complete job.txt",
+      "bytes": 348,
+      "sha256": "d9153379217d794decc421ba54e93be92ce53f6a115c40f686357797b6ba7708"
+    },
+    {
+      "name": "4_test.txt",
+      "bytes": 265668,
+      "sha256": "5ca3c3baf6d509d4289e3f2fd8b4dad03ad7c553442de8c4a7ed88165ca50d73"
+    },
+    {
+      "name": "test/system.txt",
+      "bytes": 567,
+      "sha256": "0e69acd6831a4591beeca4eefabf9d63bd5b0475147b96c8ce6b931c4917e18f"
+    },
+    {
+      "name": "test/1_Set up job.txt",
+      "bytes": 2202,
+      "sha256": "76348324371049041bc12934deefea26b217334944c0369a9d663a403b2bcaf5"
+    },
+    {
+      "name": "test/2_Run actions_checkout@v4.txt",
+      "bytes": 5865,
+      "sha256": "afd10ba87d465c771f88c4c6841083e7295093d876793dcf6917b7feb4190049"
+    },
+    {
+      "name": "test/3_Run dtolnay_rust-toolchain@1.85.txt",
+      "bytes": 15889,
+      "sha256": "e080e2d28ae4d75c684a294d9061f86a3f0f4bfdbdf001170adb633f033906bb"
+    },
+    {
+      "name": "test/4_Bootstrap metadata Linux evidence diagnostics.txt",
+      "bytes": 12516,
+      "sha256": "c1dc4e717b1fb7904bcd3b63056ca4fbebf8ad6a4ee4ca8953741a2d6c152773"
+    },
+    {
+      "name": "test/5_Bootstrap metadata Linux focused test profile.txt",
+      "bytes": 17026,
+      "sha256": "206e53f8bf5dc4a798b20fc6f6e1eca16b4eb35a1adb4859193660a2db727aae"
+    },
+    {
+      "name": "test/6_Bootstrap metadata Linux focused release profile.txt",
+      "bytes": 13256,
+      "sha256": "8ef1dba1d8f4af40d380d90bd106cb79489d9562f596f2e958e47ac89f82a79e"
+    },
+    {
+      "name": "test/7_Preserve bootstrap metadata Linux focused evidence.txt",
+      "bytes": 2298,
+      "sha256": "f14f47c0a1b950b0921e7ce4f2535d068101f3ca51a0fe729268ddc972d42baf"
+    },
+    {
+      "name": "test/8_Run cargo test --workspace.txt",
+      "bytes": 194552,
+      "sha256": "73bf153a76b9dae8fa51bc971f8f7a3aabd3c3319913ffc73983e6cc2107ef3c"
+    },
+    {
+      "name": "test/16_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "b34b697709c079932cc2d7e9bad39d8d090a4e2e2c50713a5974a89b12100f3f"
+    },
+    {
+      "name": "test/17_Complete job.txt",
+      "bytes": 376,
+      "sha256": "ae58640d4a61d192212b959cb2ca3ec0a2f33f791e97e66ad4a19522863cfc40"
+    },
+    {
+      "name": "5_deny.txt",
+      "bytes": 29269,
+      "sha256": "b2433c72f0e5bce97958ee22cac81ded3420b56bb020e8eefda5852d1f66c8b5"
+    },
+    {
+      "name": "deny/system.txt",
+      "bytes": 567,
+      "sha256": "a7b6483479b044618469ea9dc2629a2e7d62001877a5960027b994ccd2a710a2"
+    },
+    {
+      "name": "deny/1_Set up job.txt",
+      "bytes": 2074,
+      "sha256": "10254184873e66fea3b986914c924a70d2d7a0cca75c183e1832038c97941e07"
+    },
+    {
+      "name": "deny/2_Build EmbarkStudios_cargo-deny-action@v2.txt",
+      "bytes": 9155,
+      "sha256": "e5d9505d5bf57307fb209c9057a8f5cf5dd0e9ba91c450f1eb8cbbaa45591676"
+    },
+    {
+      "name": "deny/3_Run actions_checkout@v4.txt",
+      "bytes": 5865,
+      "sha256": "8159bc01a2f41e7db4299b0a3ace1c73b03f9b25034c6fbfaab893e9c7351c2c"
+    },
+    {
+      "name": "deny/4_Run EmbarkStudios_cargo-deny-action@v2.txt",
+      "bytes": 10127,
+      "sha256": "98768ccc7528e8a6fa0db74325d501912c819ad80e44dfa9b1e4330d009d90b9"
+    },
+    {
+      "name": "deny/8_Post Run actions_checkout@v4.txt",
+      "bytes": 1715,
+      "sha256": "94ebe223151c3bcc619d993c734bda624729c958ce106c43a79610b4f61b1843"
+    },
+    {
+      "name": "deny/9_Complete job.txt",
+      "bytes": 348,
+      "sha256": "90ec2ab8e062fdb56715b10412eb71edde476c615430ecdc5f80460e1257bfa8"
+    }
+  ]
+}

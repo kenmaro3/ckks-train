@@ -1,0 +1,69 @@
+diff --git a/docs/handover.md b/docs/handover.md
+index 99962ba..d194bb8 100644
+--- a/docs/handover.md
++++ b/docs/handover.md
+@@ -161,7 +161,7 @@ hekit/
+ | 52 | eMLP-2/3 | ReBootから値として取り直した構成・初期値・平文軌跡を照合済み。暗号化subset R-52-1/2はpost-fullキュー待ち。全長暗号化学習は未実行 |
+ | 53(stretch) | 4 次活性化 | 保留・未計測 |
+ | 54 | 全実験スクリプトと表生成 | 既存表は`run_all.sh --tables-only`で再生成可能。全登録行列のCPU経路・実行記録を拡張中。実gate・保存・開始・科学結果出力の接続、実機Quickと全実験は未完了 |
+-| 55 | v1.0 公開準備 | `ckks-train-*`へのcrate改名、README／notices、ローカル配布検証済み。最終変更後の公開前確認は残る。リポジトリはprivate、公開操作は未実施 |
++| 55 | v1.0 公開準備 | `ckks-train-*`へのcrate改名、README／notices、ローカル配布検証済み。固定6fba46cの研究プレビュー・リポジトリ・PDFは公開済み。stable v1.0と後続sourceの最終確認は残る |
+ | 56 | 論文ドラフト | `paper/`にレビュー済み草稿。FULL-1反映後10ページ。著者はKentaro Mihara単著・個人研究で確定し、著者入りarXiv用PDFとsource previewもローカル生成済み。欠測と比較条件を保持 |
+ | 57 | M5 報告 | `docs/m5-report.md`に現状・未達・未計測を記載。全体完了報告は残る |
+ | 58(最後) | PyO3 | 指示で削減可能なため今回の範囲から削減済み。Rust APIと研究評価・再現を優先、Python bindingは未提供 |
+diff --git a/docs/m5-report.md b/docs/m5-report.md
+index 4b46871..2f0d34d 100644
+--- a/docs/m5-report.md
++++ b/docs/m5-report.md
+@@ -1,8 +1,8 @@
+ # M5 報告（進行中、2026-11-08）
+ 
+-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0903)。
++最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](handover.md#latest-evidence-20261108-1105)。
+ 
+-**研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフトで、投稿・arXiv 公開・crates.io 公開・リポジトリの公開化は行っていない。
++**研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフト。2026-11-08にGitHubリポジトリと研究プレビュー[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)（固定6fba46c、10ページPDF含む）を公開済み。stable v1.0・arXiv投稿・crates.io公開は未完了。[公開と配布の検証](../results/validation/research-preview-public-release-6fba46c/README.md)。
+ 
+ この報告は Task 57 の現状整理である。後続の測定を「完了」と見なす代わりにはならない。数値の一次資料と条件は [M3](m3-report.md)、[M4](m4-report.md)、[再現手順](../results/README.md)、[セキュリティ推定](security.md)を参照する。
+ 
+@@ -19,8 +19,8 @@
+ | 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
+ | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
+ | 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full／証拠／Quick記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
+-| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **改名時の公開準備・検証済み、最終候補の検証は未完了**。改名SHA09202cfとqueue SHA4b1c499のLinux CIは各全6ジョブ成功（後続SHAには継承しない）。直近のCI未起動は下記07:09追記に記録。公開操作は未実施 |
+-| 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **ドラフトあり**。研究結果の欠測を明記。投稿・公開は未実施 |
++| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **研究プレビュー公開済み、stable v1.0は未完了**。固定6fba46cのLinux CI全6ジョブ成功、配布ソース・PDF・8添付物を照合済み。後続sourceには別の検証が必要。下記07:09のCI未起動は過去の記録 |
++| 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **10ページのPDFプレビュー公開済み**。研究結果の欠測を明記。確定著者入りarXiv用ソースZIPも配布済み。arXiv・会議投稿は未実施 |
+ | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
+ | 58: PyO3（最後、削減可） | 今回の範囲から削減 | 未検証 | Rust API と再現手順を優先。Python binding は提供しない |
+ 
+@@ -67,7 +67,7 @@ GPU 演算は実機で測定済みだが、GPU 訓練と GPU bootstrap は別の
+ 
+ GitHub CI は実際に起動している。`0daf778` の [CI run](https://github.com/kenmaro3/ckks-train/actions/runs/42136309953) は fmt / clippy / cuda-check / test / deny の全5ジョブが成功した。この結果は `0daf778` の検証であり、後続の provenance 修正・表生成・crate rename を検証したものではない。改名SHA `09202cf5650aa76b9b30dd79a68dd615c75a91ae` の [Linux CI run42143028484](https://github.com/kenmaro3/ckks-train/actions/runs/42143028484) は全6ジョブsuccess。後続queue SHA `4b1c499` の [run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は10:49記録時点ではpendingだったが、その後のroot確認でcompleted/success・全6ジョブsuccess（`task-post-full-ci.json`）。この成功は4b1c499だけの検証で、後続SHAへ継承しない。このCIはGPU実機・研究測定ではない。
+ 
+-公開前には最終 SHA の CI、配布パッケージの内容・notices、履歴内の機密や外部コード混入、README の状態、CHANGELOG の日付を確認する。依存の一般許可リストは MIT / Apache-2.0 / BSD / ISC。`unicode-ident =1.0.27` の Unicode 文字属性表だけは、本人が 2026-11-06 に承認した Unicode-3.0 例外を設け、通知を付ける。別の crate やバージョンへの一般許可ではない。データセットのライセンスと帰属は `THIRD_PARTY_NOTICES` に別途記す。公開先を変更したり、公開化・tag/release・crates.io publish を実行したりした事実はない。
++公開前には最終 SHA の CI、配布パッケージの内容・notices、履歴内の機密や外部コード混入、README の状態、CHANGELOG の日付を確認する。依存の一般許可リストは MIT / Apache-2.0 / BSD / ISC。`unicode-ident =1.0.27` の Unicode 文字属性表だけは、本人が 2026-11-06 に承認した Unicode-3.0 例外を設け、通知を付ける。別の crate やバージョンへの一般許可ではない。データセットのライセンスと帰属は `THIRD_PARTY_NOTICES` に別途記す。2026-11-08にリポジトリ公開化と固定6fba46cのpreview tag/releaseを実行し、匿名アクセスと添付物を検証した。stable v1.0とcrates.io publishは未実施。公開済みプレビューに後続sourceの検証結果を遡及適用しない。
+ 
+ ## 5. 論文・arXiv チェックリスト
+ 
+@@ -83,7 +83,7 @@ GitHub CI は実際に起動している。`0daf778` の [CI run](https://github
+ | 図の権利 | 自作図と結果から生成した図を使い、外部図の転載を前提にしない。データ・文献の帰属を付記 |
+ | arXiv ライセンス | 2026-11-08に本人がarXiv非独占配布ライセンスを選択。ソフトウェアはMIT。アカウントは本人が確認し、こちらの確認は一旦スキップする指示。現在のログイン・endorsement確認済みとは扱わない |
+ | 提出物 | TeX・BibTeX・生成図表を含む再現可能なソース一式。ローカル TeX 配布物、機密、データセット本体を混入させない |
+-| 投稿・公開 | 未実施。ドラフト作成は投稿済みを意味しない |
++| 投稿・公開 | GitHubリポジトリ・研究プレビュー・PDFは公開済み。arXiv・会議投稿は未実施。PDF公開を投稿済みとは扱わない |
+ 
+ ページ制限の一次資料: [WAHC 2026 Call for Papers](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/)。2027 の締切や上限が確定したとは扱わない。
+ 
+@@ -896,4 +896,10 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
+ 
+ 読み取り専用の実観測は2026-11-08T09:03:22.455161+09:00。FULL-2はupdate735（0始まり）＝**736/1000更新**、ログ内elapsed106977s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0902/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T10:03:23+09:00以降のR-41-FULL2-OBS-20261108-1003として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+ 
+-本人の未決事項: 主設定B、比較における「同一N」の扱い、著者欄（現状は仮置き）は未決のまま残す。これらの回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
++本人の未決事項: 主設定B、比較における「同一N」の扱いは残す。著者は2026-11-08にKentaro Mihara単著・個人研究として確定済み。未決事項の回答待ちで実装を止めず、現在の登録条件と既定の比較区分を維持する。
++
++## 2026-11-08追記: 公開済みプレビューと後続作業
++
++固定6fba46cの研究プレビューは2026-11-08T01:42:51Z（10:42 JST）に公開済み。全6ジョブのLinux CI成功、ソース5316ファイルのGit blob・mode照合、8添付物のdigest・size、匿名で取得したPDFのbytesを[保存済みの一次証跡](../results/validation/research-preview-public-release-6fba46c/README.md)で確認した。Macの検証やGPU実機結果とは分ける。先頭の状態表をこの公開状態に更新し、過去のCI未起動・未公開の時刻付き記録は履歴として残した。
++
++Task54 CPU supervisor Step2は71ac728でsource採用済み。[元の回帰失敗・修正・独立レビュー](../results/validation/task54-d7-cpu-supervisor/README.md)を保持する。Step3の入力保持・Reference/Target・実gate・開始条件は実装中で、native試験、Step4の科学結果出力、全実験行列は未完了。11:05 JSTのFULL-2は785/1000更新、最終JSONなし。M3精度判定・R47/R48/R52回収・最終原稿への反映が残る。公開済みpreviewの固定sourceや添付物は、この後続作業で変更しない。

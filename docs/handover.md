@@ -161,7 +161,7 @@ hekit/
 | 52 | eMLP-2/3 | ReBootから値として取り直した構成・初期値・平文軌跡を照合済み。暗号化subset R-52-1/2はpost-fullキュー待ち。全長暗号化学習は未実行 |
 | 53(stretch) | 4 次活性化 | 保留・未計測 |
 | 54 | 全実験スクリプトと表生成 | 既存表は`run_all.sh --tables-only`で再生成可能。全登録行列のCPU経路・実行記録を拡張中。実gate・保存・開始・科学結果出力の接続、実機Quickと全実験は未完了 |
-| 55 | v1.0 公開準備 | `ckks-train-*`へのcrate改名、README／notices、ローカル配布検証済み。最終変更後の公開前確認は残る。リポジトリはprivate、公開操作は未実施 |
+| 55 | v1.0 公開準備 | `ckks-train-*`へのcrate改名、README／notices、ローカル配布検証済み。固定6fba46cの研究プレビュー・リポジトリ・PDFは公開済み。stable v1.0と後続sourceの最終確認は残る |
 | 56 | 論文ドラフト | `paper/`にレビュー済み草稿。FULL-1反映後10ページ。著者はKentaro Mihara単著・個人研究で確定し、著者入りarXiv用PDFとsource previewもローカル生成済み。欠測と比較条件を保持 |
 | 57 | M5 報告 | `docs/m5-report.md`に現状・未達・未計測を記載。全体完了報告は残る |
 | 58(最後) | PyO3 | 指示で削減可能なため今回の範囲から削減済み。Rust APIと研究評価・再現を優先、Python bindingは未提供 |
@@ -1169,3 +1169,7 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 11:05 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T11:05:37.021755+09:00。FULL-2はupdate784（0始まり）＝**785/1000更新**、ログ内elapsed114222s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1104/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T12:05:38+09:00以降のR-41-FULL2-OBS-20261108-1205として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+## 2026-11-08追記: Step2採用ソースのLinux CI
+
+71ac728の[CI run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378)は全6ジョブ成功。元のworkspaceログ76集計は1,101合格・0失敗・47 ignoredで、Linux限定の`operational_fix2_private_aliases_are_cloexec`と修正済みCLI診断の回帰も実行・合格した。[API・元ログ・集計](../results/validation/task54-step2-linux-ci-71ac728/README.md)を保存した。このdescriptor試験は子プロセスを起動せず、native16の継承・EOF・lock・pidfd等や実環境の配置を証明しない。CIは当該commitの検証であり、作業中Step3、GPU実機、全実験の合格ではない。以前のMac回帰失敗と修正履歴は保持する。

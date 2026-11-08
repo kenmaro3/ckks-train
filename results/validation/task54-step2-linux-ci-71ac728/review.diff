@@ -1,0 +1,20 @@
+--- docs/handover.md before CI append
++++ docs/handover.md
+@@ -1169,3 +1169,7 @@
+ ## 2026-11-08 11:05 JST: FULL-2の定期確認
+ 
+ 読み取り専用の実観測は2026-11-08T11:05:37.021755+09:00。FULL-2はupdate784（0始まり）＝**785/1000更新**、ログ内elapsed114222s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1104/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T12:05:38+09:00以降のR-41-FULL2-OBS-20261108-1205として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
++
++## 2026-11-08追記: Step2採用ソースのLinux CI
++
++71ac728の[CI run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378)は全6ジョブ成功。元のworkspaceログ76集計は1,101合格・0失敗・47 ignoredで、Linux限定の`operational_fix2_private_aliases_are_cloexec`と修正済みCLI診断の回帰も実行・合格した。[API・元ログ・集計](../results/validation/task54-step2-linux-ci-71ac728/README.md)を保存した。このdescriptor試験は子プロセスを起動せず、native16の継承・EOF・lock・pidfd等や実環境の配置を証明しない。CIは当該commitの検証であり、作業中Step3、GPU実機、全実験の合格ではない。以前のMac回帰失敗と修正履歴は保持する。
+--- docs/m5-report.md before CI append
++++ docs/m5-report.md
+@@ -903,3 +903,7 @@
+ 固定6fba46cの研究プレビューは2026-11-08T01:42:51Z（10:42 JST）に公開済み。全6ジョブのLinux CI成功、ソース5316ファイルのGit blob・mode照合、8添付物のdigest・size、匿名で取得したPDFのbytesを[保存済みの一次証跡](../results/validation/research-preview-public-release-6fba46c/README.md)で確認した。Macの検証やGPU実機結果とは分ける。先頭の状態表をこの公開状態に更新し、過去のCI未起動・未公開の時刻付き記録は履歴として残した。
+ 
+ Task54 CPU supervisor Step2は71ac728でsource採用済み。[元の回帰失敗・修正・独立レビュー](../results/validation/task54-d7-cpu-supervisor/README.md)を保持する。Step3の入力保持・Reference/Target・実gate・開始条件は実装中で、native試験、Step4の科学結果出力、全実験行列は未完了。11:05 JSTのFULL-2は785/1000更新、最終JSONなし。M3精度判定・R47/R48/R52回収・最終原稿への反映が残る。公開済みpreviewの固定sourceや添付物は、この後続作業で変更しない。
++
++## 2026-11-08追記: Step2採用ソースのLinux CI
++
++71ac728の[CI run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378)は全6ジョブ成功。元のworkspaceログ76集計は1,101合格・0失敗・47 ignoredで、Linux限定の`operational_fix2_private_aliases_are_cloexec`と修正済みCLI診断の回帰も実行・合格した。[API・元ログ・集計](../results/validation/task54-step2-linux-ci-71ac728/README.md)を保存した。このdescriptor試験は子プロセスを起動せず、native16の継承・EOF・lock・pidfd等や実環境の配置を証明しない。CIは当該commitの検証であり、作業中Step3、GPU実機、全実験の合格ではない。以前のMac回帰失敗と修正履歴は保持する。
