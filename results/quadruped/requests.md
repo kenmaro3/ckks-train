@@ -1202,7 +1202,7 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261108-1625.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared, not invoked; earliest 2026-11-08T16:25:00+09:00. Same observer/controller logic; no new training.
+- **status:** executed once, exit0. Actual observation 2026-11-08T16:26:15.919362+09:00: 916/1000 updates, final JSON absent, same own chain/queue identities live, owner.json only. No terminal collector invoked; [original records](raw/R-41-FULL2-OBS-20261108-1625/README.md).
 
 
 ## R-48-COLLECT-1: one-shot read-only R48 terminal collection
@@ -1229,3 +1229,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** six fresh-only ledger files `task-52-terminal-fetch-v1.{launch.json,stdout,stderr,meta.json,observation.stdout,observation.meta.json}`; preserve raw refusal output and source mappings before archive intake.
 - **pass criterion:** operational fixed owner/gate/job/source/command/terminal consistency and unchanged original bytes; only terminal-job logs/output are read. Failed/partial/skip/watchdog records and any failed binary JSON remain evidence, not accepted science. `scientific_acceptance=false` always.
 - **status:** prepared and independently reviewed, not invoked. Collector20 synthetic tests and controller20 pure subcases passed; actual1523 pending observation refused check-only before output/SSH. Positive production transport/timeouts remain unexecuted. [Preparation evidence](../validation/postqueue-terminal-collection-preparation-20261108/README.md).
+
+
+## R-41-FULL2-OBS-20261108-1728: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than 17:28:00 JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs 1700979/start 465769819 and 1739838/start 467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261108-1728-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged 1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA 17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, snapshot last 8 KiB seek then read to EOF (concurrent appends may add bytes), connect 90s; retained async controller and terminal streams. Delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under 50 MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261108-1728.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared, not invoked; earliest 2026-11-08T17:28:00+09:00. Same observer/controller logic; no new training.
