@@ -922,3 +922,10 @@ offline・locked package検証ビルドがMacで合格。実際のarchive内容�
 作業中Task54の検証、GPU実機、crates.io公開、stable v1.0の完了を意味しない。
 専用build cache約270MBは証跡保存後に削除した。削除直前の観測容量は約519MBで、
 最大使用量を継続計測したものではない。
+
+<a id="latest-evidence-20261108-1307"></a>
+
+
+## 2026-11-08 13:07 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T13:07:05.356678+09:00。FULL-2はupdate834（0始まり）＝**835/1000更新**、ログ内elapsed121610s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1306/README.md)。1306は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T14:08:00+09:00以降のR-41-FULL2-OBS-20261108-1408として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
