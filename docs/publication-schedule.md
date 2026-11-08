@@ -16,10 +16,12 @@ acceptance are controlled externally and are not a guaranteed deadline outcome.
 
 ## Critical path
 
-1. Complete exact candidate00f4409 verification. Workspace tests are already running
-   on the isolated checkout; finish Clippy default/CUDA, rustdoc and necessary package/
-   public-content review. Fix actual failures, avoid unrelated improvements. Keep the
-   current supervisor WIP out of the candidate unless complete and reviewed in time.
+1. Candidate verification has progressed:00f4409 workspace tests and Clippy passed;
+   a reviewed doc-link fix passed strict rustdoc, andcf58897 passed exact formatting,
+   license and table/figure checks. The private draft now targets0b2d17a, whose later
+   code-path changes are only the documentation link and notice copies. Preserve these
+   source-specific scopes; current Linux CI has no executed checks. Keep supervisor
+   WIP out of the candidate unless complete and reviewed in time.
 2. By2026-11-09 09:00 JST assemble source/release notes, reproducible existing tables,
    PDF and validation summary. Initial90851d2 archive remains a failed qualification
    attempt, not the deliverable. The test-isolation correction has independent review.
@@ -74,3 +76,14 @@ Account check update (2026-11-08): the user reports a previous arXiv submission 
 will check the account personally. They explicitly asked the agent to skip account
 checking for now. Continue manuscript/source/GitHub preparation; do not infer that
 current login or category endorsement has been verified.
+
+## Preview delivery state, 2026-11-08
+
+A [private GitHub draft release](https://github.com/kenmaro3/ckks-train/releases/tag/untagged-5876bf359b67f2d84117)
+now contains8 verified assets at source0b2d17a: source archive, manuscript PDF,
+arXiv source ZIP, paper-license notice, manifest, source inventory, preview notes
+and checksums. GitHub digests and sizes match the local files. Repository visibility
+remains private; the release is a draft prerelease with no published timestamp.
+See [the verification](../results/validation/research-preview-draft-release/README.md).
+This supplies a reviewable preview ahead of the deadline. Public release and arXiv
+submission remain pending, as do the measurement cutoff and final evidence update.

@@ -254,3 +254,15 @@ a documentation-only correction passed independent review and default/CUDA rustd
 See [the exact source/evidence boundaries](../results/validation/research-preview-fixed-verification/README.md).
 The later authored paper/docs and ongoing Task54 WIP are not retroactively covered
 by these base-source checks. No actual publication or current Linux CI pass occurred.
+
+## 14. Private draft release prepared, 2026-11-08
+
+[Research preview1 draft](https://github.com/kenmaro3/ckks-train/releases/tag/untagged-5876bf359b67f2d84117)
+(id437943352, proposed tagv1.0.0-preview.1) targets0b2d17a and has8 uploaded assets.
+The source archive contains5,262 tracked files verified against Git content/modes;
+GitHub reports matching SHA-256 and sizes for every asset. The repository remains
+private, the release remains draft/prerelease, and no published timestamp or remote
+tag ref exists at the recorded observation. [Verification and notes](../results/validation/research-preview-draft-release/README.md)
+retain the exact candidate and test scopes. This is preparation, not public release
+or completed scientific validation. Final results can still update the draft before
+publication, using a new source/asset identity rather than editing raw measurements.

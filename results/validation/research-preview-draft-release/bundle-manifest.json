@@ -1,0 +1,47 @@
+{
+  "status": "prepared for private draft prerelease; not public/stable",
+  "source_commit": "0b2d17a14cd305890d9eed771008d4f8617eff88",
+  "source_files": 5262,
+  "archive_git_content_mode_verification": true,
+  "program_delta_from_tested_00f4409": [
+    "crates/ckks-train-bench/src/bin/plain.rs",
+    "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+    "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+    "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+    "crates/ckks-train-nn/THIRD_PARTY_NOTICES"
+  ],
+  "code_verification": "1025 workspace tests pass,19ignored and Clippy default/CUDA pass on00f4409. Later program path differences are only reviewed plain.rs documentation link and branded notice copies. Exactcf58897 strictdoc/fmt/license/table checks passed. No whole-suite rerun claimed on0b2d17a.",
+  "paper": "LaTeX source unchanged from locally rebuilt/rendered cf58897 preprint; author/notice docs updated separately; no arXiv submission",
+  "files": [
+    {
+      "name": "PAPER_LICENSE.txt",
+      "bytes": 1053,
+      "sha256": "36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e"
+    },
+    {
+      "name": "PREVIEW.md",
+      "bytes": 1067,
+      "sha256": "47fc0c8082882f77be99491eb45b9fe9bf65aed6f3adbb100435ee608f3c1ab0"
+    },
+    {
+      "name": "ckks-train-0b2d17a-source.tar.gz",
+      "bytes": 56354115,
+      "sha256": "66128a03fc3aaf5ee3dafb706110d4022b23e37a02fa80b8434acf319c668586"
+    },
+    {
+      "name": "ckks-train-arxiv-source-preview.zip",
+      "bytes": 37482,
+      "sha256": "c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8"
+    },
+    {
+      "name": "ckks-train-paper-preview.pdf",
+      "bytes": 526897,
+      "sha256": "15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50"
+    },
+    {
+      "name": "source-inventory.json",
+      "bytes": 1541258,
+      "sha256": "b3b1e108e778cd064586826f89d72587ea0a1f1eb24c12b6a4354104a394c7ec"
+    }
+  ]
+}
