@@ -1,0 +1,64 @@
+warning[duplicate]: found 2 duplicate entries for crate 'syn'
+   ┌─ /Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/Cargo.lock:75:1
+   │  
+75 │ ╭ syn 2.0.119 registry+https://github.com/rust-lang/crates.io-index
+76 │ │ syn 3.0.9 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰───────────────────────────────────────────────────────────────┘ lock entries
+   │  
+   ├ syn v2.0.119
+     └── zerocopy-derive v0.8.63
+         └── zerocopy v0.8.63
+             ├── half v2.7.1
+             │   └── ciborium-ll v0.2.2
+             │       └── ciborium v0.2.2
+             │           └── criterion v0.5.1
+             │               ├── (dev) ckks-train-bench v1.0.0
+             │               ├── (dev) ckks-train-ckks v1.0.0
+             │               │   ├── ckks-train-bench v1.0.0 (*)
+             │               │   ├── ckks-train-cuda v1.0.0
+             │               │   │   └── ckks-train-bench v1.0.0 (*)
+             │               │   └── ckks-train-nn v1.0.0
+             │               │       ├── ckks-train-bench v1.0.0 (*)
+             │               │       └── (dev) ckks-train-cuda v1.0.0 (*)
+             │               └── (dev) ckks-train-core v1.0.0
+             │                   ├── ckks-train-bench v1.0.0 (*)
+             │                   ├── ckks-train-ckks v1.0.0 (*)
+             │                   ├── ckks-train-cuda v1.0.0 (*)
+             │                   └── ckks-train-nn v1.0.0 (*)
+             └── ppv-lite86 v0.2.21
+                 └── rand_chacha v0.9.0
+                     ├── (dev) ckks-train-ckks v1.0.0 (*)
+                     ├── ckks-train-core v1.0.0 (*)
+                     ├── (dev) ckks-train-cuda v1.0.0 (*)
+                     └── proptest v1.11.0
+                         └── (dev) ckks-train-core v1.0.0 (*)
+   ├ syn v3.0.9
+     └── serde_derive v1.0.229
+         ├── criterion v0.5.1
+         │   ├── (dev) ckks-train-bench v1.0.0
+         │   ├── (dev) ckks-train-ckks v1.0.0
+         │   │   ├── ckks-train-bench v1.0.0 (*)
+         │   │   ├── ckks-train-cuda v1.0.0
+         │   │   │   └── ckks-train-bench v1.0.0 (*)
+         │   │   └── ckks-train-nn v1.0.0
+         │   │       ├── ckks-train-bench v1.0.0 (*)
+         │   │       └── (dev) ckks-train-cuda v1.0.0 (*)
+         │   └── (dev) ckks-train-core v1.0.0
+         │       ├── ckks-train-bench v1.0.0 (*)
+         │       ├── ckks-train-ckks v1.0.0 (*)
+         │       ├── ckks-train-cuda v1.0.0 (*)
+         │       └── ckks-train-nn v1.0.0 (*)
+         └── serde v1.0.229
+             ├── ciborium v0.2.2
+             │   └── criterion v0.5.1 (*)
+             ├── ckks-train-bench v1.0.0 (*)
+             ├── criterion v0.5.1 (*)
+             └── tinytemplate v1.2.1
+                 └── criterion v0.5.1 (*)
+
+warning[license-not-encountered]: license was not encountered
+   ┌─ /Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/deny.toml:13:6
+   │
+13 │     "BSD-3-Clause",
+   │      ━━━━━━━━━━━━ unmatched license allowance
+

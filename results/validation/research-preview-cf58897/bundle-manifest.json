@@ -1,0 +1,40 @@
+{
+  "status": "local research preview; not published; full research scope still pending",
+  "source_commit": "cf588971063874d4e8e400987a4c80eb9d0f30ed",
+  "source_files": 5211,
+  "archive_verified_against_git_objects_and_modes": true,
+  "code_validation": "00f4409 full workspace 1025 passed, 19 ignored; default/CUDA Clippy pass. Only subsequent code-path diff is reviewed one-line rustdoc link correction; no executable code, build scripts, manifests, scripts, tools or workflow changed. Strict rustdoc on cf58897 passed; see results/validation/research-preview-fixed-verification.",
+  "paper": "Paper .tex/.bib source bytes match cf58897. ZIP main.tex prepends ArxivDraft, adds generated main.bbl. Locally rebuilt and visually inspected. Interim FULL-1; no arXiv server verification/submission.",
+  "files": [
+    {
+      "name": "PREVIEW.md",
+      "bytes": 943,
+      "sha256": "006a8c2fa17b9fae01969bc1860420385628e9919ea2a7d5bdbb65763a45a139"
+    },
+    {
+      "name": "ckks-train-arxiv-source-preview.zip",
+      "bytes": 37482,
+      "sha256": "c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8"
+    },
+    {
+      "name": "ckks-train-cf58897-source.tar.gz",
+      "bytes": 56313450,
+      "sha256": "d1d64ec33f3fdc1c9798383c2c5a67cbe37d2b0fb19967cc4cd1bcf8897105ec"
+    },
+    {
+      "name": "ckks-train-paper-preview.pdf",
+      "bytes": 526897,
+      "sha256": "15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50"
+    },
+    {
+      "name": "initial-mode-check.json",
+      "bytes": 371,
+      "sha256": "492af4439a3cf1865b8f1b4b593aaecff6485ea96f6c3ef671ec4c41a4bbbd2c"
+    },
+    {
+      "name": "source-inventory.json",
+      "bytes": 1526440,
+      "sha256": "5bbec3b21f449a10801549c7d74bd5c4bbbfd8055ec3d89df009a94c2953fc32"
+    }
+  ]
+}

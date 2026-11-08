@@ -1,0 +1,1 @@
+{"result": "failed local archive packaging check", "reason": "git archive default file mode0664 differs from required0644; content comparison did not finish", "archive_sha256": "ad5fcfb51df569fc60268a6fbf450244e2041081f879e4e2276bf917bef05007", "correction": "regenerate with git -c tar.umask=0022 archive; preserve this observation, archive is not a scientific result"}

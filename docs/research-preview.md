@@ -55,3 +55,9 @@ FULL-1の実測を保持する。FULL-2の精度、全長ReBoot CPU時間、同�
 厳格rustdocでは`plain`の説明文の未解決リンク1件を検出した。公開関数への完全修飾リンクへ1行だけ修正し、独立レビュー合格、修正後の通常・CUDA有効のrustdocも合格した。本番コードの変更はない。修正前の失敗と、base commit＋修正diffを明記したGREENログを[検証記録](../results/validation/research-preview-fixed-verification/README.md)に保持した。進行中Task54の未commit実装を検証したものではない。
 
 著者入りのarXiv用source previewも作成した。必要19ファイルをZIP化し、展開先だけから10ページのPDFを再ビルドできた。現時点の本文はFULL-1中間版で、arXiv側のビルド・投稿は未実施。[paperの手順](../paper/README.md)を参照。アカウント確認はユーザー自身が行う。
+
+## ローカル配布一式 cf58897
+
+`tools/release/_ext/research-preview-bundle-cf58897/`に、固定source archive・著者入りPDF・arXiv source ZIP・manifestを準備した。sourceは5,211ファイル、56,313,450 bytesで、全ファイルの内容をGit blob、modeをtracked modeに照合済み。古い不合格候補のarchiveとは別物である。
+
+このcommitのclean checkoutでfmt、依存ライセンス、表の再生成、表・図一致、厳格rustdoc通常/CUDAが合格した。全体テストとClippyは前記00f4409の証跡を参照し、以降のコード差分が説明文リンク1行だけであることを確認した。[今回の記録と配布hash](../results/validation/research-preview-cf58897/README.md)を保持する。公開内容の最終レビューと研究の残ゲートは未完で、GitHub公開・arXiv投稿はまだ行っていない。

@@ -1,0 +1,108 @@
+{
+  "status": "local interim preview, not submitted",
+  "base_commit": "f1041b442435df1de8907e73ca257cdcacf18f92",
+  "paper_main_worktree_diff": "diff --git a/paper/main.tex b/paper/main.tex\nindex 4dd9652..4eb361b 100644\n--- a/paper/main.tex\n+++ b/paper/main.tex\n@@ -1,16 +1,26 @@\n % Task56 interim draft. Generated tables and figures are the numerical source.\n % Default: anonymous review. Use \\def\\AuthorDraft{1}\\input{main.tex} for the named draft.\n+% Use \\def\\ArxivDraft{1}\\input{main.tex} for a named preprint without review markup.\n \\newif\\ifshowauthors\n \\ifdefined\\AuthorDraft\\showauthorstrue\\else\\showauthorsfalse\\fi\n-\\ifshowauthors\n-  \\documentclass[sigconf,review]{acmart}\n+\\ifdefined\\ArxivDraft\n+  \\showauthorstrue\n+  \\documentclass[sigconf,nonacm]{acmart}\n \\else\n-  \\documentclass[sigconf,review,anonymous]{acmart}\n+  \\ifshowauthors\n+    \\documentclass[sigconf,review]{acmart}\n+  \\else\n+    \\documentclass[sigconf,review,anonymous]{acmart}\n+  \\fi\n \\fi\n \\setkeys{acmart.cls}{balance=false}\n \\setcopyright{none}\n \\settopmatter{printacmref=false}\n-\\acmConference[Draft]{Unsubmitted research draft}{November 2026}{No venue assigned}\n+\\ifdefined\\ArxivDraft\n+  \\acmConference[Research preprint]{Research preprint}{November 2026}{}\n+\\else\n+  \\acmConference[Draft]{Unsubmitted research draft}{November 2026}{No venue assigned}\n+\\fi\n \\acmDOI{}\n \\acmISBN{}\n \\usepackage{amsmath}\n",
+  "main_transformation": "prepend \\def\\ArxivDraft{1} newline to paper/main.tex",
+  "bibliography": "main.bbl copied from named arxiv-wrapper build; refs.bib retained",
+  "archive_sha256": "c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8",
+  "archive_bytes": 37482,
+  "files": [
+    {
+      "name": "figs/rq1_ratios.tex",
+      "bytes": 2618,
+      "sha256": "92eb4b1b82fa2cfec2b016c862ebe510bdfeaf382f40fa2f777148478df341de"
+    },
+    {
+      "name": "main.bbl",
+      "bytes": 9380,
+      "sha256": "6cea177667687d48ccc1e1caa768504aa95f130f15e3a9d399e2119464246af9"
+    },
+    {
+      "name": "main.tex",
+      "bytes": 3865,
+      "sha256": "47d920deb2a18ed7aaf7d83bb36a3f1835f8c44a24f2ceb4868697558f77adbe"
+    },
+    {
+      "name": "refs.bib",
+      "bytes": 4766,
+      "sha256": "a6107ecfb3e30314652921fbe4b7dabcf66e0fa7ba8b9e33d0ca7cb05e39c978"
+    },
+    {
+      "name": "sections/appendix.tex",
+      "bytes": 5439,
+      "sha256": "d649882d25c3b499d9cdbaaec2c92d6a38c64b0f948ca8cf58d36daf664f6b60"
+    },
+    {
+      "name": "sections/discussion.tex",
+      "bytes": 6867,
+      "sha256": "41ac193e793d86be3cdf869cef828a2b93fa89ff98b3cacc0fffa4f41e05e06e"
+    },
+    {
+      "name": "sections/evaluation.tex",
+      "bytes": 9960,
+      "sha256": "0f107127a4d7fdc7ca8150513253019888c5f261792a75c726bed3bb7bc96942"
+    },
+    {
+      "name": "sections/gpu.tex",
+      "bytes": 2941,
+      "sha256": "578b315eb8f1960a4caa4dcf5fa718ce000f2da1a77158dedc99cf979adb5588"
+    },
+    {
+      "name": "sections/introduction.tex",
+      "bytes": 3050,
+      "sha256": "0705dd6848677d0c3f33b9fddfb57ffb39aecbd776beba5d1a545bcde652824f"
+    },
+    {
+      "name": "sections/noninteractive.tex",
+      "bytes": 4888,
+      "sha256": "e398b3ed02b2b153f4a717d6689b06e55d8c0259859291ff8bdafca9728a86c8"
+    },
+    {
+      "name": "sections/packing.tex",
+      "bytes": 5182,
+      "sha256": "51747a73c24cb897bd3ca631d9be13c4f4f62201e31cd0e5eb8f986f2b1be136"
+    },
+    {
+      "name": "sections/preliminaries.tex",
+      "bytes": 3495,
+      "sha256": "3ac6b82f79f43f9bb13f38bf2f61c0d1c58461a193bd3c6b1a5443daade79c4f"
+    },
+    {
+      "name": "tables/accuracy_vs_reboot.tex",
+      "bytes": 3265,
+      "sha256": "b566fb557e2bff0c42ddbbea4463a7841d8691e7309fb0628f6887327a2ac751"
+    },
+    {
+      "name": "tables/gpu_vs_cpu_ops.tex",
+      "bytes": 2884,
+      "sha256": "089b344832ff7c35a01c368648a841055ddf3e6b97aa89c4e04dc7ccc2433c60"
+    },
+    {
+      "name": "tables/plain_datasets.tex",
+      "bytes": 1535,
+      "sha256": "1667a75790194a9dc0fef7b36af3fc6cc5aeda22ac87b395ef19d82d9db7a6fe"
+    },
+    {
+      "name": "tables/rq1_ks.tex",
+      "bytes": 3127,
+      "sha256": "d34c3779aca556ad5e9e1254e4e36040c6d127c729d3dade41428f582a17372b"
+    },
+    {
+      "name": "tables/rq3_ablation.tex",
+      "bytes": 4488,
+      "sha256": "de38d3727aecf170b18a3ce0ed4db28f5984bf6938934081236e53d7f6db7cba"
+    },
+    {
+      "name": "tables/security.tex",
+      "bytes": 1361,
+      "sha256": "3b30d20da49c757d274b6b30501bb524ab448150301d0f153b3e2d60d31c019e"
+    },
+    {
+      "name": "tables/wallclock_same_cpu.tex",
+      "bytes": 2099,
+      "sha256": "bfb3f1555da2829afd17fa1971b2d804a9150698e077b1ba29c6f17ab45e4ade"
+    }
+  ],
+  "external_toolchain": "local TinyTeX TeXLive 2026 with acmart v2.21; arXiv server build not yet verified",
+  "content": "FULL-1 interim science; FULL-2 pending; no result JSON modified"
+}
