@@ -1101,4 +1101,16 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
 - **output path:** ignored ledger `post-full-observation-20261108-1003.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
-- **status:** prepared, not invoked; earliest2026-11-08T10:03:23+09:00. Same observer/controller logic; no job changes or new training.
+- **status:** done; actual2026-11-08T10:04:13.560092+09:00, SSH exit0 and original session2500 terminal082e40. Own chain/queue live, update759 =>760/1000, final absent, queue owner.json only. One invocation/no retry. Exact archive `raw/R-41-FULL2-OBS-20261108-1003/`.
+
+## R-41-FULL2-OBS-20261108-1104: hourly read-only progress observation
+
+- **purpose:** Observe existing FULL-2 and post-full queue no earlier than11:04:14JST; no restart or job changes.
+- **commit to sync:** none.
+- **working dir:** own existing `/home/kmihara/hekit-runs`; fixed PIDs1700979/start465769819 and1739838/start467041669.
+- **command:** exact key-only SSH argv in ledger `post-full-observation-20261108-1104-command.json`; `nice -n 10 /usr/bin/python3.14 -I -B -`, unchanged1560-byte observer `post-full-observation-20261107-0600.remote.py` SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243 on stdin.
+- **expected duration:** seconds after connection; one observer, snapshot-last8KiB seek then read-to-EOF (concurrent appends may add bytes), connect90s; retained async controller and terminal streams. Observation delay does not authorize restart.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ignored ledger `post-full-observation-20261108-1104.{stdout,stderr,meta.json}` with exclusive local launch receipt.
+- **pass criterion:** Actual own process identity/state, result existence, bounded log tail and queue listing preserved; operational only. No signals, builds, training, queue mutation or other users' process inspection.
+- **status:** prepared, not invoked; earliest2026-11-08T11:04:14+09:00. Same observer/controller logic; no job changes or new training.

@@ -438,3 +438,7 @@ chain10 PID1700979/start ticks465769819、待機controller PID1739838/start tick
 その後rootが確認した queue commit `4b1c49943533bb9ff79493daee33a27b8237a18c` の [CI run42145577051](https://github.com/kenmaro3/ckks-train/actions/runs/42145577051) は **completed/success、fmt/test/deny/research-tools/cuda-check/clippyの全6ジョブsuccess**。10:49時点のpending記録を更新する。これは当該SHAのLinux CIであり、後続SHA、GPU実測、FULL完了、研究合格を検証したものではない。
 
 一次記録は ledger `post-full-followup-observation.stdout`（SHA256 `eeae57cf21919e2011c61baf26bdccaf4486e502a325e1bdf15d5a58f277edb9`）と `task-post-full-ci.json`（SHA256 `fd1c7d740e6fa64461f0185640a5802b3149af2b7a8f600f01b56b691e5e1a09`）。CI run/SHAの対応はrootの管理観測による。元の研究JSONは変更していない。
+
+## 2026-11-08 10:04 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T10:04:13.560092+09:00。FULL-2はupdate759（0始まり）＝**760/1000更新**、ログ内elapsed110519s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1003/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T11:04:14+09:00以降のR-41-FULL2-OBS-20261108-1104として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。

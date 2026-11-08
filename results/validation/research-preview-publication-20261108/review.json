@@ -1,0 +1,30 @@
+{
+  "reviewer": "/root/preview_testfix_review",
+  "verdict": "PASS",
+  "recorded_utc": "2026-11-08T01:04:26.705111+00:00",
+  "findings": [],
+  "scope": "Read-only bounded public-state documentation and retained evidence review; no source edit, build, network or live CI success claim",
+  "checks": [
+    "Anonymous API200/private=false agrees with publication state",
+    "Draft release437943352 remains unpublished; CI42432442890 scope is684d7fb and not marked passed",
+    "Public source/manuscript TeX distinct from draft PDF assets, unsubmitted arXiv and unmet scientific gates",
+    "Historical private observations preserved; evidence hashes checked"
+  ],
+  "document_pins": [
+    {
+      "path": "docs/research-preview.md",
+      "bytes": 9328,
+      "sha256": "071bbb23871652e84107ba5b7403b3e20154bb1af9522c38be1bf8e8ecaa3287"
+    },
+    {
+      "path": "docs/release.md",
+      "bytes": 22232,
+      "sha256": "201d41659cf9082128f4ea8eee33a5f988d8d2972cf647db44eba5ad275872b4"
+    },
+    {
+      "path": "docs/publication-schedule.md",
+      "bytes": 6771,
+      "sha256": "8289e2f8766c10c5cd12281f99bec2e062329ee8a32ed317f68e0ad10740dee7"
+    }
+  ]
+}

@@ -87,3 +87,14 @@ remains private; the release is a draft prerelease with no published timestamp.
 See [the verification](../results/validation/research-preview-draft-release/README.md).
 This supplies a reviewable preview ahead of the deadline. Public release and arXiv
 submission remain pending, as do the measurement cutoff and final evidence update.
+
+## Code preview public, 2026-11-08 10:01 JST
+
+The [repository](https://github.com/kenmaro3/ckks-train) is now public, verified
+through an unauthenticated request. Reviewed commit684d7fb was pushed normally;
+its exact Linux CI run42432442890 is under observation. No billing change was made.
+This advances the code-preview step ahead of the deadline. The PDF release remains
+a private draft on the public repository; the evidence cutoff, final manuscript
+update, public release assets and arXiv submission remain required. Existing
+committed manuscript TeX is public with the code. [Publication evidence](../results/validation/research-preview-publication-20261108/README.md)
+records the visibility check and the distinction from a stable/scientific release.

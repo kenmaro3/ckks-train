@@ -1,5 +1,10 @@
 # Releasing ckks-train v1.0.0
 
+Current publication state (2026-11-08): the repository is **public as a research
+preview**. Release437943352 remains a draft; no stable v1.0, public PDF release or
+arXiv submission is claimed. [Current publication evidence](../results/validation/research-preview-publication-20261108/README.md).
+The dated private-state observations below are historical.
+
 State on 2026-11-06 (Task 55): the release is prepared, nothing is published. The GitHub
 repository `kenmaro3/ckks-train` is **private**; the owner decides when it becomes public and
 whether the crates go to crates.io. The user has authorized milestone pushes to the private

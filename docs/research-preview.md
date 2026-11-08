@@ -1,19 +1,19 @@
 # Research preview preparation — 2026-11-08
 
-**公開準備中。公開済み・安定版v1.0・研究計画完了ではない。**
-速度を優先する希望に合わせ、未完の研究全体とは別に、固定したコードと既存の論文ドラフトを確認できる候補を準備する。元のTask42/50/54/57と全実験条件は残す。公開操作はまだ行っていない。
+**コードは研究プレビューとして公開済み。PDFリリース・arXiv投稿・安定版v1.0・研究計画完了は未達。**
+速度を優先する希望に合わせ、未完の研究全体とは別に、固定したコードと既存の論文ドラフトを確認できる候補を準備する。元のTask42/50/54/57と全実験条件は残す。2026-11-08にコードリポジトリを公開した。
 
 ## 最新の候補と現在の状態（2026-11-08）
 
 現在の候補は **0b2d17a**。下記の90851d2は失敗を保持した初回候補である。
-[GitHubの非公開draft release](https://github.com/kenmaro3/ckks-train/releases/tag/untagged-5876bf359b67f2d84117)
+[GitHubのdraft release](https://github.com/kenmaro3/ckks-train/releases/tag/untagged-5876bf359b67f2d84117)
 に、固定ソース、Kentaro Mihara単著の10ページPDF、arXiv用ソースZIPなど8 assetを配置した。
-全assetのサイズ・SHA256を照合済み。公開・arXiv投稿は未実施。
+全assetのサイズ・SHA256を照合済み。リポジトリは公開したが、draft releaseは所有者向けのままで、PDFリリース公開・arXiv投稿は未実施。
 
 本番コードのテスト対象00f4409ではMac全体テスト1,025合格・0失敗・19未実行、
 通常/CUDAのstrict Clippyが合格。候補までのプログラム差分は文書リンクと通知の更新で、
 進行中Task54コードを含まない。cf58897では表再生成、表・図一致、依存監査、
-通常/CUDAのstrict rustdocも合格した。Linux CIは課金条件で起動できていない。
+通常/CUDAのstrict rustdocも合格した。private時のLinux CIは課金条件で未起動だった。公開後の[run42432442890](https://github.com/kenmaro3/ckks-train/actions/runs/42432442890)を確認中で、まだ成功とは扱わない。
 候補0b2d17aの4 crateの[package一覧と通知コピー](../results/validation/research-preview-package-list-0b2d17a/README.md)
 も確認したが、新しいpackage archiveのビルドや公開を意味しない。
 

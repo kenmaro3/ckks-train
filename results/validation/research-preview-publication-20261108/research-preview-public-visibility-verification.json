@@ -1,0 +1,10 @@
+{
+  "observed_utc": "2026-11-08T01:01:53.898353+00:00",
+  "request_url": "https://api.github.com/repos/kenmaro3/ckks-train",
+  "authentication": "none; urllib request with only User-Agent and Accept headers",
+  "http_status": 200,
+  "full_name": "kenmaro3/ckks-train",
+  "private": false,
+  "visibility": "public",
+  "default_branch": "main"
+}

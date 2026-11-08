@@ -1,0 +1,62 @@
+{
+  "kind": "read_only_job_observation_not_scientific_result",
+  "observed_unix": 1794099853.5600917,
+  "nice": 10,
+  "uid": 1000,
+  "processes": [
+    {
+      "pid": 1700979,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "465769819",
+      "uid": 1000,
+      "expected_start_ticks": "465769819",
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/bash",
+      "children": [
+        1910150
+      ]
+    },
+    {
+      "pid": 1739838,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "467041669",
+      "uid": 1000,
+      "expected_start_ticks": "467041669",
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/python3.14",
+      "children": []
+    }
+  ],
+  "direct_children": [
+    {
+      "pid": 1910150,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "472983092",
+      "uid": 1000,
+      "expected_start_ticks": null,
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/bash",
+      "children": [
+        1910153,
+        1910154
+      ]
+    }
+  ],
+  "full2_log_path": "/home/kmihara/hekit-runs/logs/R-41-FULL-2.log",
+  "full2_log_tail": [
+    "mnist: epoch 0 update 754 (48 samples, 1 cts): 148.2 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 109782 s, load 2.03 2.79 3.11 2/1422 2251117",
+    "mnist: epoch 0 update 755 (48 samples, 1 cts): 148.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 109930 s, load 2.72 2.75 3.04 2/1423 2251547",
+    "mnist: epoch 0 update 756 (48 samples, 1 cts): 148.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 110079 s, load 3.99 3.09 3.11 1/1423 2251961",
+    "mnist: epoch 0 update 757 (48 samples, 1 cts): 146.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 110226 s, load 2.11 2.72 2.97 2/1420 2252346",
+    "mnist: epoch 0 update 758 (48 samples, 1 cts): 145.8 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 110372 s, load 3.07 3.09 3.08 1/1421 2252756",
+    "mnist: epoch 0 update 759 (48 samples, 1 cts): 147.1 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 110519 s, load 3.06 3.02 3.05 1/1421 2253178"
+  ],
+  "full2_result_path": "/home/kmihara/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json",
+  "full2_result_exists": false,
+  "queue_entries": [
+    "owner.json"
+  ]
+}

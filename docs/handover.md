@@ -1154,3 +1154,7 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 09:03 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T09:03:22.455161+09:00。FULL-2はupdate735（0始まり）＝**736/1000更新**、ログ内elapsed106977s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0902/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T10:03:23+09:00以降のR-41-FULL2-OBS-20261108-1003として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+## 2026-11-08 10:04 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T10:04:13.560092+09:00。FULL-2はupdate759（0始まり）＝**760/1000更新**、ログ内elapsed110519s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1003/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T11:04:14+09:00以降のR-41-FULL2-OBS-20261108-1104として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
