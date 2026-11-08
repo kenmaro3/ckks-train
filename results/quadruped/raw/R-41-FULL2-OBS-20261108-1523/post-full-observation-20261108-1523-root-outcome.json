@@ -1,0 +1,11 @@
+{
+  "kind": "root_operational_observation_record_not_scientific_result",
+  "exec_session_id": 48604,
+  "exec_chunk_id": "c3b97b",
+  "exit_code": 0,
+  "single_invocation": true,
+  "retry": false,
+  "observed_at_jst": "2026-11-08T15:23:58.898424+09:00",
+  "stdout_bytes": 2417,
+  "stdout_sha256": "bb348126615faa903067a89cc2447c610f6fae879303fbb44b833f5774a2c46e"
+}

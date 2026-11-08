@@ -464,3 +464,8 @@ chain10 PID1700979/start ticks465769819、待機controller PID1739838/start tick
 ## 2026-11-08 14:22 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T14:22:14.580956+09:00。FULL-2はupdate864（0始まり）＝**865/1000更新**、ログ内elapsed126040s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1408/README.md)。1408は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T15:23:00+09:00以降のR-41-FULL2-OBS-20261108-1523として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。
+
+
+## 2026-11-08 15:23 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T15:23:58.898424+09:00。FULL-2はupdate889（0始まり）＝**890/1000更新**、ログ内elapsed129733s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1523/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T16:25:00+09:00以降のR-41-FULL2-OBS-20261108-1625として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。

@@ -1,0 +1,58 @@
+{
+  "scope": "R47 controller derived from independently reviewed FULL2 controller; no SSH invoked",
+  "source_parent_sha256": "decdd1ed38f15b9d84cec1df03f54584309d9e359abbe39f98373246e238d1e6",
+  "changes": "R47 fixed source/prefix/size pins; require actual observer released gate plus R47tests terminal record or stopped queue with R47build terminal record; streaming local output hashing; explicit64MiB encoded-stdout expected-envelope post-capture check. Existing observer transport/full2/chain checks and key-onlySSH/singleconnection/110s/newlocalSSHchild-only timeout/fresh6files retained.",
+  "bound_limit": "32MiB originals enforced remotely.64MiB encoded stdout is post-capture validation, not a streaming hard cap; raw output is retained on excess. Source-bound envelope is expected to fit. No peak memory or scientific claim.",
+  "validation": [
+    {
+      "tool": "9e6f55",
+      "exit": 2,
+      "check": "actual retained1408 pending observation --check-only refuses before output/SSH"
+    },
+    {
+      "tool": "311867",
+      "exit": 0,
+      "check": "6 synthetic pure load_observation tests only; no main/Popen/SSH invoked"
+    }
+  ],
+  "untested": "positive SSH, timeout/launch-error branches and transport-envelope excess branch are not executed; inherited source reviewed but not called",
+  "outputs": "all6 task-47-terminal-fetch-v1 outputs absent",
+  "execution_release": "not granted; requires reviewed controller + exact request and root inspection of actual qualifying observation",
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller.py",
+      "bytes": 7653,
+      "sha256": "4de62d14af065aee39ae9c74e9e82b6bd71e39f921a0936901961beb7cc8a6d6"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-vs-full2.diff",
+      "bytes": 5457,
+      "sha256": "4a8360bb16b5210289868c421c37aee88d89e15b2d9b6d1574abc03303e820a4"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-tests.py",
+      "bytes": 3213,
+      "sha256": "c329d93c86365491d3e79e3767435d2fd591d790c71ba3cbb8df4b82835f6844"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-tests.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-tests.stderr",
+      "bytes": 104,
+      "sha256": "d8788fb668ab485288228ba408880db88f6bc1e91fecb5466716ec0bebc051a5"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-negative.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-controller-negative.stderr",
+      "bytes": 77,
+      "sha256": "a919e698e1ee2eee8405ecccfb44a24e0ec015c6f7a6fe0910c6d788f12c5ae2"
+    }
+  ]
+}
