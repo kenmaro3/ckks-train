@@ -1,0 +1,22 @@
+[
+  {
+    "path": "task-42-full2-terminal-collector.remote.py",
+    "bytes": 7647,
+    "sha256": "00f5184275ff3c7b521756f778a0ba5c86a6eda545814c4b9cfd1bcb40f44718"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-tests.py",
+    "bytes": 4029,
+    "sha256": "c603f948e9b75bd6c01fb8655e86187f7ca6b78b3f50f7bb60a68883f4fa33d6"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-tests.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-tests.stderr",
+    "bytes": 918,
+    "sha256": "cf06578ab9bb8186cbfc1c6e627d4b28899edc10a1eefc245b72be12422b66a2"
+  }
+]

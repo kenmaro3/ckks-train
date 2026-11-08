@@ -1,0 +1,12 @@
+test_actual_local_bytes_and_symlink_refusal (__main__.Decisions.test_actual_local_bytes_and_symlink_refusal) ... ok
+test_command_refuses_extra_duplicate_missing_or_changed_flags (__main__.Decisions.test_command_refuses_extra_duplicate_missing_or_changed_flags) ... ok
+test_duplicate_metadata_keys_rejected (__main__.Decisions.test_duplicate_metadata_keys_rejected) ... ok
+test_failure_metadata_is_capturable_not_success (__main__.Decisions.test_failure_metadata_is_capturable_not_success) ... ok
+test_flag_order_is_not_identity (__main__.Decisions.test_flag_order_is_not_identity) ... ok
+test_per_file_bound_without_allocating_oversize_payload (__main__.Decisions.test_per_file_bound_without_allocating_oversize_payload) ... ok
+test_terminal_identity_and_time (__main__.Decisions.test_terminal_identity_and_time) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.009s
+
+OK

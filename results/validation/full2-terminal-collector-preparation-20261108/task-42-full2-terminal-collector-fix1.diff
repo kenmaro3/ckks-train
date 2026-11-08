@@ -1,0 +1,230 @@
+--- initial/task-42-full2-terminal-collector.remote.py
++++ fix1/task-42-full2-terminal-collector.remote.py
+@@ -58,6 +58,8 @@
+ 
+ def terminal_metadata(raw):
+     meta = json.loads(raw, object_pairs_hook=unique_object)
++    if not isinstance(meta, dict):
++        raise ValueError("metadata is not an object")
+     if meta.get("job") != JOB or meta.get("workdir") != WORKDIR:
+         raise ValueError("job/workdir identity mismatch")
+     command_identity(meta.get("command"))
+@@ -81,7 +83,7 @@
+     return (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+ 
+ 
+-def read_stable(path):
++def read_stable(path, byte_limit=PER_FILE):
+     """Open only the compiled absolute path, rejecting symlinks at each component."""
+     parts = path.split("/")
+     if parts[0] or any(p in ("", ".", "..") for p in parts[1:]):
+@@ -92,13 +94,14 @@
+         for component in parts[1:-1]:
+             held.append(os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                                 dir_fd=held[-1]))
+-        fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=held[-1])
++        fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=held[-1])
+         held.append(fd)
+         before = os.fstat(fd)
+         if not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid():
+             raise ValueError("capture is not an own regular file")
+-        if before.st_size > PER_FILE:
+-            raise ValueError("capture exceeds per-file bound")
++        if before.st_size > min(PER_FILE, byte_limit):
++            raise ValueError("capture size %d exceeds remaining bound %d" %
++                             (before.st_size, min(PER_FILE, byte_limit)))
+         chunks = []
+         remaining = before.st_size + 1
+         while remaining:
+@@ -137,51 +140,62 @@
+ 
+ 
+ def collect():
+-    raw, meta_entry = read_stable(OUT + "/meta.json")
+-    meta = terminal_metadata(raw)
+-    files = {"meta.json": meta_entry}
++    files = {}
+     missing = []
+-    total = len(raw)
+-    paths = [(name, OUT + "/" + name) for name in (
+-        "cmd.txt", "workdir.txt", "pre.txt", "post.txt", "rss.tsv", "time.txt",
+-        "synced-commit.txt", "projection.txt")]
+-    paths += [("program.log", "/home/kmihara/hekit-runs/logs/" + JOB + ".log"),
+-              (RESULT, WORKDIR + "/results/quadruped/" + RESULT)]
+-    for name, path in paths:
+-        try:
+-            data, entry = read_stable(path)
+-        except FileNotFoundError:
+-            missing.append(name)
+-            continue
++    total = 0
++    stage, current_path = "initial-metadata", OUT + "/meta.json"
++    capture = {
++        "kind": "operational_collection_refusal", "job": JOB,
++        "scientific_acceptance": False, "files": files,
++        "missing_artifacts": missing, "exit_code": 2,
++    }
++
++    def take(name, path):
++        nonlocal total, current_path
++        current_path = path
++        data, entry = read_stable(path, byte_limit=TOTAL - total)
+         total += len(data)
+-        if total > TOTAL:
+-            raise ValueError("aggregate capture bound exceeded")
+-        if name == "cmd.txt":
+-            command_identity(data.decode().strip())
+-        if name == "workdir.txt" and data.decode().strip() != WORKDIR:
+-            raise ValueError("workdir.txt mismatch")
++        # Retain before any semantic parse or comparison can refuse.
+         files[name] = entry
+-    final_raw, final_entry = read_stable(OUT + "/meta.json")
+-    if final_raw != raw or final_entry["read_stamp"] != meta_entry["read_stamp"]:
+-        raise ValueError("terminal metadata changed during collection")
+-    required = {"cmd.txt", "workdir.txt", "program.log", RESULT}
+-    complete = not (required & set(missing))
+-    runner_success = meta["exit_status"] == 0 and meta["watchdog_killed"] is False
+-    return {
+-        "kind": "operational_capture_not_scientific_result",
+-        "observed_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+-        "job": JOB, "runner_success": runner_success,
+-        "required_artifacts_present": complete,
+-        "scientific_acceptance": False,
+-        "missing_artifacts": missing, "files": files,
+-    }
++        return data, entry
++
++    try:
++        raw, meta_entry = take("meta.json", OUT + "/meta.json")
++        meta = terminal_metadata(raw)
++        paths = [(name, OUT + "/" + name) for name in (
++            "cmd.txt", "workdir.txt", "pre.txt", "post.txt", "rss.tsv", "time.txt",
++            "synced-commit.txt", "projection.txt")]
++        paths += [("program.log", "/home/kmihara/hekit-runs/logs/" + JOB + ".log"),
++                  (RESULT, WORKDIR + "/results/quadruped/" + RESULT)]
++        stage = "terminal-artifacts"
++        for name, path in paths:
++            try:
++                data, entry = take(name, path)
++            except FileNotFoundError:
++                missing.append(name)
++                continue
++            if name == "cmd.txt":
++                command_identity(data.decode().strip())
++            if name == "workdir.txt" and data.decode().strip() != WORKDIR:
++                raise ValueError("workdir.txt mismatch")
++        stage = "final-metadata"
++        final_raw, final_entry = take("meta.final.json", OUT + "/meta.json")
++        if final_raw != raw or final_entry["read_stamp"] != meta_entry["read_stamp"]:
++            raise ValueError("terminal metadata changed during collection")
++        required = {"cmd.txt", "workdir.txt", "program.log", RESULT}
++        complete = not (required & set(missing))
++        runner_success = meta["exit_status"] == 0 and meta["watchdog_killed"] is False
++        capture.update(kind="operational_capture_not_scientific_result",
++                       runner_success=runner_success, required_artifacts_present=complete,
++                       exit_code=0 if runner_success and complete else 3)
++    except (OSError, ValueError, TypeError) as error:
++        capture["error"] = {"stage": stage, "path": current_path,
++                            "type": type(error).__name__, "message": str(error)}
++    capture["observed_utc"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
++    return capture
+ 
+ 
+ if __name__ == "__main__":
+-    try:
+-        capture = collect()
+-    except (OSError, ValueError, TypeError) as error:
+-        print(json.dumps({"kind": "operational_collection_refusal", "error": str(error)}))
+-        sys.exit(2)
++    capture = collect()
+     print(json.dumps(capture, separators=(",", ":")))
+-    sys.exit(0 if capture["runner_success"] and capture["required_artifacts_present"] else 3)
++    sys.exit(capture["exit_code"])
+--- initial/task-42-full2-terminal-collector-tests.py
++++ fix1/task-42-full2-terminal-collector-tests.py
+@@ -4,6 +4,11 @@
+ from pathlib import Path
+ import tempfile
+ import unittest
++from unittest.mock import patch
++import base64
++import os
++import subprocess
++import sys
+ 
+ SOURCE = Path(__file__).with_name("task-42-full2-terminal-collector.remote.py")
+ spec = importlib.util.spec_from_file_location("full2_collection", SOURCE)
+@@ -27,6 +32,73 @@
+ 
+ 
+ class Decisions(unittest.TestCase):
++    def entry(self, data, path):
++        return data, {"remote_path": path, "bytes": len(data), "read_stamp": [1],
++                      "base64": base64.b64encode(data).decode()}
++
++    def test_refused_initial_metadata_retains_bytes(self):
++        active = metadata(); del active["end"]
++        for raw in (json.dumps(active).encode(), b"{bad", b"[]", b"null"):
++            with self.subTest(raw=raw), patch.object(m, "read_stable", return_value=self.entry(raw, m.OUT + "/meta.json")):
++                result = m.collect()
++                self.assertEqual(result["kind"], "operational_collection_refusal")
++                self.assertEqual(base64.b64decode(result["files"]["meta.json"]["base64"]), raw)
++                self.assertIs(result["scientific_acceptance"], False)
++
++    def test_offending_command_and_earlier_metadata_retained(self):
++        raw = json.dumps(metadata()).encode()
++        bad_command = b"./target/release/mnist --batch 64"
++        def read(path, **kwargs):
++            return self.entry(raw if path.endswith("/meta.json") else bad_command, path)
++        with patch.object(m, "read_stable", side_effect=read):
++            result = m.collect()
++        self.assertEqual(result["kind"], "operational_collection_refusal")
++        self.assertEqual(set(result["files"]), {"meta.json", "cmd.txt"})
++        self.assertEqual(base64.b64decode(result["files"]["cmd.txt"]["base64"]), bad_command)
++
++    def test_later_io_error_preserves_prior_bytes(self):
++        raw = json.dumps(metadata()).encode()
++        def read(path, **kwargs):
++            if path.endswith("/meta.json"):
++                return self.entry(raw, path)
++            raise PermissionError("local test refusal")
++        with patch.object(m, "read_stable", side_effect=read):
++            result = m.collect()
++        self.assertEqual(result["kind"], "operational_collection_refusal")
++        self.assertEqual(set(result["files"]), {"meta.json"})
++        self.assertEqual(result["error"]["path"], m.OUT + "/cmd.txt")
++
++    def test_final_metadata_drift_retains_both_observations(self):
++        initial = json.dumps(metadata()).encode()
++        item = metadata(); item["exit_status"] = 1
++        final = json.dumps(item).encode()
++        count = 0
++        def read(path, **kwargs):
++            nonlocal count
++            if path.endswith("/meta.json"):
++                count += 1
++                return self.entry(initial if count == 1 else final, path)
++            if path.endswith("/cmd.txt"):
++                return self.entry(command().encode(), path)
++            if path.endswith("/workdir.txt"):
++                return self.entry(m.WORKDIR.encode(), path)
++            return self.entry(b"local opaque test bytes", path)
++        with patch.object(m, "read_stable", side_effect=read):
++            result = m.collect()
++        self.assertEqual(result["kind"], "operational_collection_refusal")
++        self.assertEqual(base64.b64decode(result["files"]["meta.json"]["base64"]), initial)
++        self.assertEqual(base64.b64decode(result["files"]["meta.final.json"]["base64"]), final)
++        self.assertIn(m.RESULT, result["files"])
++
++    def test_fifo_refuses_without_writer(self):
++        with tempfile.TemporaryDirectory(prefix="full2-collector-test-") as directory:
++            fifo = Path(directory).resolve() / "fifo"; os.mkfifo(fifo)
++            child = "import runpy,sys; m=runpy.run_path(sys.argv[1]); m['read_stable'](sys.argv[2])"
++            completed = subprocess.run([sys.executable, "-B", "-c", child, str(SOURCE), str(fifo)],
++                                       capture_output=True, timeout=2)
++            self.assertNotEqual(completed.returncode, 0)
++            self.assertIn(b"not an own regular file", completed.stderr)
++
+     def test_flag_order_is_not_identity(self):
+         self.assertEqual(m.command_identity(command(list(reversed(list(m.EXPECTED.items()))))), m.EXPECTED)
+ 

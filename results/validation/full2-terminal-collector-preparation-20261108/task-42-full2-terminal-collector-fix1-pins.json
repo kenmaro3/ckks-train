@@ -1,0 +1,32 @@
+[
+  {
+    "path": "task-42-full2-terminal-collector.remote.py",
+    "bytes": 8408,
+    "sha256": "50f2cf22ca3f540a86117c06664c6606f23fd9e2532f72cfa2eaabea168058ef"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-tests.py",
+    "bytes": 7831,
+    "sha256": "95d0ad7c9adc04aa9e753b84453a6da326bc6682c12331acd3e626b05b24b587"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-fix1-red.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-fix1-red.stderr",
+    "bytes": 14346,
+    "sha256": "97599cc4cc217327db97fdc4fbd0d7b372fb00bfa75859e35baeb999a1dc10ce"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-fix1-green.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "task-42-full2-terminal-collector-fix1-green.stderr",
+    "bytes": 1507,
+    "sha256": "385bdbee219604bbe4a75999e57a029ff9d02046c973ec425b4b90626c8c66f0"
+  }
+]
