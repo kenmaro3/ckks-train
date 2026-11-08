@@ -1,0 +1,39 @@
+{
+  "job": "R-47-3-tests",
+  "rc": 0,
+  "wrapper_rc": 0,
+  "status": "done_with_skips",
+  "skip": true,
+  "skip_lines": [
+    "test matvec_d64_matches_cpu_n16_train_full ... SKIP matvec_d64_matches_cpu_n16_train_full: needs 8436.0 MiB of GPU memory, only 2485.9 MiB free",
+    "test sequence_and_counts_match_cpu_n16_train_full_keys ... SKIP sequence_and_counts_match_cpu_n16_train_full_keys: needs 2868.0 MiB of GPU memory, only 2485.9 MiB free",
+    "test hoisted_rotate_16_matches_cpu_n16_train ... SKIP hoisted_rotate_16_matches_cpu_n16_train: needs 5816.0 MiB of GPU memory, only 2485.9 MiB free"
+  ],
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "hekit-cuda",
+    "--features",
+    "cuda",
+    "--release",
+    "--",
+    "--ignored",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "workdir": "/home/kmihara/hekit-post-full-clones/hekit-post-full-r47",
+  "log": "/home/kmihara/hekit-runs/logs/R-47-3-tests.log",
+  "evidence_lines": [
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s",
+    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 1.97s",
+    "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.68s",
+    "test matvec_d64_matches_cpu_n16_train_full ... SKIP matvec_d64_matches_cpu_n16_train_full: needs 8436.0 MiB of GPU memory, only 2485.9 MiB free",
+    "test sequence_and_counts_match_cpu_n16_train_full_keys ... SKIP sequence_and_counts_match_cpu_n16_train_full_keys: needs 2868.0 MiB of GPU memory, only 2485.9 MiB free",
+    "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 147.44s",
+    "test hoisted_rotate_16_matches_cpu_n16_train ... SKIP hoisted_rotate_16_matches_cpu_n16_train: needs 5816.0 MiB of GPU memory, only 2485.9 MiB free",
+    "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.41s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s"
+  ]
+}

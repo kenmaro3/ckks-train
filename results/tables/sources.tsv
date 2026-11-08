@@ -900,8 +900,241 @@ gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	146x / 
 gpu_vs_cpu_ops	matvec_enc d = 64 (capped keys)	GPU speed-up (1 / 12 thr)	146x / 33x	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/cpu_12t_matvec_enc_d64_L5/new/estimates.json	median.point_estimate	
 gpu_vs_cpu_ops	matvec_enc x4, 1 stream (sequential)	hekit GPU	34.994	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_x4_L5/new/estimates.json	median.point_estimate	
 gpu_vs_cpu_ops	matvec_enc x4, 4 streams (untuned R-47-2)	hekit GPU	41.673	results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/gpu_matvec_enc_batch4_L5/new/estimates.json	median.point_estimate	
-gpu_vs_cpu_ops	note 1			results/reference/literature.json	heongpu_rtx4090[0].source	
-gpu_vs_cpu_ops	note 1			results/reference/literature.json	heongpu_rtx4090[0].caveat	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 3	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 3	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool default)	hekit GPU	36.773	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 5	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 5	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool default)	hekit GPU	32.080	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 7	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool default)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 7	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool default)	hekit GPU	32.889	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 10	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	Operation	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 10	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc sequential x4, 1 stream (R-47-3, pool max)	hekit GPU	34.784	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 12	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 2 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 12	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc batch x4, 2 streams (R-47-3, pool max)	hekit GPU	29.173	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 14	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	Operation	matvec_enc batch x4, 4 streams (R-47-3, pool max)	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	Level	5	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 14	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	matvec_enc batch x4, 4 streams (R-47-3, pool max)	hekit GPU	28.821	results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	note 1			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 3	
+gpu_vs_cpu_ops	note 1			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 1			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	note 2			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 5	
+gpu_vs_cpu_ops	note 2			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 2			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	note 3			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 7	
+gpu_vs_cpu_ops	note 3			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 3			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 2	
+gpu_vs_cpu_ops	note 4			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 10	
+gpu_vs_cpu_ops	note 4			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 4			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	note 5			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 12	
+gpu_vs_cpu_ops	note 5			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 5			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	note 6			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 14	
+gpu_vs_cpu_ops	note 6			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 1	
+gpu_vs_cpu_ops	note 6			results/quadruped/raw/R-47-3/R-47-3-example/program.log	line 9	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	job	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	workdir	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	command	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	hekit_synced_commit	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	threads_cap	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	env_thread_caps	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	nice	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	gpu_job	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	start	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	end	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	wall_s_runner	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	exit_status	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	watchdog_killed	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	job	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	workdir	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	command	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	rc	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	wrapper_rc	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	status	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	skip_lines	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/state.json	log	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/post.txt	line 39	
+gpu_vs_cpu_ops	note 7			results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	line 1	
+gpu_vs_cpu_ops	note 8			results/quadruped/raw/R-47-3/R-47-3-example/program.log	raw bytes (SHA256 at table generation)	
+gpu_vs_cpu_ops	note 8			results/quadruped/raw/R-47-3/R-47-3-example/meta.json	raw bytes (SHA256 at table generation)	
+gpu_vs_cpu_ops	note 8			results/quadruped/raw/R-47-3/R-47-3-example/post.txt	raw bytes (SHA256 at table generation)	
+gpu_vs_cpu_ops	note 8			results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt	raw bytes (SHA256 at table generation)	
+gpu_vs_cpu_ops	note 8			results/quadruped/raw/R-47-3/R-47-3-example/state.json	raw bytes (SHA256 at table generation)	
+gpu_vs_cpu_ops	note 9			results/reference/literature.json	heongpu_rtx4090[0].source	
+gpu_vs_cpu_ops	note 9			results/reference/literature.json	heongpu_rtx4090[0].caveat	
 security	hekit (a): n16_boot main key	N	2^16	docs/security.md	line 281	
 security	hekit (a): n16_boot main key	log PQ	1732 (1731.998)	docs/security.md	line 281	
 security	hekit (a): n16_boot main key	Secret	dense ternary (P(±1) = 1/4 each, h ≈ N/2)	docs/security.md	line 281	

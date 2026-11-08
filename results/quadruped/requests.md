@@ -1279,3 +1279,15 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **output path:** ignored ledger `post-full-observation-20261108-2005.{stdout,stderr,meta.json}` with exclusive local launch receipt.
 - **pass criterion:** actual own process identity/state, result existence, bounded log tail and queue listing; operational only. No signals, builds, training, queue mutation or other users' process inspection.
 - **status:** executed once, exit0. Actual observation2026-11-08T20:06:14.668975+09:00: FULL2 finalJSON present and1000 updates complete, old chain absent, expected own queue live. R47 test/example/nsys and build plus R48 build entries present; no R48/R52 terminal entries. Names qualify collection, not scientific acceptance. [Original records](raw/R-41-FULL2-OBS-20261108-2005/README.md). FULL2 was then collected once; [raw output](raw/R-41-FULL-2/README.md) and [independent review](../validation/task42-full2-finalization-20261108/README.md). No job changes.
+
+## R-47-3-COLLECT-20261108: terminal read-only collection completed
+
+- **purpose:** Retrieve the existing R47 block after the released gate and terminal entries; no measurement rerun.
+- **commit to sync:** none; captured runner source bd5cc493db166a282d26b05b1e069f2a0ee629ef, tracked clean.
+- **working dir:** own `/home/kmihara/hekit-runs`, fixed post-full-v1 state and R47 clone.
+- **command:** ledger `task-47-terminal-controller.py post-full-observation-20261108-2005`, key-only SSH with `nice -n 10 /usr/bin/python3.14 -I -B -`; reviewed source11201bytes SHA8e40fb7efa1cfdb90f826fe4b8b8c6046a876616f695790d5e5c27975c2a0d5a.
+- **expected duration:** one short read-only collection,110s controller timeout applying only to its new local SSH child; no automatic retry.
+- **GPU memory need:**0; original capture bounded8MiB/file and32MiB total. No build/training/process changes.
+- **output path:** ledger `task-47-terminal-fetch-v1.*`, archived [transport/source](../validation/task47-r47-3-adoption-20261108/README.md) and [56 original files](raw/R-47-3/README.md).
+- **pass criterion:** stable own regular files, exact queue/runner/command/source identities, terminal records and byte hashes; scientific review separate.
+- **status:** executed once,2026-11-08T11:23:49.926921Z–11:24:30.276518Z, SSH/controller exit0, timeout false. Remote capture11:24:26.328033Z,56 originals/108427bytes. Build/example/nsys/tests all exit0; tests done_with_skips. No R48/R52 artifacts or profiler binaries collected. M4/derived tables reflect six unprofiled medians; old R47-2 retained separately.

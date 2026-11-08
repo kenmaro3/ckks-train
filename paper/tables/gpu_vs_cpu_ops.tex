@@ -2,7 +2,7 @@
 \begin{table*}[t]
 \centering
 \scriptsize
-\caption{GPU vs CPU vs HEonGPU, n16\_train (R-47-2, criterion medians, ms)}
+\caption{GPU vs CPU vs HEonGPU, n16\_train (historical R-47-2 Criterion; R-47-3 example medians, ms)}
 \label{tab:gpu_vs_cpu_ops}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lrrrrrrr}
@@ -20,10 +20,23 @@ matvec\_enc d = 64 (capped keys) & 9 & 16.120 & 2523.223 & 547.762 & 157x / 34x 
 matvec\_enc d = 64 (capped keys) & 5 & 9.509 & 1391.064 & 314.649 & 146x / 33x & none published & --- \\
 matvec\_enc x4, 1 stream (sequential) & 5 & 34.994 & --- & --- & --- & none published & --- \\
 matvec\_enc x4, 4 streams (untuned R-47-2) & 5 & 41.673 & --- & --- & --- & none published & --- \\
-matvec\_enc x4, re-measured after the fix round & 5 & pending (R-47-3) & --- & --- & --- & --- & --- \\
+matvec\_enc sequential x4, 1 stream (R-47-3, pool default) & 5 & 36.773 & --- & --- & --- & none published & --- \\
+matvec\_enc batch x4, 2 streams (R-47-3, pool default) & 5 & 32.080 & --- & --- & --- & none published & --- \\
+matvec\_enc batch x4, 4 streams (R-47-3, pool default) & 5 & 32.889 & --- & --- & --- & none published & --- \\
+matvec\_enc sequential x4, 1 stream (R-47-3, pool max) & 5 & 34.784 & --- & --- & --- & none published & --- \\
+matvec\_enc batch x4, 2 streams (R-47-3, pool max) & 5 & 29.173 & --- & --- & --- & none published & --- \\
+matvec\_enc batch x4, 4 streams (R-47-3, pool max) & 5 & 28.821 & --- & --- & --- & none published & --- \\
 \bottomrule
 \end{tabular}}
 \par\smallskip\begin{minipage}{\linewidth}\scriptsize
+matvec\_enc sequential x4, 1 stream (R-47-3, pool default): min 36.693 ms; SD 0.203 ms; 30 within-run repetitions.\par
+matvec\_enc batch x4, 2 streams (R-47-3, pool default): min 31.841 ms; SD 0.652 ms; 30 within-run repetitions.\par
+matvec\_enc batch x4, 4 streams (R-47-3, pool default): min 32.087 ms; SD 0.235 ms; 30 within-run repetitions.\par
+matvec\_enc sequential x4, 1 stream (R-47-3, pool max): min 34.664 ms; SD 0.209 ms; 30 within-run repetitions.\par
+matvec\_enc batch x4, 2 streams (R-47-3, pool max): min 28.940 ms; SD 0.222 ms; 30 within-run repetitions.\par
+matvec\_enc batch x4, 4 streams (R-47-3, pool max): min 28.502 ms; SD 0.227 ms; 30 within-run repetitions.\par
+R-47-3 uses example medians, minima and population SD over 30 timed repetitions after 3 warmups, with device synchronization inside each timing; not 30 independent seeds. Successful child completion includes the producer assertions of batch/sequential residue equality. CPU setup seconds are not CPU matvec latency; these are not end-to-end training and not GPU peak measurements. R-47-2 Criterion rows remain historical; no unlike-run CPU speedups or HEonGPU ratios are computed for R-47-3.\par
+R-47-3 original terminal provenance is checked here; scientific acceptance remains a separate review. Input capture-time SHA256 (not historical execution proof): results/quadruped/raw/R-47-3/R-47-3-example/program.log = 7ce4fe8d3a63f3391117ae050e1cfbf200d0131d5902315cb59ddf3fdd54e3a5; results/quadruped/raw/R-47-3/R-47-3-example/meta.json = af432f72f440560911e16feebfc047258c822f756fdb6cc234c713eaad100a49; results/quadruped/raw/R-47-3/R-47-3-example/post.txt = 87927caf5dd61c87a02f350f687e37f490a709e4dd5d090aae28bd2e3fb76a9d; results/quadruped/raw/R-47-3/R-47-3-example/cmd.txt = f60c0ae8a42744499de58ff24c95db487dd8af0afc63c49feca3b5313d68f54c; results/quadruped/raw/R-47-3/R-47-3-example/state.json = 4e6a087ccd329bf1e25585c4f44fa36abcdc484f42eadc92a01597053e5b475a\par
 HEonGPU relinearize: Ozcan and Savas, GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes, IACR ePrint 2025/124, Table 3: CKKS relinearization on a GeForce RTX 4090, log N = 16, 43-bit precision, Method II (hybrid), (I, l\textasciitilde{}, l) = (4, 40, 36), level 35. Author-deposited manuscript dated November 2024, verified in Sabanci University repository 53894 on 2026-11-08. Caveat: not the same parameters as n16\_train (36 vs 32 Q primes, 4 special primes; I = 4 primes per digit corresponds to alpha = 4, not four digits; n16\_train uses dnum 8); the ratio is nominal. Scaling key switching linearly in l gives about 2.30 ms at l = 32 and a ratio of about 2.0x (docs/m4-report.md section 1.1). ePrint 2024/1543 could not be read (HTTP 403), so other HEonGPU operation values are unconfirmed. The source states that Method II/III use lower security than its 128-bit Method I comparison, with an approximately 110-bit minimum across experiments; this is not a matched-security comparison.\par
 Capped keys: the input is dropped to level 9 or 5 and the keys are cut to that level (faithful for that level, not the top-level cost); the CPU uses full keys at the same level. The shared RTX 4090 had 2-3 GiB free, so full-key GPU rows that need more were skipped.\par
 \end{minipage}

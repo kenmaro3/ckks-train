@@ -1,0 +1,1 @@
+/usr/local/cuda-13.1/bin/nsys profile --trace=cuda --force-overwrite=true -o results/quadruped/raw/R-47-3/r47_3_batch target/release/examples/batch_streams 

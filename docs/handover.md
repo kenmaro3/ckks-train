@@ -12,10 +12,10 @@
 - **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **ckks-train**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
 - **主ベースライン**: ReBoot(AAAI-26、OpenFHE、GPL-3.0。実行のみ、コードは一切取り込まない)。
 - **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
-- **進捗**: FULL-1 / FULL-2の元結果を回収し、Task42のM3最終判定と表へ反映。独立数値レビュー・最終文書レビューとも合格。後続R47/R48/R52キューは待機を解除し、R47の終端記録が現れた。Task54の全実験行列の実行経路は実装中。公開プレビューは存在するが、M4/M5全体・stable v1.0・arXiv投稿は未完。
+- **進捗**: FULL-1 / FULL-2の元結果を回収し、Task42のM3最終判定と表へ反映。独立数値レビュー・最終文書レビューとも合格。後続キューは待機を解除し、R47修正後の結果を回収・M4へ反映した。Task54の全実験行列の実行経路は実装中。公開プレビューは存在するが、M4/M5全体・stable v1.0・arXiv投稿は未完。
 - **RQ1判定**: FULL-1（196入力、B=64）はKS比4通り合格。FULL-2（B=48）は精度0.9035対ReBoot公開コードseed0=0.9041、差−0.06ptで合格。KS比(a/c/d)合格、(b)=0.781062は未達。全長ReBoot CPU時間は未計測、セキュリティ同条件は未達で、総合合格とはしない。[M3確定判定](m3-report.md)。
 - **GitHub**: [kenmaro3/ckks-train](https://github.com/kenmaro3/ckks-train)は2026-11-08に**研究プレビューとして公開済み**。PDFを含む[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)も10:42 JSTに公開済み（固定6fba46c）。arXivは未投稿。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`。[公開証跡](../results/validation/research-preview-publication-20261108/README.md)。
-- **現在の測定**: 2026-11-08 20:06 JSTにFULL-2の1000/1000更新・最終JSONを確認し、runner exit0の元12ファイルを回収した。後続queueはR47 tests/example/nsys・R47/R48 build記録あり。R47の内容確認とR48/R52の終端回収はこれからで、ファイル名だけで測定成功としない。
+- **現在の測定**: 2026-11-08 20:06 JSTにFULL-2の1000/1000更新・最終JSONを確認し、runner exit0の元12ファイルを回収した。後続queueはR47 tests/example/nsys・R47/R48 build記録あり。R47はその後20:24 JSTに回収し、低レベル独立4積の遅延低減と45ok中3SKIPを確認した。R48/R52の終端回収はこれから。
 - **公開候補の検証**: Macの固定ソース00f4409は1,025合格・0失敗・19未実行。strict Clippy、文書リンク修正後のstrict rustdoc、表の再生成・整合性検査も、それぞれの記録対象で合格。公開版6fba46cの[Linux CI](https://github.com/kenmaro3/ckks-train/actions/runs/42433577945)は全6ジョブ成功、workspace集計1,028合格・0失敗・47 ignored。[配布・匿名PDF取得の検証](../results/validation/research-preview-public-release-6fba46c/README.md)も完了。各commit・OSの範囲を分け、研究結果の合格とは混同しない。
 - **追加コード**: Task54 CPU supervisor Step2のsourceをレビュー後に採用。[検証・修正記録](../results/validation/task54-d7-cpu-supervisor/README.md)。履歴・最終sample・clock fault、private FD継承・制御EOFの修正に加え、全bench回帰で見つかったCLI診断の期待値を修正し、通常/parallel/CUDAのfocused試験と再レビューに合格した。Linux native実行・clean build receipt・Step3/4・全行列は未完。公開済みプレビュー6fba46cにはこの追加sourceを含めない。
 
@@ -1255,3 +1255,8 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 [実観測](../results/quadruped/raw/R-41-FULL2-OBS-20261108-2005/README.md)の後、[元12ファイル](../results/quadruped/raw/R-41-FULL-2/README.md)を一度だけ回収した。runner終了19:58:07 JST、exit0・watchdog未発動、1000更新/48000サンプル/1391540 KS/4000 bootstraps。精度0.9035、比較する公開コードseed0は0.9041で差−0.06pt。独立数値レビューは終端・bytes・計数・指定精度を合格とし、比(b)未達と同一security未達・全長ReBoot時間未計測を残した。[レビュー・集計・transport](../results/validation/task42-full2-finalization-20261108/README.md)。`scripts/run_all.sh --tables-only`から7表を再生成済み。Task42の最終文書レビューも合格し、この結果・文書をcommit対象とした。全研究の完了ではない。
 
 後続queueは20:06観測で同じownerが稼働し、R47 tests/example/nsys・R47/R48 buildの記録が現れた。R47内容は未回収、R48/R52終端は未確認。Task54 Step3は別のsource作業であり、本結果の合格を適用しない。最新commit8b85257の[CI42472500254](https://github.com/kenmaro3/ckks-train/actions/runs/42472500254)は全6ジョブ成功したが、現在の未commit変更やGPU測定を検証したものではない。
+
+<a id="latest-evidence-20261108-r47-terminal"></a>
+## 2026-11-08 20:24 JST: R-47-3回収・M4更新
+
+[元56ファイル](../results/quadruped/raw/R-47-3/README.md)を一度だけ回収し、captureと全bytesを照合した。修正後source bd5cc493db166a282d26b05b1e069f2a0ee629efのexampleはn16_train/d64/level5/独立4積、30反復。逐次/2/4streamsの中央値はdefault36.773/32.080/32.889ms、max34.784/29.173/28.821ms。同じ閾値内で約11〜17%の遅延低減を得た。testsは45ok中3SKIPで42実行。nsysの5反復時間は表に混ぜず、profileバイナリ未回収・内訳未解析を残す。[M4](m4-report.md)に反映し生成表を更新した。これは訓練性能やGPUピーク測定ではなく、訓練の逐次実行・trim_pool(0)規則を変更しない。R48/R52の終端はこの回収には含めていない。

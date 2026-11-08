@@ -1,0 +1,15 @@
+batch_streams: n16_train, d = 64, level 5, 4 products, 30 reps; CPU setup 14.7 s
+pool release threshold: default (268435456 bytes)
+[default] sequential x4, 1 stream:   median   36.773 ms  min   36.693  sd  0.203  (9.193 ms per product)
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB
+[default] batch x4, 2 streams:    median   32.080 ms  min   31.841  sd  0.652
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB
+[default] batch x4, 4 streams:    median   32.889 ms  min   32.087  sd  0.235
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB
+pool release threshold: max (18446744073709551615 bytes)
+[max] sequential x4, 1 stream:   median   34.784 ms  min   34.664  sd  0.209  (8.696 ms per product)
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB
+[max] batch x4, 2 streams:    median   29.173 ms  min   28.940  sd  0.222
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB
+[max] batch x4, 4 streams:    median   28.821 ms  min   28.502  sd  0.227
+  device: NVIDIA GeForce RTX 4090 (sm_89), available after: 1980 MiB

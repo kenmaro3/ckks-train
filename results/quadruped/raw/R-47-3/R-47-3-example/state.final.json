@@ -1,0 +1,14 @@
+{
+  "job": "R-47-3-example",
+  "rc": 0,
+  "wrapper_rc": 0,
+  "status": "done",
+  "skip": false,
+  "skip_lines": [],
+  "command": [
+    "target/release/examples/batch_streams"
+  ],
+  "workdir": "/home/kmihara/hekit-post-full-clones/hekit-post-full-r47",
+  "log": "/home/kmihara/hekit-runs/logs/R-47-3-example.log",
+  "evidence_lines": []
+}

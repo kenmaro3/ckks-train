@@ -1,0 +1,1 @@
+cargo build -p hekit-cuda --features cuda --release --example batch_streams 

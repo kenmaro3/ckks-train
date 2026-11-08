@@ -1,0 +1,22 @@
+{
+  "job": "post-full-r47-build",
+  "rc": 0,
+  "wrapper_rc": 0,
+  "status": "done",
+  "skip": false,
+  "skip_lines": [],
+  "command": [
+    "cargo",
+    "build",
+    "-p",
+    "hekit-cuda",
+    "--features",
+    "cuda",
+    "--release",
+    "--example",
+    "batch_streams"
+  ],
+  "workdir": "/home/kmihara/hekit-post-full-clones/hekit-post-full-r47",
+  "log": "/home/kmihara/hekit-runs/logs/post-full-r47-build.log",
+  "evidence_lines": []
+}

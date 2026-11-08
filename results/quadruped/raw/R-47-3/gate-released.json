@@ -1,0 +1,16 @@
+{
+  "at": 1794135497.2365448,
+  "config": {
+    "runs": "/home/kmihara/hekit-runs",
+    "full_tree": "/home/kmihara/hekit-r41full",
+    "full_commit": "ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f",
+    "not_before_epoch": 1793917065.19,
+    "chain_pid": 1700979,
+    "chain_start_ticks": "465769819",
+    "chain_log": "/home/kmihara/hekit-runs/logs/chain10.log",
+    "bundle": "/home/kmihara/hekit-runs/post-full-09202cf.bundle",
+    "bundle_sha256": "bf6d2a5c5414fd7ba9f0aaacf2223addf56691483b10de7022fc734e88bdf91d",
+    "clone_root": "/home/kmihara/hekit-post-full-clones",
+    "state": "/home/kmihara/hekit-runs/post-full-v1"
+  }
+}
