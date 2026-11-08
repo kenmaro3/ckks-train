@@ -1,0 +1,62 @@
+{
+  "kind": "read_only_job_observation_not_scientific_result",
+  "observed_unix": 1794137521.6589909,
+  "nice": 10,
+  "uid": 1000,
+  "processes": [
+    {
+      "pid": 1700979,
+      "exists": false,
+      "expected_start_ticks": "465769819"
+    },
+    {
+      "pid": 1739838,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "467041669",
+      "uid": 1000,
+      "expected_start_ticks": "467041669",
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/python3.14",
+      "children": [
+        2380095
+      ]
+    }
+  ],
+  "direct_children": [
+    {
+      "pid": 2380095,
+      "exists": true,
+      "state": "S",
+      "start_ticks": "487647477",
+      "uid": 1000,
+      "expected_start_ticks": null,
+      "matching_own_live_process": true,
+      "executable": "/usr/bin/bash",
+      "children": [
+        2380110,
+        2387162
+      ]
+    }
+  ],
+  "full2_log_path": "/home/kmihara/hekit-runs/logs/R-41-FULL-2.log",
+  "full2_log_tail": [
+    "mnist: epoch 0 update 996 (48 samples, 1 cts): 147.4 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 145830 s, load 1.79 2.86 3.24 1/1431 2372137",
+    "mnist: epoch 0 update 997 (48 samples, 1 cts): 147.7 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 145978 s, load 2.53 2.93 3.21 1/1430 2372552",
+    "mnist: epoch 0 update 998 (48 samples, 1 cts): 151.3 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 146130 s, load 6.71 3.88 3.48 5/1446 2373892",
+    "mnist: epoch 0 update 999 (48 samples, 1 cts): 155.5 s, 1415 KS (4 bootstraps, weights booted), matches prediction true; elapsed 146285 s, load 5.06 4.14 3.63 2/1445 2375591",
+    "mnist: 1000 updates, 48000 samples in 146229.9 s; 1391540 KS = 28.990/sample incl. 4000 bootstraps (predicted 28.990, model 27.396); matches true; max |W_he - W_twin| = 6.6250310331289475e-3",
+    "mnist: wrote results/quadruped/mnist196_ni_b48_full_seed0.json"
+  ],
+  "full2_result_path": "/home/kmihara/hekit-r41full/results/quadruped/mnist196_ni_b48_full_seed0.json",
+  "full2_result_exists": true,
+  "queue_entries": [
+    "R-47-3-example.json",
+    "R-47-3-nsys.json",
+    "R-47-3-tests.json",
+    "gate-released.json",
+    "owner.json",
+    "post-full-r47-build.json",
+    "post-full-r48-build.json"
+  ]
+}

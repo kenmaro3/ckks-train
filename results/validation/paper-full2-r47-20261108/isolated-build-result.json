@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/bin/universal-darwin/latexmk",
+    "-pdf",
+    "-interaction=nonstopmode",
+    "-halt-on-error",
+    "-no-shell-escape",
+    "-outdir=/Volumes/Untitled/ckks-train-storage/archives/arxiv-source-full2-r47-20261108/build",
+    "main.tex"
+  ],
+  "cwd": "/Volumes/Untitled/ckks-train-storage/archives/arxiv-source-full2-r47-20261108/source",
+  "started_utc": "2026-11-08T11:40:23.789292+00:00",
+  "arxiv_server_build": false,
+  "exit_code": 0,
+  "finished_utc": "2026-11-08T11:40:28.069507+00:00",
+  "extracted_text_identical": true,
+  "pdf_sha256": "080ff157b790d4533c2768d1d64e00e27172d68ad3837cc69831f45e79195cfe",
+  "text_sha256": "af706d6c7f75165d824eab573ec0fcd8a12dfca8fc1329dbbf8160118b636975"
+}

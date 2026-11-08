@@ -1,0 +1,89 @@
+{
+  "kind": "local_artifact_validation_not_scientific_result",
+  "checked_utc": "2026-11-08T11:41:32.275628+00:00",
+  "source_head": "b7c51dd3f03f416637e1379c0fc35bbd806c3b99",
+  "pages": [
+    {
+      "page": 1,
+      "direct_png_sha256": "00fe36db483cbf2f140d8f89bae6484b8fdfa8b3f9bacff5046f5f3322e27612",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 2,
+      "direct_png_sha256": "5f7d733f20255b9bb37a2ab03b98b0a26fe6b26e7aafcbc4146d679659c9363a",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 3,
+      "direct_png_sha256": "9efd42d49d540ba5fff39a7eef61815e879230c2f9107d81291ae2dc10b9eaf4",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 4,
+      "direct_png_sha256": "d01c0caba8469f34beca8b05e8e3d2df074b381f6703012a5781d21939c41bec",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 5,
+      "direct_png_sha256": "da77a89e9ec36d7d7d89ba75c64a6ff2447f0cae93f2599c97e055fbba9a751c",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 6,
+      "direct_png_sha256": "0a247fcd19376e673f4678f993bfbdbca9135b98db3ffd8a779e5e215dcb20e5",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 7,
+      "direct_png_sha256": "1e9527f42f3edc11ce7276c3a5df46ee3b3db453db827a8ea0e58cf71ba62aed",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 8,
+      "direct_png_sha256": "1a136d89195358dbdf555682a2e57d9f9b2e824449754ee71b74dba4e224ff49",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 9,
+      "direct_png_sha256": "e33e216cd0d0332f86e0664775b1a957058deda6a816388d8047a9e0ffb2b7e9",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": true
+    },
+    {
+      "page": 10,
+      "direct_png_sha256": "f466991611bfb96814ed10b8e663ed85a643ccc22a99195e6baef29eb710a932",
+      "isolated_render_identical": true,
+      "previous_reviewed_render_identical": false
+    }
+  ],
+  "visual_review": "Root inspected initial pages 1-11. Final pages 1-9 are byte-identical rendered PNGs; final page 10 inspected separately. No clipped/overlapping content. Dense full-width tables remain readable on zoom. Shortened only final repository notice to remove orphan two-line page 11. No fonts/margins changed.",
+  "log_checks": [
+    {
+      "path": "/Volumes/Untitled/ckks-train-storage/exports/paper-full2-r47-20261108-final/arxiv-wrapper.log",
+      "blocking_warnings": [],
+      "warnings": [
+        "Package epstopdf Warning: Shell escape feature is not enabled.",
+        "LaTeX Warning: Text page 5 contains only floats."
+      ]
+    },
+    {
+      "path": "/Volumes/Untitled/ckks-train-storage/archives/arxiv-source-full2-r47-20261108/build/main.log",
+      "blocking_warnings": [],
+      "warnings": [
+        "Package epstopdf Warning: Shell escape feature is not enabled.",
+        "LaTeX Warning: Text page 5 contains only floats."
+      ]
+    }
+  ],
+  "metadata_abstract_exact": true,
+  "arxiv_server_build": false,
+  "new_publication": false
+}

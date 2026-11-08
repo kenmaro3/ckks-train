@@ -1,0 +1,28 @@
+{
+  "kind": "validation_not_scientific_result",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "tools/paper_tables.py",
+        "--check"
+      ],
+      "observed_exit_code": 0,
+      "evidence_tool_chunk": "08116d",
+      "stdout": "",
+      "scope": "generated artifacts only"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/figs.py",
+        "--check"
+      ],
+      "observed_exit_code": 0,
+      "evidence_tool_chunk": "08116d",
+      "stdout": "checked 3 figure artifacts; raw results unchanged\n",
+      "scope": "generated artifacts only"
+    }
+  ],
+  "metadata_sha256": "9f9cdf9a3faa3f804c7f748a38a6ddbf7ff13f9f7635ed33b13422a02b928773"
+}

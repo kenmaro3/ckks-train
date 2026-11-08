@@ -1,0 +1,20 @@
+Title:           Revisiting Diagonal Packing for Non-Interactive Encrypted Neural Network Training
+Subject:         -  Security and privacy  ->  Cryptography.-  Computing methodologies  ->  Neural networks.
+Creator:         LaTeX with acmart 2026/11/01 v2.21 Typesetting articles for the Association for Computing Machinery and hyperref 2026-10-09 v7.01s Hypertext links for LaTeX
+Producer:        pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) kpathsea version 6.4.2
+CreationDate:    Sun Nov  8 20:39:36 2026 JST
+ModDate:         Sun Nov  8 20:39:36 2026 JST
+Custom Metadata: yes
+Metadata Stream: yes
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           10
+Encrypted:       no
+Page size:       612 x 792 pts (letter)
+Page rot:        0
+File size:       532092 bytes
+Optimized:       no
+PDF version:     1.7

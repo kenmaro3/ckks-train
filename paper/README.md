@@ -3,11 +3,12 @@
 The named 10-page [preview PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
 and [arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)
 were published on 2026-11-08 as `v1.0.0-preview.1`, source `6fba46c`.
-The sole author is Kentaro Mihara (Independent Researcher). This is the FULL-1
-interim paper; FULL-2 and later results remain pending. No arXiv submission or
+The sole author is Kentaro Mihara (Independent Researcher). The fixed public
+preview contains the FULL-1 interim paper. Current source also incorporates
+FULL-2 and R-47-3; GPU training and additional encrypted-model results remain pending. No arXiv submission or
 arXiv server build is claimed. The build notes below include earlier dated artifacts.
 
-Task56 owns `main.tex`, `sections/*.tex`, `refs.bib`, `figs/*`, and `tools/figs.py` plus its focused test. Task54 owns `tables/*` and `tools/paper_tables.py`; the paper consumes those outputs unchanged. This is a full English draft, not a submission-ready claim of research success. FULL-1 is completed partial full-setting evidence at B=64 with one initial-weight seed. FULL-2 remains the registered accuracy gate; full-setting ReBoot CPU timing, GPU training ablations, GPU bootstrap measurements and peak GPU memory remain unmeasured. The FULL-1 source/table update was rebuilt on 2026-11-07: anonymous and author-placeholder variants each have 10 pages. The reviewed anonymous output is `tools/latex/_ext/task56/full1-20261107/anonymous/main.pdf`; the placeholder format check is `tools/latex/_ext/task56/full1-20261107/authors/author-wrapper.pdf`. Anonymous pages 1–10 and the placeholder first page were visually inspected; both final logs have no overflow, undefined-reference/citation or missing-character errors. These checks do not close the remaining scientific gates.
+Task56 owns `main.tex`, `sections/*.tex`, `refs.bib`, `figs/*`, and `tools/figs.py` plus its focused test. Task54 owns `tables/*` and `tools/paper_tables.py`; the paper consumes those outputs unchanged. This is a full English draft, not a submission-ready claim of research success. FULL-1 and FULL-2 are completed full-setting runs at B64 and B48, each with initial-weight seed0. FULL-2 passes the registered accuracy gate but misses the common-baseline-bootstrap KS threshold; full-setting ReBoot CPU timing, GPU training ablations, GPU bootstrap measurements and peak GPU memory remain unmeasured. The FULL-1 source/table update was rebuilt on 2026-11-07: anonymous and author-placeholder variants each have 10 pages. The reviewed anonymous output is `tools/latex/_ext/task56/full1-20261107/anonymous/main.pdf`; the placeholder format check is `tools/latex/_ext/task56/full1-20261107/authors/author-wrapper.pdf`. Anonymous pages 1–10 and the placeholder first page were visually inspected; both final logs have no overflow, undefined-reference/citation or missing-character errors. These checks do not close the remaining scientific gates.
 
 ## Numerical sources and figures
 
@@ -71,7 +72,7 @@ The Task56 coordination report records the exact build, page count, log warnings
 
 ## Evidence and bibliography boundaries
 
-Current limitations are in section7 and the appendix, including security-model assumptions and practical memory caveats, asymmetric KAT coverage, earlier performance misses, inconsistent prior timing totals, interactive/diagnostic boundaries, batch-accuracy tradeoffs, and the fixed-epoch Breast Cancer miss. The paper does not claim equal-security superiority, completion of the registered FULL-2 accuracy gate, GPU training speedup, or GPU bootstrap performance. FULL-1 accuracy is reported as a separate larger-batch observation.
+Current limitations are in section7 and the appendix, including security-model assumptions and practical memory caveats, asymmetric KAT coverage, earlier performance misses, inconsistent prior timing totals, interactive/diagnostic boundaries, batch-accuracy tradeoffs, and the fixed-epoch Breast Cancer miss. The paper reports the completed FULL-2 accuracy gate and its failed common-baseline-bootstrap count criterion. It does not claim equal-security superiority, GPU training speedup, or GPU bootstrap performance. FULL-1 is reported as a separate larger-batch observation; its successful criteria are not combined with FULL-2 into a single all-conditions pass.
 
 References were verified against primary paper/publisher/author/project pages. The HEonGPU key-switch paper's Table3 was verified on2026-11-08 against the [author-deposited PDF](https://research.sabanciuniv.edu/id/eprint/53894/1/GPU%20Implementations.pdf), after direct ePrint access returned HTTP403. Its cover is dated November2024; its bibliographic year remains2025. The original2581.8us value is unchanged. The source's MethodII/III security differs from its MethodI comparison, so the paper retains a nominal, parameter-different comparison. The separate2024/1543 library paper remains unverified. HEonGPU's official bootstrap benchmark is a different remaining-level and main-secret workload. External ReBoot/OpenFHE implementation source was not copied into this artifact. The user approved one narrow Unicode-3.0 character-table exception for `unicode-ident=1.0.27`, with its complete Unicode notice, alongside the MIT/Apache/BSD/ISC policy. This is a package-and-version-specific exception, not general Unicode approval. The root release owner applies the cargo-deny rule and notices; no release policy is changed by this paper task.
 
@@ -118,3 +119,33 @@ All members were read back and matched to the selected source/bibliography.
 Building only its unpacked source succeeded; extracted PDF text matches the
 direct build. The published preview assets are unchanged. FULL-2/queued results,
 final evidence freeze and arXiv's own build/submission remain pending.
+
+## Local FULL-2 / R-47-3 update, 2026-11-08 20:40 JST
+
+The current named preprint includes both completed full-setting runs and the
+repaired independent-product GPU microbenchmark. It retains the unmet overall
+RQ1 criterion and pending GPU training/deeper encrypted-model measurements.
+The public preview release remains fixed at its earlier source.
+
+The verified local PDF is
+`/Volumes/Untitled/ckks-train-storage/exports/paper-full2-r47-20261108-final/arxiv-wrapper.pdf`
+(10 pages, 532,092 bytes, SHA256
+`9d896a45296754a22de0ba4a4daa5f832a7900f689b62363588a02d2eb22699c`).
+The first build had an eleventh page containing only the final repository notice;
+shortening that notice removed the orphan page without changing scientific claims,
+fonts, margins, tables or references. Final pages 1–9 render identically to the
+visually reviewed initial pages; final page 10 was inspected separately.
+
+The matching 19-member arXiv source ZIP is
+`/Volumes/Untitled/ckks-train-storage/archives/arxiv-source-full2-r47-20261108/ckks-train-arxiv-source.zip`
+(40,079 bytes, SHA256
+`2fa463bb471257b89d83414694de18f758bb40459e1b3e5e0f813297252a01c2`).
+Every member was read back and matched. Building only the unpacked package
+succeeded; extracted PDF text and all ten rendered pages match the direct build.
+Both logs have no overflow, missing-character or undefined-reference/citation
+warning. The disabled-shell-escape and float-page warnings were inspected.
+This validates the local TeX Live 2026/acmart 2.21 toolchain, not arXiv's server.
+The [verification archive](../results/validation/paper-full2-r47-20261108/README.md)
+records the exact inputs, commands, logs and hashes. The
+[submission metadata](arxiv-metadata.md) matches the current title and abstract.
+Final evidence selection and arXiv upload/build/submission remain outstanding.

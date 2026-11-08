@@ -1,0 +1,16 @@
+{
+  "kind": "root_interpretation_not_scientific_result",
+  "observed_unix": 1794137521.6589909,
+  "queue_expected_identity_live": true,
+  "queue_entries": [
+    "R-47-3-example.json",
+    "R-47-3-nsys.json",
+    "R-47-3-tests.json",
+    "gate-released.json",
+    "owner.json",
+    "post-full-r47-build.json",
+    "post-full-r48-build.json"
+  ],
+  "r48_r52_collection_qualified": false,
+  "note": "Neither R48-4/R52-2 nor queue terminal observed; no collector invocation, no job restart."
+}
