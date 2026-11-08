@@ -1,0 +1,87 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_hybrid@5        ::          rop: ≈2^129.6
+         red: ≈2^129.6
+         svp: ≈2^41.9
+           β:      327
+           η:        1
+           ζ:        5
+         |S|:      243
+           d:   128254
+        prob:    0.990
+           ↻:        1
+         tag:   hybrid
+bdd_mitm_hybrid@5   ::          rop: ≈2^146.4
+         red: ≈2^146.4
+         svp: ≈2^54.8
+           β:      327
+           η:        2
+           ζ:        5
+         |S|:      243
+           d:   131067
+        prob: ≈2^-14.6
+           ↻: ≈2^16.8
+         tag:   hybrid
+bdd_hybrid@10       ::          rop: ≈2^129.6
+         red: ≈2^129.6
+         svp: ≈2^49.8
+           β:      327
+           η:        1
+           ζ:       10
+         |S|: ≈2^15.8
+           d:   128045
+        prob:    0.990
+           ↻:        1
+         tag:   hybrid
+bdd_mitm_hybrid@10  ::          rop: ≈2^145.8
+         red: ≈2^145.8
+         svp: ≈2^58.1
+           β:      327
+           η:        2
+           ζ:       10
+         |S|: ≈2^15.8
+           d:   131062
+        prob: ≈2^-13.9
+           ↻: ≈2^16.1
+         tag:   hybrid
+bdd_hybrid@40       ::          rop: ≈2^130.6
+         red: ≈2^130.6
+         svp: ≈2^96.2
+           β:      327
+           η:        1
+           ζ:       40
+         |S|: ≈2^61.3
+           d:   126763
+        prob:    0.900
+           ↻:        2
+         tag:   hybrid
+bdd_mitm_hybrid@40  ::          rop: ≈2^142.4
+         red: ≈2^142.4
+         svp: ≈2^78.4
+           β:      327
+           η:        2
+           ζ:       40
+         |S|: ≈2^63.4
+           d:   131031
+        prob:    0.001
+           ↻: ≈2^12.7
+         tag:   hybrid
+min rop (bits): {'bdd_hybrid@5': 129.6, 'bdd_mitm_hybrid@5': 146.4, 'bdd_hybrid@10': 129.6, 'bdd_mitm_hybrid@10': 145.8, 'bdd_hybrid@40': 130.6, 'bdd_mitm_hybrid@40': 142.4} -> 129.6
+SUMMARY {"n16_boot": {"bdd_hybrid@5": 129.61220934548447, "bdd_mitm_hybrid@5": 146.44428687363757, "bdd_hybrid@10": 129.6098504233016, "bdd_mitm_hybrid@10": 145.77757920400464, "bdd_hybrid@40": 130.59529585622013, "bdd_mitm_hybrid@40": 142.38001654941382}}
+      191.44 real       163.59 user         4.26 sys
+           305709056  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              223343  page reclaims
+                 326  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5845  voluntary context switches
+              520670  involuntary context switches
+       2453108485319  instructions retired
+        575607635114  cycles elapsed
+           293831832  peak memory footprint

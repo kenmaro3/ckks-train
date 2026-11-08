@@ -1,0 +1,30 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=n cost=bdgl16
+dual_hybrid_ejk20   ::          rop: ≈2^159.2
+         mem: ≈2^41.1
+           m: ≈2^12.0
+           β:       45
+           d:     8185
+           ↻: ≈2^113.5
+           ζ: ≈2^15.9
+          h1:        2
+         tag: dual_hybrid
+min rop (bits): {'dual_hybrid_ejk20': 159.2} -> 159.2
+SUMMARY {"n16_boot_sse_to_sparse": {"dual_hybrid_ejk20": 159.18782774947653}}
+       26.52 real        21.55 user         1.20 sys
+           310296576  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              134173  page reclaims
+                  56  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5503  voluntary context switches
+               57933  involuntary context switches
+        272112129421  instructions retired
+         79918828871  cycles elapsed
+           263701608  peak memory footprint

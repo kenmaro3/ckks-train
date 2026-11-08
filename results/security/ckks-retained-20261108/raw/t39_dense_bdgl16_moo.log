@@ -1,0 +1,55 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=oo cost=bdgl16
+usvp                 :: rop: ≈2^131.5, red: ≈2^131.5, δ: 1.004580, β: 326, d: 125952, tag: usvp
+bdd                  :: rop: ≈2^131.5, red: ≈2^131.3, svp: ≈2^128.5, β: 325, η: 383, d: 130661, tag: bdd
+dual                 :: rop: ≈2^131.6, mem: ≈2^76.0, m: ≈2^16.0, β: 326, d: 131133, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^131.6, red: ≈2^131.6, guess: ≈2^108.2, β: 326, p: 2, ζ: 0, t: 90, β': 326, N: ≈2^61.7, m: ≈2^16.0
+usvp                ::          rop: ≈2^131.5
+         red: ≈2^131.5
+           δ: 1.004580
+           β:      326
+           d:   125952
+         tag:     usvp
+bdd                 ::          rop: ≈2^131.5
+         red: ≈2^131.3
+         svp: ≈2^128.5
+           β:      325
+           η:      383
+           d:   130661
+         tag:      bdd
+dual                ::          rop: ≈2^131.6
+         mem: ≈2^76.0
+           m: ≈2^16.0
+           β:      326
+           d:   131133
+           ↻:        1
+         tag:     dual
+dual_hybrid         ::          rop: ≈2^131.6
+         red: ≈2^131.6
+       guess: ≈2^108.2
+           β:      326
+           p:        2
+           ζ:        0
+           t:       90
+          β':      326
+           N: ≈2^61.7
+           m: ≈2^16.0
+min rop (bits): {'usvp': 131.5, 'bdd': 131.5, 'dual': 131.6, 'dual_hybrid': 131.6} -> 131.5
+SUMMARY {"n16_boot": {"usvp": 131.53451450533922, "bdd": 131.49316059430458, "dual": 131.59267126408025, "dual_hybrid": 131.59100916667344}}
+       33.60 real        31.49 user         1.14 sys
+           370671616  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              148063  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2330  voluntary context switches
+               19884  involuntary context switches
+        353392175804  instructions retired
+         84430950969  cycles elapsed
+           271451216  peak memory footprint

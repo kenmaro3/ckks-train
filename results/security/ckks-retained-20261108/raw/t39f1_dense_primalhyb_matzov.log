@@ -1,0 +1,57 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_hybrid@0        ::          rop: ≈2^129.3
+         red: ≈2^129.3
+         svp: ≈2^118.5
+           β:      326
+           η:      347
+           d:   125696
+         tag:      bdd
+bdd_mitm_hybrid@0   ::          rop: ≈2^129.6
+         red: ≈2^129.6
+         svp: ≈2^33.9
+           β:      327
+           η:        2
+           d:   128524
+         tag:      bdd
+bdd_hybrid@20       ::          rop: ≈2^129.6
+         red: ≈2^129.6
+         svp: ≈2^65.6
+           β:      327
+           η:        1
+           ζ:       20
+         |S|: ≈2^31.7
+           d:   127664
+        prob:    0.990
+           ↻:        1
+         tag:   hybrid
+bdd_mitm_hybrid@20  ::          rop: ≈2^144.5
+         red: ≈2^144.5
+         svp: ≈2^64.7
+           β:      327
+           η:        2
+           ζ:       20
+         |S|: ≈2^31.7
+           d:   131052
+        prob: ≈2^-12.7
+           ↻: ≈2^14.9
+         tag:   hybrid
+min rop (bits): {'bdd_hybrid@0': 129.3, 'bdd_mitm_hybrid@0': 129.6, 'bdd_hybrid@20': 129.6, 'bdd_mitm_hybrid@20': 144.5} -> 129.3
+SUMMARY {"n16_boot": {"bdd_hybrid@0": 129.30682102138277, "bdd_mitm_hybrid@0": 129.61525105813408, "bdd_hybrid@20": 129.60554023750305, "bdd_mitm_hybrid@20": 144.53596644382012}}
+       90.24 real        86.49 user         1.53 sys
+           387022848  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              200386  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  10  voluntary context switches
+              109124  involuntary context switches
+       1389169481697  instructions retired
+        308986947513  cycles elapsed
+           280183936  peak memory footprint

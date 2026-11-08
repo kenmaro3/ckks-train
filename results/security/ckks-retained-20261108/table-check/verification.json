@@ -1,0 +1,54 @@
+{
+  "kind": "table_regeneration_validation_not_new_measurement",
+  "observed_utc": "2026-11-08T02:40:07.195725+00:00",
+  "commands": [
+    {
+      "label": "regenerate",
+      "argv": [
+        "bash",
+        "scripts/run_all.sh",
+        "--tables-only"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "tables",
+      "argv": [
+        "python3",
+        "tools/tables.py",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "figures",
+      "argv": [
+        "python3",
+        "tools/figs.py",
+        "--check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "unchanged_generated_files": {
+    "paper/tables/accuracy_vs_reboot.tex": "b566fb557e2bff0c42ddbbea4463a7841d8691e7309fb0628f6887327a2ac751",
+    "paper/tables/gpu_vs_cpu_ops.tex": "089b344832ff7c35a01c368648a841055ddf3e6b97aa89c4e04dc7ccc2433c60",
+    "paper/tables/plain_datasets.tex": "1667a75790194a9dc0fef7b36af3fc6cc5aeda22ac87b395ef19d82d9db7a6fe",
+    "paper/tables/rq1_ks.tex": "d34c3779aca556ad5e9e1254e4e36040c6d127c729d3dade41428f582a17372b",
+    "paper/tables/rq3_ablation.tex": "de38d3727aecf170b18a3ce0ed4db28f5984bf6938934081236e53d7f6db7cba",
+    "paper/tables/security.tex": "3b30d20da49c757d274b6b30501bb524ab448150301d0f153b3e2d60d31c019e",
+    "paper/tables/wallclock_same_cpu.tex": "bfb3f1555da2829afd17fa1971b2d804a9150698e077b1ba29c6f17ab45e4ade",
+    "results/tables/accuracy_vs_reboot.md": "9deb8f6e3db0b1fd3a7976abd9a6b7d001618f52b06a6d5a20114145dfae78e6",
+    "results/tables/gpu_vs_cpu_ops.md": "757109f4037e94da9bfdeedb64c264efb0f11ebb8f92d2c3e947c6bbbcb7e5f6",
+    "results/tables/plain_datasets.md": "0fa907d7b9d3d382e9ad7a169f4c68309f13be01e295e45b020dfb8125e6bd65",
+    "results/tables/rq1_ks.md": "47a4b91a6a326b8d23a4a918bb325dffec9c14dc957055a096d909efaf489248",
+    "results/tables/rq3_ablation.md": "3f276671badfb198dc54a725537dad27d256cc26f9fcbd015cc34b69f3d7fac8",
+    "results/tables/security.md": "b7ba5e0bd84756808ac3581a3a39f001e4aedf919bead0da1c35c6f2608d473e",
+    "results/tables/sources.tsv": "c3703c9407d151fb132b21952c56150c35802c7cd4a4423785c7f0a69a60c49e",
+    "results/tables/wallclock_same_cpu.md": "fb876f620f623b806b0d0b87aa49010f1b475824325980fd95f7a5d93f4378cc",
+    "paper/figs/rq1_ratios.sources.json": "45089db8d5c73412357877c05645288415038aef19b73e1c6e04b8d8f428e124",
+    "paper/figs/rq1_ratios.svg": "8fab8a08a0ad99a0c60601592643e2acd2f89c16db82275012424da9d3a3826f",
+    "paper/figs/rq1_ratios.tex": "92eb4b1b82fa2cfec2b016c862ebe510bdfeaf382f40fa2f777148478df341de"
+  },
+  "no_build_or_experiment": true
+}

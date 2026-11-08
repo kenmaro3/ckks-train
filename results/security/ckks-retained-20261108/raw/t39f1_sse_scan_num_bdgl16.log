@@ -1,0 +1,53 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=bdgl16 solver=mitm/numerical zeta grid 56000..61500 step 250
+zeta  56000: log2 rop  141.17  beta 276  h1 14  d 19307
+zeta  56250: log2 rop  139.58  beta 266  h1 14  d 18824
+zeta  56500: log2 rop  139.15  beta 257  h1 14  d 18364
+zeta  56750: log2 rop  139.26  beta 242  h1 12  d 17764
+zeta  57000: log2 rop  137.25  beta 232  h1 12  d 17277
+zeta  57250: log2 rop  135.78  beta 223  h1 12  d 16811
+zeta  57500: log2 rop  135.42  beta 214  h1 12  d 16344
+zeta  57750: log2 rop  135.96  beta 206  h1 12  d 15899
+zeta  58000: log2 rop  135.61  beta 190  h1 10  d 15261
+zeta  58250: log2 rop  134.20  beta 180  h1 10  d 14763
+zeta  58500: log2 rop  133.78  beta 171  h1 10  d 14289
+zeta  58750: log2 rop  134.40  beta 163  h1 10  d 13837
+zeta  59000: log2 rop  135.43  beta 156  h1 10  d 13408
+zeta  59250: log2 rop  135.18  beta 139  h1 8  d 12728
+zeta  59500: log2 rop  134.46  beta 130  h1 8  d 12245
+zeta  59750: log2 rop  134.85  beta 122  h1 8  d 11786
+zeta  60000: log2 rop  136.05  beta 114  h1 8  d 11326
+zeta  60250: log2 rop  137.55  beta 106  h1 8  d 10864
+zeta  60500: log2 rop  138.81  beta 90  h1 6  d 10196
+zeta  60750: log2 rop  138.77  beta 81  h1 6  d 9709
+zeta  61000: log2 rop  139.86  beta 73  h1 6  d 9251
+zeta  61250: log2 rop  141.73  beta 65  h1 6  d 8797
+zeta  61500: log2 rop  143.92  beta 56  h1 6  d 8332
+--- refine around 58500 in [58250, 58750] step 50
+zeta  58300: log2 rop  134.04  beta 179  h1 10  d 14688
+zeta  58350: log2 rop  133.88  beta 177  h1 10  d 14588
+zeta  58400: log2 rop  133.79  beta 175  h1 10  d 14489
+zeta  58450: log2 rop  133.76  beta 173  h1 10  d 14389
+zeta  58550: log2 rop  133.84  beta 170  h1 10  d 14213
+zeta  58600: log2 rop  133.93  beta 168  h1 10  d 14113
+zeta  58650: log2 rop  134.06  beta 166  h1 10  d 14013
+zeta  58700: log2 rop  134.22  beta 164  h1 10  d 13912
+MIN zeta 58450: log2 rop 133.76 (1267 s)
+rop: ≈2^133.8, m: ≈2^12.8, k: ≈2^14.9, mem: ≈2^86.4, ↻: ≈2^54.0, β: 173, d: 14389, ζ: ≈2^15.8, h1: 10
+     1277.08 real      1135.69 user        18.14 sys
+           595165184  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              327215  page reclaims
+                 136  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+               28992  voluntary context switches
+             3260832  involuntary context switches
+      13218168038443  instructions retired
+       3987166122334  cycles elapsed
+           607602032  peak memory footprint

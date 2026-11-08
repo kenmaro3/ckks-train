@@ -1,0 +1,31 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=n cost=bdgl16
+dual_mitm_hybrid    ::          rop: ≈2^136.4
+         mem: ≈2^93.6
+           m: ≈2^13.1
+           k: ≈2^14.8
+           ↻: ≈2^42.2
+           β:      224
+           d:    16751
+           ζ: ≈2^15.8
+          h1:       12
+         tag: dual_mitm_hybrid
+min rop (bits): {'dual_mitm_hybrid': 136.4} -> 136.4
+SUMMARY {"n16_boot_sse_to_sparse": {"dual_mitm_hybrid": 136.42651771078678}}
+       30.41 real        29.01 user         0.74 sys
+           345014272  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              122449  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   7  voluntary context switches
+               18208  involuntary context switches
+        398825790147  instructions retired
+        106473758912  cycles elapsed
+           262931488  peak memory footprint

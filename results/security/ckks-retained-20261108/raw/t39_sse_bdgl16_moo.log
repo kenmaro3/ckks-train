@@ -1,0 +1,74 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=oo cost=bdgl16
+bdd_hybrid           :: rop: ≈2^162.9, red: ≈2^162.6, svp: ≈2^160.6, β: 99, η: 26, ζ: ≈2^15.9, |S|: ≈2^32.7, d: 10877, prob: ≈2^-98.6, ↻: ≈2^100.8, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^144.2, red: ≈2^142.7, svp: ≈2^143.6, β: 182, η: 2, ζ: ≈2^15.8, |S|: ≈2^119.3, d: 14856, prob: ≈2^-54.1, ↻: ≈2^56.3, tag: hybrid
+usvp                ::          rop:  ≈2^inf
+         tag:     usvp
+bdd                 ::          rop:  ≈2^inf
+         tag:      bdd
+bdd_hybrid          ::          rop: ≈2^162.9
+         red: ≈2^162.6
+         svp: ≈2^160.6
+           β:       99
+           η:       26
+           ζ: ≈2^15.9
+         |S|: ≈2^32.7
+           d:    10877
+        prob: ≈2^-98.6
+           ↻: ≈2^100.8
+         tag:   hybrid
+bdd_mitm_hybrid     ::          rop: ≈2^144.2
+         red: ≈2^142.7
+         svp: ≈2^143.6
+           β:      182
+           η:        2
+           ζ: ≈2^15.8
+         |S|: ≈2^119.3
+           d:    14856
+        prob: ≈2^-54.1
+           ↻: ≈2^56.3
+         tag:   hybrid
+dual                ::          rop:  ≈2^inf
+         mem:  ≈2^inf
+           m:  ≈2^inf
+           β:       47
+         tag:     dual
+dual_hybrid         ::          rop:  ≈2^inf
+         red:  ≈2^inf
+       guess:  ≈2^inf
+           β:     1753
+           p:        2
+           ζ:        0
+           t:        0
+          β':     1753
+           N:  ≈2^inf
+           m: ≈2^16.0
+dual_mitm_hybrid    ::          rop: ≈2^136.4
+         mem: ≈2^93.6
+           m: ≈2^13.1
+           k: ≈2^14.8
+           ↻: ≈2^42.2
+           β:      224
+           d:    16751
+           ζ: ≈2^15.8
+          h1:       12
+         tag: dual_mitm_hybrid
+min rop (bits): {'usvp': inf, 'bdd': inf, 'bdd_hybrid': 162.9, 'bdd_mitm_hybrid': 144.2, 'dual': inf, 'dual_hybrid': inf, 'dual_mitm_hybrid': 136.4} -> 136.4
+SUMMARY {"n16_boot_sse_to_sparse": {"usvp": Infinity, "bdd": Infinity, "bdd_hybrid": 162.8952599758942, "bdd_mitm_hybrid": 144.2406324277964, "dual": Infinity, "dual_hybrid": Infinity, "dual_mitm_hybrid": 136.42651771078678}}
+      811.83 real       733.58 user        12.97 sys
+           401244160  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              144633  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  27  voluntary context switches
+             1268523  involuntary context switches
+       5953701294558  instructions retired
+       1681365058394  cycles elapsed
+           299254936  peak memory footprint

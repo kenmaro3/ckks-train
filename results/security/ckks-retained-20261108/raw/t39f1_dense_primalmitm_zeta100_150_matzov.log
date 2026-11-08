@@ -1,0 +1,65 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_mitm_hybrid@100 ::          rop: ≈2^137.9
+         red: ≈2^137.9
+         svp: ≈2^120.7
+           β:      327
+           η:        2
+           ζ:      100
+         |S|: ≈2^156.9
+           d:   130928
+        prob:    0.015
+           ↻:      303
+         tag:   hybrid
+bdd_mitm_hybrid@130 ::          rop: ≈2^138.5
+         red: ≈2^137.8
+         svp: ≈2^137.1
+           β:      327
+           η:        2
+           ζ:      130
+         |S|: ≈2^189.9
+           d:   130900
+        prob:    0.016
+           ↻:      277
+         tag:   hybrid
+bdd_mitm_hybrid@140 ::          rop: ≈2^142.3
+         red: ≈2^140.8
+         svp: ≈2^141.7
+           β:      327
+           η:        2
+           ζ:      140
+         |S|: ≈2^193.3
+           d:   130926
+        prob:    0.002
+           ↻: ≈2^11.1
+         tag:   hybrid
+bdd_mitm_hybrid@150 ::          rop: ≈2^147.8
+         red: ≈2^144.6
+         svp: ≈2^147.6
+           β:      327
+           η:        2
+           ζ:      150
+         |S|: ≈2^197.3
+           d:   130922
+        prob: ≈2^-12.8
+           ↻: ≈2^15.0
+         tag:   hybrid
+min rop (bits): {'bdd_mitm_hybrid@100': 137.9, 'bdd_mitm_hybrid@130': 138.5, 'bdd_mitm_hybrid@140': 142.3, 'bdd_mitm_hybrid@150': 147.8} -> 137.9
+SUMMARY {"n16_boot": {"bdd_mitm_hybrid@100": 137.88523793547267, "bdd_mitm_hybrid@130": 138.45708265734163, "bdd_mitm_hybrid@140": 142.32917042116244, "bdd_mitm_hybrid@150": 147.781692998112}}
+      115.97 real       113.68 user         0.94 sys
+           387055616  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              193806  page reclaims
+                  76  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5400  voluntary context switches
+               18715  involuntary context switches
+       2096580950695  instructions retired
+        424696791453  cycles elapsed
+           274056248  peak memory footprint

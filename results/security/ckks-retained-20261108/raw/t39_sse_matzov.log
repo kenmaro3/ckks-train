@@ -1,0 +1,64 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 m=n cost=matzov
+bdd_hybrid           :: rop: ≈2^164.0, red: ≈2^163.7, svp: ≈2^161.8, β: 93, η: 20, ζ: ≈2^15.9, |S|: ≈2^32.8, d: 10555, prob: ≈2^-100.0, ↻: ≈2^102.2, tag: hybrid
+bdd_mitm_hybrid      :: rop: ≈2^144.4, red: ≈2^142.8, svp: ≈2^143.8, β: 207, η: 2, ζ: ≈2^15.8, |S|: ≈2^132.9, d: 16059, prob: ≈2^-47.2, ↻: ≈2^49.4, tag: hybrid
+usvp                ::          rop:  ≈2^inf
+         tag:     usvp
+bdd                 ::          rop:  ≈2^inf
+         tag:      bdd
+bdd_hybrid          ::          rop: ≈2^164.0
+         red: ≈2^163.7
+         svp: ≈2^161.8
+           β:       93
+           η:       20
+           ζ: ≈2^15.9
+         |S|: ≈2^32.8
+           d:    10555
+        prob: ≈2^-100.0
+           ↻: ≈2^102.2
+         tag:   hybrid
+bdd_mitm_hybrid     ::          rop: ≈2^144.4
+         red: ≈2^142.8
+         svp: ≈2^143.8
+           β:      207
+           η:        2
+           ζ: ≈2^15.8
+         |S|: ≈2^132.9
+           d:    16059
+        prob: ≈2^-47.2
+           ↻: ≈2^49.4
+         tag:   hybrid
+dual                ::          rop:  ≈2^inf
+         mem:  ≈2^inf
+           m:  ≈2^inf
+           β:       47
+         tag:     dual
+dual_hybrid         ::          rop:  ≈2^inf
+         red:  ≈2^inf
+       guess:  ≈2^inf
+           β:     1753
+           p:        2
+           ζ:        0
+           t:        0
+          β':     1710
+           N:  ≈2^inf
+           m: ≈2^16.0
+min rop (bits): {'usvp': inf, 'bdd': inf, 'bdd_hybrid': 164.0, 'bdd_mitm_hybrid': 144.4, 'dual': inf, 'dual_hybrid': inf} -> 144.4
+SUMMARY {"n16_boot_sse_to_sparse": {"usvp": Infinity, "bdd": Infinity, "bdd_hybrid": 164.01789929787125, "bdd_mitm_hybrid": 144.372381596855, "dual": Infinity, "dual_hybrid": Infinity}}
+      350.12 real       340.99 user         3.55 sys
+           282787840  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              174455  page reclaims
+                  97  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5728  voluntary context switches
+              389322  involuntary context switches
+       5526218925973  instructions retired
+       1227212666649  cycles elapsed
+           288031920  peak memory footprint

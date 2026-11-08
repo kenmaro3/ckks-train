@@ -1,0 +1,125 @@
+START t39_dense_bdgl16.log 2026-11-05 07:54:29
+END   t39_dense_bdgl16.log 2026-11-05 07:54:55 rc=0
+START t39_dense_matzov.log 2026-11-05 07:54:55
+END   t39_dense_matzov.log 2026-11-05 07:55:18 rc=0
+START t39_dense_adps16.log 2026-11-05 07:55:18
+END   t39_dense_adps16.log 2026-11-05 07:55:47 rc=0
+START t39_sse_rough.log 2026-11-05 07:55:47
+END   t39_sse_rough.log 2026-11-05 07:55:51 rc=0
+START t39_sse_bdgl16.log 2026-11-05 07:55:51
+END   t39_sse_bdgl16.log 2026-11-05 08:01:39 rc=0
+START t39_sse_matzov.log 2026-11-05 08:01:39
+END   t39_sse_matzov.log 2026-11-05 08:07:29 rc=0
+START t39_sse_adps16.log 2026-11-05 08:07:29
+END   t39_sse_adps16.log 2026-11-05 08:13:39 rc=0
+START t39_h192_rough.log 2026-11-05 08:13:39
+END   t39_h192_rough.log 2026-11-05 08:13:45 rc=0
+ALL DONE 2026-11-05 08:13:45
+START t39_sse_dualmitm_bdgl16.log 2026-11-05 08:13:52
+START t39_sse_dualmitm_bdgl16.log 2026-11-05 08:14:09
+END   t39_sse_dualmitm_bdgl16.log 2026-11-05 08:14:39 rc=0
+START t39_sse_dualmitm_matzov.log 2026-11-05 08:14:39
+END   t39_sse_dualmitm_matzov.log 2026-11-05 08:15:18 rc=0
+START t39_h192_bdgl16.log 2026-11-05 08:15:18
+END   t39_h192_bdgl16.log 2026-11-05 08:23:21 rc=0
+START t39_h192_matzov.log 2026-11-05 08:23:21
+END   t39_h192_matzov.log 2026-11-05 08:32:07 rc=0
+START t39_dense_bdgl16_moo.log 2026-11-05 08:32:07
+END   t39_dense_bdgl16_moo.log 2026-11-05 08:32:41 rc=0
+START t39_dense_matzov_moo.log 2026-11-05 08:32:41
+END   t39_dense_matzov_moo.log 2026-11-05 08:33:16 rc=0
+START t39_sse_bdgl16_moo.log 2026-11-05 08:33:16
+END   t39_sse_bdgl16_moo.log 2026-11-05 08:46:48 rc=0
+START t39_sse_matzov_moo.log 2026-11-05 08:46:48
+END   t39_sse_matzov_moo.log 2026-11-05 09:04:16 rc=0
+START t39_h192_adps16.log 2026-11-05 09:04:16
+END   t39_h192_adps16.log 2026-11-05 09:13:21 rc=0
+ALL DONE B 2026-11-05 09:13:21
+START t39_sse_adps16_full.log 2026-11-05 09:13:29
+END   t39_sse_adps16_full.log 2026-11-05 09:19:57 rc=0
+ALL DONE C 2026-11-05 09:19:57
+START t39_sse_dualmitm_bdgl16_step2.log 2026-11-05 09:20:26
+END   t39_sse_dualmitm_bdgl16_step2.log 2026-11-05 09:20:50 rc=0
+START t39_sse_dualmitm_matzov_step2.log 2026-11-05 09:20:50
+END   t39_sse_dualmitm_matzov_step2.log 2026-11-05 09:21:01 rc=0
+START t39_sse_dualmitm_adps16_step2.log 2026-11-05 09:21:01
+END   t39_sse_dualmitm_adps16_step2.log 2026-11-05 09:21:27 rc=0
+ALL DONE D 2026-11-05 09:21:28
+START t39_sse_dualmitm_bdgl16_step1.log 2026-11-05 09:21:47
+END   t39_sse_dualmitm_bdgl16_step1.log 2026-11-05 09:21:55 rc=0
+START t39_sse_dualmitm_bdgl16_step4.log 2026-11-05 09:21:55
+END   t39_sse_dualmitm_bdgl16_step4.log 2026-11-05 09:22:22 rc=0
+START t39_sse_dualmitm_bdgl16_step16.log 2026-11-05 09:22:22
+END   t39_sse_dualmitm_bdgl16_step16.log 2026-11-05 09:23:17 rc=0
+START t39_sse_dualmitm_matzov_step1.log 2026-11-05 09:23:17
+END   t39_sse_dualmitm_matzov_step1.log 2026-11-05 09:23:23 rc=0
+START t39_sse_dualmitm_matzov_step4.log 2026-11-05 09:23:23
+END   t39_sse_dualmitm_matzov_step4.log 2026-11-05 09:23:51 rc=0
+START t39_sse_dualmitm_matzov_step16.log 2026-11-05 09:23:51
+END   t39_sse_dualmitm_matzov_step16.log 2026-11-05 09:24:54 rc=0
+ALL DONE E 2026-11-05 09:24:54
+START t39_sse_scan_bdgl16.log 2026-11-05 09:26:31
+END   t39_sse_scan_bdgl16.log 2026-11-05 09:32:05 rc=0
+START t39_sse_scan_matzov.log 2026-11-05 09:32:05
+END   t39_sse_scan_matzov.log 2026-11-05 09:39:20 rc=0
+START t39_sse_scan_adps16.log 2026-11-05 09:39:20
+END   t39_sse_scan_adps16.log 2026-11-05 09:45:07 rc=0
+ALL DONE F 2026-11-05 09:45:07
+START t39f1_dense_ejk20_matzov.log 2026-11-05 10:25:43
+END   t39f1_dense_ejk20_matzov.log 2026-11-05 10:28:47 rc=0
+START t39f1_dense_primalhyb_matzov.log 2026-11-05 10:28:47
+END   t39f1_dense_primalhyb_matzov.log 2026-11-05 10:30:17 rc=0
+START t39f1_dense_ejk20_bdgl16.log 2026-11-05 10:30:17
+END   t39f1_dense_ejk20_bdgl16.log 2026-11-05 10:33:01 rc=0
+START t39f1_dense_primalhyb_bdgl16.log 2026-11-05 10:33:01
+END   t39f1_dense_primalhyb_bdgl16.log 2026-11-05 10:35:02 rc=0
+START t39f1_sse_ejk20_bdgl16.log 2026-11-05 10:35:02
+END   t39f1_sse_ejk20_bdgl16.log 2026-11-05 10:35:29 rc=0
+START t39f1_sse_ejk20_matzov.log 2026-11-05 10:35:29
+END   t39f1_sse_ejk20_matzov.log 2026-11-05 10:36:04 rc=0
+START t39f1_sse_scan_exh_bdgl16.log 2026-11-05 10:36:04
+END   t39f1_sse_scan_exh_bdgl16.log 2026-11-05 10:41:20 rc=0
+START t39f1_sse_scan_exh_matzov.log 2026-11-05 10:41:20
+END   t39f1_sse_scan_exh_matzov.log 2026-11-05 10:48:54 rc=0
+START t39f1_sse_scan_num_bdgl16.log 2026-11-05 10:48:54
+KILLED t39f1_sse_scan_num_bdgl16 (wide grid too slow) 2026-11-05 10:56:54
+START t39f1_dense_primalhyb_zetas_matzov.log 2026-11-05 10:56:54
+END   t39f1_dense_primalhyb_zetas_matzov.log 2026-11-05 11:00:06 rc=0
+START t39f1_sse_scan_num_bdgl16.log 2026-11-05 11:00:06
+END   t39f1_sse_scan_num_bdgl16.log 2026-11-05 11:21:23 rc=0
+START t39f1_sse_scan_num_matzov.log 2026-11-05 11:21:23
+END   t39f1_sse_scan_num_matzov.log 2026-11-05 11:54:31 rc=0
+ALL DONE FIX1C 2026-11-05 11:54:31
+START t39f1_dense_primalmitm_largezeta_matzov.log 2026-11-05 11:54:45
+INTERRUPTED t39f1_dense_primalmitm_largezeta_matzov (session restart) 2026-11-05 19:53:15
+START t39f1_dense_primalmitm_largezeta_matzov.log 2026-11-05 19:53:16
+END   t39f1_dense_primalmitm_largezeta_matzov.log 2026-11-05 19:58:16 rc=0
+START t39f1_dense_primalmitm_zeta100_150_matzov.log 2026-11-05 19:58:31
+END   t39f1_dense_primalmitm_zeta100_150_matzov.log 2026-11-05 20:00:27 rc=0
+START t39r_full_bdgl16.log 2026-11-06 07:33:21
+END   t39r_full_bdgl16.log 2026-11-06 07:41:55 rc=0
+START t39r_full_matzov.log 2026-11-06 07:41:55
+END   t39r_full_matzov.log 2026-11-06 07:52:23 rc=0
+START t39r_full_adps16.log 2026-11-06 07:52:23
+END   t39r_full_adps16.log 2026-11-06 08:00:34 rc=0
+START t39r_primal_zeta_bdgl16.log 2026-11-06 08:00:34
+END   t39r_primal_zeta_bdgl16.log 2026-11-06 08:12:00 rc=0
+START t39r_primal_zeta_matzov.log 2026-11-06 08:12:00
+END   t39r_primal_zeta_matzov.log 2026-11-06 08:23:37 rc=0
+START t39r_scan_ana_bdgl16.log 2026-11-06 08:23:37
+END   t39r_scan_ana_bdgl16.log 2026-11-06 08:27:40 rc=0
+START t39r_scan_ana_matzov.log 2026-11-06 08:27:40
+END   t39r_scan_ana_matzov.log 2026-11-06 08:32:49 rc=0
+START t39r_scan_exh_bdgl16.log 2026-11-06 08:32:49
+END   t39r_scan_exh_bdgl16.log 2026-11-06 08:34:06 rc=0
+START t39r_scan_exh_matzov.log 2026-11-06 08:34:06
+END   t39r_scan_exh_matzov.log 2026-11-06 08:35:57 rc=0
+ALL DONE REBOOT1 2026-11-06 08:35:57
+START t39r_scan_num_bdgl16.log 2026-11-06 08:36:02
+END   t39r_scan_num_bdgl16.log 2026-11-06 08:49:40 rc=0
+START t39r_scan_num_matzov.log 2026-11-06 08:49:40
+END   t39r_scan_num_matzov.log 2026-11-06 09:03:46 rc=0
+ALL DONE REBOOT2 2026-11-06 09:03:46
+START t39r_scan_ana_adps16.log 2026-11-06 09:04:01
+END   t39r_scan_ana_adps16.log 2026-11-06 09:08:13 rc=0
+ALL DONE REBOOT3 2026-11-06 09:08:13

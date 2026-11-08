@@ -1,0 +1,40 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=bdgl16
+dual_hybrid_ejk20   ::          rop: ≈2^131.6
+         mem: ≈2^76.0
+           m: ≈2^16.0
+           β:      326
+           d:   131072
+           ↻:        1
+           ζ:        0
+          h1:        0
+         tag: dual_hybrid
+dual_mitm_hybrid    ::          rop:  ≈2^inf
+         mem: ≈2^24245.5
+           m: ≈2^15.2
+           k: ≈2^14.0
+           ↻:  ≈2^inf
+           β:      135
+           d:    70616
+           ζ: ≈2^15.0
+          h1: ≈2^13.7
+         tag: dual_mitm_hybrid
+min rop (bits): {'dual_hybrid_ejk20': 131.6, 'dual_mitm_hybrid': inf} -> 131.6
+SUMMARY {"n16_boot": {"dual_hybrid_ejk20": 131.59199999999998, "dual_mitm_hybrid": Infinity}}
+      164.46 real       146.27 user         3.32 sys
+           377323520  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              167849  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                6584  voluntary context switches
+              449681  involuntary context switches
+       1857482610587  instructions retired
+        522823157024  cycles elapsed
+           319505632  peak memory footprint

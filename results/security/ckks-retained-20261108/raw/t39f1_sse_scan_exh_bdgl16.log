@@ -1,0 +1,109 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=bdgl16 solver=exhaustive zeta grid 40000..64000 step 500
+zeta  40000: log2 rop  336.01  beta 1013  h1 18  d 50126
+zeta  40500: log2 rop  328.73  beta 988  h1 18  d 49167
+zeta  41000: log2 rop  321.49  beta 964  h1 19  d 48220
+zeta  41500: log2 rop  314.22  beta 939  h1 19  d 47256
+zeta  42000: log2 rop  307.04  beta 914  h1 19  d 46291
+zeta  42500: log2 rop  299.91  beta 888  h1 18  d 45308
+zeta  43000: log2 rop  293.00  beta 864  h1 18  d 44357
+zeta  43500: log2 rop  286.11  beta 840  h1 18  d 43404
+zeta  44000: log2 rop  279.32  beta 816  h1 18  d 42448
+zeta  44500: log2 rop  272.67  beta 790  h1 17  d 41454
+zeta  45000: log2 rop  266.16  beta 767  h1 17  d 40513
+zeta  45500: log2 rop  259.88  beta 741  h1 16  d 39514
+zeta  46000: log2 rop  253.51  beta 718  h1 16  d 38567
+zeta  46500: log2 rop  247.52  beta 696  h1 16  d 37638
+zeta  47000: log2 rop  241.40  beta 669  h1 15  d 36610
+zeta  47500: log2 rop  235.75  beta 648  h1 15  d 35695
+zeta  48000: log2 rop  229.96  beta 621  h1 14  d 34659
+zeta  48500: log2 rop  224.67  beta 600  h1 14  d 33739
+zeta  49000: log2 rop  219.17  beta 574  h1 13  d 32715
+zeta  49500: log2 rop  214.20  beta 554  h1 13  d 31809
+zeta  50000: log2 rop  209.03  beta 527  h1 12  d 30757
+zeta  50500: log2 rop  204.43  beta 507  h1 12  d 29844
+zeta  51000: log2 rop  199.61  beta 480  h1 11  d 28782
+zeta  51500: log2 rop  195.33  beta 461  h1 11  d 27884
+zeta  52000: log2 rop  190.95  beta 435  h1 10  d 26833
+zeta  52500: log2 rop  186.97  beta 416  h1 10  d 25927
+zeta  53000: log2 rop  183.07  beta 389  h1 9  d 24844
+zeta  53500: log2 rop  179.30  beta 371  h1 9  d 23952
+zeta  54000: log2 rop  176.09  beta 345  h1 8  d 22878
+zeta  54500: log2 rop  172.52  beta 326  h1 8  d 21954
+zeta  55000: log2 rop  170.16  beta 301  h1 7  d 20888
+zeta  55500: log2 rop  166.63  beta 283  h1 7  d 19977
+zeta  56000: log2 rop  165.41  beta 259  h1 6  d 18920
+zeta  56500: log2 rop  162.00  beta 240  h1 6  d 17973
+zeta  57000: log2 rop  160.54  beta 223  h1 6  d 17068
+zeta  57500: log2 rop  158.88  beta 198  h1 5  d 15961
+zeta  58000: log2 rop  156.83  beta 181  h1 5  d 15043
+zeta  58500: log2 rop  157.57  beta 159  h1 4  d 13991
+zeta  59000: log2 rop  155.40  beta 141  h1 4  d 13032
+zeta  59500: log2 rop  155.54  beta 125  h1 4  d 12118
+zeta  60000: log2 rop  156.53  beta 102  h1 3  d 11014
+zeta  60500: log2 rop  155.81  beta 85  h1 3  d 10066
+zeta  61000: log2 rop  158.17  beta 69  h1 3  d 9151
+zeta  61500: log2 rop  159.00  beta 42  h1 2  d 8075
+zeta  62000: log2 rop  164.04  beta 40  h1 2  d 7419
+zeta  62500: log2 rop  170.55  beta 40  h1 2  d 6875
+zeta  63000: log2 rop  178.24  beta 40  h1 2  d 6285
+zeta  63500: log2 rop  187.64  beta 40  h1 2  d 5633
+zeta  64000: log2 rop  199.73  beta 40  h1 2  d 4895
+--- refine around 59000 in [58500, 59500] step 25
+zeta  58525: log2 rop  157.42  beta 158  h1 4  d 13941
+zeta  58550: log2 rop  157.27  beta 157  h1 4  d 13891
+zeta  58575: log2 rop  157.13  beta 156  h1 4  d 13840
+zeta  58600: log2 rop  157.00  beta 155  h1 4  d 13790
+zeta  58625: log2 rop  156.87  beta 154  h1 4  d 13739
+zeta  58650: log2 rop  156.75  beta 153  h1 4  d 13689
+zeta  58675: log2 rop  156.63  beta 152  h1 4  d 13639
+zeta  58700: log2 rop  156.53  beta 151  h1 4  d 13588
+zeta  58725: log2 rop  156.45  beta 150  h1 4  d 13538
+zeta  58750: log2 rop  156.38  beta 150  h1 4  d 13513
+zeta  58775: log2 rop  156.25  beta 149  h1 4  d 13462
+zeta  58800: log2 rop  156.12  beta 148  h1 4  d 13412
+zeta  58825: log2 rop  156.01  beta 147  h1 4  d 13361
+zeta  58850: log2 rop  155.90  beta 146  h1 4  d 13310
+zeta  58875: log2 rop  155.81  beta 145  h1 4  d 13260
+zeta  58900: log2 rop  155.72  beta 144  h1 4  d 13209
+zeta  58925: log2 rop  155.66  beta 143  h1 4  d 13159
+zeta  58950: log2 rop  155.59  beta 143  h1 4  d 13134
+zeta  58975: log2 rop  155.49  beta 142  h1 4  d 13083
+zeta  59025: log2 rop  155.33  beta 140  h1 4  d 12982
+zeta  59050: log2 rop  155.26  beta 139  h1 4  d 12931
+zeta  59075: log2 rop  155.22  beta 138  h1 4  d 12880
+zeta  59100: log2 rop  155.19  beta 137  h1 4  d 12829
+zeta  59125: log2 rop  155.13  beta 137  h1 4  d 12804
+zeta  59150: log2 rop  155.08  beta 136  h1 4  d 12754
+zeta  59175: log2 rop  155.04  beta 135  h1 4  d 12703
+zeta  59200: log2 rop  155.03  beta 134  h1 4  d 12652
+zeta  59225: log2 rop  155.03  beta 133  h1 4  d 12601
+zeta  59250: log2 rop  155.03  beta 133  h1 4  d 12576
+zeta  59275: log2 rop  155.02  beta 132  h1 4  d 12525
+zeta  59300: log2 rop  155.03  beta 131  h1 4  d 12474
+zeta  59325: log2 rop  155.06  beta 130  h1 4  d 12423
+zeta  59350: log2 rop  155.11  beta 129  h1 4  d 12372
+zeta  59375: log2 rop  155.16  beta 129  h1 4  d 12347
+zeta  59400: log2 rop  155.21  beta 128  h1 4  d 12296
+zeta  59425: log2 rop  155.27  beta 127  h1 4  d 12245
+zeta  59450: log2 rop  155.36  beta 126  h1 4  d 12194
+zeta  59475: log2 rop  155.45  beta 125  h1 4  d 12143
+MIN zeta 59275: log2 rop 155.02 (310 s)
+rop: ≈2^155.0, mem: ≈2^70.3, m: ≈2^12.6, β: 132, d: 12525, ↻: ≈2^82.6, ζ: ≈2^15.9, h1: 4
+      315.31 real       286.75 user         5.73 sys
+           473219072  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              298336  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                4584  voluntary context switches
+              899974  involuntary context switches
+       3655651812033  instructions retired
+       1022545802616  cycles elapsed
+           487802128  peak memory footprint

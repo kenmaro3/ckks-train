@@ -1,0 +1,120 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=n cost=matzov
+bdd_mitm_hybrid@60  ::          rop: ≈2^140.6
+         red: ≈2^140.6
+         svp: ≈2^92.4
+           β:      327
+           η:        2
+           ζ:       60
+         |S|: ≈2^94.8
+           d:   131007
+        prob:    0.002
+           ↻:     1981
+         tag:   hybrid
+bdd_mitm_hybrid@80  ::          rop: ≈2^139.1
+         red: ≈2^139.1
+         svp: ≈2^106.4
+           β:      327
+           η:        2
+           ζ:       80
+         |S|: ≈2^125.8
+           d:   130986
+        prob:    0.006
+           ↻:      710
+         tag:   hybrid
+bdd_mitm_hybrid@120 ::          rop: ≈2^137.1
+         red: ≈2^136.9
+         svp: ≈2^133.6
+           β:      327
+           η:        2
+           ζ:      120
+         |S|: ≈2^184.7
+           d:   130863
+        prob:    0.029
+           ↻:      155
+         tag:   hybrid
+bdd_mitm_hybrid@160 ::          rop: ≈2^154.1
+         red: ≈2^148.8
+         svp: ≈2^154.1
+           β:      327
+           η:        2
+           ζ:      160
+         |S|: ≈2^202.0
+           d:   130912
+        prob: ≈2^-16.9
+           ↻: ≈2^19.1
+         tag:   hybrid
+bdd_mitm_hybrid@240 ::          rop: ≈2^209.1
+         red: ≈2^154.4
+         svp: ≈2^209.1
+           β:      327
+           η:        2
+           ζ:      240
+         |S|: ≈2^300.6
+           d:   130832
+        prob: ≈2^-22.6
+           ↻: ≈2^24.8
+         tag:   hybrid
+bdd_mitm_hybrid@320 ::          rop: ≈2^264.9
+         red: ≈2^160.0
+         svp: ≈2^264.9
+           β:      327
+           η:        2
+           ζ:      320
+         |S|: ≈2^401.1
+           d:   130555
+        prob: ≈2^-28.2
+           ↻: ≈2^30.4
+         tag:   hybrid
+bdd_mitm_hybrid@480 ::          rop: ≈2^377.8
+         red: ≈2^172.2
+         svp: ≈2^377.8
+           β:      327
+           η:        2
+           ζ:      480
+         |S|: ≈2^602.4
+           d:   129223
+        prob: ≈2^-40.4
+           ↻: ≈2^42.6
+         tag:   hybrid
+bdd_mitm_hybrid@640 ::          rop: ≈2^491.1
+         red: ≈2^184.9
+         svp: ≈2^491.1
+           β:      327
+           η:        2
+           ζ:      640
+         |S|: ≈2^803.8
+           d:   126572
+        prob: ≈2^-53.1
+           ↻: ≈2^55.3
+         tag:   hybrid
+bdd_mitm_hybrid@1000::          rop: ≈2^746.5
+         red: ≈2^213.3
+         svp: ≈2^746.5
+           β:      327
+           η:        2
+           ζ:     1000
+         |S|:  ≈2^inf
+           d:   121218
+        prob: ≈2^-81.5
+           ↻: ≈2^83.7
+         tag:   hybrid
+min rop (bits): {'bdd_mitm_hybrid@60': 140.6, 'bdd_mitm_hybrid@80': 139.1, 'bdd_mitm_hybrid@120': 137.1, 'bdd_mitm_hybrid@160': 154.1, 'bdd_mitm_hybrid@240': 209.1, 'bdd_mitm_hybrid@320': 264.9, 'bdd_mitm_hybrid@480': 377.8, 'bdd_mitm_hybrid@640': 491.1, 'bdd_mitm_hybrid@1000': 746.5} -> 137.1
+SUMMARY {"n16_boot": {"bdd_mitm_hybrid@60": 140.59494008176492, "bdd_mitm_hybrid@80": 139.11437027479386, "bdd_mitm_hybrid@120": 137.05820743791554, "bdd_mitm_hybrid@160": 154.1399437329275, "bdd_mitm_hybrid@240": 209.0593753001121, "bdd_mitm_hybrid@320": 264.9436776186751, "bdd_mitm_hybrid@480": 377.80834477394325, "bdd_mitm_hybrid@640": 491.14234195336604, "bdd_mitm_hybrid@1000": 746.5444552979268}}
+      300.03 real       292.13 user         2.16 sys
+           390496256  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              283425  page reclaims
+                5620  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                6443  voluntary context switches
+               78214  involuntary context switches
+       5317849906679  instructions retired
+       1091944203169  cycles elapsed
+           318719200  peak memory footprint

@@ -1,0 +1,9 @@
+=== n16_boot_sse_to_sparse: n=65536 log2(q)=294 secret=32 cost=bdgl16 solver=mitm/numerical zeta grid 40000..65000 step 500
+zeta  40000: log2 rop  251.04  beta 47  h1 32  d 25537
+zeta  40500: log2 rop  250.47  beta 47  h1 32  d 25037
+zeta  41000: log2 rop  249.90  beta 47  h1 32  d 24537
+zeta  41500: log2 rop  249.34  beta 47  h1 32  d 24037
+zeta  42000: log2 rop  248.79  beta 47  h1 32  d 23537
+zeta  42500: log2 rop  248.24  beta 47  h1 32  d 23037
+zeta  43000: log2 rop  247.70  beta 47  h1 32  d 22537
+zeta  43500: log2 rop  247.17  beta 47  h1 32  d 22037

@@ -330,6 +330,15 @@ The raw output is under "Task 39 follow-up (ReBoot), raw output".
 
 ## Raw output
 
+Selected original CKKS estimator logs are now preserved byte-for-byte in the
+[2026-11-08 archive](../results/security/ckks-retained-20261108/README.md):29 numeric
+outputs, one separately marked interrupted scan and the historical progress log.
+The read-time manifest distinguishes these copies from three local-only traceback
+logs and from unavailable historical execution/applicability evidence. In particular,
+old `rc=0` progress markers also occur for failed runs and are not success attestation.
+This preservation adds no estimate or scientific pass; the criteria, values and
+optimizer limitations above remain unchanged.
+
 ### BDGL16, full estimate
 
 ```

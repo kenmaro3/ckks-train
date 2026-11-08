@@ -1,0 +1,55 @@
+=== n16_boot: n=65536 log2(q)=1732 secret=ternary_default m=oo cost=matzov
+usvp                 :: rop: ≈2^129.3, red: ≈2^129.3, δ: 1.004580, β: 326, d: 125952, tag: usvp
+bdd                  :: rop: ≈2^129.3, red: ≈2^129.3, svp: ≈2^118.7, β: 326, η: 348, d: 125685, tag: bdd
+dual                 :: rop: ≈2^130.2, mem: 330, m: ≈2^16.0, β: 329, d: 131538, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^130.1, red: ≈2^130.1, guess: ≈2^113.3, β: 325, p: 3, ζ: 0, t: 60, β': 359, N: ≈2^70.0, m: ≈2^16.0
+usvp                ::          rop: ≈2^129.3
+         red: ≈2^129.3
+           δ: 1.004580
+           β:      326
+           d:   125952
+         tag:     usvp
+bdd                 ::          rop: ≈2^129.3
+         red: ≈2^129.3
+         svp: ≈2^118.7
+           β:      326
+           η:      348
+           d:   125685
+         tag:      bdd
+dual                ::          rop: ≈2^130.2
+         mem:      330
+           m: ≈2^16.0
+           β:      329
+           d:   131538
+           ↻:        1
+         tag:     dual
+dual_hybrid         ::          rop: ≈2^130.1
+         red: ≈2^130.1
+       guess: ≈2^113.3
+           β:      325
+           p:        3
+           ζ:        0
+           t:       60
+          β':      359
+           N: ≈2^70.0
+           m: ≈2^16.0
+min rop (bits): {'usvp': 129.3, 'bdd': 129.3, 'dual': 130.2, 'dual_hybrid': 130.1} -> 129.3
+SUMMARY {"n16_boot": {"usvp": 129.30897632956783, "bdd": 129.30686134427944, "dual": 130.20287875057014, "dual_hybrid": 130.1097839034921}}
+       35.31 real        33.48 user         1.13 sys
+           367230976  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              148933  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+               22204  involuntary context switches
+        381454491170  instructions retired
+         92562916494  cycles elapsed
+           270599200  peak memory footprint
