@@ -1147,3 +1147,9 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 08:02 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T08:02:26.316859+09:00。FULL-2はupdate710（0始まり）＝**711/1000更新**、ログ内elapsed103283s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0801/README.md)。0801は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T09:02:27+09:00以降のR-41-FULL2-OBS-20261108-0902として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+<a id="latest-evidence-20261108-0903"></a>
+
+## 2026-11-08 09:03 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T09:03:22.455161+09:00。FULL-2はupdate735（0始まり）＝**736/1000更新**、ログ内elapsed106977s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-0902/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T10:03:23+09:00以降のR-41-FULL2-OBS-20261108-1003として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
