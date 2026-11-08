@@ -1,0 +1,6 @@
+{
+  "finding": "P2 nonexistent one-stream batch variant",
+  "resolution": "Only acceptance item3 first sentence corrected to pinned actual six-row producer coverage. Root-owned operational prose edit; no Rust/queue/source changes. Independent scoped re-review requested.",
+  "document_sha256": "73e0f902c2d7d45d342fdc8641f9508d32f4fec6196995a8f14abdb6310c5bd7",
+  "validation": "Exact replacement count1 and source branch inspection; no tests rerun for prose-only correction."
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "documentation preparation only; no remote collection or measurements",
+  "base": "88cb84e41c79eaa8b61b818bb5514e7dc48ebcee",
+  "document": "docs/post-full-queue.md",
+  "document_sha256": "fdf414059e1e307974f8b3bbac23da37a91b037c9b51015d1dd7277fc5d0b21a",
+  "diff_file": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-post-full-collection-map-review-package.txt",
+  "diff_sha256": "12ed02a586c1247ba02335e468e9848577cc465a32b4a2d606971952955e16f0",
+  "validation": "git diff --check -- docs/post-full-queue.md exit0; source paths/statuses compared to pinned queue/test/binary sources; no executable tests rerun",
+  "prepared_utc": "2026-11-08T05:55:20.360693+00:00"
+}
