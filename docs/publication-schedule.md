@@ -69,3 +69,8 @@ The official [registration guidance](https://info.arxiv.org/help/registerhelp.ht
 allows unaffiliated authors to enter Independent as their organization. This supports
 the chosen personal-research attribution; account affiliation must still reflect the
 actual account policy and is not changed here.
+
+Account check update (2026-11-08): the user reports a previous arXiv submission and
+will check the account personally. They explicitly asked the agent to skip account
+checking for now. Continue manuscript/source/GitHub preparation; do not infer that
+current login or category endorsement has been verified.
