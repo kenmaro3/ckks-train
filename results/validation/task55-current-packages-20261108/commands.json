@@ -1,0 +1,184 @@
+[
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit",
+    "exit": 0,
+    "label": "git-head",
+    "started_utc": "2026-11-08T03:46:49.998648+00:00",
+    "stderr": "logs/git-head.stderr",
+    "stdout": "logs/git-head.stdout"
+  },
+  {
+    "argv": [
+      "git",
+      "status",
+      "--porcelain=v1"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit",
+    "exit": 0,
+    "label": "git-status-before",
+    "started_utc": "2026-11-08T03:46:50.100671+00:00",
+    "stderr": "logs/git-status-before.stderr",
+    "stdout": "logs/git-status-before.stdout"
+  },
+  {
+    "argv": [
+      "git",
+      "archive",
+      "--format=tar.gz",
+      "--output=/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source.tar.gz",
+      "2dc049a796949b685a5c23f8b05440ee2ce474aa"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit",
+    "exit": 0,
+    "label": "source-export",
+    "started_utc": "2026-11-08T03:46:51.724849+00:00",
+    "stderr": "logs/source-export.stderr",
+    "stdout": "logs/source-export.stdout"
+  },
+  {
+    "argv": [
+      "git",
+      "ls-tree",
+      "-rz",
+      "2dc049a796949b685a5c23f8b05440ee2ce474aa"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit",
+    "exit": 0,
+    "label": "git-tree",
+    "started_utc": "2026-11-08T03:50:59.220210+00:00",
+    "stderr": "logs/git-tree.stderr",
+    "stdout": "logs/git-tree.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--version"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "cargo-version",
+    "started_utc": "2026-11-08T03:51:01.406028+00:00",
+    "stderr": "logs/cargo-version.stderr",
+    "stdout": "logs/cargo-version.stdout"
+  },
+  {
+    "argv": [
+      "rustc",
+      "--version",
+      "--verbose"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "rustc-version",
+    "started_utc": "2026-11-08T03:51:01.459980+00:00",
+    "stderr": "logs/rustc-version.stderr",
+    "stdout": "logs/rustc-version.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--config",
+      "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/local-source.toml",
+      "package",
+      "-p",
+      "ckks-train-core",
+      "--offline",
+      "--locked",
+      "-j",
+      "2"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "core-package-locked",
+    "started_utc": "2026-11-08T03:51:01.485862+00:00",
+    "stderr": "logs/core-package-locked.stderr",
+    "stdout": "logs/core-package-locked.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--config",
+      "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/local-source.toml",
+      "package",
+      "-p",
+      "ckks-train-ckks",
+      "--offline",
+      "--locked",
+      "-j",
+      "2"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "ckks-package-locked",
+    "started_utc": "2026-11-08T03:51:05.819790+00:00",
+    "stderr": "logs/ckks-package-locked.stderr",
+    "stdout": "logs/ckks-package-locked.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--config",
+      "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/local-source.toml",
+      "package",
+      "-p",
+      "ckks-train-nn",
+      "--offline",
+      "--locked",
+      "-j",
+      "2"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "nn-package-locked",
+    "started_utc": "2026-11-08T03:51:10.359954+00:00",
+    "stderr": "logs/nn-package-locked.stderr",
+    "stdout": "logs/nn-package-locked.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--config",
+      "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/local-source.toml",
+      "package",
+      "-p",
+      "ckks-train-cuda",
+      "--offline",
+      "--locked",
+      "-j",
+      "2"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "cuda-package-locked",
+    "started_utc": "2026-11-08T03:51:13.507823+00:00",
+    "stderr": "logs/cuda-package-locked.stderr",
+    "stdout": "logs/cuda-package-locked.stdout"
+  },
+  {
+    "argv": [
+      "cargo",
+      "--config",
+      "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/local-source.toml",
+      "package",
+      "-p",
+      "ckks-train-cuda",
+      "--offline",
+      "--locked",
+      "-j",
+      "2",
+      "--features",
+      "cuda"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source",
+    "exit": 0,
+    "label": "cuda-feature-package-locked",
+    "started_utc": "2026-11-08T03:51:13.948163+00:00",
+    "stderr": "logs/cuda-feature-package-locked.stderr",
+    "stdout": "logs/cuda-feature-package-locked.stdout"
+  }
+]

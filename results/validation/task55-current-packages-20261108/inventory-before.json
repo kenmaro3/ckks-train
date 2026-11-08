@@ -1,0 +1,12 @@
+{
+  "commit": "2dc049a796949b685a5c23f8b05440ee2ce474aa",
+  "environment": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_NET_OFFLINE": "true",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache",
+    "RUSTUP_TOOLCHAIN": "1.85"
+  },
+  "free_bytes": 5904986112,
+  "prior_vendor": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor"
+}

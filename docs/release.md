@@ -284,3 +284,25 @@ source license/notice copies match their root originals as regular files.
 [Exact outputs and scope](../results/validation/research-preview-package-list-0b2d17a/README.md)
 are retained. This is a path/source-content check, not a new packaged build
 or crates.io publication. The older packaged-build evidence remains dated.
+
+
+## 16. Current fixed-source packaged builds, 2026-11-08
+
+Fixed source `2dc049a796949b685a5c23f8b05440ee2ce474aa` passed five actual
+`cargo package --offline --locked` verification builds: core, ckks, nn, cuda,
+and cuda with its cuda feature. Independent SPEC/QUALITY review passed.
+The four unique packages contain 17/39/60/41 members; each includes the complete
+MIT license and third-party notices, including the approved Unicode-table exception.
+Internal dependencies use the renamed packages at version1.0.0 without local paths.
+[Commands, logs, actual content hashes and review](../results/validation/task55-current-packages-20261108/README.md)
+are retained. This is macOS packaged-library compilation, not packaged-test/GPU
+execution or qualification of active Task54 changes. No crates.io upload occurred.
+The task-specific build cache was removed after evidence preservation; the observed
+working area immediately before deletion was519,069,696 allocated bytes, not a
+continuously measured peak.
+
+The repository and `v1.0.0-preview.1` are now public; earlier private/draft sections
+above describe historical preparation. The published preview remains pinned to
+`6fba46c38f1cdb5be88b9bf1eeecab0f4566b534`, and its assets were not replaced.
+Stablev1.0 and arXiv submission remain pending; the user is checking their arXiv
+account separately, so account/login checks are currently skipped.

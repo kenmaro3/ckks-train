@@ -1,0 +1,10 @@
+{
+  "evidence_manifest": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/evidence.sha256.jsonl",
+  "evidence_manifest_sha256": "9a15d96b08f26c9360a139e561323f361dbbb7aec8ab8973127cbc783153920f",
+  "fixed_source_commit": "2dc049a796949b685a5c23f8b05440ee2ce474aa",
+  "frozen_utc": "2026-11-08T03:54:16.218970+00:00",
+  "independent_review": "pending",
+  "report": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-55-current-packages-20261108-report.md",
+  "report_sha256": "79742bdd60ee386cf19cb678bf9e4dadf1708ad9798118b5462dc40d63e24056",
+  "source_manifest_sha256": "c4b5f1e26055e85f72bbc08c626324e332cdd454ade3c0e5ef8a83f17ba01f79"
+}

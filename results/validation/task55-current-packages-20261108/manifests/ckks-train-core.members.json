@@ -1,0 +1,104 @@
+[
+  {
+    "bytes": 16543,
+    "mode": "0o644",
+    "path": "Cargo.lock",
+    "sha256": "b75aa59c7bc7e63d64eb0ead3fde5952bdadec118a94e3fd3cf1a664bfc41c7b"
+  },
+  {
+    "bytes": 1463,
+    "mode": "0o644",
+    "path": "Cargo.toml",
+    "sha256": "b84c1bcfadd77f20203feb053d0c170788c74675fa89965a6380f8fdfa1d1ff1"
+  },
+  {
+    "bytes": 686,
+    "mode": "0o644",
+    "path": "Cargo.toml.orig",
+    "sha256": "16754894b66cc238efeb14393dd1eaa1f52b5fe2b0ee4cfc07b4035004efae80"
+  },
+  {
+    "bytes": 1075,
+    "mode": "0o644",
+    "path": "LICENSE",
+    "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+  },
+  {
+    "bytes": 981,
+    "mode": "0o644",
+    "path": "README.md",
+    "sha256": "812225b89b6fdff19dc343334906df6db73ff0ef9c93fd0a8f2a215114d1d5fb"
+  },
+  {
+    "bytes": 10077,
+    "mode": "0o644",
+    "path": "THIRD_PARTY_NOTICES",
+    "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+  },
+  {
+    "bytes": 1121,
+    "mode": "0o644",
+    "path": "benches/ntt.rs",
+    "sha256": "52d67f27450a4519d7b709fe79389093bbbc10ff373e2316c94273396c699224"
+  },
+  {
+    "bytes": 53276,
+    "mode": "0o644",
+    "path": "src/baseconv.rs",
+    "sha256": "1746dd66cff8f396a18fe78a789432f4905aa7e2c333918c0ac367bf4363d2bc"
+  },
+  {
+    "bytes": 1757,
+    "mode": "0o644",
+    "path": "src/error.rs",
+    "sha256": "d5bcb70e1f9701c0f33c77a6932db92790fa479f3eab24396bb5615bb747fbb6"
+  },
+  {
+    "bytes": 433,
+    "mode": "0o644",
+    "path": "src/lib.rs",
+    "sha256": "60fcfdf76771b9af04585b833096e37c09b0e41e574a1eb61a713b551a3b556b"
+  },
+  {
+    "bytes": 7116,
+    "mode": "0o644",
+    "path": "src/modulus.rs",
+    "sha256": "e1a2cf9d0d46a70a4b65b334b5dd881d3927d9e6945f15c6cb8a6e0683cc560b"
+  },
+  {
+    "bytes": 14169,
+    "mode": "0o644",
+    "path": "src/ntt.rs",
+    "sha256": "fe2300e36fc598ee301f9df776441c2cf560c9c271ee29b8768eb7ced656f318"
+  },
+  {
+    "bytes": 27765,
+    "mode": "0o644",
+    "path": "src/poly.rs",
+    "sha256": "500ee4ba80af35e9d4f71215e3a13cfc03a33a54dd0bea7f9459800b7756fe92"
+  },
+  {
+    "bytes": 6077,
+    "mode": "0o644",
+    "path": "src/primes.rs",
+    "sha256": "5d6c9d17ba75e72db8ac877c98a502d796336560329cd923ebc2c0a5896898ee"
+  },
+  {
+    "bytes": 8206,
+    "mode": "0o644",
+    "path": "src/rns.rs",
+    "sha256": "6649137acb78ebf1801b23250a3ef3c57339ac02aec20db50be0ec13df1a1397"
+  },
+  {
+    "bytes": 21588,
+    "mode": "0o644",
+    "path": "src/sampler.rs",
+    "sha256": "bc38732cacc7453a2678bd00468a8704c00d7bc0d2986d26ac1a5a2b788d2e89"
+  },
+  {
+    "bytes": 3112,
+    "mode": "0o644",
+    "path": "tests/modulus_prop.rs",
+    "sha256": "09ca11b5310b60effa7b2865167b2b48f8ab0ba69b6b63f4ba5ce3eb425de132"
+  }
+]

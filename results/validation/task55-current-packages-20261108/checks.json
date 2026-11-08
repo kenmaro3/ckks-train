@@ -1,0 +1,16 @@
+{
+  "all_five_offline_locked_exit_zero": true,
+  "all_four_external_package_locks_match_fixed_workspace_lock": true,
+  "all_source_git_blob_bytes_modes_match": true,
+  "archive_content_audit": "PASS",
+  "build_cache_removed": true,
+  "commit": "2dc049a796949b685a5c23f8b05440ee2ce474aa",
+  "cuda_feature_build": true,
+  "external_directory_source_checksum_files_unchanged": true,
+  "linux_ci_run": false,
+  "native_cuda_or_scientific_measurement": false,
+  "new_external_dependencies_fetched": false,
+  "packages_default": 4,
+  "retained_archives": 5,
+  "uploaded_or_published": false
+}

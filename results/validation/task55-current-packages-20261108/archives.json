@@ -1,0 +1,26 @@
+[
+  {
+    "archive": "archives/ckks-train-core-1.0.0.crate",
+    "bytes": 48115,
+    "crate": "ckks-train-core",
+    "sha256": "797db8c4475ec3ee3fbe828114cee807bf202893bdac3cd0c06ebeeafaa1b017"
+  },
+  {
+    "archive": "archives/ckks-train-ckks-1.0.0.crate",
+    "bytes": 203387,
+    "crate": "ckks-train-ckks",
+    "sha256": "1e0fed1861d922ed71fc6207cc924aafec88505881f6fb3723442564a3bed5ed"
+  },
+  {
+    "archive": "archives/ckks-train-nn-1.0.0.crate",
+    "bytes": 347802,
+    "crate": "ckks-train-nn",
+    "sha256": "79ab5c60f793f581a83009cedf7eb8963e23547d771383666cb39c5699d93808"
+  },
+  {
+    "archive": "archives/ckks-train-cuda-1.0.0.crate",
+    "bytes": 130075,
+    "crate": "ckks-train-cuda",
+    "sha256": "eef928e6f78f822502109e3d34b1ea65e33f1daef14040a52d3d2d4468ccd495"
+  }
+]

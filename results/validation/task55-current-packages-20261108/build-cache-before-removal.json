@@ -1,0 +1,3343 @@
+{
+  "allocated_bytes": 271339520,
+  "bytes": 269853342,
+  "entries": [
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1688,
+      "kind": "file",
+      "path": ".rustc_info.json"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/.cargo-lock"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/autocfg-d4dc3004a3fb8174/dep-lib-autocfg"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/autocfg-d4dc3004a3fb8174/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/autocfg-d4dc3004a3fb8174/lib-autocfg"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 343,
+      "kind": "file",
+      "path": "debug/.fingerprint/autocfg-d4dc3004a3fb8174/lib-autocfg.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/cfg-if-4b8b257a31dd9ffc/dep-lib-cfg_if"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/cfg-if-4b8b257a31dd9ffc/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/cfg-if-4b8b257a31dd9ffc/lib-cfg_if"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 374,
+      "kind": "file",
+      "path": "debug/.fingerprint/cfg-if-4b8b257a31dd9ffc/lib-cfg_if.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-071af8a23efccf5d/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 607,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-071af8a23efccf5d/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1370,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-872bd2130b36ae38/dep-lib-ckks_train_ckks"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-872bd2130b36ae38/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-872bd2130b36ae38/lib-ckks_train_ckks"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 630,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-872bd2130b36ae38/lib-ckks_train_ckks.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-9775b285e0b04aea/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 383,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-9775b285e0b04aea/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-9775b285e0b04aea/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-9775b285e0b04aea/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-db5e108533765ac6/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 606,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-db5e108533765ac6/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 93,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-e90f402c91fe3ed0/dep-lib-ckks_train_ckks"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-e90f402c91fe3ed0/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-e90f402c91fe3ed0/lib-ckks_train_ckks"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 631,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-e90f402c91fe3ed0/lib-ckks_train_ckks.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-ffb71b3133eb375e/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 384,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-ffb71b3133eb375e/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 58,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-ffb71b3133eb375e/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-ckks-ffb71b3133eb375e/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 447,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-0e579134b1c48534/dep-lib-ckks_train_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-0e579134b1c48534/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-0e579134b1c48534/lib-ckks_train_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 482,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-0e579134b1c48534/lib-ckks_train_core.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-edcf89d04ca4b730/dep-lib-ckks_train_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-edcf89d04ca4b730/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-edcf89d04ca4b730/lib-ckks_train_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 482,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-core-edcf89d04ca4b730/lib-ckks_train_core.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 512,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-10697741a7c01d06/dep-lib-ckks_train_cuda"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-10697741a7c01d06/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-10697741a7c01d06/lib-ckks_train_cuda"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 503,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-10697741a7c01d06/lib-ckks_train_cuda.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 977,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-8faeb2c160ba8e38/dep-lib-ckks_train_cuda"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-8faeb2c160ba8e38/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-8faeb2c160ba8e38/lib-ckks_train_cuda"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 569,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-cuda-8faeb2c160ba8e38/lib-ckks_train_cuda.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1307,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-nn-c779be3cc9871630/dep-lib-ckks_train_nn"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-nn-c779be3cc9871630/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-nn-c779be3cc9871630/lib-ckks_train_nn"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 550,
+      "kind": "file",
+      "path": "debug/.fingerprint/ckks-train-nn-c779be3cc9871630/lib-ckks_train_nn.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-9def254289e6e9d6/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1108,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-9def254289e6e9d6/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-9def254289e6e9d6/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-9def254289e6e9d6/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-db4ccf09a975b0e1/dep-lib-cudarc"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-db4ccf09a975b0e1/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-db4ccf09a975b0e1/lib-cudarc"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1219,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-db4ccf09a975b0e1/lib-cudarc.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-fd403c9ee7b732d1/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 666,
+      "kind": "file",
+      "path": "debug/.fingerprint/cudarc-fd403c9ee7b732d1/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-0a845a6606f309ee/dep-lib-getrandom"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-0a845a6606f309ee/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-0a845a6606f309ee/lib-getrandom"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 564,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-0a845a6606f309ee/lib-getrandom.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-68ce5b1f9a31ab58/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 395,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-68ce5b1f9a31ab58/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-68ce5b1f9a31ab58/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-68ce5b1f9a31ab58/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-78108bf4d810ef73/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 329,
+      "kind": "file",
+      "path": "debug/.fingerprint/getrandom-78108bf4d810ef73/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-92f0beca113bae50/dep-lib-libc"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-92f0beca113bae50/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-92f0beca113bae50/lib-libc"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 547,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-92f0beca113bae50/lib-libc.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-bd35326d5d9b43ee/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 499,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-bd35326d5d9b43ee/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-bd35326d5d9b43ee/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-bd35326d5d9b43ee/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-fe0fd7bbd176aabc/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 463,
+      "kind": "file",
+      "path": "debug/.fingerprint/libc-fe0fd7bbd176aabc/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/libloading-30edeaf30f9d7412/dep-lib-libloading"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/libloading-30edeaf30f9d7412/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/libloading-30edeaf30f9d7412/lib-libloading"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 410,
+      "kind": "file",
+      "path": "debug/.fingerprint/libloading-30edeaf30f9d7412/lib-libloading.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 33,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-8f052469175e080f/dep-lib-matrixmultiply"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-8f052469175e080f/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-8f052469175e080f/lib-matrixmultiply"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 627,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-8f052469175e080f/lib-matrixmultiply.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-c5b408081ea9ae3d/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 334,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-c5b408081ea9ae3d/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-e7e90c81175d6e57/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 566,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-e7e90c81175d6e57/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-e7e90c81175d6e57/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/matrixmultiply-e7e90c81175d6e57/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/ndarray-0fbd564049d90d0f/dep-lib-ndarray"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ndarray-0fbd564049d90d0f/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ndarray-0fbd564049d90d0f/lib-ndarray"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 847,
+      "kind": "file",
+      "path": "debug/.fingerprint/ndarray-0fbd564049d90d0f/lib-ndarray.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-complex-362c8ebd840dd5e4/dep-lib-num_complex"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-complex-362c8ebd840dd5e4/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-complex-362c8ebd840dd5e4/lib-num_complex"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 525,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-complex-362c8ebd840dd5e4/lib-num_complex.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-integer-c8e78e7a4913a82d/dep-lib-num_integer"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-integer-c8e78e7a4913a82d/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-integer-c8e78e7a4913a82d/lib-num_integer"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 445,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-integer-c8e78e7a4913a82d/lib-num_integer.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-9d6d2b2051bd9ed4/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 330,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-9d6d2b2051bd9ed4/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-bb4da95e5567709b/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 482,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-bb4da95e5567709b/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-bb4da95e5567709b/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-bb4da95e5567709b/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-d35a5881c26d4a8a/dep-lib-num_traits"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-d35a5881c26d4a8a/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-d35a5881c26d4a8a/lib-num_traits"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 479,
+      "kind": "file",
+      "path": "debug/.fingerprint/num-traits-d35a5881c26d4a8a/lib-num_traits.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/ppv-lite86-7110a8fdd19ed382/dep-lib-ppv_lite86"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/ppv-lite86-7110a8fdd19ed382/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/ppv-lite86-7110a8fdd19ed382/lib-ppv_lite86"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 470,
+      "kind": "file",
+      "path": "debug/.fingerprint/ppv-lite86-7110a8fdd19ed382/lib-ppv_lite86.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_chacha-8d8e9abe67b3497d/dep-lib-rand_chacha"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_chacha-8d8e9abe67b3497d/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_chacha-8d8e9abe67b3497d/lib-rand_chacha"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 539,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_chacha-8d8e9abe67b3497d/lib-rand_chacha.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_core-bf63826eed5f2969/dep-lib-rand_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_core-bf63826eed5f2969/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_core-bf63826eed5f2969/lib-rand_core"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 459,
+      "kind": "file",
+      "path": "debug/.fingerprint/rand_core-bf63826eed5f2969/lib-rand_core.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/rawpointer-4aa441e42d6d925a/dep-lib-rawpointer"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/rawpointer-4aa441e42d6d925a/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/rawpointer-4aa441e42d6d925a/lib-rawpointer"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 352,
+      "kind": "file",
+      "path": "debug/.fingerprint/rawpointer-4aa441e42d6d925a/lib-rawpointer.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-119f469f03938209/build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 525,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-119f469f03938209/build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-119f469f03938209/dep-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-119f469f03938209/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 14,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-2f61e293788812a9/dep-lib-zerocopy"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-2f61e293788812a9/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-2f61e293788812a9/lib-zerocopy"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 577,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-2f61e293788812a9/lib-zerocopy.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 16,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-41e9f4be47dfe759/run-build-script-build-script-build"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 340,
+      "kind": "file",
+      "path": "debug/.fingerprint/zerocopy-41e9f4be47dfe759/run-build-script-build-script-build.json"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-071af8a23efccf5d/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 379,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-071af8a23efccf5d/out/bootstrap_diagnostics.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 223,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-071af8a23efccf5d/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 143,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-071af8a23efccf5d/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-071af8a23efccf5d/stderr"
+    },
+    {
+      "allocated_bytes": 552960,
+      "bytes": 550144,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-9775b285e0b04aea/build-script-build"
+    },
+    {
+      "allocated_bytes": 552960,
+      "bytes": 550144,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-9775b285e0b04aea/build_script_build-9775b285e0b04aea"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 722,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-9775b285e0b04aea/build_script_build-9775b285e0b04aea.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-db5e108533765ac6/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 379,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-db5e108533765ac6/out/bootstrap_diagnostics.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 223,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-db5e108533765ac6/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 143,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-db5e108533765ac6/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-db5e108533765ac6/stderr"
+    },
+    {
+      "allocated_bytes": 552960,
+      "bytes": 550144,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-ffb71b3133eb375e/build-script-build"
+    },
+    {
+      "allocated_bytes": 552960,
+      "bytes": 550144,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-ffb71b3133eb375e/build_script_build-ffb71b3133eb375e"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 386,
+      "kind": "file",
+      "path": "debug/build/ckks-train-ckks-ffb71b3133eb375e/build_script_build-ffb71b3133eb375e.d"
+    },
+    {
+      "allocated_bytes": 454656,
+      "bytes": 452288,
+      "kind": "file",
+      "path": "debug/build/cudarc-9def254289e6e9d6/build-script-build"
+    },
+    {
+      "allocated_bytes": 454656,
+      "bytes": 452288,
+      "kind": "file",
+      "path": "debug/build/cudarc-9def254289e6e9d6/build_script_build-9def254289e6e9d6"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 680,
+      "kind": "file",
+      "path": "debug/build/cudarc-9def254289e6e9d6/build_script_build-9def254289e6e9d6.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/cudarc-fd403c9ee7b732d1/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 351,
+      "kind": "file",
+      "path": "debug/build/cudarc-fd403c9ee7b732d1/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 134,
+      "kind": "file",
+      "path": "debug/build/cudarc-fd403c9ee7b732d1/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/cudarc-fd403c9ee7b732d1/stderr"
+    },
+    {
+      "allocated_bytes": 557056,
+      "bytes": 553776,
+      "kind": "file",
+      "path": "debug/build/getrandom-68ce5b1f9a31ab58/build-script-build"
+    },
+    {
+      "allocated_bytes": 557056,
+      "bytes": 553776,
+      "kind": "file",
+      "path": "debug/build/getrandom-68ce5b1f9a31ab58/build_script_build-68ce5b1f9a31ab58"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 692,
+      "kind": "file",
+      "path": "debug/build/getrandom-68ce5b1f9a31ab58/build_script_build-68ce5b1f9a31ab58.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/getrandom-78108bf4d810ef73/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 32,
+      "kind": "file",
+      "path": "debug/build/getrandom-78108bf4d810ef73/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 137,
+      "kind": "file",
+      "path": "debug/build/getrandom-78108bf4d810ef73/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/getrandom-78108bf4d810ef73/stderr"
+    },
+    {
+      "allocated_bytes": 647168,
+      "bytes": 645776,
+      "kind": "file",
+      "path": "debug/build/libc-bd35326d5d9b43ee/build-script-build"
+    },
+    {
+      "allocated_bytes": 647168,
+      "bytes": 645776,
+      "kind": "file",
+      "path": "debug/build/libc-bd35326d5d9b43ee/build_script_build-bd35326d5d9b43ee"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 673,
+      "kind": "file",
+      "path": "debug/build/libc-bd35326d5d9b43ee/build_script_build-bd35326d5d9b43ee.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/libc-fe0fd7bbd176aabc/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1444,
+      "kind": "file",
+      "path": "debug/build/libc-fe0fd7bbd176aabc/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 132,
+      "kind": "file",
+      "path": "debug/build/libc-fe0fd7bbd176aabc/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/libc-fe0fd7bbd176aabc/stderr"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-c5b408081ea9ae3d/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 70,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-c5b408081ea9ae3d/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 142,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-c5b408081ea9ae3d/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-c5b408081ea9ae3d/stderr"
+    },
+    {
+      "allocated_bytes": 720896,
+      "bytes": 718112,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-e7e90c81175d6e57/build-script-build"
+    },
+    {
+      "allocated_bytes": 720896,
+      "bytes": 718112,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-e7e90c81175d6e57/build_script_build-e7e90c81175d6e57"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 720,
+      "kind": "file",
+      "path": "debug/build/matrixmultiply-e7e90c81175d6e57/build_script_build-e7e90c81175d6e57.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/num-traits-9d6d2b2051bd9ed4/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 103,
+      "kind": "file",
+      "path": "debug/build/num-traits-9d6d2b2051bd9ed4/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 138,
+      "kind": "file",
+      "path": "debug/build/num-traits-9d6d2b2051bd9ed4/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/num-traits-9d6d2b2051bd9ed4/stderr"
+    },
+    {
+      "allocated_bytes": 720896,
+      "bytes": 719472,
+      "kind": "file",
+      "path": "debug/build/num-traits-bb4da95e5567709b/build-script-build"
+    },
+    {
+      "allocated_bytes": 720896,
+      "bytes": 719472,
+      "kind": "file",
+      "path": "debug/build/num-traits-bb4da95e5567709b/build_script_build-bb4da95e5567709b"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 700,
+      "kind": "file",
+      "path": "debug/build/num-traits-bb4da95e5567709b/build_script_build-bb4da95e5567709b.d"
+    },
+    {
+      "allocated_bytes": 610304,
+      "bytes": 610096,
+      "kind": "file",
+      "path": "debug/build/zerocopy-119f469f03938209/build-script-build"
+    },
+    {
+      "allocated_bytes": 610304,
+      "bytes": 610096,
+      "kind": "file",
+      "path": "debug/build/zerocopy-119f469f03938209/build_script_build-119f469f03938209"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 690,
+      "kind": "file",
+      "path": "debug/build/zerocopy-119f469f03938209/build_script_build-119f469f03938209.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 48,
+      "kind": "file",
+      "path": "debug/build/zerocopy-41e9f4be47dfe759/invoked.timestamp"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1800,
+      "kind": "file",
+      "path": "debug/build/zerocopy-41e9f4be47dfe759/output"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 136,
+      "kind": "file",
+      "path": "debug/build/zerocopy-41e9f4be47dfe759/root-output"
+    },
+    {
+      "allocated_bytes": 0,
+      "bytes": 0,
+      "kind": "file",
+      "path": "debug/build/zerocopy-41e9f4be47dfe759/stderr"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2294,
+      "kind": "file",
+      "path": "debug/deps/autocfg-d4dc3004a3fb8174.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 808,
+      "kind": "file",
+      "path": "debug/deps/cfg_if-4b8b257a31dd9ffc.cfg_if.28f0b872418c0ec2-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 872,
+      "kind": "file",
+      "path": "debug/deps/cfg_if-4b8b257a31dd9ffc.d"
+    },
+    {
+      "allocated_bytes": 1486848,
+      "bytes": 1486808,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 839680,
+      "bytes": 835840,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 806912,
+      "bytes": 803464,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1212416,
+      "bytes": 1212408,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 479232,
+      "bytes": 477504,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 684032,
+      "bytes": 680520,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1499136,
+      "bytes": 1498296,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 708608,
+      "bytes": 708104,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 626688,
+      "bytes": 624808,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 548864,
+      "bytes": 546312,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 757760,
+      "bytes": 754680,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.10.rcgu.o"
+    },
+    {
+      "allocated_bytes": 655360,
+      "bytes": 654488,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.11.rcgu.o"
+    },
+    {
+      "allocated_bytes": 507904,
+      "bytes": 504344,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.12.rcgu.o"
+    },
+    {
+      "allocated_bytes": 598016,
+      "bytes": 597712,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.13.rcgu.o"
+    },
+    {
+      "allocated_bytes": 716800,
+      "bytes": 712736,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.14.rcgu.o"
+    },
+    {
+      "allocated_bytes": 274432,
+      "bytes": 273160,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.ckks_train_ckks.85de402530c3ea2d-cgu.15.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3054,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-872bd2130b36ae38.d"
+    },
+    {
+      "allocated_bytes": 1490944,
+      "bytes": 1486896,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 839680,
+      "bytes": 835936,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 806912,
+      "bytes": 803568,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1216512,
+      "bytes": 1212512,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 479232,
+      "bytes": 476832,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 684032,
+      "bytes": 680872,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1499136,
+      "bytes": 1498368,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 708608,
+      "bytes": 706632,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 626688,
+      "bytes": 624184,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 548864,
+      "bytes": 547072,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 757760,
+      "bytes": 754776,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.10.rcgu.o"
+    },
+    {
+      "allocated_bytes": 655360,
+      "bytes": 654040,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.11.rcgu.o"
+    },
+    {
+      "allocated_bytes": 507904,
+      "bytes": 506952,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.12.rcgu.o"
+    },
+    {
+      "allocated_bytes": 602112,
+      "bytes": 602008,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.13.rcgu.o"
+    },
+    {
+      "allocated_bytes": 716800,
+      "bytes": 713136,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.14.rcgu.o"
+    },
+    {
+      "allocated_bytes": 278528,
+      "bytes": 276408,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.ckks_train_ckks.14155407a2851781-cgu.15.rcgu.o"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13806,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_ckks-e90f402c91fe3ed0.d"
+    },
+    {
+      "allocated_bytes": 425984,
+      "bytes": 423280,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 274432,
+      "bytes": 272600,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 380928,
+      "bytes": 380560,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 131072,
+      "bytes": 129064,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 204800,
+      "bytes": 202760,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 446464,
+      "bytes": 444752,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 212992,
+      "bytes": 211392,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 225280,
+      "bytes": 221568,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 196608,
+      "bytes": 195944,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 184320,
+      "bytes": 182208,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.ckks_train_core.fd3494700d638da5-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 923,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-0e579134b1c48534.d"
+    },
+    {
+      "allocated_bytes": 425984,
+      "bytes": 423384,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 274432,
+      "bytes": 272696,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 380928,
+      "bytes": 380664,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 131072,
+      "bytes": 129168,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 204800,
+      "bytes": 201416,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 450560,
+      "bytes": 448680,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 212992,
+      "bytes": 209992,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 225280,
+      "bytes": 224192,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 196608,
+      "bytes": 192616,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 184320,
+      "bytes": 182304,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.ckks_train_core.79c7c287c1d2c04d-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 4955,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_core-edcf89d04ca4b730.d"
+    },
+    {
+      "allocated_bytes": 270336,
+      "bytes": 268944,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.ckks_train_cuda.ed01ebc5af49805b-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 249856,
+      "bytes": 247544,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.ckks_train_cuda.ed01ebc5af49805b-cgu.1.rcgu.o"
+    },
+    {
+      "allocated_bytes": 417792,
+      "bytes": 417752,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.ckks_train_cuda.ed01ebc5af49805b-cgu.2.rcgu.o"
+    },
+    {
+      "allocated_bytes": 131072,
+      "bytes": 130040,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.ckks_train_cuda.ed01ebc5af49805b-cgu.3.rcgu.o"
+    },
+    {
+      "allocated_bytes": 172032,
+      "bytes": 171480,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.ckks_train_cuda.ed01ebc5af49805b-cgu.4.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1156,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-10697741a7c01d06.d"
+    },
+    {
+      "allocated_bytes": 999424,
+      "bytes": 998056,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 536576,
+      "bytes": 535480,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 724992,
+      "bytes": 724120,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 331776,
+      "bytes": 331056,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 286720,
+      "bytes": 282768,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1142784,
+      "bytes": 1141928,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 761856,
+      "bytes": 759160,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 712704,
+      "bytes": 710992,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 450560,
+      "bytes": 448624,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 401408,
+      "bytes": 398656,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 442368,
+      "bytes": 439240,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.10.rcgu.o"
+    },
+    {
+      "allocated_bytes": 376832,
+      "bytes": 376752,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.11.rcgu.o"
+    },
+    {
+      "allocated_bytes": 479232,
+      "bytes": 477560,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.12.rcgu.o"
+    },
+    {
+      "allocated_bytes": 806912,
+      "bytes": 802920,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.13.rcgu.o"
+    },
+    {
+      "allocated_bytes": 831488,
+      "bytes": 829968,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.14.rcgu.o"
+    },
+    {
+      "allocated_bytes": 397312,
+      "bytes": 394000,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.ckks_train_cuda.f6f87c31295aff2d-cgu.15.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1765,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_cuda-8faeb2c160ba8e38.d"
+    },
+    {
+      "allocated_bytes": 1376256,
+      "bytes": 1372224,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 684032,
+      "bytes": 683184,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 471040,
+      "bytes": 467304,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 897024,
+      "bytes": 894376,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 503808,
+      "bytes": 501680,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1032192,
+      "bytes": 1031472,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 311296,
+      "bytes": 310048,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 548864,
+      "bytes": 546184,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 245760,
+      "bytes": 244368,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 458752,
+      "bytes": 456024,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 266240,
+      "bytes": 263008,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.10.rcgu.o"
+    },
+    {
+      "allocated_bytes": 335872,
+      "bytes": 332448,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.11.rcgu.o"
+    },
+    {
+      "allocated_bytes": 442368,
+      "bytes": 442168,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.12.rcgu.o"
+    },
+    {
+      "allocated_bytes": 466944,
+      "bytes": 465648,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.13.rcgu.o"
+    },
+    {
+      "allocated_bytes": 540672,
+      "bytes": 537504,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.14.rcgu.o"
+    },
+    {
+      "allocated_bytes": 458752,
+      "bytes": 458496,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.ckks_train_nn.43557afb9914a547-cgu.15.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2464,
+      "kind": "file",
+      "path": "debug/deps/ckks_train_nn-c779be3cc9871630.d"
+    },
+    {
+      "allocated_bytes": 4980736,
+      "bytes": 4978032,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.00.rcgu.o"
+    },
+    {
+      "allocated_bytes": 3293184,
+      "bytes": 3289640,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.01.rcgu.o"
+    },
+    {
+      "allocated_bytes": 2310144,
+      "bytes": 2306984,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.02.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1363968,
+      "bytes": 1362312,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.03.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1589248,
+      "bytes": 1587456,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.04.rcgu.o"
+    },
+    {
+      "allocated_bytes": 430080,
+      "bytes": 428680,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.05.rcgu.o"
+    },
+    {
+      "allocated_bytes": 372736,
+      "bytes": 369040,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.06.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1101824,
+      "bytes": 1100752,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.07.rcgu.o"
+    },
+    {
+      "allocated_bytes": 380928,
+      "bytes": 380080,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.08.rcgu.o"
+    },
+    {
+      "allocated_bytes": 241664,
+      "bytes": 239008,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.09.rcgu.o"
+    },
+    {
+      "allocated_bytes": 237568,
+      "bytes": 234544,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.cudarc.5d03f007b5c01f8-cgu.10.rcgu.o"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8571,
+      "kind": "file",
+      "path": "debug/deps/cudarc-db4ccf09a975b0e1.d"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 4416,
+      "kind": "file",
+      "path": "debug/deps/getrandom-0a845a6606f309ee.d"
+    },
+    {
+      "allocated_bytes": 94208,
+      "bytes": 91048,
+      "kind": "file",
+      "path": "debug/deps/getrandom-0a845a6606f309ee.getrandom.9f34f2387b07064c-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 491520,
+      "bytes": 489344,
+      "kind": "file",
+      "path": "debug/deps/libautocfg-d4dc3004a3fb8174.rlib"
+    },
+    {
+      "allocated_bytes": 81920,
+      "bytes": 81064,
+      "kind": "file",
+      "path": "debug/deps/libautocfg-d4dc3004a3fb8174.rmeta"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 26433,
+      "kind": "file",
+      "path": "debug/deps/libc-92f0beca113bae50.d"
+    },
+    {
+      "allocated_bytes": 204800,
+      "bytes": 201800,
+      "kind": "file",
+      "path": "debug/deps/libc-92f0beca113bae50.libc.4728b4ee78a1e5b2-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7280,
+      "kind": "file",
+      "path": "debug/deps/libcfg_if-4b8b257a31dd9ffc.rlib"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5858,
+      "kind": "file",
+      "path": "debug/deps/libcfg_if-4b8b257a31dd9ffc.rmeta"
+    },
+    {
+      "allocated_bytes": 14209024,
+      "bytes": 14205752,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_ckks-872bd2130b36ae38.rlib"
+    },
+    {
+      "allocated_bytes": 1081344,
+      "bytes": 1077573,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_ckks-872bd2130b36ae38.rmeta"
+    },
+    {
+      "allocated_bytes": 14217216,
+      "bytes": 14214704,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_ckks-e90f402c91fe3ed0.rlib"
+    },
+    {
+      "allocated_bytes": 1081344,
+      "bytes": 1077266,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_ckks-e90f402c91fe3ed0.rmeta"
+    },
+    {
+      "allocated_bytes": 3014656,
+      "bytes": 3011680,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_core-0e579134b1c48534.rlib"
+    },
+    {
+      "allocated_bytes": 163840,
+      "bytes": 161961,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_core-0e579134b1c48534.rmeta"
+    },
+    {
+      "allocated_bytes": 3014656,
+      "bytes": 3012528,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_core-edcf89d04ca4b730.rlib"
+    },
+    {
+      "allocated_bytes": 163840,
+      "bytes": 161845,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_core-edcf89d04ca4b730.rmeta"
+    },
+    {
+      "allocated_bytes": 1609728,
+      "bytes": 1609584,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_cuda-10697741a7c01d06.rlib"
+    },
+    {
+      "allocated_bytes": 286720,
+      "bytes": 284426,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_cuda-10697741a7c01d06.rmeta"
+    },
+    {
+      "allocated_bytes": 10944512,
+      "bytes": 10943256,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_cuda-8faeb2c160ba8e38.rlib"
+    },
+    {
+      "allocated_bytes": 798720,
+      "bytes": 796943,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_cuda-8faeb2c160ba8e38.rmeta"
+    },
+    {
+      "allocated_bytes": 12455936,
+      "bytes": 12452544,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_nn-c779be3cc9871630.rlib"
+    },
+    {
+      "allocated_bytes": 2879488,
+      "bytes": 2876241,
+      "kind": "file",
+      "path": "debug/deps/libckks_train_nn-c779be3cc9871630.rmeta"
+    },
+    {
+      "allocated_bytes": 21647360,
+      "bytes": 21643480,
+      "kind": "file",
+      "path": "debug/deps/libcudarc-db4ccf09a975b0e1.rlib"
+    },
+    {
+      "allocated_bytes": 4534272,
+      "bytes": 4530368,
+      "kind": "file",
+      "path": "debug/deps/libcudarc-db4ccf09a975b0e1.rmeta"
+    },
+    {
+      "allocated_bytes": 225280,
+      "bytes": 223512,
+      "kind": "file",
+      "path": "debug/deps/libgetrandom-0a845a6606f309ee.rlib"
+    },
+    {
+      "allocated_bytes": 131072,
+      "bytes": 128614,
+      "kind": "file",
+      "path": "debug/deps/libgetrandom-0a845a6606f309ee.rmeta"
+    },
+    {
+      "allocated_bytes": 3186688,
+      "bytes": 3185392,
+      "kind": "file",
+      "path": "debug/deps/liblibc-92f0beca113bae50.rlib"
+    },
+    {
+      "allocated_bytes": 2957312,
+      "bytes": 2957005,
+      "kind": "file",
+      "path": "debug/deps/liblibc-92f0beca113bae50.rmeta"
+    },
+    {
+      "allocated_bytes": 323584,
+      "bytes": 320240,
+      "kind": "file",
+      "path": "debug/deps/liblibloading-30edeaf30f9d7412.rlib"
+    },
+    {
+      "allocated_bytes": 143360,
+      "bytes": 142955,
+      "kind": "file",
+      "path": "debug/deps/liblibloading-30edeaf30f9d7412.rmeta"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 4339,
+      "kind": "file",
+      "path": "debug/deps/libloading-30edeaf30f9d7412.d"
+    },
+    {
+      "allocated_bytes": 172032,
+      "bytes": 168768,
+      "kind": "file",
+      "path": "debug/deps/libloading-30edeaf30f9d7412.libloading.a90cf6f395b945da-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 1200128,
+      "bytes": 1198704,
+      "kind": "file",
+      "path": "debug/deps/libmatrixmultiply-8f052469175e080f.rlib"
+    },
+    {
+      "allocated_bytes": 356352,
+      "bytes": 352381,
+      "kind": "file",
+      "path": "debug/deps/libmatrixmultiply-8f052469175e080f.rmeta"
+    },
+    {
+      "allocated_bytes": 4378624,
+      "bytes": 4376176,
+      "kind": "file",
+      "path": "debug/deps/libndarray-0fbd564049d90d0f.rlib"
+    },
+    {
+      "allocated_bytes": 3960832,
+      "bytes": 3956818,
+      "kind": "file",
+      "path": "debug/deps/libndarray-0fbd564049d90d0f.rmeta"
+    },
+    {
+      "allocated_bytes": 811008,
+      "bytes": 807200,
+      "kind": "file",
+      "path": "debug/deps/libnum_complex-362c8ebd840dd5e4.rlib"
+    },
+    {
+      "allocated_bytes": 720896,
+      "bytes": 719518,
+      "kind": "file",
+      "path": "debug/deps/libnum_complex-362c8ebd840dd5e4.rmeta"
+    },
+    {
+      "allocated_bytes": 503808,
+      "bytes": 503800,
+      "kind": "file",
+      "path": "debug/deps/libnum_integer-c8e78e7a4913a82d.rlib"
+    },
+    {
+      "allocated_bytes": 311296,
+      "bytes": 308716,
+      "kind": "file",
+      "path": "debug/deps/libnum_integer-c8e78e7a4913a82d.rmeta"
+    },
+    {
+      "allocated_bytes": 1830912,
+      "bytes": 1827392,
+      "kind": "file",
+      "path": "debug/deps/libnum_traits-d35a5881c26d4a8a.rlib"
+    },
+    {
+      "allocated_bytes": 1716224,
+      "bytes": 1712474,
+      "kind": "file",
+      "path": "debug/deps/libnum_traits-d35a5881c26d4a8a.rmeta"
+    },
+    {
+      "allocated_bytes": 421888,
+      "bytes": 418128,
+      "kind": "file",
+      "path": "debug/deps/libppv_lite86-7110a8fdd19ed382.rlib"
+    },
+    {
+      "allocated_bytes": 401408,
+      "bytes": 400470,
+      "kind": "file",
+      "path": "debug/deps/libppv_lite86-7110a8fdd19ed382.rmeta"
+    },
+    {
+      "allocated_bytes": 688128,
+      "bytes": 687904,
+      "kind": "file",
+      "path": "debug/deps/librand_chacha-8d8e9abe67b3497d.rlib"
+    },
+    {
+      "allocated_bytes": 155648,
+      "bytes": 153137,
+      "kind": "file",
+      "path": "debug/deps/librand_chacha-8d8e9abe67b3497d.rmeta"
+    },
+    {
+      "allocated_bytes": 262144,
+      "bytes": 261712,
+      "kind": "file",
+      "path": "debug/deps/librand_core-bf63826eed5f2969.rlib"
+    },
+    {
+      "allocated_bytes": 151552,
+      "bytes": 150658,
+      "kind": "file",
+      "path": "debug/deps/librand_core-bf63826eed5f2969.rmeta"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14576,
+      "kind": "file",
+      "path": "debug/deps/librawpointer-4aa441e42d6d925a.rlib"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13145,
+      "kind": "file",
+      "path": "debug/deps/librawpointer-4aa441e42d6d925a.rmeta"
+    },
+    {
+      "allocated_bytes": 14692352,
+      "bytes": 14688416,
+      "kind": "file",
+      "path": "debug/deps/libzerocopy-2f61e293788812a9.rlib"
+    },
+    {
+      "allocated_bytes": 14278656,
+      "bytes": 14277585,
+      "kind": "file",
+      "path": "debug/deps/libzerocopy-2f61e293788812a9.rmeta"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 11398,
+      "kind": "file",
+      "path": "debug/deps/matrixmultiply-8f052469175e080f.d"
+    },
+    {
+      "allocated_bytes": 266240,
+      "bytes": 265480,
+      "kind": "file",
+      "path": "debug/deps/matrixmultiply-8f052469175e080f.matrixmultiply.dc6f4407587022a2-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 208896,
+      "bytes": 206536,
+      "kind": "file",
+      "path": "debug/deps/matrixmultiply-8f052469175e080f.matrixmultiply.dc6f4407587022a2-cgu.1.rcgu.o"
+    },
+    {
+      "allocated_bytes": 188416,
+      "bytes": 184896,
+      "kind": "file",
+      "path": "debug/deps/matrixmultiply-8f052469175e080f.matrixmultiply.dc6f4407587022a2-cgu.2.rcgu.o"
+    },
+    {
+      "allocated_bytes": 159744,
+      "bytes": 156240,
+      "kind": "file",
+      "path": "debug/deps/matrixmultiply-8f052469175e080f.matrixmultiply.dc6f4407587022a2-cgu.3.rcgu.o"
+    },
+    {
+      "allocated_bytes": 40960,
+      "bytes": 40365,
+      "kind": "file",
+      "path": "debug/deps/ndarray-0fbd564049d90d0f.d"
+    },
+    {
+      "allocated_bytes": 237568,
+      "bytes": 237544,
+      "kind": "file",
+      "path": "debug/deps/ndarray-0fbd564049d90d0f.ndarray.e0f639084d6b6361-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 155648,
+      "bytes": 153592,
+      "kind": "file",
+      "path": "debug/deps/ndarray-0fbd564049d90d0f.ndarray.e0f639084d6b6361-cgu.1.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2382,
+      "kind": "file",
+      "path": "debug/deps/num_complex-362c8ebd840dd5e4.d"
+    },
+    {
+      "allocated_bytes": 86016,
+      "bytes": 84952,
+      "kind": "file",
+      "path": "debug/deps/num_complex-362c8ebd840dd5e4.num_complex.797fcd3bd0eeff1-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1897,
+      "kind": "file",
+      "path": "debug/deps/num_integer-c8e78e7a4913a82d.d"
+    },
+    {
+      "allocated_bytes": 192512,
+      "bytes": 189816,
+      "kind": "file",
+      "path": "debug/deps/num_integer-c8e78e7a4913a82d.num_integer.5460818ed175ed67-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 9838,
+      "kind": "file",
+      "path": "debug/deps/num_traits-d35a5881c26d4a8a.d"
+    },
+    {
+      "allocated_bytes": 110592,
+      "bytes": 110400,
+      "kind": "file",
+      "path": "debug/deps/num_traits-d35a5881c26d4a8a.num_traits.d4fd4400e1d204a9-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2363,
+      "kind": "file",
+      "path": "debug/deps/ppv_lite86-7110a8fdd19ed382.d"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13664,
+      "kind": "file",
+      "path": "debug/deps/ppv_lite86-7110a8fdd19ed382.ppv_lite86.df5e5ece8235921a-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1877,
+      "kind": "file",
+      "path": "debug/deps/rand_chacha-8d8e9abe67b3497d.d"
+    },
+    {
+      "allocated_bytes": 528384,
+      "bytes": 524368,
+      "kind": "file",
+      "path": "debug/deps/rand_chacha-8d8e9abe67b3497d.rand_chacha.36fa65b014450ae6-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2777,
+      "kind": "file",
+      "path": "debug/deps/rand_core-bf63826eed5f2969.d"
+    },
+    {
+      "allocated_bytes": 106496,
+      "bytes": 104096,
+      "kind": "file",
+      "path": "debug/deps/rand_core-bf63826eed5f2969.rand_core.2498c9e076a1a7da-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 900,
+      "kind": "file",
+      "path": "debug/deps/rawpointer-4aa441e42d6d925a.d"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 808,
+      "kind": "file",
+      "path": "debug/deps/rawpointer-4aa441e42d6d925a.rawpointer.8a9ea8f9a443dbf1-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 9844,
+      "kind": "file",
+      "path": "debug/deps/zerocopy-2f61e293788812a9.d"
+    },
+    {
+      "allocated_bytes": 303104,
+      "bytes": 301504,
+      "kind": "file",
+      "path": "debug/deps/zerocopy-2f61e293788812a9.zerocopy.9ec783105d1a01eb-cgu.0.rcgu.o"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3866,
+      "kind": "file",
+      "path": "debug/libckks_train_ckks.d"
+    },
+    {
+      "allocated_bytes": 14209024,
+      "bytes": 14205752,
+      "kind": "file",
+      "path": "debug/libckks_train_ckks.rlib"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1369,
+      "kind": "file",
+      "path": "debug/libckks_train_core.d"
+    },
+    {
+      "allocated_bytes": 3014656,
+      "bytes": 3011680,
+      "kind": "file",
+      "path": "debug/libckks_train_core.rlib"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2799,
+      "kind": "file",
+      "path": "debug/libckks_train_cuda.d"
+    },
+    {
+      "allocated_bytes": 10944512,
+      "bytes": 10943256,
+      "kind": "file",
+      "path": "debug/libckks_train_cuda.rlib"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3577,
+      "kind": "file",
+      "path": "debug/libckks_train_nn.d"
+    },
+    {
+      "allocated_bytes": 12455936,
+      "bytes": 12452544,
+      "kind": "file",
+      "path": "debug/libckks_train_nn.rlib"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 15565,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/Cargo.lock"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2104,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/Cargo.toml"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1113,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/Cargo.toml.orig"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1075,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/LICENSE"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1491,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/README.md"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10077,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/THIRD_PARTY_NOTICES"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3416,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/benches/bootstrap.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1730,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/benches/rotate.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1268,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/build.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2014,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/examples/export_params.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 674,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/examples/precision.rs"
+    },
+    {
+      "allocated_bytes": 40960,
+      "bytes": 38908,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/bootstrapper.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 22173,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/evalmod.rs"
+    },
+    {
+      "allocated_bytes": 81920,
+      "bytes": 80601,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/linear.rs"
+    },
+    {
+      "allocated_bytes": 69632,
+      "bytes": 68687,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/metadata.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1220,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/mod.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21012,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/modraise.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 20926,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/params.rs"
+    },
+    {
+      "allocated_bytes": 45056,
+      "bytes": 44138,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/bootstrap/poly.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 4378,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/ciphertext.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 11531,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/counter.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 34592,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/encoder.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13178,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/encrypt.rs"
+    },
+    {
+      "allocated_bytes": 81920,
+      "bytes": 81421,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/evaluator.rs"
+    },
+    {
+      "allocated_bytes": 40960,
+      "bytes": 39936,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/keys.rs"
+    },
+    {
+      "allocated_bytes": 32768,
+      "bytes": 31653,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/keyswitch.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 940,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/lib.rs"
+    },
+    {
+      "allocated_bytes": 73728,
+      "bytes": 71884,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/linalg.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5654,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/metadata.rs"
+    },
+    {
+      "allocated_bytes": 32768,
+      "bytes": 31140,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/ops.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1861,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/par.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 20965,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/params.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2271,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/plaintext.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7107,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/precision.rs"
+    },
+    {
+      "allocated_bytes": 32768,
+      "bytes": 30783,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/src/seal_compat.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 26743,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/tests/bootstrap_metadata.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14241,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/tests/metadata.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1444,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/tests/precision.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 15427,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0/tests/seal_kat.rs"
+    },
+    {
+      "allocated_bytes": 204800,
+      "bytes": 203387,
+      "kind": "file",
+      "path": "package/ckks-train-ckks-1.0.0.crate"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 16543,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/Cargo.lock"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1463,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/Cargo.toml"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 686,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/Cargo.toml.orig"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1075,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/LICENSE"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 981,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/README.md"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10077,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/THIRD_PARTY_NOTICES"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1121,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/benches/ntt.rs"
+    },
+    {
+      "allocated_bytes": 57344,
+      "bytes": 53276,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/baseconv.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1757,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/error.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 433,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/lib.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7116,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/modulus.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14169,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/ntt.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 27765,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/poly.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 6077,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/primes.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8206,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/rns.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21588,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/src/sampler.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3112,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0/tests/modulus_prop.rs"
+    },
+    {
+      "allocated_bytes": 49152,
+      "bytes": 48115,
+      "kind": "file",
+      "path": "package/ckks-train-core-1.0.0.crate"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7160,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/Cargo.lock"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2039,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/Cargo.toml"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2007,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/Cargo.toml.orig"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1075,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/LICENSE"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1390,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/README.md"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10077,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/THIRD_PARTY_NOTICES"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7250,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/examples/batch_streams.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5768,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/kernels/basis.cu"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1980,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/kernels/clang_check_shim.h"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5570,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/kernels/keyswitch.cu"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 12188,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/kernels/ntt.cu"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8282,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/kernels/pointwise.cu"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 17224,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/arith.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 26570,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/basis.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 24877,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/bootstrap.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 16817,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/ciphertext.rs"
+    },
+    {
+      "allocated_bytes": 40960,
+      "bytes": 37714,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/device.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13627,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/emu.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 25328,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/emu_arith.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13636,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/emu_ks.rs"
+    },
+    {
+      "allocated_bytes": 32768,
+      "bytes": 30715,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/evaluator.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 16767,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/keyswitch.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21412,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/ks.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5638,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/lib.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 23324,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/matvec.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7201,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/plan.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7808,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/poly.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 18268,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/runtime_observation.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 9732,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/runtime_observation_tests.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8676,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/tables.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3853,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/src/testing.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1371,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/bootstrap_replay.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13560,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/cases/eval.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 6408,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/cases/failing.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 11373,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/cases/ks.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14978,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/cases/mod.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8221,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/gpu.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7930,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/gpu_arith.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 5239,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/gpu_bootstrap.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 18140,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/gpu_eval.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 18432,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0/tests/gpu_ks.rs"
+    },
+    {
+      "allocated_bytes": 131072,
+      "bytes": 130075,
+      "kind": "file",
+      "path": "package/ckks-train-cuda-1.0.0.crate"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 6181,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/Cargo.lock"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2625,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/Cargo.toml"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 591,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/Cargo.toml.orig"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1075,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/LICENSE"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 1207,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/README.md"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10077,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/THIRD_PARTY_NOTICES"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 20684,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/activation.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 34966,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/block.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 25887,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/compact.rs"
+    },
+    {
+      "allocated_bytes": 61440,
+      "bytes": 58957,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/dense.rs"
+    },
+    {
+      "allocated_bytes": 86016,
+      "bytes": 83676,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/diagonal_plan.rs"
+    },
+    {
+      "allocated_bytes": 77824,
+      "bytes": 74563,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/diagonal_plan_tests.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 13767,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/layout.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 24509,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/layout_reboot.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 370,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/lib.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2207,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/loss.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 19281,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/optim.rs"
+    },
+    {
+      "allocated_bytes": 65536,
+      "bytes": 64659,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/block.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 22566,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/dag.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 2496,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/mod.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 9636,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/ops.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14034,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/optimizer.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10383,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/plan.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 35275,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/refresh.rs"
+    },
+    {
+      "allocated_bytes": 49152,
+      "bytes": 47900,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/stage.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 22135,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/trainer.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3260,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/packed_training/types.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 35450,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/refresh.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 19608,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/sim.rs"
+    },
+    {
+      "allocated_bytes": 65536,
+      "bytes": 62359,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/trainer.rs"
+    },
+    {
+      "allocated_bytes": 102400,
+      "bytes": 102255,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/src/trainer_ni.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21139,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/ablation.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 10245,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/activation.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 17858,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/backward.rs"
+    },
+    {
+      "allocated_bytes": 45056,
+      "bytes": 41725,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/block.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 25371,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/block_profile.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 23284,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/compact.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 11787,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/dense.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 28314,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/diagonal_plan.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 35469,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/grad.rs"
+    },
+    {
+      "allocated_bytes": 12288,
+      "bytes": 8699,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/identity.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 26493,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/layout_reboot.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21369,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/layout_sim.rs"
+    },
+    {
+      "allocated_bytes": 57344,
+      "bytes": 53435,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_blocks.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 17318,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_blocks_helpers/fixture.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 14903,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_blocks_helpers/mod.rs"
+    },
+    {
+      "allocated_bytes": 61440,
+      "bytes": 57970,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_blocks_helpers/primary.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 23748,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_layout.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 26640,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_ni_calibration.rs"
+    },
+    {
+      "allocated_bytes": 8192,
+      "bytes": 7565,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_ni_helpers/mod.rs"
+    },
+    {
+      "allocated_bytes": 28672,
+      "bytes": 25041,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_ni_helpers/primary.rs"
+    },
+    {
+      "allocated_bytes": 4096,
+      "bytes": 3848,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_ni_helpers/trace_ops.rs"
+    },
+    {
+      "allocated_bytes": 16384,
+      "bytes": 15778,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_optimizer.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 23296,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_plan.rs"
+    },
+    {
+      "allocated_bytes": 40960,
+      "bytes": 37346,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_refresh.rs"
+    },
+    {
+      "allocated_bytes": 32768,
+      "bytes": 30509,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_training.rs"
+    },
+    {
+      "allocated_bytes": 20480,
+      "bytes": 20016,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/packed_training_ni.rs"
+    },
+    {
+      "allocated_bytes": 24576,
+      "bytes": 21024,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/study_microbatch.rs"
+    },
+    {
+      "allocated_bytes": 36864,
+      "bytes": 35647,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/trainer.rs"
+    },
+    {
+      "allocated_bytes": 45056,
+      "bytes": 43647,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0/tests/trainer_ni.rs"
+    },
+    {
+      "allocated_bytes": 348160,
+      "bytes": 347802,
+      "kind": "file",
+      "path": "package/ckks-train-nn-1.0.0.crate"
+    }
+  ],
+  "files": 556
+}

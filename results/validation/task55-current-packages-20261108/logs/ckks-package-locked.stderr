@@ -1,0 +1,13 @@
+   Packaging ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-ckks)
+    Packaged 39 files, 766.9KiB (198.6KiB compressed)
+   Verifying ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-ckks)
+   Compiling autocfg v1.5.1
+   Compiling rawpointer v0.2.1
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache/package/ckks-train-ckks-1.0.0)
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling num-integer v0.1.47
+   Compiling num-complex v0.4.6
+   Compiling ckks-train-core v1.0.0
+   Compiling ndarray v0.16.1
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.48s

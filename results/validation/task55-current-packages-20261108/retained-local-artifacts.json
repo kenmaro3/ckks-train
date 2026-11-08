@@ -1,0 +1,36 @@
+{
+  "scope": "Exact local archives retained outside Git; these are artifact identities, not an upload record",
+  "base": "tools/release/_ext/package-current-2dc049a",
+  "artifacts": [
+    {
+      "bytes": 203387,
+      "path": "archives/ckks-train-ckks-1.0.0.crate",
+      "sha256": "1e0fed1861d922ed71fc6207cc924aafec88505881f6fb3723442564a3bed5ed"
+    },
+    {
+      "bytes": 48115,
+      "path": "archives/ckks-train-core-1.0.0.crate",
+      "sha256": "797db8c4475ec3ee3fbe828114cee807bf202893bdac3cd0c06ebeeafaa1b017"
+    },
+    {
+      "bytes": 130075,
+      "path": "archives/ckks-train-cuda-1.0.0-cuda-feature.crate",
+      "sha256": "eef928e6f78f822502109e3d34b1ea65e33f1daef14040a52d3d2d4468ccd495"
+    },
+    {
+      "bytes": 130075,
+      "path": "archives/ckks-train-cuda-1.0.0.crate",
+      "sha256": "eef928e6f78f822502109e3d34b1ea65e33f1daef14040a52d3d2d4468ccd495"
+    },
+    {
+      "bytes": 347802,
+      "path": "archives/ckks-train-nn-1.0.0.crate",
+      "sha256": "79ab5c60f793f581a83009cedf7eb8963e23547d771383666cb39c5699d93808"
+    },
+    {
+      "bytes": 67163260,
+      "path": "source.tar.gz",
+      "sha256": "7629ec5333eafcdd2075a765f0d8510b9aacd501af9e4bd9f48a8ee5d97f431b"
+    }
+  ]
+}

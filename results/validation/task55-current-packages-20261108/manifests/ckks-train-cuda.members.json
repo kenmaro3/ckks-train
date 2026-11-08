@@ -1,0 +1,248 @@
+[
+  {
+    "bytes": 7160,
+    "mode": "0o644",
+    "path": "Cargo.lock",
+    "sha256": "f1f1d34fdce3d86101e4c66a015d8384ff57934573fd088fcc745fe6d2dd623d"
+  },
+  {
+    "bytes": 2039,
+    "mode": "0o644",
+    "path": "Cargo.toml",
+    "sha256": "b20227fa6bdc14fec196a9253d89c21c5e9608be978b17680d28d424fd420a10"
+  },
+  {
+    "bytes": 2007,
+    "mode": "0o644",
+    "path": "Cargo.toml.orig",
+    "sha256": "457d57ffb7763ce5285a6302d5fe338cd8726f319ec5e426dd08b5d938a37320"
+  },
+  {
+    "bytes": 1075,
+    "mode": "0o644",
+    "path": "LICENSE",
+    "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+  },
+  {
+    "bytes": 1390,
+    "mode": "0o644",
+    "path": "README.md",
+    "sha256": "76ea55c74313414f53bbe9e22bc9e01bd6b2eb1bf6a939676c571fe05ed00347"
+  },
+  {
+    "bytes": 10077,
+    "mode": "0o644",
+    "path": "THIRD_PARTY_NOTICES",
+    "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+  },
+  {
+    "bytes": 7250,
+    "mode": "0o644",
+    "path": "examples/batch_streams.rs",
+    "sha256": "ffd4bfcb46da4f04dca10562341697e2fa7e959e66d92a510f1628b38015e7c6"
+  },
+  {
+    "bytes": 5768,
+    "mode": "0o644",
+    "path": "kernels/basis.cu",
+    "sha256": "f339bcb5492fee28e5041f7c3097aea6326b2024f0f9a4be2855fcd21bafef0a"
+  },
+  {
+    "bytes": 1980,
+    "mode": "0o644",
+    "path": "kernels/clang_check_shim.h",
+    "sha256": "cf8322ae85616e938da4bbde961d312f44340e5eca7bbc2cde292f87ff4ac791"
+  },
+  {
+    "bytes": 5570,
+    "mode": "0o644",
+    "path": "kernels/keyswitch.cu",
+    "sha256": "8001e378323e64173700f82aa734d042d75c08af8aaad906864120dcd0ea5014"
+  },
+  {
+    "bytes": 12188,
+    "mode": "0o644",
+    "path": "kernels/ntt.cu",
+    "sha256": "fc487dfe9190c712c4a27f862100019d57afe7f501ce17acbc31691155b315da"
+  },
+  {
+    "bytes": 8282,
+    "mode": "0o644",
+    "path": "kernels/pointwise.cu",
+    "sha256": "d7da2002c30ff52256ffed4ba8b88117effaf3f039f6e44ced84db7666b1541b"
+  },
+  {
+    "bytes": 17224,
+    "mode": "0o644",
+    "path": "src/arith.rs",
+    "sha256": "77dd887aabc8601085a1168e20df0cbcc45ea3071a88017e6d0742e9a37d9928"
+  },
+  {
+    "bytes": 26570,
+    "mode": "0o644",
+    "path": "src/basis.rs",
+    "sha256": "cd707b3f79148eee1ff786b88dcdaf879bef4aebf2e8912bc67c0a0ef587adb0"
+  },
+  {
+    "bytes": 24877,
+    "mode": "0o644",
+    "path": "src/bootstrap.rs",
+    "sha256": "00ec23b2185ee24fa937fa8f57e09c8e973a4b3735da02ff95fb5c4cdca65b1a"
+  },
+  {
+    "bytes": 16817,
+    "mode": "0o644",
+    "path": "src/ciphertext.rs",
+    "sha256": "6300fdc3b3ddb4730e0aea8094a98838f59525e4c340cdf0f12d26b42797ae72"
+  },
+  {
+    "bytes": 37714,
+    "mode": "0o644",
+    "path": "src/device.rs",
+    "sha256": "e2da66b4c09692f5c1638656a915dcb471b652952405b6a0836bbcb611d73549"
+  },
+  {
+    "bytes": 13627,
+    "mode": "0o644",
+    "path": "src/emu.rs",
+    "sha256": "a93978ee9fedcf0be14a316d530b8e384e91b596403580fbfac07bccca36dc65"
+  },
+  {
+    "bytes": 25328,
+    "mode": "0o644",
+    "path": "src/emu_arith.rs",
+    "sha256": "74db586cc52e117474cfb2b96b79a9afcbd12b7495b64f3aa523554e4fce65db"
+  },
+  {
+    "bytes": 13636,
+    "mode": "0o644",
+    "path": "src/emu_ks.rs",
+    "sha256": "0b9c7bf85e7b0c81b67f77925f056ac3f3b5558870cd5eb393d3fc81b8bf3a00"
+  },
+  {
+    "bytes": 30715,
+    "mode": "0o644",
+    "path": "src/evaluator.rs",
+    "sha256": "9e868d65efcad30204be8377e9901ce80ed3707880e88226603124c94353d1aa"
+  },
+  {
+    "bytes": 16767,
+    "mode": "0o644",
+    "path": "src/keyswitch.rs",
+    "sha256": "e45cbaa4100be705d4f81f7e336f43d105910441387c331cd787a80dc5350100"
+  },
+  {
+    "bytes": 21412,
+    "mode": "0o644",
+    "path": "src/ks.rs",
+    "sha256": "cd4beb12f042474b78e570618b0addb946b4a4218ba0c1ef1a17cf096a47b8b9"
+  },
+  {
+    "bytes": 5638,
+    "mode": "0o644",
+    "path": "src/lib.rs",
+    "sha256": "b7007e9b7b44cf9c315cbf1dfecd275b7b58101f27e2e0b2c9cc4ad350f6eeed"
+  },
+  {
+    "bytes": 23324,
+    "mode": "0o644",
+    "path": "src/matvec.rs",
+    "sha256": "647f607a377c88a267581811df82bd0029f8c70e06d506a6e290f31d185f84f5"
+  },
+  {
+    "bytes": 7201,
+    "mode": "0o644",
+    "path": "src/plan.rs",
+    "sha256": "b75a090272d9be11464a024357af6a58c52e70c75452b3cb7cd1c1e8b56b8efd"
+  },
+  {
+    "bytes": 7808,
+    "mode": "0o644",
+    "path": "src/poly.rs",
+    "sha256": "6edb55bf7487cfb3ddc0d0688133c5f43753105201295d8490ad7fbb6d8bd752"
+  },
+  {
+    "bytes": 18268,
+    "mode": "0o644",
+    "path": "src/runtime_observation.rs",
+    "sha256": "e43610e6c7b5d0ba0e672352c0e84a278f35863cd0a5243f10a551aaecf93c5b"
+  },
+  {
+    "bytes": 9732,
+    "mode": "0o644",
+    "path": "src/runtime_observation_tests.rs",
+    "sha256": "4a846f1be25df93b4dc7e7693180683c10009b4b92b1423f7d43fc0668ecff23"
+  },
+  {
+    "bytes": 8676,
+    "mode": "0o644",
+    "path": "src/tables.rs",
+    "sha256": "f0490c75496f74849e1d8e763f81042d9a9572c5262c17d2a5e161edc1ec7d98"
+  },
+  {
+    "bytes": 3853,
+    "mode": "0o644",
+    "path": "src/testing.rs",
+    "sha256": "e37b5ba0f3dd925b184dd8d23e79973ed3761eab2e914724330882a847876eb5"
+  },
+  {
+    "bytes": 1371,
+    "mode": "0o644",
+    "path": "tests/bootstrap_replay.rs",
+    "sha256": "77c8bdf75c1d24b6390dfebffa05d7eba70a0aac9b569b6119bc31a80c274a3c"
+  },
+  {
+    "bytes": 13560,
+    "mode": "0o644",
+    "path": "tests/cases/eval.rs",
+    "sha256": "9d47d69a35b9217b005cec16673d425998a3d817ed08ccf01971eb07020c564b"
+  },
+  {
+    "bytes": 6408,
+    "mode": "0o644",
+    "path": "tests/cases/failing.rs",
+    "sha256": "38a4bcbbc200f5168742aa649815687200923a46bc4e2442e45d96ce29d3b8f8"
+  },
+  {
+    "bytes": 11373,
+    "mode": "0o644",
+    "path": "tests/cases/ks.rs",
+    "sha256": "760696bdc8c17ece4fadd901200aa4e5b9700ba379e958f5beae9a17436ca4e7"
+  },
+  {
+    "bytes": 14978,
+    "mode": "0o644",
+    "path": "tests/cases/mod.rs",
+    "sha256": "6c2d799fb22f3e015bcc7ee49dc6ec510710fb4d5fed871cdf6bdf980fd79a78"
+  },
+  {
+    "bytes": 8221,
+    "mode": "0o644",
+    "path": "tests/gpu.rs",
+    "sha256": "4900a03cfbbcbdf1761daaa420b998dae7096aceb9c55106fcd5acad331cf122"
+  },
+  {
+    "bytes": 7930,
+    "mode": "0o644",
+    "path": "tests/gpu_arith.rs",
+    "sha256": "7fcea0d040c512ba21d61daf4f6a728a364a064a27a5fe03494440fe6b1f9833"
+  },
+  {
+    "bytes": 5239,
+    "mode": "0o644",
+    "path": "tests/gpu_bootstrap.rs",
+    "sha256": "ee9963717890d22c95a2f2044a90359834c8e960dd694ab86c22f9f644589e1c"
+  },
+  {
+    "bytes": 18140,
+    "mode": "0o644",
+    "path": "tests/gpu_eval.rs",
+    "sha256": "8880ebc508cd3d6659f7b8282843871bc62c4bbf195e9b5bf956e90c058eb132"
+  },
+  {
+    "bytes": 18432,
+    "mode": "0o644",
+    "path": "tests/gpu_ks.rs",
+    "sha256": "c8150cd5a9f535f9c01fbbed2cf78ce05b2aa241ea952a06bcc9aaaa749114ec"
+  }
+]

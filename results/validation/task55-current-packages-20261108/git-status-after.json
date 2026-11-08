@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "git",
+    "status",
+    "--porcelain=v1"
+  ],
+  "exit": 0,
+  "note": "concurrent writer changes are outside this task; this task authored no tracked changes"
+}

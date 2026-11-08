@@ -1,0 +1,7 @@
+   Packaging ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-cuda)
+    Packaged 41 files, 487.9KiB (127.0KiB compressed)
+   Verifying ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-cuda)
+   Compiling cudarc v0.19.0
+   Compiling libloading v0.8.9
+   Compiling ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache/package/ckks-train-cuda-1.0.0)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.37s

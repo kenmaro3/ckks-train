@@ -1,0 +1,110 @@
+{
+  "archive_audit": {
+    "argv": [
+      "python3",
+      "tools/release/_ext/package-current-2dc049a/audit.py"
+    ],
+    "exit": 0,
+    "stderr": "logs/archive-audit.stderr",
+    "stdout": "logs/archive-audit.stdout"
+  },
+  "archive_audit_final": {
+    "argv": [
+      "python3",
+      "tools/release/_ext/package-current-2dc049a/audit.py"
+    ],
+    "exit": 0,
+    "stderr": "logs/archive-audit-final.stderr",
+    "stdout": "logs/archive-audit-final.stdout"
+  },
+  "finalize": {
+    "argv": [
+      "python3",
+      "tools/release/_ext/package-current-2dc049a/finalize.py"
+    ],
+    "exit": 0,
+    "stderr": "logs/finalize.stderr",
+    "stdout": "logs/finalize.stdout"
+  },
+  "qualify_driver": {
+    "argv": [
+      "python3",
+      "tools/release/_ext/package-current-2dc049a/qualify.py"
+    ],
+    "exit": 0,
+    "stderr": "driver.stderr",
+    "stdout": "driver.stdout"
+  },
+  "stderr_counts": [
+    {
+      "error_lines": 0,
+      "path": "logs/archive-audit.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/cargo-version.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/ckks-package-locked.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/core-package-locked.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/cuda-feature-package-locked.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/cuda-package-locked.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/finalize.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/git-head.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/git-status-before.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/git-tree.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/nn-package-locked.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/preview-package-input-diff.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/rustc-version.stderr",
+      "warning_lines": 0
+    },
+    {
+      "error_lines": 0,
+      "path": "logs/source-export.stderr",
+      "warning_lines": 0
+    }
+  ]
+}

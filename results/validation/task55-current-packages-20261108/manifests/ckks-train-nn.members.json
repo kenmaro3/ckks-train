@@ -1,0 +1,362 @@
+[
+  {
+    "bytes": 6181,
+    "mode": "0o644",
+    "path": "Cargo.lock",
+    "sha256": "df5bd101b73f31a3114b209fdb131d8532e2a9d43e402f2e496824a087f1e35f"
+  },
+  {
+    "bytes": 2625,
+    "mode": "0o644",
+    "path": "Cargo.toml",
+    "sha256": "84157317ac366c52bf845b69cd8cc56896fc6346354c929b76970c11c5e8234c"
+  },
+  {
+    "bytes": 591,
+    "mode": "0o644",
+    "path": "Cargo.toml.orig",
+    "sha256": "db40d8c8c8e7739195edc7f8fccb3596ea24f3090235d1f972115e107d9eacfb"
+  },
+  {
+    "bytes": 1075,
+    "mode": "0o644",
+    "path": "LICENSE",
+    "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87"
+  },
+  {
+    "bytes": 1207,
+    "mode": "0o644",
+    "path": "README.md",
+    "sha256": "c8490a4e7fe2c2af40de7c6eb40ab84ebeccc6fe4a1513b50f66061a4937a5b4"
+  },
+  {
+    "bytes": 10077,
+    "mode": "0o644",
+    "path": "THIRD_PARTY_NOTICES",
+    "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+  },
+  {
+    "bytes": 20684,
+    "mode": "0o644",
+    "path": "src/activation.rs",
+    "sha256": "10c76cd71ea109ae46262d01fdf3ae30ce3717e9f22c74a8c13e2f8cc092c1e5"
+  },
+  {
+    "bytes": 34966,
+    "mode": "0o644",
+    "path": "src/block.rs",
+    "sha256": "0a7f53e1e61ff6b1660322aa9c23f5967a14f1a5aa92a7d69bcb745203ce7cef"
+  },
+  {
+    "bytes": 25887,
+    "mode": "0o644",
+    "path": "src/compact.rs",
+    "sha256": "103e136d4a7c2115aa2fd42f943e7001cbfeb9f23a100aa7d535a0192dd1109f"
+  },
+  {
+    "bytes": 58957,
+    "mode": "0o644",
+    "path": "src/dense.rs",
+    "sha256": "b7e919813b63412de759d42779c69f481a8f133c61c6d999473e49a2fb3a2fa2"
+  },
+  {
+    "bytes": 83676,
+    "mode": "0o644",
+    "path": "src/diagonal_plan.rs",
+    "sha256": "c64373f73625f29d21232a5069d39fbaeb184c3f683d659ab6844ffd703c8065"
+  },
+  {
+    "bytes": 74563,
+    "mode": "0o644",
+    "path": "src/diagonal_plan_tests.rs",
+    "sha256": "b93aa5e9fe8dfffdd76c6c654d4c7a67c3422306f7bf7fb836d0cde5454ce286"
+  },
+  {
+    "bytes": 13767,
+    "mode": "0o644",
+    "path": "src/layout.rs",
+    "sha256": "267c0cf711a0051dbad0f49c43a1408f3a5c2a3efcd47eccb0d2829d09def56a"
+  },
+  {
+    "bytes": 24509,
+    "mode": "0o644",
+    "path": "src/layout_reboot.rs",
+    "sha256": "753448fd0e4a520aac9eb148cdb1b9a43e7072b5b87ee66fe23796a95dd193a6"
+  },
+  {
+    "bytes": 370,
+    "mode": "0o644",
+    "path": "src/lib.rs",
+    "sha256": "abe8c9f1775208f91fabeeb60a459eb2468d1426349dd0903e8290fba2044ff8"
+  },
+  {
+    "bytes": 2207,
+    "mode": "0o644",
+    "path": "src/loss.rs",
+    "sha256": "aca0d2785cb2d7ff68077acb901678144230fd4ba3bc58ab69459f5654bb63f6"
+  },
+  {
+    "bytes": 19281,
+    "mode": "0o644",
+    "path": "src/optim.rs",
+    "sha256": "7f99d28585c0656f0faa00b87d9808b4c52cda1ce0d99de877b39bcffe74bcfe"
+  },
+  {
+    "bytes": 64659,
+    "mode": "0o644",
+    "path": "src/packed_training/block.rs",
+    "sha256": "b5ee74460127178d4b0e720077afe1d92ee10ce7599f1885a72332f871212d45"
+  },
+  {
+    "bytes": 22566,
+    "mode": "0o644",
+    "path": "src/packed_training/dag.rs",
+    "sha256": "8780efb7c01035cfa93ec53f60a43d37167b0a59e9a2bb19c10461e77d613b4c"
+  },
+  {
+    "bytes": 2496,
+    "mode": "0o644",
+    "path": "src/packed_training/mod.rs",
+    "sha256": "98aa227e6e4b4128839f45f667a70ba30218e0a7490ce5e9fab53ef0b5db8797"
+  },
+  {
+    "bytes": 9636,
+    "mode": "0o644",
+    "path": "src/packed_training/ops.rs",
+    "sha256": "f12ef54adfaf45d0dfa34b258fbcf3913639cbd9849b601d68e157759fc7d15b"
+  },
+  {
+    "bytes": 14034,
+    "mode": "0o644",
+    "path": "src/packed_training/optimizer.rs",
+    "sha256": "4f15efea5eb317bd6fe0fe346f200a72f7564a3e1af12c71eaccf697f4bce38b"
+  },
+  {
+    "bytes": 10383,
+    "mode": "0o644",
+    "path": "src/packed_training/plan.rs",
+    "sha256": "ab242a78e1bd539055bf313ec122d4b1251219602497052c569c7834fffa3ed5"
+  },
+  {
+    "bytes": 35275,
+    "mode": "0o644",
+    "path": "src/packed_training/refresh.rs",
+    "sha256": "b26abd5232182f62fced39a7e1e0f7a8423b14cf1c2b9a4b91695f71a79a0b80"
+  },
+  {
+    "bytes": 47900,
+    "mode": "0o644",
+    "path": "src/packed_training/stage.rs",
+    "sha256": "7f2c68b914d4ed7306ea2b348566c35e277887514ac50a484ca8b8508ca023d1"
+  },
+  {
+    "bytes": 22135,
+    "mode": "0o644",
+    "path": "src/packed_training/trainer.rs",
+    "sha256": "4b541d2a3ea5f66a8617a35d3fd36082bbfa54aee0a0555faf266c497a84a3f2"
+  },
+  {
+    "bytes": 3260,
+    "mode": "0o644",
+    "path": "src/packed_training/types.rs",
+    "sha256": "41e3fe4177f9663920a98c41f9c4db96366fa3700659d8b6f9da8bdbaf5e5d5f"
+  },
+  {
+    "bytes": 35450,
+    "mode": "0o644",
+    "path": "src/refresh.rs",
+    "sha256": "073cb769cfc4e6d15c833dfd8b40610fabca856dd04322cd4b0a609916b45cb4"
+  },
+  {
+    "bytes": 19608,
+    "mode": "0o644",
+    "path": "src/sim.rs",
+    "sha256": "58754e346d42bad3e242bb43b8a3d2ab413bc295bca64a9cc88ab29864ec88e1"
+  },
+  {
+    "bytes": 62359,
+    "mode": "0o644",
+    "path": "src/trainer.rs",
+    "sha256": "4c8dc4f2d30d6a52ad9b5c9f6218eb34ed748234b465a72adb52b4f0dadf6930"
+  },
+  {
+    "bytes": 102255,
+    "mode": "0o644",
+    "path": "src/trainer_ni.rs",
+    "sha256": "8b218cccd0106e8a925c8cc3be8a328864e04dfba91f059a63b86021250a3dbe"
+  },
+  {
+    "bytes": 21139,
+    "mode": "0o644",
+    "path": "tests/ablation.rs",
+    "sha256": "e75505a091721c5d5ecf4f6fd7a0ba9bf590b63679d7058126619b94fd865f1d"
+  },
+  {
+    "bytes": 10245,
+    "mode": "0o644",
+    "path": "tests/activation.rs",
+    "sha256": "f6461f62b8db2443eef63127df02b4320146212b995470c89225be58349fef06"
+  },
+  {
+    "bytes": 17858,
+    "mode": "0o644",
+    "path": "tests/backward.rs",
+    "sha256": "11979e92b655d73c08d2a3ee92cd19abfe935a17ff573614a10ba5db8cdbd30a"
+  },
+  {
+    "bytes": 41725,
+    "mode": "0o644",
+    "path": "tests/block.rs",
+    "sha256": "8024dd7e2c248fabcb24f774379e87bcdf7e2458bead0f5b21b401fa905d6aec"
+  },
+  {
+    "bytes": 25371,
+    "mode": "0o644",
+    "path": "tests/block_profile.rs",
+    "sha256": "1ad59eeb68dbc914bdaaadec38d04d118a1dd89d20090624ab917bdff58d8606"
+  },
+  {
+    "bytes": 23284,
+    "mode": "0o644",
+    "path": "tests/compact.rs",
+    "sha256": "ed4643f7dc084edf46af41ca251874dac4ad01f982bb3514193974ecc0d6b204"
+  },
+  {
+    "bytes": 11787,
+    "mode": "0o644",
+    "path": "tests/dense.rs",
+    "sha256": "8be4b759881feb3ac438ab3ec49ba79186bceb438e49db9ca40175ace5c5e5bb"
+  },
+  {
+    "bytes": 28314,
+    "mode": "0o644",
+    "path": "tests/diagonal_plan.rs",
+    "sha256": "765704f38d2499ffe7280f588125413102691070b58afb0131ef46193d33d9ae"
+  },
+  {
+    "bytes": 35469,
+    "mode": "0o644",
+    "path": "tests/grad.rs",
+    "sha256": "30d38c7fdd5f63715069bb0c3bfe52f0ddc00328e6516e4e7dffa6d1709e220c"
+  },
+  {
+    "bytes": 8699,
+    "mode": "0o644",
+    "path": "tests/identity.rs",
+    "sha256": "1b415b991943b2c45b85e95f2483063fc45cdb4ed9df06c897e92faab61dbc7d"
+  },
+  {
+    "bytes": 26493,
+    "mode": "0o644",
+    "path": "tests/layout_reboot.rs",
+    "sha256": "0aa7c653e1a087a37905d7a4c583bb203c1e937907df9569b2ba3dd5a273440b"
+  },
+  {
+    "bytes": 21369,
+    "mode": "0o644",
+    "path": "tests/layout_sim.rs",
+    "sha256": "ab48ce19271eb4ac448a420cb7482d10286efecdfbf55722c6bf1b21876ff02a"
+  },
+  {
+    "bytes": 53435,
+    "mode": "0o644",
+    "path": "tests/packed_blocks.rs",
+    "sha256": "3a7dad5cfbe7fb3890e59ec5dfc80051dd8103f9392e47073abdae33d70db456"
+  },
+  {
+    "bytes": 17318,
+    "mode": "0o644",
+    "path": "tests/packed_blocks_helpers/fixture.rs",
+    "sha256": "b0fb1e7b1038a4f09e2a95ba18b59f568251ee8bdd06d5da4081a65647074a71"
+  },
+  {
+    "bytes": 14903,
+    "mode": "0o644",
+    "path": "tests/packed_blocks_helpers/mod.rs",
+    "sha256": "c70d8d50b7064446fa0fa7a3ae3f3041fc22431944faf23e1a6aac430e7c6e29"
+  },
+  {
+    "bytes": 57970,
+    "mode": "0o644",
+    "path": "tests/packed_blocks_helpers/primary.rs",
+    "sha256": "fb492e0d04a8d83df6930db4c78e35042fd8cd771f074e98755150cea9a2255a"
+  },
+  {
+    "bytes": 23748,
+    "mode": "0o644",
+    "path": "tests/packed_layout.rs",
+    "sha256": "6f1113396838064a190e47d11942a9d58de781857a883aede8aec8df1670c896"
+  },
+  {
+    "bytes": 26640,
+    "mode": "0o644",
+    "path": "tests/packed_ni_calibration.rs",
+    "sha256": "6fe5d2a2807088a7f574d06e30a747f2920923d57c644daabdf231058045787e"
+  },
+  {
+    "bytes": 7565,
+    "mode": "0o644",
+    "path": "tests/packed_ni_helpers/mod.rs",
+    "sha256": "9eb187195dd1d83c08c927704261b807c94de61bb48c306fa6c6fef6c8d9fbf4"
+  },
+  {
+    "bytes": 25041,
+    "mode": "0o644",
+    "path": "tests/packed_ni_helpers/primary.rs",
+    "sha256": "f9954a2a3247a21b27f825e4caadc7aca2f4058e1bb5319f29e2b59075c88a49"
+  },
+  {
+    "bytes": 3848,
+    "mode": "0o644",
+    "path": "tests/packed_ni_helpers/trace_ops.rs",
+    "sha256": "1982b0a554c7538840dcda70bfbc5c887df307f0f04d9218b6fc02fd4f2ca1cd"
+  },
+  {
+    "bytes": 15778,
+    "mode": "0o644",
+    "path": "tests/packed_optimizer.rs",
+    "sha256": "f97b6a85cd27a5e0567df700458d8b2b4812db2ad9b34eba22f6056aa0ba2d27"
+  },
+  {
+    "bytes": 23296,
+    "mode": "0o644",
+    "path": "tests/packed_plan.rs",
+    "sha256": "05e6092d4075c8ea2ec59d0b5408ad577f9db6147c35dcd3df697ee59208f665"
+  },
+  {
+    "bytes": 37346,
+    "mode": "0o644",
+    "path": "tests/packed_refresh.rs",
+    "sha256": "45bbadc4f3db290ec6e452a9f42e29f244df3a0785d5dde61fbc1458008a0514"
+  },
+  {
+    "bytes": 30509,
+    "mode": "0o644",
+    "path": "tests/packed_training.rs",
+    "sha256": "5476f867e8cd2664cea0e343ce056bd646adf5c4e3215f34d6a65cf82ad2226c"
+  },
+  {
+    "bytes": 20016,
+    "mode": "0o644",
+    "path": "tests/packed_training_ni.rs",
+    "sha256": "1a85b23fbdaeaf75e6d6d34d6316ae96ced8a12a5bd34c4061b53cf544b77aa9"
+  },
+  {
+    "bytes": 21024,
+    "mode": "0o644",
+    "path": "tests/study_microbatch.rs",
+    "sha256": "a8e5eb954fed4f705b4497f9ee12d30b99b2bd6b3f8920c472672f16d13ae454"
+  },
+  {
+    "bytes": 35647,
+    "mode": "0o644",
+    "path": "tests/trainer.rs",
+    "sha256": "f8af771491dd56e04cb61b05d32bcca597c3bf4e67c9f0c81ad512e17f614120"
+  },
+  {
+    "bytes": 43647,
+    "mode": "0o644",
+    "path": "tests/trainer_ni.rs",
+    "sha256": "de237a1b0f0b8a67e520412419e62f75b56387ec87995eaf933ccfa24e60257c"
+  }
+]

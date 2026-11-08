@@ -1,0 +1,174 @@
+{
+  "git_blob_identity_and_modes_exact": true,
+  "packages": [
+    {
+      "README_exact_commit_match": true,
+      "all_other_members_exact_commit_owned": true,
+      "archive": "archives/ckks-train-core-1.0.0.crate",
+      "bytes": 48115,
+      "crate": "ckks-train-core",
+      "excluded_paths_or_secret_pattern_hits": 0,
+      "kernel_sha256": {},
+      "license_notices": {
+        "LICENSE": {
+          "bytes": 1075,
+          "complete_root_match": true,
+          "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+          "source_regular_mode": "0o644"
+        },
+        "THIRD_PARTY_NOTICES": {
+          "bytes": 10077,
+          "complete_root_match": true,
+          "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+          "source_regular_mode": "0o644"
+        }
+      },
+      "manifest_internal_dependencies": [],
+      "members": 17,
+      "sha256": "797db8c4475ec3ee3fbe828114cee807bf202893bdac3cd0c06ebeeafaa1b017"
+    },
+    {
+      "README_exact_commit_match": true,
+      "all_other_members_exact_commit_owned": true,
+      "archive": "archives/ckks-train-ckks-1.0.0.crate",
+      "bytes": 203387,
+      "crate": "ckks-train-ckks",
+      "excluded_paths_or_secret_pattern_hits": 0,
+      "kernel_sha256": {},
+      "license_notices": {
+        "LICENSE": {
+          "bytes": 1075,
+          "complete_root_match": true,
+          "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+          "source_regular_mode": "0o644"
+        },
+        "THIRD_PARTY_NOTICES": {
+          "bytes": 10077,
+          "complete_root_match": true,
+          "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+          "source_regular_mode": "0o644"
+        }
+      },
+      "manifest_internal_dependencies": [
+        {
+          "name": "ckks-train-core",
+          "section": "dependencies",
+          "version": "1.0.0"
+        }
+      ],
+      "members": 39,
+      "sha256": "1e0fed1861d922ed71fc6207cc924aafec88505881f6fb3723442564a3bed5ed"
+    },
+    {
+      "README_exact_commit_match": true,
+      "all_other_members_exact_commit_owned": true,
+      "archive": "archives/ckks-train-nn-1.0.0.crate",
+      "bytes": 347802,
+      "crate": "ckks-train-nn",
+      "excluded_paths_or_secret_pattern_hits": 0,
+      "kernel_sha256": {},
+      "license_notices": {
+        "LICENSE": {
+          "bytes": 1075,
+          "complete_root_match": true,
+          "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+          "source_regular_mode": "0o644"
+        },
+        "THIRD_PARTY_NOTICES": {
+          "bytes": 10077,
+          "complete_root_match": true,
+          "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+          "source_regular_mode": "0o644"
+        }
+      },
+      "manifest_internal_dependencies": [
+        {
+          "name": "ckks-train-ckks",
+          "section": "dependencies",
+          "version": "1.0.0"
+        },
+        {
+          "name": "ckks-train-core",
+          "section": "dependencies",
+          "version": "1.0.0"
+        }
+      ],
+      "members": 60,
+      "sha256": "79ab5c60f793f581a83009cedf7eb8963e23547d771383666cb39c5699d93808"
+    },
+    {
+      "README_exact_commit_match": true,
+      "all_other_members_exact_commit_owned": true,
+      "archive": "archives/ckks-train-cuda-1.0.0.crate",
+      "bytes": 130075,
+      "crate": "ckks-train-cuda",
+      "excluded_paths_or_secret_pattern_hits": 0,
+      "kernel_sha256": {
+        "kernels/basis.cu": "f339bcb5492fee28e5041f7c3097aea6326b2024f0f9a4be2855fcd21bafef0a",
+        "kernels/clang_check_shim.h": "cf8322ae85616e938da4bbde961d312f44340e5eca7bbc2cde292f87ff4ac791",
+        "kernels/keyswitch.cu": "8001e378323e64173700f82aa734d042d75c08af8aaad906864120dcd0ea5014",
+        "kernels/ntt.cu": "fc487dfe9190c712c4a27f862100019d57afe7f501ce17acbc31691155b315da",
+        "kernels/pointwise.cu": "d7da2002c30ff52256ffed4ba8b88117effaf3f039f6e44ced84db7666b1541b"
+      },
+      "license_notices": {
+        "LICENSE": {
+          "bytes": 1075,
+          "complete_root_match": true,
+          "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+          "source_regular_mode": "0o644"
+        },
+        "THIRD_PARTY_NOTICES": {
+          "bytes": 10077,
+          "complete_root_match": true,
+          "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+          "source_regular_mode": "0o644"
+        }
+      },
+      "manifest_internal_dependencies": [
+        {
+          "name": "ckks-train-ckks",
+          "section": "dependencies",
+          "version": "1.0.0"
+        },
+        {
+          "name": "ckks-train-core",
+          "section": "dependencies",
+          "version": "1.0.0"
+        },
+        {
+          "name": "ckks-train-nn",
+          "section": "dev-dependencies",
+          "version": "1.0.0"
+        }
+      ],
+      "members": 41,
+      "sha256": "eef928e6f78f822502109e3d34b1ea65e33f1daef14040a52d3d2d4468ccd495"
+    }
+  ],
+  "policy_exception": [
+    {
+      "allow": [
+        "MIT",
+        "Apache-2.0",
+        "Unicode-3.0"
+      ],
+      "name": "unicode-ident",
+      "version": "=1.0.27"
+    }
+  ],
+  "preview_package_inputs_identical": true,
+  "rustix_selected_MIT_notice": {
+    "bytes": 1023,
+    "complete_exact_match": true,
+    "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+  },
+  "source_bytes": 158709078,
+  "source_commit": "2dc049a796949b685a5c23f8b05440ee2ce474aa",
+  "source_entries": 5616,
+  "source_manifest_sha256": "c4b5f1e26055e85f72bbc08c626324e332cdd454ade3c0e5ef8a83f17ba01f79",
+  "unicode_notice": {
+    "bytes": 1995,
+    "complete_exact_match": true,
+    "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1"
+  }
+}

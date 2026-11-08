@@ -1,0 +1,4 @@
+[source.crates-io]
+replace-with = "current-packages-local"
+[source.current-packages-local]
+directory = "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/vendor"

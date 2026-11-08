@@ -1,0 +1,33 @@
+ M crates/ckks-train-bench/src/profile_data.rs
+ M crates/ckks-train-bench/src/study_inputs.rs
+ M crates/ckks-train-bench/src/study_prepare.rs
+ M crates/ckks-train-bench/src/study_prepare_tests.rs
+ M crates/ckks-train-bench/src/study_profile.rs
+ M crates/ckks-train-bench/src/study_provenance.rs
+ M crates/ckks-train-bench/src/study_provenance/codec.rs
+ M crates/ckks-train-bench/src/study_provenance/context.rs
+ M crates/ckks-train-bench/src/study_provenance/publication.rs
+ M crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+ M crates/ckks-train-bench/src/study_provenance/resource_operational/approval.rs
+ M crates/ckks-train-bench/src/study_provenance/resource_operational/package_linux.rs
+ M crates/ckks-train-bench/src/study_provenance/supervisor_tests.rs
+ M crates/ckks-train-bench/src/study_reference.rs
+ M crates/ckks-train-bench/src/study_reference/document.rs
+ M crates/ckks-train-bench/src/study_reference/document/reader.rs
+ M crates/ckks-train-bench/src/study_reference/publication.rs
+ M crates/ckks-train-bench/src/study_reference/target.rs
+ M crates/ckks-train-bench/src/study_runtime.rs
+ M crates/ckks-train-bench/src/study_supervisor/broker.rs
+ M crates/ckks-train-bench/src/study_supervisor/capacity.rs
+ M crates/ckks-train-bench/src/study_supervisor/controller.rs
+ M crates/ckks-train-bench/src/study_supervisor/observation.rs
+?? .vscode/
+?? crates/ckks-train-bench/src/study_profile/retained.rs
+?? crates/ckks-train-bench/src/study_profile/retained/
+?? crates/ckks-train-bench/src/study_provenance/fixtures/cpu_supervisor_v4.json
+?? crates/ckks-train-bench/src/study_reference/document/original.rs
+?? crates/ckks-train-bench/src/study_reference/document/original/
+?? crates/ckks-train-bench/src/study_supervisor/broker/
+?? crates/ckks-train-bench/src/study_supervisor/capacity/
+?? results/mnist_blocks_128-64_plain_b48.json
+?? results/mnist_blocks_64_plain_b48.json

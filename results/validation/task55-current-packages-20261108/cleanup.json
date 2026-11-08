@@ -1,0 +1,17 @@
+{
+  "free_after_bytes": 5960351744,
+  "free_before_bytes": 5733191680,
+  "free_delta_bytes": 227160064,
+  "free_space_note": "host free-space delta may include concurrent activity",
+  "path_absent_after": true,
+  "removed_cache_allocated_bytes": 271339520,
+  "removed_cache_files": 556,
+  "removed_cache_logical_bytes": 269853342,
+  "removed_path": "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache",
+  "scope": "only this task reproducible CARGO_TARGET_DIR; archives/logs/source pins retained; prior temp and shared target untouched",
+  "started_utc": "2026-11-08T03:52:14.591342+00:00",
+  "working_area_after_allocated_bytes": 247730176,
+  "working_area_after_logical_bytes": 232060663,
+  "working_area_before_allocated_bytes": 519069696,
+  "working_area_before_logical_bytes": 501914005
+}

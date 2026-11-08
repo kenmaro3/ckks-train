@@ -1,0 +1,6 @@
+   Packaging ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-nn)
+    Packaged 60 files, 1.5MiB (339.7KiB compressed)
+   Verifying ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-nn)
+   Compiling ckks-train-ckks v1.0.0
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache/package/ckks-train-nn-1.0.0)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.08s

@@ -1,0 +1,12 @@
+   Packaging ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-core)
+    Packaged 17 files, 171.3KiB (47.0KiB compressed)
+   Verifying ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/source/crates/ckks-train-core)
+   Compiling libc v0.2.191
+   Compiling getrandom v0.3.4
+   Compiling zerocopy v0.8.63
+   Compiling cfg-if v1.0.5
+   Compiling rand_core v0.9.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.9.0
+   Compiling ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a/build-cache/package/ckks-train-core-1.0.0)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.28s

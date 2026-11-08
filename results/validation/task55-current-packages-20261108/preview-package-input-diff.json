@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "git",
+    "diff",
+    "--exit-code",
+    "6fba46c",
+    "2dc049a796949b685a5c23f8b05440ee2ce474aa",
+    "--",
+    "deny.toml",
+    "Cargo.lock",
+    "crates/ckks-train-core",
+    "crates/ckks-train-ckks",
+    "crates/ckks-train-nn",
+    "crates/ckks-train-cuda"
+  ],
+  "exit": 0
+}

@@ -1,0 +1,432 @@
+[
+  {
+    "checksum_sha256": "0067361f3ca393f60ca1a228ae458c2cb44a3457102cce83e28860b6fef1a60e",
+    "directory": "aho-corasick-1.1.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/aho-corasick-1.1.5"
+  },
+  {
+    "checksum_sha256": "f3838b6b67c2ac5324dc9ed8011b8eb5db6dc42cb0b571bc278993cd0545abc9",
+    "directory": "anes-0.1.6",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/anes-0.1.6"
+  },
+  {
+    "checksum_sha256": "5f5e3127c3edd13c33be3f804c5e690cd45e76b6d28f17029cf1b6e246f296ed",
+    "directory": "anstyle-1.0.14",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/anstyle-1.0.14"
+  },
+  {
+    "checksum_sha256": "b0c91930532895343fe9b214a5e22870b90563eae290bbb2558ae8b620e3c4db",
+    "directory": "autocfg-1.5.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/autocfg-1.5.1"
+  },
+  {
+    "checksum_sha256": "d574ed1063aff98b6b20c116ef6d39da7cf61bae94cc86f4ce6c5609fb6224c7",
+    "directory": "bit-set-0.8.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/bit-set-0.8.0"
+  },
+  {
+    "checksum_sha256": "4b3dd1aa512a403e134c96c0fb0eac7d6df68e19909a7ea0eb316742761dc3ed",
+    "directory": "bit-vec-0.8.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/bit-vec-0.8.0"
+  },
+  {
+    "checksum_sha256": "44594e39cb66d11637698af9c9a0eebec860b76163b4f30b55ed68d46ca859c3",
+    "directory": "bitflags-2.13.2",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/bitflags-2.13.2"
+  },
+  {
+    "checksum_sha256": "909affb72ea1058ce686e61b64974b2e789e7f12dbc60c7f2104287879eacf99",
+    "directory": "cast-0.3.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/cast-0.3.0"
+  },
+  {
+    "checksum_sha256": "a87b775da1b539b92828f9bbb6314392cf3ae37694f883504c0542cbe52645db",
+    "directory": "cfg-if-1.0.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/cfg-if-1.0.5"
+  },
+  {
+    "checksum_sha256": "90f74ca4497e255cec10b0c8fe9bd27dc03073888d691267a9e88e93ed3780b7",
+    "directory": "ciborium-0.2.2",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/ciborium-0.2.2"
+  },
+  {
+    "checksum_sha256": "b8ff205aec8003ecd049a71244b2b0536d463bb8db94fd2b66ea43db05c7c8a1",
+    "directory": "ciborium-io-0.2.2",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/ciborium-io-0.2.2"
+  },
+  {
+    "checksum_sha256": "46e2157ac4b4010e151b5aa056ca823377608e91f75e5f8f351980caccf105cf",
+    "directory": "ciborium-ll-0.2.2",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/ciborium-ll-0.2.2"
+  },
+  {
+    "checksum_sha256": "fa0cbda20a6106afd24995aec705d2dce6128f5bfb51a13685620474486e2e94",
+    "directory": "clap-4.6.7",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/clap-4.6.7"
+  },
+  {
+    "checksum_sha256": "8af21edefaaf7be49eac221fb2d4f504c7fffc3b3d85a931c614977f045269bf",
+    "directory": "clap_builder-4.6.7",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/clap_builder-4.6.7"
+  },
+  {
+    "checksum_sha256": "e2975a5863c919ca66e4818d66677d82bc5fd78d66e996229d575ac77471eca0",
+    "directory": "clap_lex-1.1.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/clap_lex-1.1.1"
+  },
+  {
+    "checksum_sha256": "528386e93d44f20032d4e860f9725d11bff4ae122ea9e5ab3b3e588a352da562",
+    "directory": "criterion-0.5.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/criterion-0.5.1"
+  },
+  {
+    "checksum_sha256": "bbb1e9948b7d45b6f18166fd6b9d23a86016690d595b29cafba71223d5a8c166",
+    "directory": "criterion-plot-0.5.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/criterion-plot-0.5.0"
+  },
+  {
+    "checksum_sha256": "a35f4d3847cf7d9f87806bdb7c8dc00143b05bae0f983f92a5d9ad05496d3609",
+    "directory": "crossbeam-deque-0.8.8",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/crossbeam-deque-0.8.8"
+  },
+  {
+    "checksum_sha256": "1b5cf66c62bba2cf77a8294c42ded487357947cbf5c727acd6d858c582b10492",
+    "directory": "crossbeam-epoch-0.9.21",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/crossbeam-epoch-0.9.21"
+  },
+  {
+    "checksum_sha256": "6440ab4b915dff1863e3c3c2f165ddad5c7badfb819658ee637f73757593687a",
+    "directory": "crossbeam-utils-0.8.23",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/crossbeam-utils-0.8.23"
+  },
+  {
+    "checksum_sha256": "e7ab063d729fa06fd9fce6cc687d59657887ef0fd9391c847c5b80c794448e02",
+    "directory": "crunchy-0.2.4",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/crunchy-0.2.4"
+  },
+  {
+    "checksum_sha256": "0217de8cb4a879338be663c5617e659a53273bcb6bb6a2d31c30c3b75696a8b7",
+    "directory": "cudarc-0.19.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/cudarc-0.19.0"
+  },
+  {
+    "checksum_sha256": "105087fb2be6c02491cbb74b0a1a8297cad25d4480eaf0aa0787d53e49734a03",
+    "directory": "either-1.19.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/either-1.19.0"
+  },
+  {
+    "checksum_sha256": "56d31cff67704f81c5ade350986e25d13b5b95055bc23ee889b207168dc416ee",
+    "directory": "errno-0.3.14",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/errno-0.3.14"
+  },
+  {
+    "checksum_sha256": "3570fae91333e12e7e1af35bab1a66c98418867a5c28f22f025bc0d001193019",
+    "directory": "fastrand-2.5.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/fastrand-2.5.0"
+  },
+  {
+    "checksum_sha256": "102ad1cfb7a3b1a89c2c2facc12a09f0aa36c27d459c3715b1d602051b8518c3",
+    "directory": "fnv-1.0.7",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/fnv-1.0.7"
+  },
+  {
+    "checksum_sha256": "14c298cd1a4a21f9f1c596e5003f066a7a3971db79b6065a7d21c8f549798574",
+    "directory": "getrandom-0.3.4",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/getrandom-0.3.4"
+  },
+  {
+    "checksum_sha256": "8f4892701ffdb0f7797d2e2847027419578ee9f128e54d624f72579459ff161d",
+    "directory": "getrandom-0.4.3",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/getrandom-0.4.3"
+  },
+  {
+    "checksum_sha256": "76bb3a5ed589e05cfd222e889de6b5e9903f319a8bb546afe81d0d5e0172143e",
+    "directory": "half-2.7.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/half-2.7.1"
+  },
+  {
+    "checksum_sha256": "7dcb4203efb3bb26486763c53bd424f0e005a58df7e17b6e78cd00ea859df3ce",
+    "directory": "hermit-abi-0.5.3",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/hermit-abi-0.5.3"
+  },
+  {
+    "checksum_sha256": "4e90b64d5b58b365a24289e80748aa8cb8c6cb22dee88adf266a24c0d1947909",
+    "directory": "is-terminal-0.4.17",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/is-terminal-0.4.17"
+  },
+  {
+    "checksum_sha256": "c43400d74f1b4179791de34ae2aaf5dcb17faa7dfaf55c205d68867c5cabe948",
+    "directory": "itertools-0.10.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/itertools-0.10.5"
+  },
+  {
+    "checksum_sha256": "9ff9a290caaa3b7b8d5c21b8b9169e21950ef9b66b0d08b7f8cbecc0bd2bc19c",
+    "directory": "itoa-1.0.18",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/itoa-1.0.18"
+  },
+  {
+    "checksum_sha256": "1d50f1bfd1ebdaa31eb58851391775e8b8f0cad07b16ff1b71d1b66d2a5fe3f4",
+    "directory": "libc-0.2.191",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/libc-0.2.191"
+  },
+  {
+    "checksum_sha256": "199c92a7fac08560c40ed5d39cd585a090b8a89e626f5ea98b163bf4ef77f180",
+    "directory": "libloading-0.8.9",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/libloading-0.8.9"
+  },
+  {
+    "checksum_sha256": "ae73504987bc5fd9f7d17462a8bb9293d920f73753b8f0cba029d0e4ebfb43fc",
+    "directory": "linux-raw-sys-0.12.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/linux-raw-sys-0.12.1"
+  },
+  {
+    "checksum_sha256": "20ecbfbca67ee27eb22d071b0ee64fc2f92f96b736f3fe9162b1fb2dfc05fc53",
+    "directory": "matrixmultiply-0.3.11",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/matrixmultiply-0.3.11"
+  },
+  {
+    "checksum_sha256": "f4bfddde5966de53d6e68bec039d1748a174014eeafffc58a7c90fafe9e3b361",
+    "directory": "memchr-2.8.3",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/memchr-2.8.3"
+  },
+  {
+    "checksum_sha256": "da397052c24003a5044963167d1898ca52ca9fac5f07404c5128f809f0ea18c0",
+    "directory": "ndarray-0.16.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/ndarray-0.16.1"
+  },
+  {
+    "checksum_sha256": "b3d7be42f08a2fb46bc4f8b5aeb72a18beb4bb73c43634b81286bea51822e74d",
+    "directory": "num-complex-0.4.6",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/num-complex-0.4.6"
+  },
+  {
+    "checksum_sha256": "7121b14b45d395f5803bdfcb82044f314f67dda7dd0747ceebd3a814c6e5774e",
+    "directory": "num-integer-0.1.47",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/num-integer-0.1.47"
+  },
+  {
+    "checksum_sha256": "3971cd307038568ad2ee41ad7116497f41d24932e084cc6ccf8f101d1180bc57",
+    "directory": "num-traits-0.2.19",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/num-traits-0.2.19"
+  },
+  {
+    "checksum_sha256": "d4a80b401dae15f2f8982714045f9c65b89b47863c8cdfc43dd4963b0b4a0238",
+    "directory": "once_cell-1.21.4",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/once_cell-1.21.4"
+  },
+  {
+    "checksum_sha256": "2477857e9057055b166cce7bde91a5dad5681e2b8ab3ed6e697f26af336a9770",
+    "directory": "oorandom-11.1.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/oorandom-11.1.5"
+  },
+  {
+    "checksum_sha256": "190c61ae90361fb014d698f8bbb29f2b341e843b2647d7b526259d66c37bc68a",
+    "directory": "portable-atomic-1.15.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/portable-atomic-1.15.0"
+  },
+  {
+    "checksum_sha256": "4f4f56578bbe0569487d64488bd66c6c7f74ece51dd582c15ed0d3d62d493dac",
+    "directory": "portable-atomic-util-0.2.8",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/portable-atomic-util-0.2.8"
+  },
+  {
+    "checksum_sha256": "47cf566384b7c2ceeb5a53c44ffda060b6555413fae9aaea4bb953e34faa1cba",
+    "directory": "ppv-lite86-0.2.21",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/ppv-lite86-0.2.21"
+  },
+  {
+    "checksum_sha256": "68cbe555b730d587a5ccb055951ef8585906633ce4743540f7d3949c37fd838e",
+    "directory": "proc-macro2-1.0.107",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/proc-macro2-1.0.107"
+  },
+  {
+    "checksum_sha256": "f0aea1f87a12be66090fe237f3f18df8699a5c6f62f870b6a3e96b45a52bad0d",
+    "directory": "proptest-1.11.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/proptest-1.11.0"
+  },
+  {
+    "checksum_sha256": "d0c879499b3522ed8683fa2d21decb20f6086c51c270acb35ac5b4b0c06c8b8b",
+    "directory": "quick-error-1.2.3",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/quick-error-1.2.3"
+  },
+  {
+    "checksum_sha256": "ae5655722f4dfc7cf7bf0244963e912c4a29a2daf50214ca58baec9b241de27b",
+    "directory": "quote-1.0.47",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/quote-1.0.47"
+  },
+  {
+    "checksum_sha256": "e6e7307128a5e22bf7407c1a6d778292a388d0bf572513d2f7e7eb4457999910",
+    "directory": "r-efi-5.3.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/r-efi-5.3.0"
+  },
+  {
+    "checksum_sha256": "f10c2aa2cc8f5aa1e8cd8cc8f38dfaa783847fa843500b94e02746a73a195aa5",
+    "directory": "r-efi-6.0.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/r-efi-6.0.0"
+  },
+  {
+    "checksum_sha256": "36d3a43affb294258f9957d1d412ed6ca44c9c16293cb32b8976b58098be1e8e",
+    "directory": "rand-0.9.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rand-0.9.5"
+  },
+  {
+    "checksum_sha256": "23e9d08be24550755b7f1069ba6f1bfac6e0eac0144826317381434b894c5531",
+    "directory": "rand_chacha-0.9.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rand_chacha-0.9.0"
+  },
+  {
+    "checksum_sha256": "5f52e9702629ee10ebb556366dba5a0d96c0b7481891ed7e2859d4614906bd6f",
+    "directory": "rand_core-0.9.5",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rand_core-0.9.5"
+  },
+  {
+    "checksum_sha256": "f50615afc8d189db32d5ec0e4e03c47a776355320c5f000c6a7c21dbdcecf0f7",
+    "directory": "rand_xorshift-0.4.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rand_xorshift-0.4.0"
+  },
+  {
+    "checksum_sha256": "ff7c8d145a7c3d60bbc6ac2d6003b7f98dd35928ee31da48e90fe8c7302e7d9e",
+    "directory": "rawpointer-0.2.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rawpointer-0.2.1"
+  },
+  {
+    "checksum_sha256": "6bedb474d39b226246df17b9bd3e328ef425ecccfdda2b7a7b5ad1c99be7d161",
+    "directory": "rayon-1.12.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rayon-1.12.0"
+  },
+  {
+    "checksum_sha256": "f245ba098b3bea3f17d82f76dd6bd506d45e5bf7426adf4030e66b4273a82617",
+    "directory": "rayon-core-1.13.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rayon-core-1.13.0"
+  },
+  {
+    "checksum_sha256": "ff5a25c25d075480c20d2e9dd62df92a33e9b2619bfb0c3616bfad4c0fde8390",
+    "directory": "regex-1.13.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/regex-1.13.1"
+  },
+  {
+    "checksum_sha256": "12635044c823ffc8a6bf595c919ee9449b9e4c8875de0c49c9377a8d297d46f3",
+    "directory": "regex-automata-0.4.18",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/regex-automata-0.4.18"
+  },
+  {
+    "checksum_sha256": "6cdae7bdb942e7927545c42c504eee5d87ec39d666c68466e79d6eff9b839595",
+    "directory": "regex-syntax-0.8.11",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/regex-syntax-0.8.11"
+  },
+  {
+    "checksum_sha256": "3fcd7a5497ec6934c05c336f600dfbd877fee4ba7e67f157adc7996af7e1e031",
+    "directory": "rustix-1.1.6",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rustix-1.1.6"
+  },
+  {
+    "checksum_sha256": "2fb3b26e4904af424be8ee9801390f81248b43f471b8bd6f9076c8479da1588a",
+    "directory": "rusty-fork-0.3.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/rusty-fork-0.3.1"
+  },
+  {
+    "checksum_sha256": "3f3aa27605dd2af72d1ec674fd3ef88cd8586e8f1796185079f3661c59df8ca4",
+    "directory": "same-file-1.0.6",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/same-file-1.0.6"
+  },
+  {
+    "checksum_sha256": "304990ec22b01e370db900535e88684ca42383855d4bf3e5348233d961f1ee96",
+    "directory": "serde-1.0.229",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/serde-1.0.229"
+  },
+  {
+    "checksum_sha256": "5f304cdcd778a0f11e1f7711b56961c9b1b54cc2f86ff7650607ddbc20aee38b",
+    "directory": "serde_core-1.0.229",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/serde_core-1.0.229"
+  },
+  {
+    "checksum_sha256": "88a7514b60ead23813c5288eda595c4f5388d47cf3b87efbf09fd3f973a97076",
+    "directory": "serde_derive-1.0.229",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/serde_derive-1.0.229"
+  },
+  {
+    "checksum_sha256": "d9808512186bbf0aa01e749a11b5ad7d073144c7f92d00b9e5637399d11ff8f4",
+    "directory": "serde_json-1.0.154",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/serde_json-1.0.154"
+  },
+  {
+    "checksum_sha256": "ec2cc3ac5022ceb55ef8fe40317a6ee6f3d6d01b3402128414cb01737abdd693",
+    "directory": "syn-2.0.119",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/syn-2.0.119"
+  },
+  {
+    "checksum_sha256": "9d63466da95a63078848ef1306fc94373dc42e75bedccf9baedf119dbec2d665",
+    "directory": "syn-3.0.9",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/syn-3.0.9"
+  },
+  {
+    "checksum_sha256": "b4d55271f487862a2464a93677cc042d35b4de53a2a5e159272e8164c02b7605",
+    "directory": "tempfile-3.27.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/tempfile-3.27.0"
+  },
+  {
+    "checksum_sha256": "6ed16d464101b852231d8570f036c5c00ca88bc8084316c73c0f424920db6b8e",
+    "directory": "tinytemplate-1.2.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/tinytemplate-1.2.1"
+  },
+  {
+    "checksum_sha256": "91c560dcf0f413ac986e41e7095a0ae3eade08ecb61347019912da12845814f5",
+    "directory": "unarray-0.1.4",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/unarray-0.1.4"
+  },
+  {
+    "checksum_sha256": "4cbe1167eeb2520f4ac1c4160be068965477c0a5d51de39a4983d233adc79d16",
+    "directory": "unicode-ident-1.0.27",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/unicode-ident-1.0.27"
+  },
+  {
+    "checksum_sha256": "6cc454206f58255b251f396ca0365f4b21931bd3d157cd020dd22a24fbe2d88b",
+    "directory": "wait-timeout-0.2.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/wait-timeout-0.2.1"
+  },
+  {
+    "checksum_sha256": "dc9ed166c2c75d60a8ceb2581c2880016254dcfcf0921b31f546a499dad00b90",
+    "directory": "walkdir-2.5.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/walkdir-2.5.0"
+  },
+  {
+    "checksum_sha256": "23d031cc95ba8eb887f7c0bfc9cb13b19341f37fd3813bd07c7ff9773cd4aeae",
+    "directory": "wasip2-1.0.1+wasi-0.2.4",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/wasip2-1.0.1+wasi-0.2.4"
+  },
+  {
+    "checksum_sha256": "96845363502420098f6c04ab485a56cb7e5934ee65d822ad84d02c8b18c91016",
+    "directory": "winapi-util-0.1.11",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/winapi-util-0.1.11"
+  },
+  {
+    "checksum_sha256": "ea02e2b783f93cc8a8400ecd7c535de43d0d5f07abe9dacd769f7d27e77d4cbf",
+    "directory": "windows-link-0.2.1",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/windows-link-0.2.1"
+  },
+  {
+    "checksum_sha256": "fdd27da10edc0bd5bbc93146b67500f4c65d2f1e3da7c9f5eb28cfa094c02bbe",
+    "directory": "windows-sys-0.61.2",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/windows-sys-0.61.2"
+  },
+  {
+    "checksum_sha256": "77eafe01ce54bf688329f3f3d29141744679c265716c1df53418822b36fa9c20",
+    "directory": "wit-bindgen-0.46.0",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/wit-bindgen-0.46.0"
+  },
+  {
+    "checksum_sha256": "1cd8e88a753eafd1a92b8ed66e1e78c57a80c5f0cb48750b05e60ab2522f484c",
+    "directory": "zerocopy-0.8.63",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/zerocopy-0.8.63"
+  },
+  {
+    "checksum_sha256": "5a3bbacad476753cd454e0f98b6a756a16ffb6c871babf2305d63ccb1f4905a6",
+    "directory": "zerocopy-derive-0.8.63",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/zerocopy-derive-0.8.63"
+  },
+  {
+    "checksum_sha256": "eadea3b1a41d534696690d2d7da5cce0d1036ba15a5faf62b5875ab7587b288b",
+    "directory": "zmij-1.0.23",
+    "source": "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0/vendor/zmij-1.0.23"
+  }
+]

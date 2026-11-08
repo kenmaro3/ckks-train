@@ -911,3 +911,14 @@ Task54 CPU supervisor Step2は71ac728でsource採用済み。[元の回帰失敗
 ## 2026-11-08 12:05 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T12:05:57.733401+09:00。FULL-2はupdate809（0始まり）＝**810/1000更新**、ログ内elapsed117907s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1205/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T13:06:00+09:00以降のR-41-FULL2-OBS-20261108-1306として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+
+## 2026-11-08: Task55の固定ソースpackage実ビルド
+
+固定commit `2dc049a` に対し、core/ckks/nn/cudaとcuda featureの計5回の
+offline・locked package検証ビルドがMacで合格。実際のarchive内容、依存、
+ライセンス全文を照合し、独立レビューも仕様・品質とも合格。
+[一次証跡と範囲](../results/validation/task55-current-packages-20261108/README.md)を保存した。
+作業中Task54の検証、GPU実機、crates.io公開、stable v1.0の完了を意味しない。
+専用build cache約270MBは証跡保存後に削除した。削除直前の観測容量は約519MBで、
+最大使用量を継続計測したものではない。
