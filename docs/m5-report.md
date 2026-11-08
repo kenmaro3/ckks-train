@@ -1,26 +1,39 @@
 # M5 報告（進行中、2026-11-08）
 
-最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](handover.md#latest-evidence-20261108-1105)。
+最新の設計: [共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)。CPU学習経路: [P5複数層CPU学習経路の限定実測](#latest-evidence-20261107-p5-cpu)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](handover.md#latest-evidence-20261108-1307)。
 
 **研究全体は未完了。** M3 のFULL-2精度判定と全長比較、M4 の修正後 GPU 再計測・訓練、M5 の再現スクリプトの実機通し試験が残る。実装済み、測定済み、研究ゲート合格を分けて記録する。論文は WAHC 2027 向けのレビュー済みドラフト。2026-11-08にGitHubリポジトリと研究プレビュー[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)（固定6fba46c、10ページPDF含む）を公開済み。stable v1.0・arXiv投稿・crates.io公開は未完了。[公開と配布の検証](../results/validation/research-preview-public-release-6fba46c/README.md)。
 
 この報告は Task 57 の現状整理である。後続の測定を「完了」と見なす代わりにはならない。数値の一次資料と条件は [M3](m3-report.md)、[M4](m4-report.md)、[再現手順](../results/README.md)、[セキュリティ推定](security.md)を参照する。
+
+## 0. 公開までの残り（2026-11-08 13:07 JSTの実験観測に基づく）
+
+プレビューは期限前に公開済み。最終論文の証拠選択は11月9日18:00 JSTまで、GitHub最終版とarXiv投稿は11月10日09:00 JSTまでを目標に進める。[本人指定の日程と範囲](publication-schedule.md)に従い、未達・未計測は残したまま報告する。arXivの受付・公開時刻は外部条件であり、アカウント確認は本人の指示で待機している。
+
+| 残りの作業 | 現在の根拠 | 完了に必要なこと |
+|---|---|---|
+| M3 / Task42の確定 | FULL-1は回収済み。FULL-2は835/1000更新、最終JSONなし | FULL-2の元JSONとrunner終了を照合し、4比率とseed0=0.9041に対する精度差を確定。安全性同条件の未達・全長ReBoot CPU時間の未計測は別に残す |
+| M4 / Task50の確定 | R47/R48/R52の後続キューは待機中 | R47再計測とR48の実結果を反映。GPUメモリ不足・OOM・成功を区別し、未計測行を埋めない。Task49は実機未計測のままコードのみ |
+| Task54の再現経路 | 表の再生成は可能。Step2採用済み、Step3作業中 | 入力・実行条件・保存・学習の接続、独立レビュー、対応する実環境検証。全21 profiles / 10 seedsとQuick通し試験は未完であり、先行公開後も残る |
+| 最終配布物・論文・arXiv | 固定ソースのpackageビルドと中間原稿の再レビューは合格 | 採用する最終sourceと結果を固定し、表・図・PDF・TeX ZIPを再生成・検証して公開。arXiv側のbuild/PDF確認と実投稿は未実施 |
+
+[最新の実験観測](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1306/README.md)、[Step2のLinux CI](../results/validation/task54-step2-linux-ci-71ac728/README.md)、[固定2dc049aのpackage検証](../results/validation/task55-current-packages-20261108/README.md)、[中間論文の修正・検証](../results/validation/paper-cutoff-readiness-20261108/README.md)を根拠とする。進行中Step3の未commitコードに、これらの合格を適用しない。
 
 ## 1. 実装・測定・判定
 
 | Task | 実装とレビュー | 測定・検証 | 現時点の判定 / 残り |
 |---|---|---|---|
 | 42: M3 / RQ1 | 草稿、4 比率の検証付き集計器、ReBoot 安全性追補をレビュー済み | 784 入力 subset は測定済み。196入力FULL-1は回収・4比率合格。FULL-2は未回収 | **未確定**。FULL-2 と公開コード seed 0 の 0.9041 を ±0.5 pt で比較。FULL-1 の B = 64 精度は別に示す |
-| 47: CUDA 演算 | プールとバッチ処理の修正をレビュー済み | R-47-2 回収済み、R-47-3 は10:49観測でqueued/waiting・未計測 | 修正前のバッチ時間を修正後の性能と呼ばない |
-| 48: GPU 訓練 / RQ3 | provenance 修正を含めレビュー済み | 小さい CPU smoke の計数のみ確認。R-48-1〜4 は10:49観測でqueued/waiting・未計測 | GPU 訓練の速さ・精度・実ピークメモリは未判定 |
+| 47: CUDA 演算 | プールとバッチ処理の修正をレビュー済み | R-47-2 回収済み、R-47-3 は13:07観測でもキュー待機・未計測 | 修正前のバッチ時間を修正後の性能と呼ばない |
+| 48: GPU 訓練 / RQ3 | provenance 修正を含めレビュー済み | 小さい CPU smoke の計数のみ確認。R-48-1〜4 は13:07観測でもキュー待機・未計測 | GPU 訓練の速さ・精度・実ピークメモリは未判定 |
 | 49: GPU bootstrap（stretch） | `f64a617`、独立レビュー済み | CPU 全スロット精度・計数と CUDA コンパイルを確認。GPU 実機は未実行 | **コードのみ**。220 ms 目標・GPU 精度・ビット一致・メモリは未計測 |
 | 50: M4 報告 | `docs/m4-report.md` の報告準備をレビュー済み | 測定済みと欠測を分離 | **報告あり、M4 合格未判定** |
 | 51: データセット | `09f16f2` / `8bd9cba`、レビュー済み | eMLP-1 平文 10 seeds | MNIST / Fashion-MNIST の ±1 pt 目標は合格。Breast Cancer は固定 epoch で未達 |
-| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は10:49観測でqueued/waiting・未計測。全長の暗号化学習は未実行 |
+| 52: eMLP-2/3 | `b8e267c` / `91efa6e` / `9305d2e`、修正レビュー済み | ReBoot から値として取得した構成と seed-0 平文軌跡を照合。小さい暗号化 hand-off の試験済み | 本番パラメータの暗号化 subset R-52-1/2 は13:07観測でもキュー待機・未計測。全長の暗号化学習は未実行 |
 | 53: 4 次活性化（stretch） | 保留 | 未計測 | 計画の削減候補。精度改善を主張しない |
-| 54: 実験・表生成 | 既存の表生成に加え、登録行列・CPU準備・実構成・Full／証拠／Quick記録形式を実装、各独立レビュー済み | 既存49件のPython回帰・表／図freshness・shell syntaxと、各追記に記載した限定Rust検証。`--tables-only`で既存表を再生成可能 | **全実験行列の実行は未完**。実gate、証拠保存・開始・科学結果出力を接続中。[Full記録形式](#latest-evidence-20261107-d7-admission-codec)の合格は実験完走ではない。R-54-1は未投入、post-full-v1対象外 |
-| 55: v1.0 準備 | README・Cargo metadata・notices を整備、実 checkout の crate rename を適用 | 755ファイルのバイト不変、改名後462 Rust tests合格（12 ignored）、49 Python tests、CUDA compile、Clippy、rustdoc、deny、4パッケージのローカル連鎖ビルド合格 | **研究プレビュー公開済み、stable v1.0は未完了**。固定6fba46cのLinux CI全6ジョブ成功、配布ソース・PDF・8添付物を照合済み。後続sourceには別の検証が必要。下記07:09のCI未起動は過去の記録 |
-| 56: 論文 | `e2d27b6`、全7節・付録・参考文献・自作図、独立再レビュー済み | 初版は両版9ページ。FULL-1反映後に両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし | **10ページのPDFプレビュー公開済み**。研究結果の欠測を明記。確定著者入りarXiv用ソースZIPも配布済み。arXiv・会議投稿は未実施 |
+| 54: 実験・表生成 | 既存の表生成・登録行列・CPU準備に加え、Step2 supervisorを独立レビュー後に採用。Step3は実装中 | Step2固定71ac728のLinux CIは全6ジョブ成功、workspace1,101合格・0失敗・47 ignored。`--tables-only`で既存表を再生成可能 | **全実験行列は未完**。Step3/4の入力・実gate・開始・学習・FP32比較・結果保存への接続とnative検証が残る。R-54-1は未投入、post-full-v1対象外 |
+| 55: v1.0 準備 | README・Cargo metadata・notices整備、crate rename適用。固定2dc049aの配布検証を独立レビュー済み | core/ckks/nn/cudaとcuda featureの計5回のoffline・locked package検証ビルドがMacで合格。実archive内容・ライセンス全文・内部依存を照合 | **研究プレビュー公開済み、stable v1.0は未完了**。公開版6fba46cのLinux CI・8添付物は確認済み。packageビルドはGPU計測・crates.io公開・作業中Step3の検証ではない |
+| 56: 論文 | 全7節・付録・参考文献・自作図のドラフト。12:31 JSTの中間修正も独立再レビュー済み | 著者入り10ページPDFのbuild・内容を確認。19ファイルのarXiv用ZIPを展開してbuild成功、抽出テキストが直接buildと一致 | **PDFプレビュー公開済み**。新しいローカル中間版は公開previewの添付物を置き換えていない。FULL-2と後続計測を反映する最終更新・arXiv投稿は未実施 |
 | 57: M5 報告 | `fd49eac` の現状報告はレビュー済み | 後続変更を再照合中 | 論文・表・rename の検証結果を照合した現状報告。研究全体は未完了 |
 | 58: PyO3（最後、削減可） | 今回の範囲から削減 | 未検証 | Rust API と再現手順を優先。Python binding は提供しない |
 
@@ -78,7 +91,7 @@ GitHub CI は実際に起動している。`0daf778` の [CI run](https://github
 | 著者・所属・連絡先 | 2026-11-08に本人確認済み。Kentaro Mihara単著、miha.ken.19@gmail.com。個人研究として会社名は載せず、Independent Researcherと注記 |
 | 匿名版 | 匿名acmart sigconfを維持し、確認済み著者を表示する版とarXiv用nonacm版を分ける。会議投稿前に自己参照とartifact URLも匿名性を確認 |
 | ページ制限 | 前年 WAHC 2026 の公式 CFP は参考文献・付録込み 12 ページ。2027 の規則は未確認。前年規則を暫定上限とし、2027 CFP 公開後に再確認 |
-| build / 表示 | 初版は両版9ページで build・表示確認と独立レビュー済み。FULL-1反映後は両版10ページで再ビルド成功。匿名版全10ページ・仮著者版先頭を表示確認し、両版の最終ログにoverflow・未定義参照・欠落文字なし |
+| build / 表示 | 最新のローカル著者入り版は10ページでbuild成功、overflow・未定義参照・欠落文字なし。19ファイルのZIPを展開した独立buildも成功し、抽出テキストが一致。最新修正で匿名版を再buildしたとは扱わない。arXivサーバ上のbuildと表示確認は未実施 |
 | 参考文献 | 原論文・公式資料で書誌を確認。ベースラインのソース抜粋を取り込まない |
 | 図の権利 | 自作図と結果から生成した図を使い、外部図の転載を前提にしない。データ・文献の帰属を付記 |
 | arXiv ライセンス | 2026-11-08に本人がarXiv非独占配布ライセンスを選択。ソフトウェアはMIT。アカウントは本人が確認し、こちらの確認は一旦スキップする指示。現在のログイン・endorsement確認済みとは扱わない |
@@ -95,7 +108,7 @@ Task 58 は計画と本人の指示で削減可能な最後の項目であるた
 2. ReBoot 公開構成の比較を安全性差付きで報告するか、別途 128 bit を満たす構成で再推定・再測定するか。後者は公開設定そのものとの比較ではなくなる。
 3. eMLP-2/3 全長暗号化実験の実施範囲。現在は subset を登録済みで、全長時間は見積もりにとどまる。利用中の共有サーバの実測を根拠に判断する。
 4. 著者・公開方針は2026-11-08に確定: Kentaro Mihara単著、個人研究、arXiv非独占配布ライセンス。11月9日09:00 JSTまでにプレビュー、11月10日09:00 JSTまでにGitHub公開・arXiv投稿。名称ckks-trainは決定済み。アカウントの本人確認と投稿先での受付は未確認。
-5. stretch の 4 次活性化・PyO3 を採用するか。必須報告・再現・公開準備を優先し、削減時は明記する。
+5. stretch の4次活性化は保留。PyO3は§5の理由により今回の公開準備から削減済みで、未決の必須項目として再提示しない。
 
 
 ## 7. 後続観測（2026-11-06 11:09:14 JST）
