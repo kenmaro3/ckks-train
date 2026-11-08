@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-1105)。
+最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-1205)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -15,7 +15,7 @@
 - **進捗**: FULL-1の結果をM3へ反映済み。Task42/RQ1はFULL-2と未達・未計測項目の裁定待ち、R47/R48/R52は既存post-fullキュー待ち。Task54は全実験行列の基盤を実装中。crate改名・公開準備とpaper草稿は存在するが、M4/M5全体・v1.0公開の完了は主張しない。
 - **暫定判定**: 196入力・全長FULL-1（B=64）はKS比4通りとも≤0.70。精度±0.5 ptはFULL-2対ReBoot公開コードseed0=0.9041で判定するため未確定。全長ReBoot CPU時間は未計測、セキュリティ同条件も未達。784入力subsetのwall-clock結果を全長へ代用しない。
 - **GitHub**: [kenmaro3/ckks-train](https://github.com/kenmaro3/ckks-train)は2026-11-08に**研究プレビューとして公開済み**。PDFを含む[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)も10:42 JSTに公開済み（固定6fba46c）。arXivは未投稿。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`。[公開証跡](../results/validation/research-preview-publication-20261108/README.md)。
-- **現在の測定**: 2026-11-08 11:05 JSTの確認でFULL-2は785/1000更新。最終JSONはまだなく、後続queueはowner.jsonのみ。途中ログから最終精度を補わない。
+- **現在の測定**: 2026-11-08 12:05 JSTの確認でFULL-2は810/1000更新。最終JSONはまだなく、後続queueはowner.jsonのみ。途中ログから最終精度を補わない。
 - **公開候補の検証**: Macの固定ソース00f4409は1,025合格・0失敗・19未実行。strict Clippy、文書リンク修正後のstrict rustdoc、表の再生成・整合性検査も、それぞれの記録対象で合格。公開版6fba46cの[Linux CI](https://github.com/kenmaro3/ckks-train/actions/runs/42433577945)は全6ジョブ成功、workspace集計1,028合格・0失敗・47 ignored。[配布・匿名PDF取得の検証](../results/validation/research-preview-public-release-6fba46c/README.md)も完了。各commit・OSの範囲を分け、研究結果の合格とは混同しない。
 - **追加コード**: Task54 CPU supervisor Step2のsourceをレビュー後に採用。[検証・修正記録](../results/validation/task54-d7-cpu-supervisor/README.md)。履歴・最終sample・clock fault、private FD継承・制御EOFの修正に加え、全bench回帰で見つかったCLI診断の期待値を修正し、通常/parallel/CUDAのfocused試験と再レビューに合格した。Linux native実行・clean build receipt・Step3/4・全行列は未完。公開済みプレビュー6fba46cにはこの追加sourceを含めない。
 
@@ -1173,3 +1173,9 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08追記: Step2採用ソースのLinux CI
 
 71ac728の[CI run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378)は全6ジョブ成功。元のworkspaceログ76集計は1,101合格・0失敗・47 ignoredで、Linux限定の`operational_fix2_private_aliases_are_cloexec`と修正済みCLI診断の回帰も実行・合格した。[API・元ログ・集計](../results/validation/task54-step2-linux-ci-71ac728/README.md)を保存した。このdescriptor試験は子プロセスを起動せず、native16の継承・EOF・lock・pidfd等や実環境の配置を証明しない。CIは当該commitの検証であり、作業中Step3、GPU実機、全実験の合格ではない。以前のMac回帰失敗と修正履歴は保持する。
+
+<a id="latest-evidence-20261108-1205"></a>
+
+## 2026-11-08 12:05 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T12:05:57.733401+09:00。FULL-2はupdate809（0始まり）＝**810/1000更新**、ログ内elapsed117907s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1205/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T13:06:00+09:00以降のR-41-FULL2-OBS-20261108-1306として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。

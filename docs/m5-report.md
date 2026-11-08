@@ -907,3 +907,7 @@ Task54 CPU supervisor Step2は71ac728でsource採用済み。[元の回帰失敗
 ## 2026-11-08追記: Step2採用ソースのLinux CI
 
 71ac728の[CI run42436964378](https://github.com/kenmaro3/ckks-train/actions/runs/42436964378)は全6ジョブ成功。元のworkspaceログ76集計は1,101合格・0失敗・47 ignoredで、Linux限定の`operational_fix2_private_aliases_are_cloexec`と修正済みCLI診断の回帰も実行・合格した。[API・元ログ・集計](../results/validation/task54-step2-linux-ci-71ac728/README.md)を保存した。このdescriptor試験は子プロセスを起動せず、native16の継承・EOF・lock・pidfd等や実環境の配置を証明しない。CIは当該commitの検証であり、作業中Step3、GPU実機、全実験の合格ではない。以前のMac回帰失敗と修正履歴は保持する。
+
+## 2026-11-08 12:05 JST: FULL-2の定期確認
+
+読み取り専用の実観測は2026-11-08T12:05:57.733401+09:00。FULL-2はupdate809（0始まり）＝**810/1000更新**、ログ内elapsed117907s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1205/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T13:06:00+09:00以降のR-41-FULL2-OBS-20261108-1306として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
