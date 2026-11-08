@@ -33,7 +33,7 @@ The plot uses the same rounded ratio cells as the table. Each row is one seed; i
 
 The default `main.tex` uses unmodified `acmart` sigconf/review/anonymous formatting. It changes no font or margins. Author names and affiliations are omitted by default. A separate `AuthorDraft` toggle enables the confirmed sole author metadata; it must not be used for the anonymous artifact.
 
-The project-local TeX installation is a development tool under ignored `tools/latex/_ext/`, not a Cargo dependency or a distributed library component. Use its absolute binary path with a process-local PATH. The following Python build snippet works from the repository root and does not change a shell profile:
+The project-local TeX installation is a development tool under ignored `tools/latex/_ext/`, not a Cargo dependency or a distributed library component. Use its absolute binary path with a process-local PATH. Before a new build, set `CKKS_TRAIN_PAPER_OUT` to an absolute output directory outside the tracked source. The following Python snippet works from the repository root and does not change a shell profile. On the current development Mac, select that directory through the verified MicroSD helper described in [the storage policy](../docs/handover.md#2026-11-08-1436-jst-microsdへの保管用データ移動); an absent card must not fall back to internal storage. Other checkouts should select their own output destination; the local helper is not distributed with the library.
 
 ```python
 import os
@@ -42,7 +42,9 @@ from pathlib import Path
 
 root = Path.cwd().resolve()
 tex = root / "tools/latex/_ext/TinyTeX/bin/universal-darwin"
-out = root / "tools/latex/_ext/task56/anonymous"
+out = Path(os.environ["CKKS_TRAIN_PAPER_OUT"])
+if not out.is_absolute():
+    raise ValueError("CKKS_TRAIN_PAPER_OUT must be an absolute output directory")
 out.mkdir(parents=True, exist_ok=True)
 env = os.environ.copy()
 env["PATH"] = str(tex) + os.pathsep + env["PATH"]
@@ -52,14 +54,14 @@ subprocess.run([
 ], cwd=root / "paper", env=env, check=True)
 ```
 
-Output: `tools/latex/_ext/task56/anonymous/main.pdf`. All compiler outputs remain outside the tracked paper source. Inspect `main.log` for missing references, characters, overflow, and warnings. With Poppler:
+Output: `main.pdf` in the selected directory. All compiler outputs remain outside the tracked paper source. Inspect `main.log` for missing references, characters, overflow, and warnings. Render review images to the same destination with Poppler:
 
 ```sh
-pdfinfo tools/latex/_ext/task56/anonymous/main.pdf
-pdftoppm -png -scale-to 1400 tools/latex/_ext/task56/anonymous/main.pdf /tmp/ckks-train-paper
+pdfinfo "${CKKS_TRAIN_PAPER_OUT:?set the absolute output directory}/main.pdf"
+pdftoppm -png -scale-to 1400 "$CKKS_TRAIN_PAPER_OUT/main.pdf" "$CKKS_TRAIN_PAPER_OUT/page"
 ```
 
-For the nonanonymous author variant, create an ignored wrapper containing `\def\AuthorDraft{1}\input{main.tex}` under `tools/latex/_ext/task56/authors/`. Build that wrapper with the same process-local toolchain, working directory `paper/`, and an output directory under `authors/`. The user confirmed Kentaro Mihara as sole author, with contact miha.ken.19@gmail.com, on 2026-11-08. This is a personal project unrelated to their employer; the manuscript uses Independent Researcher without a company affiliation or invented city/country. The selected paper license is the arXiv non-exclusive distribution license; the software remains MIT.
+For the nonanonymous author variant, create a wrapper containing `\def\AuthorDraft{1}\input{main.tex}` in a separate selected output directory. Build that wrapper by its absolute path with the same process-local toolchain, working directory `paper/`, and that output directory. Keep dated artifact paths below as historical records; they are not destinations for new builds. The user confirmed Kentaro Mihara as sole author, with contact miha.ken.19@gmail.com, on 2026-11-08. This is a personal project unrelated to their employer; the manuscript uses Independent Researcher without a company affiliation or invented city/country. The selected paper license is the arXiv non-exclusive distribution license; the software remains MIT.
 
 ## Format constraint and verification
 
