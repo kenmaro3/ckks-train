@@ -1,0 +1,12 @@
+{
+  "started_utc": "2026-11-08T03:41:30.412148+00:00",
+  "action": "remove unused reproducible Rust incremental cache after sole writer build hold",
+  "path": "/Users/marconi/Documents/research/hekit/target/debug/incremental",
+  "allocated_kib_before": 4281636,
+  "free_bytes_before": 2392825856,
+  "active_user_cargo_rustc": [],
+  "preserved": "target/debug/deps, build, Linux cross cache, source, binaries, raw results and ledger",
+  "finished_utc": "2026-11-08T03:42:20.716961+00:00",
+  "path_absent": true,
+  "free_bytes_after": 5856251904
+}

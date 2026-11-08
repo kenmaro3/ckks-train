@@ -1179,3 +1179,8 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 12:05 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T12:05:57.733401+09:00。FULL-2はupdate809（0始まり）＝**810/1000更新**、ログ内elapsed117907s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1205/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T13:06:00+09:00以降のR-41-FULL2-OBS-20261108-1306として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+
+## 2026-11-08 12:42 JST: Mac増分キャッシュの整理
+
+本人の不要物削除指示に従い、実装担当のビルド停止確認とユーザー所有のCargo/rustc非稼働確認後、`target/debug/incremental`だけを削除した。再生成可能なキャッシュの割当量は約4.08GiB、削除後の空き容量は約5.45GiBだった。ソース・実行ファイル・元結果・検証ログ・依存ビルド出力・Linux向けキャッシュは保持した。以後の担当検証では`CARGO_INCREMENTAL=0`を使う。[時刻・対象・サイズの記録](../results/validation/mac-incremental-cleanup-20261108/README.md)。研究結果やゲート判定に変更はない。
