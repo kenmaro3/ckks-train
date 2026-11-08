@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "10",
+    "cargo",
+    "clippy",
+    "--offline",
+    "--locked",
+    "--workspace",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+  "source_commit": "00f4409c585fe3395b93aabffdbe020053fb01e1",
+  "overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RAYON_NUM_THREADS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "started_utc": "20261108T002609.686299Z"
+}

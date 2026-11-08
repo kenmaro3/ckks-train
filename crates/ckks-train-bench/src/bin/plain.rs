@@ -33,7 +33,7 @@
 //! ```
 //!
 //! - `dataset.kind = "mnist_idx"`: the four IDX files in `path` (MNIST or Fashion-MNIST); with
-//!   `resize: S`, ReBoot's preprocessing [`reboot_preprocess`] (antialiased bicubic resize to
+//!   `resize: S`, ReBoot's preprocessing [`ckks_train_bench::data::reboot_preprocess`] (antialiased bicubic resize to
 //!   `S x S`, min-max scaling over the training set), else pixels `byte / 255`.
 //! - `dataset.kind = "wdbc"`: UCI WDBC at `path` (sha256-checked), a stratified split with
 //!   `test_size` test samples drawn from ChaCha20 stream `rng(split_seed, 4)` (`split_seed`: a

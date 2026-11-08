@@ -1,16 +1,26 @@
 % Task56 interim draft. Generated tables and figures are the numerical source.
 % Default: anonymous review. Use \def\AuthorDraft{1}\input{main.tex} for the named draft.
+% Use \def\ArxivDraft{1}\input{main.tex} for a named preprint without review markup.
 \newif\ifshowauthors
 \ifdefined\AuthorDraft\showauthorstrue\else\showauthorsfalse\fi
-\ifshowauthors
-  \documentclass[sigconf,review]{acmart}
+\ifdefined\ArxivDraft
+  \showauthorstrue
+  \documentclass[sigconf,nonacm]{acmart}
 \else
-  \documentclass[sigconf,review,anonymous]{acmart}
+  \ifshowauthors
+    \documentclass[sigconf,review]{acmart}
+  \else
+    \documentclass[sigconf,review,anonymous]{acmart}
+  \fi
 \fi
 \setkeys{acmart.cls}{balance=false}
 \setcopyright{none}
 \settopmatter{printacmref=false}
-\acmConference[Draft]{Unsubmitted research draft}{November 2026}{No venue assigned}
+\ifdefined\ArxivDraft
+  \acmConference[Research preprint]{Research preprint}{November 2026}{}
+\else
+  \acmConference[Draft]{Unsubmitted research draft}{November 2026}{No venue assigned}
+\fi
 \acmDOI{}
 \acmISBN{}
 \usepackage{amsmath}

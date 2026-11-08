@@ -1,0 +1,26 @@
+   Compiling zerocopy v0.8.63
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-ckks)
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+    Checking serde_json v1.0.154
+    Checking ppv-lite86 v0.2.21
+    Checking rand_chacha v0.9.0
+    Checking ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-core)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-bench)
+    Checking ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-nn)
+ Documenting ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-nn)
+ Documenting ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-cuda)
+ Documenting ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-bench)
+ Documenting ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-ckks)
+ Documenting ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-core)
+error: unresolved link to `reboot_preprocess`
+  --> crates/ckks-train-bench/src/bin/plain.rs:36:45
+   |
+36 | //!   `resize: S`, ReBoot's preprocessing [`reboot_preprocess`] (antialiased bicubic resize to
+   |                                             ^^^^^^^^^^^^^^^^^ no item named `reboot_preprocess` in scope
+   |
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+   = note: `-D rustdoc::broken-intra-doc-links` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(rustdoc::broken_intra_doc_links)]`
+
+error: could not document `ckks-train-bench`

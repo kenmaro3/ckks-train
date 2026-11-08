@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "10",
+    "cargo",
+    "doc",
+    "--offline",
+    "--locked",
+    "--workspace",
+    "--no-deps"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+  "base_commit": "00f4409c585fe3395b93aabffdbe020053fb01e1",
+  "source_worktree_diff": "diff --git a/crates/ckks-train-bench/src/bin/plain.rs b/crates/ckks-train-bench/src/bin/plain.rs\nindex 68450ca..1bee90c 100644\n--- a/crates/ckks-train-bench/src/bin/plain.rs\n+++ b/crates/ckks-train-bench/src/bin/plain.rs\n@@ -33,7 +33,7 @@\n //! ```\n //!\n //! - `dataset.kind = \"mnist_idx\"`: the four IDX files in `path` (MNIST or Fashion-MNIST); with\n-//!   `resize: S`, ReBoot's preprocessing [`reboot_preprocess`] (antialiased bicubic resize to\n+//!   `resize: S`, ReBoot's preprocessing [`ckks_train_bench::data::reboot_preprocess`] (antialiased bicubic resize to\n //!   `S x S`, min-max scaling over the training set), else pixels `byte / 255`.\n //! - `dataset.kind = \"wdbc\"`: UCI WDBC at `path` (sha256-checked), a stratified split with\n //!   `test_size` test samples drawn from ChaCha20 stream `rng(split_seed, 4)` (`split_seed`: a\n",
+  "source_state": "base commit plus one doc-link correction",
+  "overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RAYON_NUM_THREADS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "RUSTDOCFLAGS": "-D warnings"
+  },
+  "started_utc": "20261108T002908.233977Z"
+}

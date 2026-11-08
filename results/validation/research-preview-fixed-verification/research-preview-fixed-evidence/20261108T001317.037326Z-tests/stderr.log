@@ -1,0 +1,294 @@
+   Compiling ckks-train-cuda v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-cuda)
+   Compiling ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-core)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-bench)
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-ckks)
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate/crates/ckks-train-nn)
+    Finished `test` profile [optimized + debuginfo] target(s) in 2m 30s
+     Running unittests src/lib.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ckks_train_bench-fa9343113fa53e58)
+     Running unittests src/bin/ablation.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ablation-9c02d00bf0def40d)
+     Running unittests src/bin/iris.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/iris-7908c934a0049079)
+     Running unittests src/bin/mnist.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist-c88c1fb9440b3f4c)
+     Running unittests src/bin/mnist_reboot_layout.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_reboot_layout-b4d5c46cc79f11dc)
+     Running unittests src/bin/plain.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/plain-76666f8aa1eac065)
+     Running unittests src/bin/study_train.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_train-f6ca61bba0262fbc)
+     Running tests/ablation_provenance.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ablation_provenance-1fe3425e9c34bbc1)
+ablation: backend cpu, small (N = 2^12, start level 10), dims [784, 32, 10], d = 1024, B = 2, 23 Galois keys, matvecs [32, 16, 16]; GPU need {"total_mib": 396.9, "keys_mib": 198.0, "tables_mib": 65.5, "state_mib": 67.4, "work_mib": 66.0}; data: synthetic uniform pixels (MNIST IDX files not found)
+ablation: hoist=1 bsgs=1 lazy_relin=1 iter 0: step 0.795 s, refresh 0.341 s, 171 rot + 62 relin
+ablation: hoist=1 bsgs=1 lazy_relin=1: 171 rot + 62 relin = 233 KS (closed form ok), step 0.795 s (x1.000 of default), weights 2^-inf from default
+ablation: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-ablation-prov-95736/ablation.json (all checks pass: true)
+     Running tests/byte_dataset.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/byte_dataset-12c3ba9efb13d2a9)
+     Running tests/iris_backend.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/iris_backend-f26e6a26db02d2b5)
+# preset seal_2020 (N = 2^15, max_level 9, start level 9), layout d = 16, B = 32, 18 Galois keys [-64, -16, -8, -4, -2, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 416, 448, 480], keygen 2.3 s; backend cpu, hoist=1 bsgs=1 lazy_relin=1
+# init: encrypted vs twin W 2^-25.7, b 2^-54.0; x at level 9, y at level 5
+iter  0 enc 0.0409s server 1.8891s refresh 0.2744s (10 cts) | err W 2^-24.2 b 2^-32.9 | OpCounter { rotations: 115, relins: 18, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+iter  1 enc 0.0411s server 2.0239s refresh 0.2766s (10 cts) | err W 2^-24.0 b 2^-28.8 | OpCounter { rotations: 115, relins: 18, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+# 2 timed iterations: server 1.9565 ± 0.0953 s, refresh 0.2755 ± 0.0016 s, client encryption 0.0410 ± 0.0002 s, total 2.2730 ± 0.0971 s; max weight error vs twin over all iterations 5.975034395033774e-8
+# wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-iris-default-96026.json
+# preset seal_2020 (N = 2^15, max_level 9, start level 9), layout d = 16, B = 32, 18 Galois keys [-64, -16, -8, -4, -2, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 416, 448, 480], keygen 2.6 s; backend cpu, hoist=0 bsgs=1 lazy_relin=1
+# init: encrypted vs twin W 2^-25.7, b 2^-54.0; x at level 9, y at level 5
+iter  0 enc 0.0418s server 1.8652s refresh 0.2614s (10 cts) | err W 2^-24.2 b 2^-32.9 | OpCounter { rotations: 115, relins: 18, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+iter  1 enc 0.0401s server 1.9614s refresh 0.2606s (10 cts) | err W 2^-24.0 b 2^-28.8 | OpCounter { rotations: 115, relins: 18, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+# 2 timed iterations: server 1.9133 ± 0.0680 s, refresh 0.2610 ± 0.0005 s, client encryption 0.0409 ± 0.0012 s, total 2.2152 ± 0.0662 s; max weight error vs twin over all iterations 5.975034395033774e-8
+# wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-iris-nohoist-96026.json
+# preset seal_2020 (N = 2^15, max_level 9, start level 9), layout d = 16, B = 32, 18 Galois keys [-64, -16, -8, -4, -2, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 416, 448, 480], keygen 2.3 s; backend cpu, hoist=0 bsgs=0 lazy_relin=0
+# init: encrypted vs twin W 2^-25.7, b 2^-54.0; x at level 9, y at level 5
+iter  0 enc 0.0433s server 2.1261s refresh 0.2599s (10 cts) | err W 2^-24.3 b 2^-32.6 | OpCounter { rotations: 118, relins: 24, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+iter  1 enc 0.0395s server 2.1281s refresh 0.2680s (10 cts) | err W 2^-24.0 b 2^-28.4 | OpCounter { rotations: 118, relins: 24, ct_ct_tensor: 24, ct_pt_mults: 12, rescales: 27, sse_switches: 0, bootstraps: 0 }
+# 2 timed iterations: server 2.1271 ± 0.0014 s, refresh 0.2639 ± 0.0057 s, client encryption 0.0414 ± 0.0027 s, total 2.4324 ± 0.0044 s; max weight error vs twin over all iterations 6.10534554856823e-8
+# wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-iris-naive-96026.json
+     Running tests/iris_cuda.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/iris_cuda-b87e2a7e2bbf686b)
+     Running tests/mnist_blocks.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_blocks-567c2b47666e70c6)
+mnist plain blocks: epoch 0: test acc 0.1000
+mnist plain blocks: epoch 1: test acc 0.1000
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-blocks-97277/plain.json
+mnist plain blocks: epoch 0: test acc 0.1000
+mnist plain blocks: epoch 1: test acc 0.1000
+mnist plain blocks: vs /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-blocks-97277/steps.tsv: max rel batch-loss diff 0.000e0, batch acc equal 4/4, max rel lr diff 0.00e0
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-blocks-97277/cmp.json
+mnist: noninteractive blocks [[64, 16, 16], [16, 8, 16]] when_needed on mini_boot (N = 2^10), d = 64, 8 lanes x 1 micro-batches: 20 training Galois keys (0.1 GB); levels per stage step 7 of 15
+mnist: keys 0.3 s, 79 KS per bootstrap; predicted 138.750 KS/sample (636 non-boot KS per update, 5.00 weight + 1 hand-off bootstraps)
+mnist: epoch 0 update 0 (8 samples): 1.4 s, 715 KS (1 bootstraps, stages booted [false, false]), matches prediction true; elapsed 2 s, load { 16.41 12.58 10.82 }
+mnist: epoch 0 update 1 (8 samples): 4.5 s, 1505 KS (11 bootstraps, stages booted [true, true]), matches prediction true; elapsed 6 s, load { 15.42 12.44 10.78 }
+mnist: 2 updates, 16 samples in 5.9 s; 2220 KS = 138.750/sample (predicted 138.750); matches true; weights 2^-26.6 from the twin
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-blocks-97277/ni_when_needed.json
+mnist: noninteractive blocks [[64, 16, 16], [16, 8, 16]] after_update on mini_boot (N = 2^10), d = 64, 8 lanes x 1 micro-batches: 20 training Galois keys (0.1 GB); levels per stage step 7 of 15
+mnist: keys 0.3 s, 79 KS per bootstrap; predicted 188.125 KS/sample (636 non-boot KS per update, 10.00 weight + 1 hand-off bootstraps)
+mnist: epoch 0 update 0 (8 samples): 4.9 s, 1505 KS (11 bootstraps, stages booted [true, true]), matches prediction true; elapsed 5 s, load { 14.74 12.35 10.76 }
+mnist: epoch 0 update 1 (8 samples): 4.9 s, 1505 KS (11 bootstraps, stages booted [true, true]), matches prediction true; elapsed 10 s, load { 13.96 12.23 10.73 }
+mnist: 2 updates, 16 samples in 9.8 s; 3010 KS = 188.125/sample (predicted 188.125); matches true; weights 2^-25.9 from the twin
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-blocks-97277/ni_after_update.json
+     Running tests/mnist_cuda.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_cuda-e96d256a8a6f183a)
+     Running tests/mnist_flags.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_flags-bc80a0610c074dcc)
+mnist: small N = 2^mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (12 (20480.2 GB at 9 MB each)
+ slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.5 s
+mnist: keys in 0.5 s
+mnist: epoch 0 batch 0 (32 samples): 1.47 s (step 1.mnist: epoch 0 batch 0 (32 samples): 1.47 s (step 1.25 s, refresh 25 s, refresh 0.23 s), 396 rot + 46 relin; elapsed 2 s, load { 14.77 12.42 10.80 }
+0.23 s), 396 rot + 46 relin; elapsed 2 s, load { 14.77 12.42 10.80 }
+mnist: 1 batches, 32 samples in 1.5 s; 442 KS (13.812/sample), prediction per batch matched: true; max |W_he - W_twin| = 4.194290557230085e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-toplevel-98628/full.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 7; GPU need {"total_mib": 229.5, "keys_mib": 99.0, "tables_mib": 65.5, "state_mib": 33.0, "work_mib": 32.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.5 s
+mnist: epoch 0 batch 1 (8 samples): 1.34 s (step 1.12 s, refresh 0.22 s), 396 rot + 46 relin; elapsed 3 s, load { 14.77 12.42 10.80 }
+mnist: epoch 0 batch 0 (32 samples): 0.67 s (step 0.51 s, refresh 0.16 s), 396 rot + 46 relin; elapsed 1 s, load { 14.77 12.42 10.80 }
+mnist: 2 batches, 40 samples in 2.8 s; 884 KS (22.100/sample), prediction per batch matched: true; max |W_he - W_twin| = 8.569147710857372e-9
+mnist: 1 batches, 32 samples in 0.7 s; 442 KS (13.812/sample), prediction per batch matched: true; max |W_he - W_twin| = 4.595151006231424e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h1b1l1.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=0, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 82 relin = 478 KS (14.938/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-toplevel-98628/capped.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 6; GPU need {"total_mib": 199.4, "keys_mib": 77.0, "tables_mib": 65.5, "state_mib": 28.9, "work_mib": 28.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: keys in 0.4 s
+mnist: batch at 0: no levels left
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 7; GPU need {"total_mib": 229.5, "keys_mib": 99.0, "tables_mib": 65.5, "state_mib": 33.0, "work_mib": 32.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 0.65 s (step 0.49 s, refresh 0.15 s), 396 rot + 46 relin; elapsed 1 s, load { 13.90 12.28 10.76 }
+mnist: epoch 0 batch 0 (32 samples): 1.60 s (step 1.38 s, refresh 0.22 s), 396 rot + 82 relin; elapsed 2 s, load { 13.90 12.28 10.76 }
+mnist: batch at 32: no levels left
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 8; GPU need {"total_mib": 262.4, "keys_mib": 123.8, "tables_mib": 65.5, "state_mib": 37.1, "work_mib": 36.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 1 (8 samples): 1.36 s (step 1.15 s, refresh 0.21 s), 396 rot + 82 relin; elapsed 3 s, load { 13.90 12.28 10.76 }
+mnist: epoch 0 batch 0 (32 samples): 0.87 s (step 0.70 s, refresh 0.18 s), 396 rot + 46 relin; elapsed 1 s, load { 13.90 12.28 10.76 }
+mnist: 2 batches, 40 samples in 3.0 s; 956 KS (23.900/sample), prediction per batch matched: true; max |W_he - W_twin| = 9.860121094606988e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h1b1l0.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=0 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 423 rot + 73 relin = 496 KS (15.500/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 1 (8 samples): 0.70 s (step 0.54 s, refresh 0.17 s), 396 rot + 46 relin; elapsed 2 s, load { 13.90 12.28 10.76 }
+mnist: 2 batches, 40 samples in 1.6 s; 884 KS (22.100/sample), prediction per batch matched: true; max |W_he - W_twin| = 7.110587008085645e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-toplevel-98628/partial8.json
+mnist: noninteractive after_update on mini_boot (N = 2^10, 512 slots), dims [64, 32, 10], d = 64, 8 lanes x 2 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=0 bsgs=0 lazy_relin=0; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 817 KS + 11.00 bootstraps = 105.375 KS/sample; cost model 82.938 KS/sample; corrections NiTerms { babies: 28, split: -4, transpose: 12, bias: 14, boots: 79 }
+mnist: epoch 0 batch 0 (32 samples): 1.68 s (step 1.46 s, refresh 0.22 s), 423 rot + 73 relin; elapsed 2 s, load { 13.90 12.28 10.76 }
+mnist: epoch 0 batch 1 (8 samples): 1.45 s (step 1.23 s, refresh 0.21 s), 423 rot + 73 relin; elapsed 4 s, load { 13.11 12.15 10.72 }
+mnist: 2 batches, 40 samples in 3.1 s; 992 KS (24.800/sample), prediction per batch matched: true; max |W_he - W_twin| = 1.1842659047855975e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h1b0l1.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=0 lazy_relin=0, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 423 rot + 82 relin = 505 KS (15.781/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.74 s (step 1.52 s, refresh 0.22 s), 423 rot + 82 relin; elapsed 2 s, load { 13.11 12.15 10.72 }
+mnist: epoch 0 update 0 (16 samples, 2 cts): 5.2 s, 1686 KS (11 bootstraps, weights booted), matches prediction true; elapsed 6 s, load { 13.11 12.15 10.72 }
+mnist: 1 updates, 16 samples in 5.2 s; 1686 KS = 105.375/sample incl. 11 bootstraps (predicted 105.375, model 82.938); matches true; max |W_he - W_twin| = 1.0462711835801386e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-niflags-98628/naive.json
+mnist: epoch 0 batch 1 (8 samples): 1.47 s (step 1.27 s, refresh 0.21 s), 423 rot + 82 relin; elapsed 4 s, load { 13.11 12.15 10.72 }
+mnist: 2 batches, 40 samples in 3.2 s; 1010 KS (25.250/sample), prediction per batch matched: true; max |W_he - W_twin| = 8.228915479580046e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h1b0l0.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=0 bsgs=1 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.47 s (step 1.21 s, refresh 0.26 s), 396 rot + 46 relin; elapsed 2 s, load { 13.42 12.23 10.76 }
+mnist: epoch 0 batch 1 (8 samples): 1.20 s (step 0.99 s, refresh 0.21 s), 396 rot + 46 relin; elapsed 3 s, load { 13.42 12.23 10.76 }
+mnist: 2 batches, 40 samples in 2.7 s; 884 KS (22.100/sample), prediction per batch matched: true; max |W_he - W_twin| = 8.569147710857372e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h0b1l1.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=0 bsgs=1 lazy_relin=0, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 82 relin = 478 KS (14.938/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.59 s (step 1.37 s, refresh 0.22 s), 396 rot + 82 relin; elapsed 2 s, load { 13.42 12.23 10.76 }
+mnist: epoch 0 batch 1 (8 samples): 1.36 s (step 1.15 s, refresh 0.21 s), 396 rot + 82 relin; elapsed 3 s, load { 13.39 12.24 10.77 }
+mnist: 2 batches, 40 samples in 3.0 s; 956 KS (23.900/sample), prediction per batch matched: true; max |W_he - W_twin| = 9.860121094606988e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h0b1l0.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=0 bsgs=0 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 423 rot + 73 relin = 496 KS (15.500/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.70 s (step 1.46 s, refresh 0.23 s), 423 rot + 73 relin; elapsed 2 s, load { 13.39 12.24 10.77 }
+mnist: epoch 0 batch 1 (8 samples): 1.44 s (step 1.23 s, refresh 0.21 s), 423 rot + 73 relin; elapsed 4 s, load { 12.72 12.12 10.74 }
+mnist: 2 batches, 40 samples in 3.2 s; 992 KS (24.800/sample), prediction per batch matched: true; max |W_he - W_twin| = 1.1842659047855975e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h0b0l1.json
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=0 bsgs=0 lazy_relin=0, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 423 rot + 82 relin = 505 KS (15.781/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.91 s (step 1.67 s, refresh 0.24 s), 423 rot + 82 relin; elapsed 2 s, load { 12.72 12.12 10.74 }
+mnist: epoch 0 batch 1 (8 samples): 1.54 s (step 1.33 s, refresh 0.21 s), 423 rot + 82 relin; elapsed 4 s, load { 12.72 12.12 10.74 }
+mnist: 2 batches, 40 samples in 3.5 s; 1010 KS (25.250/sample), prediction per batch matched: true; max |W_he - W_twin| = 8.228915479580046e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-flags-98628/h0b0l0.json
+     Running tests/mnist_ni_smoke.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_ni_smoke-f00e4f6e98febe95)
+mnist: noninteractive after_update on mini_boot (N = 2^10, 512 slots), dims [64, 32, 10], d = 64, 8 lanes x 2 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 587 KS + 11.00 bootstraps = 91.000 KS/sample; cost model 82.938 KS/sample; corrections NiTerms { babies: 28, split: -4, transpose: 12, bias: 14, boots: 79 }
+mnist: epoch 0 update 0 (16 samples, 2 cts): 4.8 s, 1456 KS (11 bootstraps, weights booted), matches prediction true; elapsed 5 s, load { 12.34 12.05 10.72 }
+mnist: epoch 0 update 1 (16 samples, 2 cts): 4.7 s, 1456 KS (11 bootstraps, weights booted), matches prediction true; elapsed 10 s, load { 11.83 11.95 10.70 }
+mnist: 2 updates, 32 samples in 9.5 s; 2912 KS = 91.000/sample incl. 22 bootstraps (predicted 91.000, model 82.938); matches true; max |W_he - W_twin| = 1.3694199191283118e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-ni-smoke-3079/after_update_false_16_false.json
+mnist: noninteractive when_needed on mini_boot (N = 2^10, 512 slots), dims [64, 32, 10], d = 64, 8 lanes x 2 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 587 KS + 5.50 bootstraps = 63.844 KS/sample; cost model 82.938 KS/sample; corrections NiTerms { babies: 28, split: -4, transpose: 12, bias: 14, boots: -356 }
+mnist: epoch 0 update 0 (16 samples, 2 cts): 0.7 s, 587 KS (0 bootstraps), matches prediction true; elapsed 1 s, load { 11.52 11.88 10.68 }
+mnist: epoch 0 update 1 (16 samples, 2 cts): 4.4 s, 1456 KS (11 bootstraps, weights booted), matches prediction true; elapsed 6 s, load { 11.00 11.77 10.65 }
+mnist: 2 updates, 32 samples in 5.2 s; 2043 KS = 63.844/sample incl. 11 bootstraps (predicted 63.844, model 82.938); matches true; max |W_he - W_twin| = 8.735193277042974e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-ni-smoke-3079/when_needed_false_16_false.json
+mnist: noninteractive after_update on mini_boot (N = 2^10, 512 slots), dims [64, 32, 16], d = 64, 8 lanes x 2 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 587 KS + 11.00 bootstraps = 91.000 KS/sample; cost model 82.938 KS/sample; corrections NiTerms { babies: 28, split: -4, transpose: 12, bias: 14, boots: 79 }
+mnist: epoch 0 update 0 (16 samples, 2 cts): 4.8 s, 1456 KS (11 bootstraps, weights booted), matches prediction true; elapsed 5 s, load { 10.84 11.72 10.64 }
+mnist: epoch 0 update 1 (16 samples, 2 cts): 5.2 s, 1456 KS (11 bootstraps, weights booted), matches prediction true; elapsed 10 s, load { 10.37 11.61 10.60 }
+mnist: 2 updates, 32 samples in 10.0 s; 2912 KS = 91.000/sample incl. 22 bootstraps (predicted 91.000, model 82.938); matches true; max |W_he - W_twin| = 1.4451887797584106e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-ni-smoke-3079/after_update_true_16_false.json
+mnist: noninteractive when_needed on mini_boot (N = 2^10, 512 slots), dims [64, 32, 16], d = 64, 8 lanes x 1 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 533 KS + 11.00 bootstraps = 233.667 KS/sample; cost model 214.167 KS/sample; corrections NiTerms { babies: 14, split: -2, transpose: 12, bias: 14, boots: 79 }
+mnist: epoch 0 update 0 (6 samples, 1 cts): 4.6 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 5 s, load { 10.02 11.52 10.58 }
+mnist: epoch 0 update 1 (6 samples, 1 cts): 4.6 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 10 s, load { 9.94 11.48 10.57 }
+mnist: epoch 0 update 2 (6 samples, 1 cts): 5.0 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 15 s, load { 9.46 11.35 10.53 }
+mnist: epoch 0 update 3 (6 samples, 1 cts): 4.7 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 19 s, load { 9.27 11.28 10.51 }
+mnist: epoch 0 update 4 (6 samples, 1 cts): 4.9 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 24 s, load { 9.81 11.36 10.54 }
+mnist: epoch 0 update 5 (2 samples, 1 cts): 4.8 s, 1402 KS (11 bootstraps, weights booted), matches prediction true; elapsed 29 s, load { 9.42 11.25 10.51 }
+mnist: 6 updates, 32 samples in 28.7 s; 8412 KS = 262.875/sample incl. 66 bootstraps (predicted 233.667, model 214.167); matches true; max |W_he - W_twin| = 3.323794361964616e-8
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-ni-smoke-3079/when_needed_true_6_false.json
+mnist: noninteractive when_needed on mini_boot (N = 2^10, 512 slots), dims [64, 32, 16], d = 64, 8 lanes x 2 micro-batches, transpose reuse: 23 training Galois keys + relin (0.1 GB) + bootstrap keys
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1; GPU need {"total_mib": 159.2, "keys_mib": 39.4, "tables_mib": 65.1, "state_mib": 29.2, "work_mib": 25.5} (keys for levels <= 16)
+mnist: bootstrapper 0.2 s, all keys 0.4 s; 79 KS per bootstrap; bootstrap keys 0.09 GB
+mnist: levels per step 7 (of 15 after a bootstrap and an unpack); predicted per update 587 KS + 5.50 bootstraps = 65.188 KS/sample; cost model 82.938 KS/sample; corrections NiTerms { babies: 28, split: -4, transpose: 12, bias: 14, boots: -356 }
+mnist: epoch 0 update 0 (16 samples, 2 cts): 0.8 s, 587 KS (0 bootstraps), matches prediction true; elapsed 1 s, load { 9.42 11.25 10.51 }
+mnist: epoch 0 update 1 (16 samples, 2 cts): 4.5 s, 1499 KS (11 bootstraps, weights booted), matches prediction true; elapsed 6 s, load { 9.07 11.15 10.47 }
+mnist: 2 updates, 32 samples in 5.3 s; 2086 KS = 65.188/sample incl. 11 bootstraps (predicted 65.188, model 82.938); matches true; max |W_he - W_twin| = 9.537132986126018e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-ni-smoke-3079/when_needed_true_16_true.json
+     Running tests/mnist_plain.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_plain-54fea445fdbd23da)
+mnist plain: epoch 0: test acc 0.1000, test mse 0.067315, train acc 0.2083
+mnist plain: epoch 1: test acc 0.1000, test mse 0.065199, train acc 0.2083
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-plain-5914/a.json
+mnist plain: epoch 0: test acc 0.1000, test mse 0.065199, train acc 0.2083
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-plain-5914/b.json
+mnist: the lr schedule has 2 values for 6 steps (exactly one per step; --lr-schedule-allow-longer accepts a longer one)
+     Running tests/mnist_reboot_smoke.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_reboot_smoke-7006ef4328925185)
+mnist_reboot_layout: small N = 2^12 (2048 slots), dims [64, 32, 10], (r, c) = (64, 32), mode lazy, 16 Galois keys + relin (0.1 GB)
+mnist_reboot_layout: keys in 0.3 s
+mnist_reboot_layout: batch 0 (32 samples): server 3.9 s, client 0.1 s; 704 rot + 162 relin; elapsed 4 s, load { 8.58 11.01 10.43 }
+mnist_reboot_layout: batch 1 (8 samples): server 0.9 s, client 0.0 s; 176 rot + 42 relin; elapsed 5 s, load { 8.58 11.01 10.43 }
+mnist_reboot_layout: 2 batches, 40 samples in 4.9 s (server 4.8 s); 1084 KS (27.100/sample); max |W_he - W_twin| = 2.4668385389947645e-10
+mnist_reboot_layout: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-reboot-smoke-6354/lazy.json
+mnist_reboot_layout: small N = 2^12 (2048 slots), dims [64, 32, 10], (r, c) = (64, 32), mode persample, 16 Galois keys + relin (0.1 GB)
+mnist_reboot_layout: keys in 0.3 s
+mnist_reboot_layout: batch 0 (32 samples): server 3.8 s, client 0.1 s; 704 rot + 224 relin; elapsed 4 s, load { 8.77 11.01 10.43 }
+mnist_reboot_layout: batch 1 (8 samples): server 0.9 s, client 0.0 s; 176 rot + 56 relin; elapsed 5 s, load { 8.77 11.01 10.43 }
+mnist_reboot_layout: 2 batches, 40 samples in 4.9 s (server 4.7 s); 1160 KS (29.000/sample); max |W_he - W_twin| = 3.0090354513623296e-10
+mnist_reboot_layout: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-reboot-smoke-6354/persample.json
+     Running tests/mnist_smoke.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/mnist_smoke-5431b429da869b33)
+mnist: small N = 2^12 (2048 slots, 10 levels), dims [64, 16, 10], layout d = 64, B = 32, transpose reuse: 21 Galois keys + relin (0.2 GB at 9 MB each)
+mnist: backend cpu, hoist=1 bsgs=1 lazy_relin=1, start level 10; GPU need {"total_mib": 336.4, "keys_mib": 181.5, "tables_mib": 65.5, "state_mib": 45.4, "work_mib": 44.0}
+mnist: predicted per update 396 rot + 46 relin = 442 KS (13.812/sample); cost model (interactive) 243 KS (7.594/sample); corrections Terms { replication: 160, babies: 14, bias: 20, split: -4, transpose: 9 }
+mnist: keys in 0.4 s
+mnist: epoch 0 batch 0 (32 samples): 1.42 s (step 1.20 s, refresh 0.22 s), 396 rot + 46 relin; elapsed 2 s, load { 8.23 10.86 10.38 }
+mnist: epoch 0 batch 1 (8 samples): 1.19 s (step 0.98 s, refresh 0.21 s), 396 rot + 46 relin; elapsed 3 s, load { 8.23 10.86 10.38 }
+mnist: 2 batches, 40 samples in 2.6 s; 884 KS (22.100/sample), prediction per batch matched: true; max |W_he - W_twin| = 8.569147710857372e-9
+mnist: wrote /var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/hekit-mnist-smoke-7210/out.json
+     Running tests/output_provenance.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/output_provenance-99e8e62847337509)
+     Running tests/profile_data.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/profile_data-9cdf6cfeb1051c04)
+     Running tests/registered_case.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/registered_case-8a484d414bdc4c34)
+     Running tests/study_admission.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_admission-12154a41e0502e70)
+     Running tests/study_inputs.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_inputs-09c7d77b9be420c7)
+     Running tests/study_plain.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_plain-a717b86b0ef4867d)
+     Running tests/study_profile.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_profile-dfcc09c4ca2f5c56)
+     Running tests/study_provenance.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_provenance-3b21ab846d16dc65)
+     Running tests/study_reference.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_reference-dbdd435f025ab597)
+     Running tests/study_reference_document.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_reference_document-2dacee43391bee2c)
+     Running tests/study_reference_session.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_reference_session-1702e8228ded1a55)
+     Running tests/study_train.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_train-d1fc5e88114a2d4a)
+     Running unittests src/lib.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ckks_train_ckks-bae40c6cb8104a21)
+     Running tests/bootstrap_metadata.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/bootstrap_metadata-d781c46670dec3b7)
+     Running tests/metadata.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/metadata-96615d2d76cf5417)
+     Running tests/precision.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/precision-fb6f628f9807d1f4)
+     Running tests/seal_kat.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/seal_kat-5282e203331a3f5f)
+     Running unittests src/lib.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ckks_train_core-93df47b87d588d4d)
+     Running tests/modulus_prop.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/modulus_prop-194ec5c287700c47)
+     Running unittests src/lib.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ckks_train_cuda-a86b210d6f8ac686)
+     Running tests/bootstrap_replay.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/bootstrap_replay-dbe3dbaccd1d4608)
+     Running tests/gpu.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/gpu-ce88f98c5f91f54e)
+     Running tests/gpu_arith.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/gpu_arith-a4ac4ef45f2fbd01)
+     Running tests/gpu_bootstrap.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/gpu_bootstrap-1504858abaedafb6)
+     Running tests/gpu_eval.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/gpu_eval-d89bb0f9f663023f)
+     Running tests/gpu_ks.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/gpu_ks-fbdffbbe4ca23023)
+     Running unittests src/lib.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ckks_train_nn-4bcb44b2cd6fa231)
+     Running tests/ablation.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/ablation-898d3fb1179f651d)
+     Running tests/activation.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/activation-f0cdc7a99ac85795)
+     Running tests/backward.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/backward-eafaa08380971597)
+     Running tests/block.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/block-85067d5b1484a0ae)
+     Running tests/block_profile.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/block_profile-7263b6624f7af56e)
+     Running tests/compact.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/compact-7a695558f1640178)
+     Running tests/dense.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/dense-d2c12a8d09e2feb7)
+     Running tests/diagonal_plan.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/diagonal_plan-a1bb963c4c6bea5d)
+     Running tests/grad.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/grad-562f42cf1c60ad01)
+     Running tests/identity.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/identity-66e3c59be4603b8a)
+     Running tests/layout_reboot.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/layout_reboot-7891d314a5305495)
+     Running tests/layout_sim.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/layout_sim-e0dffafed1de9197)
+     Running tests/packed_blocks.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_blocks-a653af639351c90e)
+     Running tests/packed_layout.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_layout-12af564e533972c9)
+     Running tests/packed_ni_calibration.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_ni_calibration-de3efe5e1966e2a5)
+     Running tests/packed_optimizer.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_optimizer-8a7e742ba2402232)
+     Running tests/packed_plan.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_plan-6c8881df33dbc4f6)
+     Running tests/packed_refresh.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_refresh-e6605bdead53fc6a)
+     Running tests/packed_training.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_training-030c01cb99d8f8ee)
+     Running tests/packed_training_ni.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/packed_training_ni-daf74b3070400a16)
+     Running tests/study_microbatch.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_microbatch-28ebc46fb2483fe9)
+     Running tests/trainer.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/trainer-ba9833d711ea7528)
+     Running tests/trainer_ni.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/trainer_ni-7b52aa4bc5d0e3c4)
+   Doc-tests ckks_train_bench
+   Doc-tests ckks_train_ckks
+   Doc-tests ckks_train_core
+   Doc-tests ckks_train_cuda
+   Doc-tests ckks_train_nn

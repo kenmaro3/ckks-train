@@ -245,3 +245,12 @@ timing is external. The user confirmed sole author Kentaro Mihara, personal emai
 and a personal project without company affiliation. The named manuscript uses
 Independent Researcher. The paper uses the arXiv non-exclusive distribution license;
 software remains MIT. Account/endorsement availability remains to be checked.
+
+## 13. Fixed preview verification, 2026-11-08
+
+Base00f4409 has a successful Mac whole-workspace run (1,025 passed, 19 ignored),
+and strict default/CUDA Clippy. Strict rustdoc found one broken binary-doc link;
+a documentation-only correction passed independent review and default/CUDA rustdoc.
+See [the exact source/evidence boundaries](../results/validation/research-preview-fixed-verification/README.md).
+The later authored paper/docs and ongoing Task54 WIP are not retroactively covered
+by these base-source checks. No actual publication or current Linux CI pass occurred.
