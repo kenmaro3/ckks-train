@@ -234,8 +234,14 @@ The user now explicitly requests a preview within24 hours and code/paper publica
 within48 hours. The earlier1–3-day estimate is superseded by the
 [publication schedule](publication-schedule.md): preview by2026-11-09 09:00 JST and
 GitHub code/release/PDF publication by2026-11-10 09:00 JST. Publication intent is now
-explicit; no public action has yet occurred. Additional arXiv/crates.io destinations
-are being clarified without delaying the GitHub preparation. Final-candidate validation
+explicit; no public action has yet occurred. The user has also selected arXiv submission; crates.io is outside this deadline. Final-candidate validation
 and truthful measured/unmet/unmeasured reporting remain required. Ongoing Task54 WIP
 and exhaustive additional measurements will not automatically delay the first public
 artifact; they remain recorded follow-up work.
+
+The user has now selected **GitHub plus arXiv submission**. crates.io is not part of
+this48-hour request. The deadline includes submission actions; arXiv announcement
+timing is external. The user confirmed sole author Kentaro Mihara, personal email miha.ken.19@gmail.com,
+and a personal project without company affiliation. The named manuscript uses
+Independent Researcher. The paper uses the arXiv non-exclusive distribution license;
+software remains MIT. Account/endorsement availability remains to be checked.

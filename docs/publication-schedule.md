@@ -4,14 +4,15 @@ The user explicitly requires a preview within one day and the paper/publication 
 two days. Received at approximately2026-11-08 09:14 JST. Use conservative deadlines:
 
 - **Preview ready: 2026-11-09 09:00 JST** (2026-11-09 00:00 UTC).
-- **Code/release and paper PDF public: 2026-11-10 09:00 JST** (2026-11-10 00:00 UTC).
+- **GitHub code/release/PDF public and arXiv submitted: 2026-11-10 09:00 JST** (2026-11-10 00:00 UTC).
 
 This supersedes the earlier1–3-day preview /1–2-week paper estimate. Publication intent
 is explicit; preparation must produce concrete reviewable artifacts before publishing.
-The exact additional destinations (arXiv/crates.io) have been asked asynchronously;
-continue GitHub code/release/PDF preparation immediately. Formal venue submission,
-authorship metadata, account access and third-party processing are separate constraints;
-do not imply an arXiv announcement or conference acceptance by the deadline.
+The user has confirmed GitHub plus arXiv submission. crates.io is not part of this
+48-hour publication request. Continue GitHub preparation and prepare the arXiv LaTeX
+source package in parallel. Authorship and paper license are confirmed below; account/endorsement
+status must still be established for submission. arXiv announcement/moderation and conference
+acceptance are controlled externally and are not a guaranteed deadline outcome.
 
 ## Critical path
 
@@ -28,7 +29,8 @@ do not imply an arXiv announcement or conference acceptance by the deadline.
    merely to meet this writing cutoff. Preserve raw binary JSON and existing gates.
 4. Use the second day to finalize the actual contribution, comparison caveats, generated
    tables, limitations and PDF. Finish numerical/source checks and visual inspection,
-   then publish the prepared GitHub artifacts before2026-11-10 09:00 JST.
+   then publish the prepared GitHub artifacts and complete arXiv submission before
+   2026-11-10 09:00 JST, subject to actual account/endorsement availability.
 
 ## Scope and reasons
 
@@ -45,6 +47,25 @@ the first public version has narrower supported claims and clearly listed remain
 work; later results require an updated artifact/paper. This is staged publication,
 not a declaration that all original Tasks42/50/54/57 gates have passed.
 
-Author/placeholders, mainB and same-N interpretation remain unresolved as previously
-instructed. Do not invent author consent, affiliation, a paper license or completed
-third-party submission. Prepare the GitHub draft/PDF without blocking independent work.
+MainB and same-N interpretation remain unresolved as previously instructed.
+The user confirmed sole authorship: Kentaro Mihara, miha.ken.19@gmail.com, as a personal
+project unrelated to their employer. Use Independent Researcher in the named manuscript;
+do not include a company affiliation or invent a city/country. The paper license is the
+arXiv non-exclusive distribution license. Software remains MIT. No submission has occurred.
+
+## arXiv preparation requirements verified on2026-11-08
+
+Official [submission guidelines](https://info.arxiv.org/help/submit/index.html) require
+registered authors, appropriate scientific content and moderation, and TeX source
+rather than a PDF generated from TeX. Prepare the source, bibliography and figures;
+keep the GitHub PDF as a separate public artifact. Verify the arXiv-generated output.
+The [license page](https://info.arxiv.org/help/license/index.html) says the selected
+license for a posted version is irrevocable. The user selected the arXiv non-exclusive
+distribution license on2026-11-08; software MIT does not decide the paper license. The
+[endorsement instructions](https://info.arxiv.org/help/endorsement.html) require checking
+eligibility for the selected category. Do not contact endorsers or invent their consent.
+
+The official [registration guidance](https://info.arxiv.org/help/registerhelp.html)
+allows unaffiliated authors to enter Independent as their organization. This supports
+the chosen personal-research attribution; account affiliation must still reflect the
+actual account policy and is not changed here.

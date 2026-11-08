@@ -24,7 +24,7 @@ The plot uses the same rounded ratio cells as the table. Each row is one seed; i
 
 ## Build anonymous PDF
 
-The default `main.tex` uses unmodified `acmart` sigconf/review/anonymous formatting. It changes no font or margins. Author names and affiliations are omitted by default. A separate `AuthorDraft` toggle enables placeholder metadata; it must not be used for the anonymous artifact.
+The default `main.tex` uses unmodified `acmart` sigconf/review/anonymous formatting. It changes no font or margins. Author names and affiliations are omitted by default. A separate `AuthorDraft` toggle enables the confirmed sole author metadata; it must not be used for the anonymous artifact.
 
 The project-local TeX installation is a development tool under ignored `tools/latex/_ext/`, not a Cargo dependency or a distributed library component. Use its absolute binary path with a process-local PATH. The following Python build snippet works from the repository root and does not change a shell profile:
 
@@ -52,7 +52,7 @@ pdfinfo tools/latex/_ext/task56/anonymous/main.pdf
 pdftoppm -png -scale-to 1400 tools/latex/_ext/task56/anonymous/main.pdf /tmp/ckks-train-paper
 ```
 
-For the nonanonymous placeholder variant, create an ignored wrapper containing `\def\AuthorDraft{1}\input{main.tex}` under `tools/latex/_ext/task56/authors/`. Build that wrapper with the same process-local toolchain, working directory `paper/`, and an output directory under `authors/`. This exercises the toggle; it supplies no real author identity.
+For the nonanonymous author variant, create an ignored wrapper containing `\def\AuthorDraft{1}\input{main.tex}` under `tools/latex/_ext/task56/authors/`. Build that wrapper with the same process-local toolchain, working directory `paper/`, and an output directory under `authors/`. The user confirmed Kentaro Mihara as sole author, with contact miha.ken.19@gmail.com, on 2026-11-08. This is a personal project unrelated to their employer; the manuscript uses Independent Researcher without a company affiliation or invented city/country. The selected paper license is the arXiv non-exclusive distribution license; the software remains MIT.
 
 ## Format constraint and verification
 
@@ -66,4 +66,8 @@ Current limitations are in section7 and the appendix, including security-model a
 
 References were verified against primary paper/publisher/author/project pages. The HEonGPU key-switch paper's metadata is verified; fetching its PDF returned HTTP403, so its numerical table attribution remains the inherited archived M4 evidence rather than a claimed fresh PDF check. Its bibliographic year is2025; no unverified manuscript-version date is added in authored text. HEonGPU's official bootstrap benchmark is a different remaining-level and main-secret workload. External ReBoot/OpenFHE implementation source was not copied into this artifact. The user approved one narrow Unicode-3.0 character-table exception for `unicode-ident=1.0.27`, with its complete Unicode notice, alongside the MIT/Apache/BSD/ISC policy. This is a package-and-version-specific exception, not general Unicode approval. The root release owner applies the cargo-deny rule and notices; no release policy is changed by this paper task.
 
-Before release: complete the registered measurements and same-condition comparisons, review all generated artifacts, replace author placeholders in an authorized nonanonymous version, remove identifying artifact metadata as required, and recheck the target CFP. Compilation and an intact pipeline do not close those research gates.
+For the first public artifact, follow `docs/publication-schedule.md`: freeze the available evidence, explicitly retain unmet/unmeasured comparisons, and review all generated artifacts. Before a conference submission, remove identifying artifact metadata as required and recheck the target CFP. Compilation and an intact pipeline do not close those research gates.
+
+## Named draft, 2026-11-08
+
+The confirmed single-author PDF is `tools/latex/_ext/task56/named-20261108/author-wrapper.pdf` (10 pages). It uses an Independent Researcher author note rather than an institutional affiliation: acmart requires a country for an affiliation, and no location was supplied. The class is unchanged. The build succeeded; the final log contains no overflowing boxes, undefined citations/references or missing characters. Page 1 was visually inspected at full size and pages 2–10 as a rendered contact sheet. Build logs and `verification.json` are alongside the PDF. The research evidence is unchanged from the interim FULL-1 draft; this is not a submitted or final paper.
