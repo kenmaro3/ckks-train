@@ -1,0 +1,77 @@
+{
+  "kind": "implementation_validation_not_measurement",
+  "base": "fb54f2f356755a946008a2f1d26757365101b81f",
+  "sources": {
+    "tools/paper_tables.py": {
+      "bytes": 84478,
+      "sha256": "2eb7f241d0bc6302ad5d1892ab3bb1980120d92787c76cf70f0c15fef85da1c1"
+    },
+    "tools/test_paper_tables.py": {
+      "bytes": 53515,
+      "sha256": "8cf932dd06c41c3405c62db2361ef78ece5ae649b41cfe3c72c2b62130d345c5"
+    }
+  },
+  "original_evidence": [
+    {
+      "file": "task-54-r52-table-integration-brief.md.gz",
+      "original_bytes": 4734,
+      "original_sha256": "c229673f4abf92d0a15024f2798062e1eec5950c3d92717e6f07a88a64b378d7",
+      "stored_sha256": "62f7e0cee09c1626e40c7c215d6262644e274d2dc648ad56aae754727b5917c5"
+    },
+    {
+      "file": "task-54-r52-table-integration-report.md.gz",
+      "original_bytes": 171788,
+      "original_sha256": "95646f17d1dab8473a2ba9903741e867a398fd2dddd179b2db04682064b06077",
+      "stored_sha256": "f8b498d9fbdc1328a5babd717ccca632accdb89105c53124e01abab5119ef38f"
+    },
+    {
+      "file": "task-54-r52-table-integration-review.md.gz",
+      "original_bytes": 18217,
+      "original_sha256": "96cb8715e2a99ef1e62bad8329a2fa564cc4c6d0cca9322c8ed9150bbf76bbe8",
+      "stored_sha256": "75ac3cdf05645a36067822cc5bb22b8098fed8449d4dbbef60b017997358542f"
+    },
+    {
+      "file": "task-54-r52-table-integration-fix1-report.md.gz",
+      "original_bytes": 46657,
+      "original_sha256": "58b1cb4a247394c1921b19d9a8a40e527673ad0a8e69b8553d6ade6390deee32",
+      "stored_sha256": "60090c6be2e53d23fd8ca19763cb650618e98d467827351748503289d852eaa5"
+    },
+    {
+      "file": "task-54-r52-table-integration-fix1-review.md.gz",
+      "original_bytes": 11220,
+      "original_sha256": "c8f8aaa50304bd58cb4359df560c9ed95b25bba0ef5783dcc1a6661bdc659b3e",
+      "stored_sha256": "6648d167f052a71bdbab759e88f7f61e1c83a8505efd9ea5e104b7484d9bd419"
+    },
+    {
+      "file": "task-54-r52-table-integration-fix2-brief.md.gz",
+      "original_bytes": 2820,
+      "original_sha256": "69028ffd3c008e5296403bfba874044abb39fc8247785645985311bc9c8c8a70",
+      "stored_sha256": "b025a637dcec7db135e92b744a514e8ba6a954075e884bce76f8c2470a66fb5e"
+    },
+    {
+      "file": "task-54-r52-table-integration-fix2-report.md.gz",
+      "original_bytes": 26445,
+      "original_sha256": "74b97dbef16123dc66ab8ee2e53c45d6d58b62637b3c19f668db505e6722f654",
+      "stored_sha256": "26da68bfa089ef8e5b44067c1c1518cc26ea4457f34af395219f06a8f69e6d77"
+    },
+    {
+      "file": "task-54-r52-table-integration-fix2-review.md.gz",
+      "original_bytes": 14919,
+      "original_sha256": "fc9789f80c5a259fc482342c5e1b922a1b06c625e47de3b701a3641fc5705ffc",
+      "stored_sha256": "171613c8d310401b17e81c0ee14f3579e3ac54c2f4319ee08bfc2171bed6555c"
+    },
+    {
+      "file": "task-54-r52-layout-preflight.json.gz",
+      "original_bytes": 1829,
+      "original_sha256": "259c6ca40c65f45204341a6fb44f7a171fe81e661166c6af1e805b9ec3689543",
+      "stored_sha256": "a4d7ff6fb8063b16aa65ec7101f32a590dbb18816c815dbd3d47ce738b7dc591"
+    },
+    {
+      "file": "task-54-r52-layout-fix2-verification.json.gz",
+      "original_bytes": 1333,
+      "original_sha256": "96b75ec13f74e5f67114359d7fcbd77c6b40824a3caaa6af13a4f519ed639724",
+      "stored_sha256": "187e7928bacfc821a40bb6e68ed50caf60162e4b9496ac1ee8651b033038502c"
+    }
+  ],
+  "reviewed_diff_sha256": "ec31ddc0d293ceb0b8322c3cd0e7777f2403f2addeb4ff7a5b6572f66aa56074"
+}

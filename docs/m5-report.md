@@ -958,3 +958,7 @@ offline・locked package検証ビルドがMacで合格。実際のarchive内容�
 ## 2026-11-08: R47再計測ログからの表生成を準備
 
 Task54のうち、R-47-3-exampleの元ログ・runner・queue終端記録から6行を生成する部分を独立レビューした。23件のPythonテスト、両表生成入口の整合性検査、レビュー側の追加6件の合成検証が合格。実測ファイルは未回収であり、現在の生成表は変更されていない。途中の計時後に失敗したジョブは成功値として採用しない。[実装・検証記録](../results/validation/task54-r47-table-integration-20261108/README.md)。これは表の入力対応の完了であり、R47実測・M4ゲート・Task54全体の完了ではない。
+
+## 2026-11-08: R52追加モデルの表入力を準備
+
+Task54のeMLP-2/3 subset入力を、元バイナリJSONとrunner・queue終端記録を照合して生成する処理まで実装した。38件のPythonテスト、両表生成入口、独立レビューが合格。失敗後に保存されたJSONの精度は成功値にせず、projectionだけで中断とも判定しない。baseline seed 0とバイナリRNG seed 32、21更新のsubsetと全長実験を区別する。仮データのPDFで発見した注記のはみ出しは修正し、再ビルドと該当ページの目視を終えた。実測値は未回収で、現在の生成表は変更していない。[実装・検証記録](../results/validation/task54-r52-table-integration-20261108/README.md)。Task54全体、R52の実測・科学的採用、最終PDFの完了ではない。

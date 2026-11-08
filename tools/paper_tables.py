@@ -60,10 +60,11 @@ def require(ok, message):
 class Cell:
     """A rendered value and the (file, field) pairs it was computed from."""
 
-    def __init__(self, text, sources=(), formula=''):
+    def __init__(self, text, sources=(), formula='', tex_text=None):
         self.text = text
         self.sources = list(sources)
         self.formula = formula
+        self.tex_text = tex_text
 
 
 def plain(text):
@@ -157,8 +158,8 @@ class Table:
         require(len(cells) == len(self.columns), f'{self.name}: row width {len(cells)} != {len(self.columns)}')
         self.rows.append(('row', cells))
 
-    def note(self, text, sources=()):
-        self.notes.append(Cell(text, sources))
+    def note(self, text, sources=(), tex_text=None):
+        self.notes.append(Cell(text, sources, tex_text=tex_text))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -457,6 +458,295 @@ def hekit_time_row(t, s, rel, key, input_label, host, hsrc, reboot, rb_threads, 
            Cell(f'rayon {m.group(1)}' if m else thr, [ths, hs, hsrc])])
 
 
+R52_PIN = '9305d2e1f4f9999296cd4b4aaf55ea631fbca78e'
+R52_WORKDIR = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r52'
+R52_DATA = 'results/quadruped/data/reboot_emlp1_full'
+
+
+def r52_input(s, inp, key):
+    """Registered P52 block subset only; neither an eMLP1 FULL schema nor runner-made JSON."""
+    try:
+        return read_r52_input(s, inp, key)
+    except TableError:
+        raise
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError, IndexError, OverflowError,
+            rq1.SummaryError) as exc:
+        raise TableError(f'{key}: invalid original R52 evidence: {exc}') from exc
+
+
+def read_r52_input(s, inp, key):
+    if inp.run_all == 'quick':
+        return None
+    number = 2 if key == 'R-52-1' else 3
+    blocks = [64] if number == 2 else [128, 64]
+    dims = [[196, 64, 16], [64, 32, 16]] if number == 2 else [[196, 128, 16], [128, 64, 16], [64, 32, 16]]
+    canonical, run_id, _ = RUN[key]
+    canonical = canonical[0]
+    selected = f'results/run_all/{inp.run_all}/{run_id}.json' if inp.run_all else canonical
+    archive = f'results/quadruped/raw/R-52/{key}'
+    paths = [f'{archive}/{name}' for name in ('program.log', 'meta.json', 'post.txt', 'cmd.txt', 'state.json')]
+    present = lambda rel: (s.root / rel).exists() or (s.root / rel).is_symlink()
+    partial_paths = [f'{archive}/{name}' for name in ('partial.txt', 'projection.txt', 'partial-identities.json')]
+    if not any(present(rel) for rel in paths + partial_paths + [selected, canonical]):
+        return None
+    require(all(present(rel) for rel in paths), f'{key}: incomplete original terminal evidence')
+    raw = {}
+
+    def read(rel):
+        if rel not in raw:
+            raw[rel] = (s.root / rel).read_bytes()
+        return raw[rel]
+
+    def text(rel):
+        return read(rel).decode('utf-8')
+
+    def doc(rel):
+        value = json.loads(read(rel), object_pairs_hook=rq1.unique_object)
+        rq1.finite_tree(value)
+        require(isinstance(value, dict), f'{rel}: expected object')
+        return value
+
+    def check(ok, message):
+        require(ok, f'{key}: {message}')
+
+    def num(value, name, integer=False, minimum=0):
+        check(type(value) is int if integer else type(value) in (int, float), f'{name}: invalid number type')
+        check(math.isfinite(value) and value >= minimum, f'{name}: invalid finite/range value')
+        return value
+
+    def same(a, b, name):
+        num(a, name)
+        check(math.isclose(a, b, rel_tol=1e-9, abs_tol=1e-9), f'{name}: inconsistent value')
+
+    def stamp(value):
+        check(isinstance(value, str) and re.fullmatch(
+            r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}', value), 'timezone-qualified timestamp required')
+        return datetime.fromisoformat(value).timestamp()
+
+    def argv(value):
+        check(isinstance(value, str), 'missing command')
+        return shlex.split(value)
+
+    weights = f'results/quadruped/raw/reboot_emlp23_full/init_weights_emlp{number}_seed0'
+    indices = f'results/reboot_emlp{number}_seed0_steps1-21_indices.txt'
+    command = ['target/release/mnist', '--mode', 'noninteractive', '--placement', 'when_needed',
+               '--batch', '48', '--faithful', '--blocks', '64' if number == 2 else '128,64',
+               '--hidden', '32', '--dataset-npy', R52_DATA, '--indices', indices,
+               '--init-weights', weights, '--init-weights-manifest', REBOOT_23_CFG,
+               '--epochs', '1', '--transpose', 'reuse', '--out', canonical]
+    log_rel, meta_rel, post_rel, cmd_rel, state_rel = paths
+    log, meta, post, state = text(log_rel), doc(meta_rel), text(post_rel).splitlines(), doc(state_rel)
+    check(meta.get('job') == state.get('job') == key and
+          meta.get('workdir') == state.get('workdir') == R52_WORKDIR, 'wrong job/workdir')
+    check(meta.get('hekit_synced_commit') == ['commit 9305d2e', 'full ' + R52_PIN, 'dirty_files 0'], 'wrong source pin/clean marker')
+    check(argv(meta.get('command')) == argv(text(cmd_rel)) == command and state.get('command') == command, 'wrong argv')
+    check(type(meta.get('nice')) is int and meta['nice'] == 10 and
+          type(meta.get('threads_cap')) is int and meta['threads_cap'] == 12 and meta.get('gpu_job') is False and
+          meta.get('env_thread_caps') == {k: '12' for k in ('OMP_NUM_THREADS', 'RAYON_NUM_THREADS', 'CARGO_BUILD_JOBS')},
+          'wrong nice/thread/CPU limits')
+    start, end = stamp(meta.get('start')), stamp(meta.get('end'))
+    wall = num(meta.get('wall_s_runner'), 'runner wall')
+    check(end >= start and abs(wall - (end - start)) <= 2, 'incoherent runner times')
+    terminals = [(i, line) for i, line in enumerate(post, 1) if line.startswith('JOB_DONE')]
+    check(len(terminals) == 1 and terminals[0][0] == len(post), 'missing/duplicate/nonterminal JOB_DONE')
+    done = re.fullmatch(r'JOB_DONE rc=(\d+)', terminals[0][1])
+    check(done is not None, 'malformed JOB_DONE')
+    rc = num(meta.get('exit_status'), 'child exit', True)
+    check(rc <= 255 and type(state.get('rc')) is int and state['rc'] == rc == int(done[1]), 'child exit mismatch')
+    check(num(state.get('wrapper_rc'), 'wrapper exit', True) <= 255, 'invalid separate wrapper exit')
+    check(type(meta.get('watchdog_killed')) is bool, 'invalid watchdog')
+    check(post and post[0].startswith('date: ') and stamp(post[0][6:]) >= end, 'invalid post snapshot timestamp')
+    check(state.get('log') == f'/home/kmihara/hekit-runs/logs/{key}.log', 'wrong original log path')
+    watchdog = meta['watchdog_killed']
+    check(watchdog or not any(line.startswith('WATCHDOG:') for line in log.splitlines()), 'watchdog contradiction')
+    skips = [line for line in log.splitlines() if 'SKIP' in line]
+    check(state.get('skip') is bool(skips) and state.get('skip_lines') == skips, 'inconsistent skip record')
+    # The queue writes a projection observation before deciding whether it can stop.
+    # Even an above-limit projection alone does not establish partial_stopped.
+    projection = None
+    if present(partial_paths[1]):
+        projection = re.fullmatch(r'after 5 updates: (\d+) s / 21 updates; limit ([0-9.]+) s\n?',
+                                  text(partial_paths[1]))
+        check(projection is not None and float(projection[2]) == (12240.0 if number == 2 else 23040.0) and
+              math.isfinite(float(projection[1])), 'invalid original projection observation')
+    partial = present(partial_paths[0]) or present(partial_paths[2]) or state.get('status') == 'partial'
+    if partial:
+        check(all(present(rel) for rel in partial_paths), 'incomplete original partial evidence')
+        a = re.fullmatch(r'partial: after >=5 updates; projected (\d+) > ([0-9.]+) s\n?', text(partial_paths[0]))
+        check(a is not None and a.groups() == projection.groups() and
+              float(a[1]) + 0.5 > float(a[2]), 'inconsistent partial projection')
+        # The queue decides with unrounded projection, then prints it to whole seconds.
+        identities = json.loads(read(partial_paths[2]), object_pairs_hook=rq1.unique_object)
+        check(isinstance(identities, list) and identities and all(isinstance(pair, list) and len(pair) == 2 and
+              type(pair[0]) is int and pair[0] > 0 and (pair[1] is None or isinstance(pair[1], str) and
+              re.fullmatch(r'[1-9][0-9]*', pair[1])) for pair in identities) and
+              identities[-1][1] is not None and len({pair[0] for pair in identities}) == len(identities),
+              'invalid original partial process identities')
+    expected = ('failed: RSS watchdog' if watchdog else 'partial' if partial else
+                'failed: device OOM' if rc and re.search(r'device error|out of memory', log, re.I) else
+                'skipped' if rc == 3 and skips else 'failed' if rc else 'done_with_skips' if skips else 'done')
+    output_rejected = state.get('status') == 'failed: output checks/provenance'
+    if output_rejected:
+        check(rc == 0 and isinstance(state.get('output_error'), str) and
+              state['output_error'].strip() and 'output_sha256' not in state, 'incoherent queue output rejection')
+    else:
+        check(state.get('status') == expected, 'state contradicts original child/log/partial outcome')
+    sources = [(meta_rel, field) for field in ('job', 'workdir', 'hekit_synced_commit', 'command', 'nice',
+               'threads_cap', 'env_thread_caps', 'gpu_job', 'start', 'end', 'wall_s_runner', 'exit_status', 'watchdog_killed')]
+    sources += [(state_rel, field) for field in ('rc', 'wrapper_rc', 'status', 'command', 'workdir', 'log')]
+    sources += [(post_rel, f'line {terminals[0][0]}'), (cmd_rel, 'line 1')]
+    for rel in partial_paths:
+        if present(rel):
+            sources.append((rel, 'line 1' if rel == partial_paths[1] else 'original bytes'))
+    result = {'sources': sources, 'rel': selected, 'raw': raw,
+              'status': 'partial/unmeasured' if partial and not watchdog else 'failed/unmeasured',
+              'rc': rc, 'watchdog': watchdog, 'reason': state['status']}
+    if output_rejected:
+        sources.append((state_rel, 'output_error'))
+    # Preserve failed-check JSON bytes for diagnostics, but never use their saved accuracies.
+    if rc or watchdog or partial or output_rejected:
+        for rel in set((selected, canonical)):
+            if present(rel):
+                read(rel)
+        return result
+    check(not skips, 'P52 CPU subset has no successful SKIP branch')
+    check(present(selected), 'successful terminal lacks selected original binary result')
+    digest = hashlib.sha256(read(selected)).hexdigest()
+    check(state.get('output_sha256') == digest, 'original result SHA256 mismatch')
+    if selected != canonical and present(canonical):
+        check(read(canonical) == read(selected), 'run_all alias contradicts canonical original')
+    d = doc(selected)
+    p, setup, plan, measured, twin, evaluation = [d[k] for k in ('provenance', 'setup', 'plan', 'measured', 'twin', 'evaluation')]
+    check(p['written_by'] == 'the mnist binary (raw output, not assembled)' and p['git_commit'] == R52_PIN and
+          p['git_modified_tracked_files'] == 'none' and p['command_line'] == ' '.join(command), 'wrong binary provenance')
+    check(p['build'] == {'debug_assertions': False, 'package_version': '1.0.0', 'target_os': 'linux',
+                        'target_arch': 'x86_64', 'features': {'parallel': True, 'cuda': False}} and
+          p['parallel_feature'] is True, 'wrong binary build')
+    check(isinstance(p['threads'], str) and re.search(r'RAYON_NUM_THREADS = 12(?:,|$)', p['threads']), 'wrong binary threads')
+    check(isinstance(meta.get('host'), str) and meta['host'].split('.')[0] == p['machine']['host'] and
+          all(isinstance(p['machine'][k], str) and p['machine'][k] not in ('', 'unknown') for k in ('host', 'cpu', 'os')), 'wrong binary/runner host')
+    ps, pe = num(p['started_unix'], 'binary start'), num(p['finished_unix'], 'binary finish')
+    check(start <= ps < pe < end + 1, 'binary timestamps outside terminal interval')
+    checks = ('every_update_equals_prediction', 'twin_weights_within_2^-10',
+              'test_acc_diff_within_0.005', 'handoff_err_within_2^-10')
+    check(d.get('all_checks_pass') is True and all(d['checks'].get(k) is True for k in checks), 'producer checks failed')
+    check(setup['params'] == 'n16_boot' and type(setup['log_n']) is int and setup['log_n'] == 16 and
+          type(setup['batch']) is int and setup['batch'] == 48 and type(setup['seed']) is int and setup['seed'] == 32 and
+          setup['transpose_keys'] == 'reuse' and setup['init_weights'] == weights and setup['biases'] is False and
+          setup['lr_schedule'] == 'constant' and setup['eval_config'] == {'hoist': True, 'bsgs': True, 'lazy_relin': True, 'default': True}, 'wrong registered setup/seed')
+    check(all(type(v) is bool for v in setup['eval_config'].values()), 'non-boolean config flags')
+    same(setup['lr_reference_on_mean_gradient'], 0.024, 'faithful constant learning rate')
+    check(plan['stage_dims'] == dims and plan['placement'] == 'when_needed' and plan['layout_d'] == 256 and
+          plan['lanes'] == 64 and plan['micro_batches_per_update'] == 1, 'wrong architecture/layout')
+    check(all(type(v) is int and v > 0 for stage in plan['stage_dims'] for v in stage), 'invalid stage dimensions')
+    for name in ('layout_d', 'lanes', 'micro_batches_per_update', 'start_level', 'bootstrap_output_level', 'levels_per_stage_step'):
+        num(plan[name], name, True, 1)
+    check(plan['start_level'] + 1 == plan['bootstrap_output_level'], 'inconsistent bootstrap output/start level')
+    for name, value, want in [('planned updates', plan['updates'], 21), ('updates', measured['updates'], 21),
+                              ('samples', measured['samples'], 1008), ('boot KS', setup['boot_ks'], 111),
+                              ('plan boot KS', plan['boot_ks_assumed'], 111)]:
+        check(num(value, name, True) == want, f'wrong {name} coverage')
+    check(measured['every_update_equals_prediction'] is True, 'measured prediction check failed')
+    schedules = plan['boot_schedules']
+    check(isinstance(schedules, list) and len(schedules) == len(dims) and all(isinstance(v, list) and
+          len(v) == 21 and all(type(x) is int and x in (0, 1) for x in v) for v in schedules), 'wrong bootstrap schedule coverage')
+    counter_keys = ('rotations', 'relins', 'sse_switches', 'key_switches', 'bootstraps', 'ct_ct_tensor', 'ct_pt_mults', 'rescales')
+    for label in ('total', 'per_update_first'):
+        c = measured[label]
+        for name in counter_keys:
+            num(c[name], label + '.' + name, True)
+        check(c['key_switches'] == c['rotations'] + c['relins'] + c['sse_switches'] and
+              c['sse_switches'] == 2 * c['bootstraps'] and c['rotations'] >= 69 * c['bootstraps'] and
+              c['relins'] >= 40 * c['bootstraps'], 'inconsistent block counters')
+    total, first = measured['total'], measured['per_update_first']
+    check(all(first[k] <= total[k] for k in counter_keys), 'first update exceeds total')
+    same(measured['predicted_ks_this_run'], total['key_switches'], 'predicted KS')
+    check(total['key_switches'] > 0, 'zero total KS')
+    same(measured['measured_over_predicted'], 1, 'measured/predicted')
+    same(measured['ks_per_sample_incl_bootstraps'], total['key_switches'] / 1008, 'KS/sample')
+    same(plan['predicted_ks_per_sample'], total['key_switches'] / 1008, 'planned KS/sample')
+    check(num(plan['handoff_bootstraps_per_update'], 'handoff/update', True) == len(blocks) and
+          num(measured['handoff_bootstraps'], 'handoff count', True) == len(blocks) * 21, 'wrong handoff count')
+    weight_boots = num(plan['weight_bootstraps_per_update_avg'], 'weight bootstrap average') * 21
+    check(math.isclose(weight_boots, round(weight_boots), abs_tol=1e-9) and
+          total['bootstraps'] == round(weight_boots) + measured['handoff_bootstraps'], 'bootstrap counts contradict plan')
+    stage_ks = plan['stage_nonboot_ks_per_update']
+    check(isinstance(stage_ks, list) and len(stage_ks) == len(dims), 'wrong stage counter coverage')
+    for value in stage_ks:
+        num(value, 'stage KS', True, 1)
+    check(num(plan['nonboot_ks_per_update'], 'nonboot KS', True) == sum(stage_ks) and
+          total['key_switches'] == sum(stage_ks) * 21 + 111 * total['bootstraps'], 'constant-lr plan/total mismatch')
+
+    def error(value, logarithm, label):
+        num(value, label)
+        check(value < 2 ** -10, f'{label}: numerical check failed')
+        check(logarithm is None if value == 0 else type(logarithm) in (int, float) and
+              math.isfinite(logarithm) and math.isclose(logarithm, math.log2(value), abs_tol=1e-9), f'{label}: inconsistent log2')
+
+    error(twin['max_abs_diff'], twin['log2_max_abs_diff'], 'twin error')
+    diagnostics = twin['handoff_bootstraps']
+    activations = twin['max_abs_handoff_activation_per_block']
+    check(isinstance(diagnostics, list) and len(diagnostics) == len(blocks) and
+          isinstance(activations, list) and len(activations) == len(blocks), 'wrong handoff diagnostic coverage')
+    for i, (width, diag) in enumerate(zip(blocks, diagnostics)):
+        slots = num(diag['slots_compared'], 'handoff slots', True)
+        above = num(diag['inputs_above_1'], 'handoff inputs above 1', True)
+        maximum = num(diag['max_abs_input_twin'], 'handoff max input')
+        check(slots == 1008 * width and above <= slots and type(diag['precondition_hit']) is bool and
+              diag['precondition_hit'] == (above > 0) == (maximum > 1), 'inconsistent handoff compared slots/precondition')
+        same(activations[i], maximum, 'handoff activation maximum')
+        error(diag['max_abs_err_vs_twin'], diag['log2_max_abs_err_vs_twin'], 'handoff error')
+    acc, tw = evaluation['test_acc_encrypted_trained'], evaluation['test_acc_twin']
+    check(num(acc, 'accuracy') <= 1 and num(tw, 'twin accuracy') <= 1 and abs(acc - tw) <= 0.005, 'accuracy check failed')
+    delta = evaluation['test_acc_diff']
+    check(type(delta) in (int, float) and math.isfinite(delta) and
+          math.isclose(delta, acc - tw, abs_tol=1e-12), 'inconsistent accuracy difference')
+    check(num(evaluation['test_samples'], 'test samples', True) == 10000, 'wrong test coverage')
+
+    # The P52 JSON has paths, not input digests. Verify supported current registered
+    # source/manifest hashes, and explicitly retain that limitation in the table note.
+    config = doc(REBOOT_23_CFG)
+    seed = config['models'][f'emlp{number}']['per_seed']['0']
+    base_indices = 'results/quadruped/raw/reboot_emlp23_full/' + seed['indices_file']
+    check(seed['indices_file'] == f'train_indices_emlp{number}_seed0.txt', 'wrong baseline seed index identity')
+
+    def index_values(rel):
+        values = []
+        for line in text(rel).splitlines():
+            if line.strip() and not line.lstrip().startswith('#'):
+                values.extend(int(v) for v in re.split(r'[\s,]+', line.strip().split('\t')[-1]))
+        check(all(0 <= v < 4800 for v in values), 'index outside registered data')
+        return values
+
+    selected_indices, baseline_indices = index_values(indices), index_values(base_indices)
+    check(len(selected_indices) == 1008 and len(baseline_indices) >= 1008 and
+          selected_indices == baseline_indices[:1008], 'wrong registered first-21-update indices')
+    expected_layers = []
+    for i, width in enumerate(blocks):
+        expected_layers += [(f'linear_fwd_{i:02}', [dims[i][0], width]), (f'linear_lrn_{i:02}', [width, 16])]
+    expected_layers += [(f'linear_{len(blocks):02}', [blocks[-1], 32]), (f'linear_{len(blocks)+1:02}', [32, 16])]
+    entries = seed['init_weights']
+    check(isinstance(entries, list) and len(entries) == len(expected_layers), 'wrong imported weight coverage')
+    for entry, (name, shape) in zip(entries, expected_layers):
+        rel = f'{weights}/{name}.npy'
+        check(entry['file'] == f'init_weights_emlp{number}_seed0/{name}.npy' and entry['shape'] == shape and
+              entry['orientation'] == 'in x out' and entry['sha256'] == hashlib.sha256(read(rel)).hexdigest(), 'imported weight manifest/hash mismatch')
+    manifest = doc(f'{R52_DATA}/data_manifest.json')
+    expected_data = {'train_images_14x14.npy': [4800, 196], 'train_labels.npy': [4800],
+                     'test_images_14x14.npy': [10000, 196], 'test_labels.npy': [10000]}
+    check(isinstance(manifest['files'], list) and len(manifest['files']) == 4 and
+          {v['file'] for v in manifest['files']} == set(expected_data), 'wrong data manifest files')
+    for entry in manifest['files']:
+        check(entry['shape'] == expected_data[entry['file']] and entry['sha256_npy_file'] ==
+              hashlib.sha256(read(f'{R52_DATA}/' + entry['file'])).hexdigest(), 'registered data manifest/hash mismatch')
+    result.update(status='success', data=d)
+    result['sources'] += [(selected, field) for field in ('provenance', 'all_checks_pass', 'checks', 'setup.seed',
+                           'plan.stage_dims', 'plan.updates', 'measured.updates', 'measured.samples', 'measured.total',
+                           'measured.every_update_equals_prediction', 'twin.max_abs_diff')]
+    result['sources'].append((state_rel, 'output_sha256'))
+    return result
+
+
 def table_accuracy(s, inp):
     t = Table('accuracy_vs_reboot', 'Test accuracy against ReBoot (R-M3-15)',
               ['Row', 'Setting', 'Seeds', 'Test acc (%)', 'Twin (%)', 'Reference (%)', 'Δ (pt)', 'Gate'], wide=True)
@@ -523,14 +813,41 @@ def table_accuracy(s, inp):
         t.row([f'hekit encrypted WN, B = {b}', 'subset', '1 (seed 0)', Cell(pct(acc), [acs]), Cell(pct(twin), [tws]),
                Cell(pct(rb), [rbs]), Cell(f'{100 * (acc - rb):+.2f}', [acs, rbs]), 'not a gate'])
     for key, label in (('R-52-1', 'hekit encrypted eMLP-2, B = 48 (196)'), ('R-52-2', 'hekit encrypted eMLP-3, B = 48 (196)')):
-        rel = inp.path(key)
-        if rel is None:
+        result = r52_input(s, inp, key)
+        if result is None:
             t.row([label, 'subset 1008', '1', inp.pending(key), inp.pending(key), '', '', 'twin check'])
+            continue
+        src, rel = result['sources'], result['rel']
+        if result['status'] != 'success':
+            t.row([label, 'registered subset (incomplete)', '—',
+                   Cell(f'{result["status"]} (child exit {result["rc"]}; watchdog {str(result["watchdog"]).lower()}; {result["reason"]})', src),
+                   '—', '—', '—', 'not accepted'])
         else:
-            acc, acs = s.num(rel, 'evaluation.test_acc_encrypted_trained')
-            twin, tws = s.num(rel, 'evaluation.test_acc_twin')
-            t.row([label, 'subset 1008', '1 (seed 0)', Cell(pct(acc), [acs]), Cell(pct(twin), [tws]), '—',
-                   Cell(f'{100 * (acc - twin):+.2f} vs twin', [acs, tws]), 'twin check'])
+            d = result['data']
+            acc, twin = d['evaluation']['test_acc_encrypted_trained'], d['evaluation']['test_acc_twin']
+            acs, tws = (rel, 'evaluation.test_acc_encrypted_trained'), (rel, 'evaluation.test_acc_twin')
+            t.row([label, Cell('subset 1008', [(rel, 'measured.samples')]),
+                   Cell('1 (baseline seed 0; RNG 32)', [(rel, 'setup.seed'), (rel, 'setup.init_weights')]),
+                   Cell(pct(acc), [acs] + src), Cell(pct(twin), [tws] + src), '—',
+                   Cell(f'{100 * (acc - twin):+.2f} vs twin', [acs, tws]), Cell('twin check', src)])
+            t.note(f'{key}: 21 updates; 1008 samples; one imported baseline seed0 trajectory with binary RNG32, '
+                   'not independent seeds or a full-length run. No ReBoot wall-time ratio is claimed.', src)
+            for i, diag in enumerate(d['twin']['handoff_bootstraps']):
+                fields = ('slots_compared', 'max_abs_input_twin', 'inputs_above_1', 'precondition_hit', 'max_abs_err_vs_twin')
+                t.note(f'{key} handoff {i + 1}: compared {diag["slots_compared"]} valid-sample/width slots; '
+                       f'max |input| {diag["max_abs_input_twin"]:.6g}; inputs above 1: {diag["inputs_above_1"]}; '
+                       f'precondition hit {str(diag["precondition_hit"]).lower()}; max error {diag["max_abs_err_vs_twin"]:.6g}. '
+                       'Numerical check success does not erase a precondition hit.',
+                       [(rel, f'twin.handoff_bootstraps[{i}].{field}') for field in fields])
+            t.note(f'{key}: P52 records input paths, not consumed input digests. Current registered index prefixes, '
+                   'weight/data manifest hashes are checked; this is not historical input-byte proof. '
+                   'Scientific acceptance and handoff-precondition interpretation remain separate review.', src)
+        t.note(f'{key} captured original/source SHA256 (not historical execution proof): ' +
+               '; '.join(f'{path} = {hashlib.sha256(raw).hexdigest()}' for path, raw in result['raw'].items()),
+               [(path, 'raw bytes (SHA256 at table generation)') for path in result['raw']],
+               tex_text=f'{key}: Full captured/current byte hashes: results/tables/accuracy_vs_reboot.md; '
+                        'source fields: results/tables/sources.tsv. These identify captured/current bytes, '
+                        'not historical execution or consumed-input proof.')
     t.section('Reference only: the paper value and the released code at the paper setting (R-REB-3)')
     paper, ps = s.num(TASK51['mnist'][0], 'target.test_acc_mean')
     paper_sd, pss = s.num(TASK51['mnist'][0], 'target.test_acc_std')
@@ -1001,7 +1318,7 @@ def render_tex(t, origin):
     out += [r'\bottomrule', r'\end{tabular}}']
     if t.notes:
         out.append(r'\par\smallskip\begin{minipage}{\linewidth}\scriptsize')
-        out += [tex_prose(n.text) + r'\par' for n in t.notes]
+        out += [tex_prose(n.tex_text if n.tex_text is not None else n.text) + r'\par' for n in t.notes]
         out.append(r'\end{minipage}')
     out.append(f'\\end{{{env}}}')
     return '\n'.join(out) + '\n'

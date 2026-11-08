@@ -24,7 +24,9 @@ def archived_overlay(root, source=ROOT):
         dest.mkdir(parents=True, exist_ok=True)
         for p in (source / base).iterdir():
             q = dest / p.name
-            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2', 'R-47-3',
+            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2', 'R-47-3', 'R-52',
+                                         'mnist196_emlp2_ni_b48_subset1008_seed0.json',
+                                         'mnist196_emlp3_ni_b48_subset1008_seed0.json',
                                          'ablation_cuda.json', 'ablation_cpu_l7.json')):
                 continue
             if p.is_file() or (p.is_dir() and base.endswith('/raw')) or p.name == 'reference':
@@ -88,6 +90,126 @@ def put_r47(root, rc=0, watchdog=False, log=R47_LOG):
     for name, text in originals.items():
         (dest / name).write_text(text)
     return dest
+
+
+R52_PIN = '9305d2e1f4f9999296cd4b4aaf55ea631fbca78e'
+R52_WD = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r52'
+
+
+def put_r52(root, number=2, rc=0, watchdog=False, partial=False, output=True):
+    """Tiny SYNTHETIC P52-shaped data and original-format records, never measurements."""
+    key = f'R-52-{number-1}'
+    rel = f'results/quadruped/mnist196_emlp{number}_ni_b48_subset1008_seed0.json'
+    archive = root / 'results/quadruped/raw/R-52' / key
+    archive.mkdir(parents=True, exist_ok=True)
+    raw = root / 'results/quadruped/raw/reboot_emlp23_full'
+    cfg = json.loads((ROOT / tables.REBOOT_23_CFG).read_bytes())
+    if raw.is_symlink():
+        raw.unlink()
+    raw.mkdir(exist_ok=True)
+    for model in (2, 3):
+        seed = cfg['models'][f'emlp{model}']['per_seed']['0']
+        for entry in seed['init_weights']:
+            dest = raw / entry['file']
+            dest.parent.mkdir(exist_ok=True)
+            dest.write_bytes(b'SYNTHETIC weight payload')
+            entry['sha256'] = hashlib.sha256(dest.read_bytes()).hexdigest()
+        (raw / seed['indices_file']).write_bytes((ROOT / f'results/reboot_emlp{model}_seed0_steps1-21_indices.txt').read_bytes())
+    (raw / 'config_values.json').write_text(json.dumps(cfg))
+    data = root / 'results/quadruped/data/reboot_emlp1_full'
+    data.mkdir(parents=True, exist_ok=True)
+    manifest = json.loads((ROOT / 'results/quadruped/data/reboot_emlp1_full/data_manifest.json').read_bytes())
+    for item in manifest['files']:
+        dest = data / item['file']
+        dest.write_bytes(b'SYNTHETIC data payload')
+        item['sha256_npy_file'] = hashlib.sha256(dest.read_bytes()).hexdigest()
+    (data / 'data_manifest.json').write_text(json.dumps(manifest))
+    argv = ['target/release/mnist', '--mode', 'noninteractive', '--placement', 'when_needed',
+            '--batch', '48', '--faithful', '--blocks', '64' if number == 2 else '128,64',
+            '--hidden', '32', '--dataset-npy', 'results/quadruped/data/reboot_emlp1_full',
+            '--indices', f'results/reboot_emlp{number}_seed0_steps1-21_indices.txt',
+            '--init-weights', f'results/quadruped/raw/reboot_emlp23_full/init_weights_emlp{number}_seed0',
+            '--init-weights-manifest', 'results/quadruped/raw/reboot_emlp23_full/config_values.json',
+            '--epochs', '1', '--transpose', 'reuse', '--out', rel]
+    start = 1794099600.0  # 2026-11-08T10:00:00+09:00
+    blocks = [64] if number == 2 else [128, 64]
+    dims = [[196, 64, 16], [64, 32, 16]] if number == 2 else [[196,128,16], [128,64,16], [64,32,16]]
+    boots = len(blocks)
+    def counter(mult):
+        return {'rotations': (60+69*boots)*mult, 'relins': (40+40*boots)*mult,
+                'sse_switches': 2*boots*mult, 'key_switches': (100+111*boots)*mult,
+                'bootstraps': boots*mult, 'ct_ct_tensor': 2*mult, 'ct_pt_mults': 3*mult, 'rescales': 4*mult}
+    doc = {
+      'provenance': {'written_by': 'the mnist binary (raw output, not assembled)', 'git_commit': R52_PIN,
+        'git_modified_tracked_files': 'none', 'command_line': ' '.join(argv),
+        'build': {'debug_assertions': False, 'package_version': '1.0.0', 'target_os': 'linux',
+                  'target_arch': 'x86_64', 'features': {'parallel': True, 'cuda': False}},
+        'parallel_feature': True, 'machine': {'host': 'synthetic-host', 'cpu': 'synthetic CPU', 'os': 'Linux'},
+        'threads': 'rayon (feature parallel), RAYON_NUM_THREADS = 12, 32 logical CPUs',
+        'started_unix': start+1, 'finished_unix': start+9},
+      'all_checks_pass': rc == 0,
+      'checks': {k: True for k in ('every_update_equals_prediction', 'twin_weights_within_2^-10',
+                                  'test_acc_diff_within_0.005', 'handoff_err_within_2^-10')},
+      'task': 'Task 52: ReBoot eMLP-2/3 block structure, non-interactive (bootstrapping)',
+      'setup': {'params':'n16_boot', 'log_n':16, 'batch':48, 'seed':32, 'transpose_keys':'reuse', 'boot_ks':111,
+                'init_weights': argv[argv.index('--init-weights')+1], 'biases':False,
+                'eval_config': {'hoist':True, 'bsgs':True, 'lazy_relin':True, 'default':True}, 'lr_reference_on_mean_gradient':0.024,
+                'lr_schedule':'constant'},
+      'plan': {'stage_dims':dims, 'layout_d':256, 'lanes':64, 'micro_batches_per_update':1,
+               'placement':'when_needed', 'updates':21, 'boot_ks_assumed':111,
+               'start_level':20, 'bootstrap_output_level':21, 'levels_per_stage_step':7,
+               'stage_nonboot_ks_per_update':[50,50] if number == 2 else [34,33,33], 'nonboot_ks_per_update':100,
+               'weight_bootstraps_per_update_avg':0.0, 'handoff_bootstraps_per_update':boots,
+               'velocity_reference_shift_rotations':10, 'predicted_ks_per_sample':counter(21)['key_switches']/1008,
+               'boot_schedules':[[0]*21 for _ in dims]},
+      'measured': {'updates':21, 'samples':1008, 'total':counter(21), 'per_update_first':counter(1),
+                   'ks_per_sample_incl_bootstraps':counter(21)['key_switches']/1008,
+                   'predicted_ks_this_run':counter(21)['key_switches'], 'measured_over_predicted':1.0,
+                   'every_update_equals_prediction':True, 'handoff_bootstraps':boots*21},
+      'time_s': {'keygen_total':1.0, 'train_total':2.0, 'bootstrap_total':1.0, 'wall_total':5.0,
+                 'per_update':{'min':0.1,'median':0.1,'mean':0.1,'max':0.1}},
+      'twin': {'max_abs_diff':0.0, 'log2_max_abs_diff':None,
+               'max_abs_handoff_activation_per_block':[0.5]*len(blocks),
+               'handoff_bootstraps':[{'slots_compared':1008*w, 'max_abs_input_twin':0.5, 'inputs_above_1':0,
+                 'precondition_hit':False, 'max_abs_err_vs_twin':0.0, 'log2_max_abs_err_vs_twin':None} for w in blocks]},
+      'evaluation':{'test_samples':10000, 'test_acc_encrypted_trained':0.9, 'test_acc_twin':0.9, 'test_acc_diff':0.0},
+      'memory':{'peak_rss_bytes':1000},
+    }
+    if rc:
+        doc['checks']['handoff_err_within_2^-10'] = False
+    dest = root / rel
+    if dest.is_symlink():
+        dest.unlink()
+    if output:
+        dest.write_text(json.dumps(doc))
+    elif dest.exists():
+        dest.unlink()
+    meta = {'job':key, 'host':'synthetic-host', 'workdir':R52_WD, 'command':' '.join(argv),
+            'hekit_synced_commit':['commit 9305d2e','full '+R52_PIN,'dirty_files 0'],
+            'threads_cap':12, 'env_thread_caps':{name:'12' for name in ('OMP_NUM_THREADS','RAYON_NUM_THREADS','CARGO_BUILD_JOBS')},
+            'nice':10,'gpu_job':False,'start':'2026-11-08T10:00:00+09:00','end':'2026-11-08T10:00:10+09:00',
+            'wall_s_runner':10.0,'exit_status':rc,'watchdog_killed':watchdog}
+    state = {'job':key,'rc':rc,'wrapper_rc':0,'status':'failed: RSS watchdog' if watchdog else 'partial' if partial else 'failed' if rc else 'done',
+             'skip':False,'skip_lines':[],'command':argv,'workdir':R52_WD,'log':f'/home/kmihara/hekit-runs/logs/{key}.log',
+             'evidence_lines':[]}
+    if output and not rc:
+        state['output_sha256'] = hashlib.sha256(dest.read_bytes()).hexdigest()
+    for name,text in {'meta.json':json.dumps(meta),'state.json':json.dumps(state),'cmd.txt':' '.join(argv)+' \n',
+                      'post.txt':'date: 2026-11-08T10:00:10+09:00\nJOB_DONE rc='+str(rc)+'\n',
+                      'program.log':'SYNTHETIC terminal log\n'}.items():
+        (archive/name).write_text(text)
+    if partial:
+        limit = 12240.0 if number == 2 else 23040.0
+        (archive/'partial.txt').write_text(f'partial: after >=5 updates; projected {2*limit:.0f} > {limit} s\n')
+        (archive/'projection.txt').write_text(f'after 5 updates: {2*limit:.0f} s / 21 updates; limit {limit} s\n')
+        (archive/'partial-identities.json').write_text('[[122, null], [123, "456"]]')
+    return dest, archive
+
+
+def refresh_r52_digest(dest, archive):
+    state=json.loads((archive/'state.json').read_text())
+    state['output_sha256']=hashlib.sha256(dest.read_bytes()).hexdigest()
+    (archive/'state.json').write_text(json.dumps(state))
 
 
 class PaperTablesTests(unittest.TestCase):
@@ -440,6 +562,300 @@ class PaperTablesTests(unittest.TestCase):
             self.assertFalse((fixture / 'results/quadruped/raw/R-47-3').is_symlink())
             self.assertNotEqual(dest.resolve(), archived / R47_DIR)
             self.assertEqual(sentinel.read_text(), 'SYNTHETIC original')
+
+
+    def test_r52_success_models_validate_original_schema_and_seed_handoff_sources(self):
+        # Break caught: raw two-number intake, wrong block schema, or hidden seed/precondition scope.
+        for number in (2,3):
+            dest, archive = put_r52(self.root, number)
+            doc=json.loads(dest.read_text())
+            doc['twin']['handoff_bootstraps'][0].update(max_abs_input_twin=1.2,inputs_above_1=2,precondition_hit=True)
+            doc['twin']['max_abs_handoff_activation_per_block'][0]=1.2
+            dest.write_text(json.dumps(doc)); refresh_r52_digest(dest,archive)
+        t=self.build(tables.table_accuracy)
+        new=[r for r in rows(t) if r[0].startswith('hekit encrypted eMLP-')]
+        self.assertEqual(len(new),2)
+        for r in new:
+            self.assertEqual(r[2],'1 (baseline seed 0; RNG 32)')
+            self.assertEqual(r[3:5],['90.00','90.00'])
+        md=tables.render_md(t,'synthetic/')
+        self.assertIn('21 updates; 1008 samples',md)
+        self.assertIn('inputs above 1: 2',md)
+        self.assertIn('not independent seeds',md)
+        self.assertIn('historical input-byte proof',md)
+        src='\n'.join(tables.source_lines(t))
+        self.assertIn('twin.handoff_bootstraps[0].slots_compared',src)
+        self.assertIn('raw/R-52/R-52-1/post.txt\tline 2',src)
+        self.assertIn('setup.seed',src)
+
+    def test_r52_failed_watchdog_partial_never_publish_saved_success_accuracy(self):
+        # Break caught: P52 writes failed-check JSON before exiting nonzero.
+        for rc,watchdog,partial,output in ((1,False,False,True),(143,True,False,True),
+                                          (0,True,False,True),(1,False,False,False),(143,False,True,False)):
+            with self.subTest(rc=rc,watchdog=watchdog,partial=partial):
+                dest,archive=put_r52(self.root,rc=rc,watchdog=watchdog,partial=partial,output=output)
+                t=self.build(tables.table_accuracy)
+                r=next(r for r in rows(t) if r[0].startswith('hekit encrypted eMLP-2,'))
+                self.assertIn('partial/unmeasured' if partial else 'failed/unmeasured',r[3])
+                self.assertEqual(r[4],'—')
+                self.assertNotEqual(r[7],'twin check')
+                for name in ('partial.txt','projection.txt','partial-identities.json'):
+                    if (archive/name).exists(): (archive/name).unlink()
+
+    def test_r52_rejects_missing_partial_or_inconsistent_original_terminal(self):
+        # Break caught: binary-only success or incomplete/contradictory terminal association.
+        for name in ('program.log','meta.json','post.txt','cmd.txt','state.json'):
+            dest,archive=put_r52(self.root)
+            (archive/name).unlink()
+            with self.subTest(name=name),self.assertRaises(tables.TableError): self.build(tables.table_accuracy)
+        for name,key,value in [('meta.json','hekit_synced_commit',['full '+'a'*40]),('meta.json','threads_cap',1),
+            ('meta.json','nice',0),('meta.json','gpu_job',True),('meta.json','exit_status',1),
+            ('meta.json','start','2026-11-08T10:00:00'),('meta.json','workdir','/tmp/wrong'),
+            ('state.json','rc',1),('state.json','status','failed'),('state.json','output_sha256','a'*64),
+            ('state.json','command',['other']),('state.json','job','R-52-2')]:
+            dest,archive=put_r52(self.root)
+            d=json.loads((archive/name).read_text());d[key]=value;(archive/name).write_text(json.dumps(d))
+            with self.subTest(name=name,key=key),self.assertRaises(tables.TableError): self.build(tables.table_accuracy)
+        dest,archive=put_r52(self.root,output=False)
+        with self.assertRaises(tables.TableError): self.build(tables.table_accuracy)
+        dest,archive=put_r52(self.root,partial=True,rc=143,output=False)
+        (archive/'projection.txt').unlink()
+        with self.assertRaises(tables.TableError): self.build(tables.table_accuracy)
+
+    def test_r52_success_rejects_false_checks_wrong_provenance_scope_and_handoff(self):
+        # Break caught: a plausible accuracy overrides failed scientific/provenance/coverage fields.
+        mutations=[
+          ('all_checks_pass',False),('checks.handoff_err_within_2^-10',False),
+          ('provenance.git_commit','a'*40),('provenance.written_by','runner'),
+          ('provenance.git_modified_tracked_files',' M tracked.rs'),('provenance.command_line','mnist'),
+          ('provenance.build.features.cuda',True),('provenance.threads','RAYON_NUM_THREADS = 1'),
+          ('provenance.finished_unix',1794099700),('setup.seed',0),('setup.params','small'),
+          ('setup.init_weights','other'),('setup.eval_config.hoist',1),('plan.layout_d',256.0),('plan.stage_dims',[[196,128,16],[128,64,16],[64,32,16]]),
+          ('measured.updates',20),('measured.samples',960),('measured.total.key_switches',0),
+          ('measured.predicted_ks_this_run',0),('measured.handoff_bootstraps',0),
+          ('twin.max_abs_diff',0.01),('twin.log2_max_abs_diff',-10),
+          ('twin.handoff_bootstraps.0.slots_compared',0),('twin.handoff_bootstraps.0.max_abs_err_vs_twin',0.01),
+          ('twin.handoff_bootstraps.0.precondition_hit',True),('twin.handoff_bootstraps.0.inputs_above_1',999999),
+          ('evaluation.test_acc_twin',0.8),('evaluation.test_acc_encrypted_trained',1.1),
+        ]
+        for field,value in mutations:
+            dest,archive=put_r52(self.root);d=json.loads(dest.read_text());node=d
+            parts=field.split('.')
+            for part in parts[:-1]: node=node[int(part)] if isinstance(node,list) else node[part]
+            node[parts[-1]]=value;dest.write_text(json.dumps(d));refresh_r52_digest(dest,archive)
+            with self.subTest(field=field),self.assertRaises(tables.TableError): self.build(tables.table_accuracy)
+
+    def test_r52_queue_output_validation_failure_is_unmeasured_even_with_child_zero(self):
+        # Break caught: the queue can reject written output/provenance after a child exits zero.
+        dest,archive=put_r52(self.root)
+        state=json.loads((archive/'state.json').read_text())
+        state.update(status='failed: output checks/provenance',output_error='output checks/provenance do not match pinned invocation')
+        del state['output_sha256'];(archive/'state.json').write_text(json.dumps(state))
+        r=next(r for r in rows(self.build(tables.table_accuracy)) if r[0].startswith('hekit encrypted eMLP-2,'))
+        self.assertIn('failed/unmeasured',r[3]);self.assertEqual(r[4],'—')
+        state['output_sha256']=hashlib.sha256(dest.read_bytes()).hexdigest()
+        (archive/'state.json').write_text(json.dumps(state))
+        with self.assertRaises(tables.TableError):self.build(tables.table_accuracy)
+
+    def test_r52_partial_rounding_and_queue_rejection_preserve_original_control_flow(self):
+        # Break caught: rounded projected time can equal the limit although the decision exceeded it;
+        # queue output validation may subsequently replace the partial/watchdog status after child0.
+        dest,archive=put_r52(self.root,rc=0,partial=True,output=True)
+        (archive/'partial.txt').write_text('partial: after >=5 updates; projected 12240 > 12240.0 s\n')
+        (archive/'projection.txt').write_text('after 5 updates: 12240 s / 21 updates; limit 12240.0 s\n')
+        r=next(r for r in rows(self.build(tables.table_accuracy)) if r[0].startswith('hekit encrypted eMLP-2,'))
+        self.assertIn('partial/unmeasured',r[3])
+        state=json.loads((archive/'state.json').read_text())
+        state.update(status='failed: output checks/provenance',output_error='stale output file')
+        del state['output_sha256'];(archive/'state.json').write_text(json.dumps(state))
+        r=next(r for r in rows(self.build(tables.table_accuracy)) if r[0].startswith('hekit encrypted eMLP-2,'))
+        self.assertIn('partial/unmeasured',r[3])
+
+    def test_r52_projection_only_preserves_success_failure_watchdog_for_both_jobs(self):
+        # Break caught: projection is written before deciding to stop; it is not stop evidence.
+        for number in (2, 3):
+            for rc, watchdog in ((0, False), (1, False), (143, True)):
+                for projected in (10000, 50000):
+                    with self.subTest(number=number, rc=rc, watchdog=watchdog, projected=projected):
+                        dest, archive = put_r52(self.root, number, rc=rc, watchdog=watchdog)
+                        limit = 12240.0 if number == 2 else 23040.0
+                        projection = f'after 5 updates: {projected} s / 21 updates; limit {limit} s\n'
+                        (archive / 'projection.txt').write_text(projection)
+                        t = self.build(tables.table_accuracy)
+                        r = next(r for r in rows(t) if r[0].startswith(f'hekit encrypted eMLP-{number},'))
+                        if rc:
+                            self.assertIn('failed/unmeasured', r[3])
+                            self.assertEqual(r[4], '—')
+                        else:
+                            self.assertEqual(r[3:5], ['90.00', '90.00'])
+                            self.assertEqual(r[7], 'twin check')
+                        self.assertNotIn('partial/unmeasured', r[3])
+                        sources = '\n'.join(tables.source_lines(t))
+                        self.assertIn(f'raw/R-52/R-52-{number - 1}/projection.txt\tline 1', sources)
+                        self.assertIn(hashlib.sha256(projection.encode()).hexdigest(), tables.render_md(t, 'synthetic/'))
+                        self.assertEqual((archive / 'projection.txt').read_text(), projection)
+
+    def test_r52_projection_and_stop_evidence_must_each_match_original_format(self):
+        # Break caught: fixing projection-only intake must not allow malformed projection or incomplete stops.
+        def read_job(number):
+            store = tables.Store(self.root)
+            return tables.r52_input(store, tables.Inputs(store), f'R-52-{number - 1}')
+
+        for number in (2, 3):
+            limit = 12240.0 if number == 2 else 23040.0
+            for projection in ('synthetic malformed\n',
+                               f'after 4 updates: 10000 s / 21 updates; limit {limit} s\n',
+                               'after 5 updates: 10000 s / 21 updates; limit 1 s\n'):
+                with self.subTest(number=number, projection=projection):
+                    _, archive = put_r52(self.root, number)
+                    (archive / 'projection.txt').write_text(projection)
+                    with self.assertRaises(tables.TableError):
+                        read_job(number)
+            for stop_file in ('partial.txt', 'partial-identities.json'):
+                with self.subTest(number=number, stop_file=stop_file):
+                    _, archive = put_r52(self.root, number, rc=143, partial=True, output=False)
+                    (archive / stop_file).unlink()
+                    with self.assertRaises(tables.TableError):
+                        read_job(number)
+                    for name in ('partial.txt', 'projection.txt', 'partial-identities.json'):
+                        if (archive / name).exists():
+                            (archive / name).unlink()
+            _, archive = put_r52(self.root, number)
+            state = json.loads((archive / 'state.json').read_text())
+            state['status'] = 'partial'
+            (archive / 'state.json').write_text(json.dumps(state))
+            (archive / 'projection.txt').write_text(f'after 5 updates: 50000 s / 21 updates; limit {limit} s\n')
+            with self.assertRaises(tables.TableError):
+                read_job(number)
+            (archive / 'projection.txt').unlink()
+
+    def test_r52_nonzero_errors_and_registered_input_prefix_validation(self):
+        # Break caught: demanding null for every log2 error, or accepting a different input prefix.
+        dest,archive=put_r52(self.root);d=json.loads(dest.read_text())
+        d['twin']['max_abs_diff']=2**-12;d['twin']['log2_max_abs_diff']=-12.0
+        d['twin']['handoff_bootstraps'][0].update(max_abs_err_vs_twin=2**-12,log2_max_abs_err_vs_twin=-12.0)
+        dest.write_text(json.dumps(d));refresh_r52_digest(dest,archive)
+        self.build(tables.table_accuracy)
+        indices=self.root/'results/reboot_emlp2_seed0_steps1-21_indices.txt'
+        content=indices.read_text()
+        if indices.is_symlink():indices.unlink()
+        indices.write_text('0 '*1008)
+        with self.assertRaises(tables.TableError):self.build(tables.table_accuracy)
+        indices.write_text(content)
+        # Late child failure invalidates even a fully successful saved result object.
+        meta=json.loads((archive/'meta.json').read_text());meta['exit_status']=1
+        (archive/'meta.json').write_text(json.dumps(meta))
+        state=json.loads((archive/'state.json').read_text());state.update(rc=1,status='failed')
+        (archive/'state.json').write_text(json.dumps(state))
+        (archive/'post.txt').write_text('date: 2026-11-08T10:00:10+09:00\nJOB_DONE rc=1\n')
+        r=next(r for r in rows(self.build(tables.table_accuracy)) if r[0].startswith('hekit encrypted eMLP-2,'))
+        self.assertIn('failed/unmeasured',r[3])
+
+    def test_r52_registered_input_hash_failure_is_not_success(self):
+        # Break caught: consuming result identities against mismatched supported input/manifest hashes.
+        dest,archive=put_r52(self.root)
+        weight=self.root/'results/quadruped/raw/reboot_emlp23_full/init_weights_emlp2_seed0/linear_fwd_00.npy'
+        weight.write_bytes(b'SYNTHETIC corrupt weight')
+        with self.assertRaises(tables.TableError):self.build(tables.table_accuracy)
+        dest,archive=put_r52(self.root)
+        data=self.root/'results/quadruped/data/reboot_emlp1_full/train_labels.npy'
+        data.write_bytes(b'SYNTHETIC corrupt data')
+        with self.assertRaises(tables.TableError):self.build(tables.table_accuracy)
+
+    def test_r52_run_all_alias_requires_same_terminal_originals_and_bytes(self):
+        # Break caught: generic new_result bypass or substituting an unrelated canonical original.
+        dest,archive=put_r52(self.root)
+        alias=self.root/'results/run_all/full/ni196_emlp2_b48_sub1008_s0.json'
+        alias.parent.mkdir(parents=True);alias.write_bytes(dest.read_bytes())
+        s=tables.Store(self.root);t=tables.table_accuracy(s,tables.Inputs(s,'full'))
+        self.assertTrue(any('1 (baseline seed 0; RNG 32)' in r for r in rows(t)))
+        d=json.loads(alias.read_text());d['evaluation']['test_acc_twin']=0.89;alias.write_text(json.dumps(d))
+        s=tables.Store(self.root)
+        with self.assertRaises(tables.TableError):tables.table_accuracy(s,tables.Inputs(s,'full'))
+        alias.write_bytes(dest.read_bytes());dest.unlink()
+        s=tables.Store(self.root);tables.table_accuracy(s,tables.Inputs(s,'full'))
+        (archive/'post.txt').unlink()
+        s=tables.Store(self.root)
+        with self.assertRaises(tables.TableError):tables.table_accuracy(s,tables.Inputs(s,'full'))
+
+    def test_explicit_tex_note_override_keeps_markdown_default_and_sources(self):
+        # Break caught: a manuscript-only summary must not replace the inspectable original note/source index.
+        table = tables.Table('synthetic_note', 'SYNTHETIC note test', ['Value'])
+        table.row(['synthetic'])
+        full = 'SYNTHETIC full hash ' + 'a'*64 + '; not historical execution proof'
+        table.note(full, [('synthetic/input', 'raw bytes')], tex_text='SYNTHETIC concise manuscript note')
+        table.note('SYNTHETIC ordinary default note', [('synthetic/input', 'field')])
+        md = tables.render_md(table, 'synthetic/')
+        tex = tables.render_tex(table, 'synthetic/')
+        self.assertIn(full, md)
+        self.assertNotIn('concise manuscript', md)
+        self.assertIn('SYNTHETIC concise manuscript note', tex)
+        self.assertNotIn('a'*64, tex)
+        self.assertIn('SYNTHETIC ordinary default note', md)
+        self.assertIn('SYNTHETIC ordinary default note', tex)
+        self.assertIsNone(table.notes[1].tex_text)
+        self.assertEqual(tables.source_lines(table), [
+            'synthetic_note\tnote 1\t\t\tsynthetic/input\traw bytes\t',
+            'synthetic_note\tnote 2\t\t\tsynthetic/input\tfield\t'])
+
+    def test_r52_tex_summarizes_only_hash_inventory_and_md_keeps_full_hashes(self):
+        # Break caught: long source-path/SHA inventories clip the paper; all acceptance caveats must remain.
+        digests = []
+        for number in (2, 3):
+            dest, _ = put_r52(self.root, number)
+            digests.append(hashlib.sha256(dest.read_bytes()).hexdigest())
+        table = self.build(tables.table_accuracy)
+        md, tex = tables.render_md(table, 'synthetic/'), tables.render_tex(table, 'synthetic/')
+        overridden = [note for note in table.notes if note.tex_text is not None]
+        self.assertEqual(len(overridden), 2)
+        self.assertTrue(all('captured original/source SHA256' in note.text for note in overridden))
+        for digest in digests:
+            self.assertIn(digest, md)
+            self.assertNotIn(digest, tex)
+        self.assertIn('not historical execution proof', md)
+        self.assertIn('results/tables/accuracy_vs_reboot.md', overridden[0].tex_text)
+        self.assertIn('results/tables/sources.tsv', overridden[0].tex_text)
+        self.assertIn('captured/current bytes', tex)
+        self.assertIn('not historical execution or consumed-input proof', tex)
+        for caveat in ('21 updates; 1008 samples', 'RNG32', 'not independent seeds',
+                       'compared 64512 valid-sample/width slots', 'precondition hit false',
+                       'not historical input-byte proof'):
+            self.assertIn(caveat, tex)
+        sources = tables.source_lines(table)
+        for note in overridden:
+            note.tex_text = None
+        self.assertEqual(sources, tables.source_lines(table))
+        self.assertTrue(all(note.tex_text is None for note in self.build(tables.table_gpu).notes))
+        # The same concise inventory treatment applies to an unmeasured failed original.
+        put_r52(self.root, 2, rc=1, output=False)
+        failed = self.build(tables.table_accuracy)
+        self.assertEqual(len([note for note in failed.notes if note.tex_text is not None]), 2)
+
+    def test_r52_error_atomicity_quick_and_both_entrypoints(self):
+        # Break caught: partial paper writes, quick contamination, or entrypoint divergence.
+        dest,archive=put_r52(self.root);(archive/'post.txt').write_text('JOB_DONE rc=1\n')
+        with contextlib.redirect_stderr(io.StringIO()),contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(tables.main(['--root',str(self.root)]),2)
+            self.assertFalse((self.root/'paper').exists())
+            self.assertEqual(tables.main(['--root',str(self.root),'--from-run-all','quick']),0)
+        put_r52(self.root)
+        for entry in ('paper_tables.py','tables.py'):
+            p=subprocess.run([sys.executable,str(ROOT/'tools'/entry),'--root',str(self.root),'--sources','accuracy_vs_reboot'],capture_output=True,text=True)
+            self.assertEqual(p.returncode,0,p.stderr)
+            self.assertIn('baseline seed 0; RNG 32',p.stdout)
+
+    def test_r52_future_archive_and_result_overlay_isolation(self):
+        # Break caught: a future real R52 raw/result symlink overwritten by synthetic fixture writes.
+        with tempfile.TemporaryDirectory() as source,tempfile.TemporaryDirectory() as fixture:
+            source,fixture=Path(source),Path(fixture)
+            for rel in ('docs','results/quadruped/raw/R-52'):(source/rel).mkdir(parents=True,exist_ok=True)
+            result=source/'results/quadruped/mnist196_emlp2_ni_b48_subset1008_seed0.json'
+            result.write_text('SYNTHETIC original');sentinel=source/'results/quadruped/raw/R-52/original'
+            sentinel.write_text('SYNTHETIC original');archived_overlay(fixture,source)
+            self.assertFalse((fixture/'results/quadruped/raw/R-52').exists())
+            self.assertFalse((fixture/'results/quadruped'/result.name).exists())
+            (fixture/'results/quadruped'/result.name).write_text('SYNTHETIC replacement')
+            self.assertEqual(result.read_text(),'SYNTHETIC original');self.assertEqual(sentinel.read_text(),'SYNTHETIC original')
 
 
 if __name__ == '__main__':
