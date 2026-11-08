@@ -1,0 +1,13 @@
+{
+  "kind": "distribution_verification_not_new_scientific_measurement",
+  "source_commit": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "prepared_utc": "2026-11-08T13:30:01.056752+00:00",
+  "bundle": "/Volumes/Untitled/ckks-train-storage/archives/research-preview2-e93cec4",
+  "source_files": 6113,
+  "all_source_blobs_and_modes_match": true,
+  "paper_inputs_matched": 18,
+  "zip_members_matched": 19,
+  "paper_reused_from_verified_build": true,
+  "existing_visual_review": "results/validation/paper-full2-r47-20261108/README.md",
+  "arxiv_submitted": false
+}

@@ -1,0 +1,552 @@
+{
+  "observed_utc": "2026-11-08T13:31:42.145597+00:00",
+  "head": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "files": [
+    {
+      "path": ".vscode/settings.json",
+      "bytes": 91,
+      "sha256": "69df3ae96f6c5fff9ddc2e6a211595eb55eb5543ec398950fc22595a4a3b0dc3",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/profile_data.rs",
+      "bytes": 35484,
+      "sha256": "41f9b9fc09bb54bdf99319f4aab242381b46040e935b80bbdc61a02092cafe59",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission.rs",
+      "bytes": 159336,
+      "sha256": "8ec8f8231f53f39852fb694f9e06074e741fcae4795b236e8b204cf3213b04f7",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_admission/observed_workspace.rs",
+      "bytes": 29735,
+      "sha256": "db4417769f9234c786c2df443dd56f029a2c9562dd232da481d55254d218ac90",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client.rs",
+      "bytes": 43503,
+      "sha256": "206cf54ea47eb8bbf0f212031dbee7ddc7a9cc78473c145c6fc39ba97ba8d998",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_client/blocks.rs",
+      "bytes": 29971,
+      "sha256": "89a2b2b71c242d6081ef23857e5104b93357a6db065aed6e8e1b2d4184e8f6d9",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_execution.rs",
+      "bytes": 32695,
+      "sha256": "906783a61113e217617068dbd01f46e176f77f934c21cac8714a9390be3d2f55",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_inputs.rs",
+      "bytes": 67383,
+      "sha256": "4016c20fb884bbca5f40eb26e46e9893215532f629e5730c52a7ed1f3e70c52b",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_prepare.rs",
+      "bytes": 11307,
+      "sha256": "fa930a20cd308ab3c05d22a89f5ef72d3739a2396e38f92382fd2540c39d712c",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_prepare_tests.rs",
+      "bytes": 3542,
+      "sha256": "a663eb27500017785326474083e9f4e45bbaed452fb5ac7124ea0b14294d3759",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile.rs",
+      "bytes": 83751,
+      "sha256": "b0f978d86eb8dc44a517327701da2998733c812aa4129af94e05a2536f5343bb",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/registered_case.rs",
+      "bytes": 24852,
+      "sha256": "20aa7cfda52dbc1c5c8ae6b4e299ec208c45f94dd159d0eee9ef662d8248ca9b",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/retained.rs",
+      "bytes": 19176,
+      "sha256": "d4e75680805bd783f6a8705461012e72748a78e923088430c0cf3ed4fdde3c0e",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_profile/retained/demand.rs",
+      "bytes": 7267,
+      "sha256": "b77c5e04585016ebd743da5af004debc4cd2f7f738907dcc601995fac6e1efd1",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance.rs",
+      "bytes": 5400,
+      "sha256": "808a86362fd5db52340d18f109af81d45db589dc320e0a8282095ba9708d86b8",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/codec.rs",
+      "bytes": 41643,
+      "sha256": "fa01beb6d2d003d38e87c1fbc523ac9d45487ef18cda9fe03d234a5b9766153d",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/context.rs",
+      "bytes": 56804,
+      "sha256": "d15541511dacc49b3a0fb0270bc93b0a2eac10d7e618954477934c1760a9e32e",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/fixtures/cpu_supervisor_v4.json",
+      "bytes": 2869,
+      "sha256": "bf38707bb61138ee432a33f3e97cfe30f2155a04b38b5002fa9a218c69e76491",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication.rs",
+      "bytes": 40876,
+      "sha256": "aaec71a91506bd203c191e1cf50161225f175f8efaa91acad0145d0c12834b8f",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/publication/retained.rs",
+      "bytes": 20528,
+      "sha256": "f2da828379a74a85e70e2cbe1c44c76a5069b0bad2b39b6443fc13a133073166",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/resource_operational/approval.rs",
+      "bytes": 9434,
+      "sha256": "1bd7ecd62f21f43e7347949ca2eafc7a53f01fe26842ebfabdfe54c20d033df5",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/resource_operational/package_linux.rs",
+      "bytes": 15219,
+      "sha256": "c0a2d0a70488a4dfbd4b2f26f427e96cb5828bfa132e899c29d5913acefaad39",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/resource_operational/retained.rs",
+      "bytes": 20652,
+      "sha256": "e32740f9c7a66b69f39e9158e2a9d1999e45d9b756b337bea0e5fe7199eca395",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_provenance/supervisor_tests.rs",
+      "bytes": 20932,
+      "sha256": "878b6288358d63356e90b42eb4a4d107a47bf6371388e8d6f0cf600e766b5e7e",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference.rs",
+      "bytes": 37748,
+      "sha256": "8b50e03b421731a9a8bab5efb44aa732f4cd9eb8aea0db5f067a27acb66d87f8",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document.rs",
+      "bytes": 75565,
+      "sha256": "b2c240424aee6a03f8cfa543d3cc83334f9dc4110ccc6e519fcda9edabbcbf97",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/case_provenance.rs",
+      "bytes": 6236,
+      "sha256": "47530be611f67c98ad8d706b6836bd3b7aaee411a1d0cf52c2b75bd4f7cf6fa2",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/cpu_binding_borrow_literal.hex",
+      "bytes": 1413,
+      "sha256": "758447968ddb1da7f87e245eb2ea737da6f89afcf787d485f8b902dd4b18c025",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence.rs",
+      "bytes": 16550,
+      "sha256": "8fdfc4f44c5bc233fc3337fdfdf3193a2aea7e93a7629a22186476ab57bbd5ea",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs",
+      "bytes": 16469,
+      "sha256": "79944a53ed4461f64b2a440b059ce04273c3478ed223d5b820f245274d8cd473",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live.rs",
+      "bytes": 473,
+      "sha256": "0b348e541d950242f03f403b6b0fcc5ea0c8936a8f4a9d7a5b66df023b988af2",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live/inputs.rs",
+      "bytes": 5816,
+      "sha256": "2ced15e6acaa9a9edac3e092f87e80fef23af27449efe51c9ee77ebf46e1a646",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live/layout.rs",
+      "bytes": 4623,
+      "sha256": "3d77484aba4e7b4a3c5368ac0f9cdd8a499c8b23e9b86d0f76faac6d4539011f",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live/protocol.rs",
+      "bytes": 3925,
+      "sha256": "4d5810fa6f500143393775e7243d9a5bb3bbcf0fd0b02922c6f0a73076fe555b",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live/user.rs",
+      "bytes": 5573,
+      "sha256": "b25718a0533a8bc5f5be271927f2144ddb1521f01a5b235bf6f3988abf88d8c6",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_binding.rs",
+      "bytes": 9660,
+      "sha256": "a75d530969e14c13bacde57230ab3ec256deecd110d753fa523fe72c196843e7",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs",
+      "bytes": 5137,
+      "sha256": "989be80baec6b88b7fdbd6929a1a09a6031d4a3cf8f8f73c6de913cbe2ff18b0",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs",
+      "bytes": 45363,
+      "sha256": "c870c8d2087b6513f8faf7388cf6c37fb6fab56c0acd986b5f93e92cc45a7500",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/operational.rs",
+      "bytes": 23262,
+      "sha256": "1a00ac334973bd88008eb7f320edd53900ba26fbd2777b0bfda4c877235d3462",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original.rs",
+      "bytes": 2473,
+      "sha256": "1bb9d64e0f03210b2e5d5214f8d115f5119c38d76279f2bcd6b58d2d31e7547f",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/canonical.rs",
+      "bytes": 2158,
+      "sha256": "36a80a5cb79b49648385ffa7a4eb02a80b60ddbf7d49f1ec8bb9a7105d332d62",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/correctness.rs",
+      "bytes": 8754,
+      "sha256": "245d0598c9f7a980994072b01761a8277c5666cec0435f63ec15005ad051b96a",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/discovery.rs",
+      "bytes": 23848,
+      "sha256": "da65f4ca862445323e384197b6c39541cd3f335ba7d22281eaeb944f51e3929c",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/estimator-files.json",
+      "bytes": 7702,
+      "sha256": "316fdf748c6a5b6f3a3ce6ece483263d7cd2f2f86efa5478fbc7fc3ebb1f814d",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/graph.rs",
+      "bytes": 15017,
+      "sha256": "a794f6076e6e9c4b8f6b199e2048f0d223790f40101f554a142a58785d795f7d",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/implication.rs",
+      "bytes": 8890,
+      "sha256": "b507ec850de2d3348c3416f6ab52e0ba6de3b8a2d7bf7b43f31e018913d15d73",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/origin.rs",
+      "bytes": 25307,
+      "sha256": "e0e9a83f8e3ac453517f65da601bab1aedd056c0908e229ac2928942e0c2311b",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/packages.rs",
+      "bytes": 4744,
+      "sha256": "60000710811034d8974c405ae344ea0f82b00cdbd9bbfc61524dd18792b68076",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/python.rs",
+      "bytes": 6857,
+      "sha256": "ae62dd2473e978a10dffd41da56ec21a78389751162f2b86676ef974d5613257",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/records.rs",
+      "bytes": 18070,
+      "sha256": "a44ea1ff84166173bc1d435d8f23c9b3c2ee34e841da6a46fded38f83c5dcdb8",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/roles.json",
+      "bytes": 105482,
+      "sha256": "57c465c1c1bf81cb3469a90c6411186180d9adab50b4a621fb01c7532d311bb2",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/security.rs",
+      "bytes": 18507,
+      "sha256": "71ddf2a969ebd10f128f85087c50266ca482b3414a2ffd6ca9b97200ed6f90c2",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/semantic.rs",
+      "bytes": 38636,
+      "sha256": "251eccb58109f08286024d4039a1d8036dcc14a55819795158106818ae809b19",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/sizing.rs",
+      "bytes": 14889,
+      "sha256": "a8bd992554f5563f1cafb73268bc0544ec4f461d5d32bb5f40c6c228ee8b154b",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/original/tests.rs",
+      "bytes": 22286,
+      "sha256": "9e753d80b8d0a73dfa977b77919a9afd713726ed75c0be9bbe6a22b7f1178263",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/reader.rs",
+      "bytes": 21993,
+      "sha256": "4cf85e237090d28ee9dfceb66c3a41e7533eb775998ee19915269e272015d157",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs",
+      "bytes": 26607,
+      "sha256": "3ad8e4268638cd5b001df892e6f3c17b24647630355293b4df0caec08158d42f",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/publication.rs",
+      "bytes": 18077,
+      "sha256": "4ce32d736c081a6c901a27d80d66e6a5f110bee3a65ccdd425256032953b6ef1",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_reference/target.rs",
+      "bytes": 31413,
+      "sha256": "a9ffe45512d6e032c54b1af08b208168c8651b6193e80aaf0fa0ec6a48f80a9a",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_run.rs",
+      "bytes": 17198,
+      "sha256": "c9bd919ee3937716959c22e20efb0ef456887bdebeb582c1bb4a375db9daba06",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_run_tests.rs",
+      "bytes": 13222,
+      "sha256": "30ddcaab1b7b99614b1753e60cbe15485369d0ab9902eea471d87cc8d39380fd",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime.rs",
+      "bytes": 25020,
+      "sha256": "6497b4d95f3d11d981fbba5dff3c7aec8bce42c5962739f35aad520ee4e9c428",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_runtime/tests.rs",
+      "bytes": 6955,
+      "sha256": "1c98d4ba6a1769be942dcb56c2f6f7e6ad737785220070a203ff6518ece20955",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor.rs",
+      "bytes": 3718,
+      "sha256": "7f0892bf0c95a3c86d44048984062de5371bf6c7dc1d467bdbad1e68011c30d2",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/acquisition.rs",
+      "bytes": 15739,
+      "sha256": "63d12bd68482e753a494480b180c4cb0a58c05329828b4c2351dba2bbd0bf910",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker.rs",
+      "bytes": 34277,
+      "sha256": "792d46e3efa6821fdc16b18e939d20ac483067e56e8aabb5e46b8a9415216f3a",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/artifacts.rs",
+      "bytes": 6596,
+      "sha256": "84c5968236210b44e21b21b4013fa3fa0a70fea74de05b482daea66fc7537d2d",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/association.rs",
+      "bytes": 2446,
+      "sha256": "46278c0d8f334c8e000e46acae0504ac4fd9edae00f89497a0db60e53420fa47",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/batch.rs",
+      "bytes": 10947,
+      "sha256": "c5b311975fd8efec3b9dad5556593e7a5d180b32d59f4e621b99714f9ac67c6e",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/observed.rs",
+      "bytes": 7292,
+      "sha256": "269c7acd9d2a2bee5272180fe2cefb235a86dc8011c0da3dd6038d277e7a1a9d",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/output.rs",
+      "bytes": 7321,
+      "sha256": "ecff988de93fc60f34e81ed3a3bddfd963c261a0cb4694d118401acf1d7bba9a",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/broker/shared.rs",
+      "bytes": 9391,
+      "sha256": "ad7bee666d30d78d40559f730f094977d70af581b624168879867edd927cb78c",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/capacity.rs",
+      "bytes": 14197,
+      "sha256": "55c6c78f7034757bb5eb2e8458a53557716e9ac9b885a6921f665abd4acd98b9",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/capacity/output.rs",
+      "bytes": 7141,
+      "sha256": "8f99ae017df57ae3ff28cecaf151742b8a9b871ac992fd5af33c42064d03911d",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/capacity/package_tests.rs",
+      "bytes": 3592,
+      "sha256": "3a721d151ddc3e4c7476bdcc3cf511aba21a6e6f630fd250fae3fb30d881094e",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/child.rs",
+      "bytes": 4600,
+      "sha256": "4021d31414458520c757cbffdaf36163f845d7b6c95657975fad616a39cc466b",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/controller.rs",
+      "bytes": 32750,
+      "sha256": "9d5379f109180bcb306eaf718ebf8bc7afbcabc8ee036ae0bdf10765fe6bd76c",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/handshake.rs",
+      "bytes": 10465,
+      "sha256": "a8133e23b78e21158fc3ffe85d0f895db6b6ef28d6c7e76d53d496297499328e",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/native.rs",
+      "bytes": 22984,
+      "sha256": "0a344d3b1cfb45616a77f845077ce1e3d420ebe1a5e3b6d78658d11f8f68d3e3",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/observation.rs",
+      "bytes": 5492,
+      "sha256": "5d45e708f51483ed6a5313b5ec3d7ee54f00c0513807093f4d709a1cce07ba05",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/output_demand.rs",
+      "bytes": 20434,
+      "sha256": "c195202558042ac73ea5ba4b66e607db5cd56ff938484d87dade85cf61c2ef48",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/parameter_demand.rs",
+      "bytes": 12257,
+      "sha256": "5a84929cb0cfa4b23a7744d336a14f92576d91b542aeede588bf12c0a1bc2497",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/payload.rs",
+      "bytes": 4567,
+      "sha256": "f72d5eb26c6eac20fa791b80083a6bb6c04e044cba57c9397f060e7ef8adec91",
+      "tracked": false
+    },
+    {
+      "path": "crates/ckks-train-bench/src/study_supervisor/protocol.rs",
+      "bytes": 16064,
+      "sha256": "ef7b39ec3892990332a365417a5b6bd8fc4a4c856e9cf5cc6333536854dc2feb",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/metadata.rs",
+      "bytes": 69807,
+      "sha256": "034a2673c36a813dee3e189689ee625ac89a732157aa82278c6d94e8f1cc37a6",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/src/params.rs",
+      "bytes": 21684,
+      "sha256": "f19c8d8fcecbf03749903584c5cfec9a7ab269cdc0fe2373421580f58584293c",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-core/src/ntt.rs",
+      "bytes": 14510,
+      "sha256": "14f4126d49cb65ba8f48cbaf7ee12d9ab29e66673b2ada3e6c52277dba22af7d",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-core/src/rns.rs",
+      "bytes": 9017,
+      "sha256": "f7240eb8914f322ff2e3729325d7d6266e0b027fb99a73084a3a215f3bc55a8f",
+      "tracked": true
+    },
+    {
+      "path": "crates/ckks-train-nn/src/diagonal_plan.rs",
+      "bytes": 87136,
+      "sha256": "40baae416d7487fb840598f4a883baed2e6a04b711df812cc030438637d01c92",
+      "tracked": true
+    },
+    {
+      "path": "results/mnist_blocks_128-64_plain_b48.json",
+      "bytes": 52506,
+      "sha256": "0b3b36c7a0553e5bd01bb782fbd6f8aaa80aa0cf7339e70f1706e2e13c8cee5c",
+      "tracked": false
+    },
+    {
+      "path": "results/mnist_blocks_64_plain_b48.json",
+      "bytes": 53154,
+      "sha256": "ce61dfa0f7ff42583075499867a5801cd02499045037ba7f7ebeb78efefdc2fe",
+      "tracked": false
+    }
+  ]
+}

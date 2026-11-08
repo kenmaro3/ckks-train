@@ -1,0 +1,13 @@
+{
+  "source_commit": "e93cec434652a8c9f8c48becc6eb3045a3f78a7f",
+  "checkout": "/private/tmp/ckks-train-preview2-e93cec4",
+  "commands": [
+    "bash scripts/run_all.sh --tables-only",
+    "python3 tools/tables.py --check",
+    "python3 tools/figs.py --check",
+    "git status --porcelain"
+  ],
+  "exit_code": 0,
+  "tracked_and_untracked_changes_after": [],
+  "scope": "regeneration from archived outputs, not experiment reruns"
+}

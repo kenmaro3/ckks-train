@@ -1,0 +1,4 @@
+{
+  "scope": "Uncompressed tracked files in release archive; limited known credential patterns; not arbitrary secrets or compressed interiors",
+  "findings": []
+}

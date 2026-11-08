@@ -1,0 +1,69 @@
+ M crates/ckks-train-bench/src/profile_data.rs
+ M crates/ckks-train-bench/src/study_admission.rs
+ M crates/ckks-train-bench/src/study_client.rs
+ M crates/ckks-train-bench/src/study_client/blocks.rs
+ M crates/ckks-train-bench/src/study_execution.rs
+ M crates/ckks-train-bench/src/study_inputs.rs
+ M crates/ckks-train-bench/src/study_prepare.rs
+ M crates/ckks-train-bench/src/study_prepare_tests.rs
+ M crates/ckks-train-bench/src/study_profile.rs
+ M crates/ckks-train-bench/src/study_profile/registered_case.rs
+ M crates/ckks-train-bench/src/study_provenance.rs
+ M crates/ckks-train-bench/src/study_provenance/codec.rs
+ M crates/ckks-train-bench/src/study_provenance/context.rs
+ M crates/ckks-train-bench/src/study_provenance/publication.rs
+ M crates/ckks-train-bench/src/study_provenance/publication/retained.rs
+ M crates/ckks-train-bench/src/study_provenance/resource_operational/approval.rs
+ M crates/ckks-train-bench/src/study_provenance/resource_operational/package_linux.rs
+ M crates/ckks-train-bench/src/study_provenance/resource_operational/retained.rs
+ M crates/ckks-train-bench/src/study_provenance/supervisor_tests.rs
+ M crates/ckks-train-bench/src/study_reference.rs
+ M crates/ckks-train-bench/src/study_reference/document.rs
+ M crates/ckks-train-bench/src/study_reference/document/case_provenance.rs
+ M crates/ckks-train-bench/src/study_reference/document/evidence.rs
+ M crates/ckks-train-bench/src/study_reference/document/evidence/auxiliary.rs
+ M crates/ckks-train-bench/src/study_reference/document/execution_binding.rs
+ M crates/ckks-train-bench/src/study_reference/document/execution_binding_tests.rs
+ M crates/ckks-train-bench/src/study_reference/document/execution_descriptors.rs
+ M crates/ckks-train-bench/src/study_reference/document/operational.rs
+ M crates/ckks-train-bench/src/study_reference/document/reader.rs
+ M crates/ckks-train-bench/src/study_reference/document/runtime_descriptors.rs
+ M crates/ckks-train-bench/src/study_reference/publication.rs
+ M crates/ckks-train-bench/src/study_reference/target.rs
+ M crates/ckks-train-bench/src/study_run.rs
+ M crates/ckks-train-bench/src/study_run_tests.rs
+ M crates/ckks-train-bench/src/study_runtime.rs
+ M crates/ckks-train-bench/src/study_runtime/tests.rs
+ M crates/ckks-train-bench/src/study_supervisor.rs
+ M crates/ckks-train-bench/src/study_supervisor/broker.rs
+ M crates/ckks-train-bench/src/study_supervisor/capacity.rs
+ M crates/ckks-train-bench/src/study_supervisor/child.rs
+ M crates/ckks-train-bench/src/study_supervisor/controller.rs
+ M crates/ckks-train-bench/src/study_supervisor/handshake.rs
+ M crates/ckks-train-bench/src/study_supervisor/native.rs
+ M crates/ckks-train-bench/src/study_supervisor/observation.rs
+ M crates/ckks-train-bench/src/study_supervisor/protocol.rs
+ M crates/ckks-train-ckks/src/bootstrap/metadata.rs
+ M crates/ckks-train-ckks/src/params.rs
+ M crates/ckks-train-core/src/ntt.rs
+ M crates/ckks-train-core/src/rns.rs
+ M crates/ckks-train-nn/src/diagonal_plan.rs
+?? .vscode/
+?? crates/ckks-train-bench/src/study_admission/observed_workspace.rs
+?? crates/ckks-train-bench/src/study_profile/retained.rs
+?? crates/ckks-train-bench/src/study_profile/retained/
+?? crates/ckks-train-bench/src/study_provenance/fixtures/cpu_supervisor_v4.json
+?? crates/ckks-train-bench/src/study_reference/document/cpu_binding_borrow_literal.hex
+?? crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live.rs
+?? crates/ckks-train-bench/src/study_reference/document/evidence/cpu_live/
+?? crates/ckks-train-bench/src/study_reference/document/original.rs
+?? crates/ckks-train-bench/src/study_reference/document/original/
+?? crates/ckks-train-bench/src/study_supervisor/acquisition.rs
+?? crates/ckks-train-bench/src/study_supervisor/broker/
+?? crates/ckks-train-bench/src/study_supervisor/capacity/
+?? crates/ckks-train-bench/src/study_supervisor/output_demand.rs
+?? crates/ckks-train-bench/src/study_supervisor/parameter_demand.rs
+?? crates/ckks-train-bench/src/study_supervisor/payload.rs
+?? results/mnist_blocks_128-64_plain_b48.json
+?? results/mnist_blocks_64_plain_b48.json
+?? results/validation/research-preview2-e93cec4/
