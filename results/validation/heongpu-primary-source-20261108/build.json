@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/bin/universal-darwin/latexmk",
+    "-pdf",
+    "-interaction=nonstopmode",
+    "-halt-on-error",
+    "-no-shell-escape",
+    "-outdir=/Users/marconi/Documents/research/hekit/tools/latex/_ext/task56/heongpu-primary-20261108",
+    "/Users/marconi/Documents/research/hekit/tools/latex/_ext/task56/heongpu-primary-20261108/arxiv-wrapper.tex"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/paper",
+  "exit_code": 0
+}

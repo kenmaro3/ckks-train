@@ -126,7 +126,10 @@ matching twin means use identical seed subsets. The independent interactive refe
 shown outside NI-derived (d) and its ways-pass column. All four RQ3 caveats remain in the notes.
 
 HEonGPU's I=4 means four primes per digit (alpha=4), not four digits. The 2581.8 us literature
-value is unchanged. Its previously cited Nov2024 manuscript version date is unverified.
+value is unchanged. The author-deposited manuscript dated November2024 was verified on
+2026-11-08 through [Sabanci University](https://research.sabanciuniv.edu/id/eprint/53894/).
+Its MethodII/III security differs from its MethodI comparison; the nominal timing ratio
+is not a matched-security result. See `docs/m4-report.md` section1.2.
 
 ## Server timing of the runner
 

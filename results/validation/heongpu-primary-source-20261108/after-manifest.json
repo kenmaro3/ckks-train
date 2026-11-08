@@ -1,0 +1,42 @@
+[
+  {
+    "path": "results/reference/literature.json",
+    "bytes": 1426,
+    "sha256": "2c6bdca7c2ec33f2fcc7e760339406c14c2f6454c09ce4a0e2c07752d180b6c5"
+  },
+  {
+    "path": "results/README.md",
+    "bytes": 11336,
+    "sha256": "fd10627a6110d98863f036e2e228ab305f0f97aefcbde9f312502abfa4f05721"
+  },
+  {
+    "path": "docs/m4-report.md",
+    "bytes": 40347,
+    "sha256": "b270d88647819ad841d6082e3e5df00761e9509221ae7f90ae80dac5ced37ece"
+  },
+  {
+    "path": "paper/sections/evaluation.tex",
+    "bytes": 10023,
+    "sha256": "b97f48ae9ba15947b00a7046a67fc755347e0c731a56c71e7e2d4b28731a3181"
+  },
+  {
+    "path": "paper/refs.bib",
+    "bytes": 4854,
+    "sha256": "16fd704def307c0cd833735c55d650389e8e6bfc0b0e94fd9b87df215fda67f7"
+  },
+  {
+    "path": "results/tables/gpu_vs_cpu_ops.md",
+    "bytes": 2822,
+    "sha256": "af5f19dd3f4cc993b43643a49c3bcbc0600854ddee638adfa402f4fffd6ff242"
+  },
+  {
+    "path": "paper/tables/gpu_vs_cpu_ops.tex",
+    "bytes": 3051,
+    "sha256": "c9104367559251ee43275272c219c2e632b59225c1d56eda7170422afe3043cf"
+  },
+  {
+    "path": "paper/README.md",
+    "bytes": 11322,
+    "sha256": "deff8de9e7bdaf01ff189e8af7ce3cf005ed196170fe4fb31be5e53657e27724"
+  }
+]

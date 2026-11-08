@@ -55,9 +55,10 @@ R-47-2 で、同じ 4 つの積を 4 ストリームに分けると 41.67 ms、1
 
 読んだのは論文・README・公式文書だけ(コードは読んでいない、HEonGPU は Apache-2.0)。
 
-1. **Özcan, Savaş, "GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes"**(IACR ePrint 2025/124、2024 年 11 月版、HEonGPU に統合された実装)。
+1. **Özcan, Savaş, "GPU Implementations of Three Different Key-Switching Methods for Homomorphic Encryption Schemes"**(IACR ePrint 2025/124、2024 年 11 月版、HEonGPU に統合された実装)。2026-11-08に[著者所属大学の公開版](https://research.sabanciuniv.edu/id/eprint/53894/1/GPU%20Implementations.pdf)を取得し、表紙の日付とTable 3の該当行を再確認した。
    - Table 2: GeForce RTX 4090(24 GB)、CUDA 12.4。
    - **Table 3**(CKKS の relinearization、GPU、µs): log N = 16、43 bit 精度、I = 4(桁あたり 4 素数 = n16_train の α)、Method II(hybrid)、(I, ℓ̃, ℓ) = (4, 40, 36)、level 35 で **2581.8 µs**。n16_train は ℓ = 32、特別素数 4 本(ℓ̃ = 36)、dnum 8 なので、素数の本数が約 1 割少ない。同じ表の 36 bit 精度、(4, 46, 42) は 3458.4 µs。
+   - **セキュリティ条件も一致しない**: 同論文p.11はMethod II/IIIの条件を128-bitのMethod Iより低く設定し、実験全体で約110 bit以上と説明する。この記述は当該行の強度をちょうど110 bitと特定するものではなく、掲載速度比を同一セキュリティ比較として扱えないという制約である。
    - Table 5: CKKS、log N = 16 の GPU relinearization は Method I 9446.2 / II 3458.4 / III 3798.2 µs(36 bit 精度の行)。SEAL(CPU、Ryzen 9 7950X3D)の Method I は 1,215,753 µs。
    - add・mul・rescale・rotate・hoisted rotation・行列ベクトル積の RTX 4090 の値は、この論文には無い。
 2. **HEonGPU の README と公式文書の [Appendix "Performance Benchmarks"](https://heongpu.readthedocs.io/en/latest/appendix.html#performance-benchmarks)**: RTX 4090 の表は CKKS bootstrapping と TFHE で、個々の CKKS 演算の値は無い。2026-11-06 に計画責任者が一次資料で確認した Regular の条件は N = 2^16、32768 スロット、残り 9 レベル、5 回の中央値 **109.28 ms**。Task 49 の比較境界は §3.3。
