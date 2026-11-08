@@ -1,0 +1,11 @@
+# R48 ablation table intake: bounded Task54 integration
+
+The generator checks the original P48 ablation output with its runner/queue terminal records and optimizer selection. It separates successful measurements, capacity SKIP, failures/watchdogs, and missing evidence. It checks eight unique configurations, actual protocol/statistics/provenance, selected optimizer conditions and the producer's real-MNIST workload note. A synthetic-pixel fallback supplies no accepted timings. Recorded workload labels and capture hashes do not prove historical consumed-input bytes.
+
+An original CPU terminal/output with its optimizer record may establish that CPU member even while GPU records are missing; GPU stays pending and no paired comparison is inferred. Present contradictory predecessors/candidates are errors. NAG and post-SGD branches follow the deployed queue's distinct conditions. Four caveats, same-run ratios and smoke counts-only reporting remain; no new cross-backend ratio or GPU-peak claim is added.
+
+52 focused Python tests, both table check entrypoints and independent source rereview passed. The initial independent review found one P2: an opposite CPU variant without terminal files was hidden as pending. The original report/review and eight reproduced RED failures are retained; FIX1 rejects both directions atomically without changing valid rendering. Actual R48 inputs were absent and existing generated tables remain unchanged. The R48-1 mandatory training gate, actual measurements, scientific acceptance and full Task54 remain incomplete.
+
+A marked synthetic R47/R48/R52 PDF compiled to 11 pages without overflow, undefined-reference or missing-character warnings. Root visually inspected the populated R48 table on page 9 (24 registered rows plus 8 smoke rows and notes) for clipping/overlap. This does not inspect all pages or the future real-result PDF. After FIX1, all seven TeX/Markdown tables and the complete source index were compared byte-for-byte against that PDF fixture's exact inputs. The intermediate PDF/PNG stay on verified MicroSD and must never be published as experimental evidence.
+
+The manifest pins reviewed sources and original evidence. Gzip files preserve reports, reviews, failures, layout records and the exact source diff losslessly. These are implementation/validation records, not binary research-result JSON.

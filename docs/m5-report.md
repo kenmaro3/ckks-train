@@ -968,3 +968,7 @@ Task54のeMLP-2/3 subset入力を、元バイナリJSONとrunner・queue終端�
 ## 2026-11-08 16:26 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T16:26:15.919362+09:00。FULL-2はupdate915（0始まり）＝**916/1000更新**、ログ内elapsed133577s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1625/README.md)。1625は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T17:28:00+09:00以降のR-41-FULL2-OBS-20261108-1728として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。
+
+## 2026-11-08: R48アブレーションの表入力を準備
+
+元バイナリJSON・runner/queue終端記録・optimizer選択を照合するR48集計処理を実装し、52件のPythonテスト、両表生成入口、独立再レビューが合格した。容量SKIP・失敗・欠測を分け、8構成の重複や矛盾、実MNISTではない代替データを成功の計時として採用しない。CPU単独の根拠は保持するが、未回収GPUとの比較は作らない。仮データの11ページPDFでは該当する9ページ目の表・注記を目視し、修正後の全表入力が同一であることを確認した。[実装・失敗と修正・検証記録](../results/validation/task54-r48-table-integration-20261108/README.md)。実測ファイルは未回収で生成済みの実測表は不変。R48-1の必須訓練ゲート、R48実測の科学的採用、最終PDF、Task54全体は未完了である。

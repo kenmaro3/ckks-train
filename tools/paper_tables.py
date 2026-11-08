@@ -867,24 +867,330 @@ def table_accuracy(s, inp):
     return t
 
 
+R48_PIN = '0e075618ab6e28b0cf260f98feb7f80ee1ccf1f3'
+R48_WORKDIR = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r48'
+# Digests of the exact project P48 ablation.rs protocol and four verbatim caveats.
+R48_PROTOCOL_SHA = '564663f4a3e29dc607b01a9734627389a5e5f01227426d50c9a8df19df34999f'
+R48_CAVEATS_SHA = 'b793ad497f7b900a463c189066e258bda57a7a5081f7104584408091fde72a92'
+
+
+def r48_inputs(s, inp):
+    """Finite deployed P48 job selection; original runner records never replace binary JSON."""
+    try:
+        return read_r48_inputs(s, inp)
+    except TableError:
+        raise
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError, IndexError, OverflowError,
+            rq1.SummaryError) as exc:
+        raise TableError(f'R48: invalid original evidence: {exc}') from exc
+
+
+def read_r48_inputs(s, inp):
+    if inp.run_all == 'quick':
+        return {}
+    root = 'results/quadruped/raw/R-48'
+    present = lambda rel: (s.root / rel).exists() or (s.root / rel).is_symlink()
+    raw = {}
+
+    def read(rel):
+        if rel not in raw:
+            raw[rel] = (s.root / rel).read_bytes()
+        return raw[rel]
+
+    def text(rel):
+        return read(rel).decode('utf-8')
+
+    def doc(rel):
+        d = json.loads(read(rel), object_pairs_hook=rq1.unique_object)
+        rq1.finite_tree(d)
+        require(isinstance(d, dict), f'{rel}: expected original object')
+        return d
+
+    def check(ok, message):
+        require(ok, 'R48: ' + message)
+
+    def num(value, name, integer=False, minimum=0):
+        check(type(value) is int if integer else type(value) in (int, float), name + ': wrong number type')
+        check(math.isfinite(value) and value >= minimum, name + ': nonfinite/out of range')
+        return value
+
+    def same(a, b, name):
+        num(a, name)
+        check(math.isclose(a, b, rel_tol=1e-9, abs_tol=1e-9), name + ': inconsistent value')
+
+    def stamp(value):
+        check(isinstance(value, str) and re.fullmatch(
+            r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}', value), 'timezone-qualified runner time required')
+        return datetime.fromisoformat(value).timestamp()
+
+    def argv(value):
+        check(isinstance(value, str), 'missing command')
+        return shlex.split(value)
+
+    opt_rel = root + '/R-48-optimizer.json'
+    optimizer = None
+    if present(opt_rel):
+        d = doc(opt_rel)
+        check(set(d) == {'cpu_optimizer'} and d['cpu_optimizer'] in ('nag', 'sgd'), 'malformed original optimizer selection')
+        optimizer = d['cpu_optimizer']
+
+    def canonical(job, opt):
+        stem = ('ablation_cuda' + ('_sgd' if job.endswith('-sgd') else '') if job.startswith('R-48-2') else
+                'ablation_cpu' if job == 'R-48-4' else 'ablation_cpu_l7' + ('_sgd' if opt == 'sgd' else ''))
+        return 'results/quadruped/' + stem + '.json'
+
+    def observed(job, candidates=()):
+        return any(present(f'{root}/{job}/{name}') for name in ('program.log', 'meta.json', 'post.txt', 'cmd.txt', 'state.json')) or any(present(p) for p in candidates)
+
+    cpu_candidates = RUN['ABL-CPU-L7'][0]
+    cpu_alias = f'results/run_all/{inp.run_all}/ablation_cpu_l7.json' if inp.run_all else ''
+    cpu_seen = observed('R-48-3', cpu_candidates) or bool(cpu_alias and present(cpu_alias))
+    check(not cpu_seen or optimizer is not None, 'CPU level7 job requires original optimizer record')
+
+    def job(name, opt):
+        canon = canonical(name, opt)
+        if not observed(name, [canon]):
+            return None
+        paths = [f'{root}/{name}/{part}' for part in ('program.log', 'meta.json', 'post.txt', 'cmd.txt', 'state.json')]
+        check(all(present(p) for p in paths), name + ': incomplete original terminal evidence')
+        log_rel, meta_rel, post_rel, cmd_rel, state_rel = paths
+        log, meta, post, state = text(log_rel), doc(meta_rel), text(post_rel).splitlines(), doc(state_rel)
+        gpu, full = name.startswith('R-48-2'), name == 'R-48-4'
+        command = ['target/release/ablation', '--backend', 'cuda' if gpu else 'cpu', '--params', 'n16_train',
+                   *([] if full else ['--top-level', '7']), '--optimizer', opt, '--iters', '3' if full else '5',
+                   '--warmup', '1', '--data', R48_WORKDIR + '/data/mnist', '--out', canon]
+        check(meta.get('job') == state.get('job') == name and
+              meta.get('workdir') == state.get('workdir') == R48_WORKDIR, name + ': wrong job/workdir')
+        check(meta.get('hekit_synced_commit') == ['commit 0e07561', 'full ' + R48_PIN, 'dirty_files 0'], name + ': wrong pin/clean marker')
+        check(argv(meta.get('command')) == argv(text(cmd_rel)) == command and state.get('command') == command, name + ': wrong argv')
+        check(type(meta.get('nice')) is int and meta['nice'] == 10 and type(meta.get('threads_cap')) is int and
+              meta['threads_cap'] == 12 and meta.get('gpu_job') is gpu and meta.get('env_thread_caps') ==
+              {k: '12' for k in ('OMP_NUM_THREADS', 'RAYON_NUM_THREADS', 'CARGO_BUILD_JOBS')}, name + ': wrong runner limits')
+        start, end = stamp(meta.get('start')), stamp(meta.get('end'))
+        wall = num(meta.get('wall_s_runner'), 'runner wall')
+        check(end >= start and abs(wall - (end - start)) <= 2, name + ': incoherent runner time')
+        terminal = [(i, line) for i, line in enumerate(post, 1) if line.startswith('JOB_DONE')]
+        check(len(terminal) == 1 and terminal[0][0] == len(post), name + ': missing/duplicate/nonterminal JOB_DONE')
+        done = re.fullmatch(r'JOB_DONE rc=(\d+)', terminal[0][1])
+        check(done is not None, name + ': malformed JOB_DONE')
+        rc = num(meta.get('exit_status'), 'child exit', True)
+        check(rc <= 255 and type(state.get('rc')) is int and state['rc'] == rc == int(done[1]), name + ': child exit mismatch')
+        check(num(state.get('wrapper_rc'), 'separate wrapper exit', True) <= 255, name + ': wrong wrapper status')
+        check(type(meta.get('watchdog_killed')) is bool and post[0].startswith('date: ') and
+              stamp(post[0][6:]) >= end, name + ': invalid watchdog/post date')
+        watchdog = meta['watchdog_killed']
+        check(watchdog or not any(line.startswith('WATCHDOG:') for line in log.splitlines()), name + ': watchdog contradiction')
+        skips = [line for line in log.splitlines() if 'SKIP' in line]
+        check(state.get('skip') is bool(skips) and state.get('skip_lines') == skips and
+              state.get('log') == f'/home/kmihara/hekit-runs/logs/{name}.log', name + ': inconsistent original log/skip')
+        expected = ('failed: RSS watchdog' if watchdog else
+                    'failed: device OOM' if rc and re.search(r'device error|out of memory', log, re.I) else
+                    'skipped' if rc == 3 and skips else 'failed' if rc else 'done_with_skips' if skips else 'done')
+        rejected = state.get('status') == 'failed: output checks/provenance'
+        if rejected:
+            check(rc == 0 and isinstance(state.get('output_error'), str) and state['output_error'].strip() and
+                  'output_sha256' not in state, name + ': incoherent queue output rejection')
+        else:
+            check(state.get('status') == expected, name + ': contradictory queue outcome')
+        if gpu and rc == 3 and skips:
+            capacity = [re.fullmatch(r'ablation: SKIP ablation: needs ([0-9]+\.[0-9]) MiB of GPU memory '
+                                    r'\((\{.*\})\), only ([0-9]+\.[0-9]) MiB free; GPU run unmeasured', line)
+                        for line in skips]
+            check(len(capacity) == 1 and capacity[0] is not None, name + ': missing actual capacity SKIP diagnostic')
+            estimate = json.loads(capacity[0][2], object_pairs_hook=rq1.unique_object)
+            check(isinstance(estimate, dict) and set(estimate) ==
+                  {'total_mib', 'keys_mib', 'tables_mib', 'state_mib', 'work_mib'}, name + ': malformed capacity estimate')
+            for value in estimate.values():
+                num(value, 'capacity estimate')
+            same(float(capacity[0][1]), estimate['total_mib'], 'capacity diagnostic total')
+            num(float(capacity[0][3]), 'capacity diagnostic available memory')
+        skipped = gpu and rc == 3 and bool(skips) and state['status'] == 'skipped'
+        sources = [(meta_rel, field) for field in ('job', 'host', 'workdir', 'command', 'hekit_synced_commit', 'nice',
+                   'threads_cap', 'env_thread_caps', 'gpu_job', 'start', 'end', 'wall_s_runner', 'exit_status', 'watchdog_killed')]
+        sources += [(state_rel, field) for field in ('rc', 'wrapper_rc', 'status', 'skip', 'skip_lines', 'command', 'workdir', 'log')]
+        sources += [(post_rel, f'line {terminal[0][0]}'), (cmd_rel, 'line 1')]
+        sources += [(log_rel, f'line {i}') for i, line in enumerate(log.splitlines(), 1)
+                    if re.search(r'SKIP|WATCHDOG:|device error|out of memory', line, re.I)]
+        if rejected:
+            sources.append((state_rel, 'output_error'))
+        record = {'job': name, 'optimizer': opt, 'gpu': gpu, 'full': full, 'canonical': canon, 'rel': canon,
+                  'state_rel': state_rel, 'state': state, 'meta': meta, 'start': start, 'end': end, 'command': command,
+                  'rc': rc, 'watchdog': watchdog, 'skip': skipped, 'sources': sources,
+                  'status': 'capacity SKIP/unmeasured' if skipped else 'failed/unmeasured' if rc or watchdog or rejected else 'success'}
+        if record['status'] == 'success':
+            check(not skips, name + ': success with SKIP is not a completed measurement')
+        elif present(canon):
+            read(canon)  # Original failed JSON is retained, never parsed as accepted timing.
+        return record
+
+    nag, sgd = job('R-48-2', 'nag'), job('R-48-2-sgd', 'sgd')
+    check(sgd is None or nag is not None and nag['skip'], 'SGD GPU job lacks actual NAG capacity-SKIP trigger')
+    expected_opt = None
+    if nag:
+        if not nag['skip']:
+            expected_opt = 'nag'
+        elif sgd:
+            # The deployed post-SGD choice uses rc/skip, without a status condition.
+            expected_opt = 'nag' if sgd['rc'] == 3 and sgd['state']['skip'] else 'sgd'
+    check(optimizer is None or expected_opt is None or optimizer == expected_opt, 'optimizer record contradicts present preceding jobs')
+    if cpu_seen:
+        selected_cpu = canonical('R-48-3', optimizer)
+        check(not any(present(rel) for rel in cpu_candidates if rel != selected_cpu), 'conflicting CPU optimizer output candidates')
+    cpu = job('R-48-3', optimizer) if cpu_seen else None
+    if cpu:
+        cpu['sources'].append((opt_rel, 'cpu_optimizer'))
+    records = {'ABL-CUDA-L7': sgd or nag, 'ABL-CPU-L7': cpu, 'ABL-CPU-L31': job('R-48-4', 'nag')}
+
+    def validate(record, key):
+        rel = f'results/run_all/{inp.run_all}/{RUN[key][1]}.json' if inp.run_all else record['canonical']
+        record['rel'] = rel
+        if record['status'] != 'success':
+            if present(rel):
+                read(rel)
+            return
+        check(present(rel), record['job'] + ': successful terminal lacks selected binary bytes')
+        check(record['state'].get('output_sha256') == hashlib.sha256(read(rel)).hexdigest(), record['job'] + ': output SHA256 mismatch')
+        if rel != record['canonical'] and present(record['canonical']):
+            check(read(rel) == read(record['canonical']), 'run_all alias contradicts canonical original')
+        d = doc(rel)
+        p, setup, backend = d['provenance'], d['setup'], d['backend']
+        gpu, full = record['gpu'], record['full']
+        check(p['written_by'] == 'the ablation binary (raw output, not assembled)' and p['git_commit'] == R48_PIN and
+              p['git_modified_tracked_files'] == 'none' and p['command_line'] == ' '.join(record['command']), 'wrong binary provenance')
+        check(p['build'] == {'debug_assertions': False, 'package_version': '0.0.0', 'target_os': 'linux',
+                            'target_arch': 'x86_64', 'features': {'parallel': True, 'cuda': True}} and p['parallel_feature'] is True, 'wrong P48 build')
+        check(isinstance(record['meta'].get('host'), str) and record['meta']['host'].split('.')[0] == p['machine']['host'] and
+              all(isinstance(p['machine'][k], str) and p['machine'][k] not in ('', 'unknown') for k in ('host', 'cpu', 'os')), 'wrong binary/runner host')
+        check(isinstance(p['threads'], str) and re.fullmatch(r'rayon \(feature parallel\), RAYON_NUM_THREADS = 12, [1-9][0-9]* logical CPUs', p['threads']) and
+              d['machine']['threads'] == 'rayon (parallel feature), RAYON_NUM_THREADS=12', 'wrong binary thread context')
+        ps, pe = num(p['started_unix'], 'binary start'), num(p['finished_unix'], 'binary finish')
+        check(record['start'] <= ps < pe < record['end'] + 1, 'binary time outside runner interval')
+        check(all(isinstance(p[k], str) and p[k] not in ('', 'unknown') for k in ('load_start', 'load_end')), 'missing shared-load context')
+        if gpu:
+            info = p['gpu']
+            check(isinstance(info, dict) and isinstance(info.get('name'), str) and info['name'] and
+                  num(info['free_mib_at_start'], 'GPU free memory', minimum=1e-12) <= num(info['total_mib'], 'GPU total memory', minimum=1e-12) and
+                  backend['device'] == info['name'], 'missing/contradictory actual GPU provenance')
+        else:
+            check(p['gpu'] is None and backend['device'] == 'cpu', 'CPU P48 GPU provenance must be null')
+        flags = {'hoist': True, 'bsgs': True, 'lazy_relin': True, 'default': True}
+        check(backend['options'] == {'backend': 'cuda' if gpu else 'cpu', 'eval_config': flags, 'matvec': 'sequential',
+                                     'gpu_pool': 'default (256 MiB release threshold)', 'top_level': None if full else 7} and
+              all(type(v) is bool for v in backend['options']['eval_config'].values()), 'wrong actual backend options')
+        expected_setup = {'params': 'n16_train', 'log_n': 16, 'max_level': 31, 'start_level': 31 if full else 7,
+                          'level_capped': not full, 'dims': [784, 32, 10], 'layout_d': 1024, 'lanes_b': 32,
+                          'optimizer': record['optimizer'], 'lr': 0.001, 'momentum': 0.9, 'seed': 48,
+                          'transpose_keys': 'reuse (mlp_key_pool)', 'matvec_dims_per_step': [32, 16, 16],
+                          'warmup_iterations': 1, 'timed_iterations': 3 if full else 5}
+        check(all(setup[k] == value and type(setup[k]) is type(value) for k, value in expected_setup.items()), 'wrong registered setup/condition')
+        num(setup['keygen_s'], 'key generation seconds')
+        num(setup['galois_keys'], 'Galois key count', True, 1)
+        check(isinstance(d['protocol'], str) and hashlib.sha256(d['protocol'].encode()).hexdigest() == R48_PROTOCOL_SHA, 'wrong timing/check protocol')
+        check(isinstance(d['caveats'], list) and hashlib.sha256(json.dumps(d['caveats'], ensure_ascii=False, separators=(',', ':')).encode()).hexdigest() ==
+              R48_CAVEATS_SHA, 'missing/changed four producer caveats')
+        check(d['all_checks_pass'] is True and isinstance(d['configs'], list) and len(d['configs']) == 8, 'failed/incomplete configuration grid')
+        rows = {}
+        for i, row in enumerate(d['configs']):
+            triple = tuple(row[k] for k in ('hoist', 'bsgs', 'lazy_relin'))
+            check(all(type(v) is bool for v in triple) and triple not in rows and
+                  row['config'] == 'hoist={} bsgs={} lazy_relin={}'.format(*(int(v) for v in triple)), 'duplicate/malformed configuration')
+            rows[triple] = row
+            c = row['counter_per_iteration']
+            for field in ('rotations', 'relins', 'key_switches', 'ct_ct_tensor', 'ct_pt_mults', 'rescales', 'bootstraps'):
+                num(c[field], field, True)
+            check(c['key_switches'] == c['rotations'] + c['relins'] and c['bootstraps'] == 0 and
+                  row['counter_constant_over_iterations'] is True and row['closed_form_matches'] is True and
+                  row['counts_equal_hoist_on_counterpart'] is True and
+                  (row['weights_bit_identical_to_hoist_on_counterpart'] is None if triple[0] else
+                   row['weights_bit_identical_to_hoist_on_counterpart'] is True), 'counter/row checks contradict success')
+            samples = row['step_s']
+            check(isinstance(samples, list) and len(samples) == expected_setup['timed_iterations'], 'wrong timed repetition coverage')
+            for value in samples:
+                num(value, 'step sample', minimum=1e-12)
+            same(row['step_s_median'], statistics.median(samples), 'step median')
+            same(row['iteration_s_median'], row['step_s_median'] + num(row['refresh_s_median'], 'refresh median'), 'sum of step/refresh medians')
+            error = num(row['max_abs_weight_diff_vs_default'], 'weight difference')
+            logarithm = row['log2_max_abs_weight_diff_vs_default']
+            check(logarithm is None if error == 0 else type(logarithm) in (int, float) and math.isfinite(logarithm) and
+                  math.isclose(logarithm, math.log2(error), abs_tol=1e-9), 'inconsistent weight-difference log2')
+        check(set(rows) == {(h, b, l) for h in (True, False) for b in (True, False) for l in (True, False)}, 'incomplete boolean grid')
+        default, naive = rows[True, True, True], rows[False, False, False]
+        check(default['max_abs_weight_diff_vs_default'] == 0, 'default differs from itself')
+        for (hoist, bsgs, lazy), row in rows.items():
+            c, base = row['counter_per_iteration'], default['counter_per_iteration']
+            # P48 EvalConfig formulas for the registered d=32,16,16 matvecs.
+            predicted_rot = base['rotations'] + (0 if bsgs else 39)
+            predicted_relin = base['relins'] + (52 if not lazy else 0 if bsgs else 39)
+            check(num(row['closed_form']['rotations'], 'predicted rotations', True) == c['rotations'] == predicted_rot and
+                  num(row['closed_form']['relins'], 'predicted relins', True) == c['relins'] == predicted_relin, 'relative closed form disagrees')
+            counterpart = rows[True, bsgs, lazy]
+            check(c == counterpart['counter_per_iteration'] and row['max_abs_weight_diff_vs_default'] == counterpart['max_abs_weight_diff_vs_default'], 'hoist counterpart contradiction')
+            same(row['step_time_over_default'], row['step_s_median'] / default['step_s_median'], 'step/default ratio')
+            same(row['step_speedup_over_all_off'], naive['step_s_median'] / row['step_s_median'], 'all-off/step ratio')
+        check(setup['data'] in ('MNIST training images (first in file order)',
+                               'synthetic uniform pixels (MNIST IDX files not found)'), 'unknown workload data note')
+        if setup['data'] != 'MNIST training images (first in file order)':
+            record['status'] = 'invalid-workload/unmeasured'
+        record['data'] = d
+        s.cache[rel] = d
+        record['sources'] += [(record['state_rel'], 'output_sha256')] + [(rel, field) for field in
+                              ('provenance', 'all_checks_pass', 'protocol', 'setup.data', 'setup.timed_iterations', 'setup.warmup_iterations', 'setup.seed')]
+
+    for key, record in records.items():
+        alias = f'results/run_all/{inp.run_all}/{RUN[key][1]}.json' if inp.run_all else None
+        check(record is not None or not (alias and present(alias)), 'run_all binary lacks original job association')
+        if record:
+            validate(record, key)
+    records['attempts'] = [record for record in (nag, sgd) if record]
+    return records
+
+
 def table_ablation(s, inp):
     t = Table('rq3_ablation', 'RQ3 ablation: one interactive eMLP-1 iteration under each EvalConfig',
               ['Source', 'Backend / level', 'hoist bsgs lazy', 'Rotations', 'Relins', 'KS/iter',
                'Closed form', 'Step median (s)', 'Step / default', 'Max |ΔW| vs default'], wide=True)
     caveats = None
-    pair = [inp.path(key) for key in ('ABL-CUDA-L7', 'ABL-CPU-L7')]
+    registered = r48_inputs(s, inp)
+    pair = [registered.get(key)['rel'] if registered.get(key) and registered[key]['status'] == 'success' else None
+            for key in ('ABL-CUDA-L7', 'ABL-CPU-L7')]
     if all(pair):
-        conditions = ('params', 'start_level', 'optimizer', 'layout_d', 'lanes_b', 'seed')
+        conditions = ('params', 'start_level', 'optimizer', 'dims', 'layout_d', 'lanes_b', 'seed',
+                      'lr', 'momentum', 'data', 'warmup_iterations', 'timed_iterations')
         gpu_setup, cpu_setup = [s.get(rel, 'setup')[0] for rel in pair]
         require(all(gpu_setup.get(k) == cpu_setup.get(k) for k in conditions),
                 'RQ3 CPU/GPU pair must use the same params/level/optimizer/layout/batch/seed')
     for key, label in (('ABL-CPU-L31', 'CPU, n16_train, level 31'), ('ABL-CUDA-L7', 'GPU, n16_train, level 7'),
                        ('ABL-CPU-L7', 'CPU, n16_train, level 7'), ('ABL-SMOKE', 'CPU smoke')):
-        rel = inp.path(key)
+        record = registered.get(key)
+        rel = inp.path(key) if key == 'ABL-SMOKE' else record['rel'] if record else None
         if rel is None:
             if not (inp.run_all and RUN[key][1] is None):
                 t.row([label, '', '', '', '', '', '', inp.pending(key), '', ''])
             continue
+        if record:
+            sources = record['sources']
+            t.note(f'{record["job"]}: {record["status"]}; optimizer {record["optimizer"]}; '
+                   f'child exit {record["rc"]}; watchdog {str(record["watchdog"]).lower()}. '
+                   'Runner/queue fields and hashes identify captured bytes, not historical execution proof.', sources)
+            if record['status'] != 'success':
+                t.row([Cell(label, sources), '', '', '', '', '', '', Cell(record['status'], sources), '—', '—'])
+                if 'data' in record:
+                    if caveats is None:
+                        caveats = (rel, record['data']['caveats'])
+                    t.note(f'{record["job"]} original invalid workload: {record["data"]["setup"]["data"]}. '
+                           'Its recorded times are not accepted as real-MNIST performance.', [(rel, 'setup.data')])
+                continue
+            d, p = record['data'], record['data']['provenance']
+            t.note(f'{record["job"]}: one warmup; {d["setup"]["timed_iterations"]} timed iterations within seed 48, '
+                   'not independent seeds. Step is server work including device-queue wait; iteration_s_median '
+                   'is the sum of step and refresh medians, not a median of paired iteration totals. '
+                   'These are interactive client-refresh measurements, not NI bootstrap and not GPU peak measurements.',
+                   [(rel, field) for field in ('setup.timed_iterations', 'setup.warmup_iterations', 'setup.seed', 'protocol')])
+            t.note(f'{record["job"]}: {p["threads"]}; started {p["started_unix"]}; finished {p["finished_unix"]}; '
+                   f'load_start {p["load_start"]}; load_end {p["load_end"]}; original binary SHA256 '
+                   f'{record["state"]["output_sha256"]}.',
+                   [(rel, f'provenance.{field}') for field in ('threads', 'started_unix', 'finished_unix', 'load_start', 'load_end')] +
+                   [(record['state_rel'], 'output_sha256')])
         params, psrc = s.get(rel, 'setup.params')
         backend, bsrc = s.get(rel, 'backend.device')
         top, tsrc = s.get(rel, 'backend.options.top_level')
@@ -916,6 +1222,9 @@ def table_ablation(s, inp):
                    Cell('0' if dw == 0 else f'{dw:.2e}', [src('max_abs_weight_diff_vs_default')])])
         if caveats is None:
             caveats = (rel, s.get(rel, 'caveats')[0])
+    for attempt in registered.get('attempts', []):
+        if attempt is not registered.get('ABL-CUDA-L7'):
+            t.note(f'{attempt["job"]} preceding attempt: {attempt["status"]}; no timing accepted from that attempt.', attempt['sources'])
     if caveats:
         rel, items = caveats
         for i, text in enumerate(items):

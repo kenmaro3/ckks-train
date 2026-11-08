@@ -1,0 +1,65 @@
+{
+  "kind": "implementation_validation_not_measurement",
+  "base": "3090d1e6c71e38e8efb8e713a0d265b9d788b522",
+  "sources": {
+    "tools/paper_tables.py": {
+      "bytes": 106815,
+      "sha256": "f7e3774f7124fe24e5a7a882df902ea7584aaa62ece7855a43def5d880af6b38"
+    },
+    "tools/test_paper_tables.py": {
+      "bytes": 74518,
+      "sha256": "a791c10d58485b0262dae7aee70be390ac72d7d7ea15aa7416a773257d414402"
+    }
+  },
+  "original_evidence": [
+    {
+      "file": "task-54-r48-table-integration-brief.md.gz",
+      "original_bytes": 5676,
+      "original_sha256": "00f0425fc0e2a50aaf156a2de35a6d5175bb68db577e74981281cdebbb14e6d6",
+      "stored_sha256": "b67fdb3bc1d3d515fe6bc5a388c0a86113bba8d2453a7bda3505295f609d01d0"
+    },
+    {
+      "file": "task-54-r48-standalone-cpu-ruling.md.gz",
+      "original_bytes": 1812,
+      "original_sha256": "06756d949c8c16891b462fb5c72007a4c218486b2da90a8e0eb68c83c5b48a44",
+      "stored_sha256": "436e1482b3f92e193c15d08cb2e913759430d2780516dd7e154c5c9aec388941"
+    },
+    {
+      "file": "task-54-r48-table-integration-report.md.gz",
+      "original_bytes": 160586,
+      "original_sha256": "366a81203504343a61a47dd2c95cf37b1b2a1df41a8bb6fd1c8a47798fc31354",
+      "stored_sha256": "2eb5cda6d06019342c7b9a1a9685d147efadb11f7e034430fb5d9b298eeccfb6"
+    },
+    {
+      "file": "task-54-r48-table-integration-review.md.gz",
+      "original_bytes": 22745,
+      "original_sha256": "b8274e24432a4ae14a42a54e33bc77e58f0ca945a2409ad4897fcd4bde70d0c4",
+      "stored_sha256": "710841725585c1d821673f2d84e88b31784db94f313fd27bd784180734ea6794"
+    },
+    {
+      "file": "task-54-r48-table-integration-fix1-report.md.gz",
+      "original_bytes": 91133,
+      "original_sha256": "2be493e140a7f4a557036b16cc1779bd8f9f7c4c4e845c1f1c2a1183c59089ea",
+      "stored_sha256": "c57dc3495eed9221d292cb4bf981af8f19b6df52cc9916121cebcadb24d9641e"
+    },
+    {
+      "file": "task-54-r48-table-integration-fix1-review.md.gz",
+      "original_bytes": 26368,
+      "original_sha256": "911a4a68c0305ca1699e294d4ca6716c41fd12bdf7f55151ad00004555975895",
+      "stored_sha256": "19792b50d394f87b4899b4d1458cce196db3e244865d505066bfd02bba1d6454"
+    },
+    {
+      "file": "task-54-r48-layout-verification.json.gz",
+      "original_bytes": 1471,
+      "original_sha256": "85abe9758527c7287603c118141781e5a981a3b204d329b02876a8231ff4362a",
+      "stored_sha256": "1c6cca0707030f857a23e47de4f3f6be1a817bcd78056f0e50b6bd9842388e07"
+    },
+    {
+      "file": "task-54-r48-fix1-layout-byte-verification.json.gz",
+      "original_bytes": 2832,
+      "original_sha256": "59de0558199576962196b8db22a4d3a61904e966ae5574e0e21d48845709338a",
+      "stored_sha256": "50a386481d88f87a15464faf0bcd54ce90778b640f04621859b5031b43b847b4"
+    }
+  ],
+  "reviewed_diff_sha256": "51d3e6d4046a11534237d153ce755bda49548de3104ddb197f72d13ce4488ca4"
+}

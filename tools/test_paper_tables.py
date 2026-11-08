@@ -4,6 +4,7 @@ import copy
 import io
 import hashlib
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -24,10 +25,11 @@ def archived_overlay(root, source=ROOT):
         dest.mkdir(parents=True, exist_ok=True)
         for p in (source / base).iterdir():
             q = dest / p.name
-            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2', 'R-47-3', 'R-52',
+            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2', 'R-47-3', 'R-52', 'R-48',
                                          'mnist196_emlp2_ni_b48_subset1008_seed0.json',
                                          'mnist196_emlp3_ni_b48_subset1008_seed0.json',
-                                         'ablation_cuda.json', 'ablation_cpu_l7.json')):
+                                         'ablation_cuda.json', 'ablation_cuda_sgd.json', 'ablation_cpu_l7.json',
+                                         'ablation_cpu_l7_sgd.json', 'ablation_cpu.json')):
                 continue
             if p.is_file() or (p.is_dir() and base.endswith('/raw')) or p.name == 'reference':
                 q.symlink_to(p, target_is_directory=p.is_dir())
@@ -210,6 +212,86 @@ def refresh_r52_digest(dest, archive):
     state=json.loads((archive/'state.json').read_text())
     state['output_sha256']=hashlib.sha256(dest.read_bytes()).hexdigest()
     (archive/'state.json').write_text(json.dumps(state))
+
+
+R48_PIN = '0e075618ab6e28b0cf260f98feb7f80ee1ccf1f3'
+R48_WD = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r48'
+
+
+def put_r48_optimizer(root, optimizer):
+    path = root / 'results/quadruped/raw/R-48/R-48-optimizer.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({'cpu_optimizer': optimizer}))
+    return path
+
+
+def put_r48(root, job='R-48-2', optimizer='nag', rc=0, watchdog=False, skip=False, output=None, oom=False):
+    """Tiny SYNTHETIC actual-P48-shaped ablation and original terminal records."""
+    if output is None:
+        output = rc == 0
+    gpu = job in ('R-48-2', 'R-48-2-sgd')
+    full = job == 'R-48-4'
+    if job == 'R-48-2-sgd':
+        optimizer = 'sgd'
+    name = ('ablation_cuda' + ('_sgd' if optimizer == 'sgd' else '') if gpu else
+            'ablation_cpu' if full else 'ablation_cpu_l7' + ('_sgd' if optimizer == 'sgd' else ''))
+    rel = f'results/quadruped/{name}.json'
+    argv = ['target/release/ablation', '--backend', 'cuda' if gpu else 'cpu', '--params', 'n16_train',
+            *([] if full else ['--top-level', '7']), '--optimizer', optimizer, '--iters', '3' if full else '5',
+            '--warmup', '1', '--data', R48_WD + '/data/mnist', '--out', rel]
+    doc = json.loads((ROOT / 'results/ablation_cpu_smoke_small.json').read_bytes())
+    doc['provenance'].update(written_by='the ablation binary (raw output, not assembled)',git_commit=R48_PIN,
+        git_modified_tracked_files='none',command_line=' '.join(argv),parallel_feature=True,
+        build={'debug_assertions':False,'package_version':'0.0.0','target_os':'linux','target_arch':'x86_64',
+               'features':{'parallel':True,'cuda':True}},
+        machine={'cpu':'synthetic CPU','host':'synthetic-host','os':'Linux','logical_cpus':32,'memory_bytes':'1000'},
+        threads='rayon (feature parallel), RAYON_NUM_THREADS = 12, 32 logical CPUs',
+        load_start='1.0 2.0 3.0 1/100 1',load_end='2.0 3.0 4.0 1/100 1',
+        started_unix=1794099601.0,finished_unix=1794099609.0,
+        gpu={'name':'SYNTHETIC GPU','free_mib_at_start':3000.0,'total_mib':24000.0} if gpu else None)
+    doc['backend']['options'].update(backend='cuda' if gpu else 'cpu',
+        eval_config={'hoist':True,'bsgs':True,'lazy_relin':True,'default':True},
+        top_level=None if full else 7,matvec='sequential',gpu_pool='default (256 MiB release threshold)')
+    doc['backend']['device'] = 'SYNTHETIC GPU' if gpu else 'cpu'
+    doc['setup'].update(params='n16_train',log_n=16,max_level=31,start_level=31 if full else 7,
+        level_capped=not full,dims=[784,32,10],layout_d=1024,lanes_b=32,optimizer=optimizer,
+        lr=0.001,momentum=0.9,seed=48,data='MNIST training images (first in file order)',
+        transpose_keys='reuse (mlp_key_pool)',matvec_dims_per_step=[32,16,16],
+        warmup_iterations=1,timed_iterations=3 if full else 5)
+    for i,row in enumerate(doc['configs']):
+        row['counter_per_iteration']['rotations'] += 400
+        row['counter_per_iteration']['key_switches'] += 400
+        row['closed_form']['rotations'] += 400
+        median = 1.0 + i/10
+        row.update(step_s=[median+j/10 for j in ([-1,0,1] if full else [-2,-1,0,1,2])],
+                   step_s_median=median,refresh_s_median=0.2,iteration_s_median=median+0.2,
+                   step_time_over_default=median,step_speedup_over_all_off=1.7/median)
+    doc['machine'].update(threads='rayon (parallel feature), RAYON_NUM_THREADS=12',wall_total_s=9.0)
+    dest=root/rel
+    if dest.is_symlink():dest.unlink()
+    if output:dest.write_text(json.dumps(doc))
+    elif dest.exists():dest.unlink()
+    archive=root/'results/quadruped/raw/R-48'/job
+    archive.mkdir(parents=True,exist_ok=True)
+    need = dict(doc['backend']['gpu_need_estimate'])
+    need['total_mib'] = 2456.0 if optimizer == 'nag' else 2072.0
+    log = (f'ablation: SKIP ablation: needs {need["total_mib"]:.1f} MiB of GPU memory ({json.dumps(need)}), '
+           'only 1000.0 MiB free; GPU run unmeasured\n' if skip else
+           'device error: synthetic out of memory\n' if oom else 'SYNTHETIC ablation terminal log\n')
+    meta={'job':job,'host':'synthetic-host','workdir':R48_WD,'command':' '.join(argv),
+          'hekit_synced_commit':['commit 0e07561','full '+R48_PIN,'dirty_files 0'],
+          'threads_cap':12,'env_thread_caps':{name:'12' for name in ('OMP_NUM_THREADS','RAYON_NUM_THREADS','CARGO_BUILD_JOBS')},
+          'nice':10,'gpu_job':gpu,'start':'2026-11-08T10:00:00+09:00','end':'2026-11-08T10:00:10+09:00',
+          'wall_s_runner':10.0,'exit_status':rc,'watchdog_killed':watchdog}
+    state={'job':job,'rc':rc,'wrapper_rc':0,'status':'failed: RSS watchdog' if watchdog else
+           'failed: device OOM' if oom and rc else 'skipped' if rc==3 and skip else 'failed' if rc else 'done',
+           'skip':skip,'skip_lines':log.splitlines() if skip else [],'command':argv,'workdir':R48_WD,
+           'log':f'/home/kmihara/hekit-runs/logs/{job}.log','evidence_lines':[]}
+    if output and rc==0:state['output_sha256']=hashlib.sha256(dest.read_bytes()).hexdigest()
+    for name,text in {'program.log':log,'meta.json':json.dumps(meta),'state.json':json.dumps(state),
+                      'cmd.txt':' '.join(argv)+' \n','post.txt':'date: 2026-11-08T10:00:10+09:00\nJOB_DONE rc='+str(rc)+'\n'}.items():
+        (archive/name).write_text(text)
+    return dest,archive
 
 
 class PaperTablesTests(unittest.TestCase):
@@ -856,6 +938,227 @@ class PaperTablesTests(unittest.TestCase):
             self.assertFalse((fixture/'results/quadruped'/result.name).exists())
             (fixture/'results/quadruped'/result.name).write_text('SYNTHETIC replacement')
             self.assertEqual(result.read_text(),'SYNTHETIC original');self.assertEqual(sentinel.read_text(),'SYNTHETIC original')
+
+
+    def test_r48_registered_nag_pair_l31_context_and_sources(self):
+        # Break caught: output fields render without original terminal/workload/iteration context.
+        for job in ('R-48-2','R-48-3','R-48-4'):put_r48(self.root,job)
+        put_r48_optimizer(self.root,'nag')
+        table=self.build(tables.table_ablation)
+        measured=[r for r in rows(table) if r[0].startswith(('GPU, n16_train','CPU, n16_train'))]
+        self.assertEqual(len(measured),24)
+        md=tables.render_md(table,'synthetic/')
+        self.assertIn('5 timed iterations',md);self.assertIn('3 timed iterations',md)
+        self.assertIn('within seed 48',md);self.assertIn('not independent seeds',md)
+        self.assertIn('load_start',md);self.assertIn('load_end',md)
+        self.assertIn('sum of step and refresh medians',md)
+        self.assertIn('not GPU peak',md);self.assertIn('not NI bootstrap',md)
+        src='\n'.join(tables.source_lines(table))
+        self.assertIn('R-48/R-48-2/post.txt\tline 2',src)
+        self.assertIn('setup.timed_iterations',src)
+        self.assertTrue(any('upper bound' in n.text for n in table.notes))
+
+    def test_r48_conditional_sgd_both_skip_and_failed_sgd_choices(self):
+        # Break caught: unlike CPU/GPU optimizers, hidden NAG skip, or failed SGD treated as successful.
+        for sgd_rc,sgd_skip,cpu_opt,watchdog in ((0,False,'sgd',False),(3,True,'nag',False),
+                                                   (1,False,'sgd',False),(3,True,'nag',True)):
+            with self.subTest(sgd_rc=sgd_rc):
+                put_r48(self.root,rc=3,skip=True)
+                put_r48(self.root,'R-48-2-sgd',rc=sgd_rc,skip=sgd_skip,watchdog=watchdog)
+                put_r48(self.root,'R-48-3',optimizer=cpu_opt)
+                put_r48_optimizer(self.root,cpu_opt)
+                table=self.build(tables.table_ablation)
+                gpu=[r for r in rows(table) if r[0].startswith('GPU, n16_train')]
+                self.assertEqual(len(gpu),8 if sgd_rc==0 else 1)
+                if sgd_rc:self.assertIn('unmeasured',gpu[0][7])
+                self.assertTrue(any('R-48-2' in n.text and 'capacity SKIP' in n.text for n in table.notes))
+                # Remove prior selected CPU variant in this isolated synthetic iteration.
+                for rel in ('ablation_cpu_l7.json','ablation_cpu_l7_sgd.json'):
+                    path=self.root/'results/quadruped'/rel
+                    if path.exists():path.unlink()
+
+    def test_r48_cpu_only_uses_optimizer_record_without_manufacturing_gpu(self):
+        # Break caught: a standalone CPU record implies an unseen GPU run or requires one unnecessarily.
+        for optimizer in ('nag','sgd'):
+            dest,archive=put_r48(self.root,'R-48-3',optimizer=optimizer)
+            record=put_r48_optimizer(self.root,optimizer)
+            table=self.build(tables.table_ablation)
+            gpu=next(r for r in rows(table) if r[0].startswith('GPU, n16_train'))
+            self.assertIn('pending (R-48-2)',gpu)
+            self.assertEqual(len([r for r in rows(table) if r[0].startswith('CPU, n16_train, level 7')]),8)
+            record.unlink()
+            with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+            record.write_text('{"cpu_optimizer":"other"}')
+            with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+            dest.unlink()
+
+    def test_r48_preceding_skip_and_missing_optional_members_remain_unmeasured_or_pending(self):
+        # Break caught: later optimizer/CPU/SGD absence hides the actual preceding capacity skip.
+        put_r48(self.root,rc=3,skip=True)
+        table=self.build(tables.table_ablation)
+        gpu=next(r for r in rows(table) if r[0].startswith('GPU,'))
+        cpu=next(r for r in rows(table) if r[0].startswith('CPU, n16_train, level 7'))
+        self.assertIn('capacity SKIP/unmeasured',gpu[7]);self.assertIn('pending (R-48-3)',cpu)
+        source='\n'.join(tables.source_lines(table))
+        self.assertIn('R-48/R-48-2/program.log\tline 1',source)
+
+    def test_r48_oom_watchdog_late_failure_and_output_rejection_are_unmeasured(self):
+        # Break caught: printed/saved success JSON overrides a failed original terminal.
+        for rc,watchdog,oom in ((1,False,True),(143,True,False),(1,False,False)):
+            put_r48(self.root,rc=rc,watchdog=watchdog,oom=oom,output=True)
+            table=self.build(tables.table_ablation)
+            gpu=[r for r in rows(table) if r[0].startswith('GPU, n16_train')]
+            self.assertEqual(len(gpu),1);self.assertIn('failed/unmeasured',gpu[0][7])
+        dest,archive=put_r48(self.root)
+        state=json.loads((archive/'state.json').read_text())
+        state.update(status='failed: output checks/provenance',output_error='synthetic output rejection')
+        del state['output_sha256'];(archive/'state.json').write_text(json.dumps(state))
+        self.assertIn('failed/unmeasured',next(r for r in rows(self.build(tables.table_ablation)) if r[0].startswith('GPU,'))[7])
+
+    def test_r48_branch_conflicts_and_missing_nag_trigger_fail_closed(self):
+        # Break caught: selecting SGD from mere presence, or contradictory predecessor/CPU choice.
+        put_r48(self.root,'R-48-2-sgd')
+        with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+        put_r48(self.root) # NAG succeeds: SGD was never selected.
+        with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+        put_r48(self.root,rc=3,skip=True)
+        put_r48(self.root,'R-48-3',optimizer='nag');put_r48_optimizer(self.root,'nag')
+        with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+
+    def test_r48_capacity_skip_requires_the_actual_producer_marker(self):
+        # Break caught: a generic SKIP substring is queue metadata, not the producer's capacity diagnostic.
+        _,archive=put_r48(self.root,rc=3,skip=True)
+        log='SYNTHETIC unrelated SKIP comment\n';(archive/'program.log').write_text(log)
+        state=json.loads((archive/'state.json').read_text());state['skip_lines']=log.splitlines()
+        (archive/'state.json').write_text(json.dumps(state))
+        with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+
+    def test_r48_wrong_terminal_and_binary_provenance_fail_without_partial_outputs(self):
+        # Break caught: canonical path bypasses provenance, or malformed input leaves partial generated files.
+        for name,key,value in [('meta.json','threads_cap',1),('meta.json','hekit_synced_commit',['full '+'a'*40]),
+             ('meta.json','gpu_job',False),('state.json','rc',1),('state.json','output_sha256','a'*64),
+             ('state.json','command',['other']),('meta.json','start','2026-11-08T10:00:00')]:
+            dest,archive=put_r48(self.root);d=json.loads((archive/name).read_text());d[key]=value
+            (archive/name).write_text(json.dumps(d))
+            with self.subTest(name=name,key=key),self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+        dest,archive=put_r48(self.root);(archive/'post.txt').unlink()
+        with contextlib.redirect_stderr(io.StringIO()),contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(tables.main(['--root',str(self.root)]),2)
+            self.assertFalse((self.root/'paper').exists())
+            self.assertEqual(tables.main(['--root',str(self.root),'--from-run-all','quick']),0)
+
+    def test_r48_rejects_bad_binary_flags_counts_stats_and_protocol(self):
+        # Break caught: len8/top-level success masks duplicate rows or contradictory actual fields.
+        mutations=[('provenance.written_by','runner'),('provenance.git_commit','a'*40),
+          ('provenance.build.features.cuda',False),('provenance.machine.host','other'),
+          ('provenance.finished_unix',1794099700),('provenance.gpu',None),
+          ('setup.lr',0.002),('setup.dims',[196,32,10]),('setup.timed_iterations',3),
+          ('configs.0.hoist',1),('configs.0.closed_form_matches',False),
+          ('configs.0.counter_constant_over_iterations',False),('configs.0.counts_equal_hoist_on_counterpart',False),
+          ('configs.4.weights_bit_identical_to_hoist_on_counterpart',False),
+          ('configs.0.counter_per_iteration.key_switches',0),('configs.0.closed_form.rotations',0),
+          ('configs.0.step_s',[0,1,2,3,4]),('configs.0.step_s_median',99),
+          ('configs.0.step_time_over_default',2),('configs.0.iteration_s_median',99),
+          ('configs.0.log2_max_abs_weight_diff_vs_default',-10),('protocol','other')]
+        for field,value in mutations:
+            dest,archive=put_r48(self.root);d=json.loads(dest.read_text());node=d;parts=field.split('.')
+            for part in parts[:-1]:node=node[int(part)] if isinstance(node,list) else node[part]
+            node[parts[-1]]=value;dest.write_text(json.dumps(d));refresh_r52_digest(dest,archive)
+            with self.subTest(field=field),self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+        dest,archive=put_r48(self.root);d=json.loads(dest.read_text());d['configs']=[d['configs'][0]]*8
+        dest.write_text(json.dumps(d));refresh_r52_digest(dest,archive)
+        with self.assertRaises(tables.TableError):self.build(tables.table_ablation)
+
+    def test_r48_synthetic_pixel_fallback_is_visible_invalid_workload_without_times(self):
+        # Break caught: P48's synthetic-pixel fallback silently becomes real-MNIST measured training.
+        dest,archive=put_r48(self.root);d=json.loads(dest.read_text())
+        d['setup']['data']='synthetic uniform pixels (MNIST IDX files not found)'
+        dest.write_text(json.dumps(d));refresh_r52_digest(dest,archive)
+        table=self.build(tables.table_ablation);gpu=[r for r in rows(table) if r[0].startswith('GPU,')]
+        self.assertEqual(len(gpu),1);self.assertIn('invalid-workload/unmeasured',gpu[0][7])
+        self.assertTrue(any('synthetic uniform pixels' in note.text for note in table.notes))
+
+    def test_r48_full_alias_same_original_and_both_entrypoints(self):
+        # Break caught: generic run_all aliases select historical/unassociated bytes.
+        dest,archive=put_r48(self.root)
+        alias=self.root/'results/run_all/full/ablation_cuda_l7.json';alias.parent.mkdir(parents=True)
+        alias.write_bytes(dest.read_bytes())
+        store=tables.Store(self.root);tables.table_ablation(store,tables.Inputs(store,'full'))
+        alias.write_text('{}')
+        store=tables.Store(self.root)
+        with self.assertRaises(tables.TableError):tables.table_ablation(store,tables.Inputs(store,'full'))
+        alias.write_bytes(dest.read_bytes());(archive/'post.txt').unlink()
+        store=tables.Store(self.root)
+        with self.assertRaises(tables.TableError):tables.table_ablation(store,tables.Inputs(store,'full'))
+        put_r48(self.root)
+        for entry in ('paper_tables.py','tables.py'):
+            p=subprocess.run([sys.executable,str(ROOT/'tools'/entry),'--root',str(self.root),'--sources','rq3_ablation'],capture_output=True,text=True)
+            self.assertEqual(p.returncode,0,p.stderr)
+            self.assertIn('R-48/R-48-2/post.txt',p.stdout)
+
+    def test_r48_wrong_cpu_candidate_without_terminal_is_rejected_atomically(self):
+        # Break caught: CPU detection sees both variants, but a missing selected variant used to hide the wrong one.
+        for selected, wrong in (('nag', 'sgd'), ('sgd', 'nag')):
+            put_r48_optimizer(self.root, selected)
+            filename = 'ablation_cpu_l7' + ('_sgd' if wrong == 'sgd' else '') + '.json'
+            candidate = self.root / 'results/quadruped' / filename
+            raw = b'{"SYNTHETIC":"wrong CPU variant without original terminal"}'
+            candidate.write_bytes(raw)
+            expected = self.root / 'results/quadruped' / ('ablation_cpu_l7' + ('_sgd' if selected == 'sgd' else '') + '.json')
+            self.assertFalse(expected.exists())
+            self.assertFalse((self.root / 'results/quadruped/raw/R-48/R-48-3').exists())
+            with self.subTest(selected=selected, consumer='table'):
+                with self.assertRaises(tables.TableError):
+                    self.build(tables.table_ablation)
+            for entry in ('paper_tables.py', 'tables.py'):
+                with self.subTest(selected=selected, consumer=entry):
+                    p = subprocess.run([sys.executable, str(ROOT / 'tools' / entry), '--root', str(self.root),
+                                        '--sources', 'rq3_ablation'], capture_output=True, text=True)
+                    self.assertEqual(p.returncode, 2, p.stdout)
+                    self.assertEqual(p.stdout, '')
+            with self.subTest(selected=selected, consumer='generate'):
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(tables.main(['--root', str(self.root)]), 2)
+                self.assertFalse((self.root / 'paper').exists())
+                self.assertFalse((self.root / 'results/tables').exists())
+            self.assertEqual(candidate.read_bytes(), raw)
+            candidate.unlink()
+
+    def test_r48_cpu_alias_only_selected_bytes_and_failed_original_stay_supported(self):
+        # Break caught: rejecting a legitimate selected alias while moving the wrong-candidate guard.
+        alias = self.root / 'results/run_all/full/ablation_cpu_l7.json'
+        alias.parent.mkdir(parents=True)
+        for optimizer in ('nag', 'sgd'):
+            original, _ = put_r48(self.root, 'R-48-3', optimizer=optimizer)
+            put_r48_optimizer(self.root, optimizer)
+            alias.write_bytes(original.read_bytes())
+            original.unlink()
+            store = tables.Store(self.root)
+            table = tables.table_ablation(store, tables.Inputs(store, 'full'))
+            cpu = [r for r in rows(table) if r[0].startswith('CPU, n16_train, level 7')]
+            gpu = next(r for r in rows(table) if r[0].startswith('GPU,'))
+            self.assertEqual(len(cpu), 8)
+            self.assertIn('pending (R-48-2)', gpu)
+            alias.unlink()
+            put_r48(self.root, 'R-48-3', optimizer=optimizer, rc=1, output=False)
+            table = self.build(tables.table_ablation)
+            cpu = [r for r in rows(table) if r[0].startswith('CPU, n16_train, level 7')]
+            self.assertEqual(len(cpu), 1)
+            self.assertIn('failed/unmeasured', cpu[0][7])
+
+    def test_r48_future_archive_and_binary_overlay_write_isolation(self):
+        # Break caught: fixtures overwrite future actual R48 originals through symlinks.
+        with tempfile.TemporaryDirectory() as source,tempfile.TemporaryDirectory() as fixture:
+            source,fixture=Path(source),Path(fixture)
+            for rel in ('docs','results/quadruped/raw/R-48'):(source/rel).mkdir(parents=True,exist_ok=True)
+            names=('ablation_cuda.json','ablation_cuda_sgd.json','ablation_cpu_l7.json','ablation_cpu_l7_sgd.json','ablation_cpu.json')
+            for name in names:(source/'results/quadruped'/name).write_text('SYNTHETIC original')
+            archived_overlay(fixture,source)
+            self.assertFalse((fixture/'results/quadruped/raw/R-48').exists())
+            for name in names:
+                path=fixture/'results/quadruped'/name
+                self.assertFalse(path.exists());path.write_text('SYNTHETIC replacement')
+                self.assertEqual((source/'results/quadruped'/name).read_text(),'SYNTHETIC original')
 
 
 if __name__ == '__main__':
