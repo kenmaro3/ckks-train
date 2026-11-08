@@ -8,6 +8,10 @@ bootstrapping, and adds a CUDA backend.
 The workspace crates use the `ckks-train-*` names. Historical measurements retain the
 `hekit-*` names they were produced with; see [docs/release.md](docs/release.md).
 
+The current artifact is a **research preview**, not a completed stable v1.0 release.
+[Preview evidence and remaining work](docs/research-preview.md) distinguish local
+validation, completed measurements and pending experiments.
+
 ## Overview
 
 - **RNS-CKKS** (`ckks-train-core`, `ckks-train-ckks`): RNS/NTT arithmetic, encoding bit-exact with
@@ -17,10 +21,12 @@ The workspace crates use the `ckks-train-*` names. Historical measurements retai
 - **Bootstrapping with sparse-secret encapsulation (SSE)** (`ckks-train-ckks::bootstrap`): the
   ciphertext is switched to a sparse ephemeral key (h' = 32) before ModRaise, then
   CoeffToSlot, a Chebyshev EvalMod and SlotToCoeff. On the `n16_boot` preset (N = 2^16) one
-  bootstrap gives 17.46 bits of precision with 111 key switches and leaves 16 levels.
+  recorded bootstrap validation measured 17.46 bits of precision with 111 key switches
+  and 16 remaining levels; see [the input contract and measurements](docs/bootstrap.md).
 - **CUDA backend** (`ckks-train-cuda`, feature `cuda`): batched NTT, base conversion, key switching
-  and the full evaluator on the GPU, bit-exact with the CPU code. The `ckks-train-nn` trainers run
-  on it unchanged through the `HeOps` trait.
+  and the full evaluator on the GPU. Executed operator tests match the CPU code;
+  memory-skipped cases are listed separately in [M4](docs/m4-report.md). The
+  `ckks-train-nn` trainers use it through `HeOps`; full GPU training validation remains pending.
 - **Encrypted MLP training** (`ckks-train-nn`), in two modes:
   - *interactive* (`Trainer`): the key owner refreshes the ciphertexts after each update, as
     in the 2020 work;
@@ -47,7 +53,7 @@ Requirements: Rust **1.85** (tested with 1.85.1; `rust-toolchain.toml` selects t
 
 ```sh
 cargo build --release --workspace
-cargo test --workspace            # about 400 tests; tests above ~10 GB of RAM are #[ignore]d
+cargo test --workspace            # excludes explicitly ignored hardware/heavy tests
 cargo test --workspace -- --ignored   # the heavy N = 2^16 bootstrapping tests (~13 GB RAM)
 ```
 
@@ -115,7 +121,7 @@ The paper describing this library is in preparation. Until it appears, please ci
 ```bibtex
 @misc{ckks-train,
   title  = {ckks-train: {RNS-CKKS} with bootstrapping and {CUDA} for encrypted neural-network training},
-  author = {TODO},
+  author = {Mihara, Kentaro},
   year   = {2026},
   note   = {Software, https://github.com/kenmaro3/ckks-train},
 }
@@ -125,7 +131,9 @@ The 2020 work it extends is arXiv:2012.13552 (Mihara et al.).
 
 ## License
 
-MIT; see [LICENSE](LICENSE). Third-party notices are in
+The software is MIT-licensed; see [LICENSE](LICENSE). The manuscript has a separate
+[licensing notice](paper/LICENSE): the author selected the arXiv non-exclusive
+distribution license. Third-party software and data notices are in
 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES):
 
 - **Microsoft SEAL 4.1.2 (MIT).** Parts of the CKKS encoder (`ckks-train-ckks`: the DWT, the root
@@ -172,9 +180,10 @@ Sources and checksums are in `crates/ckks-train-bench/data/README.md`.
 - **M2** (interactive encrypted training): done. Iris reproduction (test accuracy 0.967) and
   MNIST eMLP-1; `docs/m2-report.md`.
 - **M3** (bootstrapping, non-interactive training, ReBoot comparison): implemented; final RQ1
-  assessment awaits the full-length runs (4800 samples x 10 epochs) and retains the
+  assessment awaits FULL-2 (4800 samples x 10 epochs); FULL-1 is archived. It retains the
   security-comparability limitation. `docs/m3-report.md`.
-- **M4** (CUDA backend): the GPU kernels and evaluator are verified bit-exact with the CPU on an
-  RTX 4090; GPU bootstrapping is implemented but its measurement on hardware is deferred.
+- **M4** (CUDA backend): executed GPU operator cases matched the CPU bit-for-bit on an
+  RTX 4090; memory-skipped cases remain unverified. GPU bootstrapping is implemented
+  but its measurement on hardware is deferred.
   GPU training and matched CPU/GPU ablations remain unmeasured; `docs/m4-report.md`.
 - **M5** (block MLPs, additional datasets, release, paper): in progress.

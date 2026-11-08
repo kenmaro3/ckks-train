@@ -1,0 +1,57 @@
+{
+  "base_commit": "ae964c955f96592f4f71f6aae0961efcd140fd9d",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "bfdc674a71f2190e5cdb37ed8ee52df9543779445fc6b340fb8270cc46218cc6"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES",
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+    },
+    {
+      "path": "paper/LICENSE",
+      "sha256": "36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e"
+    },
+    {
+      "path": "paper/README.md",
+      "sha256": "a1b04afdc6202619213aa93f8b19180ead75b13864abcf0448cfddc3fd9b3777"
+    },
+    {
+      "path": "docs/handover.md",
+      "sha256": "29453a97ce92bcdb9ef17c5e8049394e23d5b1b49822e43ca616331d77cd10d7"
+    },
+    {
+      "path": "docs/m3-report.md",
+      "sha256": "3f8b551813d2889aa78a536153694a917f2c3a9956dbb58c79d1d14a4e00a31a"
+    },
+    {
+      "path": "docs/m4-report.md",
+      "sha256": "ea703331edc37470a5d7981925cf0616400b1323991fb1cec0d6a03f0e412234"
+    },
+    {
+      "path": "docs/m5-report.md",
+      "sha256": "b1f60c47fefcac67890e39210f07f4ae06a416f7c7350297cf3e18d2b04312a3"
+    },
+    {
+      "path": "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+    },
+    {
+      "path": "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+    },
+    {
+      "path": "crates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+    },
+    {
+      "path": "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769"
+    }
+  ],
+  "validation": "git diff --check; exact branded notice replacement and identical regular-file copies; independent review then one README GPU claim fix/re-review PASS",
+  "research_result_changes": false,
+  "publication_actions": false,
+  "scope": "public documentation consistency, not legal advice or exhaustive history audit"
+}

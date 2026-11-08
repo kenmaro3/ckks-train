@@ -1,7 +1,7 @@
 ckks-train third-party notices
 ==============================
 
-hekit is licensed under the MIT License (see LICENSE). Parts of it are derived from, or
+ckks-train is licensed under the MIT License (see LICENSE). Parts of it are derived from, or
 written to reproduce bit for bit, the third-party software listed below. Their copyright and
 permission notices are reproduced here as their licenses require.
 
@@ -29,7 +29,7 @@ Written against the SEAL 4.1.2 sources to reproduce its results or formats (inte
   independent implementation from RFC 7693, not SEAL code.
 - crates/ckks-train-ckks/src/encoder.rs (tests): known-answer values printed by SEAL.
 
-Not distributed with hekit: the tools under tools/seal-kat/ and the spikes under spikes/
+Not distributed with ckks-train: the tools under tools/seal-kat/ and the spikes under spikes/
 build against SEAL fetched by CMake FetchContent; no SEAL source file is vendored in this
 repository.
 
@@ -77,7 +77,7 @@ Data sets
   sha256 in crates/ckks-train-bench/data/README.md.
 - Fashion-MNIST (Han Xiao, Kashif Rasul, Roland Vollgraf; Copyright (c) 2017 Zalando SE,
   MIT License, https://github.com/zalandoresearch/fashion-mnist) is not distributed with
-  hekit: scripts/fetch_fashion_mnist.sh downloads it from the official repository into the
+  ckks-train: scripts/fetch_fashion_mnist.sh downloads it from the official repository into the
   gitignored data/fashion_mnist/.
 
 
@@ -85,7 +85,7 @@ Acknowledgements (no code derived)
 ----------------------------------
 
 The projects below informed algorithmic choices. No source file of theirs was read for, copied
-into or ported to hekit, so their licenses impose no notice; they are listed for credit only.
+into or ported to ckks-train, so their licenses impose no notice; they are listed for credit only.
 
 - Lattigo (https://github.com/tuneinsight/lattigo, Apache-2.0): the baby-step split rule of
   the level-optimal Chebyshev evaluation (crates/ckks-train-ckks/src/bootstrap/poly.rs,
@@ -96,7 +96,7 @@ into or ported to hekit, so their licenses impose no notice; they are listed for
 Dependencies under licenses other than MIT / Apache-2.0 / BSD
 -------------------------------------------------------------
 
-hekit links these crates as ordinary dependencies (no code of theirs is copied into hekit).
+ckks-train links these crates as ordinary dependencies (no code of theirs is copied into ckks-train).
 They are listed so the license set stays visible.
 
 - libloading 0.8 (https://github.com/nagisa/rust_libloading), ISC License. Pulled in by

@@ -1,6 +1,6 @@
 # ckks-train 引き継ぎ書(旧 hekit、2026-11-08 時点)
 
-最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0802)。
+最新の算出資料: [資源量と保持期間](#latest-evidence-20261108-d7-resource-allocation)。最新の設計: [CPU統合とRSS監視](#latest-evidence-20261108-d7-cpu-integration-design)、[取得前の資源確認](#latest-evidence-20261108-d7-resource-design)、[共有publisherの修正](#latest-evidence-20261107-d7-publication-mutation)、[証拠形式とQuick記録](#latest-evidence-20261107-d7-gate-schema)、[実行開始条件](#latest-evidence-20261107-d7-live-gates)。最新の実装: [fixtureとソース一覧の整理](#latest-evidence-20261108-d7-fixture-custody)、[CPU実行記録の整合性検査](#latest-evidence-20261108-d7-cpu-wire)、[同じbytesのデータ読込](#latest-evidence-20261108-d7-byte-dataset)、[資源記録の読取処理](#latest-evidence-20261108-d7-resource-source)、[入力保持と所有者確認](#latest-evidence-20261108-d7-retained-source)、[証拠・Quick記録](#latest-evidence-20261108-d7-evidence-codec)、[Full記録形式](#latest-evidence-20261107-d7-admission-codec)、[実CPU構成](#latest-evidence-20261107-d7-actual-binding)。実行環境: [D7実行環境descriptor](#latest-evidence-20261107-d7-descriptors)。入力provenance: [Train接続](#latest-evidence-20261107-d7-train-capture)。CPU学習経路: [P5限定実測](#latest-evidence-20261107-p5-cpu)。比較テストの準備: [P5複数層平文感度検証](#latest-evidence-20261107-p5-preflight)。最新の運用記録: [配置・読戻し](#latest-evidence-20261107-r29)、[FULL-2の定期確認](#latest-evidence-20261108-0903)。
 
 現在の実装・運用状態は末尾の追記を優先する。§5、§11、§12.1〜12.4は各時点の記録であり、後続キューの現在状態や新しいCI結果をそこから推定しない。
 
@@ -8,11 +8,12 @@
 
 ## 0. 30 秒で分かる現在地
 
+- **期限更新（2026-11-08本人指定）**: 11月9日09:00 JSTまでにプレビュー、11月10日09:00 JSTまでにGitHub公開・arXiv投稿。[日程と範囲](publication-schedule.md)。全研究ゲートを合格に読み替えず、得られた結果と未達・未計測を分けて先行公開する。
 - **目的**: 2020 年論文(Mihara et al., arXiv:2012.13552、CKKS で NN 学習)を、自作の MIT ライセンス Rust RNS-CKKS ライブラリ **ckks-train**(bootstrapping + CUDA)で拡張し、論文 1 本(WAHC 2027、arXiv + v1.0 を 2027-05-31 まで)を書く。
 - **主ベースライン**: ReBoot(AAAI-26、OpenFHE、GPL-3.0。実行のみ、コードは一切取り込まない)。
 - **RQ1**(研究計画 §4.3.2): 同じ N・セキュリティ・モデル・精度 ±0.5 pt で、1 サンプルあたりの key switch が ReBoot より 30% 以上少なく(比 ≤ 0.70)、同一 CPU の wall-clock が ReBoot 公式以下。
 - **進捗**: FULL-1の結果をM3へ反映済み。Task42/RQ1はFULL-2と未達・未計測項目の裁定待ち、R47/R48/R52は既存post-fullキュー待ち。Task54は全実験行列の基盤を実装中。crate改名・公開準備とpaper草稿は存在するが、M4/M5全体・v1.0公開の完了は主張しない。
-- **暫定判定**(784 入力 subset、サーバー実測): WhenNeeded B=64 は key switch 3 通りすべてと wall-clock(0.447 倍)で合格。精度 ±0.5 pt の確定は本番走行 R-41-FULL-2 待ち(2026-11-07 深夜〜11-08 に完了見込み)。
+- **暫定判定**: 196入力・全長FULL-1（B=64）はKS比4通りとも≤0.70。精度±0.5 ptはFULL-2対ReBoot公開コードseed0=0.9041で判定するため未確定。全長ReBoot CPU時間は未計測、セキュリティ同条件も未達。784入力subsetのwall-clock結果を全長へ代用しない。
 - **GitHub**: `kenmaro3/ckks-train`(private、2026-11-06 に初回 push。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`)。
 
 ## 1. 必ず読むファイル(順番どおり)
@@ -158,7 +159,7 @@ hekit/
 | 53(stretch) | 4 次活性化 | 保留・未計測 |
 | 54 | 全実験スクリプトと表生成 | 既存表は`run_all.sh --tables-only`で再生成可能。全登録行列のCPU経路・実行記録を拡張中。実gate・保存・開始・科学結果出力の接続、実機Quickと全実験は未完了 |
 | 55 | v1.0 公開準備 | `ckks-train-*`へのcrate改名、README／notices、ローカル配布検証済み。最終変更後の公開前確認は残る。リポジトリはprivate、公開操作は未実施 |
-| 56 | 論文ドラフト | `paper/`にレビュー済み草稿。FULL-1反映後の匿名版／仮著者版PDFは各10ページ。欠測と比較条件を明記、著者は仮置き |
+| 56 | 論文ドラフト | `paper/`にレビュー済み草稿。FULL-1反映後10ページ。著者はKentaro Mihara単著・個人研究で確定し、著者入りarXiv用PDFとsource previewもローカル生成済み。欠測と比較条件を保持 |
 | 57 | M5 報告 | `docs/m5-report.md`に現状・未達・未計測を記載。全体完了報告は残る |
 | 58(最後) | PyO3 | 指示で削減可能なため今回の範囲から削減済み。Rust APIと研究評価・再現を優先、Python bindingは未提供 |
 
@@ -172,7 +173,7 @@ hekit/
 14. **「同一 N」の解釈**(実測はすべて 2^16。推奨は 2^16 固定)。
 15. **重み誤差の蓄積の許容基準**(非対話版は 1 epoch で 2^-13〜2^-15)。FULL で 10 epoch の値を見る。
 17. **ライブラリの名前**(決定済み): **決定(2026-11-06): ckks-train**。GitHub は rename 済み。crate 名(`hekit-*` → `ckks-train-*` など)の付け替えは Task 55 の `scripts/rename.sh` で。
-18. **投稿先と著者情報**(WAHC 2027 固定、著者欄は仮置き)。
+18. **投稿先と著者情報（確定済み）**: WAHC 2027を研究計画として維持。先行GitHub公開・arXiv投稿、Kentaro Mihara単著・個人研究、arXiv非独占配布ライセンスを本人指定。詳細は[公開日程](publication-schedule.md)。
 
 計画担当の裁定で確定済み(本人が覆してよい): セキュリティの主張は BDGL16 と MATZOV で 128 bit 以上(Core-SVP は併記のみ)、見出しは (a) + 196 入力 + WhenNeeded、ReBoot 側の基準は Lazy 35.06 実測(784)/ モデル 37(196)、精度は公開コードのフル設定で判定、ISC ライセンス許可、Plan B は発動しない(本人決定 2026-11-04)。
 
