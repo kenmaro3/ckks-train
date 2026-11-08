@@ -1,0 +1,51 @@
+diff --git a/paper/README.md b/paper/README.md
+index 11d9a22..720221c 100644
+--- a/paper/README.md
++++ b/paper/README.md
+@@ -63,7 +63,7 @@ For the nonanonymous author variant, create an ignored wrapper containing `\def\
+ 
+ ## Format constraint and verification
+ 
+-The primary [WAHC2026 CFP](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/) was checked on 2026-11-06: English anonymous ACM sigconf, at most **12 pages including references and appendices**, with no font/margin changes. This is the provisional draft limit. WAHC2027 rules and deadlines are unconfirmed and must be checked before submission. Nothing has been submitted or uploaded.
++The primary [WAHC2026 CFP](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/) was checked on 2026-11-06: English anonymous ACM sigconf, at most **12 pages including references and appendices**, with no font/margin changes. This is the provisional draft limit. WAHC2027 rules and deadlines are unconfirmed and must be checked before submission. No arXiv or conference submission has been made; the GitHub preview publication is recorded above.
+ 
+ The Task56 coordination report records the exact build, page count, log warnings, rendered-page review, tests, input hashes, and final source freeze. ACM publication reference metadata is intentionally suppressed for this venue-unassigned draft, which produces a nonfatal `printacmref` warning. Shell escape is deliberately disabled; epstopdf can warn even though no EPS conversion is used. Underfull-box warnings, especially long bibliography URLs, require visual review but do not themselves indicate missing content. The final build must have no overflowing boxes or undefined citations/references.
+ 
+diff --git a/paper/arxiv-metadata.md b/paper/arxiv-metadata.md
+index 2255fda..8378ebc 100644
+--- a/paper/arxiv-metadata.md
++++ b/paper/arxiv-metadata.md
+@@ -13,6 +13,7 @@ with the final source and arXiv-generated PDF before submission.
+ | Affiliation | Independent Researcher; no company affiliation |
+ | Contact | miha.ken.19@gmail.com |
+ | License | arXiv non-exclusive distribution license, as selected by the author |
++| Top-level source / processor | `main.tex` / `pdflatex` |
+ | Proposed primary category | cs.CR (Cryptography and Security) |
+ | Optional cross-list proposal | cs.LG (Machine Learning) |
+ | Comments draft | 10 pages, research preprint. Code and evidence: https://github.com/kenmaro3/ckks-train |
+@@ -45,3 +46,25 @@ These are preliminary artifacts, not a substitute for arXiv's own source-build
+ and preview check. This metadata file is submission assistance; it need not be
+ included in the TeX source ZIP. No account action, upload, license acceptance,
+ endorsement request or submission was performed while preparing it.
++
++## Upload preparation check, 2026-11-08
++
++The published 19-member preview ZIP was inspected without changing it: all
++TeX input and bibliography paths resolve with exact case, names use supported
++characters, `main.bbl` is present, and the entrypoint enables the named
++`sigconf,nonacm` preprint. Its abstract still exactly matches the metadata above.
++The package contains no compiler logs or output PDF. This is a static package
++check, not another compilation or an arXiv server-build result.
++
++The [official TeX Live guide](https://info.arxiv.org/help/faq/texlive.html),
++checked 2026-11-08, lists TeX Live2025 as default and2023 as an alternative.
++The local preview was built with2026, so select `main.tex` and `pdflatex`
++and inspect arXiv's actual log/PDF before submission. Do not assume identical
++page breaks or class versions. The existing `main.bbl` uses ordinary BibTeX,
++not biblatex/Biber. Source and bibliography preparation follows the
++[official TeX instructions](https://info.arxiv.org/help/submit_tex.html).
++
++After the evidence cutoff, regenerate the upload ZIP, update this abstract and
++page count to match that final paper, and repeat the package and PDF checks.
++The public preview remains fixed; an updated final submission is a separate
++artifact. Account/endorsement checks remain deferred at the author's request.

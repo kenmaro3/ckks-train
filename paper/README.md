@@ -63,7 +63,7 @@ For the nonanonymous author variant, create an ignored wrapper containing `\def\
 
 ## Format constraint and verification
 
-The primary [WAHC2026 CFP](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/) was checked on 2026-11-06: English anonymous ACM sigconf, at most **12 pages including references and appendices**, with no font/margin changes. This is the provisional draft limit. WAHC2027 rules and deadlines are unconfirmed and must be checked before submission. Nothing has been submitted or uploaded.
+The primary [WAHC2026 CFP](https://homomorphicencryption.org/wahc-2026-14th-workshop-on-encrypted-computing-applied-homomorphic-cryptography/) was checked on 2026-11-06: English anonymous ACM sigconf, at most **12 pages including references and appendices**, with no font/margin changes. This is the provisional draft limit. WAHC2027 rules and deadlines are unconfirmed and must be checked before submission. No arXiv or conference submission has been made; the GitHub preview publication is recorded above.
 
 The Task56 coordination report records the exact build, page count, log warnings, rendered-page review, tests, input hashes, and final source freeze. ACM publication reference metadata is intentionally suppressed for this venue-unassigned draft, which produces a nonfatal `printacmref` warning. Shell escape is deliberately disabled; epstopdf can warn even though no EPS conversion is used. Underfull-box warnings, especially long bibliography URLs, require visual review but do not themselves indicate missing content. The final build must have no overflowing boxes or undefined citations/references.
 

@@ -13,6 +13,7 @@ with the final source and arXiv-generated PDF before submission.
 | Affiliation | Independent Researcher; no company affiliation |
 | Contact | miha.ken.19@gmail.com |
 | License | arXiv non-exclusive distribution license, as selected by the author |
+| Top-level source / processor | `main.tex` / `pdflatex` |
 | Proposed primary category | cs.CR (Cryptography and Security) |
 | Optional cross-list proposal | cs.LG (Machine Learning) |
 | Comments draft | 10 pages, research preprint. Code and evidence: https://github.com/kenmaro3/ckks-train |
@@ -45,3 +46,25 @@ These are preliminary artifacts, not a substitute for arXiv's own source-build
 and preview check. This metadata file is submission assistance; it need not be
 included in the TeX source ZIP. No account action, upload, license acceptance,
 endorsement request or submission was performed while preparing it.
+
+## Upload preparation check, 2026-11-08
+
+The published 19-member preview ZIP was inspected without changing it: all
+TeX input and bibliography paths resolve with exact case, names use supported
+characters, `main.bbl` is present, and the entrypoint enables the named
+`sigconf,nonacm` preprint. Its abstract still exactly matches the metadata above.
+The package contains no compiler logs or output PDF. This is a static package
+check, not another compilation or an arXiv server-build result.
+
+The [official TeX Live guide](https://info.arxiv.org/help/faq/texlive.html),
+checked 2026-11-08, lists TeX Live2025 as default and2023 as an alternative.
+The local preview was built with2026, so select `main.tex` and `pdflatex`
+and inspect arXiv's actual log/PDF before submission. Do not assume identical
+page breaks or class versions. The existing `main.bbl` uses ordinary BibTeX,
+not biblatex/Biber. Source and bibliography preparation follows the
+[official TeX instructions](https://info.arxiv.org/help/submit_tex.html).
+
+After the evidence cutoff, regenerate the upload ZIP, update this abstract and
+page count to match that final paper, and repeat the package and PDF checks.
+The public preview remains fixed; an updated final submission is a separate
+artifact. Account/endorsement checks remain deferred at the author's request.

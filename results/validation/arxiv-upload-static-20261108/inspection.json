@@ -1,0 +1,127 @@
+{
+  "kind": "arxiv_preview_static_validation_not_server_build",
+  "observed_utc": "2026-11-08T02:32:13.833065+00:00",
+  "zip": "tools/release/_ext/research-preview-bundle-6fba46c/ckks-train-arxiv-source-preview.zip",
+  "zip_bytes": 37482,
+  "sha256": "c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8",
+  "members": [
+    "figs/rq1_ratios.tex",
+    "main.bbl",
+    "main.tex",
+    "refs.bib",
+    "sections/appendix.tex",
+    "sections/discussion.tex",
+    "sections/evaluation.tex",
+    "sections/gpu.tex",
+    "sections/introduction.tex",
+    "sections/noninteractive.tex",
+    "sections/packing.tex",
+    "sections/preliminaries.tex",
+    "tables/accuracy_vs_reboot.tex",
+    "tables/gpu_vs_cpu_ops.tex",
+    "tables/plain_datasets.tex",
+    "tables/rq1_ks.tex",
+    "tables/rq3_ablation.tex",
+    "tables/security.tex",
+    "tables/wallclock_same_cpu.tex"
+  ],
+  "resolved_includes": [
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/introduction.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/preliminaries.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/packing.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/noninteractive.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/gpu.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/evaluation.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/discussion.tex"
+    },
+    {
+      "from": "main.tex",
+      "command": "bibliography",
+      "to": "refs.bib"
+    },
+    {
+      "from": "main.tex",
+      "command": "input",
+      "to": "sections/appendix.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/rq1_ks.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/wallclock_same_cpu.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "figs/rq1_ratios.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/accuracy_vs_reboot.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/plain_datasets.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/security.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/gpu_vs_cpu_ops.tex"
+    },
+    {
+      "from": "sections/evaluation.tex",
+      "command": "input",
+      "to": "tables/rq3_ablation.tex"
+    }
+  ],
+  "entrypoint": "main.tex",
+  "suggested_processor": "pdflatex",
+  "local_build_toolchain": "TeX Live 2026/acmart 2.21 (prior build, not rerun here)",
+  "arxiv_official_default": "TeX Live 2025 per official guide checked2026-11-08",
+  "official_urls": [
+    "https://info.arxiv.org/help/submit_tex.html",
+    "https://info.arxiv.org/help/faq/texlive.html",
+    "https://info.arxiv.org/help/submit/index.html"
+  ],
+  "server_build": "not run",
+  "account_check": "deferred by user",
+  "earlier_check_error": "Tool chunk cff5d4 exited1 before inspection because root transcribed the expected ZIP SHA incorrectly. The archive was not modified. This check uses the correct previously recorded SHA."
+}
