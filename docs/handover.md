@@ -1191,3 +1191,8 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 13:07 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T13:07:05.356678+09:00。FULL-2はupdate834（0始まり）＝**835/1000更新**、ログ内elapsed121610s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1306/README.md)。1306は依頼の識別名で、実観測時刻とは区別する。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T14:08:00+09:00以降のR-41-FULL2-OBS-20261108-1408として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更は行っていない。
+
+
+## 2026-11-08追記: 使用済みプレビューworktreeの整理
+
+本人の不要物削除指示に従い、固定6fba46cのプレビュー作業用worktreeを削除した。全5,316ファイルはGitに残る再生成可能なコピーで、tracked変更・untracked/ignoredの残置・当該ユーザーのopen fileがないことを確認し、forceなしの`git worktree remove`で処理した。約153.3MiBを解放し、直後の空きは約4.97GiB。現在のmain、配布物、元結果、検証ログは保持した。[対象・時刻・サイズの記録](../results/validation/retired-preview-worktree-cleanup-20261108/README.md)。過去の検証ログに記載されたworktreeパスは実行当時の場所として残す。

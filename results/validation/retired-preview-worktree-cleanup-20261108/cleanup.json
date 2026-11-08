@@ -1,0 +1,26 @@
+{
+  "kind": "administrative_cleanup_not_scientific_result",
+  "started_utc": "2026-11-08T04:22:30.558964+00:00",
+  "target": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "tracked_file_count": 5316,
+  "git_status_empty": true,
+  "git_clean_preview_empty": true,
+  "owned_open_files_found": false,
+  "lsof_exit_code": 1,
+  "allocated_kib_before": 156964,
+  "free_bytes_before": 5169000448,
+  "reason": "Retired clean preview worktree; exact source remains in Git and immutable public preview. Active main and local build/evidence/artifact directories are retained.",
+  "command": [
+    "git",
+    "worktree",
+    "remove",
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "target_exists_after": false,
+  "free_bytes_after": 5333479424,
+  "finished_utc": "2026-11-08T04:22:31.396609+00:00"
+}
