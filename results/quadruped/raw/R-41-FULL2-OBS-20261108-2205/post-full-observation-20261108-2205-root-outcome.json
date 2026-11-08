@@ -1,0 +1,11 @@
+{
+  "kind": "operational_observation_not_scientific_result",
+  "observed_jst": "2026-11-08T22:06:33.111284+09:00",
+  "raw_stdout_sha256": "b637005761cd11d36e875bbac04b4435dfe1d389f9d0074d41da1ebe505057c7",
+  "raw_stdout_bytes": 2401,
+  "new_records_since_2105": [],
+  "r48_collection_qualified": false,
+  "r52_collection_qualified": false,
+  "scientific_acceptance": false,
+  "process_change_performed": false
+}

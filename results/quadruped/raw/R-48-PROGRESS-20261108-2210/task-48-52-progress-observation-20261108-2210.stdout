@@ -1,0 +1,51 @@
+{
+  "kind": "read_only_progress_not_scientific_result",
+  "observed_unix": 1794143543.0669804,
+  "uid": 1000,
+  "nice": 10,
+  "logs": [
+    {
+      "job": "R-48-4",
+      "path": "/home/kmihara/hekit-runs/logs/R-48-4.log",
+      "kind": "bounded_nonterminal_log_observation",
+      "exists": true,
+      "uid": 1000,
+      "device": 66311,
+      "inode": 36086853,
+      "before_size": 2554,
+      "after_size": 2554,
+      "before_mtime_ns": 1794143379090075763,
+      "after_mtime_ns": 1794143379090075763,
+      "offset": 0,
+      "bytes_read": 2554,
+      "tail": [
+        "ablation: hoist=1 bsgs=0 lazy_relin=1 iter 2: step 143.794 s, refresh 32.757 s, 610 rot + 101 relin",
+        "ablation: hoist=1 bsgs=0 lazy_relin=1 iter 3: step 140.879 s, refresh 32.783 s, 610 rot + 101 relin",
+        "ablation: hoist=1 bsgs=0 lazy_relin=0 iter 0 (warm-up): step 137.598 s, refresh 33.065 s, 610 rot + 114 relin",
+        "ablation: hoist=1 bsgs=0 lazy_relin=0 iter 1: step 142.925 s, refresh 32.763 s, 610 rot + 114 relin",
+        "ablation: hoist=1 bsgs=0 lazy_relin=0 iter 2: step 144.494 s, refresh 32.718 s, 610 rot + 114 relin",
+        "ablation: hoist=1 bsgs=0 lazy_relin=0 iter 3: step 143.025 s, refresh 32.829 s, 610 rot + 114 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=1 iter 0 (warm-up): step 128.794 s, refresh 32.757 s, 571 rot + 62 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=1 iter 1: step 134.640 s, refresh 32.783 s, 571 rot + 62 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=1 iter 2: step 134.069 s, refresh 32.845 s, 571 rot + 62 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=1 iter 3: step 131.830 s, refresh 31.082 s, 571 rot + 62 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=0 iter 0 (warm-up): step 128.138 s, refresh 31.198 s, 571 rot + 114 relin",
+        "ablation: hoist=0 bsgs=1 lazy_relin=0 iter 1: step 132.606 s, refresh 31.107 s, 571 rot + 114 relin"
+      ],
+      "concurrent_append_possible": true,
+      "scientific_acceptance": false
+    },
+    {
+      "job": "R-52-1",
+      "path": "/home/kmihara/hekit-runs/logs/R-52-1.log",
+      "kind": "bounded_nonterminal_log_observation",
+      "exists": false
+    },
+    {
+      "job": "R-52-2",
+      "path": "/home/kmihara/hekit-runs/logs/R-52-2.log",
+      "kind": "bounded_nonterminal_log_observation",
+      "exists": false
+    }
+  ]
+}

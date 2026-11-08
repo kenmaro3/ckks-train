@@ -1,0 +1,31 @@
+{
+  "earliest_jst": "2026-11-08T22:10:00+09:00",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "PasswordAuthentication=no",
+    "-o",
+    "KbdInteractiveAuthentication=no",
+    "-o",
+    "ConnectionAttempts=1",
+    "-o",
+    "ConnectTimeout=90",
+    "-o",
+    "ServerAliveInterval=30",
+    "-o",
+    "ServerAliveCountMax=3",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPersist=600",
+    "-o",
+    "ControlPath=/tmp/ckks-train-ssh-%C",
+    "quadruped-gpu",
+    "nice -n 10 /usr/bin/python3.14 -I -B -"
+  ],
+  "source_path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-48-52-progress-observer-20261108-2210.remote-v2.py",
+  "source_sha256": "4c4f366046f85a0fd6ce065296a59863662320875840adedbd44cbb31ae2bc62",
+  "request_id": "R-48-PROGRESS-20261108-2210"
+}

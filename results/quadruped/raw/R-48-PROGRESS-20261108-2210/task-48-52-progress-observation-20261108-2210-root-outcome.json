@@ -1,0 +1,11 @@
+{
+  "kind": "operational_progress_not_scientific_result",
+  "observed_jst": "2026-11-08T22:12:23.066980+09:00",
+  "raw_stdout_bytes": 2365,
+  "raw_stdout_sha256": "2bc7aa204b97934b33ee05fc10b4fa885e50be1b6d043ad7f72b5aae67e2965c",
+  "r48_cpu_iteration_log_present": true,
+  "r52_logs_present": false,
+  "scientific_acceptance": false,
+  "terminal_collector_qualification": false,
+  "process_changes": false
+}

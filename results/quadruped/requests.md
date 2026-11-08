@@ -1328,4 +1328,30 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
 - **output path:** ledger `post-full-observation-20261108-2205.{stdout,stderr,launch.json,meta.json}`; exclusive fresh outputs.
 - **pass criterion:** actual identity/state and terminal-file presence; operational only. No signals/builds/training/other users' process inspection.
-- **status:** prepared, not invoked. R48/R52 collection still requires qualifying terminal observation.
+- **status:** executed once, exit0. Actual 2026-11-08T22:06:33.111284+09:00: own queue and same direct child live; filenames unchanged since21:06, no R48-4/R52-2/queue terminal. No terminal collector or process change. [Original observation](raw/R-41-FULL2-OBS-20261108-2205/README.md).
+
+
+## R-48-PROGRESS-20261108-2210: bounded own-job progress logs
+
+- **purpose:** After22:06 showed unchanged terminal filenames, read bounded tails of the registered R-48-4/R-52-1/R-52-2 logs to distinguish actual logged progress from mere queue liveness. Earliest2026-11-08T22:10:00+09:00.
+- **commit to sync:** none.
+- **working dir:** own `/home/kmihara/hekit-runs/logs`; exactly three fixed registered log paths, no other-user process inspection.
+- **command:** ledger `task-48-52-progress-observation-20261108-2210-command-v2.json`; key-only SSH, `nice -n 10 /usr/bin/python3.14 -I -B -`; reviewed source to be pinned before launch.
+- **expected duration:** seconds after connection, one read-only invocation; connection90s.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ledger `task-48-52-progress-observation-20261108-2210.{stdout,stderr,launch.json,meta.json}`; exclusive fresh outputs.
+- **pass criterion:** Read at most8192bytes and return at most12tail lines per own regular non-symlink log, or explicit absence/refusal. This is nonterminal operational evidence; no scientific adoption or terminal-collector qualification.
+- **status:** reviewed v2 executed once, exit0. Actual 2026-11-08T22:12:23.066980+09:00: R48-4 iteration tail present, both R52 logs absent. Nonterminal evidence only; no collector qualification or job change. v1 remains uninvoked. [Original observation](raw/R-48-PROGRESS-20261108-2210/README.md).
+
+
+## R-41-FULL2-OBS-20261108-2245: post-full queue read-only observation
+
+- **purpose:** Check registered terminal filenames no earlier than2026-11-08T22:45:00+09:00 after the22:12 R48 CPU iteration snapshot; no completion time is assumed.
+- **commit to sync:** none.
+- **working dir:** own `/home/kmihara/hekit-runs`; fixed chain1700979/start465769819 and queue1739838/start467041669 identities.
+- **command:** ledger `post-full-observation-20261108-2245-command.json`; key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; unchanged1560-byte observer SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243.
+- **expected duration:** seconds after connection, one observer; connection90s.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ledger `post-full-observation-20261108-2245.{stdout,stderr,launch.json,meta.json}`; exclusive fresh outputs.
+- **pass criterion:** actual own identities and terminal-file presence, operational evidence only. No signals/builds/training/other-user process inspection.
+- **status:** prepared, not invoked. Neither R48 nor R52 collector is qualified by the2210 progress log.
