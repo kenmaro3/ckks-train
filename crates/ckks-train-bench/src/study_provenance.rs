@@ -7,8 +7,11 @@ mod codec;
 mod context;
 pub(crate) mod process;
 pub(crate) mod publication;
+pub(crate) mod resource_operational;
 pub(crate) mod role;
 
+#[cfg(target_os = "linux")]
+pub(crate) use context::runtime_broker_policy::RuntimeBrokerPolicy;
 #[allow(unused_imports)]
 pub(crate) use context::{
     BuildFacts, ContextOwnerStamp, Host, Observation, RuntimeCapture, RuntimeRecheck,
@@ -33,7 +36,7 @@ impl From<std::io::Error> for ProvenanceError {
     }
 }
 pub(crate) type Result<T> = std::result::Result<T, ProvenanceError>;
-fn ensure(ok: bool, why: &'static str) -> Result<()> {
+pub(crate) fn ensure(ok: bool, why: &'static str) -> Result<()> {
     if ok {
         Ok(())
     } else {
@@ -44,3 +47,6 @@ include!(concat!(env!("OUT_DIR"), "/study_capsule.rs"));
 
 #[cfg(test)]
 mod role_tests;
+
+#[cfg(test)]
+mod supervisor_tests;

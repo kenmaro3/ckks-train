@@ -1,17 +1,17 @@
 //! Fixed 4096-byte nonauthorizing bootstrap request. No planner/registry objects.
 use super::*;
-pub(in crate::study_reference::document::evidence) const TRAIN_RECIPE: &str =
+pub(in crate::study_reference::document) const TRAIN_RECIPE: &str =
     "study-train-cpu-serial-linux-clean-v2";
 const PREP_RECIPE: &str = "study-reference-linux-clean-v2";
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct Train<'a> {
-    pub(in crate::study_reference::document::evidence) registration: Id<'a>,
-    pub(in crate::study_reference::document::evidence) profile: Id<'a>,
-    pub(in crate::study_reference::document::evidence) mode: u8,
-    pub(in crate::study_reference::document::evidence) request: &'a [u8],
+pub(in crate::study_reference::document) struct Train<'a> {
+    pub(in crate::study_reference::document) registration: Id<'a>,
+    pub(in crate::study_reference::document) profile: Id<'a>,
+    pub(in crate::study_reference::document) mode: u8,
+    pub(in crate::study_reference::document) request: &'a [u8],
 }
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) enum Work<'a> {
+pub(in crate::study_reference::document) enum Work<'a> {
     Train(Train<'a>),
     Preparation {
         operation: u8,
@@ -21,16 +21,16 @@ pub(in crate::study_reference::document::evidence) enum Work<'a> {
     },
 }
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct RequestedWork<'a> {
-    pub(in crate::study_reference::document::evidence) mode: Mode,
-    pub(in crate::study_reference::document::evidence) body: Work<'a>,
+pub(in crate::study_reference::document) struct RequestedWork<'a> {
+    pub(in crate::study_reference::document) mode: Mode,
+    pub(in crate::study_reference::document) body: Work<'a>,
 }
-pub(in crate::study_reference::document::evidence) struct FixedWork {
+pub(in crate::study_reference::document) struct FixedWork {
     bytes: [u8; 4096],
     len: usize,
 }
 impl FixedWork {
-    pub(in crate::study_reference::document::evidence) fn as_slice(&self) -> &[u8] {
+    pub(in crate::study_reference::document) fn as_slice(&self) -> &[u8] {
         &self.bytes[..self.len]
     }
     fn put(&mut self, b: &[u8]) -> Result<()> {
@@ -71,10 +71,7 @@ fn compiled_request(b: &[u8]) -> Result<u8> {
     Ok(scope)
 }
 impl<'a> RequestedWork<'a> {
-    pub(in crate::study_reference::document::evidence) fn decode(
-        b: &'a [u8],
-        mode: Mode,
-    ) -> Result<Self> {
+    pub(in crate::study_reference::document) fn decode(b: &'a [u8], mode: Mode) -> Result<Self> {
         let mut c = cursor(b, "resource-requested-work", 1, mode, 4096)?;
         let body = if c.tag(1)? == 0 {
             same(c.tag(1)? == 0, "work.origin")?;
@@ -125,7 +122,7 @@ impl<'a> RequestedWork<'a> {
         c.finish()?;
         Ok(Self { mode, body })
     }
-    pub(in crate::study_reference::document::evidence) fn encode_fixed(&self) -> Result<FixedWork> {
+    pub(in crate::study_reference::document) fn encode_fixed(&self) -> Result<FixedWork> {
         let mut w = FixedWork {
             bytes: [0; 4096],
             len: 0,
@@ -167,7 +164,7 @@ impl<'a> RequestedWork<'a> {
         RequestedWork::decode(w.as_slice(), self.mode)?;
         Ok(w)
     }
-    pub(in crate::study_reference::document::evidence) fn train_request(&self) -> Result<&'a [u8]> {
+    pub(in crate::study_reference::document) fn train_request(&self) -> Result<&'a [u8]> {
         match &self.body {
             Work::Train(t) => Ok(t.request),
             _ => Err(err(
@@ -176,7 +173,7 @@ impl<'a> RequestedWork<'a> {
             )),
         }
     }
-    pub(in crate::study_reference::document::evidence) fn bind_train(
+    pub(in crate::study_reference::document) fn bind_train(
         &self,
         case: &[u8],
         runtime: &str,
@@ -212,7 +209,7 @@ impl<'a> RequestedWork<'a> {
             "work.resolved.request",
         )
     }
-    pub(in crate::study_reference::document::evidence) fn bind_preparation_root(
+    pub(in crate::study_reference::document) fn bind_preparation_root(
         &self,
         operation: u8,
         profile: &str,
@@ -247,7 +244,7 @@ impl<'a> RequestedWork<'a> {
     /// Closed graph relation only. `selected` is the actual selected reconstruction
     /// seed; recovery/lock roots4/5 and this compiled Train root6 are seed0-only.
     /// SAME originating owner is separately required.
-    pub(in crate::study_reference::document::evidence) fn check_child(
+    pub(in crate::study_reference::document) fn check_child(
         &self,
         parent: u8,
         child: u8,

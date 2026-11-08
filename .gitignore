@@ -15,3 +15,7 @@ results/quadruped/raw/**/reboot_config_dump*.txt
 
 # large data dumps from the server (sha256 recorded in committed JSON)
 results/quadruped/data/**/*.npy
+
+# Fixed supervisor-owned operational records, outside source inventory roots.
+/results/resource/
+/results/native-probes/

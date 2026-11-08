@@ -17,6 +17,8 @@ pub(crate) enum Recipe {
     TrainCpuSerial,
     TrainCpuRayon,
     TrainCudaHost,
+    ReferenceObserved,
+    TrainCpuSerialObserved,
 }
 
 impl Recipe {
@@ -26,20 +28,22 @@ impl Recipe {
             "study-train-cpu-serial-linux-clean-v1" => Self::TrainCpuSerial,
             "study-train-cpu-rayon-linux-clean-v1" => Self::TrainCpuRayon,
             "study-train-cuda-host-linux-clean-v1" => Self::TrainCudaHost,
+            "study-reference-linux-clean-v2" => Self::ReferenceObserved,
+            "study-train-cpu-serial-linux-clean-v2" => Self::TrainCpuSerialObserved,
             _ => return Err(ProvenanceError("unsupported recipe")),
         };
         ensure(algorithm == r.algorithm(), "unsupported algorithm")?;
         Ok(r)
     }
     pub fn role(self) -> ExecutableRole {
-        if self == Self::Reference {
+        if matches!(self, Self::Reference | Self::ReferenceObserved) {
             ExecutableRole::Reference
         } else {
             ExecutableRole::StudyTrain
         }
     }
     pub fn algorithm(self) -> &'static str {
-        if self == Self::Reference {
+        if matches!(self, Self::Reference | Self::ReferenceObserved) {
             "study-reference-session-v1"
         } else {
             "study-train-session-v1"
@@ -47,7 +51,10 @@ impl Recipe {
     }
     pub fn features(self) -> &'static [&'static str] {
         match self {
-            Self::Reference | Self::TrainCpuSerial => &[],
+            Self::Reference
+            | Self::TrainCpuSerial
+            | Self::ReferenceObserved
+            | Self::TrainCpuSerialObserved => &[],
             Self::TrainCpuRayon => &["parallel"],
             Self::TrainCudaHost => &["cuda", "parallel"],
         }
@@ -60,14 +67,14 @@ impl Recipe {
         }
     }
     pub fn bin(self) -> &'static str {
-        if self == Self::Reference {
+        if matches!(self, Self::Reference | Self::ReferenceObserved) {
             "study_reference"
         } else {
             "study_train"
         }
     }
     pub fn helper(self) -> &'static str {
-        if self == Self::Reference {
+        if matches!(self, Self::Reference | Self::ReferenceObserved) {
             "scripts/study_reference_build.py"
         } else {
             "scripts/study_train_build.py"
@@ -75,8 +82,8 @@ impl Recipe {
     }
     pub fn subcommand(self) -> &'static str {
         match self {
-            Self::Reference => "build",
-            Self::TrainCpuSerial => "cpu-serial",
+            Self::Reference | Self::ReferenceObserved => "build",
+            Self::TrainCpuSerial | Self::TrainCpuSerialObserved => "cpu-serial",
             Self::TrainCpuRayon => "cpu-rayon",
             Self::TrainCudaHost => "cuda-host",
         }

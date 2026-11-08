@@ -324,17 +324,78 @@ fn parse_planning(
         })),
     }))
 }
-/// Parse explicit arguments excluding argv0 and enter the one concrete dispatcher.
-/// Returns only an owned refusal or error; emits no artifacts and grants no capability.
+fn observed_work(
+    r: &ParsedRequest,
+) -> Result<crate::study_reference::operational::Requested, RequestError> {
+    use crate::study_profile::{CaseMode, CaseOrigin, CasePacking, CasePlacement};
+    require(
+        matches!(r.runtime, RuntimeRequest::SerialCpu)
+            && r.case.origin == CaseOrigin::Family
+            && r.case.scope == CaseScope::Full
+            && r.case.backend == CaseBackend::Cpu
+            && r.case.profile_id == "iris__emlp1"
+            && r.case.seed == 0
+            && r.case.packing == CasePacking::BatchedDiagonal,
+        "outside observed CPU slice",
+    )?;
+    let noninteractive = r.case.mode == CaseMode::Noninteractive;
+    require(
+        if noninteractive {
+            r.case.registration_id == "main_ni" && r.case.placement == CasePlacement::WhenNeeded
+        } else {
+            r.case.registration_id == "main_i" && r.case.placement == CasePlacement::ClientRefresh
+        },
+        "observed selector axes",
+    )?;
+    let planning = r.planning.as_ref().ok_or(RequestError(
+        "observed route requires compiled explicit planning group",
+    ))?;
+    let work = crate::study_reference::operational::Requested::train(
+        noninteractive,
+        planning.consumption == crate::study_admission::Consumption::Quick,
+    )
+    .map_err(|_| RequestError("fixed work encoding"))?;
+    work.request_matches(planning)
+        .map_err(|_| RequestError("caller planning overrides compiled observed work"))?;
+    Ok(work)
+}
+/// Parse bounded arguments excluding argv0 and enter the observed Linux supervisor.
+/// Scientific continuation remains gated; a closed refusal is never execution success.
 pub fn run(args: Vec<OsString>) -> Result<RunDiagnostic, RequestError> {
-    let r = parse(args)?;
+    if args.first().is_some_and(|v| v == "--private-helper") {
+        crate::study_supervisor::helper(&args).map_err(|e| RequestError(e.0))?;
+        return Err(RequestError("private exec returned unexpectedly"));
+    }
+    let private = args.first().is_some_and(|v| v == "--private-worker");
+    let r = parse(if private {
+        args[1..].to_vec()
+    } else {
+        args.clone()
+    })?;
+    let work = observed_work(&r)?;
+    if !private {
+        crate::study_supervisor::launch(
+            &r.root,
+            &r.approval,
+            &r.approval_sha256,
+            &r.receipts,
+            &args,
+            work,
+        )
+        .map_err(|e| RequestError(e.0))?;
+        return Err(RequestError(
+            "supervisor returned without scientific completion",
+        ));
+    }
+    let owner = crate::study_supervisor::worker(&args, &r.root, &r.approval_sha256, work)
+        .map_err(|e| RequestError(e.0))?;
     let request = StudyRunRequest {
         locations: ContextRequest::new(r.root, r.approval, r.approval_sha256, r.receipts),
         runtime: r.runtime,
         case: r.case,
         planning: r.planning,
     };
-    match study_runtime::dispatch(request).map_err(|_| {
+    match study_runtime::dispatch_observed(request, &owner).map_err(|_| {
         RequestError("study runtime/context/registration unavailable or inconsistent")
     })? {
         study_runtime::RunOutcome::MissingExecutionDependency => {
@@ -345,3 +406,10 @@ pub fn run(args: Vec<OsString>) -> Result<RunDiagnostic, RequestError> {
 #[cfg(test)]
 #[path = "study_run_tests.rs"]
 mod tests;
+/// Handle only the closed operational native-probe or authenticated private
+/// probe selector. Success is operational process completion, never science.
+/// Other arguments return `None` for the ordinary study frontend.
+#[doc(hidden)]
+pub fn native_probe_entry(args: &[OsString]) -> Option<Result<(), RequestError>> {
+    crate::study_supervisor::probe_entry(args).map(|result| result.map_err(|e| RequestError(e.0)))
+}

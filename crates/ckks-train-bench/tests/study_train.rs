@@ -1,5 +1,6 @@
 //! Negative frontend integration only. No approved context or HE is fabricated.
 use std::{ffi::OsString, fs, process::Command};
+// Parseable legacy requests remain outside the closed observed CPU slice.
 fn valid() -> Vec<OsString> {
     let mut a: Vec<OsString> = [
         "--root",
@@ -60,10 +61,7 @@ fn study_train_invalid_and_ordinary_builds_refuse_without_artifacts() {
     for (args, expected) in [
         (vec![], "missing explicit option"),
         (vec!["--output".into(), "old.json".into()], "unknown option"),
-        (
-            valid(),
-            "study runtime/context/registration unavailable or inconsistent",
-        ),
+        (valid(), "outside observed CPU slice"),
     ] {
         let result = Command::new(env!("CARGO_BIN_EXE_study_train"))
             .args(args)

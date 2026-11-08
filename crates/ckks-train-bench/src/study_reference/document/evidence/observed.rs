@@ -3,9 +3,9 @@
 #![allow(dead_code)] // Consumed by later genuine owners, never converted to capabilities.
 use super::*;
 mod requested;
-pub(super) use requested::*;
+pub(in crate::study_reference::document) use requested::*;
 mod records;
-pub(super) use records::*;
+pub(in crate::study_reference::document) use records::*;
 mod result;
 pub(super) use result::*;
 mod bundle;
@@ -68,7 +68,7 @@ fn uuid(s: &str) -> Result<()> {
         "observed.uuid",
     )
 }
-pub(super) mod policy;
+pub(in crate::study_reference::document) mod policy;
 #[cfg(test)]
 pub(super) use policy::*;
 pub(super) mod terminal;

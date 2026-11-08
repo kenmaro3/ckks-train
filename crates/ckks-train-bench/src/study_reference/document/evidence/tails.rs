@@ -341,7 +341,7 @@ impl Layout<'_> {
     }
 }
 #[derive(Debug, Clone)]
-pub(super) struct Requested {
+pub(in crate::study_reference::document) struct Requested {
     pub(super) max_bytes: u64,
     pub(super) max_records: u64,
     pub(super) plan_bytes: u64,

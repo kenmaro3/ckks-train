@@ -5,6 +5,7 @@
 //! materializations can construct the private-field public values.
 mod digests;
 mod document;
+pub(crate) use document::operational;
 pub(crate) use document::{
     DescriptorBytes, bind_actual_cpu, collect_block_preparation_descriptors,
     collect_single_preparation_descriptors,

@@ -1,0 +1,90 @@
+{
+  "purpose": "Scoped FIX3 test-only rereview with preserved root full-regression behavioral RED",
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-commands.json",
+      "bytes": 12943,
+      "sha256": "7e9da4eb6296027d60c11d01c848326d2d19fa4f1d2b6a9ba2fb82187696447c"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-commands.md",
+      "bytes": 3546,
+      "sha256": "6c32629f729d092048c073b88d35347e87bb0553be6eaa6fc32877e2a23b2052"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-notes.md",
+      "bytes": 3147,
+      "sha256": "07f43fb26fe3b72105330e9fe3a6a9e433d043478185f9b05ae425ee415a8c2b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-original-pin.json",
+      "bytes": 245,
+      "sha256": "f8acbd033d6220ca28c917c924111a9388f39bb7f8c9c27ed4c9336d7071b9e7"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-original.tar.gz",
+      "bytes": 4901645,
+      "sha256": "74475095e5e5979b0a8110904092ba0151045272a9f2cbc7ddb267b2d1b56188"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-pins.json",
+      "bytes": 100470,
+      "sha256": "3d6da659ce17147f87bdff1591e1937aa58a771e2f7111684b255594e5285305"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-report.md",
+      "bytes": 7036,
+      "sha256": "59d1f33f5416688f756765688c92e1992069e2ddebd2fae100f136bcf21b7bc4"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-ruling.md",
+      "bytes": 2781,
+      "sha256": "70ef8ae7a12f4e9608a37b7fa0fdb58c8708ce11b081ecb7e7b747f8d10f6bd4"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-source-paths.txt",
+      "bytes": 45,
+      "sha256": "f114382e9885efd38057a135b6f4fabfbd84627df58577e4011f4fd94e01a936"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3-verify-patch.py",
+      "bytes": 1737,
+      "sha256": "c97876bda8d3e0608397aa47e6e5edccba30288c5124816cd62b6d71406c0d40"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix3.diff",
+      "bytes": 961,
+      "sha256": "c49de2275fc4a09a7325f8b0dd928f4dea7553bda4f248d83df37dfd8981cbe3"
+    },
+    {
+      "path": "docs/study-resource-operational-design.md",
+      "bytes": 25496,
+      "sha256": "e7bf1b88c864b2fc475acb257e6f308112c899ce170d26ad9b3710469429280b"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-step2-root-integration-check/command.json",
+      "bytes": 893,
+      "sha256": "2824685cb9ce501507211c31bcf2cfd330bcafe32b92b54da5e8ad00d8f17c30"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-step2-root-integration-check/launch.json",
+      "bytes": 46,
+      "sha256": "fdc282c6b6a7258688ebcdba91390685264647c9e7d0c04185dc37495f3f1424"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-step2-root-integration-check/result.json",
+      "bytes": 118,
+      "sha256": "ab103aa51630d4ba6b33541251e6998f4867b46a31714d282e898ec88fdd6f80"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-step2-root-integration-check/stderr",
+      "bytes": 33134,
+      "sha256": "68a2c39d6631d604084a1309a1923e05f32e2f379796ec1ea6c0e3bdcd2280a6"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-step2-root-integration-check/stdout",
+      "bytes": 53716,
+      "sha256": "f04d8d5750ce61eb897c9d6d852cc293f6c085adfe54bc0aa60f3b0ff1b5a558"
+    }
+  ]
+}

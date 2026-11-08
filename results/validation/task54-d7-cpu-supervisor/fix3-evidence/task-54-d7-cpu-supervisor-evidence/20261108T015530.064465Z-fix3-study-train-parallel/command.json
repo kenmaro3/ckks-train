@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "env",
+    "CARGO_BUILD_JOBS=2",
+    "cargo",
+    "test",
+    "--offline",
+    "--locked",
+    "-p",
+    "ckks-train-bench",
+    "--features",
+    "parallel",
+    "--test",
+    "study_train",
+    "--",
+    "--test-threads=2"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "started_utc": "20261108T015530.064465Z"
+}

@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "10",
+    "cargo",
+    "test",
+    "--offline",
+    "--locked",
+    "-p",
+    "ckks-train-bench",
+    "--no-fail-fast",
+    "--",
+    "--test-threads=2"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "authored_source_pins": "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-54-d7-cpu-supervisor-fix2-pins.json",
+  "overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "RAYON_NUM_THREADS": "2",
+    "RUST_TEST_THREADS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "reason": "Step2 changes existing reference/data/runtime adapters; run full bench crate including legacy integration tests beyond supervisor-only filters before source adoption. No scientific/native16 run.",
+  "started_utc": "2026-11-08T01:47:45.663864+00:00"
+}

@@ -2045,6 +2045,7 @@ mod execution_descriptor_tests;
 mod execution_binding_tests;
 
 mod evidence;
+pub(crate) mod operational;
 
 // Actual verified-target adapter calls production parsers; synthetic tests invoke
 // the same representation composition only through the private harness.

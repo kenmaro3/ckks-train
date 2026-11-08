@@ -364,7 +364,7 @@ impl JsonWire<'_> for Clock {
     }
 }
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct CpuResult<'a> {
+pub(in crate::study_reference::document) struct CpuResult<'a> {
     pub(in crate::study_reference::document::evidence) scope: Tag<1>,
     pub(in crate::study_reference::document::evidence) case: Bytes<'a>,
     pub(in crate::study_reference::document::evidence) execution: Bytes<'a>,

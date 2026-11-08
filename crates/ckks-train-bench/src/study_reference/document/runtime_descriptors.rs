@@ -452,10 +452,10 @@ impl RuntimePolicy {
     ) -> Result<()> {
         self.validate(p, s)?;
         let form = match f.recipe() {
-            Recipe::TrainCpuSerial => 0,
+            Recipe::TrainCpuSerial | Recipe::TrainCpuSerialObserved => 0,
             Recipe::TrainCpuRayon => 1,
             Recipe::TrainCudaHost => 2,
-            Recipe::Reference => {
+            Recipe::Reference | Recipe::ReferenceObserved => {
                 return Err(err(DocumentErrorCode::CrossLinkMismatch, "runtime.recipe"));
             }
         };
@@ -544,7 +544,7 @@ impl<'a> CpuPolicyProjection<'a> {
         physical: &'a PhysicalDescriptor,
     ) -> Result<Self> {
         let form = match f.recipe() {
-            Recipe::TrainCpuSerial => 0,
+            Recipe::TrainCpuSerial | Recipe::TrainCpuSerialObserved => 0,
             Recipe::TrainCpuRayon => 1,
             _ => {
                 return Err(err(

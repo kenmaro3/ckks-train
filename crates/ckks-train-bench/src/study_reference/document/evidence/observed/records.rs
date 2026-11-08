@@ -4,7 +4,7 @@ wire_record!(Bootstrap {policy:FileRef<'a>,physical_host:H<'a>,boot_uuid:Str<'a,
 wire_record!(Pending {claim_id:Id<'a>,policy:FileRef<'a>,physical_host:H<'a>,boot:Str<'a,36>,supervisor_pid:u64,supervisor_start_ticks:u64,created:Clock});
 wire_record!(SupervisorBinding {mechanism:Id<'a>,physical_host:H<'a>,boot:Str<'a,36>,supervisor_pid:u64,supervisor_start_ticks:u64,worker_pid:u64,worker_start_ticks:u64,claim_id:Id<'a>,initial_sample:FileRef<'a>,rss_limit_kib:u64,sample_interval_ns:u64,term_grace_ns:u64,max_processes:u64});
 impl SupervisorBinding<'_> {
-    pub(in crate::study_reference::document::evidence) fn validate(&self) -> Result<()> {
+    pub(in crate::study_reference::document) fn validate(&self) -> Result<()> {
         uuid(self.boot.0)?;
         self.initial_sample.validate()?;
         same(
@@ -30,11 +30,11 @@ wire_record!(HostPending {claim_id:Id<'a>,boot:Str<'a,36>,supervisor_pid:u64,sup
 wire_record!(HostClosed {pending_sha256:H<'a>,supervisor_end:FileRef<'a>});
 wire_record!(Allocation {site:Id<'a>,count:u64,element_bytes:u64});
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct SourceDemand<'a> {
-    pub(in crate::study_reference::document::evidence) phase: Tag<4>,
-    pub(in crate::study_reference::document::evidence) retained_payload_bytes: u64,
-    pub(in crate::study_reference::document::evidence) additional_payload_bytes: u64,
-    pub(in crate::study_reference::document::evidence) allocations: Vec<Allocation<'a>>,
+pub(in crate::study_reference::document) struct SourceDemand<'a> {
+    pub(in crate::study_reference::document) phase: Tag<4>,
+    pub(in crate::study_reference::document) retained_payload_bytes: u64,
+    pub(in crate::study_reference::document) additional_payload_bytes: u64,
+    pub(in crate::study_reference::document) allocations: Vec<Allocation<'a>>,
 }
 impl<'a> Wire<'a> for SourceDemand<'a> {
     const MIN: usize = 25;
@@ -57,7 +57,7 @@ impl<'a> Wire<'a> for SourceDemand<'a> {
     }
 }
 impl SourceDemand<'_> {
-    pub(in crate::study_reference::document::evidence) fn validate(&self) -> Result<()> {
+    pub(in crate::study_reference::document) fn validate(&self) -> Result<()> {
         same(
             self.phase.0 <= 4 && self.allocations.len() <= 512,
             "demand.bounds",
@@ -107,7 +107,7 @@ impl SourceDemand<'_> {
         )
     }
     /// Necessary incremental payload comparison only; never a physical-fit proof.
-    pub(in crate::study_reference::document::evidence) fn check_supplied_capacity(
+    pub(in crate::study_reference::document) fn check_supplied_capacity(
         &self,
         o: &tails::Observation<'_>,
     ) -> Result<()> {
@@ -126,10 +126,10 @@ impl SourceDemand<'_> {
 }
 wire_record!(OperationalResource {applicability:Applicability<'a>,physical:H<'a>,policy:FileRef<'a>,native_validation:FileRef<'a>,sizing_revision:Id<'a>,demand:SourceDemand<'a>,requested:Requested,observation:tails::Observation<'a>,supervisor:SupervisorBinding<'a>,claim:FileRef<'a>});
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct ProcessSample {
-    pub(in crate::study_reference::document::evidence) pid: u64,
-    pub(in crate::study_reference::document::evidence) start_ticks: u64,
-    pub(in crate::study_reference::document::evidence) rss_kib: u64,
+pub(in crate::study_reference::document) struct ProcessSample {
+    pub(in crate::study_reference::document) pid: u64,
+    pub(in crate::study_reference::document) start_ticks: u64,
+    pub(in crate::study_reference::document) rss_kib: u64,
 }
 impl<'a> Wire<'a> for ProcessSample {
     const MIN: usize = 24;
@@ -147,15 +147,15 @@ impl<'a> Wire<'a> for ProcessSample {
     }
 }
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct Sample {
-    pub(in crate::study_reference::document::evidence) seq: u64,
-    pub(in crate::study_reference::document::evidence) started: Clock,
-    pub(in crate::study_reference::document::evidence) finished: Clock,
-    pub(in crate::study_reference::document::evidence) phase: Tag<4>,
-    pub(in crate::study_reference::document::evidence) processes: Vec<ProcessSample>,
-    pub(in crate::study_reference::document::evidence) sum_kib: u64,
-    pub(in crate::study_reference::document::evidence) valid: Tag<1>,
-    pub(in crate::study_reference::document::evidence) status: Tag<4>,
+pub(in crate::study_reference::document) struct Sample {
+    pub(in crate::study_reference::document) seq: u64,
+    pub(in crate::study_reference::document) started: Clock,
+    pub(in crate::study_reference::document) finished: Clock,
+    pub(in crate::study_reference::document) phase: Tag<4>,
+    pub(in crate::study_reference::document) processes: Vec<ProcessSample>,
+    pub(in crate::study_reference::document) sum_kib: u64,
+    pub(in crate::study_reference::document) valid: Tag<1>,
+    pub(in crate::study_reference::document) status: Tag<4>,
 }
 impl<'a> Wire<'a> for Sample {
     const MIN: usize = 63;
@@ -186,7 +186,7 @@ impl<'a> Wire<'a> for Sample {
     }
 }
 impl Sample {
-    pub(in crate::study_reference::document::evidence) fn validate(&self) -> Result<()> {
+    pub(in crate::study_reference::document) fn validate(&self) -> Result<()> {
         clock_order(&self.started, &self.finished)?;
         same(self.processes.len() <= 4, "sample.processes")?;
         let mut total = 0;
@@ -215,7 +215,7 @@ wire_record!(InitialSample {sample:Sample,pending:FileRef<'a>});
 wire_record!(SupervisorEnd {pending:FileRef<'a>,claim:Option<FileRef<'a>>,start:Option<FileRef<'a>>,result:Option<FileRef<'a>>,worker_end:Option<FileRef<'a>>,samples:Option<FileRef<'a>>,last_sample_sequence:u64,metric:Id<'a>,peak_sampled_rss_kib:Option<u64>,reason:Tag<7>,wait_status:Option<u64>,custody_resolved:Tag<1>,ended:Clock});
 wire_record!(FullEnd {attempt:Id<'a>,admission:FileRef<'a>,start:FileRef<'a>,result:Option<FileRef<'a>>,result_json:Option<FileRef<'a>>,result_export:Option<FileRef<'a>>,outcome:Tag<2>,completed_updates:u64,processed_samples:u64,result_publication_ns:u64,ended:Clock});
 #[derive(Debug, Clone, Copy)]
-pub(in crate::study_reference::document::evidence) enum RecordKind {
+pub(in crate::study_reference::document) enum RecordKind {
     Bootstrap,
     Pending,
     Claim,
@@ -245,7 +245,7 @@ impl RecordKind {
 // Variant stack size is not a physical memory bound.
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) enum RecordBody<'a> {
+pub(in crate::study_reference::document) enum RecordBody<'a> {
     Bootstrap(Bootstrap<'a>),
     Pending(Pending<'a>),
     Claim(ClaimRecord<'a>),
@@ -257,13 +257,13 @@ pub(in crate::study_reference::document::evidence) enum RecordBody<'a> {
     Result(CpuResult<'a>),
 }
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct ObservedRecord<'a> {
-    pub(in crate::study_reference::document::evidence) mode: Mode,
-    pub(in crate::study_reference::document::evidence) kind: RecordKind,
-    pub(in crate::study_reference::document::evidence) body: RecordBody<'a>,
+pub(in crate::study_reference::document) struct ObservedRecord<'a> {
+    pub(in crate::study_reference::document) mode: Mode,
+    pub(in crate::study_reference::document) kind: RecordKind,
+    pub(in crate::study_reference::document) body: RecordBody<'a>,
 }
 impl<'a> ObservedRecord<'a> {
-    pub(in crate::study_reference::document::evidence) fn decode(
+    pub(in crate::study_reference::document) fn decode(
         kind: RecordKind,
         b: &'a [u8],
         mode: Mode,
@@ -298,7 +298,7 @@ impl<'a> ObservedRecord<'a> {
         v.validate()?;
         Ok(v)
     }
-    pub(in crate::study_reference::document::evidence) fn validate(&self) -> Result<()> {
+    pub(in crate::study_reference::document) fn validate(&self) -> Result<()> {
         match &self.body {
             RecordBody::Bootstrap(v) => {
                 v.policy.validate()?;
@@ -406,7 +406,7 @@ impl<'a> ObservedRecord<'a> {
         }
         Ok(())
     }
-    pub(in crate::study_reference::document::evidence) fn canonical(&self) -> Result<Vec<u8>> {
+    pub(in crate::study_reference::document) fn canonical(&self) -> Result<Vec<u8>> {
         self.validate()?;
         let mut e = encoder(self.kind.name(), 1, self.mode)?;
         match &self.body {
@@ -437,7 +437,7 @@ impl<'a> ObservedRecord<'a> {
     }
 }
 /// Borrowed framed traversal, bounded before each record, never allocates a stream.
-pub(in crate::study_reference::document::evidence) fn check_sample_stream(
+pub(in crate::study_reference::document) fn check_sample_stream(
     b: &[u8],
     mode: Mode,
 ) -> Result<()> {

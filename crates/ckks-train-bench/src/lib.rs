@@ -11,10 +11,13 @@ pub mod study_plain;
 pub mod study_profile;
 pub mod study_provenance;
 pub mod study_reference;
+mod study_supervisor;
 pub mod twin;
 
 mod study_runtime;
 
+/// Closed monitored reference/target preparation frontend.
+pub mod study_prepare;
 /// Closed study request frontend; grants no readiness authority.
 pub mod study_run;
 

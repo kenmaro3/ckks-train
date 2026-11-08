@@ -83,7 +83,7 @@ def capture(args):
         print("cargo:rerun-if-changed=" + path)
 
 
-def build(args, recipe=s._REFERENCE):
+def build(args, recipe=s._REFERENCE_OBSERVED):
     s.require(recipe in s._RECIPES, "closed recipe")
     s.require(sys.version_info >= (3, 11), "Python3.11 required")
     s.reject_caller_environment(os.environ)
@@ -400,19 +400,27 @@ def main():
     r = subs.add_parser("snapshot")
     for k in ("root", "receipt", "git"):
         r.add_argument("--" + k, required=True)
+    for runtime in (h, r):
+        runtime.add_argument("--broker-runtime", action="store_true", required=True)
+        runtime.add_argument("--lock-device", type=int, required=True)
+        runtime.add_argument("--lock-inode", type=int, required=True)
+        runtime.add_argument("--supervisor-pid", type=int, required=True)
     a = p.parse_args()
     if a.mode == "build":
         build(a)
     elif a.mode == "capture":
         capture(a)
-    elif a.mode == "hash-file":
-        print(s.regular_hash(a.path))
     else:
-        print(
-            s.verify_runtime_snapshot(
+        import study_runtime_broker
+        broker = study_runtime_broker.acquire(a.lock_device, a.lock_inode, a.supervisor_pid)
+        s._RUNTIME_BROKER = broker
+        if a.mode == "hash-file":
+            output = s.regular_hash(a.path)
+        else:
+            output = s.verify_runtime_snapshot(
                 s.canonical(a.root), s.read_regular(a.receipt), a.git
             )
-        )
+        broker.result((output + "\n").encode("ascii"))
 
 
 if __name__ == "__main__":

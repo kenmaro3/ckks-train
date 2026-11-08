@@ -9,7 +9,6 @@ use crate::{
 };
 use std::{
     ffi::{OsStr, OsString},
-    io::Read,
     os::unix::{
         ffi::{OsStrExt, OsStringExt},
         fs::MetadataExt,
@@ -80,6 +79,9 @@ impl ContextRequest {
     }
 }
 struct CheckedBuildRole(Recipe);
+#[cfg(target_os = "linux")]
+#[path = "runtime_broker_policy.rs"]
+pub(crate) mod runtime_broker_policy;
 struct FrozenReceipt {
     role: CheckedBuildRole,
     path: PathBuf,
@@ -105,22 +107,25 @@ struct VerifiedContextCore {
     executable: PathBuf,
     executable_identity: (u64, u64),
     env: Environment,
+    broker: Option<crate::study_supervisor::broker::Broker>,
 }
 // One core owns the sole lease. Neither context can cross an owner frame.
 enum CurrentRuntime {
     Reference,
+    ReferenceObserved,
     Train(CaseRuntimeLease),
 }
 impl CurrentRuntime {
     fn recheck(&self) -> Result<()> {
         match self {
-            Self::Reference => Ok(()),
+            Self::Reference | Self::ReferenceObserved => Ok(()),
             Self::Train(runtime) => runtime.recheck(),
         }
     }
     fn recipe(&self) -> Recipe {
         match self {
             Self::Reference => Recipe::Reference,
+            Self::ReferenceObserved => Recipe::ReferenceObserved,
             Self::Train(runtime) => runtime.recipe(),
         }
     }
@@ -178,12 +183,26 @@ pub struct VerifiedStudyTrainContext {
     artifact: VerifiedStudyContext,
 }
 impl VerifiedStudyTrainContext {
+    pub(crate) fn load_observed(
+        request: crate::study_runtime::StudyTrainContextRequest,
+        owner: &crate::study_supervisor::broker::WorkerOwner,
+    ) -> Result<Self> {
+        let (locations, runtime) = request.into_parts();
+        let artifact = VerifiedStudyContext::load_current(
+            locations,
+            CurrentRuntime::Train(runtime),
+            Some(owner.broker()?),
+        )?;
+        owner.bind_context(artifact.approval_sha256(), &artifact.core.approval.source)?;
+        Ok(Self { artifact })
+    }
     pub(crate) fn load(request: crate::study_runtime::StudyTrainContextRequest) -> Result<Self> {
         let (locations, runtime) = request.into_parts();
         Ok(Self {
             artifact: VerifiedStudyContext::load_current(
                 locations,
                 CurrentRuntime::Train(runtime),
+                None,
             )?,
         })
     }
@@ -198,7 +217,10 @@ fn validate_train_selection(
     runtime: Recipe,
 ) -> Result<()> {
     ensure(
-        matches!(approval.version, ApprovalVersion::V2(_)),
+        matches!(
+            approval.version,
+            ApprovalVersion::V2(_) | ApprovalVersion::V3(_, _)
+        ),
         "Train context requires approval v2",
     )?;
     ensure(
@@ -409,6 +431,17 @@ fn validate_linkage(r: &Receipt, c: &Capsule, env: &Environment) -> Result<Check
                 .iter()
                 .any(|(p, v)| p == rel.as_bytes() && matches!(v, FileValue::Regular(_))),
             "build helper source uncovered",
+        )?;
+    }
+    if matches!(
+        recipe,
+        Recipe::ReferenceObserved | Recipe::TrainCpuSerialObserved
+    ) {
+        ensure(
+            source.records.iter().any(|(p, v)| {
+                p == b"scripts/study_runtime_broker.py" && matches!(v, FileValue::Regular(_))
+            }),
+            "runtime broker source uncovered",
         )?;
     }
     let binary_source = format!("crates/ckks-train-bench/src/bin/{}.rs", recipe.bin());
@@ -635,7 +668,7 @@ fn check_approved_receipt(a: &LocalApproval, bytes: &[u8], r: &Receipt, c: &Caps
         ApprovalVersion::V1(a) => {
             c.recipe == a.recipe && c.algorithm == a.algorithm && a.builds.contains(&triple)
         }
-        ApprovalVersion::V2(a) => {
+        ApprovalVersion::V2(a) | ApprovalVersion::V3(a, _) => {
             let recipe = Recipe::classify(&c.recipe, &c.algorithm)?;
             a.builds.iter().any(|b| {
                 b.role == u8::from(recipe.role() == ExecutableRole::StudyTrain)
@@ -674,12 +707,40 @@ fn check_current_binary(r: &Receipt, embedded: &[u8], path: &[u8], hash: &str) -
     )
 }
 impl VerifiedStudyContext {
+    pub(crate) fn recheck_resource_broker(
+        &self,
+        broker: &crate::study_supervisor::broker::Broker,
+    ) -> Result<()> {
+        self.core
+            .broker
+            .as_ref()
+            .ok_or(ProvenanceError("context lacks live resource owner"))?
+            .same_origin(broker)?;
+        self.recheck()
+    }
+
     /// Load exact pinned local approval and captured build receipts.
     /// Ordinary builds and unsupported production platforms fail closed.
     pub fn load(request: ContextRequest) -> Result<Self> {
-        Self::load_current(request, CurrentRuntime::Reference)
+        Self::load_current(request, CurrentRuntime::Reference, None)
     }
-    fn load_current(request: ContextRequest, runtime: CurrentRuntime) -> Result<Self> {
+    pub(crate) fn load_observed(
+        request: ContextRequest,
+        owner: &crate::study_supervisor::broker::WorkerOwner,
+    ) -> Result<Self> {
+        let context = Self::load_current(
+            request,
+            CurrentRuntime::ReferenceObserved,
+            Some(owner.broker()?),
+        )?;
+        owner.bind_context(context.approval_sha256(), &context.core.approval.source)?;
+        Ok(context)
+    }
+    fn load_current(
+        request: ContextRequest,
+        runtime: CurrentRuntime,
+        broker: Option<crate::study_supervisor::broker::Broker>,
+    ) -> Result<Self> {
         runtime.recheck()?;
         let embedded =
             EMBEDDED_CAPSULE.ok_or(ProvenanceError("build has no production compile capsule"))?;
@@ -804,6 +865,7 @@ impl VerifiedStudyContext {
                 executable,
                 executable_identity: (m.dev(), m.ino()),
                 env,
+                broker,
             },
         };
         result.recheck()?;
@@ -851,7 +913,12 @@ impl VerifiedStudyContext {
             .request
             .root
             .join(self.core.receipts[self.core.current].role.0.helper());
-        for p in [&helper, &support, &role_helper] {
+        let broker = self
+            .core
+            .request
+            .root
+            .join("scripts/study_runtime_broker.py");
+        for p in [&helper, &support, &role_helper, &broker] {
             let rel = p
                 .strip_prefix(&self.core.request.root)
                 .map_err(|_| ProvenanceError("helper root"))?;
@@ -865,6 +932,15 @@ impl VerifiedStudyContext {
             )?;
         }
         Ok(helper)
+    }
+    fn broker_command(&self, cmd: Command, cap: usize) -> Result<Vec<u8>> {
+        self.core
+            .broker
+            .as_ref()
+            .ok_or(ProvenanceError(
+                "runtime helper requires live operational broker",
+            ))?
+            .command(cmd, cap)
     }
     fn command(&self) -> Result<Command> {
         let mut cmd = Command::new(&self.core.python);
@@ -885,7 +961,7 @@ impl VerifiedStudyContext {
     fn hash_file(&self, p: &Path) -> Result<String> {
         let mut cmd = self.command()?;
         cmd.arg("hash-file").arg("--path").arg(p);
-        let bytes = bounded_command(cmd, 65)?;
+        let bytes = self.broker_command(cmd, 65)?;
         let s = std::str::from_utf8(&bytes)
             .map_err(|_| ProvenanceError("hash output UTF8"))?
             .trim_end_matches('\n');
@@ -924,7 +1000,7 @@ impl VerifiedStudyContext {
             .arg("--git")
             .arg(&self.core.git);
         ensure(
-            bounded_command(cmd, 65)? == format!("{}\n", self.core.approval.source).as_bytes(),
+            self.broker_command(cmd, 65)? == format!("{}\n", self.core.approval.source).as_bytes(),
             "source/config/Git recheck",
         )?;
         self.core.runtime.recheck()
@@ -1044,7 +1120,7 @@ impl VerifiedStudyContext {
             instance: self.core.instance.0,
             original: self as *const Self as usize,
             process: match &self.core.runtime {
-                CurrentRuntime::Reference => None,
+                CurrentRuntime::Reference | CurrentRuntime::ReferenceObserved => None,
                 CurrentRuntime::Train(runtime) => Some(runtime.process_association()),
             },
             _not_send_sync: std::marker::PhantomData,
@@ -1206,23 +1282,6 @@ fn require_reference_role(role: ExecutableRole) -> Result<()> {
         role == ExecutableRole::Reference,
         "current Reference required",
     )
-}
-fn bounded_command(mut cmd: Command, cap: usize) -> Result<Vec<u8>> {
-    let mut child = cmd.spawn()?;
-    let mut bytes = Vec::new();
-    let read = child
-        .stdout
-        .take()
-        .ok_or(ProvenanceError("child stdout"))?
-        .take(cap as u64 + 1)
-        .read_to_end(&mut bytes);
-    if read.is_err() || bytes.len() > cap {
-        let _ = child.kill();
-        let _ = child.wait();
-        return Err(ProvenanceError("bounded child output"));
-    }
-    ensure(child.wait()?.success(), "provenance helper failed")?;
-    Ok(bytes)
 }
 fn reject_runtime_keys(keys: impl Iterator<Item = OsString>) -> Result<()> {
     for key in keys {

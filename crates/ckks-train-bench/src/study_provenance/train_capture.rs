@@ -59,9 +59,13 @@ pub(super) fn check_case_materialized(
         "Train case/input selection mismatch",
     )?;
     let backend = match recipe {
-        Recipe::TrainCpuSerial | Recipe::TrainCpuRayon => CaseBackend::Cpu,
+        Recipe::TrainCpuSerial | Recipe::TrainCpuSerialObserved | Recipe::TrainCpuRayon => {
+            CaseBackend::Cpu
+        }
         Recipe::TrainCudaHost => CaseBackend::Cuda,
-        Recipe::Reference => return Err(ProvenanceError("current StudyTrain required")),
+        Recipe::Reference | Recipe::ReferenceObserved => {
+            return Err(ProvenanceError("current StudyTrain required"));
+        }
     };
     ensure(selected.backend == backend, "Train case/runtime mismatch")?;
     ensure(
@@ -104,7 +108,9 @@ impl VerifiedStudyTrainContext {
                 )?;
                 Ok(runtime)
             }
-            CurrentRuntime::Reference => Err(ProvenanceError("retained Train runtime required")),
+            CurrentRuntime::Reference | CurrentRuntime::ReferenceObserved => {
+                Err(ProvenanceError("retained Train runtime required"))
+            }
         }
     }
     pub(crate) fn capture_train<'a>(

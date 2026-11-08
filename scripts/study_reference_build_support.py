@@ -16,6 +16,7 @@ LIMIT = 8 * 1024 * 1024
 CAPSULE_LIMIT = 2 * 1024 * 1024
 TEXT = 4096
 COUNT = 65536
+_RUNTIME_BROKER = None
 RECIPE = "study-reference-linux-clean-v1"
 ALGORITHM = "study-reference-session-v1"
 TARGET = "x86_64-unknown-linux-gnu"
@@ -799,6 +800,8 @@ def artifacts(messages, inventory, target):
 
 def bounded_run(argv, cwd, env, cap=LIMIT):
     """Bound stdout while streaming; never accumulate stderr or use a shell."""
+    if _RUNTIME_BROKER is not None:
+        return _RUNTIME_BROKER.run(argv, cwd, env, cap)
     with subprocess.Popen(
         argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE
     ) as p:
@@ -816,6 +819,7 @@ def bounded_run(argv, cwd, env, cap=LIMIT):
 def git_state(root, git, env):
     prefix = [
         git,
+        "--no-pager",
         "-c",
         "core.fsmonitor=false",
         "-c",
@@ -835,7 +839,7 @@ def git_state(root, git, env):
         len(commit) == 40 and all(c in "0123456789abcdef" for c in commit),
         "Git revision",
     )
-    bounded_run(prefix + ["diff", "--no-ext-diff", "--quiet", "HEAD", "--"], root, env)
+    bounded_run(prefix + ["diff", "--no-ext-diff", "--no-textconv", "--quiet", "HEAD", "--"], root, env)
     require(
         not bounded_run(
             prefix + ["ls-files", "--others", "--exclude-standard", "-z"], root, env
@@ -1253,7 +1257,12 @@ _TRAIN = tuple(
         ("cuda-host", ("cuda", "parallel"), "cuda"),
     )
 )
-_RECIPES = (_REFERENCE, *_TRAIN)
+_REFERENCE_OBSERVED = _Recipe("study-reference-linux-clean-v2", ALGORITHM, 0, (), None,
+                              "study_reference", "scripts/study_reference_build.py", "build")
+_SERIAL_OBSERVED = _Recipe("study-train-cpu-serial-linux-clean-v2", "study-train-session-v1", 1, (), None,
+                         "study_train", "scripts/study_train_build.py", "cpu-serial")
+_CURRENT_TRAIN = (_SERIAL_OBSERVED, *_TRAIN[1:])
+_RECIPES = (_REFERENCE, *_TRAIN, _REFERENCE_OBSERVED, _SERIAL_OBSERVED)
 DOMAINS["approval_v2"] = "hekit-study-local-approval-v2"
 
 
@@ -1526,7 +1535,7 @@ def _validate_linkage(r, c):
         "scripts/study_reference_build_support.py",
         recipe.helper,
         "crates/ckks-train-bench/build.rs",
-    ):
+    ) + (("scripts/study_runtime_broker.py",) if recipe.name.endswith("-v2") else ()):
         require(
             source.get(name.encode(), (None,))[0] == 1, "build helper source uncovered"
         )

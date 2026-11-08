@@ -1,0 +1,7 @@
+
+running 2 tests
+test study_train_facade_excludes_argv0_and_returns_no_context ... ok
+test study_train_invalid_and_ordinary_builds_refuse_without_artifacts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+

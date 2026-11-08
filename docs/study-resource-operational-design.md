@@ -17,3 +17,109 @@ Task54の最初の接続対象は、登録済みIris/eMLP-1/seed0のCPU対話・
 この新しい経路では、[従来設計](study-resource-design.md)§2の全22区分の物理上限証明を実行前提にしない。旧Resource/Requirementsを再解釈せず、新しい`d7-resource-observed-rss-v1`と専用証拠を使う。既存の4種の非Resource検査、入力・owner・Full/Quick・Target・durable startの条件は保持する。Fullの汎用形式は維持し、Quickは明示的にv2へ分ける。詳細の形式と互換性は採用したFIX2契約を正とする。
 
 実装は、独立した期待値と形式処理、監視とhelper、同じ入力の保持と実行開始条件、最終評価・JSON・run_all・表生成の順でレビュー可能な変更に分ける。最初の形式処理だけで完了とはせず、この接続を最後まで実装する。
+
+## 2026-11-08実装前の裁定: 監視役とworkerの共通時計
+
+同じ実行に属する記録のelapsed_since_operation_start_nsを保つため、既存rustix 1.1.6のprocess/eventに加えてtime featureの使用を認める。Linux CLOCK_MONOTONICの確認済み起点を私有handshakeで共有し、各processは検査付き減算で経過時間を求める。絶対CLOCK_MONOTONIC値を既存のelapsed欄へ入れず、負値・変換overflow・起点以前を拒否する。実際のHE更新時間とFP32時間の区別は維持する。
+
+理由は、別processのInstantをそれぞれゼロにすると既存の記録間の時刻比較が成立しないため。代替の全時刻取得を監視役へ問い合わせる方式はIPC依存と観測遅延を増やし、独自unsafe呼出しは既定のsafe API方針に反する。新package・新ライセンス・形式変更はない。追加featureのcompileとLinux上での同一起点の検証が必要になり、native検証未実施という制約は残る。設計上の起点共有を実測の正確さの証明とは扱わない。
+
+## 2026-11-08実装前の裁定: 最小launcherの取得元
+
+実装を調べると、設計が前提にしていた最小launcherは存在せず、既存のcontext loaderは先にapproval・receiptを展開してhelperを起動する。既存の運用者がハッシュで固定するLocalApprovalをv3へ分け、起動前の固定scratchによる読取でaccount・Policy・Observationのoriginとbootstrap参照を取り出す設計を採用する。全approvalのハッシュ確認と保持したFD・祖先の確認を先に行い、監視下での完全decode時にも同じ記録と照合する。v1/v2のbytesは維持し、新ownerの根拠へは流用しない。
+
+理由は、既存の承認元を再利用して、未実装の信頼取得を具体化するため。所有者だけで信頼する新設定ファイルやHOME/環境変数、任意bootstrap hashは採用しない。別launcher executableを増やす案は配布・識別の境界を増やす。v3の互換性・固定scratch読取の検証と、後日の実機での正しいorigin収集・明示的設定が追加で必要となる。approvalのハッシュ一致だけで物理ホスト・namespace・native動作を証明したとは扱わない。今回の変更はsource設計であり、サーバーに新しい承認記録を設置したものではない。
+
+## 2026-11-08実装前の裁定: host記録とnative検証の循環回避
+
+新経路のhost/namespace参照を、固定4096 bytes以下の共通host-origin記録へ結び付ける。native検証記録は実build・hostに対応する16種の実行と元出力・独立レビューを参照する別形式とし、旧22区分の物理モデル検証を流用しない。最初の実装が扱うOS環境はunified cgroup v2と検証済みlocal ext4/XFSで、未対応環境は未計測・拒否として残す。これで研究上の登録ケースを削除しない。
+
+最終policyがnative検証を要求し、その検証自身が最終policyを要求する循環を避けるため、同じ実行ファイル内に限定native probe入口を設ける。実際の監視・FD・publisherの下位処理を使うが、production owner・学習・gate・campaign出力の権限は作らない。probe用origin/hashはこの限定テストだけの選択であり、通常学習のbootstrap指定には使えない。実cooperative lockと未解決claimの拒否は維持する。サーバーでのprobe実行はまだ行っていない。
+
+別test executableでは本番binaryの同一性が失われ、自己申告のPASSや既存形式の流用では根拠が不足するため、この方式を選ぶ。新形式・私有test入口の実装とレビューが増える。exit0や形式の整合だけでは合格にせず、元出力・実host適用範囲・独立レビューを必要とする。threshold停止の注入テストは実90GiB超過の測定とは分ける。事前のhost/mount収集とreviewは後続のnative reportへ依存させず、循環を作らない。
+
+## 2026-11-08実装前の裁定: RSS観測の時刻窓
+
+監視の10秒間隔は、実行開始の単調時計を起点とする固定の時刻窓とする。初回はRun前に有効な観測を完了する。以後は起点+10k秒で観測がdueになり、次の境界+10(k+1)秒までに完了する。due後に実行可能となった最初のpollで、追加のIPC処理より先に読む。実際の開始・終了を記録し、次の境界を超過した読取や丸ごと逃した窓は失敗とする。時刻を現在時刻へずらしたり、窓を飛ばしたりしない。
+
+実際の読取には時間がかかるため、読み始める時刻と同じ時刻を完了期限にする解釈は採用しない。事前に読み始める案には未登録のlead timeが必要になる。固定窓方式でもOSの遅延により実観測間隔は10秒より長くなり得て、検出までにRSSが超過し得る。この費用を時刻・遅延・overshootとして残し、正確な10秒ごとの瞬時観測や厳密なメモリ上限とは主張しない。
+
+起動用accountの保存先は既存FileRefの6役割とは別なので、新しいfilesystem記録ではaccountのfilesystem identityを明示する。同じmountなら既存役割と同じ行へまとめ、別mountならaccount専用行として検査する。Authority役割への読み替えや新しいroot tagは行わない。これにより配置を不必要に同一mountへ制限せず、account側の容量・quota・backingの検査漏れも防ぐ。追加のidentity照合と異なるmountの試験が必要になる。
+
+native・filesystemの独立レビュー参照にも有限の形式を定める。nativeは16検査とその元出力・build/host identity、filesystemは実mountとquota/backing資料を一致させる。レビューを実行ファイル自身が自動承認する方式は使わない。RSS閾値を注入した検査は専用の`threshold_event_injected`で区別し、他の検査が意図的に起こす実kernel障害まで「注入なし」と説明しない。形式検査は独立レビューの意味的な正しさの証明ではなく、運用者が実際の資料を確認して選ぶ境界を残す。
+
+## 2026-11-08実装前の裁定: 私有socketのpeer資格情報
+
+既存rustix 1.1.6にnet featureを追加し、継承したAF_UNIX streamのSO_PEERCREDをsafe APIで読むことを認める。子がsocketを作った監視役のPID・UIDと照合するためで、/procのFD inodeだけでは同等の資格情報を確認できない。不安定な標準API、新依存、独自unsafe呼出しを使う案は採用しない。既存linux-raw-sysのfeature範囲は増えるが、package・version・ライセンスを追加せず、外部networkアクセスや新しいserver実行は行わない。最終ソースのコンパイル確認と限定native検証の対象に含める。
+
+SO_PEERCREDはsocketpair等を作った時点の資格情報であり、現在の生存や各messageの送信者を単独で証明しない（[Linux unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html)）。今回の親がspawn前に作るsocketpairでは、親側から後発の子PIDを認証したことにはしない。子の所有確認はpidfdと既存のhandshakeを維持し、親のPID/start・boot・実行ファイル・継承lockの照合も省略しない。誤ったpeer/UIDやFDの拒否を実装前の期待値に含め、実kernelの継承・exec動作は既存native検査で確認する。現時点では未計測である。
+
+## 2026-11-08実装前の裁定: 検証資料の固定package
+
+現launcherに実在するのはrepository、明示選択したapproval/receipt、v3のaccount・Policy・Observationであり、Input・Reviewedの固定originはまだ接続されていない。そのためStep2のhost/native/filesystemの元資料と独立reviewは、保持したPolicyのresource/linux-cpu-observed-v1配下に運用者が固定するpackageから読む。各資料の元bytes・hash・記録内の出所を保持し、参照先のrole/path/長さ/hashを照合する。明示選択された現実行ファイルのbuild receiptだけは、保持した元receiptと直接照合し、その親をこの操作のAuthorityとする。任意の兄弟fileや別receiptへのすり替えは認めない。
+
+理由は、存在しないrootを推測せずに正の読取経路を作るため。新しいoriginを今すべて追加する案は後続の入力・store接続を広げ、repositoryから推測する案は根拠を欠く。常に拒否するだけの実装も採用しない。固定packageの配置とコピーのbyte一致、root/receipt照合、追加試験が必要になる。配置を限定しても、実際に使う各filesystemの容量・quota・backing確認は省略しない。Input・Reviewedを含む全6役割の形式は維持し、後続Step3で元rootを同じownerの下で取得・照合するまで、それらを必要とする科学実行へ進めない。部分的なroot検証を全経路のnative合格へ流用しない。サーバーへの配置や新しい実測はまだ行っていない。
+
+## 2026-11-08実装前の裁定: 共通時計を失った後の停止処理
+
+通常は共通CLOCK_MONOTONIC起点とTERMから5秒の停止規則を維持する。cleanup中に共通時計の読取・変換が失敗した場合だけ、所有確認済みpidfdへのTERMを全件試行した後、std::time::Instantで新たに5秒以上待ってKILL対象を再確認する退避経路を認める。既存の猶予途中なら新たな5秒を待つため停止は遅くなり得る。poll失敗は短い待機を挟んで処理を継続し、通常のErrによって監視役を早期終了させない。未知のPIDやidentity不明の対象へはsignalしない。
+
+このタイマーは停止専用で、観測の有効性や成功へ復帰させず、wire Clock・RSS・provenance・科学用時間へ値を混ぜない。失敗と未解決markerを保持する。Instantもplatformの単調時計に依存し、独立した物理時計ではない。期間を検証できなければ5秒経過を捏造せず、未解決状態を維持する。
+
+代替の即時KILLは猶予を変え、経過時間の推測は証跡を損ない、時計エラーだけで停止操作を一切しない案は利用可能な所有handleを活用できない。この限定経路には追加の失敗状態・試験と実機確認が必要で、厳密なメモリ上限を保証するものではない。native試験で変換失敗を注入する場合は、実kernel時計の障害を再現したとは報告しない。現時点ではsource方針のみで、実機検証は未実施である。
+
+## 2026-11-08実装前の裁定: native probeのbuild receipt
+
+最終policyより前に動かす限定probeでは、build receiptをPolicyのresource/linux-cpu-observed-v1/build-receipt.binに固定する。運用者が置く元receiptと同一bytesのコピーを保持して読み、hash・長さに加えて現実行ファイル、埋込capsule、recipe、sourceとの一致を検査する。最終native-validationは既定どおりAuthority側の唯一の元receiptを参照し、probeで読んだコピーとの同一性を明示的に照合する。元記録にあるbuild pathやcommandを書き換えず、probe-originと元出力の実際の読取先を保持する。
+
+理由は、採用済みprobe-originにAuthorityの親pathがなく、固定7要素のprobe引数にもreceipt指定がないため。新しい引数・形式を追加する案やcwdから推測する案、後続policyに依存する案を避け、既に固定されたPolicyだけを使う。コピーの保持と最終元receiptとの照合、拒否試験が追加で必要となる。これはprobe専用の配置であり、本番の認可元は変更しない。実機への配置・probe実行はまだ行っていない。
+
+## 2026-11-08実装前の裁定: native probeの元出力
+
+限定probeの元出力を、実引数・cwdの記録、元Observation参照を返すstdout、元probe-origin bytesと観測eventを持つ8MiB以下のbinaryへ固定する。Policy側へコピーしても元path・hash・receiptとの関係を検査できるようにし、任意の元pathを開き直さない。各項目の上限に加えて全体上限を適用し、超過を切り捨てて成功扱いにはしない。外部launcherが実exit・stdout・stderrを保持し、自己記録の形式一致だけをnative合格にはしない。
+
+理由は、opaqueなログだけでは既定の元記録とコピーの照合を実装できないため。検査ごとに別形式を作る案より共通形式を選ぶが、16検査それぞれの実測内容と意図的な障害は独立レビューで確認する。追加parser・上限検査・照合試験が必要になる。既存7引数、検査数、権限と停止条件は変更せず、時計喪失時の値も補作しない。サーバーでのnative検証は未実施である。
+
+## 2026-11-08実装前の裁定: native限定の実プロセス引継ぎ
+
+実際の親終了と子の引継ぎを確認するため、既存16検査のうちsubreaper・parent EOFの2検査だけに、検証役P→中間役M→末端Lの3プロセス構成を認める。本番の全direct-child構成は変更しない。Mが取得済みのpidfdとproc参照を認証済み私有通信でPへ渡し、確認応答まで保持する。報告されたPIDから権限を作らず、M終了前後の実PPid・start・boot・実行ファイルと保持handleを照合する。
+
+理由は、subreaper設定値や管理情報の変更だけでは実際の引継ぎを検証できないため。Linuxは孤児化した子孫を生存する最寄りのsubreaperへ移す（[PR_SET_CHILD_SUBREAPER](https://man7.org/linux/man-pages/man2/PR_SET_CHILD_SUBREAPER.2const.html)）。pidfdによるwaitは呼出元の子であることを要するため、引継ぎ前のECHILDを終了扱いにしない（[pidfd_open](https://man7.org/linux/man-pages/man2/pidfd_open.2.html)）。全てを直下の子にする代替案ではこの動作を測れない。safeなFD受渡し・所有権移管・追加の失敗試験と独立レビューが必要になる。
+
+EOF検査では元の親制御socketの実EOFと既存親確認の拒否を観測する。救済用通信は通常処理を許可しない。PとMの元lock参照を全て閉じ、Lだけが保持する間に新しいOFDからのlock取得が失敗すること、Lの終了・回収後に再取得できることを測る。未知子の分岐は実引継ぎ後の明示的な登録漏れ注入であり、真に未知のPIDへのsignal成功とは扱わない。
+
+プロセス数・60秒の検証期限・TERM後5秒・出力上限を維持し、期限到達を未解決の子の放棄理由にしない。検証専用pendingと本番記録を分け、失敗や部分的な受渡しを成功へ変えない。ここで認めたのは限定source設計で、サーバー配置・実機実行・native合格はまだない。
+
+## 2026-11-08実装前の裁定: native停止猶予の検証条件
+
+rss-term-grace-kill検査に限り、実際に保持・照合した自分の子のpidfdへSIGSTOPを送り、実停止状態を確認してから閾値イベントを注入する。既存のTERM後5秒とKILL・終了・回収を実測し、rawにはowned-sigstop-injectedと閾値注入を明記する。本番の停止処理はTERM/KILLのままとする。SIGSTOPはプロセスを停止し、pidfdは特定プロセスを指す参照として使える（[signal](https://man7.org/linux/man-pages/man7/signal.7.html)、[pidfd_send_signal](https://man7.org/linux/man-pages/man2/pidfd_send_signal.2.html)）。
+
+理由は、project unsafeのsignal handlerを追加せず、実kernel上で猶予後の強制終了を検証するため。模擬traceだけではsyscallを検証できず、通常の停止APIを拡張する案は範囲が広がる。実停止の確認、異常時の回収、注入条件の区別が追加で必要になる。これは90GiB実超過や自然にTERMを無視する負荷の再現ではない。途中エラーで停止した子を放置せず、保持した所有権とlockの下で既存の停止規則を続ける。実機実行は未実施である。
+
+### TERM猶予の実装上の起点
+
+既存の「TERM後5秒以上」を満たすため、実際の全TERM送信試行が終わった後の共通時計を一度だけ記録し、そこから猶予を数える。送信前のイベント時刻から数えるとsyscall所要時間だけ短くなり得るため修正する。全試行完了の記録前に古い起点だけでKILLを許可せず、再起算による延長を繰り返さない。個々の失敗で残りの試行を省略せず、時計失敗は既定のcleanup専用退避と無効判定を維持する。これは既存条件への実装修正で、実機での猶予測定は未実施である。
+
+### native限定FD受渡しの境界整理
+
+採用済みのP→M→L構成では、救済socket pairをPが作り、自分のendpointを保持する。このため救済用転送はP→M→Lのsocket 1個、所有権の転送はM→Pの取得済みpidfdとproc参照の2個に固定する。種別・方向・scenario・session・段階を結び付け、個数だけで受理しない。Pへ救済endpointを重複して返す案は不要なaliasを増やしEOFの検証を曖昧にするため採用しない。
+
+これはnative実接続前の有限な整理で、本番のdirect-child条件や権限を拡張しない。誤った種別・方向・個数・再送の拒否試験が追加で必要になる。既存の2個／3個を想定したpure試験の履歴は変更せず、修正後と区別する。実際のEOF、所有権移管、終了・回収のnative検証は未実施である。
+
+### native検証の未解決記録をaccount側から追跡する
+
+検証用の固定配置account-state/native-probes/<probe_id>/<check>/に、元command.jsonと、終了時の元observations.binの同一bytesを保持する。新しい形式や本番の承認記録は作らない。同じaccount lockの下でnative・本番の入口と再取得時に照合し、片側だけ、名前・identity・bytesの不一致や未解決状態なら拒否する。元Observationだけの排他directoryでは新probe_idによる再実行を止められないため、この索引を採用する。
+
+子の起動前にcommandを耐久保存し、実際の終了・回収と最終sample後の未解決再検査を経てから完了側をコピーする。8MiB等の既存上限と両filesystemの容量確認を維持し、過去記録は順に読む。追加のコピー・有限な探索・中断試験が費用となる。コピーの存在をnative検証合格や科学結果とは扱わず、元出力・外部終了状態・独立レビューを別に確認する。サーバーでの実機実行は未実施である。
+
+### native検証専用の両EOF・生存子 fault
+
+worker-handshake-exec の閉じた認証済み native check3 だけで、idle child が control socket を shutdown し、stderr を /dev/null に置換する。既存 rustix 1.1.6 の safe dup2_stderr のため stdio feature のみ追加する。親は実際の両EOFと保持pidfd上の生存を確認し、pending Stop を送信できないまま既存 TERM・猶予・KILL・drain と wait_stopping を検査する。
+
+理由は、出力が閉じた生存子と未送信queueが同時にある停止経路を実kernelで検査するため。模擬EOFだけではこの状態を測れず、project unsafe や新packageの追加は不要である。本番のstderr・exec動作は変えず、注入をrawに記録する。feature有効化後のcompile・拒否条件・cleanupレビューが必要で、実機検証は未実施。
+
+### supervisor専有の実行記録とGit clean検査
+
+固定された`/results/resource/`と`/results/native-probes/`だけを.gitignoreへ追加する。子を起動する前にsupervisor自身が置くdurable pending/commandが、全checkoutの未追跡ファイル拒否に引っ掛かり、実snapshot helperが必ず失敗するためである。これは未実行のsource統合の前提修正で、Linux実機検証は未実施である。
+
+Git clean検査を弱める案は採用しない。配置をcheckout外へ移す案は固定配置・権限・復旧条件まで変更するため、この段階では採用しない。除外はこの2つの実行記録用pathだけとし、crates/scripts/toolsのraw physical inventory一致、科学結果・Reference・Targetの既存検査は維持する。実行記録は別途account lockと元bytes・完了状態で検査し、gitignoreを認可や成功の根拠にしない。専有pathの生成後もsource snapshotが可能であることと、他の未追跡sourceを拒否することの試験を追加する。

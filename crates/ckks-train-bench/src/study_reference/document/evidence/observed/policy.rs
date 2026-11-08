@@ -1,21 +1,18 @@
 //! Strict observed-policy source, using the unchanged owned FileRef JSON primitive.
 use super::*;
 #[derive(Debug, Clone)]
-pub(in crate::study_reference::document::evidence) struct ObservedPolicy<'a> {
-    pub(in crate::study_reference::document::evidence) raw: &'a [u8],
+pub(in crate::study_reference::document) struct ObservedPolicy<'a> {
+    pub(in crate::study_reference::document) raw: &'a [u8],
     mode: Mode,
     host_origin: resource::FileRef,
-    native_validation: resource::FileRef,
+    pub(in crate::study_reference::document) native_validation: resource::FileRef,
     source_manifest: Hash,
     source_revision: Text<40>,
     executable: Hash,
     recipe: Text<128>,
 }
 impl<'a> ObservedPolicy<'a> {
-    pub(in crate::study_reference::document::evidence) fn decode(
-        raw: &'a [u8],
-        mode: Mode,
-    ) -> Result<Self> {
+    pub(in crate::study_reference::document) fn decode(raw: &'a [u8], mode: Mode) -> Result<Self> {
         preflight_layout(raw, DocumentLayout::Resource)?;
         let r: &RawValue =
             serde_json::from_slice(raw).map_err(|e| json_err(e, "observed.policy"))?;
@@ -70,7 +67,7 @@ impl<'a> ObservedPolicy<'a> {
         )?;
         Ok(v)
     }
-    pub(in crate::study_reference::document::evidence) fn check_bootstrap(
+    pub(in crate::study_reference::document) fn check_bootstrap(
         &self,
         b: &ObservedRecord<'_>,
     ) -> Result<()> {

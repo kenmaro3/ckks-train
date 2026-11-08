@@ -817,6 +817,10 @@ impl ApprovalV2 {
 pub(super) enum ApprovalVersion {
     V1(Approval),
     V2(ApprovalV2),
+    V3(
+        ApprovalV2,
+        Box<super::resource_operational::approval::OriginProjection>,
+    ),
 }
 #[derive(Clone, Debug)]
 pub(super) struct LocalApproval {
@@ -852,6 +856,23 @@ impl LocalApproval {
                     version: ApprovalVersion::V2(a),
                 })
             }
+            "hekit-study-local-approval-v3" => {
+                let scanned = super::resource_operational::approval::scan_approval(
+                    &mut std::io::Cursor::new(b),
+                    &sha256_hex(b),
+                )?;
+                let mut body = b[..scanned.body_end].to_vec();
+                let version = 8 + ENCODING.len() + 8 + ApprovalV2::DOMAIN.len() - 1;
+                body[version] = b'2';
+                let a = ApprovalV2::decode(&body)?;
+                Ok(Self {
+                    id: a.id.clone(),
+                    designs: a.designs.clone(),
+                    commit: a.commit.clone(),
+                    source: a.source.clone(),
+                    version: ApprovalVersion::V3(a, Box::new(scanned.origin)),
+                })
+            }
             _ => Err(ProvenanceError("approval domain")),
         }
     }
@@ -873,7 +894,7 @@ impl LocalApproval {
                 a.recipe == RECIPE && a.algorithm == ALGORITHM,
                 "approval v1 Reference only",
             ),
-            ApprovalVersion::V2(a) => {
+            ApprovalVersion::V2(a) | ApprovalVersion::V3(a, _) => {
                 for b in &a.builds {
                     let r = Recipe::classify(&b.recipe, &b.algorithm)?;
                     ensure(

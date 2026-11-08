@@ -63,7 +63,8 @@ fn check_compiled_recipe(recipe: Recipe) -> Result<()> {
         Recipe::TrainCpuSerial
     };
     require(
-        recipe == compiled,
+        recipe == compiled
+            || (compiled == Recipe::TrainCpuSerial && recipe == Recipe::TrainCpuSerialObserved),
         "runtime form/compiled features mismatch",
     )
 }
@@ -309,17 +310,30 @@ impl CaseRuntimeLease {
 }
 // All authority remains in this one synchronous owner frame. Later D7 extends
 // this function, never a caller callback or a per-operation pool.install.
-fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutcome> {
-    let recipe = request.runtime.recipe();
+fn run_owned(
+    request: StudyRunRequest,
+    executor: HostExecutor,
+    owner: Option<&crate::study_supervisor::broker::WorkerOwner>,
+) -> Result<RunOutcome> {
+    let recipe = if owner.is_some() {
+        Recipe::TrainCpuSerialObserved
+    } else {
+        request.runtime.recipe()
+    };
     let ordinal = match request.runtime {
         RuntimeRequest::CudaHost { ordinal, .. } => Some(ordinal),
         _ => None,
     };
     let runtime = CaseRuntimeLease::capture(recipe, executor, ordinal)?;
-    let context = VerifiedStudyTrainContext::load(StudyTrainContextRequest {
+    let context_request = StudyTrainContextRequest {
         locations: request.locations,
         runtime,
-    })?;
+    };
+    let context = if let Some(owner) = owner {
+        VerifiedStudyTrainContext::load_observed(context_request, owner)?
+    } else {
+        VerifiedStudyTrainContext::load(context_request)?
+    };
     context.artifact_context().recheck()?;
     // Select only after loading the actual pinned current context, inside this
     // owner frame. Membership is expected registration, never checked readiness.
@@ -331,6 +345,18 @@ fn run_owned(request: StudyRunRequest, executor: HostExecutor) -> Result<RunOutc
     let case = cases
         .select(&request.case)
         .map_err(|_| ProvenanceError("unregistered study selector"))?;
+    if let Some(owner) = owner {
+        let planning = request.planning.as_ref().ok_or(ProvenanceError(
+            "observed original planning request missing",
+        ))?;
+        owner.bind_train(case, planning)?;
+        let (canonical, digest, _request) = owner.bound_train()?;
+        require(
+            canonical == case.canonical_bytes() && digest == case.digest(),
+            "original registered case association changed",
+        )?;
+        owner.before_data()?;
+    }
     let seed = u8::try_from(case.selector().seed)
         .map_err(|_| ProvenanceError("registered study seed representation"))?;
     let resolved = registry
@@ -404,14 +430,14 @@ pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {
     )?;
     check_train_preflight(recipe)?;
     match request.runtime {
-        RuntimeRequest::SerialCpu => run_owned(request, HostExecutor::serial()),
+        RuntimeRequest::SerialCpu => run_owned(request, HostExecutor::serial(), None),
         RuntimeRequest::RayonCpu { workers } | RuntimeRequest::CudaHost { workers, .. } => {
             let count = checked_workers(workers)?;
             #[cfg(feature = "parallel")]
             {
                 let pool = dedicated_pool(count)?;
                 let retained = Arc::clone(&pool);
-                pool.install(move || run_owned(request, HostExecutor::parallel(retained)?))
+                pool.install(move || run_owned(request, HostExecutor::parallel(retained)?, None))
             }
             #[cfg(not(feature = "parallel"))]
             {
@@ -420,4 +446,19 @@ pub(crate) fn dispatch(request: StudyRunRequest) -> Result<RunOutcome> {
             }
         }
     }
+}
+
+pub(crate) fn dispatch_observed(
+    request: StudyRunRequest,
+    owner: &crate::study_supervisor::broker::WorkerOwner,
+) -> Result<RunOutcome> {
+    owner.check()?;
+    require(
+        matches!(request.runtime, RuntimeRequest::SerialCpu)
+            && request.case.backend == CaseBackend::Cpu,
+        "observed runtime is serial CPU",
+    )?;
+    check_compiled_recipe(Recipe::TrainCpuSerialObserved)?;
+    check_train_preflight(Recipe::TrainCpuSerialObserved)?;
+    run_owned(request, HostExecutor::serial(), Some(owner))
 }

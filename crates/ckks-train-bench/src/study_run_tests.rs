@@ -1,5 +1,42 @@
 use super::*;
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
+#[test]
+fn operational_train_entry_compiles_only_exact_slice_work() {
+    let mut args = valid("cpu-serial");
+    args.extend(planning_args());
+    for (k, v) in [
+        ("--profile", "iris__emlp1"),
+        ("--receipt-max-bytes", "67108864"),
+        ("--receipt-max-records", "1000000"),
+        ("--work-geometries", "2"),
+        ("--work-initial-states", "2"),
+        ("--work-updates", "2"),
+        ("--work-handoffs", "0"),
+    ] {
+        replace(&mut args, k, v);
+    }
+    assert!(observed_work(&parse(args.clone()).unwrap()).is_ok());
+    for (k, v) in [
+        ("--profile", "iris__mlp2020"),
+        ("--seed", "1"),
+        ("--work-updates", "3"),
+        ("--receipt-max-records", "1"),
+    ] {
+        let mut bad = args.clone();
+        replace(&mut bad, k, v);
+        if let Ok(r) = parse(bad) {
+            assert!(observed_work(&r).is_err());
+        }
+    }
+    replace(&mut args, "--consumption", "full");
+    replace(&mut args, "--work-updates", "2400");
+    assert!(observed_work(&parse(args.clone()).unwrap()).is_ok());
+    replace(&mut args, "--registration", "main_ni");
+    replace(&mut args, "--mode", "noninteractive");
+    replace(&mut args, "--placement", "when_needed");
+    assert!(observed_work(&parse(args).unwrap()).is_ok());
+    assert!(observed_work(&parse(valid("cpu-rayon")).unwrap()).is_err());
+}
 fn valid(runtime: &str) -> Vec<OsString> {
     let mut args: Vec<OsString> = [
         "--root",

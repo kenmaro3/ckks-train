@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit",
+  "started_utc": "20261108T015741.890617Z"
+}

@@ -435,8 +435,15 @@ impl Sha256State {
     pub(crate) fn finish(self) -> String {
         self.finish_with_output(String::with_capacity(64))
     }
-    fn finish_with_output(mut self, output: String) -> String {
+    fn finish_with_output(self, mut output: String) -> String {
         debug_assert!(output.is_empty() && output.capacity() >= 64);
+        for value in self.finish_fixed() {
+            output.push(char::from(value));
+        }
+        output
+    }
+    /// Finish into fixed storage for the pre-context approval scanner.
+    pub(crate) fn finish_fixed(mut self) -> [u8; 64] {
         self.block[self.used] = 0x80;
         self.block[self.used + 1..].fill(0);
         if self.used >= 56 {
@@ -447,11 +454,13 @@ impl Sha256State {
         self.block[56..].copy_from_slice(&self.bytes.wrapping_mul(8).to_be_bytes());
         let block = self.block;
         self.compress(&block);
-        self.h.iter().fold(output, |mut out, x| {
-            use std::fmt::Write as _;
-            write!(out, "{x:08x}").expect("writing to a String");
-            out
-        })
+        let mut out = [0; 64];
+        for (word, chunk) in self.h.iter().zip(out.chunks_exact_mut(8)) {
+            for (index, byte) in chunk.iter_mut().enumerate() {
+                *byte = b"0123456789abcdef"[((word >> (28 - 4 * index)) & 15) as usize];
+            }
+        }
+        out
     }
     fn compress(&mut self, block: &[u8]) {
         const K: [u32; 64] = [

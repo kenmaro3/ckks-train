@@ -109,6 +109,10 @@ fn main() {
     println!("cargo:rerun-if-changed={}", helper.display());
     println!(
         "cargo:rerun-if-changed={}",
+        helper.with_file_name("study_runtime_broker.py").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
         helper
             .with_file_name("study_reference_build_support.py")
             .display()

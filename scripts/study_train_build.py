@@ -9,10 +9,10 @@ import study_reference_build_support as s
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subcommands = parser.add_subparsers(dest="mode", required=True)
-    for recipe in s._TRAIN:
+    for recipe in s._CURRENT_TRAIN:
         reference.build_options(subcommands.add_parser(recipe.subcommand))
     args = parser.parse_args()
-    recipe = next(r for r in s._TRAIN if r.subcommand == args.mode)
+    recipe = next(r for r in s._CURRENT_TRAIN if r.subcommand == args.mode)
     reference.build(args, recipe)
 
 

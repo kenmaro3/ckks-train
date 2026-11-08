@@ -17,7 +17,7 @@
 - **GitHub**: [kenmaro3/ckks-train](https://github.com/kenmaro3/ckks-train)は2026-11-08に**研究プレビューとして公開済み**。PDFを含む[v1.0.0-preview.1](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)も10:42 JSTに公開済み（固定6fba46c）。arXivは未投稿。ローカルは `/Users/marconi/Documents/research/hekit`、branch `main`。[公開証跡](../results/validation/research-preview-publication-20261108/README.md)。
 - **現在の測定**: 2026-11-08 10:04 JSTの確認でFULL-2は760/1000更新。最終JSONはまだなく、後続queueはowner.jsonのみ。途中ログから最終精度を補わない。
 - **公開候補の検証**: Macの固定ソース00f4409は1,025合格・0失敗・19未実行。strict Clippy、文書リンク修正後のstrict rustdoc、表の再生成・整合性検査も、それぞれの記録対象で合格。公開版6fba46cの[Linux CI](https://github.com/kenmaro3/ckks-train/actions/runs/42433577945)は全6ジョブ成功、workspace集計1,028合格・0失敗・47 ignored。[配布・匿名PDF取得の検証](../results/validation/research-preview-public-release-6fba46c/README.md)も完了。各commit・OSの範囲を分け、研究結果の合格とは混同しない。
-- **作業中の追加コード**: Task54 CPU supervisor Step2は未commit・未採用。独立レビューで見つかった履歴・最終sample・clock fault経路と、private FD継承・制御EOF時の停止処理を修正し、仕様・品質レビューが完了した。source採用とLinux実行検証は別途必要。公開済み候補に含まれず、native実行・Step3/4・全行列の完了を主張しない。
+- **追加コード**: Task54 CPU supervisor Step2のsourceをレビュー後に採用。[検証・修正記録](../results/validation/task54-d7-cpu-supervisor/README.md)。履歴・最終sample・clock fault、private FD継承・制御EOFの修正に加え、全bench回帰で見つかったCLI診断の期待値を修正し、通常/parallel/CUDAのfocused試験と再レビューに合格した。Linux native実行・clean build receipt・Step3/4・全行列は未完。公開済みプレビュー6fba46cにはこの追加sourceを含めない。
 
 ## 1. 必ず読むファイル(順番どおり)
 

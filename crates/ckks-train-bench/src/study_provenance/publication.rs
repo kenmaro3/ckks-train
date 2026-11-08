@@ -21,6 +21,93 @@ pub(crate) enum PublishError {
     BeforeLink,
     VisibleUnconfirmed,
 }
+// The operational owner supplies a retained directory and a fixed basename.
+// Reuse the exact shared anonymous C/W/F/L/D primitive and late-visibility result.
+pub(crate) fn publish_operational(
+    parent: &File,
+    name: &str,
+    bytes: &[u8],
+) -> std::result::Result<File, PublishError> {
+    if name.is_empty() || name.contains(['/', '\\', '\0']) || bytes.len() > 8 * 1024 * 1024 {
+        return Err(PublishError::BeforeLink);
+    }
+    let mut operation = Native::new(parent, name.into());
+    publish_ops(&mut operation, bytes)?;
+    operation
+        .confirm_final()
+        .map_err(|_| PublishError::VisibleUnconfirmed)?;
+    operation
+        .file
+        .take()
+        .ok_or(PublishError::VisibleUnconfirmed)
+}
+/// Bounded anonymous operational stream, using the same no-clobber link primitive.
+pub(crate) struct OperationalStream {
+    parent: File,
+    name: String,
+    file: File,
+    proc_fds: anonymous::ProcFdDirectory,
+    cap: u64,
+    length: u64,
+    hash: crate::data::Sha256State,
+}
+impl OperationalStream {
+    pub(crate) fn new(parent: &File, name: &str, cap: u64) -> Result<Self> {
+        ensure(
+            !name.is_empty() && !name.contains(['/', '\\', '\0']) && cap <= 64 * 1024 * 1024,
+            "operational stream name/cap",
+        )?;
+        let (file, proc_fds) = anonymous::create(parent)?;
+        Ok(Self {
+            parent: parent.try_clone()?,
+            name: name.into(),
+            file,
+            proc_fds,
+            cap,
+            length: 0,
+            hash: crate::data::Sha256State::new(),
+        })
+    }
+    pub(crate) fn append(&mut self, bytes: &[u8]) -> Result<()> {
+        let end = self
+            .length
+            .checked_add(bytes.len() as u64)
+            .ok_or(ProvenanceError("operational stream size overflow"))?;
+        ensure(end <= self.cap, "operational stream exhausted")?;
+        self.file.write_all(bytes)?;
+        self.hash.update(bytes);
+        self.length = end;
+        Ok(())
+    }
+    pub(crate) fn finish(self) -> std::result::Result<(u64, String), PublishError> {
+        self.file.sync_all().map_err(|_| PublishError::BeforeLink)?;
+        self.proc_fds
+            .link(&self.file, &self.parent, &self.name)
+            .map_err(|_| PublishError::BeforeLink)?;
+        self.parent
+            .sync_all()
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        let copy = self
+            .file
+            .try_clone()
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        Native::recovery(&self.parent, self.name.clone(), copy)
+            .confirm_final()
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        if self
+            .file
+            .metadata()
+            .map_err(|_| PublishError::VisibleUnconfirmed)?
+            .len()
+            != self.length
+        {
+            return Err(PublishError::VisibleUnconfirmed);
+        }
+        let hash = String::from_utf8(self.hash.finish_fixed().to_vec())
+            .map_err(|_| PublishError::VisibleUnconfirmed)?;
+        Ok((self.length, hash))
+    }
+}
 trait Ops {
     fn create(&mut self) -> Result<()>;
     fn write(&mut self, bytes: &[u8]) -> Result<()>;

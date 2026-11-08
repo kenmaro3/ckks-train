@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/crates/ckks-train-bench)
+    Finished `test` profile [optimized + debuginfo] target(s) in 43.90s
+     Running tests/study_train.rs (target/debug/deps/study_train-baf11e9aba0800e7)
