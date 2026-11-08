@@ -9,7 +9,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - unreleased
 
-First release preparation; nothing has been published. The crate names are
+Stable release preparation; the research preview below is already public.
+Workspace version fields are `1.0.0`, but stable v1.0 has not been released.
+The crate names are
 `ckks-train-core`, `ckks-train-ckks`, `ckks-train-nn` and `ckks-train-cuda`.
 The `ckks-train-bench` crate has `publish = false`.
 
@@ -65,5 +67,15 @@ The `ckks-train-bench` crate has `publish = false`.
   133.8 / 134.2 bits, `n16_train` 143.9 / 141.2 bits. Core-SVP is lower and is reported in
   `docs/security.md`. Research code, not audited.
 
-[Unreleased]: https://github.com/kenmaro3/ckks-train/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0
+## [1.0.0-preview.1] - 2026-11-08
+
+- Published a research preview from fixed source `6fba46c`, including the source,
+  10-page paper PDF and arXiv preparation ZIP. The preview assets remain fixed.
+- The preview's six Linux CI jobs and distribution checks passed for that source;
+  this does not validate later source changes or close the research gates.
+- Stable v1.0 and arXiv submission remain pending. See the
+  [publication evidence](results/validation/research-preview-public-release-6fba46c/README.md).
+
+[Unreleased]: https://github.com/kenmaro3/ckks-train/compare/v1.0.0-preview.1...HEAD
+[1.0.0]: docs/release.md
+[1.0.0-preview.1]: https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1
