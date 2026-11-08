@@ -1,0 +1,20 @@
+{
+  "reviewer": "/root/preview_testfix_review",
+  "verdict": "PASS",
+  "recorded_utc": "2026-11-08T01:14:05.797284+00:00",
+  "findings": [],
+  "scope": "Read-only focused current-candidate Linux evidence; no reruns/network/source changes",
+  "checks": [
+    "Artifact ZIP size and GitHub digest, five raw logs and all retained hashes match",
+    "Five source path hashes independently match Git blobs at684d7fb",
+    "Each test/release profile executes13library plus9integration positives with no failures/ignored",
+    "Actual verifier65535roots and environment/overrides match source scope",
+    "Historical23ac79d evidence retained; aggregate CI, GPU, native Step2 and research gates not claimed"
+  ],
+  "handover_review": {
+    "verdict": "PASS",
+    "path": "docs/handover.md",
+    "bytes": 202238,
+    "sha256": "ac3f8993fd104f5d7b908d59058097c074ee8bc30b2fcfffc6e94577224f8921"
+  }
+}

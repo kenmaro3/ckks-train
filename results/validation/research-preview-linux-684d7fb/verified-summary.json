@@ -1,0 +1,69 @@
+{
+  "kind": "focused_ci_validation_not_scientific_result",
+  "verified_utc": "2026-11-08T01:12:35.160782+00:00",
+  "source_commit": "684d7fbffa69c9d5d3aa80a8070c5f82e5d84f1e",
+  "source_pins_checked_against_git": [
+    {
+      "path": "crates/ckks-train-ckks/src/bootstrap/metadata.rs",
+      "sha256": "e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8",
+      "bytes": 68687
+    },
+    {
+      "path": "crates/ckks-train-ckks/tests/bootstrap_metadata.rs",
+      "sha256": "b2864ecb906ffa73e07a63ff2f9c6b8b8f30428cc578fcacf4b99845c17d9cad",
+      "bytes": 26743
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "3223532b9f0ddac52bd1b92fe1cf077548c05bcd482e96987b361e2d54e19507",
+      "bytes": 8335
+    },
+    {
+      "path": "docs/bootstrap-metadata-design.md",
+      "sha256": "7bc8e07d03114952c7f607ba778415996dd191f1429dac0349f58c8fcfe5654a",
+      "bytes": 37056
+    },
+    {
+      "path": "docs/bootstrap-linux-validation-plan.md",
+      "sha256": "56404b48db04a1c66292244221ff42fa57f8aebd28bc78462ce17825f909a89d",
+      "bytes": 16812
+    }
+  ],
+  "profiles": [
+    {
+      "profile": "test",
+      "suite": "library",
+      "passed": 13,
+      "failed": 0,
+      "ignored": 0,
+      "raw_log": "test-library.log"
+    },
+    {
+      "profile": "test",
+      "suite": "integration",
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0,
+      "raw_log": "test-integration.log"
+    },
+    {
+      "profile": "release",
+      "suite": "library",
+      "passed": 13,
+      "failed": 0,
+      "ignored": 0,
+      "raw_log": "release-library.log"
+    },
+    {
+      "profile": "release",
+      "suite": "integration",
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0,
+      "raw_log": "release-integration.log"
+    }
+  ],
+  "whole_workspace_success_claimed": false,
+  "native_supervisor_execution_claimed": false,
+  "gpu_execution_claimed": false
+}

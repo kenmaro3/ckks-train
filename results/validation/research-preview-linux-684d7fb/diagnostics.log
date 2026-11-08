@@ -1,0 +1,78 @@
+684d7fbffa69c9d5d3aa80a8070c5f82e5d84f1e
+?? bootstrap-linux-evidence/
+e1bf9b3e7f856d0eb4a167874d05d6884b38d0054842f583b1add81c6e4eb2b8  crates/ckks-train-ckks/src/bootstrap/metadata.rs
+b2864ecb906ffa73e07a63ff2f9c6b8b8f30428cc578fcacf4b99845c17d9cad  crates/ckks-train-ckks/tests/bootstrap_metadata.rs
+3223532b9f0ddac52bd1b92fe1cf077548c05bcd482e96987b361e2d54e19507  .github/workflows/ci.yml
+7bc8e07d03114952c7f607ba778415996dd191f1429dac0349f58c8fcfe5654a  docs/bootstrap-metadata-design.md
+56404b48db04a1c66292244221ff42fa57f8aebd28bc78462ce17825f909a89d  docs/bootstrap-linux-validation-plan.md
+info: syncing channel updates for 1.85-x86_64-unknown-linux-gnu
+info: latest update on 2025-03-18 for version 1.85.1 (4eb161250 2025-03-15)
+info: downloading 5 components
+warn: the missing active toolchain `1.85-x86_64-unknown-linux-gnu` has been auto-installed
+warn: this might cause rustup commands to take longer time to finish than expected
+info: you may opt out with `RUSTUP_AUTO_INSTALL=0` or `rustup set auto-install disable`
+rustc 1.85.1 (4eb161250 2025-03-15)
+binary: rustc
+commit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181
+commit-date: 2025-03-15
+host: x86_64-unknown-linux-gnu
+release: 1.85.1
+LLVM version: 19.1.7
+cargo 1.85.1 (d73d2caf9 2024-12-31)
+Linux runnervm7aw5e 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+x86_64
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+glibc 2.39
+ImageOS="ubuntu24"
+ImageVersion="20261101.360.1"
+RUNNER_OS="Linux"
+RUNNER_ARCH="X64"
+RUSTC="<unset>"
+RUSTC_WRAPPER="<unset>"
+RUSTC_WORKSPACE_WRAPPER="<unset>"
+RUSTFLAGS="<unset>"
+CARGO_ENCODED_RUSTFLAGS="<unset>"
+RUSTDOCFLAGS="<unset>"
+CARGO_BUILD_TARGET="<unset>"
+CARGO_BUILD_RUSTFLAGS="<unset>"
+CARGO_BUILD_RUSTC="<unset>"
+CARGO_BUILD_RUSTC_WRAPPER="<unset>"
+CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER="<unset>"
+CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="<unset>"
+CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="<unset>"
+CARGO_PROFILE_TEST_OPT_LEVEL="<unset>"
+CARGO_PROFILE_TEST_DEBUG_ASSERTIONS="<unset>"
+CARGO_PROFILE_TEST_OVERFLOW_CHECKS="<unset>"
+CARGO_PROFILE_TEST_LTO="<unset>"
+CARGO_PROFILE_TEST_CODEGEN_UNITS="<unset>"
+CARGO_PROFILE_RELEASE_OPT_LEVEL="<unset>"
+CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS="<unset>"
+CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS="<unset>"
+CARGO_PROFILE_RELEASE_LTO="<unset>"
+CARGO_PROFILE_RELEASE_CODEGEN_UNITS="<unset>"
+focused env: CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 RAYON_NUM_THREADS=2; harness threads=1
+repository profiles: test opt-level=3, debug-assertions/overflow-checks default=true; release Cargo defaults; overrides recorded above/below
+Cargo config /home/runner/.cargo/config: absent
+Cargo config /home/runner/.cargo/config.toml: absent
+Cargo config /home/runner/work/ckks-train/ckks-train/.cargo/config: absent
+Cargo config /home/runner/work/ckks-train/ckks-train/.cargo/config.toml: absent
+Cargo config /home/runner/work/ckks-train/.cargo/config: absent
+Cargo config /home/runner/work/ckks-train/.cargo/config.toml: absent
+Cargo config /home/runner/work/.cargo/config: absent
+Cargo config /home/runner/work/.cargo/config.toml: absent
+Cargo config /home/.cargo/config: absent
+Cargo config /home/.cargo/config.toml: absent
+Cargo config /.cargo/config: absent
+Cargo config /.cargo/config.toml: absent

@@ -1,0 +1,18 @@
+[1m[32m   Compiling[0m ckks-train-ckks v1.0.0 (/home/runner/work/ckks-train/ckks-train/crates/ckks-train-ckks)
+[1m[32m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 9.79s
+[1m[32m     Running[0m tests/bootstrap_metadata.rs (target/debug/deps/bootstrap_metadata-993049b7bff9f663)
+
+running 9 tests
+test default_n16_structural_receipt_without_he ... ok
+test every_small_group_matches_connectivity_minkowski_and_actual_dft ... ok
+test identities_bind_contents_not_arc_or_presets ... ok
+test key_requirements_carry_parameter_binding_and_max_scalar_budget_is_operational ... ok
+test malformed_sizes_weights_packing_and_budgets_fail_without_panics ... default requested bytes=318806, work=32768, compiler=Some("rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7\n"), target=Some("x86_64-unknown-linux-gnu")
+ok
+test nonzero_unencoded_diagonal_remains_some_when_plaintext_rounds_to_zero ... ok
+test small_observed_bootstrap_counter_equals_structural_receipt ... ok
+test small_runtime_receipts_match_encoding_scales_keys_and_all_counters ... ok
+test stage_cost_places_final_ctos_conjugation_only_in_direction_total ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+

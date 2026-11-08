@@ -1,0 +1,21 @@
+{
+  "kind": "ci_artifact_not_scientific_result",
+  "argv": [
+    "gh",
+    "api",
+    "repos/kenmaro3/ckks-train/actions/artifacts/13598291147/zip"
+  ],
+  "observed_utc": "2026-11-08T01:10:51.840998+00:00",
+  "run": 42432442890,
+  "source_commit": "684d7fbffa69c9d5d3aa80a8070c5f82e5d84f1e",
+  "artifact_id": 13598291147,
+  "bytes": 7423,
+  "sha256": "912e9486aca6de4e09864f30d5dc60526f453ea85ebfd9c9a9fd6887cf820cf3",
+  "member_names": [
+    "diagnostics.log",
+    "release-integration.log",
+    "release-library.log",
+    "test-integration.log",
+    "test-library.log"
+  ]
+}
