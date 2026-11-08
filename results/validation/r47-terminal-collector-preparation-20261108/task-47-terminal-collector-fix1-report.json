@@ -1,0 +1,40 @@
+{
+  "scope": "two scoped P2 fixes only; no remote invocation",
+  "initial_review_sha256": "4f1fb4d4fea493dccb8bfa661e7c4d179c72f1d1dd65157f376f24d2cbf7a040",
+  "red": "ca98c6 exit1: fractional gate failure plus test overly specific about local parser exception; raw retained",
+  "corrected_red": "9ec886 exit1:15tests one failure fractional gate plus one uncaught injected RecursionError; actual overnested JSON ValueError retention already passed",
+  "green": "90baac exit0:15tiny local tests pass; exact source diff floor lower bound + explicit RecursionError handling",
+  "limitations": "No real parser RecursionError induced on current Python3.14; that error branch tested by injected JSON parser exception. No SSH/native/GPU/HE/measurement. No controller/source execution release.",
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector.remote.py",
+      "bytes": 11201,
+      "sha256": "8e40fb7efa1cfdb90f826fe4b8b8c6046a876616f695790d5e5c27975c2a0d5a"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-tests.py",
+      "bytes": 8455,
+      "sha256": "a7f3718992c56fc9e80cdad5d28188d86b5cf7f44da7c9dee1c7f220ecd539b4"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-fix1.diff",
+      "bytes": 1749,
+      "sha256": "a17ab671790324fada11726d05e771cb21e95ddfba1ab2cbb54c8f69fe9d9e29"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-fix1-red.stderr",
+      "bytes": 1777,
+      "sha256": "7dc0a26addc8c9fd3333533569a49cfce413665539821a9a087ef1ed9026cde1"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-fix1-red2.stderr",
+      "bytes": 3127,
+      "sha256": "65b41c7a885c5db82024eabfd9731ff5d79ee0134614238fee2fc55837c458b2"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-fix1-green.stderr",
+      "bytes": 114,
+      "sha256": "b71162d125dfb50f56b4ddd62465f794c4d09159708dc6242896b381d3d424fa"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "scope": "Operations collector source only, not invoked remotely; no controller/retrieval release yet",
+  "source_base": "Reviewed FULL2 collector50f2cf22ca3f540a86117c06664c6606f23fd9e2532f72cfa2eaabea168058ef; three helpers byte-identical",
+  "helper_sha256": {
+    "unique_object": "5257a0749a852fcf11a4ab7d0c0fa271c1936afa08bf6e84f30b697a7b3bf5cf",
+    "stamp": "8f78aba7e9c8d5cffdf7ef3a154af75ed8e39f619d5056d3b69c4625a74810a7",
+    "read_stable": "c276420d527c7a628a5f02e56286bdd0c5b2c9d9fa9776a9b432386c1510234c"
+  },
+  "tests": [
+    {
+      "name": "red",
+      "exit": 1,
+      "tool": "d080a6",
+      "meaning": "source absent before implementation"
+    },
+    {
+      "name": "green",
+      "exit": 1,
+      "tool": "d24e7a",
+      "meaning": "7tests/9failures because Mac temporary /var is symlink; required collector refusal worked; fixture path corrected using resolve, production not weakened"
+    },
+    {
+      "name": "green2",
+      "exit": 0,
+      "tool": "910ec8",
+      "meaning": "10 local tiny synthetic fixtures pass; no server/GPU/native/HE"
+    }
+  ],
+  "files": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collection-preparation.md",
+      "bytes": 2319,
+      "sha256": "3add95c1bc8a18d4eb898aa6bc0618165172bebaaf74cc6633343a715a781919"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector.remote.py",
+      "bytes": 11092,
+      "sha256": "60ee6293bdac5ead622fd6e8560667bdb89ce6cc1a3403c4a354845919b807e9"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-tests.py",
+      "bytes": 6578,
+      "sha256": "294f36057f22ee423aba1d85257e04c4a50de460f5233c339a94b04024bf4476"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-red.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-red.stderr",
+      "bytes": 687,
+      "sha256": "b0100ba713bcafc61740641778ffcdfb88c11a69d27239ad128d156b6c04b43f"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-green.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-green.stderr",
+      "bytes": 6801,
+      "sha256": "cf037236cd2fa1cd210c70c6910a9b3d9699f2e096e6edc32e9e6a9d1de75847"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-green2.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/task-47-terminal-collector-green2.stderr",
+      "bytes": 109,
+      "sha256": "95c5d09c826d2efa2a9d9c7d01b6e073bddda0dc36500d1560e0d7fb15e93d6f"
+    }
+  ]
+}
