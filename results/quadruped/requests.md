@@ -1315,4 +1315,17 @@ Current scope: **not queued** and excluded from post-full-v1. The reviewed subse
 - **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
 - **output path:** ledger `post-full-observation-20261108-2105.{stdout,stderr,launch.json,meta.json}`; exclusive fresh outputs.
 - **pass criterion:** actual identity/state and terminal-file presence; operational evidence only. No signals/builds/training/other users' process inspection.
-- **status:** prepared, not invoked. R48/R52 collectors still require qualifying terminal observation.
+- **status:** executed once, exit0. Actual 2026-11-08T21:06:23.838264+09:00: expected own queue live; R48-1/2/3 and optimizer filenames now present, R48-4/R52-2/queue terminal absent. No terminal collector invoked or job changed. [Original observation](raw/R-41-FULL2-OBS-20261108-2105/README.md).
+
+
+## R-41-FULL2-OBS-20261108-2205: post-full queue read-only observation
+
+- **purpose:** Observe the existing post-full queue no earlier than2026-11-08T22:05:00+09:00; no restart or job change.
+- **commit to sync:** none.
+- **working dir:** own `/home/kmihara/hekit-runs`; fixed chain1700979/start465769819 and queue1739838/start467041669 identities.
+- **command:** ledger `post-full-observation-20261108-2205-command.json`, key-only SSH `nice -n 10 /usr/bin/python3.14 -I -B -`; unchanged1560-byte observer SHA17550e5d285a03329782d8ca9f3af7ad5b4e39468596d41781607a942572c243.
+- **expected duration:** seconds after connection, one observer; connection90s. Own process state, log tail and queue filenames only.
+- **GPU memory need:**0. **RAM need:** under50MiB expected, unmeasured.
+- **output path:** ledger `post-full-observation-20261108-2205.{stdout,stderr,launch.json,meta.json}`; exclusive fresh outputs.
+- **pass criterion:** actual identity/state and terminal-file presence; operational only. No signals/builds/training/other users' process inspection.
+- **status:** prepared, not invoked. R48/R52 collection still requires qualifying terminal observation.

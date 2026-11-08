@@ -1,0 +1,326 @@
+﻿2026-11-08T11:45:43.4565427Z Current runner version: '2.338.2'
+2026-11-08T11:45:43.4591911Z ##[group]Runner Image Provisioner
+2026-11-08T11:45:43.4592795Z Hosted Compute Agent
+2026-11-08T11:45:43.4593512Z Version: 20261028.624
+2026-11-08T11:45:43.4594223Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-08T11:45:43.4595022Z Build Date: 2026-10-28T21:51:42Z
+2026-11-08T11:45:43.4595801Z Worker ID: {f02285a9-6d7b-4874-a313-011d2a3c4b39}
+2026-11-08T11:45:43.4596541Z Region: centralus
+2026-11-08T11:45:43.4597179Z Cloud: Azure
+2026-11-08T11:45:43.4597797Z ##[endgroup]
+2026-11-08T11:45:43.4599803Z ##[group]Operating System
+2026-11-08T11:45:43.4600675Z Ubuntu
+2026-11-08T11:45:43.4601234Z 24.04.5
+2026-11-08T11:45:43.4601820Z LTS
+2026-11-08T11:45:43.4602390Z ##[endgroup]
+2026-11-08T11:45:43.4603037Z ##[group]Runner Image
+2026-11-08T11:45:43.4603776Z Image: ubuntu-24.04
+2026-11-08T11:45:43.4604375Z Version: 20261101.360.1
+2026-11-08T11:45:43.4605747Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-08T11:45:43.4607342Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-08T11:45:43.4608453Z ##[endgroup]
+2026-11-08T11:45:43.4609896Z ##[group]GITHUB_TOKEN Permissions
+2026-11-08T11:45:43.4612269Z Contents: read
+2026-11-08T11:45:43.4612913Z Metadata: read
+2026-11-08T11:45:43.4613575Z Packages: read
+2026-11-08T11:45:43.4614253Z ##[endgroup]
+2026-11-08T11:45:43.4616488Z Secret source: Actions
+2026-11-08T11:45:43.4618038Z Cache mode: write
+2026-11-08T11:45:43.4620073Z Prepare workflow directory
+2026-11-08T11:45:43.5046292Z Prepare all required actions
+2026-11-08T11:45:43.5098990Z Getting action download info
+2026-11-08T11:45:43.7807932Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-08T11:45:43.8753945Z Download action repository 'EmbarkStudios/cargo-deny-action@v2' (SHA:3c6349835b2b7b196a839186cb8b78e02f7b5f25)
+2026-11-08T11:45:44.1743590Z Complete job name: deny
+2026-11-08T11:45:44.2340201Z ##[group]Build container for action use: '/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2/Dockerfile'.
+2026-11-08T11:45:44.2465770Z ##[command]/usr/bin/docker build -t c52672:b7f80b974d7843ea9d48fd22f0eaff58 -f "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2/Dockerfile" "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2"
+2026-11-08T11:45:46.8844501Z #0 building with "default" instance using docker driver
+2026-11-08T11:45:46.8845684Z 
+2026-11-08T11:45:46.8846162Z #1 [internal] load build definition from Dockerfile
+2026-11-08T11:45:46.8847374Z #1 transferring dockerfile: 508B 0.0s done
+2026-11-08T11:45:46.8848490Z #1 DONE 0.0s
+2026-11-08T11:45:46.8849366Z 
+2026-11-08T11:45:46.8849976Z #2 [auth] library/rust:pull token for registry-1.docker.io
+2026-11-08T11:45:47.0337232Z #2 DONE 0.0s
+2026-11-08T11:45:47.0338015Z 
+2026-11-08T11:45:47.0341243Z #3 [internal] load metadata for docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:45:47.3919757Z #3 DONE 0.7s
+2026-11-08T11:45:47.5195951Z 
+2026-11-08T11:45:47.5196562Z #4 [internal] load .dockerignore
+2026-11-08T11:45:47.5197258Z #4 transferring context: 2B done
+2026-11-08T11:45:47.5198612Z #4 DONE 0.0s
+2026-11-08T11:45:47.5199795Z 
+2026-11-08T11:45:47.5200150Z #5 [internal] load build context
+2026-11-08T11:45:47.5200678Z #5 transferring context: 1.12kB done
+2026-11-08T11:45:47.5201421Z #5 DONE 0.0s
+2026-11-08T11:45:47.5201863Z 
+2026-11-08T11:45:47.5203025Z #6 [1/3] FROM docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:45:47.5204464Z #6 resolve docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0 done
+2026-11-08T11:45:47.5205559Z #6 sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0 2.63kB / 2.63kB done
+2026-11-08T11:45:47.5206602Z #6 sha256:6d824fef86a8532aecead5889d49d432d19e0dd58b958266c994cca9eb7a3357 1.54kB / 1.54kB done
+2026-11-08T11:45:47.5208188Z #6 sha256:7c38e59fb99c1014ea6d250d396bb9bf55981f1d69fe17ed05047b90cd119ca9 2.53kB / 2.53kB done
+2026-11-08T11:45:47.5209638Z #6 sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc 0B / 3.63MB 0.1s
+2026-11-08T11:45:47.5210452Z #6 sha256:d0430b4a2b30329b0c06034d1df61c2f3533c436834a54b76def8756d804d888 0B / 55.32MB 0.1s
+2026-11-08T11:45:47.5211187Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 0B / 239.16MB 0.1s
+2026-11-08T11:45:47.6208570Z #6 sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc 3.63MB / 3.63MB 0.1s done
+2026-11-08T11:45:47.6210309Z #6 sha256:d0430b4a2b30329b0c06034d1df61c2f3533c436834a54b76def8756d804d888 9.44MB / 55.32MB 0.2s
+2026-11-08T11:45:47.6212351Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 17.83MB / 239.16MB 0.2s
+2026-11-08T11:45:47.6215885Z #6 extracting sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc
+2026-11-08T11:45:47.8210465Z #6 sha256:d0430b4a2b30329b0c06034d1df61c2f3533c436834a54b76def8756d804d888 55.32MB / 55.32MB 0.3s done
+2026-11-08T11:45:47.8213012Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 120.59MB / 239.16MB 0.4s
+2026-11-08T11:45:47.8214541Z #6 extracting sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc 0.1s done
+2026-11-08T11:45:47.9548192Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 166.72MB / 239.16MB 0.5s
+2026-11-08T11:45:47.9551801Z #6 extracting sha256:d0430b4a2b30329b0c06034d1df61c2f3533c436834a54b76def8756d804d888 0.1s
+2026-11-08T11:45:48.0567743Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 214.96MB / 239.16MB 0.6s
+2026-11-08T11:45:48.1616635Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 239.16MB / 239.16MB 0.7s
+2026-11-08T11:45:48.5167895Z #6 sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 239.16MB / 239.16MB 1.0s done
+2026-11-08T11:45:48.9840386Z #6 extracting sha256:d0430b4a2b30329b0c06034d1df61c2f3533c436834a54b76def8756d804d888 1.0s done
+2026-11-08T11:45:49.1952534Z #6 extracting sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28
+2026-11-08T11:45:52.2021666Z #6 extracting sha256:8fda7dd06f6e434e3727cd86155430a51568846533e3824548334e20f1078e28 2.9s done
+2026-11-08T11:45:53.5559670Z #6 DONE 6.1s
+2026-11-08T11:45:53.7011457Z 
+2026-11-08T11:45:53.7013982Z #7 [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:45:53.7016576Z #7 0.144 + apk update
+2026-11-08T11:45:53.8573516Z #7 0.150 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
+2026-11-08T11:45:53.8749917Z #7 0.318 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
+2026-11-08T11:45:54.2020741Z #7 0.645 v3.20.10-123-g162aaa7b431 [https://dl-cdn.alpinelinux.org/alpine/v3.20/main]
+2026-11-08T11:45:54.2021785Z #7 0.645 v3.20.10-120-gef6cf7f0ba5 [https://dl-cdn.alpinelinux.org/alpine/v3.20/community]
+2026-11-08T11:45:54.2022485Z #7 0.645 OK: 24183 distinct packages available
+2026-11-08T11:45:54.4216611Z #7 0.714 + apk add bash curl git tar openssh
+2026-11-08T11:45:54.5861991Z #7 1.029 (1/26) Installing ncurses-terminfo-base (6.4_p20240420-r2)
+2026-11-08T11:45:54.7265150Z #7 1.127 (2/26) Installing libncursesw (6.4_p20240420-r2)
+2026-11-08T11:45:54.7265867Z #7 1.170 (3/26) Installing readline (8.2.10-r0)
+2026-11-08T11:45:54.8310614Z #7 1.190 (4/26) Installing bash (5.2.26-r0)
+2026-11-08T11:45:54.8311207Z #7 1.230 Executing bash-5.2.26-r0.post-install
+2026-11-08T11:45:54.8311773Z #7 1.234 (5/26) Installing brotli-libs (1.1.0-r2)
+2026-11-08T11:45:54.8312255Z #7 1.257 (6/26) Installing c-ares (1.33.1-r0)
+2026-11-08T11:45:54.8312795Z #7 1.274 (7/26) Installing libunistring (1.2-r0)
+2026-11-08T11:45:54.9431293Z #7 1.299 (8/26) Installing libidn2 (2.3.7-r0)
+2026-11-08T11:45:54.9431805Z #7 1.316 (9/26) Installing nghttp2-libs (1.62.1-r0)
+2026-11-08T11:45:54.9432238Z #7 1.332 (10/26) Installing libpsl (0.21.5-r1)
+2026-11-08T11:45:54.9432641Z #7 1.348 (11/26) Installing libcurl (8.14.1-r2)
+2026-11-08T11:45:54.9433029Z #7 1.369 (12/26) Installing curl (8.14.1-r2)
+2026-11-08T11:45:54.9433421Z #7 1.386 (13/26) Installing libexpat (2.8.1-r0)
+2026-11-08T11:45:55.0611701Z #7 1.403 (14/26) Installing pcre2 (10.43-r0)
+2026-11-08T11:45:55.0612407Z #7 1.423 (15/26) Installing git (2.45.4-r0)
+2026-11-08T11:45:55.0613170Z #7 1.504 (16/26) Installing git-init-template (2.45.4-r0)
+2026-11-08T11:45:55.1681769Z #7 1.521 (17/26) Installing openssh-keygen (9.7_p1-r6)
+2026-11-08T11:45:55.1682387Z #7 1.540 (18/26) Installing libedit (20240517.3.1-r0)
+2026-11-08T11:45:55.1683023Z #7 1.558 (19/26) Installing openssh-client-common (9.7_p1-r6)
+2026-11-08T11:45:55.1683826Z #7 1.590 (20/26) Installing openssh-client-default (9.7_p1-r6)
+2026-11-08T11:45:55.1684435Z #7 1.611 (21/26) Installing openssh-sftp-server (9.7_p1-r6)
+2026-11-08T11:45:55.2741380Z #7 1.628 (22/26) Installing openssh-server-common (9.7_p1-r6)
+2026-11-08T11:45:55.2742411Z #7 1.642 (23/26) Installing openssh-server (9.7_p1-r6)
+2026-11-08T11:45:55.2743239Z #7 1.664 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:45:55.2744004Z #7 1.684 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:45:55.2744735Z #7 1.699 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:45:55.2745703Z #7 1.717 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:45:55.5123996Z #7 1.725 OK: 167 MiB in 53 packages
+2026-11-08T11:45:55.5125765Z #7 1.805 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:47:55.4994209Z #7 1.805 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:47:55.4994869Z #7 121.9 gzip: invalid magic
+2026-11-08T11:47:55.5795547Z #7 122.0 tar: Child died with signal 13
+2026-11-08T11:47:55.5796703Z #7 122.0 tar: Error is not recoverable: exiting now
+2026-11-08T11:47:55.5800290Z #7 ERROR: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:47:55.5803304Z ------
+2026-11-08T11:47:55.5805171Z  > [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;:
+2026-11-08T11:47:55.5807454Z 1.664 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:47:55.5808235Z 1.684 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:47:55.5809634Z 1.699 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:47:55.5810441Z 1.717 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:47:55.5811140Z 1.725 OK: 167 MiB in 53 packages
+2026-11-08T11:47:55.5812287Z 1.805 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:47:55.5813454Z 1.805 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:47:55.5814110Z 121.9 gzip: invalid magic
+2026-11-08T11:47:55.5814750Z 122.0 tar: Child died with signal 13
+2026-11-08T11:47:55.5815405Z 122.0 tar: Error is not recoverable: exiting now
+2026-11-08T11:47:55.5816003Z ------
+2026-11-08T11:47:55.5816384Z Dockerfile:5
+2026-11-08T11:47:55.5817417Z --------------------
+2026-11-08T11:47:55.5817943Z    4 |     
+2026-11-08T11:47:55.5818478Z    5 | >>> RUN set -eux; \
+2026-11-08T11:47:55.5819306Z    6 | >>>     apk update; \
+2026-11-08T11:47:55.5819898Z    7 | >>>     apk add bash curl git tar openssh; \
+2026-11-08T11:47:55.5821633Z    8 | >>>     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:47:55.5823535Z    9 |     
+2026-11-08T11:47:55.5824035Z --------------------
+2026-11-08T11:47:55.5826555Z ERROR: failed to build: failed to solve: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:47:55.5928417Z ##[warning]Docker build failed with exit code 1, back off 6.562 seconds before retry.
+2026-11-08T11:48:02.1562755Z ##[command]/usr/bin/docker build -t c52672:b7f80b974d7843ea9d48fd22f0eaff58 -f "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2/Dockerfile" "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2"
+2026-11-08T11:48:02.4187010Z #0 building with "default" instance using docker driver
+2026-11-08T11:48:02.4187580Z 
+2026-11-08T11:48:02.4187841Z #1 [internal] load build definition from Dockerfile
+2026-11-08T11:48:02.4188355Z #1 transferring dockerfile: 508B done
+2026-11-08T11:48:02.4189042Z #1 DONE 0.0s
+2026-11-08T11:48:02.4189305Z 
+2026-11-08T11:48:02.4189915Z #2 [internal] load metadata for docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:48:02.4190891Z #2 DONE 0.0s
+2026-11-08T11:48:02.4191031Z 
+2026-11-08T11:48:02.4191152Z #3 [internal] load .dockerignore
+2026-11-08T11:48:02.4191623Z #3 transferring context: 2B done
+2026-11-08T11:48:02.4191924Z #3 DONE 0.0s
+2026-11-08T11:48:02.4192066Z 
+2026-11-08T11:48:02.4192697Z #4 [1/3] FROM docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:48:02.4193438Z #4 CACHED
+2026-11-08T11:48:02.4193629Z 
+2026-11-08T11:48:02.4194199Z #5 [internal] load build context
+2026-11-08T11:48:02.4194558Z #5 transferring context: 35B done
+2026-11-08T11:48:02.4194970Z #5 DONE 0.0s
+2026-11-08T11:48:02.4195176Z 
+2026-11-08T11:48:02.4196489Z #6 [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:48:02.4197990Z #6 0.130 + apk update
+2026-11-08T11:48:02.5750578Z #6 0.136 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
+2026-11-08T11:48:02.7074273Z #6 0.419 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
+2026-11-08T11:48:03.1489577Z #6 0.861 v3.20.10-123-g162aaa7b431 [https://dl-cdn.alpinelinux.org/alpine/v3.20/main]
+2026-11-08T11:48:03.1490858Z #6 0.861 v3.20.10-120-gef6cf7f0ba5 [https://dl-cdn.alpinelinux.org/alpine/v3.20/community]
+2026-11-08T11:48:03.1491787Z #6 0.861 OK: 24183 distinct packages available
+2026-11-08T11:48:03.3747246Z #6 0.936 + apk add bash curl git tar openssh
+2026-11-08T11:48:03.5372826Z #6 1.249 (1/26) Installing ncurses-terminfo-base (6.4_p20240420-r2)
+2026-11-08T11:48:03.6752991Z #6 1.342 (2/26) Installing libncursesw (6.4_p20240420-r2)
+2026-11-08T11:48:03.6753549Z #6 1.387 (3/26) Installing readline (8.2.10-r0)
+2026-11-08T11:48:03.7777873Z #6 1.407 (4/26) Installing bash (5.2.26-r0)
+2026-11-08T11:48:03.7778466Z #6 1.446 Executing bash-5.2.26-r0.post-install
+2026-11-08T11:48:03.7779450Z #6 1.450 (5/26) Installing brotli-libs (1.1.0-r2)
+2026-11-08T11:48:03.7779908Z #6 1.473 (6/26) Installing c-ares (1.33.1-r0)
+2026-11-08T11:48:03.7780343Z #6 1.489 (7/26) Installing libunistring (1.2-r0)
+2026-11-08T11:48:03.8885432Z #6 1.514 (8/26) Installing libidn2 (2.3.7-r0)
+2026-11-08T11:48:03.8886149Z #6 1.531 (9/26) Installing nghttp2-libs (1.62.1-r0)
+2026-11-08T11:48:03.8886726Z #6 1.547 (10/26) Installing libpsl (0.21.5-r1)
+2026-11-08T11:48:03.8887300Z #6 1.563 (11/26) Installing libcurl (8.14.1-r2)
+2026-11-08T11:48:03.8888148Z #6 1.583 (12/26) Installing curl (8.14.1-r2)
+2026-11-08T11:48:03.8889175Z #6 1.600 (13/26) Installing libexpat (2.8.1-r0)
+2026-11-08T11:48:03.9980494Z #6 1.616 (14/26) Installing pcre2 (10.43-r0)
+2026-11-08T11:48:03.9981204Z #6 1.636 (15/26) Installing git (2.45.4-r0)
+2026-11-08T11:48:03.9981804Z #6 1.710 (16/26) Installing git-init-template (2.45.4-r0)
+2026-11-08T11:48:04.0990968Z #6 1.726 (17/26) Installing openssh-keygen (9.7_p1-r6)
+2026-11-08T11:48:04.0991642Z #6 1.744 (18/26) Installing libedit (20240517.3.1-r0)
+2026-11-08T11:48:04.0992287Z #6 1.761 (19/26) Installing openssh-client-common (9.7_p1-r6)
+2026-11-08T11:48:04.0993075Z #6 1.790 (20/26) Installing openssh-client-default (9.7_p1-r6)
+2026-11-08T11:48:04.0993761Z #6 1.811 (21/26) Installing openssh-sftp-server (9.7_p1-r6)
+2026-11-08T11:48:04.2037870Z #6 1.827 (22/26) Installing openssh-server-common (9.7_p1-r6)
+2026-11-08T11:48:04.2039206Z #6 1.842 (23/26) Installing openssh-server (9.7_p1-r6)
+2026-11-08T11:48:04.2039913Z #6 1.862 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:48:04.2040714Z #6 1.880 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:48:04.2041298Z #6 1.895 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:48:04.2042059Z #6 1.915 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:48:04.4415411Z #6 1.923 OK: 167 MiB in 53 packages
+2026-11-08T11:48:04.4416922Z #6 2.002 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:48:04.4418249Z #6 2.002 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:51:22.9914181Z #6 200.7 gzip: invalid magic
+2026-11-08T11:51:23.0675798Z #6 200.7 tar: Child died with signal 13
+2026-11-08T11:51:23.0679386Z #6 200.7 tar: Error is not recoverable: exiting now
+2026-11-08T11:51:23.0682547Z #6 ERROR: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:51:23.0685319Z ------
+2026-11-08T11:51:23.0687153Z  > [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;:
+2026-11-08T11:51:23.0689467Z 1.862 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:51:23.0690256Z 1.880 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:51:23.0690960Z 1.895 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:51:23.0691688Z 1.915 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:51:23.0692416Z 1.923 OK: 167 MiB in 53 packages
+2026-11-08T11:51:23.0705395Z 2.002 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:51:23.0707011Z 2.002 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:51:23.0707965Z 200.7 gzip: invalid magic
+2026-11-08T11:51:23.0708432Z 200.7 tar: Child died with signal 13
+2026-11-08T11:51:23.0709622Z 200.7 tar: Error is not recoverable: exiting now
+2026-11-08T11:51:23.0710418Z ------
+2026-11-08T11:51:23.0711035Z Dockerfile:5
+2026-11-08T11:51:23.0713263Z --------------------
+2026-11-08T11:51:23.0713639Z    4 |     
+2026-11-08T11:51:23.0713948Z    5 | >>> RUN set -eux; \
+2026-11-08T11:51:23.0714340Z    6 | >>>     apk update; \
+2026-11-08T11:51:23.0714769Z    7 | >>>     apk add bash curl git tar openssh; \
+2026-11-08T11:51:23.0715900Z    8 | >>>     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:51:23.0717389Z    9 |     
+2026-11-08T11:51:23.0717716Z --------------------
+2026-11-08T11:51:23.0720250Z ERROR: failed to build: failed to solve: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:51:23.0787943Z ##[warning]Docker build failed with exit code 1, back off 5.943 seconds before retry.
+2026-11-08T11:51:29.0221931Z ##[command]/usr/bin/docker build -t c52672:b7f80b974d7843ea9d48fd22f0eaff58 -f "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2/Dockerfile" "/home/runner/work/_actions/EmbarkStudios/cargo-deny-action/v2"
+2026-11-08T11:51:29.2854650Z #0 building with "default" instance using docker driver
+2026-11-08T11:51:29.2855432Z 
+2026-11-08T11:51:29.2856186Z #1 [internal] load build definition from Dockerfile
+2026-11-08T11:51:29.2856801Z #1 transferring dockerfile: 508B done
+2026-11-08T11:51:29.2857292Z #1 DONE 0.0s
+2026-11-08T11:51:29.2857523Z 
+2026-11-08T11:51:29.2858071Z #2 [internal] load metadata for docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:51:29.2859168Z #2 DONE 0.0s
+2026-11-08T11:51:29.2859353Z 
+2026-11-08T11:51:29.2859467Z #3 [internal] load .dockerignore
+2026-11-08T11:51:29.2859961Z #3 transferring context: 2B done
+2026-11-08T11:51:29.2860249Z #3 DONE 0.0s
+2026-11-08T11:51:29.2860375Z 
+2026-11-08T11:51:29.2860866Z #4 [1/3] FROM docker.io/library/rust:1.85.0-alpine3.20@sha256:f0cef6c65992995b1c7816cb667de95799852e3fbed9d06f95855cbc512a0fd0
+2026-11-08T11:51:29.2861630Z #4 CACHED
+2026-11-08T11:51:29.2861758Z 
+2026-11-08T11:51:29.2861864Z #5 [internal] load build context
+2026-11-08T11:51:29.2862295Z #5 transferring context: 35B done
+2026-11-08T11:51:29.2862636Z #5 DONE 0.0s
+2026-11-08T11:51:29.2862985Z 
+2026-11-08T11:51:29.2864484Z #6 [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:51:29.2865708Z #6 0.133 + apk update
+2026-11-08T11:51:29.4419313Z #6 0.140 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
+2026-11-08T11:51:29.4447647Z #6 0.293 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
+2026-11-08T11:51:29.7827919Z #6 0.631 v3.20.10-123-g162aaa7b431 [https://dl-cdn.alpinelinux.org/alpine/v3.20/main]
+2026-11-08T11:51:29.7830698Z #6 0.631 v3.20.10-120-gef6cf7f0ba5 [https://dl-cdn.alpinelinux.org/alpine/v3.20/community]
+2026-11-08T11:51:29.7832335Z #6 0.631 OK: 24183 distinct packages available
+2026-11-08T11:51:30.0055057Z #6 0.703 + apk add bash curl git tar openssh
+2026-11-08T11:51:30.1563400Z #6 1.004 (1/26) Installing ncurses-terminfo-base (6.4_p20240420-r2)
+2026-11-08T11:51:30.2905742Z #6 1.096 (2/26) Installing libncursesw (6.4_p20240420-r2)
+2026-11-08T11:51:30.2906657Z #6 1.139 (3/26) Installing readline (8.2.10-r0)
+2026-11-08T11:51:30.3930226Z #6 1.160 (4/26) Installing bash (5.2.26-r0)
+2026-11-08T11:51:30.3930993Z #6 1.198 Executing bash-5.2.26-r0.post-install
+2026-11-08T11:51:30.3931497Z #6 1.202 (5/26) Installing brotli-libs (1.1.0-r2)
+2026-11-08T11:51:30.3931963Z #6 1.225 (6/26) Installing c-ares (1.33.1-r0)
+2026-11-08T11:51:30.3932399Z #6 1.241 (7/26) Installing libunistring (1.2-r0)
+2026-11-08T11:51:30.5025176Z #6 1.265 (8/26) Installing libidn2 (2.3.7-r0)
+2026-11-08T11:51:30.5025912Z #6 1.282 (9/26) Installing nghttp2-libs (1.62.1-r0)
+2026-11-08T11:51:30.5026565Z #6 1.298 (10/26) Installing libpsl (0.21.5-r1)
+2026-11-08T11:51:30.5027180Z #6 1.314 (11/26) Installing libcurl (8.14.1-r2)
+2026-11-08T11:51:30.5027782Z #6 1.334 (12/26) Installing curl (8.14.1-r2)
+2026-11-08T11:51:30.5028369Z #6 1.351 (13/26) Installing libexpat (2.8.1-r0)
+2026-11-08T11:51:30.6073298Z #6 1.367 (14/26) Installing pcre2 (10.43-r0)
+2026-11-08T11:51:30.6074181Z #6 1.387 (15/26) Installing git (2.45.4-r0)
+2026-11-08T11:51:30.6074615Z #6 1.456 (16/26) Installing git-init-template (2.45.4-r0)
+2026-11-08T11:51:30.7225268Z #6 1.472 (17/26) Installing openssh-keygen (9.7_p1-r6)
+2026-11-08T11:51:30.7225971Z #6 1.490 (18/26) Installing libedit (20240517.3.1-r0)
+2026-11-08T11:51:30.7226648Z #6 1.507 (19/26) Installing openssh-client-common (9.7_p1-r6)
+2026-11-08T11:51:30.7227355Z #6 1.535 (20/26) Installing openssh-client-default (9.7_p1-r6)
+2026-11-08T11:51:30.7228040Z #6 1.555 (21/26) Installing openssh-sftp-server (9.7_p1-r6)
+2026-11-08T11:51:30.7228714Z #6 1.571 (22/26) Installing openssh-server-common (9.7_p1-r6)
+2026-11-08T11:51:30.8984854Z #6 1.586 (23/26) Installing openssh-server (9.7_p1-r6)
+2026-11-08T11:51:30.8985984Z #6 1.606 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:51:30.8987014Z #6 1.623 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:51:30.8987895Z #6 1.638 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:51:30.8989403Z #6 1.657 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:51:30.8990329Z #6 1.664 OK: 167 MiB in 53 packages
+2026-11-08T11:51:30.9072217Z #6 1.747 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:51:31.0491991Z #6 1.747 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:55:16.9663196Z #6 227.8 gzip: invalid magic
+2026-11-08T11:55:17.0411207Z #6 227.8 tar: Child died with signal 13
+2026-11-08T11:55:17.0412466Z #6 227.8 tar: Error is not recoverable: exiting now
+2026-11-08T11:55:17.0415214Z #6 ERROR: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:55:17.0417876Z ------
+2026-11-08T11:55:17.0424154Z  > [2/3] RUN set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;:
+2026-11-08T11:55:17.0426010Z 1.606 (24/26) Installing openssh (9.7_p1-r6)
+2026-11-08T11:55:17.0426529Z 1.623 (25/26) Installing libacl (2.3.2-r0)
+2026-11-08T11:55:17.0427035Z 1.638 (26/26) Installing tar (1.35-r2)
+2026-11-08T11:55:17.0427579Z 1.657 Executing busybox-1.36.1-r29.trigger
+2026-11-08T11:55:17.0428050Z 1.664 OK: 167 MiB in 53 packages
+2026-11-08T11:55:17.0429430Z 1.747 + curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz
+2026-11-08T11:55:17.0430706Z 1.747 + tar -xzv -C /usr/bin '--strip-components=1'
+2026-11-08T11:55:17.0431217Z 227.8 gzip: invalid magic
+2026-11-08T11:55:17.0431595Z 227.8 tar: Child died with signal 13
+2026-11-08T11:55:17.0432093Z 227.8 tar: Error is not recoverable: exiting now
+2026-11-08T11:55:17.0432647Z ------
+2026-11-08T11:55:17.0433163Z Dockerfile:5
+2026-11-08T11:55:17.0434573Z --------------------
+2026-11-08T11:55:17.0435153Z    4 |     
+2026-11-08T11:55:17.0467308Z    5 | >>> RUN set -eux; \
+2026-11-08T11:55:17.0468150Z    6 | >>>     apk update; \
+2026-11-08T11:55:17.0470194Z    7 | >>>     apk add bash curl git tar openssh; \
+2026-11-08T11:55:17.0472213Z    8 | >>>     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;
+2026-11-08T11:55:17.0474119Z    9 |     
+2026-11-08T11:55:17.0474783Z --------------------
+2026-11-08T11:55:17.0497072Z ERROR: failed to build: failed to solve: process "/bin/sh -c set -eux;     apk update;     apk add bash curl git tar openssh;     curl --silent -L https://github.com/EmbarkStudios/cargo-deny/releases/download/$deny_version/cargo-deny-$deny_version-x86_64-unknown-linux-musl.tar.gz | tar -xzv -C /usr/bin --strip-components=1;" did not complete successfully: exit code: 2
+2026-11-08T11:55:17.0597967Z ##[endgroup]
+2026-11-08T11:55:17.0745305Z ##[error]Docker build failed with exit code 1
+2026-11-08T11:55:17.0902336Z Cleaning up orphan processes

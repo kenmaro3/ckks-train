@@ -1,0 +1,15 @@
+{
+  "command": [
+    "gh",
+    "run",
+    "watch",
+    "42477797335",
+    "--exit-status",
+    "--interval",
+    "60"
+  ],
+  "started_utc": "2026-11-08T12:11:03.672822+00:00",
+  "source": "40211e564c2ef6e2a94f19527710ef99ec54196d",
+  "exit_code": 0,
+  "finished_utc": "2026-11-08T12:22:28.620081+00:00"
+}

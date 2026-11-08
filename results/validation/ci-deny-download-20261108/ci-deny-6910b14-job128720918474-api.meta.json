@@ -1,0 +1,9 @@
+{
+  "command": [
+    "gh",
+    "api",
+    "repos/kenmaro3/ckks-train/actions/jobs/128720918474/logs"
+  ],
+  "exit": 0,
+  "observed_utc": "2026-11-08T12:01:10.885369+00:00"
+}

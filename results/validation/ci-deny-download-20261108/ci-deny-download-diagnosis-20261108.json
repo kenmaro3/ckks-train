@@ -1,0 +1,49 @@
+{
+  "kind": "CI_failure_diagnosis_not_research_result",
+  "checked_utc": "2026-11-08T12:04:08.863985+00:00",
+  "failed_run": 42477151156,
+  "failed_job": 128720918474,
+  "failed_source": "6910b149172b67b07e69b92132cb05152df8ba6e",
+  "failure_phase": "cargo-deny action Docker image build; release-download stream cannot be decompressed as gzip",
+  "failed_job_audit_started": false,
+  "successful_comparison_run": 42477797335,
+  "successful_comparison_job": 128722911533,
+  "successful_source": "40211e564c2ef6e2a94f19527710ef99ec54196d",
+  "successful_audit": "bans ok, licenses ok",
+  "resolved_action_sha": "3c6349835b2b7b196a839186cb8b78e02f7b5f25",
+  "deny_version": "0.20.2",
+  "configuration_objects": {
+    "b7c51dd": {
+      ".github/workflows/ci.yml": "ab3949ac7c535be523eb8c0d29c111f3d74b1db2",
+      "deny.toml": "14f1357f833556e6495287e5877bd872969761a1",
+      "Cargo.lock": "23e14814a3fb49f14526169b7e82cdaf31361bfc",
+      "Cargo.toml": "8e1b03e65c18b3145d2c7a8e461cd9374b222e9e"
+    },
+    "6910b14": {
+      ".github/workflows/ci.yml": "ab3949ac7c535be523eb8c0d29c111f3d74b1db2",
+      "deny.toml": "14f1357f833556e6495287e5877bd872969761a1",
+      "Cargo.lock": "23e14814a3fb49f14526169b7e82cdaf31361bfc",
+      "Cargo.toml": "8e1b03e65c18b3145d2c7a8e461cd9374b222e9e"
+    },
+    "40211e5": {
+      ".github/workflows/ci.yml": "ab3949ac7c535be523eb8c0d29c111f3d74b1db2",
+      "deny.toml": "14f1357f833556e6495287e5877bd872969761a1",
+      "Cargo.lock": "23e14814a3fb49f14526169b7e82cdaf31361bfc",
+      "Cargo.toml": "8e1b03e65c18b3145d2c7a8e461cd9374b222e9e"
+    }
+  },
+  "logs": [
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/ci-deny-6910b14-job128720918474-api.stdout",
+      "bytes": 28959,
+      "sha256": "1ed8314e6f6630aa1af8e003c1a4c4fc815b44def136fc35f5d32303eab52fae"
+    },
+    {
+      "path": ".superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/ci-deny-40211e5-job128722911533-api.stdout",
+      "bytes": 37270,
+      "sha256": "dd21cb8bd1473f16b5085149b6d102139216ed310bf5553e4eaeee7d78e5b7c5"
+    }
+  ],
+  "limitations": "Download response body/status was not retained by upstream curl pipeline; exact upstream transport or service cause unknown. Latest job recovered after the runner automatic Docker-build retry. This is evidence of an intermittent installation failure, not a claim it can never recur. Current run test job remains pending.",
+  "decision": "Keep license policy, lockfile and workflow unchanged. Preserve original failures; no manual rerun or disabling checks. Observe final candidate CI."
+}

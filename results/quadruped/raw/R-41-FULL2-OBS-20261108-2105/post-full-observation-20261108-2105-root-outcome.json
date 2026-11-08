@@ -1,0 +1,16 @@
+{
+  "kind": "operational_observation_interpretation_not_scientific_result",
+  "observed_jst": "2026-11-08T21:06:23.838264+09:00",
+  "raw_stdout_sha256": "43205f41e1377604bd7e0d1747c38bbe644723215c88185df891bb6b9c633d64",
+  "own_queue_identity_live": true,
+  "new_records_since_2031": [
+    "R-48-1.json",
+    "R-48-2.json",
+    "R-48-3.json",
+    "R-48-optimizer.json"
+  ],
+  "r48_collection_qualified": false,
+  "r52_collection_qualified": false,
+  "scientific_acceptance": false,
+  "next_action": "Wait for R48-4 or queue terminal; no collector invoked and no job restart."
+}

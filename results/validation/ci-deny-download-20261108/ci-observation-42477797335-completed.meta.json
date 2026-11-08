@@ -1,0 +1,15 @@
+{
+  "command": [
+    "gh",
+    "run",
+    "view",
+    "42477797335",
+    "--json",
+    "databaseId,status,conclusion,headSha,jobs,url,updatedAt"
+  ],
+  "observed_utc": "2026-11-08T12:27:09.198666+00:00",
+  "returncode": 0,
+  "stdout_bytes": 9371,
+  "stdout_sha256": "c92a6c09392b403d143b6f9c18e9b7f8fde98ab8c4d5ac2c85db37557acf5979",
+  "stderr": ""
+}
