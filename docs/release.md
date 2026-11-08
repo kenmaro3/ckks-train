@@ -227,3 +227,15 @@ counters. The minimal test-only correction has independent SPEC/QUALITY approval
 full qualification of the updated candidate remains pending. See
 [preview preparation and evidence](research-preview.md). No initial archive is promoted
 to a validated release by this correction.
+
+## Updated user deadline (2026-11-08)
+
+The user now explicitly requests a preview within24 hours and code/paper publication
+within48 hours. The earlier1–3-day estimate is superseded by the
+[publication schedule](publication-schedule.md): preview by2026-11-09 09:00 JST and
+GitHub code/release/PDF publication by2026-11-10 09:00 JST. Publication intent is now
+explicit; no public action has yet occurred. Additional arXiv/crates.io destinations
+are being clarified without delaying the GitHub preparation. Final-candidate validation
+and truthful measured/unmet/unmeasured reporting remain required. Ongoing Task54 WIP
+and exhaustive additional measurements will not automatically delay the first public
+artifact; they remain recorded follow-up work.
