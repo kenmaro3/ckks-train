@@ -123,3 +123,13 @@ worker-handshake-exec の閉じた認証済み native check3 だけで、idle ch
 固定された`/results/resource/`と`/results/native-probes/`だけを.gitignoreへ追加する。子を起動する前にsupervisor自身が置くdurable pending/commandが、全checkoutの未追跡ファイル拒否に引っ掛かり、実snapshot helperが必ず失敗するためである。これは未実行のsource統合の前提修正で、Linux実機検証は未実施である。
 
 Git clean検査を弱める案は採用しない。配置をcheckout外へ移す案は固定配置・権限・復旧条件まで変更するため、この段階では採用しない。除外はこの2つの実行記録用pathだけとし、crates/scripts/toolsのraw physical inventory一致、科学結果・Reference・Targetの既存検査は維持する。実行記録は別途account lockと元bytes・完了状態で検査し、gitignoreを認可や成功の根拠にしない。専有pathの生成後もsource snapshotが可能であることと、他の未追跡sourceを拒否することの試験を追加する。
+
+## 2026-11-08 Step3前の裁定: 実行開始の型とInput・Reviewedの取得元
+
+source確認では、`StartedHeCase` / `begin_checked_he` と5つのlive capabilityは、既存の設計にある境界であって未実装だった。Step3でprivateな実producer・所有権保持・durable startとともに実装する。単なる記録のdecodeや恒久的な不足エラーを完成扱いにしない。正当なsecurity・correctness・native・authority資料がない実行は、引き続き具体的な理由で拒否する。設計を維持して不足する実装を補う判断であり、試験・寿命管理の実装量が増える。
+
+Input0は、採用済みdataset取得仕様で11ファイル等のpathが実際のtrusted repository相対に固定されているため、Source1と同じ実rootをrole0として別に保持する。元directory・ancestorの実identityと再検査を要求し、role0/1の意味とfilesystem/capacity検査を混ぜない。FileRefから別rootを選ばず、異なる取得元が必要なら拒否する。自由な入力root指定を追加する案はこの固定経路には不要であり、この判断によって任意の入力置場をサポートしたとは扱わない。
+
+Reviewed2には既存の根拠あるpath・inode指定がないため、`hekit-study-local-approval-v4`を追加する。v3の共通部分とorigin各fieldの順序・意味を維持し、その末尾に`reviewed_origin`（既存のcanonical absolute path形式、最大4096 bytes）、device/inode（既存の非zero u64 pair）を追加する。既存outer header、exact EOF、選択されたapproval全体のSHA256で固定し、新しい自己hashや任意分岐を作らない。bounded scannerと通常decoderの全field一致、独立literal vectors、v3の既存golden保持を検証する。
+
+v3は対応するStep2診断・probeの互換読取に残すが、Reviewed originを推測したり、Step3の実行許可へ昇格させたりしない。Reviewedを必要とする経路はv4と同じownerの下で取得した実rootを要求する。Policy/Sourceの兄弟directoryへ暗黙にfallbackする案は、資料の取得元を捏造するため採用しない。新形式・fixture・source/build identity更新と将来のv4配置/native検証が必要になる。現時点で配置・native実行・新しい学習は行っていない。

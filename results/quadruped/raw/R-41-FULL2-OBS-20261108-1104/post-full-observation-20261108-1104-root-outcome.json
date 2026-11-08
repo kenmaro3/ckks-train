@@ -1,0 +1,14 @@
+{
+  "kind": "root_operational_outcome_not_scientific_result",
+  "original_session_id": 74778,
+  "launch_chunk": "845d74",
+  "terminal_chunk": "aab0be",
+  "terminal_exit_code": 0,
+  "retry": false,
+  "stdout_bytes": 2417,
+  "stdout_sha256": "36e8558e816fc34d39fc4531683f7fbc790cca31d6800efc30d3ec8d8d5bfe51",
+  "next_request": "R-41-FULL2-OBS-20261108-1205",
+  "next_earliest_jst": "2026-11-08T12:05:38+09:00",
+  "next_controller_sha256": "97b82c8474317e718302449a2c1dfc4d7d1c9ae4fdbe85d15b16720b76cb510e",
+  "next_manifest_sha256": "9c13013715829804aa4f1c2cad22343f2615827bd24d3cfe7562287dd7d63105"
+}
