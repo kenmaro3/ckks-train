@@ -1,0 +1,9 @@
+# Task42 FULL2 finalization evidence — 2026-11-08
+
+The independent scientific review accepts bounded terminal/count/accuracy evidence. Original12 files are archived unchanged under [R-41-FULL-2](../../quadruped/raw/R-41-FULL-2/README.md). The six fetch files preserve the one SSH collection and its triggering observation; stdout is the complete base64 transport, not a newly manufactured scientific result. Controller/source are exact executed preparation copies. No automatic retry or new training was performed.
+
+`rq1-summary-command.json` records the executed local aggregation; `rq1-summary.md` is derived output, not a binary result. Exit0 validates its internal consistency. Its generic “Overall RQ1: pending / security unverified” wording describes what that aggregator can establish; it does not override the [M3 final report](../../../docs/m3-report.md): FULL2 accuracy PASS, KS ratios(a/c/d)PASS/(b)FAIL, same-security UNMET, full ReBoot CPU comparison UNMEASURED. Full1 and Full2 use different batches and cannot be combined into one all-gates-passing configuration.
+
+The original capture's scientific_acceptance=false is an operational field, retained unchanged. Review describes all provenance limits, including uncollected partial.txt and lack of retrospective executed-binary/all-input attestation. SHA256SUMS covers all archive files except itself, including this README. This archive does not claim Task54, stable release or arXiv completion.
+
+Final documentation review: [SPEC/QUALITY PASS](task-42-final-report-review.md). The historical M3 rulings are unchanged; the Plan B wording was corrected to distinguish the past deferral from the present unmet judgment. Table check-only passed; root also ran `python3 -B tools/figs.py --check` (exit0,3 artifacts unchanged). The review records pre-commit snapshots. This added review file and README entry are reflected in the refreshed SHA256SUMS.

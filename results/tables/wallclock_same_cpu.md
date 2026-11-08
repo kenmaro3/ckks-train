@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|---|---|---|---|
 | **196 inputs, full setting (headline)** | | | | | | | | | |
 | FULL-1 | 196 | 64 | 48000 | 72050.8 | 1.501 | not measured | 0.435 | 1.066 | rayon 12 |
-| FULL-2 | 196 | 48 in 64 | 48000 | pending (R-41-FULL-2) |  | ReBoot 196 full: not measured |  |  |  |
+| FULL-2 | 196 | 48 in 64 | 48000 | 146229.9 | 3.046 | not measured | 1.170 | 1.877 | rayon 12 |
 | **784 inputs, ReBoot encrypted-script subset** | | | | | | | | | |
 | ReBoot official (OpenFHE) | 784 | 48 | 1008 | 3599.9 | 3.571 | 1 | 2.585 | 0.986 | OpenMP 12 |
 | F1 | 784 | 32 | 1008 | 3016.7 | 2.993 | 0.838 | 0.989 | 2.003 | rayon 12 |

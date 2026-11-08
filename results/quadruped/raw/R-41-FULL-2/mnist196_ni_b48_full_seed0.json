@@ -1,0 +1,337 @@
+{
+  "provenance": {
+    "written_by": "the mnist binary (raw output, not assembled)",
+    "git_commit": "ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f",
+    "git_modified_tracked_files": "none",
+    "command_line": "./target/release/mnist --mode noninteractive --placement when_needed --faithful --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/quadruped/raw/reboot_emlp1_full/train_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_full/init_weights_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-schedule results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-key lr_per_step --epochs 1 --transpose reuse --batch 48 --out results/quadruped/mnist196_ni_b48_full_seed0.json",
+    "build": {
+      "debug_assertions": false,
+      "package_version": "0.0.0",
+      "target_os": "linux",
+      "target_arch": "x86_64"
+    },
+    "parallel_feature": true,
+    "rustc_on_path": "rustc 1.85.1 (4eb161250 2025-03-15)",
+    "machine": {
+      "cpu": "13th Gen Intel(R) Core(TM) i9-13900KF",
+      "logical_cpus": 32,
+      "memory_bytes": "132479885312",
+      "os": "Linux 7.0.0-31-generic x86_64",
+      "host": "kmihara-Z790-S01"
+    },
+    "threads": "rayon (feature parallel), RAYON_NUM_THREADS = 12, 32 logical CPUs",
+    "load_start": "2.01 2.42 2.47 2/1391 1910173",
+    "load_end": "5.06 4.14 3.63 2/1445 2375608",
+    "started_unix": 1793989198.9180489,
+    "finished_unix": 1794135486.2308514
+  },
+  "task": "Task 41: MNIST eMLP-1 non-interactive training with bootstrapping (RQ1)",
+  "network": "196 -> 32 (z^2 + z) -> 16 (linear), MSE, NAG (biases SGD)",
+  "setup": {
+    "params": "n16_boot",
+    "log_n": 16,
+    "slots": 32768,
+    "max_level": 31,
+    "bootstrap_output_level": 16,
+    "start_level_after_unpack": 15,
+    "levels_per_iter": 7,
+    "placement": "when_needed",
+    "batch": 48,
+    "lanes_per_ciphertext": 64,
+    "micro_batches_per_update": 1,
+    "layout_d": 256,
+    "transpose_keys": "reuse",
+    "training_galois_keys": 35,
+    "key_bytes_each": 301989888,
+    "bootstrap_key_bytes": 10272899072,
+    "boot_ks": 111,
+    "compact_containers": 2,
+    "bias_slots": "[BiasSlot { container: 0, position: 32 }, BiasSlot { container: 0, position: 64 }]"
+  },
+  "training": {
+    "epochs": 1,
+    "subset": 48000,
+    "updates": 1000,
+    "samples": 48000,
+    "lr": 0.024,
+    "momentum": 0.9,
+    "weight_decay": 0,
+    "lr_schedule": "results/quadruped/raw/reboot_emlp1_full/config_values.json",
+    "init_biases": "zero (--no-bias)",
+    "lr_reference_on_mean_gradient": 0.024,
+    "lr_ratio_max": 842.8587194398402,
+    "epoch_orders": "none",
+    "seed": 32
+  },
+  "prediction": {
+    "cost_model_ni_without_boots": {
+      "rotations": 813,
+      "relins": 58,
+      "key_switches": 871,
+      "rotations_per_sample": 16.9375,
+      "relins_per_sample": 1.2083333333333333,
+      "key_switches_per_sample": 18.145833333333332
+    },
+    "cost_model_ni_bootstraps_per_update": 4,
+    "cost_model_ni_ks_per_sample_at_hekit_boot": 27.395833333333332,
+    "closed_form_per_update": {
+      "forward_rot": 20,
+      "forward_relin": 9,
+      "transpose_rot": 27,
+      "backward_rot": 6,
+      "backward_relin": 5,
+      "gradient_rot": 304,
+      "gradient_relin": 48,
+      "shift_rot": 46,
+      "bias_grad_rot": 14,
+      "unpack_rot": 430,
+      "bias_extract_rot": 16,
+      "rotations": 863,
+      "relins": 62,
+      "weight_bootstraps_when_booted": 4,
+      "activation_bootstraps": 0
+    },
+    "bootstraps_per_update_avg": 4,
+    "corrections_per_update": {
+      "recomputed_babies": 14,
+      "bsgs_split": -2,
+      "transpose_beyond_model": 12,
+      "bias_gradients_and_extraction": 30,
+      "bootstraps_beyond_model_x_boot_ks": 0,
+      "velocity_reference_shift_avg": 22.54,
+      "total": 76.53999999999999
+    },
+    "predicted_ks_per_sample": 28.990416666666665,
+    "boot_schedule": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  },
+  "measured": {
+    "total": {
+      "rotations": 1161540,
+      "relins": 222000,
+      "sse_switches": 8000,
+      "key_switches": 1391540,
+      "bootstraps": 4000,
+      "ct_ct_tensor": 298000,
+      "ct_pt_mults": 1502516,
+      "rescales": 407516
+    },
+    "ks_per_sample_incl_bootstraps": 28.99041666666667,
+    "ks_per_sample_without_bootstraps": 19.74041666666667,
+    "bootstraps_per_update": 4,
+    "bootstraps_per_sample": 0.08333333333333333,
+    "weight_booted": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "every_update_equals_prediction": true,
+    "predicted_ks_this_run": 1391540,
+    "measured_over_predicted": 1,
+    "measured_over_predicted_full_batch_per_sample": 1.0000000000000002,
+    "measured_over_model_plus_corrections": 1.0000000000000002,
+    "measured_over_cost_model": 1.0582053231939164,
+    "per_update_first": {
+      "rotations": 1139,
+      "relins": 222,
+      "sse_switches": 8,
+      "key_switches": 1369,
+      "bootstraps": 4,
+      "ct_ct_tensor": 298,
+      "ct_pt_mults": 1475,
+      "rescales": 380
+    }
+  },
+  "rq1": {
+    "metric": "key switches per sample (rotations + relins + SSE switches), bootstraps included",
+    "headline_reboot_side": "lazy_measured",
+    "by_reboot_side": {
+      "lazy_measured": {
+        "source": "measured (Task 33, results/mnist_reboot_layout.json, mode \"lazy\"): ReBoot's per-sample layout in hekit (in-library layout, hekit's interactive client, no bootstraps); ReBoot official (OpenFHE) not measured",
+        "ks_per_sample_without_bootstraps": 35.0625,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 76.89583333333334,
+          "ratio_vs_reboot_b48": 0.37700894066648605,
+          "reboot_ks_per_sample_same_b": 76.89583333333334,
+          "ratio_vs_reboot_same_b": 0.37700894066648605
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 61.57375,
+          "reboot_ks_per_sample_b48": 76.89583333333334,
+          "ratio_vs_reboot_b48": 0.8007423462476292,
+          "reboot_ks_per_sample_same_b": 76.89583333333334,
+          "ratio_vs_reboot_same_b": 0.8007423462476292
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 44.3125,
+          "ratio_vs_reboot_b48": 0.6542266102491773,
+          "reboot_ks_per_sample_same_b": 44.3125,
+          "ratio_vs_reboot_same_b": 0.6542266102491773
+        }
+      },
+      "persample_measured": {
+        "source": "measured (Task 33, results/mnist_reboot_layout.json, mode \"persample\"): ReBoot's per-sample layout in hekit (in-library layout, hekit's interactive client, no bootstraps); ReBoot official (OpenFHE) not measured",
+        "ks_per_sample_without_bootstraps": 37,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.3677431289640592,
+          "reboot_ks_per_sample_same_b": 78.83333333333334,
+          "ratio_vs_reboot_same_b": 0.3677431289640592
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 61.57375,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.7810623678646933,
+          "reboot_ks_per_sample_same_b": 78.83333333333334,
+          "ratio_vs_reboot_same_b": 0.7810623678646933
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 46.25,
+          "ratio_vs_reboot_b48": 0.6268198198198198,
+          "reboot_ks_per_sample_same_b": 46.25,
+          "ratio_vs_reboot_same_b": 0.6268198198198198
+        }
+      },
+      "m0_model": {
+        "source": "M0 cost model, ReBoot as shipped at N = 2^16 (spikes/RESULTS.md Task 6)",
+        "ks_per_sample_without_bootstraps": 37,
+        "a_own_bootstrap_costs": {
+          "way": "(a) own bootstrap costs: hekit 111 (measured), ReBoot 502",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.3677431289640592,
+          "reboot_ks_per_sample_same_b": 78.83333333333334,
+          "ratio_vs_reboot_same_b": 0.3677431289640592
+        },
+        "b_both_502": {
+          "way": "(b) both 502: layout/packing gain only (conservative)",
+          "hekit_boot_ks": 502,
+          "reboot_boot_ks": 502,
+          "hekit_ks_per_sample": 61.57375,
+          "reboot_ks_per_sample_b48": 78.83333333333334,
+          "ratio_vs_reboot_b48": 0.7810623678646933,
+          "reboot_ks_per_sample_same_b": 78.83333333333334,
+          "ratio_vs_reboot_same_b": 0.7810623678646933
+        },
+        "c_both_hekit": {
+          "way": "(c) both 111: ReBoot's layout on hekit's bootstrapper",
+          "hekit_boot_ks": 111,
+          "reboot_boot_ks": 111,
+          "hekit_ks_per_sample": 28.99041666666667,
+          "reboot_ks_per_sample_b48": 46.25,
+          "ratio_vs_reboot_b48": 0.6268198198198198,
+          "reboot_ks_per_sample_same_b": 46.25,
+          "ratio_vs_reboot_same_b": 0.6268198198198198
+        }
+      }
+    },
+    "reboot_bootstraps": {
+      "bootstraps_per_update": 4,
+      "source": "M0 cost model: ReBoot bootstraps W and V of both layers once per update",
+      "own_batch": 48,
+      "boot_ks_502_provenance": "OpenFHE EvalBootstrap, Meta-BTS with 2 iterations, as configured by ReBoot (level budget [2, 2]): 2 x (218 linear-transform rotations + 1 conjugation + 32 EvalMod relins) = 502, counted from the OpenFHE code by the M0 cost model (spikes/costmodel/costmodel.py bootstrap_key_switches; spikes/RESULTS.md Task 6; docs/bootstrap.md 11.2). A model count, not a measurement."
+    }
+  },
+  "time_s": {
+    "bootstrapper_setup": 25.535108295,
+    "keygen_total": 48.370716868,
+    "encrypt_network": 6.859214538,
+    "train_total": 146229.853279576,
+    "epoch_measured": 146229.853279576,
+    "epoch_1024_extrapolated_from_mean_update": 3065.5728244015727,
+    "per_update": {
+      "mean": 145.9796583048368,
+      "min": 140.53966722,
+      "max": 156.775901567
+    },
+    "per_update_client_encrypt": {
+      "mean": 0.24871219094600003,
+      "min": 0.229030472,
+      "max": 0.275549963
+    },
+    "bootstrap_time_total": 56141.66615317197,
+    "per_update_bootstrap": {
+      "mean": 56.141666153171975,
+      "min": 54.45513572400159,
+      "max": 60.34865063199686
+    },
+    "wall_total": 146287.312211238
+  },
+  "twin": {
+    "max_abs_w_diff_per_layer": [0.004737007574199578, 0.0066250310331289475],
+    "max_abs_b_diff_per_layer": [0.00037219147806487416, 0.00034842488044899557],
+    "max_abs_diff": 0.0066250310331289475,
+    "log2_max_abs_diff": -7.237857072176416,
+    "max_abs_w_update_per_layer": [0.3052702332101112, 0.45513901171652626],
+    "max_abs_hidden_activation": 2.4998099613793734,
+    "activation_bootstraps": {
+      "note": "AfterActivation only: the bootstrapped hidden activations of every update, decrypted by the client after the update, against the twin's activations from the same pre-update weights (bootstrap error plus the accumulated training error, which the weight diff bounds). Inputs above 1 violate the bootstrap's |m| <= 1 precondition; they are not clipped.",
+      "slots_compared": 0,
+      "max_abs_input_twin": 2.4998099613793734,
+      "inputs_above_1": 0,
+      "precondition_hit": false,
+      "max_abs_output": 0,
+      "max_abs_err_vs_twin": 0,
+      "log2_max_abs_err_vs_twin": null
+    }
+  },
+  "evaluation": {
+    "test_samples": 10000,
+    "test_acc_encrypted_trained": 0.9035,
+    "test_acc_twin": 0.9041,
+    "test_acc_init": 0.1169,
+    "test_mse_encrypted_trained": 0.01586771058626216,
+    "test_mse_twin": 0.015867165639045278
+  },
+  "levels_last_step": {
+    "z1": 14,
+    "a1": 13,
+    "z2": 12,
+    "a2": 12,
+    "delta2": 12,
+    "dz2": 11,
+    "delta1": 10,
+    "h2": 9,
+    "hb2": 10,
+    "s1": 13,
+    "dz1": 9,
+    "h1": 7,
+    "hb1": 8,
+    "c0'": 7,
+    "c1'": 9
+  },
+  "memory": {
+    "peak_rss_bytes": 29383520256
+  },
+  "machine": {
+    "load_start": "2.01 2.42 2.47 2/1391 1910173",
+    "load_end": "5.06 4.14 3.63 3/1445 2375609",
+    "build": {
+      "debug_assertions": false,
+      "package_version": "0.0.0",
+      "target_os": "linux",
+      "target_arch": "x86_64"
+    },
+    "parallel_feature": true,
+    "threads": "rayon, 32 available (this Mac); quadruped-gpu 32-thread figure: pending (user-driven session)"
+  }
+}

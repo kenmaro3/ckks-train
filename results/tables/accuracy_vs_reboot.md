@@ -7,7 +7,7 @@
 | **Full setting: 196 inputs, 4800 samples x 10 epochs, B = 48 (the ±0.5 pt gate)** | | | | | | | |
 | ReBoot released code, plaintext (recomputed twin) | full | 10 | 90.65 ± 0.27 (n = 10) | — | — | — | reference |
 | hekit plaintext twin (ReBoot weights, order, lr) | full | 10 | 90.65 ± 0.27 (n = 10) | — | 90.65 ± 0.27 (n = 10) | +0.00 | twin check |
-| hekit encrypted, B = 48 in 64 lanes, WN | full | 1 (seed 0) | pending (R-41-FULL-2) | pending (R-41-FULL-2) | 90.41 |  | pending |
+| hekit encrypted, B = 48 in 64 lanes, WN | full | 1 (seed 0) | 90.35 | 90.41 | 90.41 (seed 0) | -0.06 | PASS |
 | hekit encrypted, B = 64, WN | full | 1 (seed 0) | 90.36 | 90.37 | 90.41 (seed 0) | -0.05 | not the gate (B ≠ 48) |
 | **eMLP-2 / eMLP-3 block MLPs, full setting, seed 0** | | | | | | | |
 | hekit plaintext twin emlp2 (blocks 64) | full | 1 (seed 0) | 91.56 | — | 91.56 (ReBoot twin) | +0.00 | twin check |
@@ -25,5 +25,6 @@
 | ReBoot released code, paper setting, ReBoot's scheduler, epoch 50 | 60k samples, 50 epochs | 10 | 95.25 ± 0.08 (n = 10) | — | 94.61 | +0.64 | reference |
 | ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected) | 60k samples, 50 epochs | 10 | 95.46 ± 0.09 (n = 10) | — | 94.61 | +0.85 | reference |
 
+- FULL-2 final parameter error: 0.00662503 (maximum absolute difference across weights and biases against its same-batch plaintext twin at training end). This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.
 - FULL-1 final parameter error: 0.00682657 (maximum absolute difference across weights and biases against its same-batch plaintext twin at training end). This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.
 - R-M3-15: the ±0.5 pt gate compares hekit encrypted B = 48 (FULL-2) with ReBoot's released code at its full setting, seed 0. Subset rows are 1 epoch and are not a gate. The paper value and R-REB-3 are reported with this note only.

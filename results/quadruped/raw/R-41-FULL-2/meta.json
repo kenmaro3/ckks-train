@@ -1,0 +1,76 @@
+{
+  "job": "R-41-FULL-2",
+  "host": "kmihara-Z790-S01",
+  "kernel": "7.0.0-31-generic",
+  "cpu": [
+    "CPU(s):                                  32",
+    "Model name:                              13th Gen Intel(R) Core(TM) i9-13900KF",
+    "Thread(s) per core:                      2",
+    "Socket(s):                               1",
+    "CPU(s) scaling MHz:                      40%"
+  ],
+  "workdir": "/home/kmihara/hekit-r41full",
+  "command": "./target/release/mnist --mode noninteractive --placement when_needed --faithful --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/quadruped/raw/reboot_emlp1_full/train_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_full/init_weights_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-schedule results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-key lr_per_step --epochs 1 --transpose reuse --batch 48 --out results/quadruped/mnist196_ni_b48_full_seed0.json",
+  "threads_cap": 12,
+  "env_thread_caps": {
+    "OMP_NUM_THREADS": "12",
+    "RAYON_NUM_THREADS": "12",
+    "CARGO_BUILD_JOBS": "12"
+  },
+  "nice": 10,
+  "gpu_job": false,
+  "hekit_synced_commit": [
+    "commit ff2c2eb",
+    "full ff2c2ebc9d7946490bcf63f8b6be9f45fe67d49f",
+    "dirty_files 0 (plus the gitignored R-REB-2 .npy arrays copied in, sha256 checked against data_manifest.json)",
+    "source git bundle of the Mac HEAD (committed state only), cloned to ~/hekit-r41full",
+    "synced_at 2026-11-06T07:17:36+09:00"
+  ],
+  "start": "2026-11-07T03:19:58+09:00",
+  "end": "2026-11-08T19:58:07+09:00",
+  "wall_s_runner": 146288.39505529404,
+  "exit_status": 0,
+  "watchdog_killed": false,
+  "watchdog_rss_limit_kb": 94371840,
+  "uptime_before": " 03:19:58 up 54 days, 17:50,  4 users,  load average: 2.01, 2.42, 2.47",
+  "uptime_after": " 19:58:07 up 56 days, 10:28,  5 users,  load average: 5.06, 4.14, 3.63",
+  "load_before": [
+    2.01,
+    2.42,
+    2.47
+  ],
+  "load_after": [
+    5.06,
+    4.14,
+    3.63
+  ],
+  "peak_rss_kb_time_v": 28694844,
+  "peak_rss_kb_tree_sampled_10s": 28622228,
+  "time_v": {
+    "Command being timed": "\"./target/release/mnist --mode noninteractive --placement when_needed --faithful --dataset-npy results/quadruped/data/reboot_emlp1_full --indices results/quadruped/raw/reboot_emlp1_full/train_indices.txt --init-weights results/quadruped/raw/reboot_emlp1_full/init_weights_seed0 --init-weights-manifest results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-schedule results/quadruped/raw/reboot_emlp1_full/config_values.json --lr-key lr_per_step --epochs 1 --transpose reuse --batch 48 --out results/quadruped/mnist196_ni_b48_full_seed0.json\"",
+    "User time (seconds)": "439313.31",
+    "System time (seconds)": "3033.78",
+    "Percent of CPU this job got": "302%",
+    "Elapsed (wall clock) time (h:mm:ss or m:ss)": "40:38:08",
+    "Average shared text size (kbytes)": "0",
+    "Average unshared data size (kbytes)": "0",
+    "Average stack size (kbytes)": "0",
+    "Average total size (kbytes)": "0",
+    "Maximum resident set size (kbytes)": "28694844",
+    "Average resident set size (kbytes)": "0",
+    "Major (requiring I/O) page faults": "0",
+    "Minor (reclaiming a frame) page faults": "2197676615",
+    "Voluntary context switches": "72387932",
+    "Involuntary context switches": "6351806",
+    "Swaps": "0",
+    "File system inputs": "0",
+    "File system outputs": "8392",
+    "Socket messages sent": "0",
+    "Socket messages received": "0",
+    "Signals delivered": "0",
+    "Page size (bytes)": "4096",
+    "Exit status": "0"
+  },
+  "snapshot_before": "date: 2026-11-07T03:19:58+09:00\nuptime:  03:19:58 up 54 days, 17:50,  4 users,  load average: 2.01, 2.42, 2.47\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  843G   26G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  8035786752 69591744512    48422912 55760601088 124444098560\nSwap:     8589930496   652693504  7937236992\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20707 MiB, 3376 MiB, 24564 MiB, 0 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n",
+  "snapshot_after": "date: 2026-11-08T19:58:07+09:00\nuptime:  19:58:07 up 56 days, 10:28,  5 users,  load average: 5.06, 4.14, 3.63\n--- df -h ~\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p2  915G  848G   21G  98% /\n--- free -b\n               total        used        free      shared  buff/cache   available\nMem:     132479885312  9825538048 60700016640    99463168 62939471872 122654347264\nSwap:     8589930496   641929216  7948001280\n--- nvidia-smi query\nname, driver_version, memory.used [MiB], memory.free [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 4090, 595.91.07, 20950 MiB, 3134 MiB, 24564 MiB, 2 %\npid, process_name, used_gpu_memory [MiB]\n2791212, VLLM::EngineCore, 20660 MiB\n"
+}

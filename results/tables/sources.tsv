@@ -51,7 +51,58 @@ rq1_ks	FULL-1	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_sub
 rq1_ks	FULL-1	Ways ≤ 0.70	abcd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
 rq1_ks	FULL-1	Ways ≤ 0.70	abcd	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
 rq1_ks	FULL-1	Ways ≤ 0.70	abcd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
+rq1_ks	FULL-2	B	48 in 64	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.batch	
+rq1_ks	FULL-2	Config	faithful	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	provenance.command_line	
+rq1_ks	FULL-2	Samples	48000	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	
+rq1_ks	FULL-2	hekit KS/sample	28.990	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	K/S
+rq1_ks	FULL-2	hekit KS/sample	28.990	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	K/S
+rq1_ks	FULL-2	Boots	4000	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	
 rq1_ks	FULL-2	ReBoot non-boot	37 (model)	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(a)	0.368	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(b)	0.781	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H+502H)/S)/(R+4*502/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(c)	0.627	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	(K/S)/(R+4*111/48)
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.boot_ks	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	((K-111H)/S)/R
+rq1_ks	FULL-2	(d)	0.534	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	((K-111H)/S)/R
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.key_switches	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	measured.total.bootstraps	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.boot_ks	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.ks_per_sample_without_bootstraps	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.ciphertexts_bootstrapped	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	bootstrap.bootstrap_array_calls	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	ways with ratio <= 0.70
+rq1_ks	FULL-2	Ways ≤ 0.70	acd	results/quadruped/raw/R-41-F2/mnist_emlp1_ni_when_needed_b64_faithful.json	rq1.by_reboot_side.m0_model.a_own_bootstrap_costs.reboot_boot_ks	ways with ratio <= 0.70
 rq1_ks	F1	B	32	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	setup.batch	
 rq1_ks	F1	Config	faithful	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	provenance.command_line	
 rq1_ks	F1	Samples	1008	results/quadruped/raw/R-41-F1/mnist_emlp1_ni_when_needed_b32_faithful.json	training.samples	
@@ -442,6 +493,19 @@ wallclock_same_cpu	FULL-1	Non-boot s/sample	1.066	results/quadruped/raw/R-41-FUL
 wallclock_same_cpu	FULL-1	Threads	rayon 12	results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	provenance.threads	
 wallclock_same_cpu	FULL-1	Threads	rayon 12	results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	provenance.machine.host	
 wallclock_same_cpu	FULL-1	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
+wallclock_same_cpu	FULL-2	B	48 in 64	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	setup.batch	
+wallclock_same_cpu	FULL-2	Samples	48000	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	
+wallclock_same_cpu	FULL-2	Train s	146229.9	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	time_s.train_total	
+wallclock_same_cpu	FULL-2	s/sample	3.046	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	time_s.train_total	
+wallclock_same_cpu	FULL-2	s/sample	3.046	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	
+wallclock_same_cpu	FULL-2	Boot s/sample	1.170	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	FULL-2	Boot s/sample	1.170	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	
+wallclock_same_cpu	FULL-2	Non-boot s/sample	1.877	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	time_s.train_total	
+wallclock_same_cpu	FULL-2	Non-boot s/sample	1.877	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	time_s.bootstrap_time_total	
+wallclock_same_cpu	FULL-2	Non-boot s/sample	1.877	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	training.samples	
+wallclock_same_cpu	FULL-2	Threads	rayon 12	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	provenance.threads	
+wallclock_same_cpu	FULL-2	Threads	rayon 12	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	provenance.machine.host	
+wallclock_same_cpu	FULL-2	Threads	rayon 12	results/quadruped/reboot_emlp1_official_subset.json	provenance.host	
 wallclock_same_cpu	ReBoot official (OpenFHE)	B	48	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.batch_size	
 wallclock_same_cpu	ReBoot official (OpenFHE)	Samples	1008	results/quadruped/reboot_emlp1_official_subset.json	reboot_hyperparameters.trained_samples	
 wallclock_same_cpu	ReBoot official (OpenFHE)	Train s	3599.9	results/quadruped/raw/reboot_emlp1_official_subset/stats.json	steps[*].reboot_step_time_s	sum of step_time
@@ -624,7 +688,13 @@ accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.0
 accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.7.twin.test_acc_argmax10	difference of means over matching seeds
 accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.8.twin.test_acc_argmax10	difference of means over matching seeds
 accuracy_vs_reboot	hekit plaintext twin (ReBoot weights, order, lr)	Δ (pt)	+0.00	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.9.twin.test_acc_argmax10	difference of means over matching seeds
-accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Reference (%)	90.41	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Test acc (%)	90.35	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Twin (%)	90.41	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	evaluation.test_acc_twin	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Reference (%)	90.41 (seed 0)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Δ (pt)	-0.06	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	evaluation.test_acc_encrypted_trained	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Δ (pt)	-0.06	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Gate	PASS	results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	evaluation.test_acc_encrypted_trained	|Δ| ≤ 0.5 pt
+accuracy_vs_reboot	hekit encrypted, B = 48 in 64 lanes, WN	Gate	PASS	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	|Δ| ≤ 0.5 pt
 accuracy_vs_reboot	hekit encrypted, B = 64, WN	Test acc (%)	90.36	results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	evaluation.test_acc_encrypted_trained	
 accuracy_vs_reboot	hekit encrypted, B = 64, WN	Twin (%)	90.37	results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	evaluation.test_acc_twin	
 accuracy_vs_reboot	hekit encrypted, B = 64, WN	Reference (%)	90.41 (seed 0)	results/quadruped/raw/reboot_emlp1_full/config_values.json	per_seed.0.twin.test_acc_argmax10	
@@ -678,7 +748,8 @@ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.mean	
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
-accuracy_vs_reboot	note 1			results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	twin.max_abs_diff	
+accuracy_vs_reboot	note 1			results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json	twin.max_abs_diff	
+accuracy_vs_reboot	note 2			results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	twin.max_abs_diff	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	

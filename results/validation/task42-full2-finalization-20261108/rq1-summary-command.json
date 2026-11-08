@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "tools/rq1_summary.py",
+    "--full-1",
+    "results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json",
+    "--full-2",
+    "results/quadruped/raw/R-41-FULL-2/mnist196_ni_b48_full_seed0.json",
+    "--reboot-config",
+    "results/quadruped/raw/reboot_emlp1_full/config_values.json"
+  ],
+  "exit_code": 0,
+  "kind": "derived_validation_not_binary_measurement"
+}

@@ -1,0 +1,24 @@
+{
+  "kind": "root_interpretation_of_operational_observation_not_scientific_result",
+  "observed_unix": 1794135974.6689746,
+  "full2_result_exists": true,
+  "completed_updates_from_terminal_log": 1000,
+  "old_chain_exists": false,
+  "queue_live_expected_identity": true,
+  "queue_entries": [
+    "R-47-3-example.json",
+    "R-47-3-nsys.json",
+    "R-47-3-tests.json",
+    "gate-released.json",
+    "owner.json",
+    "post-full-r47-build.json",
+    "post-full-r48-build.json"
+  ],
+  "terminal_collection_qualified": [
+    "FULL2",
+    "R47"
+  ],
+  "r48_r52_terminal_collection_qualified": false,
+  "scientific_acceptance": false,
+  "note": "Terminal/log/result existence qualifies collection; queue entry names alone do not prove scientific success."
+}
