@@ -266,3 +266,13 @@ tag ref exists at the recorded observation. [Verification and notes](../results/
 retain the exact candidate and test scopes. This is preparation, not public release
 or completed scientific validation. Final results can still update the draft before
 publication, using a new source/asset identity rather than editing raw measurements.
+
+## 15. Candidate package paths, 2026-11-08
+
+On the clean draft candidate0b2d17a, offline/locked `cargo package --list`
+passed for core/ckks/nn/cuda (18/40/61/42 paths). Each includes its README,
+LICENSE and THIRD_PARTY_NOTICES; CUDA includes all four kernels. The eight
+source license/notice copies match their root originals as regular files.
+[Exact outputs and scope](../results/validation/research-preview-package-list-0b2d17a/README.md)
+are retained. This is a path/source-content check, not a new packaged build
+or crates.io publication. The older packaged-build evidence remains dated.

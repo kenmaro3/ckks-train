@@ -1,0 +1,61 @@
+{
+  "source_commit": "0b2d17a14cd305890d9eed771008d4f8617eff88",
+  "rows": [
+    {
+      "path": "crates/ckks-train-core/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-core/THIRD_PARTY_NOTICES",
+      "bytes": 10077,
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-ckks/THIRD_PARTY_NOTICES",
+      "bytes": 10077,
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-nn/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-nn/THIRD_PARTY_NOTICES",
+      "bytes": 10077,
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-cuda/LICENSE",
+      "bytes": 1075,
+      "sha256": "37b50b0dc885fe0e9306cca59347532477623f058c9c496d60f153c535e20f87",
+      "matches_root": true,
+      "regular_file": true
+    },
+    {
+      "path": "crates/ckks-train-cuda/THIRD_PARTY_NOTICES",
+      "bytes": 10077,
+      "sha256": "fa1b18275f507a15f821863a0e239f0b3859b858d647cab497b0f072430a0769",
+      "matches_root": true,
+      "regular_file": true
+    }
+  ]
+}

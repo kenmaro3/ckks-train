@@ -1,0 +1,31 @@
+{
+  "reviewer": "/root/preview_testfix_review",
+  "verdict": "PASS",
+  "recorded_utc": "2026-11-08T00:59:26.716155+00:00",
+  "scope": "Bounded independent review of package-list evidence, updated publication docs and arXiv metadata. No build/native execution or network recheck by reviewer.",
+  "findings": [],
+  "checks": [
+    "Candidate clean at 0b2d17a; package paths and exact Git source license/notice copies verified",
+    "Retained test summary 1025 passed / 0 failed / 19 ignored; Clippy/rustdoc source scopes verified",
+    "Eight local release assets match retained GitHub digest/size record",
+    "Manuscript title and abstract match metadata exactly; main.tex hash and nineteen-member source ZIP hash match",
+    "Category proposals, account status, page count/public URL refresh and submission state remain explicitly provisional"
+  ],
+  "document_pins": [
+    {
+      "path": "docs/research-preview.md",
+      "bytes": 9023,
+      "sha256": "a1272078b8f0baf40484215dd948dd4f7cc540312864ef4510064509b50def31"
+    },
+    {
+      "path": "docs/release.md",
+      "bytes": 21876,
+      "sha256": "4a602e1d927bca8fd7132f3cb94907556c483b5608ee52f8f41ed4b5d52729bf"
+    },
+    {
+      "path": "paper/arxiv-metadata.md",
+      "bytes": 3941,
+      "sha256": "7ea3d967c9e346ab5c7fd4b31ad3098bc48887a86074ab7d4c12014121cbe359"
+    }
+  ]
+}
