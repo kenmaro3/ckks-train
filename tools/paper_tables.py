@@ -27,11 +27,14 @@ the M0 model 37; 784 subset rows: the in-library Lazy measurement 35.06, the M3 
   (d) ((K - 111H)/S) / R          bootstraps excluded on both sides
 """
 import argparse
+from datetime import datetime
+import hashlib
 import json
 import math
 from pathlib import Path
 import re
 import statistics
+import shlex
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -201,6 +204,10 @@ REBOOT_PAPER = 'results/quadruped/raw/reboot_emlp1_paper_setting/summary.json'
 LAYOUT = 'results/mnist_reboot_layout.json'
 CRITERION = 'results/quadruped/raw/R-47-2/criterion/cuda_ops_n16_train/{}/new/estimates.json'
 R47_LOG = 'results/quadruped/cuda_ops_r47.log'
+R47_BATCH = 'results/quadruped/raw/R-47-3/R-47-3-example'
+R47_PIN = 'bd5cc493db166a282d26b05b1e069f2a0ee629ef'
+R47_WORKDIR = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r47'
+R47_COMMAND = 'target/release/examples/batch_streams'
 LITERATURE = 'results/reference/literature.json'
 SECURITY_DOC = 'docs/security.md'
 
@@ -601,6 +608,155 @@ def table_ablation(s, inp):
     return t
 
 
+def r47_batch_input(s):
+    """Read the registered example's original runner/queue records, never an alias log.
+
+    This finite parser follows the project producer at R47_PIN, not Criterion or nsys.
+    Hashes identify bytes consumed now; they cannot establish historical execution.
+    """
+    names = ('program.log', 'meta.json', 'post.txt', 'cmd.txt', 'state.json')
+    paths = {name: f'{R47_BATCH}/{name}' for name in names}
+    present = [(s.root / rel).exists() for rel in paths.values()]
+    if not any(present):
+        return None
+    require(all(present), f'{R47_BATCH}: incomplete original terminal evidence')
+    raw, text = {}, {}
+    try:
+        for name, rel in paths.items():
+            raw[name] = (s.root / rel).read_bytes()
+            text[name] = raw[name].decode('utf-8')
+        meta = json.loads(raw['meta.json'], object_pairs_hook=rq1.unique_object)
+        state = json.loads(raw['state.json'], object_pairs_hook=rq1.unique_object)
+        rq1.finite_tree(meta)
+        rq1.finite_tree(state)
+    except (OSError, UnicodeError, ValueError, rq1.SummaryError) as exc:
+        raise TableError(f'{R47_BATCH}: {exc}') from exc
+    require(isinstance(meta, dict) and isinstance(state, dict), f'{R47_BATCH}: expected original objects')
+
+    def check(ok, message):
+        require(ok, f'{R47_BATCH}: {message}')
+
+    def timestamp(value):
+        try:
+            check(isinstance(value, str) and re.fullmatch(
+                r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}', value),
+                'expected timezone-qualified runner timestamp')
+            return datetime.fromisoformat(value).timestamp()
+        except (ValueError, OverflowError) as exc:
+            raise TableError(f'{R47_BATCH}: invalid runner timestamp') from exc
+
+    def argv(value):
+        check(isinstance(value, str), 'missing command record')
+        try:
+            return shlex.split(value)
+        except ValueError as exc:
+            raise TableError(f'{R47_BATCH}: malformed command record') from exc
+
+    check(meta.get('job') == state.get('job') == 'R-47-3-example', 'unexpected job identity')
+    check(meta.get('workdir') == state.get('workdir') == R47_WORKDIR, 'unexpected workdir')
+    check(meta.get('hekit_synced_commit') ==
+          ['commit bd5cc49', 'full ' + R47_PIN, 'dirty_files 0'], 'wrong source pin or clean marker')
+    check(argv(meta.get('command')) == argv(text['cmd.txt']) == [R47_COMMAND] and
+          state.get('command') == [R47_COMMAND], 'unexpected command')
+    check(type(meta.get('threads_cap')) is int and meta['threads_cap'] == 12 and
+          type(meta.get('nice')) is int and meta['nice'] == 10 and meta.get('gpu_job') is True,
+          'wrong thread/nice/GPU limits')
+    check(meta.get('env_thread_caps') == {key: '12' for key in
+          ('OMP_NUM_THREADS', 'RAYON_NUM_THREADS', 'CARGO_BUILD_JOBS')}, 'wrong thread environment')
+    start, end = timestamp(meta.get('start')), timestamp(meta.get('end'))
+    wall = meta.get('wall_s_runner')
+    check(type(wall) in (int, float) and math.isfinite(wall) and wall >= 0 and
+          end >= start and abs(wall - (end - start)) <= 2,
+          'incoherent start/end/wall time')  # date -Is rounds to seconds; wall retains fractions.
+    post = text['post.txt'].splitlines()
+    terminal = [(i, line) for i, line in enumerate(post, 1) if line.startswith('JOB_DONE')]
+    check(len(terminal) == 1 and terminal[0][0] == len(post), 'missing/duplicate/nonterminal JOB_DONE')
+    done = re.fullmatch(r'JOB_DONE rc=(\d+)', terminal[0][1])
+    check(done is not None, 'malformed JOB_DONE')
+    rc = meta.get('exit_status')
+    check(type(rc) is int and 0 <= rc <= 255 and type(state.get('rc')) is int and
+          state['rc'] == rc == int(done[1]), 'child exit mismatch')
+    check(type(state.get('wrapper_rc')) is int and 0 <= state['wrapper_rc'] <= 255,
+          'invalid wrapper exit (distinct from child exit)')
+    check(type(meta.get('watchdog_killed')) is bool, 'missing/invalid watchdog state')
+    check(post and post[0].startswith('date: ') and timestamp(post[0][6:]) >= end,
+          'post snapshot precedes terminal end')
+    check(state.get('log') == '/home/kmihara/hekit-runs/logs/R-47-3-example.log', 'wrong original log path')
+    log = text['program.log']
+    skips = [line for line in log.splitlines() if 'SKIP' in line]
+    check(state.get('skip') is bool(skips) and state.get('skip_lines') == skips, 'inconsistent skip record')
+    watchdog = meta['watchdog_killed']
+    check(watchdog or not any(line.startswith('WATCHDOG:') for line in log.splitlines()),
+          'watchdog log contradicts terminal flag')
+    expected = ('failed: RSS watchdog' if watchdog else
+                'failed: device OOM' if rc and re.search(r'device error|out of memory', log, re.I) else
+                'skipped' if rc == 3 and skips else 'failed' if rc else
+                'done_with_skips' if skips else 'done')
+    check(state.get('status') == expected, 'queue status contradicts child/watchdog/log')
+    sources = [(paths['meta.json'], field) for field in
+               ('job', 'workdir', 'command', 'hekit_synced_commit', 'threads_cap',
+                'env_thread_caps', 'nice', 'gpu_job', 'start', 'end', 'wall_s_runner',
+                'exit_status', 'watchdog_killed')]
+    sources += [(paths['state.json'], field) for field in
+                ('job', 'workdir', 'command', 'rc', 'wrapper_rc', 'status', 'skip', 'skip_lines', 'log')]
+    sources += [(paths['post.txt'], f'line {terminal[0][0]}'), (paths['cmd.txt'], 'line 1')]
+    result = {'rc': rc, 'watchdog': watchdog, 'sources': sources, 'rows': [],
+              'hashes': [(paths[name], hashlib.sha256(raw[name]).hexdigest()) for name in names]}
+    # Even a final timing line precedes equality assertions and pool cleanup in the producer.
+    # A failed child/watchdog never contributes success timings.
+    if rc or watchdog:
+        return result
+    check(not skips, 'this example has no successful capacity SKIP branch')
+    header = None
+    thresholds, timing = {}, {}
+    active = None
+    variants = ('sequential x4, 1 stream', 'batch x4, 2 streams', 'batch x4, 4 streams')
+    for line_no, line in enumerate(log.splitlines(), 1):
+        src = (paths['program.log'], f'line {line_no}')
+        if line.startswith('batch_streams:'):
+            m = re.fullmatch(r'batch_streams: n16_train, d = 64, level 5, 4 products, 30 reps; '
+                             r'CPU setup (\d+\.\d) s', line)
+            check(header is None and m is not None and math.isfinite(float(m[1])),
+                  'expected one principal 30-repetition header')
+            header = src
+        elif line.startswith('pool release threshold:'):
+            m = re.fullmatch(r'pool release threshold: (default|max) \((\d+) bytes\)', line)
+            check(m is not None, 'malformed pool threshold')
+            name, value = m[1], int(m[2])
+            check(header is not None and name not in thresholds and value ==
+                  {'default': 268435456, 'max': 18446744073709551615}[name],
+                  'duplicate/wrong pool threshold')
+            thresholds[name] = src
+            active = name
+        elif line.startswith('[') or 'median ' in line:
+            m = re.fullmatch(r'\[(default|max)\] (sequential x4, 1 stream|batch x4, [24] streams):\s+'
+                             r'median\s+(\d+\.\d{3}) ms\s+min\s+(\d+\.\d{3})\s+sd\s+(\d+\.\d{3})'
+                             r'(?:\s+\((\d+\.\d{3}) ms per product\))?', line)
+            check(m is not None, f'malformed timing at line {line_no}')
+            threshold, variant = m[1], m[2]
+            key = (threshold, variant)
+            check(header is not None and threshold == active and key not in timing,
+                  'duplicate/contradictory timing or threshold context')
+            med, minimum, sd = map(float, m.group(3, 4, 5))
+            check(all(math.isfinite(v) for v in (med, minimum, sd)) and
+                  0 < minimum <= med and sd >= 0, 'nonfinite/negative/incoherent timing')
+            per_product = m[6]
+            check((variant == variants[0]) == (per_product is not None), 'wrong per-product field')
+            if per_product is not None:
+                check(math.isfinite(float(per_product)) and abs(float(per_product) - med / 4) <= 0.000626,
+                      'per-product time contradicts median')  # Both fields are rounded to .001 ms.
+            timing[key] = (med, minimum, sd, src)
+    check(header is not None and set(thresholds) == {'default', 'max'} and
+          set(timing) == {(threshold, variant) for threshold in thresholds for variant in variants},
+          'incomplete principal header/threshold/variant timings')
+    for threshold in ('default', 'max'):
+        for variant in variants:
+            med, minimum, sd, src = timing[threshold, variant]
+            result['rows'].append((threshold, variant, med, minimum, sd,
+                                   [src, header, thresholds[threshold]]))
+    return result
+
+
 def table_gpu(s, inp):
     t = Table('gpu_vs_cpu_ops', 'GPU vs CPU vs HEonGPU, n16_train (R-47-2, criterion medians, ms)',
               ['Operation', 'Level', 'hekit GPU', 'CPU 1 thr', 'CPU 12 thr', 'GPU speed-up (1 / 12 thr)',
@@ -642,7 +798,32 @@ def table_gpu(s, inp):
                          ('matvec_enc x4, 4 streams (untuned R-47-2)', 'matvec_enc_batch4_L5')):
         g, gs = med('gpu_' + bench)
         t.row([label, 5, Cell(f(g, 3), [gs]), '—', '—', '—', 'none published', '—'])
-    t.row(['matvec_enc x4, re-measured after the fix round', 5, 'pending (R-47-3)', '—', '—', '—', '—', '—'])
+    batch = r47_batch_input(s)
+    if batch is None:
+        t.row(['matvec_enc x4, re-measured after the fix round', 5, 'pending (R-47-3)', '—', '—', '—', '—', '—'])
+    else:
+        t.title = 'GPU vs CPU vs HEonGPU, n16_train (historical R-47-2 Criterion; R-47-3 example medians, ms)'
+        if not batch['rows']:
+            t.row(['matvec_enc x4 (R-47-3)', 5,
+                   Cell(f'failed/unmeasured (child exit {batch["rc"]}; watchdog {str(batch["watchdog"]).lower()})',
+                        batch['sources']), '—', '—', '—', 'none published', '—'])
+        for threshold, variant, median, minimum, sd, sources in batch['rows']:
+            label = f'matvec_enc {variant} (R-47-3, pool {threshold})'
+            t.row([Cell(label, sources), Cell('5', [sources[1]]),
+                   Cell(f(median, 3), sources + batch['sources']),
+                   '—', '—', '—', 'none published', '—'])
+            t.note(f'{label}: min {minimum:.3f} ms; SD {sd:.3f} ms; 30 within-run repetitions.', sources)
+        if batch['rows']:
+            t.note('R-47-3 uses example medians, minima and population SD over 30 timed repetitions '
+                   'after 3 warmups, with device synchronization inside each timing; not 30 independent seeds. '
+                   'Successful child completion includes the producer assertions of batch/sequential residue equality. '
+                   'CPU setup seconds are not CPU matvec latency; these are not end-to-end training '
+                   'and not GPU peak measurements. R-47-2 Criterion rows remain historical; no unlike-run '
+                   'CPU speedups or HEonGPU ratios are computed for R-47-3.', batch['sources'])
+        t.note('R-47-3 original terminal provenance is checked here; scientific acceptance remains a separate review. '
+               'Input capture-time SHA256 (not historical execution proof): ' +
+               '; '.join(f'{path} = {digest}' for path, digest in batch['hashes']),
+               [(path, 'raw bytes (SHA256 at table generation)') for path, _ in batch['hashes']])
     for i, e in heon.values():
         t.note(f'HEonGPU {e["operation"]}: {e["source"]}. Caveat: {e["caveat"]}',
                [(LITERATURE, f'heongpu_rtx4090[{i}].source'), (LITERATURE, f'heongpu_rtx4090[{i}].caveat')])

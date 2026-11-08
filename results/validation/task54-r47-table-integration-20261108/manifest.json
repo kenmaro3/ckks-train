@@ -1,0 +1,28 @@
+{
+  "kind": "source_review_and_synthetic_validation_not_measurement",
+  "base": "1a59ecea3abef192088c765520496b02355f6aaf",
+  "source_sha256": {
+    "tools/paper_tables.py": "29223799b8f2c975e08cf97ee20e30438147866f2d8a6bb3c5b21398268088df",
+    "tools/test_paper_tables.py": "ac1fb95cf891c37d41061d68799f39ab0b37ac759b8386b2d7048fd5fb373657",
+    "docs/post-full-queue.md": "97779f687207bcad5701ec9258c4ed541eb76ab52c500de9b448a20dd05faa69"
+  },
+  "original_evidence": {
+    "task-54-r47-table-integration-brief.md": {
+      "bytes": 7046,
+      "sha256": "bc450b5fd0d2bfd71a1b7a2643fb1d91a3134dc36c6dd90da7253c0157c4a9b8",
+      "archive": "task-54-r47-table-integration-brief.md.gz"
+    },
+    "task-54-r47-table-integration-report.md": {
+      "bytes": 107192,
+      "sha256": "28a13ef440785be99fdc31d6dc96f8a423881531c4ab4d9790a0d6b7ebd0f827",
+      "archive": "task-54-r47-table-integration-report.md.gz"
+    },
+    "task-54-r47-table-integration-review.md": {
+      "bytes": 13727,
+      "sha256": "feb3792d3ab83a478f5835102a9ec54a02978c6f21ac4c7bafde5e4c90f675c4",
+      "archive": "task-54-r47-table-integration-review.md.gz"
+    }
+  },
+  "diff_sha256": "67c25b098e409070c10a20eddebeed7aaf7aceda1111b8f34b9fab5267a206ec",
+  "actual_r47_inputs_present": false
+}

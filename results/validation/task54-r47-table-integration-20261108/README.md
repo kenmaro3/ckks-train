@@ -1,0 +1,7 @@
+# R47 table intake: bounded Task54 integration
+
+The table generator now has a finite parser for the future R-47-3-example originals. It requires the canonical five-file archive and coherent pinned source, invocation and terminal provenance before using six timings (two pool thresholds, each with sequential and two/four-stream batches). A failed child or watchdog supplies no success timings; absent inputs retain pending rows. Minimum, population SD, within-run repetitions and exact source lines remain attributed. This adds no cross-run CPU ratio or GPU training claim.
+
+The actual R47 archive was absent during validation. All populated examples were synthetic temporary fixtures. Existing generated tables remain byte-identical. The author and independent reviewer each passed 23 focused tests and both `paper_tables.py --check` and `tables.py --check`; the reviewer also passed six additional synthetic probes. The full Task54, actual measurements and scientific gates remain incomplete.
+
+`manifest.json` pins the exact reviewed source and original evidence bytes. The three gzip reports are lossless originals, including test-first failures and final command transcripts; `reviewed.diff.gz` is the exact reviewed three-file diff against the recorded base. This archive is implementation/validation evidence, not a binary research-result JSON. No PDF layout review was required for the unchanged current tables; future populated tables still need final layout inspection.

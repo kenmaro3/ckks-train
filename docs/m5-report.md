@@ -954,3 +954,7 @@ offline・locked package検証ビルドがMacで合格。実際のarchive内容�
 ## 2026-11-08 15:23 JST: FULL-2の定期確認
 
 読み取り専用の実観測は2026-11-08T15:23:58.898424+09:00。FULL-2はupdate889（0始まり）＝**890/1000更新**、ログ内elapsed129733s。直近6更新は各1415 KS・4 bootstrapでprediction一致。own chainと待機queueは期待start ticksと同じidentityで生存し、最終JSONはまだなく、queueはowner.jsonのみ。[一次記録](../results/quadruped/raw/R-41-FULL2-OBS-20261108-1523/README.md)。本番結果の確定、RQ1精度判定、R47/R48/R52の開始は未確認。次の確認は2026-11-08T16:25:00+09:00以降のR-41-FULL2-OBS-20261108-1625として準備済み・未実行。ジョブ再起動・build・追加学習・queue変更・terminal collector実行は行っていない。
+
+## 2026-11-08: R47再計測ログからの表生成を準備
+
+Task54のうち、R-47-3-exampleの元ログ・runner・queue終端記録から6行を生成する部分を独立レビューした。23件のPythonテスト、両表生成入口の整合性検査、レビュー側の追加6件の合成検証が合格。実測ファイルは未回収であり、現在の生成表は変更されていない。途中の計時後に失敗したジョブは成功値として採用しない。[実装・検証記録](../results/validation/task54-r47-table-integration-20261108/README.md)。これは表の入力対応の完了であり、R47実測・M4ゲート・Task54全体の完了ではない。

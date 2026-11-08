@@ -2,6 +2,7 @@
 import contextlib
 import copy
 import io
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -15,15 +16,15 @@ from test_rq1_summary import synthetic_full
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def archived_overlay(root):
+def archived_overlay(root, source=ROOT):
     """Link read-only archived inputs; new fixture/output paths stay in the temp tree."""
-    (root / 'docs').symlink_to(ROOT / 'docs', target_is_directory=True)
+    (root / 'docs').symlink_to(source / 'docs', target_is_directory=True)
     for base in ('results', 'results/quadruped', 'results/quadruped/raw'):
         dest = root / base
         dest.mkdir(parents=True, exist_ok=True)
-        for p in (ROOT / base).iterdir():
+        for p in (source / base).iterdir():
             q = dest / p.name
-            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2',
+            if (q.exists() or p.name in ('run_all', 'tables', 'R-41-FULL-1', 'R-41-FULL-2', 'R-47-3',
                                          'ablation_cuda.json', 'ablation_cpu_l7.json')):
                 continue
             if p.is_file() or (p.is_dir() and base.endswith('/raw')) or p.name == 'reference':
@@ -45,6 +46,48 @@ def put_full(root, batch=64, mutate=None):
 
 def rows(table):
     return [[c.text for c in item] for kind, item in table.rows if kind == 'row']
+
+
+R47_DIR = 'results/quadruped/raw/R-47-3/R-47-3-example'
+R47_PIN = 'bd5cc493db166a282d26b05b1e069f2a0ee629ef'
+R47_WD = '/home/kmihara/hekit-post-full-clones/hekit-post-full-r47'
+R47_COMMAND = 'target/release/examples/batch_streams'
+R47_LOG = """batch_streams: n16_train, d = 64, level 5, 4 products, 30 reps; CPU setup 1.2 s
+pool release threshold: default (268435456 bytes)
+[default] sequential x4, 1 stream:   median   40.000 ms  min   38.000  sd  1.000  (10.000 ms per product)
+[default] batch x4, 2 streams:    median   30.000 ms  min   28.000  sd  2.000
+[default] batch x4, 4 streams:    median   20.000 ms  min   18.000  sd  3.000
+pool release threshold: max (18446744073709551615 bytes)
+[max] sequential x4, 1 stream:   median   32.000 ms  min   30.000  sd  0.500  (8.000 ms per product)
+[max] batch x4, 2 streams:    median   24.000 ms  min   22.000  sd  1.500
+[max] batch x4, 4 streams:    median   16.000 ms  min   14.000  sd  2.500
+"""
+
+
+def put_r47(root, rc=0, watchdog=False, log=R47_LOG):
+    """Tiny SYNTHETIC original-format runner/queue records; never measurements."""
+    dest = root / R47_DIR
+    dest.mkdir(parents=True, exist_ok=True)
+    meta = {
+        'job': 'R-47-3-example', 'workdir': R47_WD, 'command': R47_COMMAND,
+        'hekit_synced_commit': ['commit bd5cc49', 'full ' + R47_PIN, 'dirty_files 0'],
+        'threads_cap': 12, 'env_thread_caps': {name: '12' for name in
+            ('OMP_NUM_THREADS', 'RAYON_NUM_THREADS', 'CARGO_BUILD_JOBS')},
+        'nice': 10, 'gpu_job': True, 'start': '2026-11-08T10:00:00+09:00',
+        'end': '2026-11-08T10:00:10+09:00', 'wall_s_runner': 10.1,
+        'exit_status': rc, 'watchdog_killed': watchdog,
+    }
+    state = {'job': 'R-47-3-example', 'rc': rc, 'wrapper_rc': 0,
+             'status': 'failed: RSS watchdog' if watchdog else 'failed' if rc else 'done',
+             'skip': False, 'skip_lines': [], 'command': [R47_COMMAND],
+             'workdir': R47_WD, 'log': '/home/kmihara/hekit-runs/logs/R-47-3-example.log',
+             'evidence_lines': []}
+    originals = {'program.log': log, 'cmd.txt': R47_COMMAND + ' \n',
+                 'meta.json': json.dumps(meta), 'state.json': json.dumps(state),
+                 'post.txt': 'date: 2026-11-08T10:00:10+09:00\nJOB_DONE rc=' + str(rc) + '\n'}
+    for name, text in originals.items():
+        (dest / name).write_text(text)
+    return dest
 
 
 class PaperTablesTests(unittest.TestCase):
@@ -223,6 +266,180 @@ class PaperTablesTests(unittest.TestCase):
                     (self.root / 'results/quadruped' / name).write_text(json.dumps(doc))
                 with self.assertRaises(tables.TableError):
                     self.build(tables.table_ablation)
+
+
+    def test_r47_absent_keeps_existing_generated_bytes(self):
+        # Break caught: changing any historical table when canonical R47 originals are absent.
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(tables.main(['--root', str(self.root)]), 0)
+        # Frozen bytes at BASE 1a59ecea; independent of a future accepted R47 archive
+        # and its regenerated tables. The real-repository --check covers every output.
+        expected = {
+            'paper/tables/gpu_vs_cpu_ops.tex': 'c9104367559251ee43275272c219c2e632b59225c1d56eda7170422afe3043cf',
+            'results/tables/gpu_vs_cpu_ops.md': 'af5f19dd3f4cc993b43643a49c3bcbc0600854ddee638adfa402f4fffd6ff242',
+        }
+        for rel, digest in expected.items():
+            self.assertEqual(hashlib.sha256((self.root / rel).read_bytes()).hexdigest(), digest)
+        gpu_sources = ''.join(line for line in
+            (self.root / 'results/tables/sources.tsv').read_text().splitlines(keepends=True)
+            if line.startswith('gpu_vs_cpu_ops\t'))
+        self.assertEqual(hashlib.sha256(gpu_sources.encode()).hexdigest(),
+                         '4b72fd7a51b2d88682c675aff653c736a8dac33418de08079f4d1cafb5207c80')
+
+    def test_r47_success_six_rows_keep_statistics_and_actual_line_sources(self):
+        # Break caught: leaving a pending row, mixing thresholds, losing min/SD or using old ratios.
+        dest = put_r47(self.root)
+        before = {p.name: p.read_bytes() for p in dest.iterdir()}
+        t = self.build(tables.table_gpu)
+        r47 = [r for r in rows(t) if 'R-47-3' in r[0]]
+        self.assertEqual(len(r47), 6)
+        self.assertEqual([r[2] for r in r47], ['40.000', '30.000', '20.000', '32.000', '24.000', '16.000'])
+        self.assertTrue(all(r[3:] == ['—', '—', '—', 'none published', '—'] for r in r47))
+        self.assertIn('default', r47[0][0])
+        self.assertIn('max', r47[3][0])
+        self.assertIn('Criterion', t.title)
+        self.assertIn('example', t.title)
+        md = tables.render_md(t, 'synthetic/')
+        self.assertNotIn('pending (R-47-3)', md)
+        self.assertIn('min 38.000 ms; SD 1.000 ms; 30 within-run repetitions', md)
+        self.assertIn('not 30 independent seeds', md)
+        self.assertIn('not end-to-end training', md)
+        self.assertIn('not GPU peak', md)
+        sources = '\n'.join(tables.source_lines(t))
+        for n in (3, 4, 5, 7, 8, 9):
+            self.assertIn(R47_DIR + '/program.log\tline ' + str(n), sources)
+        self.assertIn(R47_DIR + '/meta.json\texit_status', sources)
+        self.assertIn(R47_DIR + '/post.txt\tline 2', sources)
+        self.assertIn('capture-time SHA256', md)
+        self.assertIn('not historical execution proof', md)
+        for name, raw in before.items():
+            self.assertIn(hashlib.sha256(raw).hexdigest(), md)
+        new_rows = [item for kind, item in t.rows if kind == 'row' and 'R-47-3' in item[0].text]
+        self.assertIn((R47_DIR + '/program.log', 'line 1'), new_rows[0][1].sources)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in dest.iterdir()})
+
+    def test_r47_failure_discards_partial_success_timings(self):
+        # Break caught: accepting timing lines printed before a later assertion/watchdog failure.
+        for rc, watchdog in ((101, False), (143, True), (0, True), (3, False)):
+            with self.subTest(rc=rc, watchdog=watchdog):
+                put_r47(self.root, rc, watchdog, '\n'.join(R47_LOG.splitlines()[:4]) + '\npanic: synthetic failure\n')
+                t = self.build(tables.table_gpu)
+                new = [r for r in rows(t) if 'R-47-3' in r[0]]
+                self.assertEqual(len(new), 1)
+                self.assertIn('failed/unmeasured', new[0][2])
+                self.assertNotIn('40.000', tables.render_md(t, 'synthetic/'))
+                self.assertNotIn('Memory SKIP', tables.render_md(t, 'synthetic/'))
+                self.assertIn(R47_DIR + '/meta.json', '\n'.join(tables.source_lines(t)))
+
+    def test_r47_rejects_partial_originals_and_alias_only_is_pending(self):
+        # Break caught: silently selecting an alias or historical data for a partial canonical job.
+        alias = self.root / 'results/quadruped/batch_streams_r47_3.log'
+        # Overlay may link a future alias; remove the temp link before fixture writes.
+        if alias.is_symlink():
+            alias.unlink()
+        alias.write_text(R47_LOG)
+        self.assertTrue(any('pending (R-47-3)' in r for r in rows(self.build(tables.table_gpu))))
+        dest = put_r47(self.root)
+        for name in ('program.log', 'meta.json', 'post.txt', 'cmd.txt', 'state.json'):
+            with self.subTest(name=name):
+                original = (dest / name).read_bytes()
+                (dest / name).unlink()
+                with self.assertRaises(tables.TableError):
+                    self.build(tables.table_gpu)
+                (dest / name).write_bytes(original)
+
+    def test_r47_rejects_wrong_identity_or_inconsistent_terminal_provenance(self):
+        # Break caught: accepting another pin/job/command or untrustworthy terminal records.
+        mutations = [
+            ('meta.json', 'job', 'R-47-3-nsys'),
+            ('meta.json', 'hekit_synced_commit', ['commit bd5cc49', 'full ' + 'a'*40, 'dirty_files 0']),
+            ('meta.json', 'hekit_synced_commit', ['commit bd5cc49', 'full ' + R47_PIN, 'dirty_files 1']),
+            ('meta.json', 'hekit_synced_commit', ['commit bd5cc49', 'full ' + R47_PIN, 'dirty_files 0', 'dirty_files 1']),
+            ('meta.json', 'workdir', '/tmp/other'), ('meta.json', 'command', 'nsys ' + R47_COMMAND),
+            ('meta.json', 'threads_cap', 1), ('meta.json', 'nice', 0), ('meta.json', 'gpu_job', False),
+            ('meta.json', 'env_thread_caps', {}), ('meta.json', 'start', '2026-11-08T10:00:00'),
+            ('meta.json', 'end', '2026-11-08T09:59:00+09:00'),
+            ('meta.json', 'wall_s_runner', 1000), ('meta.json', 'watchdog_killed', 'false'),
+            ('meta.json', 'exit_status', 1), ('state.json', 'rc', 1),
+            ('state.json', 'status', 'failed'), ('state.json', 'command', ['other']),
+            ('state.json', 'workdir', '/tmp/other'), ('state.json', 'job', 'R-47-3-nsys'),
+            ('state.json', 'wrapper_rc', '0'), ('state.json', 'skip', True),
+        ]
+        for name, key, value in mutations:
+            with self.subTest(name=name, key=key, value=value):
+                dest = put_r47(self.root)
+                doc = json.loads((dest / name).read_text())
+                doc[key] = value
+                (dest / name).write_text(json.dumps(doc))
+                with self.assertRaises(tables.TableError):
+                    self.build(tables.table_gpu)
+        for name, text in [('cmd.txt', 'nsys ' + R47_COMMAND), ('post.txt', 'JOB_DONE rc=1\n'),
+                           ('post.txt', 'JOB_DONE rc=0\nJOB_DONE rc=0\n'),
+                           ('meta.json', '{'), ('state.json', '{}')]:
+            with self.subTest(name=name, text=text):
+                dest = put_r47(self.root)
+                (dest / name).write_text(text)
+                with self.assertRaises(tables.TableError):
+                    self.build(tables.table_gpu)
+
+    def test_r47_success_rejects_wrong_incomplete_duplicate_or_invalid_timings(self):
+        # Break caught: plausible metrics from malformed logs or the separate five-rep profile.
+        invalid = [
+            R47_LOG.replace('30 reps', '5 reps'), R47_LOG.replace('d = 64', 'd = 32'),
+            R47_LOG + R47_LOG.splitlines()[0] + '\n',
+            R47_LOG + R47_LOG.splitlines()[3] + '\n',
+            R47_LOG.replace(R47_LOG.splitlines()[4] + '\n', ''),
+            R47_LOG.replace('268435456 bytes', '0 bytes'),
+            R47_LOG.replace('[max] batch x4, 4', '[max] batch x4, 3'),
+            R47_LOG.replace('30.000 ms', 'nan ms'),
+            R47_LOG.replace('30.000 ms', 'inf ms'),
+            R47_LOG.replace('30.000 ms', '-30.000 ms'),
+            R47_LOG.replace('30.000 ms', '0.000 ms'),
+            R47_LOG.replace('min   28.000', 'min   38.000'),
+            R47_LOG.replace('sd  2.000', 'sd -2.000'),
+            R47_LOG.replace('(10.000 ms per product)', '(11.000 ms per product)'),
+            R47_LOG + 'SKIP: synthetic capacity\n',
+            R47_LOG + '[other] batch x4, 4 streams: median 1.000 ms min 1.000 sd 0.000\n',
+            R47_LOG + 'WATCHDOG: tree RSS 100 kB > 90 kB, killing own job tree\n',
+        ]
+        for case, log in enumerate(invalid):
+            with self.subTest(case=case):
+                put_r47(self.root, log=log)
+                with self.assertRaises(tables.TableError):
+                    self.build(tables.table_gpu)
+
+    def test_r47_malformed_input_writes_no_generated_files_and_quick_ignores_it(self):
+        # Break caught: a late R47 parse failure leaving plausible partial paper output.
+        dest = put_r47(self.root, log=R47_LOG.replace('30 reps', '5 reps'))
+        with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(tables.main(['--root', str(self.root)]), 2)
+            self.assertFalse((self.root / 'paper').exists())
+            self.assertEqual(tables.main(['--root', str(self.root), '--from-run-all', 'quick']), 0)
+        self.assertTrue(dest.is_dir())
+
+    def test_r47_compatibility_entrypoint_renders_same_success_table(self):
+        # Break caught: exposing the R47 data only through one CLI, or dropping it in full mode.
+        put_r47(self.root)
+        for args in ([], ['--from-run-all', 'full']):
+            p = subprocess.run([sys.executable, str(ROOT / 'tools/tables.py'), '--root', str(self.root),
+                                '--sources', 'gpu_vs_cpu_ops', *args], capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn(R47_DIR + '/program.log\tline 9', p.stdout)
+
+    def test_r47_overlay_excludes_future_archives_from_fixture_writes(self):
+        # Break caught: future actual R47 archive symlinked into a fixture then overwritten.
+        with tempfile.TemporaryDirectory() as archived, tempfile.TemporaryDirectory() as fixture:
+            archived = Path(archived)
+            fixture = Path(fixture)
+            for directory in ('docs', 'results/quadruped/raw/R-47-3'):
+                (archived / directory).mkdir(parents=True, exist_ok=True)
+            sentinel = archived / 'results/quadruped/raw/R-47-3/original.log'
+            sentinel.write_text('SYNTHETIC original')
+            archived_overlay(fixture, source=archived)
+            dest = put_r47(fixture)
+            self.assertFalse((fixture / 'results/quadruped/raw/R-47-3').is_symlink())
+            self.assertNotEqual(dest.resolve(), archived / R47_DIR)
+            self.assertEqual(sentinel.read_text(), 'SYNTHETIC original')
 
 
 if __name__ == '__main__':
