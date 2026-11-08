@@ -1,0 +1,25 @@
+# Independent public-state documentation/evidence review
+
+**SPEC PASS. QUALITY PASS. No Important/Critical findings.** This is a bounded review of the recorded publication and its documentation, not another distribution or library/supervisor implementation review.
+
+## Reviewed scope
+
+The current six-file diff exactly matches `research-preview-public-state-docs.diff`: `README.md`, `docs/handover.md`, `docs/publication-schedule.md`, `docs/release.md`, `docs/research-preview.md`, and `paper/README.md`. Also reviewed the new `results/validation/research-preview-public-release-6fba46c/` evidence archive and confirmed the previously reviewed `research-preview-public-ci-684d7fb/` checksum set still matches.
+
+## Verified facts
+
+- Raw anonymous-release JSON identifies existing release **437943352**, tag **v1.0.0-preview.1**, `draft=false`, `prerelease=true`, source **6fba46c38f1cdb5be88b9bf1eeecab0f4566b534**, and publication at **2026-11-08T01:42:51Z / 10:42:51 JST**. Raw anonymous-tag JSON resolves directly to that same commit. The release and PDF links in the changed documentation match these records.
+- The recorded publication command preserves prerelease status and sets `--draft=false --latest=false`; exit is **0** at 01:42:51.417304 UTC. The earlier decision at 01:42:41.979573 UTC and upload verification at 01:42:07.565415 UTC precede publication. The later anonymous verification at 01:43:20.957495 UTC records release/PDF HTTP 200 and downloaded PDF hash/length equality.
+- All **eight** public API asset names, sizes and digests independently match the previously reviewed local bundle. PDF: **526,897 bytes**, SHA256 `15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50`. Source archive: **56,389,315 bytes**, SHA256 `51a73fd728f80158b790a9fb0f04f60d53ccd77fab0ea4b24bb6346fe3d3ea0a`. This review used the retained anonymous-access record and local bytes; it did not repeat a network download.
+- Exact-source CI **42433577945** identifies the same 6fba46c SHA, `completed/success`, and all **six** jobs completed/success. The run's recorded update at 01:39:44 UTC precedes the publication decision. Independent parsing of `test/8_Run cargo test --workspace.txt` in the raw ZIP reproduces **75 target summaries, 1,028 passed / 0 failed / 47 ignored**. The ZIP digest and every captured member length/hash match; capture totals agree. The earlier 684d7fb run is not substituted for this candidate's gate.
+- Every entry in the new evidence archive's `SHA256SUMS` matches. Archived distribution review, ruling, integrity, paper-input mapping, initial packaging failure, reproduction command/log/status files, asset manifest and checksums are byte-identical to the already reviewed originals. In particular, preparation-time CI-pending records remain historical; the later exact-source success closes that explicitly required gate without rewriting them. The 5,316-file distribution and unchanged PDF/ZIP were not rebuilt or redundantly re-reviewed.
+
+## Documentation assessment
+
+The six updates accurately distinguish public source/PDF/arXiv-preparation ZIP from an actual arXiv submission or arXiv server build. Stable v1.0 and original research-plan completion remain unclaimed. FULL-2, same-security/full-setting CPU comparisons, GPU evidence and uncommitted Task54 work retain their stated boundaries. Author and separate manuscript/software licensing remain consistent with the reviewed distribution.
+
+The final handover amendment now says the Step2 fixes and specification/quality reviews are complete while source adoption and Linux execution remain pending. Read the delivered FIX2 quality report and independently verified its exact pin: `task-54-d7-cpu-supervisor-fix2-quality-review.md`, **11,864 bytes**, SHA256 `b0fdc9f3cb14e86074cbf7c695954ad9aef6b7ca33dd20df6372f3d755733ff3`. It reports scoped QUALITY PASS, Q01/private-descriptor inheritance and Q02/control-EOF handling addressed, with the earlier F01–F03 corrections retained and native execution unclaimed. The retained FIX1 specification-review PASS supports the complementary scope. The updated handover accurately summarizes these reports without claiming this publication review independently re-reviewed supervisor source, adopted the WIP, or ran Linux probes. The regenerated six-file diff was rechecked against current documentation and matches exactly.
+
+Current-state prefixes and dated publication additions supersede private/draft descriptions while preserving those historical observations. Mac and Linux counts retain their separate source identities; ignored cases remain unexecuted. Reproduction is correctly described as regeneration from archived results rather than new experiments. No claim extends this release's CI to later source changes or ongoing Step2 WIP.
+
+No network, build/test rerun, source/asset edit, Git mutation, publication action, or subagent was used. Only this report was written. Root retains responsibility for the scoped documentation commit/push; this report records review of an already completed external action.

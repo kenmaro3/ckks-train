@@ -1,0 +1,7 @@
+{
+  "session": 24763,
+  "terminal_chunk": "604f3d",
+  "exit_code": 1,
+  "failure": "Top-level tar directory name omits trailing slash; prefix assertion ran before directory skip. Archive generated but verification not completed. No release changed.",
+  "resolution": "Preserve existing archive and resume read-only inventory verification, skipping directory records before file prefix assertion."
+}

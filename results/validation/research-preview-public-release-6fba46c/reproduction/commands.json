@@ -1,0 +1,50 @@
+[
+  {
+    "label": "tables",
+    "argv": [
+      "nice",
+      "-n",
+      "10",
+      "bash",
+      "scripts/run_all.sh",
+      "--tables-only"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+    "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+    "start_utc": "2026-11-08T01:35:52.037876+00:00",
+    "exit_code": 0,
+    "elapsed_seconds": 0.14694458298617974
+  },
+  {
+    "label": "table-check",
+    "argv": [
+      "nice",
+      "-n",
+      "10",
+      "python3",
+      "tools/tables.py",
+      "--check"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+    "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+    "start_utc": "2026-11-08T01:35:52.185180+00:00",
+    "exit_code": 0,
+    "elapsed_seconds": 0.10705512500135228
+  },
+  {
+    "label": "figure-check",
+    "argv": [
+      "nice",
+      "-n",
+      "10",
+      "python3",
+      "tools/figs.py",
+      "--check"
+    ],
+    "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-candidate",
+    "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+    "start_utc": "2026-11-08T01:35:52.292767+00:00",
+    "exit_code": 0,
+    "elapsed_seconds": 0.074637999990955
+  }
+]

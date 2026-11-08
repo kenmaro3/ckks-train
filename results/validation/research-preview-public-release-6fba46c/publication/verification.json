@@ -1,0 +1,20 @@
+{
+  "kind": "public_release_verification_not_research_completion",
+  "verified_utc": "2026-11-08T01:43:20.957495+00:00",
+  "release_url": "https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1",
+  "release_id": 437943352,
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "tag": "v1.0.0-preview.1",
+  "published_at": "2026-11-08T01:42:51Z",
+  "draft": false,
+  "prerelease": true,
+  "anonymous_release_http_status": 200,
+  "tag_commit_matches": true,
+  "all8asset_api_digests_match": true,
+  "anonymous_pdf_http_status": 200,
+  "pdf_url": "https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf",
+  "pdf_bytes": 526897,
+  "pdf_sha256": "15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50",
+  "arxiv_submitted": false,
+  "stable_v1_released": false
+}

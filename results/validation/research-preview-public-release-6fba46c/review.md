@@ -1,0 +1,28 @@
+# Independent preview distribution review — 6fba46c
+
+**Important/Critical findings: none. SPEC PASS. QUALITY PASS.** These verdicts approve the prepared distribution only, subject to the explicit pending publication gate below. They do not authorize treating an unfinished CI run as successful or qualify the full research plan.
+
+Reviewed the brief, ruling, review-package diff, preparation integrity/paper-input records, initial failure record, both packaging/verification scripts, table command records and raw outputs, all eight assets, proposed release notes, and the prior complete public-CI record. No builds, tests, network, Git mutations, publication, source changes, or subagents were used. Only this report was written.
+
+## Independent integrity checks
+
+- Exact source: `6fba46c38f1cdb5be88b9bf1eeecab0f4566b534`. Read every regular file in `ckks-train-6fba46c-source.tar.gz` without extraction and independently recomputed Git blob identity, SHA256, length and mode. All **5,316** files match the exact commit and `source-inventory.json`; the sets are identical, without duplicates or extra files. The archive contains no `.git` metadata. This establishes exclusion of uncommitted Task54 work without inspecting that WIP.
+- Archive: **56,389,315 bytes**, SHA256 `51a73fd728f80158b790a9fb0f04f60d53ccd77fab0ea4b24bb6346fe3d3ea0a`. All six manifest-listed asset lengths/hashes and all seven checksum entries match actual bytes. The directory contains exactly the intended eight assets, including the manifest and checksum file; no manifest self-hash is claimed.
+- Independently confirmed no changes from `0b2d17a` to the candidate under `crates/`, `scripts/`, `tools/`, `Cargo.toml`, `Cargo.lock` or `.github/`. The supplied change list contains documentation and retained evidence. The previous bundle's checksum-listed files also still match their original hashes.
+- The first packaging verification failure is honestly retained as exit 1: the tar root directory omits the trailing slash expected by the prefix assertion. The resumed verifier skips directories before checking file prefixes. Independent full-archive verification above passes; no first-attempt success is inferred.
+
+## Paper, attribution and evidence boundaries
+
+- All **18 repository manuscript inputs** in the 19-member arXiv ZIP match the candidate's Git blobs. The only source transformation is the documented `ArxivDraft` prefix in `main.tex`; `main.bbl` is separately identified as the retained generated bibliography. This includes the actual `paper/figs/` input, independently of the packaging script's broader preliminary input-delta check.
+- PDF, arXiv ZIP and paper-license asset are byte-identical to the previously verified bundle. The included PDF is also byte-identical to the isolated ZIP build's `build/main.pdf`, with **10 pages**. No new LaTeX execution or visual inspection is claimed by this review; the unchanged bytes preserve the prior build/render evidence.
+- PDF SHA256: `15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50`. ZIP SHA256: `c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8`. The paper-license asset matches `paper/LICENSE` at this commit. Confirmed single-author attribution and the software-MIT/manuscript-license distinction remain intact.
+- Exact-source table records identify this candidate, the isolated checkout and all three commands: `run_all.sh --tables-only`, `tables.py --check`, and `figs.py --check`. Each exited 0; raw outputs show seven tables and three figure artifacts, empty error streams, and an empty final status record. These support regeneration from archived results, not fresh experiments or full-matrix execution.
+- Proposed release notes and `PREVIEW.md` retain FULL-1's larger-batch/single-seed scope, pending FULL-2 accuracy, unresolved equal-security and full-setting baseline CPU timing, and unmeasured GPU training/ablations/bootstrap. They distinguish an interim research prerelease from stable v1.0, full-plan success and arXiv submission, and require Git checkout metadata for provenance-producing experiment commands.
+
+## Prior CI and pending exact-source publication gate
+
+Independently checked `results/validation/research-preview-public-ci-684d7fb/`: raw run and job API records identify `684d7fbffa69c9d5d3aa80a8070c5f82e5d84f1e`, run **42432442890**, completed/success and all **six** jobs successful. ZIP and recorded member hashes match. Parsing only `test/8_Run cargo test --workspace.txt` reproduces **75 target summaries, 1,028 passed / 0 failed / 47 ignored**. The focused-test logs are not added again to that aggregate. Ignored cases were unexecuted. The README/summary correctly preserve the earlier focused bundle's historical in-progress observation.
+
+**This prior success does not satisfy the gate for 6fba46c.** Run **42433577945** is pending for this review; no live status was queried or success inferred. Before modifying/publishing draft release **437943352**, root must retain and verify that this exact run identifies `6fba46c38f1cdb5be88b9bf1eeecab0f4566b534`, is completed/success, and has all six jobs completed/success. If pending or failed, publication remains blocked by the explicit ruling despite these preparation PASS verdicts. The current draft's `0b2d17a` identity must not be silently reinterpreted as the new candidate.
+
+This review makes no GPU-performance, native Step2, universal Linux-support, physical-fit, cryptographic-security, scientific-adoption, comprehensive history/license-audit, or publication-completion claim. The previously issued bounded handover PASS remains unchanged.

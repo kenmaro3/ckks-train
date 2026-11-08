@@ -1,0 +1,47 @@
+{
+  "kind": "draft_distribution_verification_not_publication",
+  "observed_utc": "2026-11-08T01:42:07.565415+00:00",
+  "release_id": 437943352,
+  "tag": "v1.0.0-preview.1",
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "draft": true,
+  "prerelease": true,
+  "assets": {
+    "source-inventory.json": {
+      "size": 1556366,
+      "digest": "sha256:b0ad68f47b5d6154cae4329680d75dd95681bd25f997012247d25bd8eb67317a"
+    },
+    "ckks-train-6fba46c-source.tar.gz": {
+      "size": 56389315,
+      "digest": "sha256:51a73fd728f80158b790a9fb0f04f60d53ccd77fab0ea4b24bb6346fe3d3ea0a"
+    },
+    "PAPER_LICENSE.txt": {
+      "size": 1053,
+      "digest": "sha256:36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e"
+    },
+    "ckks-train-paper-preview.pdf": {
+      "size": 526897,
+      "digest": "sha256:15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50"
+    },
+    "PREVIEW.md": {
+      "size": 1243,
+      "digest": "sha256:f89b82c6e645f796aa5ae80d91caf143b3911cb5ff0a59f117c9514f1af97350"
+    },
+    "manifest.json": {
+      "size": 1712,
+      "digest": "sha256:c4b4326f96fd1317a23b76d7a38fd84406b9038e099579553da0bb88b9bbd243"
+    },
+    "ckks-train-arxiv-source-preview.zip": {
+      "size": 37482,
+      "digest": "sha256:c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8"
+    },
+    "SHA256SUMS": {
+      "size": 625,
+      "digest": "sha256:c33166f2b026489c74a5c410c939201707bf01f47751150c2b5d47970ea55817"
+    }
+  },
+  "all_remote_sizes_and_digests_match": true,
+  "ci_run_id": 42433577945,
+  "independent_review_sha256": "eb938e8614fff197488d016d578cee64385d35b36d4287c042164158ef8a1a47",
+  "old_bundle_preserved_locally": true
+}

@@ -1,5 +1,12 @@
 # ckks-train interim paper draft
 
+The named 10-page [preview PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
+and [arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)
+were published on 2026-11-08 as `v1.0.0-preview.1`, source `6fba46c`.
+The sole author is Kentaro Mihara (Independent Researcher). This is the FULL-1
+interim paper; FULL-2 and later results remain pending. No arXiv submission or
+arXiv server build is claimed. The build notes below include earlier dated artifacts.
+
 Task56 owns `main.tex`, `sections/*.tex`, `refs.bib`, `figs/*`, and `tools/figs.py` plus its focused test. Task54 owns `tables/*` and `tools/paper_tables.py`; the paper consumes those outputs unchanged. This is a full English draft, not a submission-ready claim of research success. FULL-1 is completed partial full-setting evidence at B=64 with one initial-weight seed. FULL-2 remains the registered accuracy gate; full-setting ReBoot CPU timing, GPU training ablations, GPU bootstrap measurements and peak GPU memory remain unmeasured. The FULL-1 source/table update was rebuilt on 2026-11-07: anonymous and author-placeholder variants each have 10 pages. The reviewed anonymous output is `tools/latex/_ext/task56/full1-20261107/anonymous/main.pdf`; the placeholder format check is `tools/latex/_ext/task56/full1-20261107/authors/author-wrapper.pdf`. Anonymous pages 1–10 and the placeholder first page were visually inspected; both final logs have no overflow, undefined-reference/citation or missing-character errors. These checks do not close the remaining scientific gates.
 
 ## Numerical sources and figures

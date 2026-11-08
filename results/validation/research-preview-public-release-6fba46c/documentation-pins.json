@@ -1,0 +1,35 @@
+{
+  "purpose": "Reviewed publication-state documents, after release; not inputs of the fixed6f distribution",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 10509,
+      "sha256": "b9e1814c40ca1b8155c48e25f1d5c52dd2463e4035862f449048ac907a224625"
+    },
+    {
+      "path": "paper/README.md",
+      "bytes": 11039,
+      "sha256": "23c76e13b26271d54a110117686e99e6ca4274b08c50f6e1bbdcaed7bc93e597"
+    },
+    {
+      "path": "docs/handover.md",
+      "bytes": 202595,
+      "sha256": "6da8246fa3a212759743a4854eaba39f7ae64d96cef2b54ad2e28e096adc551b"
+    },
+    {
+      "path": "docs/release.md",
+      "bytes": 22375,
+      "sha256": "045a0c7ca19a6e7901507ba6e604b85061ed683ebb2c3a95283ad2b1599b4e61"
+    },
+    {
+      "path": "docs/research-preview.md",
+      "bytes": 9238,
+      "sha256": "639d0715a8800d84eee0c26b11fcd388faa451069128a00e4b06117550d5b2d7"
+    },
+    {
+      "path": "docs/publication-schedule.md",
+      "bytes": 7314,
+      "sha256": "756a183541583f7076aa168627268299e89420b770b371163b926e06d4916040"
+    }
+  ]
+}

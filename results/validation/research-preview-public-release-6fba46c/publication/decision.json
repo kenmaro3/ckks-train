@@ -1,0 +1,11 @@
+{
+  "action": "publish existing reviewed GitHub research prerelease",
+  "release_id": 437943352,
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "tag": "v1.0.0-preview.1",
+  "prerelease": true,
+  "make_latest": false,
+  "authorization": "User explicitly requested GitHub code/release/PDF public within2days; no stable-v1 or arXiv completion claim.",
+  "gates": "Exact-source CI completed/success all6jobs; independent SPEC/QUALITY PASS; all8uploadedasset digests/sizes match; existing tag absent.",
+  "observed_utc": "2026-11-08T01:42:41.979573+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "gh",
+    "release",
+    "edit",
+    "v1.0.0-preview.1",
+    "--repo",
+    "kenmaro3/ckks-train",
+    "--draft=false",
+    "--prerelease",
+    "--latest=false"
+  ],
+  "started_utc": "2026-11-08T01:42:49.640782+00:00"
+}

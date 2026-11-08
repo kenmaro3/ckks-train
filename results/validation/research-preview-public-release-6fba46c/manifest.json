@@ -1,0 +1,42 @@
+{
+  "status": "research prerelease; not stable v1.0 or completion of the research plan",
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "source_files": 5316,
+  "archive_git_content_mode_verification": true,
+  "ci_run_id": 42433577945,
+  "ci_url": "https://github.com/kenmaro3/ckks-train/actions/runs/42433577945",
+  "reproduction": "Exact-source clean checkout: run_all.sh --tables-only, tables.py --check and figs.py --check all exited0; no tracked changes. Archived evidence only.",
+  "paper": "18 repository manuscript inputs match this commit (main.tex adds ArxivDraft); generated main.bbl retained from locally built/rendered ZIP. PDF unchanged from that10-page build. No arXiv server build or submission.",
+  "files": [
+    {
+      "name": "PAPER_LICENSE.txt",
+      "bytes": 1053,
+      "sha256": "36bb066faf08ef4d7cb9a6ec7bb0f61265da32cc57a529d511fca65e329ad24e"
+    },
+    {
+      "name": "PREVIEW.md",
+      "bytes": 1243,
+      "sha256": "f89b82c6e645f796aa5ae80d91caf143b3911cb5ff0a59f117c9514f1af97350"
+    },
+    {
+      "name": "ckks-train-6fba46c-source.tar.gz",
+      "bytes": 56389315,
+      "sha256": "51a73fd728f80158b790a9fb0f04f60d53ccd77fab0ea4b24bb6346fe3d3ea0a"
+    },
+    {
+      "name": "ckks-train-arxiv-source-preview.zip",
+      "bytes": 37482,
+      "sha256": "c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8"
+    },
+    {
+      "name": "ckks-train-paper-preview.pdf",
+      "bytes": 526897,
+      "sha256": "15213f545e4553e7262f388dd57d8b296aef761b699205701840b0504503ca50"
+    },
+    {
+      "name": "source-inventory.json",
+      "bytes": 1556366,
+      "sha256": "b0ad68f47b5d6154cae4329680d75dd95681bd25f997012247d25bd8eb67317a"
+    }
+  ]
+}

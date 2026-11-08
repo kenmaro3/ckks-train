@@ -1,0 +1,12 @@
+{
+  "kind": "distribution_integrity_not_scientific_result",
+  "prepared_utc": "2026-11-08T01:35:05.542794+00:00",
+  "source_commit": "6fba46c38f1cdb5be88b9bf1eeecab0f4566b534",
+  "files": 5316,
+  "archive_bytes": 56389315,
+  "archive_sha256": "51a73fd728f80158b790a9fb0f04f60d53ccd77fab0ea4b24bb6346fe3d3ea0a",
+  "all_git_blobs_and_modes_match": true,
+  "manuscript_input_git_delta": "",
+  "ci_status": "pending; no inherited pass",
+  "prior_bundle_preserved": "tools/release/_ext/research-preview-bundle-0b2d17a"
+}

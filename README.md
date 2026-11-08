@@ -9,6 +9,8 @@ The workspace crates use the `ckks-train-*` names. Historical measurements retai
 `hekit-*` names they were produced with; see [docs/release.md](docs/release.md).
 
 The current artifact is a **research preview**, not a completed stable v1.0 release.
+[Download the 10-page paper PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
+or the [source and arXiv preparation ZIP](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1).
 [Preview evidence and remaining work](docs/research-preview.md) distinguish local
 validation, completed measurements and pending experiments.
 

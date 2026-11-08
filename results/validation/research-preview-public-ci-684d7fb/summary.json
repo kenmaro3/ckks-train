@@ -1,0 +1,22 @@
+{
+  "kind": "ci_validation_not_scientific_result",
+  "source_commit": "684d7fbffa69c9d5d3aa80a8070c5f82e5d84f1e",
+  "run_id": 42432442890,
+  "run_url": "https://github.com/kenmaro3/ckks-train/actions/runs/42432442890",
+  "conclusion": "success",
+  "jobs": {
+    "cuda-check": "success",
+    "test": "success",
+    "fmt": "success",
+    "clippy": "success",
+    "deny": "success",
+    "research-tools": "success"
+  },
+  "workspace_log_member": "test/8_Run cargo test --workspace.txt",
+  "workspace_log_sha256": "0960427a4162da31e71f52590e289ea7f92f0fb99510c2480e7e087fce2d7d18",
+  "target_summary_count": 75,
+  "passed": 1028,
+  "failed": 0,
+  "ignored": 47,
+  "scope": "Actual Linux CI at this commit; workspace command includes doctests. Ignored cases unexecuted. No GPU measurements, native16 supervisor execution, or full research completion."
+}

@@ -16,12 +16,10 @@ acceptance are controlled externally and are not a guaranteed deadline outcome.
 
 ## Critical path
 
-1. Candidate verification has progressed:00f4409 workspace tests and Clippy passed;
-   a reviewed doc-link fix passed strict rustdoc, andcf58897 passed exact formatting,
-   license and table/figure checks. The private draft now targets0b2d17a, whose later
-   code-path changes are only the documentation link and notice copies. Preserve these
-   source-specific scopes; current Linux CI has no executed checks. Keep supervisor
-   WIP out of the candidate unless complete and reviewed in time.
+1. Public preview `v1.0.0-preview.1` is now published from exact `6fba46c` with
+   source, PDF and arXiv preparation ZIP. Its own Linux CI42433577945 passed all
+   six jobs; independent distribution review and anonymous PDF/hash checks passed.
+   Keep source-specific evidence and supervisor WIP separate from this fixed release.
 2. By2026-11-09 09:00 JST assemble source/release notes, reproducible existing tables,
    PDF and validation summary. Initial90851d2 archive remains a failed qualification
    attempt, not the deliverable. The test-isolation correction has independent review.
@@ -98,3 +96,13 @@ a private draft on the public repository; the evidence cutoff, final manuscript
 update, public release assets and arXiv submission remain required. Existing
 committed manuscript TeX is public with the code. [Publication evidence](../results/validation/research-preview-publication-20261108/README.md)
 records the visibility check and the distinction from a stable/scientific release.
+
+## Preview publication completed — 2026-11-08 10:42 JST
+
+The [research prerelease](https://github.com/kenmaro3/ckks-train/releases/tag/v1.0.0-preview.1)
+and [paper PDF](https://github.com/kenmaro3/ckks-train/releases/download/v1.0.0-preview.1/ckks-train-paper-preview.pdf)
+are public ahead of the preview deadline. Exact source `6fba46c`, all six CI jobs
+successful, eight asset digests verified, and anonymous PDF download matched the
+reviewed local bytes. [Evidence](../results/validation/research-preview-public-release-6fba46c/README.md).
+The earlier draft/private observations above are historical. The evidence cutoff,
+final paper, arXiv submission and original research gates remain outstanding.
