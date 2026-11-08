@@ -94,6 +94,23 @@ class PaperTablesTests(unittest.TestCase):
         md = (self.root / 'results/tables/accuracy_vs_reboot.md').read_text()
         self.assertIn('not the gate (B ≠ 48)', md)
 
+    def test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate(self):
+        # Distinct synthetic error catches a copied/hardcoded historical value.
+        def error_fixture(doc):
+            doc['twin'].update(max_abs_diff=0.125, log2_max_abs_diff=-3.0,
+                               max_abs_w_diff_per_layer=[0.125, 0.0625],
+                               max_abs_b_diff_per_layer=[0.0, 0.0])
+        path = put_full(self.root, mutate=error_fixture)
+        table = self.build(tables.table_accuracy)
+        notes = [n for n in table.notes if 'final parameter error' in n.text]
+        self.assertEqual(len(notes), 1)  # Missing FULL-2 must not inherit FULL-1.
+        self.assertIn('FULL-1 final parameter error: 0.125', notes[0].text)
+        self.assertIn('not a per-bootstrap precision or accuracy gate', notes[0].text)
+        self.assertEqual(notes[0].sources,
+                         [(path.relative_to(self.root).as_posix(), 'twin.max_abs_diff')])
+        full1 = next(r for r in rows(table) if r[0].startswith('hekit encrypted, B = 64'))
+        self.assertEqual(full1[-1], 'not the gate (B ≠ 48)')
+
     def test_each_consumer_rejects_malformed_full(self):
         # Break caught: wall-clock accepting truncated/invalid FULL despite RQ1 validation.
         put_full(self.root, mutate=lambda d: d['training'].update(samples=1))

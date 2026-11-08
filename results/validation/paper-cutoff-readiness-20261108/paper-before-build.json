@@ -1,0 +1,92 @@
+[
+  {
+    "path": "paper/figs/rq1_ratios.tex",
+    "bytes": 2618,
+    "sha256": "92eb4b1b82fa2cfec2b016c862ebe510bdfeaf382f40fa2f777148478df341de"
+  },
+  {
+    "path": "paper/main.tex",
+    "bytes": 3846,
+    "sha256": "ccaf2e223bb55ecae6e9d011cf91d1d5a39b4c5f67d44ca07f56d63b1a5ed68e"
+  },
+  {
+    "path": "paper/refs.bib",
+    "bytes": 4854,
+    "sha256": "16fd704def307c0cd833735c55d650389e8e6bfc0b0e94fd9b87df215fda67f7"
+  },
+  {
+    "path": "paper/sections/appendix.tex",
+    "bytes": 6111,
+    "sha256": "6cd5c4f1d2c3b1b8e66fd5f215ed5fc4b17cfa86e13a8ec528f3dd1507675b57"
+  },
+  {
+    "path": "paper/sections/discussion.tex",
+    "bytes": 7011,
+    "sha256": "9654e8761c609e8a915aa1e4d94e7d41c11989e8b4f367da94ae82c690772681"
+  },
+  {
+    "path": "paper/sections/evaluation.tex",
+    "bytes": 10592,
+    "sha256": "e3e735afa94391127f07b86be352883505ccc269975869e97406e2762b98bae4"
+  },
+  {
+    "path": "paper/sections/gpu.tex",
+    "bytes": 2941,
+    "sha256": "578b315eb8f1960a4caa4dcf5fa718ce000f2da1a77158dedc99cf979adb5588"
+  },
+  {
+    "path": "paper/sections/introduction.tex",
+    "bytes": 3050,
+    "sha256": "0705dd6848677d0c3f33b9fddfb57ffb39aecbd776beba5d1a545bcde652824f"
+  },
+  {
+    "path": "paper/sections/noninteractive.tex",
+    "bytes": 5031,
+    "sha256": "ff680d5fbb65b6fb7bd3f4715593cd39b6c016fb8875651bee827848f5ff7d8f"
+  },
+  {
+    "path": "paper/sections/packing.tex",
+    "bytes": 5182,
+    "sha256": "51747a73c24cb897bd3ca631d9be13c4f4f62201e31cd0e5eb8f986f2b1be136"
+  },
+  {
+    "path": "paper/sections/preliminaries.tex",
+    "bytes": 3495,
+    "sha256": "3ac6b82f79f43f9bb13f38bf2f61c0d1c58461a193bd3c6b1a5443daade79c4f"
+  },
+  {
+    "path": "paper/tables/accuracy_vs_reboot.tex",
+    "bytes": 3502,
+    "sha256": "02c1b3694fde9fee2c3e7200a78d0d1f386b2cf5b1d0798e2b757dd7f8590a79"
+  },
+  {
+    "path": "paper/tables/gpu_vs_cpu_ops.tex",
+    "bytes": 3051,
+    "sha256": "c9104367559251ee43275272c219c2e632b59225c1d56eda7170422afe3043cf"
+  },
+  {
+    "path": "paper/tables/plain_datasets.tex",
+    "bytes": 1535,
+    "sha256": "1667a75790194a9dc0fef7b36af3fc6cc5aeda22ac87b395ef19d82d9db7a6fe"
+  },
+  {
+    "path": "paper/tables/rq1_ks.tex",
+    "bytes": 3127,
+    "sha256": "d34c3779aca556ad5e9e1254e4e36040c6d127c729d3dade41428f582a17372b"
+  },
+  {
+    "path": "paper/tables/rq3_ablation.tex",
+    "bytes": 4488,
+    "sha256": "de38d3727aecf170b18a3ce0ed4db28f5984bf6938934081236e53d7f6db7cba"
+  },
+  {
+    "path": "paper/tables/security.tex",
+    "bytes": 1361,
+    "sha256": "3b30d20da49c757d274b6b30501bb524ab448150301d0f153b3e2d60d31c019e"
+  },
+  {
+    "path": "paper/tables/wallclock_same_cpu.tex",
+    "bytes": 2099,
+    "sha256": "bfb3f1555da2829afd17fa1971b2d804a9150698e077b1ba29c6f17ab45e4ade"
+  }
+]

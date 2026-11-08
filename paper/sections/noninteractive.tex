@@ -25,7 +25,7 @@ Both SGD and Nesterov-style momentum are supported. Writing $h=\eta(1+\mu)G/n$ a
  W'&=W-h-\frac{\mu^2}{1+\mu}U.
  \label{eq:nag}
 \end{align}
-Constants are folded into exact-scale products already needed by the gradient path. A changing learning rate requires rescaling the stored velocity representation, and its lane shifts are charged. Biases use SGD; the faithful ReBoot configuration freezes their encrypted zero values while retaining the implementation's bias arithmetic. Weight decay is not implemented; the captured faithful setting uses zero decay.
+Constants are folded into exact-scale products already needed by the gradient path. A changing learning rate requires rescaling the stored velocity representation, and its lane shifts are charged. Biases use SGD; the faithful ReBoot configuration freezes their encrypted zero values while retaining the implementation's bias arithmetic. The encrypted trainer evaluated here omits weight decay; the captured faithful setting uses zero decay. The separate plaintext paper-setting reconstruction includes weight decay and is labeled separately in the evaluation.
 
 \paragraph{Loss.}
 A squared-error loss yields an affine output gradient; MSE normalization and ReBoot's sum reduction are matched through the learning-rate convention. The faithful configuration uses the released initialization, sample order, output padding, and schedule, not just the paper's nominal hyperparameter names. Softmax/cross-entropy approximation is optional in the plan and is not implemented or evaluated here. Block MLPs follow local classifier losses and stop gradients across blocks; they must not be described as an ordinary deeper back-propagation network.

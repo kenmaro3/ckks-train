@@ -25,4 +25,5 @@
 | ReBoot released code, paper setting, ReBoot's scheduler, epoch 50 | 60k samples, 50 epochs | 10 | 95.25 ± 0.08 (n = 10) | — | 94.61 | +0.64 | reference |
 | ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected) | 60k samples, 50 epochs | 10 | 95.46 ± 0.09 (n = 10) | — | 94.61 | +0.85 | reference |
 
+- FULL-1 final parameter error: 0.00682657 (maximum absolute difference across weights and biases against its same-batch plaintext twin at training end). This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.
 - R-M3-15: the ±0.5 pt gate compares hekit encrypted B = 48 (FULL-2) with ReBoot's released code at its full setting, seed 0. Subset rows are 1 epoch and are not a gate. The paper value and R-REB-3 are reported with this note only.

@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "python3",
+    "tools/figs.py",
+    "--check"
+  ],
+  "cwd": ".",
+  "exit_code": 0
+}

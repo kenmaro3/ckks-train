@@ -88,3 +88,31 @@ Local package: `tools/release/_ext/arxiv-source-preview-20261108/ckks-train-arxi
 The ZIP was read back, each member compared, and unpacked to `source/`. Building `main.tex` from that directory with the same project-local `latexmk -pdf -interaction=nonstopmode -halt-on-error -no-shell-escape` succeeded. The isolated PDF is `build/main.pdf` (10 pages), and its extracted text matches the directly built preprint. The final log has no overflow, missing-character or undefined-reference/citation warning. All ten rendered pages were visually reviewed, with the first page also inspected separately. This verifies the local TeX Live 2026/acmart 2.21 toolchain; the arXiv server toolchain has not yet been tested. The package is a preliminary artifact and must be regenerated after the evidence cutoff, not submitted as a claim of final measurements.
 
 The manuscript is covered by the separate [paper licensing notice](LICENSE). The software MIT license and data notices remain separate. The selected arXiv license will be recorded in submission metadata; this file does not assert that a submission exists.
+
+## Local content update, 2026-11-08 12:31 JST
+
+The latest local named preprint is
+`tools/latex/_ext/task56/cutoff-readiness-20261108/arxiv-wrapper.pdf`
+(10 pages, 528,922 bytes, SHA256
+`5b2f73b9bff3645574dc1084cb9d38e325ddbcc4da18004387d95203ddd09900`).
+It clarifies encrypted versus plaintext weight decay and the complete released
+4,800-example/ten-pass protocol, adds a generated FULL-1 final-parameter error
+note with field provenance, and replaces stale author-placeholder guidance.
+The diagnostic is not standalone bootstrap precision or a new accuracy gate.
+Raw measurements and all thresholds are unchanged.
+
+The table regression first failed for the absent diagnostic, then all14 table
+tests passed after implementation. `run_all.sh --tables-only` and table/figure
+freshness checks passed. The direct TeX build has no overflow, undefined
+references/citations or missing characters. Pages3–10 were rendered and visually
+inspected; extracted text on pages1–2 is unchanged from the preceding reviewed
+named artifact. This is not a new anonymous-mode build.
+
+The separate local arXiv package is
+`tools/release/_ext/arxiv-source-cutoff-readiness-20261108/ckks-train-arxiv-source.zip`
+(19 members, 38,430 bytes, SHA256
+`7362cbf975bb0c0052831e2a2778c9bb7f1cebe3417916bb54baeef4e420d89a`).
+All members were read back and matched to the selected source/bibliography.
+Building only its unpacked source succeeded; extracted PDF text matches the
+direct build. The published preview assets are unchanged. FULL-2/queued results,
+final evidence freeze and arXiv's own build/submission remain pending.

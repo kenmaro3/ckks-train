@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "python3",
+    "tools/tables.py",
+    "--check"
+  ],
+  "cwd": ".",
+  "exit_code": 0
+}

@@ -488,6 +488,11 @@ def table_accuracy(s, inp):
         verdict = ('PASS' if abs(d) <= 0.005 + 1e-12 else 'FAIL') if gate else 'not the gate (B ≠ 48)'
         t.row([label, 'full', '1 (seed 0)', Cell(pct(acc), [acs]), Cell(pct(twin), [tws]), Cell(pct(rb0) + ' (seed 0)', [rb0s]),
                Cell(f'{100 * d:+.2f}', [acs, rb0s]), Cell(verdict, [acs, rb0s], '|Δ| ≤ 0.5 pt')])
+        error, error_source = s.num(rel, 'twin.max_abs_diff')
+        t.note(f'{key} final parameter error: {error:.6g} (maximum absolute difference across '
+               'weights and biases against its same-batch plaintext twin at training end). '
+               'This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.',
+               [error_source])
     t.section('eMLP-2 / eMLP-3 block MLPs, full setting, seed 0')
     for model, blocks in (('emlp2', '64'), ('emlp3', '128,64')):
         ref, refs = s.num(REBOOT_23_CFG, f'models.{model}.per_seed.0.twin.test_acc_argmax10')

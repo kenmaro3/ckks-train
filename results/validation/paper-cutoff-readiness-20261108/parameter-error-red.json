@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "unittest",
+    "test_paper_tables.PaperTablesTests.test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate"
+  ],
+  "cwd": "tools",
+  "exit_code": 1
+}

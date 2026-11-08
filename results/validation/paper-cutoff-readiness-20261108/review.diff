@@ -1,0 +1,210 @@
+diff --git a/paper/README.md b/paper/README.md
+index c232433..04786a1 100644
+--- a/paper/README.md
++++ b/paper/README.md
+@@ -88,3 +88,31 @@ Local package: `tools/release/_ext/arxiv-source-preview-20261108/ckks-train-arxi
+ The ZIP was read back, each member compared, and unpacked to `source/`. Building `main.tex` from that directory with the same project-local `latexmk -pdf -interaction=nonstopmode -halt-on-error -no-shell-escape` succeeded. The isolated PDF is `build/main.pdf` (10 pages), and its extracted text matches the directly built preprint. The final log has no overflow, missing-character or undefined-reference/citation warning. All ten rendered pages were visually reviewed, with the first page also inspected separately. This verifies the local TeX Live 2026/acmart 2.21 toolchain; the arXiv server toolchain has not yet been tested. The package is a preliminary artifact and must be regenerated after the evidence cutoff, not submitted as a claim of final measurements.
+ 
+ The manuscript is covered by the separate [paper licensing notice](LICENSE). The software MIT license and data notices remain separate. The selected arXiv license will be recorded in submission metadata; this file does not assert that a submission exists.
++
++## Local content update, 2026-11-08 12:31 JST
++
++The latest local named preprint is
++`tools/latex/_ext/task56/cutoff-readiness-20261108/arxiv-wrapper.pdf`
++(10 pages, 528,922 bytes, SHA256
++`5b2f73b9bff3645574dc1084cb9d38e325ddbcc4da18004387d95203ddd09900`).
++It clarifies encrypted versus plaintext weight decay and the complete released
++4,800-example/ten-pass protocol, adds a generated FULL-1 final-parameter error
++note with field provenance, and replaces stale author-placeholder guidance.
++The diagnostic is not standalone bootstrap precision or a new accuracy gate.
++Raw measurements and all thresholds are unchanged.
++
++The table regression first failed for the absent diagnostic, then all14 table
++tests passed after implementation. `run_all.sh --tables-only` and table/figure
++freshness checks passed. The direct TeX build has no overflow, undefined
++references/citations or missing characters. Pages3–10 were rendered and visually
++inspected; extracted text on pages1–2 is unchanged from the preceding reviewed
++named artifact. This is not a new anonymous-mode build.
++
++The separate local arXiv package is
++`tools/release/_ext/arxiv-source-cutoff-readiness-20261108/ckks-train-arxiv-source.zip`
++(19 members, 38,430 bytes, SHA256
++`7362cbf975bb0c0052831e2a2778c9bb7f1cebe3417916bb54baeef4e420d89a`).
++All members were read back and matched to the selected source/bibliography.
++Building only its unpacked source succeeded; extracted PDF text matches the
++direct build. The published preview assets are unchanged. FULL-2/queued results,
++final evidence freeze and arXiv's own build/submission remain pending.
+diff --git a/paper/arxiv-metadata.md b/paper/arxiv-metadata.md
+index 8378ebc..3b7e37a 100644
+--- a/paper/arxiv-metadata.md
++++ b/paper/arxiv-metadata.md
+@@ -38,9 +38,9 @@ pending FULL-2 and unresolved comparisons deliberately; replace them only when
+ supported by the final retained evidence, then rebuild the PDF/source package.
+ 
+ The current locally tested upload preview is
+-`tools/release/_ext/arxiv-source-preview-20261108/ckks-train-arxiv-source-preview.zip`.
+-It has 19 members and SHA256
+-`c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8`.
++`tools/release/_ext/arxiv-source-cutoff-readiness-20261108/ckks-train-arxiv-source.zip`.
++It has 19 members, 38,430 bytes and SHA256
++`7362cbf975bb0c0052831e2a2778c9bb7f1cebe3417916bb54baeef4e420d89a`.
+ The matching PDF in the isolated build is `build/main.pdf` in that directory.
+ These are preliminary artifacts, not a substitute for arXiv's own source-build
+ and preview check. This metadata file is submission assistance; it need not be
+@@ -68,3 +68,13 @@ After the evidence cutoff, regenerate the upload ZIP, update this abstract and
+ page count to match that final paper, and repeat the package and PDF checks.
+ The public preview remains fixed; an updated final submission is a separate
+ artifact. Account/endorsement checks remain deferred at the author's request.
++
++## Local manuscript update, 2026-11-08 12:31 JST
++
++The current local package above incorporates the clarified encrypted/plaintext
++weight-decay scope, explicit FULL-1 final-parameter diagnostic, compact released
++protocol and current named-artifact instructions. All 19 members were read back
++and matched; the isolated source build succeeded and its extracted PDF text
++matches the direct 10-page build. This remains an interim package: FULL-2 and
++queued hardware evidence are pending. The public preview ZIP remains unchanged;
++no arXiv upload or server build occurred. Refresh again after the evidence cutoff.
+diff --git a/paper/sections/appendix.tex b/paper/sections/appendix.tex
+index 9d6e3c8..d491343 100644
+--- a/paper/sections/appendix.tex
++++ b/paper/sections/appendix.tex
+@@ -23,6 +23,10 @@ Lane reduction is different: offsets not divisible by $B$ mix lanes intentionall
+ \subsection{KAT and artifact boundaries}
+ The SEAL compatibility checks compare encoding, serialized ciphertext interoperability, decryption, and supported evaluation paths under the shared preset. Some directions assert exact residues while others only assert a decoded-error bound. Rotation arithmetic intentionally differs in its centered lifting. Neither this KAT nor CPU/GPU bit equality establishes security; the latter only checks implementation agreement for executed cases. Small insecure presets are smoke tests and never enter the security claim.
+ 
+-Tables are generated by \texttt{tools/paper\_tables.py}; field-level provenance is available through its \texttt{--sources} option. The figure generator consumes those validated table cells and writes a source manifest containing paths, fields, and SHA-256 digests. It does not rewrite result JSON. Missing registered runs produce explicit pending rows; existing invalid inputs must fail validation. Timed runs, setup, client diagnostics, and model-only extrapolations stay distinguishable. The quick reproduction mode is a pipeline check and is not a source of research results.
++Tables are generated by \texttt{tools/paper\_tables.py}; field-level provenance is available through its \texttt{--sources} option. The figure generator consumes those validated table cells and writes a source manifest containing paths, fields, and SHA-256 digests. It does not rewrite result JSON. Missing registered runs produce explicit pending rows; existing invalid inputs must fail validation. Timed runs, setup, client diagnostics, and model-only extrapolations stay distinguishable. Running \texttt{scripts/run\_all.sh --tables-only} regenerates the retained tables. This does not execute the complete registered experiment matrix, whose end-to-end runner remains unfinished; a quick pipeline check is not a source of research results.
+ 
+-The anonymous draft omits repository/account identifiers and author metadata. ReBoot and OpenFHE are executed as external baselines; no implementation source is copied into this artifact. The estimator and TeX compiler are isolated development tools, not library dependencies. The library's dependency policy, including the specific character-table exception disclosed in Section~\ref{sec:limits}, is separate from the licenses of those external research tools. Instructions for rebuilding both anonymous and author-placeholder variants are provided with the source. Before submission, authorship, artifact anonymity, the WAHC~2027 rules, and all pending research gates require another review; the WAHC~2026 limit is only the provisional formatting constraint~\cite{wahc2026}.
++The anonymous review mode omits author metadata and identifying artifact links. ReBoot and OpenFHE are executed as external baselines; no implementation source is copied into this artifact. The estimator and TeX compiler are isolated development tools, not library dependencies. The library's dependency policy, including the specific character-table exception disclosed in Section~\ref{sec:limits}, is separate from the licenses of those external research tools. Instructions for rebuilding anonymous review, named review, and named preprint variants are provided with the source. Authorship is confirmed for this preprint. Before arXiv submission, the final source, metadata, and server-generated PDF require checking against the retained evidence; unavailable measurements remain unavailable. A later conference submission requires a separate anonymity and venue-rules review; the WAHC~2026 limit is only the provisional formatting constraint~\cite{wahc2026}.
++
++\ifdefined\ArxivDraft
++The public code, retained measurement files, and reproduction instructions are available at \url{https://github.com/kenmaro3/ckks-train}. The fixed \texttt{v1.0.0-preview.1} release is an earlier interim snapshot; the source supplied with this preprint identifies its own revision and evidence.
++\fi
+diff --git a/paper/sections/discussion.tex b/paper/sections/discussion.tex
+index 7ce778e..da766fc 100644
+--- a/paper/sections/discussion.tex
++++ b/paper/sections/discussion.tex
+@@ -16,7 +16,7 @@ A key switch at a low level need not cost the same as one at the top level; coun
+ SSE and modulus-band changes were needed because the planned dense-secret overflow range and original prime allocation did not meet the bootstrap precision budget. Unit-scale nonconstant masks were invalid, and exact-scale folding is required to fit the training circuit. The accepted security claim uses specified sieve cost models, not a universal security level; Core-SVP estimates are lower. Dense-secret hybrid search is bounded rather than an exhaustive global optimization. An all-sparse main-key alternative did not meet the selected security criterion and is not used. KAT coverage is limited to the supported SEAL preset, with asymmetric comparison directions; it does not independently validate our bootstrap or larger hybrid preset. Standalone OpenFHE/Lattigo bootstrap precision parity remains absent. Random full-slot CPU precision checks do not prove a negligible failure probability for arbitrary training distributions or activations outside range.
+ 
+ \paragraph{Learning limits.}
+-The quartic activation's claimed accuracy benefit is unmeasured. Weight decay and optional softmax/cross-entropy are omitted. Bias momentum is not matched to NAG, and faithful bias freezing preserves extra encrypted arithmetic. Fixed-final-epoch Breast Cancer accuracy misses its target; test-selected best epochs are not a remedy. No encrypted Fashion-MNIST or Breast Cancer accuracy is reported. Higher-depth local-block training has plaintext fidelity checks but no completed encrypted comparison. The continuity Iris experiment is interactive and differs in padding, randomization, and normalization; it cannot establish the primary non-interactive claim. Threshold or multi-party FHE, scheme switching, transformer training, and Metal execution are outside the evaluated scope.
++The quartic activation's claimed accuracy benefit is unmeasured. The evaluated encrypted trainer omits weight decay and optional softmax/cross-entropy. The separate plaintext paper-setting reconstruction includes weight decay; it is not the faithful encrypted protocol. Bias momentum is not matched to NAG, and faithful bias freezing preserves extra encrypted arithmetic. Fixed-final-epoch Breast Cancer accuracy misses its target; test-selected best epochs are not a remedy. No encrypted Fashion-MNIST or Breast Cancer accuracy is reported. Higher-depth local-block training has plaintext fidelity checks but no completed encrypted comparison. The continuity Iris experiment is interactive and differs in padding, randomization, and normalization; it cannot establish the primary non-interactive claim. Threshold or multi-party FHE, scheme switching, transformer training, and Metal execution are outside the evaluated scope.
+ 
+ \paragraph{Device and implementation limits.}
+ Full-key GPU training, the matched training parity gate, the RQ3 timing ablation, repaired multi-stream performance, and GPU bootstrap measurements are pending. Memory estimates and pool snapshots do not establish a peak. All-off flags do not implement the strongest naive diagonal algorithm. The current training benchmark still uses host bootstrap fallback. Device error handling and numerical replay are useful engineering evidence, but compile-only paths and skipped tests are not physical hardware results. CPU/GPU side-channel resistance, constant-time sampling, secret zeroization, malformed-input hardening, and independent cryptographic audit are outside the current implementation's assurance. Some internal invariants are debug assertions; decode/parameter mismatches can panic. The artifact is research software, not a deployment security claim.
+diff --git a/paper/sections/evaluation.tex b/paper/sections/evaluation.tex
+index 5bf1bf8..05d2795 100644
+--- a/paper/sections/evaluation.tex
++++ b/paper/sections/evaluation.tex
+@@ -3,7 +3,7 @@
+ \subsection{Protocol and evidence classes}
+ We distinguish a released baseline execution, an in-library layout microbenchmark, and a cost model. The first supplies observed wall-clock and bootstrap events; the second isolates arithmetic layout counts under our evaluator; the third supplies uninstrumented baseline quantities. A counter-derived normalization is not a separate execution. Historical generated tables retain the working name \emph{hekit} for \sys{} and its crate names.
+ 
+-The headline uses MNIST reduced to $196$ inputs and the released full training setting. FULL-1 has completed at $B=64$ with one initial-weight seed; FULL-2 at the released baseline batch remains pending. FULL-1 is partial full-setting evidence, not a substitute for the FULL-2 accuracy gate. The completed faithful encrypted subset uses $784$ inputs, the baseline's sample indices and initial weights, and its training conventions. Output width is padded to $16$, including the unused classes in the released loss; replacing this with a width-$10$ loss is not assumed equivalent. Earlier ``legacy'' runs use a different learning rate, bias policy, and initialization. Their counters and timing remain useful, but their accuracy is not comparable to the released baseline. The last subset batch is partial, affecting depth, refresh scheduling, and the effective sum-versus-mean learning-rate conversion.
++The headline uses MNIST reduced to $196$ inputs and the complete released encrypted-comparison setting: $4800$ training examples over ten passes, a $196\!\to\!32\!\to\!16$ eMLP-1 with $z^2+z$ hidden activation, frozen zero biases, sum-loss NAG with momentum $0.9$, and the released sample order and learning-rate schedule. This is distinct from the $60000$-example paper-setting reconstruction. FULL-1 has completed at effective batch $64$ with one initial-weight seed; FULL-2 at the released batch $48$ in $64$ physical lanes remains pending. FULL-1 is partial full-setting evidence, not a substitute for the FULL-2 accuracy gate. The completed faithful encrypted subset uses $784$ inputs, the baseline's sample indices and initial weights, and its training conventions. Output width is padded to $16$, including the unused classes in the released loss; replacing this with a width-$10$ loss is not assumed equivalent. Earlier ``legacy'' runs use a different learning rate, bias policy, and initialization. Their counters and timing remain useful, but their accuracy is not comparable to the released baseline. The last subset batch is partial, affecting depth, refresh scheduling, and the effective sum-versus-mean learning-rate conversion.
+ 
+ The paired server measurements use the same CPU and thread cap, with different CPU parallel runtimes. Jobs are not core-pinned, and some rows overlap unrelated shared-host load. Client work and setup scopes also differ: baseline step time includes batch encryption and prediction decryption, whereas our update time excludes those separately reported client operations; both exclude key setup. Thus even a same-host ratio is not a controlled architectural speedup. We do not pool CPU and GPU samples. Encrypted rows have a single seed unless the table states otherwise; within-run iterations and Criterion samples are not independent seeds.
+ 
+@@ -28,7 +28,7 @@ The faithful larger-batch subset row meets the registered count threshold under
+ \subsection{RQ2: placement and depth}
+ The AU, WN, and AA subset rows in Tables~\ref{tab:rq1_ks} and~\ref{tab:wallclock_same_cpu} provide the placement comparison. For matched legacy eMLP-1 settings, WN reduces bootstrap events and total time relative to AU. AA leaves the same lazy weight-refresh frequency and adds activation refreshes, so it does not improve this shallow workload. Its benefit is a feasible depth budget for some deeper polynomial circuits, checked separately as a structural test rather than an observed training-accuracy gain.
+ 
+-The corrected structural predictor equals the measured counters at every completed update. This validates accounting for the executed paths; it does not validate the baseline bootstrap model or a convergence claim. The initial cost model missed replication, key-reuse, bias, and schedule-related terms, and its optimistic interactive estimate is superseded by that explicit accounting. FULL-1 extends exact schedule agreement to its complete registered update sequence and records accumulated weight and bias error against its same-batch plaintext twin. That observed error is larger than in the earlier subset checks; close final accuracy does not imply a uniform small parameter error. FULL-2 and guarantees across seeds or arbitrary trajectories remain unmeasured.
++The corrected structural predictor equals the measured counters at every completed update. This validates accounting for the executed paths; it does not validate the baseline bootstrap model or a convergence claim. The initial cost model missed replication, key-reuse, bias, and schedule-related terms, and its optimistic interactive estimate is superseded by that explicit accounting. FULL-1 extends exact schedule agreement to its complete registered update sequence and records accumulated weight and bias error against its same-batch plaintext twin. Table~\ref{tab:accuracy_vs_reboot} reports the maximum absolute final weight-or-bias difference from that twin. This diagnostic measures accumulated trajectory error, not single-bootstrap precision or an accuracy-gate threshold. That observed error is larger than in the earlier subset checks; close final accuracy does not imply a uniform small parameter error. FULL-2 and guarantees across seeds or arbitrary trajectories remain unmeasured.
+ 
+ \subsection{Accuracy, local blocks, and security}
+ \input{tables/accuracy_vs_reboot}
+diff --git a/paper/sections/noninteractive.tex b/paper/sections/noninteractive.tex
+index e407a78..204b95c 100644
+--- a/paper/sections/noninteractive.tex
++++ b/paper/sections/noninteractive.tex
+@@ -25,7 +25,7 @@ Both SGD and Nesterov-style momentum are supported. Writing $h=\eta(1+\mu)G/n$ a
+  W'&=W-h-\frac{\mu^2}{1+\mu}U.
+  \label{eq:nag}
+ \end{align}
+-Constants are folded into exact-scale products already needed by the gradient path. A changing learning rate requires rescaling the stored velocity representation, and its lane shifts are charged. Biases use SGD; the faithful ReBoot configuration freezes their encrypted zero values while retaining the implementation's bias arithmetic. Weight decay is not implemented; the captured faithful setting uses zero decay.
++Constants are folded into exact-scale products already needed by the gradient path. A changing learning rate requires rescaling the stored velocity representation, and its lane shifts are charged. Biases use SGD; the faithful ReBoot configuration freezes their encrypted zero values while retaining the implementation's bias arithmetic. The encrypted trainer evaluated here omits weight decay; the captured faithful setting uses zero decay. The separate plaintext paper-setting reconstruction includes weight decay and is labeled separately in the evaluation.
+ 
+ \paragraph{Loss.}
+ A squared-error loss yields an affine output gradient; MSE normalization and ReBoot's sum reduction are matched through the learning-rate convention. The faithful configuration uses the released initialization, sample order, output padding, and schedule, not just the paper's nominal hyperparameter names. Softmax/cross-entropy approximation is optional in the plan and is not implemented or evaluated here. Block MLPs follow local classifier losses and stop gradients across blocks; they must not be described as an ordinary deeper back-propagation network.
+diff --git a/paper/tables/accuracy_vs_reboot.tex b/paper/tables/accuracy_vs_reboot.tex
+index 9bca85a..270844a 100644
+--- a/paper/tables/accuracy_vs_reboot.tex
++++ b/paper/tables/accuracy_vs_reboot.tex
+@@ -35,6 +35,7 @@ ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-select
+ \bottomrule
+ \end{tabular}}
+ \par\smallskip\begin{minipage}{\linewidth}\scriptsize
++FULL-1 final parameter error: 0.00682657 (maximum absolute difference across weights and biases against its same-batch plaintext twin at training end). This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.\par
+ R-M3-15: the $\pm$0.5 pt gate compares hekit encrypted B = 48 (FULL-2) with ReBoot's released code at its full setting, seed 0. Subset rows are 1 epoch and are not a gate. The paper value and R-REB-3 are reported with this note only.\par
+ \end{minipage}
+ \end{table*}
+diff --git a/results/tables/accuracy_vs_reboot.md b/results/tables/accuracy_vs_reboot.md
+index 81d2de8..ab930d3 100644
+--- a/results/tables/accuracy_vs_reboot.md
++++ b/results/tables/accuracy_vs_reboot.md
+@@ -25,4 +25,5 @@
+ | ReBoot released code, paper setting, ReBoot's scheduler, epoch 50 | 60k samples, 50 epochs | 10 | 95.25 ± 0.08 (n = 10) | — | 94.61 | +0.64 | reference |
+ | ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected) | 60k samples, 50 epochs | 10 | 95.46 ± 0.09 (n = 10) | — | 94.61 | +0.85 | reference |
+ 
++- FULL-1 final parameter error: 0.00682657 (maximum absolute difference across weights and biases against its same-batch plaintext twin at training end). This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.
+ - R-M3-15: the ±0.5 pt gate compares hekit encrypted B = 48 (FULL-2) with ReBoot's released code at its full setting, seed 0. Subset rows are 1 epoch and are not a gate. The paper value and R-REB-3 are reported with this note only.
+diff --git a/results/tables/sources.tsv b/results/tables/sources.tsv
+index b55bc3f..208288b 100644
+--- a/results/tables/sources.tsv
++++ b/results/tables/sources.tsv
+@@ -678,6 +678,7 @@ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best
+ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.mean	
+ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
++accuracy_vs_reboot	note 1			results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	twin.max_abs_diff	
+ rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
+ rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
+ rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	
+diff --git a/tools/paper_tables.py b/tools/paper_tables.py
+index 26c5d4a..5dc91d1 100644
+--- a/tools/paper_tables.py
++++ b/tools/paper_tables.py
+@@ -488,6 +488,11 @@ def table_accuracy(s, inp):
+         verdict = ('PASS' if abs(d) <= 0.005 + 1e-12 else 'FAIL') if gate else 'not the gate (B ≠ 48)'
+         t.row([label, 'full', '1 (seed 0)', Cell(pct(acc), [acs]), Cell(pct(twin), [tws]), Cell(pct(rb0) + ' (seed 0)', [rb0s]),
+                Cell(f'{100 * d:+.2f}', [acs, rb0s]), Cell(verdict, [acs, rb0s], '|Δ| ≤ 0.5 pt')])
++        error, error_source = s.num(rel, 'twin.max_abs_diff')
++        t.note(f'{key} final parameter error: {error:.6g} (maximum absolute difference across '
++               'weights and biases against its same-batch plaintext twin at training end). '
++               'This is a trajectory diagnostic, not a per-bootstrap precision or accuracy gate.',
++               [error_source])
+     t.section('eMLP-2 / eMLP-3 block MLPs, full setting, seed 0')
+     for model, blocks in (('emlp2', '64'), ('emlp3', '128,64')):
+         ref, refs = s.num(REBOOT_23_CFG, f'models.{model}.per_seed.0.twin.test_acc_argmax10')
+diff --git a/tools/test_paper_tables.py b/tools/test_paper_tables.py
+index 577b9d8..a423717 100644
+--- a/tools/test_paper_tables.py
++++ b/tools/test_paper_tables.py
+@@ -94,6 +94,23 @@ class PaperTablesTests(unittest.TestCase):
+         md = (self.root / 'results/tables/accuracy_vs_reboot.md').read_text()
+         self.assertIn('not the gate (B ≠ 48)', md)
+ 
++    def test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate(self):
++        # Distinct synthetic error catches a copied/hardcoded historical value.
++        def error_fixture(doc):
++            doc['twin'].update(max_abs_diff=0.125, log2_max_abs_diff=-3.0,
++                               max_abs_w_diff_per_layer=[0.125, 0.0625],
++                               max_abs_b_diff_per_layer=[0.0, 0.0])
++        path = put_full(self.root, mutate=error_fixture)
++        table = self.build(tables.table_accuracy)
++        notes = [n for n in table.notes if 'final parameter error' in n.text]
++        self.assertEqual(len(notes), 1)  # Missing FULL-2 must not inherit FULL-1.
++        self.assertIn('FULL-1 final parameter error: 0.125', notes[0].text)
++        self.assertIn('not a per-bootstrap precision or accuracy gate', notes[0].text)
++        self.assertEqual(notes[0].sources,
++                         [(path.relative_to(self.root).as_posix(), 'twin.max_abs_diff')])
++        full1 = next(r for r in rows(table) if r[0].startswith('hekit encrypted, B = 64'))
++        self.assertEqual(full1[-1], 'not the gate (B ≠ 48)')
++
+     def test_each_consumer_rejects_malformed_full(self):
+         # Break caught: wall-clock accepting truncated/invalid FULL despite RQ1 validation.
+         put_full(self.root, mutate=lambda d: d['training'].update(samples=1))

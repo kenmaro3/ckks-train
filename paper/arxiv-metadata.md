@@ -38,9 +38,9 @@ pending FULL-2 and unresolved comparisons deliberately; replace them only when
 supported by the final retained evidence, then rebuild the PDF/source package.
 
 The current locally tested upload preview is
-`tools/release/_ext/arxiv-source-preview-20261108/ckks-train-arxiv-source-preview.zip`.
-It has 19 members and SHA256
-`c9a99d53f6560fefb4b451d4011c68f22c3dc467b4e437813f4e5dd1331039f8`.
+`tools/release/_ext/arxiv-source-cutoff-readiness-20261108/ckks-train-arxiv-source.zip`.
+It has 19 members, 38,430 bytes and SHA256
+`7362cbf975bb0c0052831e2a2778c9bb7f1cebe3417916bb54baeef4e420d89a`.
 The matching PDF in the isolated build is `build/main.pdf` in that directory.
 These are preliminary artifacts, not a substitute for arXiv's own source-build
 and preview check. This metadata file is submission assistance; it need not be
@@ -68,3 +68,13 @@ After the evidence cutoff, regenerate the upload ZIP, update this abstract and
 page count to match that final paper, and repeat the package and PDF checks.
 The public preview remains fixed; an updated final submission is a separate
 artifact. Account/endorsement checks remain deferred at the author's request.
+
+## Local manuscript update, 2026-11-08 12:31 JST
+
+The current local package above incorporates the clarified encrypted/plaintext
+weight-decay scope, explicit FULL-1 final-parameter diagnostic, compact released
+protocol and current named-artifact instructions. All 19 members were read back
+and matched; the isolated source build succeeded and its extracted PDF text
+matches the direct 10-page build. This remains an interim package: FULL-2 and
+queued hardware evidence are pending. The public preview ZIP remains unchanged;
+no arXiv upload or server build occurred. Refresh again after the evidence cutoff.

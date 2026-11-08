@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "unittest",
+    "test_paper_tables"
+  ],
+  "cwd": "tools",
+  "exit_code": 0
+}

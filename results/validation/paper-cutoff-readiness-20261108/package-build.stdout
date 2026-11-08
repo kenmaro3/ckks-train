@@ -1,0 +1,425 @@
+Rc files read (in order):
+  NONE
+Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+No existing .aux file, so I'll make a simple one, and require run of *latex.
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Category 'other':
+  Rerun of 'pdflatex' forced or previously required:
+    Reason or flag: 'Initial setup'
+
+------------
+Run number 1 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -halt-on-error -no-shell-escape -recorder -output-directory="/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build"  "main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+entering extended mode
+(./main.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-09-09>
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/acmart/acmart.cls
+Document Class: acmart 2026/11/01 v2.21 Typesetting articles for the Association for Computing Machinery
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xkeyval/xkeyval.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkvutils.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/keyval.tex)))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amscls/amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/totpages/totpages.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/everyshi/everyshi.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/environ/environ.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/trimspaces/trimspaces.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/url/url.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperxmp/hyperxmp.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ifmtarg/ifmtarg.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/ifdraft.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifluatex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/manyfoot.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/nccfoots.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftex/glyphtounicode.tex) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/cmap/cmap.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty<<t1.cmap>>) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/libertine.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifxetex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fontaxes/fontaxes.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/figureversions/figureversions.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/LinLibertine_I.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/zi4.sty `inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/newtxmath.sty `newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/centernot.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kastrup/binhex.tex)
+amsthm NOT loaded
+) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption-ams-smf.sto))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/comment/comment.sty Excluding comment 'comment') Excluding comment 'CCSXML' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty) Special comment 'acks' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxLibertineT-TLF.fd)) Excluding comment 'screenonly' Include comment 'printonly' Include comment 'anonsuppress' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/omlnxlmi.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxexa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmsntxsy.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmxntxexx.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/OT1LinuxLibertineT-TLF.fd)<<ot1.cmap>> (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxmia.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsym.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsyc.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+Package epstopdf Warning: Shell escape feature is not enabled.
+
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty) Excluding 'CCSXML' comment. (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxBiolinumT-TLF.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msa.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msb.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd) (./sections/introduction.tex
+
+Package natbib Warning: Citation `mihara2020' on page 1 undefined on input line 5.
+
+
+Package natbib Warning: Citation `reboot2026' on page 1 undefined on input line 5.
+
+
+LaTeX Warning: Reference `sec:limits' on page 1 undefined on input line 12.
+
+) (./sections/preliminaries.tex
+
+Package natbib Warning: Citation `ckks2017' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Reference `eq:ks' on page 1 undefined on input line 12.
+
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-pdfdoc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-utf8.def) [1.1{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_ncsllp.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}]
+
+Package natbib Warning: Citation `sse2022' on page 2 undefined on input line 15.
+
+) (./sections/packing.tex
+
+Package natbib Warning: Citation `mihara2020' on page 2 undefined on input line 20.
+
+
+Package natbib Warning: Citation `halevi2018' on page 2 undefined on input line 52.
+
+
+LaTeX Warning: Reference `eq:ks' on page 2 undefined on input line 52.
+
+[2.2]
+
+LaTeX Warning: Reference `sec:noninteractive' on page 3 undefined on input line 55.
+
+) (./sections/noninteractive.tex
+
+LaTeX Warning: Reference `app:params' on page 3 undefined on input line 8.
+
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/t1zi4.fd)) (./sections/gpu.tex [3.3{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-4.enc}]
+
+LaTeX Warning: Reference `tab:gpu_vs_cpu_ops' on page 4 undefined on input line 8.
+
+) (./sections/evaluation.tex
+Underfull \vbox (badness 10000) has occurred while \output is active (./tables/rq1_ks.tex) (./tables/wallclock_same_cpu.tex) [4.4]
+
+LaTeX Warning: Reference `tab:rq1_ks' on page 5 undefined on input line 23.
+
+(./figs/rq1_ratios.tex
+
+LaTeX Warning: Reference `tab:rq1_ks' on page 5 undefined on input line 48.
+
+
+LaTeX Warning: Reference `sec:evaluation' on page 5 undefined on input line 48.
+
+
+LaTeX Warning: Reference `tab:rq1_ks' on page 5 undefined on input line 48.
+
+
+LaTeX Warning: Reference `sec:evaluation' on page 5 undefined on input line 48.
+
+)
+
+LaTeX Warning: Reference `tab:wallclock_same_cpu' on page 5 undefined on input line 26.
+
+
+LaTeX Warning: Reference `tab:rq1_ks' on page 5 undefined on input line 29.
+
+
+LaTeX Warning: Reference `tab:wallclock_same_cpu' on page 5 undefined on input line 29.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active [5.5]
+
+LaTeX Warning: Reference `tab:accuracy_vs_reboot' on page 6 undefined on input line 31.
+
+(./tables/accuracy_vs_reboot.tex) (./tables/plain_datasets.tex) (./tables/security.tex)
+
+LaTeX Warning: Reference `tab:accuracy_vs_reboot' on page 6 undefined on input line 37.
+
+
+LaTeX Warning: Reference `tab:plain_datasets' on page 6 undefined on input line 39.
+
+
+LaTeX Warning: Reference `tab:security' on page 6 undefined on input line 41.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active (./tables/gpu_vs_cpu_ops.tex) (./tables/rq3_ablation.tex)
+
+LaTeX Warning: Reference `tab:gpu_vs_cpu_ops' on page 6 undefined on input line 46.
+
+
+Package natbib Warning: Citation `gpuKeys2025' on page 6 undefined on input line 46.
+
+
+Overfull \hbox (4.0983pt too wide) in paragraph at lines 46--47
+\T1/LinuxLibertineT-TLF/m/n/9 (-20) Table [] con-tains syn-chro-nized op-er-a-tion la-ten-cies, in-clud-ing capped-
+
+LaTeX Warning: Reference `tab:rq3_ablation' on page 6 undefined on input line 48.
+
+
+Package natbib Warning: Citation `heongpuBench' on page 6 undefined on input line 50.
+
+) (./sections/discussion.tex
+
+Package natbib Warning: Citation `mihara2020' on page 6 undefined on input line 4.
+
+
+Package natbib Warning: Citation `reboot2026' on page 6 undefined on input line 4.
+
+
+Package natbib Warning: Citation `hetal2023' on page 6 undefined on input line 4.
+
+
+Package natbib Warning: Citation `halevi2018' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `sse2022' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `ckks2017' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `seal' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `openfhe2022' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `gpuKeys2025' on page 6 undefined on input line 6.
+
+
+Package natbib Warning: Citation `heongpuBench' on page 6 undefined on input line 6.
+
+[6.6]
+Underfull \vbox (badness 10000) has occurred while \output is active
+Underfull \vbox (badness 10000) has occurred while \output is active [7.7]
+Underfull \vbox (badness 10000) has occurred while \output is active [8.8]) (./main.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 144--149
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) Kentaro Mi-hara, Ry-ohei Ya-m-aguchi, Miguel Mit-su-ishi, and Yusuke
+
+Underfull \hbox (badness 4832) in paragraph at lines 176--185
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) WAHC Or-ga-niz-ers. 2026.  WAHC 2026: Call for Pa-pers.   []$https :
+
+Underfull \hbox (badness 10000) in paragraph at lines 176--185
+\T1/LinuxLibertineT-TLF/m/n/7 (+20) / / homomorphicencryption . org / wahc -[] 2026 -[] 14th -[] workshop -[] on -[] encrypted -[]
+
+Underfull \vbox (badness 1558) has occurred while \output is active) (./sections/appendix.tex
+
+Package natbib Warning: Citation `albrecht2015' on page 9 undefined on input line 16.
+
+
+Package natbib Warning: Citation `latticeEstimator' on page 9 undefined on input line 16.
+
+
+LaTeX Warning: Reference `tab:security' on page 9 undefined on input line 16.
+
+
+LaTeX Warning: Reference `eq:transpose' on page 9 undefined on input line 19.
+
+
+LaTeX Warning: Reference `sec:packing' on page 9 undefined on input line 19.
+
+[9.9]
+
+LaTeX Warning: Reference `sec:limits' on page 10 undefined on input line 28.
+
+
+Package natbib Warning: Citation `wahc2026' on page 10 undefined on input line 28.
+
+)
+
+Package natbib Warning: There were undefined citations.
+
+[10.10]
+
+LaTeX Warning: Hook 'shipout/lastpage' executed on wrong page (1 not 10).
+               Rerun to correct this.
+
+(/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux
+
+Package natbib Warning: Citation(s) may have changed.
+(natbib)                Rerun to get citations correct.
+
+)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information)</Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI5.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathRM.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexas.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexs.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsym.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
+Output written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf (10 pages, 525261 bytes).
+Transcript written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log.
+Latexmk: Getting log file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.fls'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Found input bbl file 'main.bbl'
+Latexmk: References changed.
+Latexmk: References changed.
+Latexmk: References changed.
+Latexmk: Log file says output to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf'
+  ===Source file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl' for 'pdflatex'
+Create bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main
+Latexmk: Found bibliography file(s):
+  ./refs.bib
+Latexmk: applying rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main'...
+Rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main':  Reasons for rerun
+Category 'other':
+  Rerun of 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main' forced or previously required:
+    Reason or flag: 'Initial set up of rule'
+
+------------
+Run number 1 of rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main'
+------------
+Latexmk: Change directory to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/'.
+To assist finding of files in document directory, I set
+  BIBINPUTS='/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source:/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build:'
+  BSTINPUTS='/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source:'.
+------------
+Running 'bibtex  "main.aux"'
+------------
+This is BibTeX, Version 0.99e (TeX Live 2026)
+The top-level auxiliary file: main.aux
+The style file: ACM-Reference-Format.bst
+Database file #1: refs.bib
+Warning--empty publisher in openfhe2022
+Warning--empty address in openfhe2022
+Warning--empty publisher in ckks2017
+Warning--empty address in ckks2017
+Warning--empty address in hetal2023
+(There were 5 warnings)
+Latexmk: Change directory back to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source'
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Changed files or newly in use/created:
+  /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux
+  /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl
+  /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.out
+
+------------
+Run number 2 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -halt-on-error -no-shell-escape -recorder -output-directory="/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build"  "main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+entering extended mode
+(./main.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-09-09>
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/acmart/acmart.cls
+Document Class: acmart 2026/11/01 v2.21 Typesetting articles for the Association for Computing Machinery
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xkeyval/xkeyval.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkvutils.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/keyval.tex)))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amscls/amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/totpages/totpages.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/everyshi/everyshi.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/environ/environ.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/trimspaces/trimspaces.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/url/url.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperxmp/hyperxmp.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ifmtarg/ifmtarg.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/ifdraft.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifluatex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/manyfoot.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/nccfoots.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftex/glyphtounicode.tex) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/cmap/cmap.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty<<t1.cmap>>) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/libertine.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifxetex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fontaxes/fontaxes.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/figureversions/figureversions.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/LinLibertine_I.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/zi4.sty `inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/newtxmath.sty `newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/centernot.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kastrup/binhex.tex)
+amsthm NOT loaded
+) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption-ams-smf.sto))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/comment/comment.sty Excluding comment 'comment') Excluding comment 'CCSXML' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty) Special comment 'acks' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxLibertineT-TLF.fd)) Excluding comment 'screenonly' Include comment 'printonly' Include comment 'anonsuppress' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/omlnxlmi.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxexa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmsntxsy.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmxntxexx.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/OT1LinuxLibertineT-TLF.fd)<<ot1.cmap>> (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxmia.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsym.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsyc.fd) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.out) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.out) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+Package epstopdf Warning: Shell escape feature is not enabled.
+
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty) Excluding 'CCSXML' comment. (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxBiolinumT-TLF.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msa.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msb.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd) (./sections/introduction.tex) (./sections/preliminaries.tex [1.1{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_ncsllp.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}]) (./sections/packing.tex [2.2]) (./sections/noninteractive.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/t1zi4.fd)) (./sections/gpu.tex [3.3{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-4.enc}]) (./sections/evaluation.tex
+Underfull \vbox (badness 10000) has occurred while \output is active (./tables/rq1_ks.tex) (./tables/wallclock_same_cpu.tex) [4.4] (./figs/rq1_ratios.tex)
+Underfull \vbox (badness 10000) has occurred while \output is active
+Underfull \vbox (badness 10000) has occurred while \output is active [5.5] (./tables/accuracy_vs_reboot.tex) (./tables/plain_datasets.tex) (./tables/security.tex)
+Underfull \vbox (badness 3049) has occurred while \output is active (./tables/gpu_vs_cpu_ops.tex) (./tables/rq3_ablation.tex)) (./sections/discussion.tex [6.6]
+Underfull \vbox (badness 10000) has occurred while \output is active
+Underfull \vbox (badness 10000) has occurred while \output is active [7.7]
+Underfull \vbox (badness 10000) has occurred while \output is active [8.8]) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 144--149
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) Kentaro Mi-hara, Ry-ohei Ya-m-aguchi, Miguel Mit-su-ishi, and Yusuke
+
+Underfull \hbox (badness 4832) in paragraph at lines 176--185
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) WAHC Or-ga-niz-ers. 2026.  WAHC 2026: Call for Pa-pers.   []$https :
+
+Underfull \hbox (badness 10000) in paragraph at lines 176--185
+\T1/LinuxLibertineT-TLF/m/n/7 (+20) / / homomorphicencryption . org / wahc -[] 2026 -[] 14th -[] workshop -[] on -[] encrypted -[]
+
+Underfull \vbox (badness 1558) has occurred while \output is active) (./sections/appendix.tex [9.9]) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-pdfdoc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-utf8.def) [10.10] (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux) )
+(see the transcript file for additional information)</Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI5.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathRM.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexas.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexs.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsym.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
+Output written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf (10 pages, 528911 bytes).
+Transcript written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log.
+Latexmk: Getting log file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.fls'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Found input bbl file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl'
+Latexmk: Log file says output to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf'
+  ===Source file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl' for 'pdflatex'
+Latexmk: Found bibliography file(s):
+  ./refs.bib
+Latexmk: applying rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main'...
+Rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main':  Reasons for rerun
+Changed files or newly in use/created:
+  /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux
+
+------------
+Run number 2 of rule 'bibtex /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main'
+------------
+Latexmk: Change directory to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/'.
+To assist finding of files in document directory, I set
+  BIBINPUTS='/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source:/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build:'
+  BSTINPUTS='/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source:'.
+------------
+Running 'bibtex  "main.aux"'
+------------
+This is BibTeX, Version 0.99e (TeX Live 2026)
+The top-level auxiliary file: main.aux
+The style file: ACM-Reference-Format.bst
+Database file #1: refs.bib
+Warning--empty publisher in openfhe2022
+Warning--empty address in openfhe2022
+Warning--empty publisher in ckks2017
+Warning--empty address in ckks2017
+Warning--empty address in hetal2023
+(There were 5 warnings)
+Latexmk: Change directory back to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source'
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Changed files or newly in use/created:
+  /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux
+
+------------
+Run number 3 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -halt-on-error -no-shell-escape -recorder -output-directory="/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build"  "main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+entering extended mode
+(./main.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-09-09>
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/acmart/acmart.cls
+Document Class: acmart 2026/11/01 v2.21 Typesetting articles for the Association for Computing Machinery
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xkeyval/xkeyval.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/xkvutils.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xkeyval/keyval.tex)))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/xstring/xstring.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amscls/amsart.cls
+Document Class: amsart 2020/05/29 v2.20.6
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/totpages/totpages.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/everyshi/everyshi.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/environ/environ.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/trimspaces/trimspaces.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/url/url.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/hyperxmp/hyperxmp.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ifmtarg/ifmtarg.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/ifthen.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/ifdraft.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifluatex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/manyfoot.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/ncctools/nccfoots.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/pdftex/glyphtounicode.tex) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/cmap/cmap.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty<<t1.cmap>>) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/libertine.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/iftex/ifxetex.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fontaxes/fontaxes.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/figureversions/figureversions.sty)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/LinLibertine_I.tex)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/zi4.sty `inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe)) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/newtxmath.sty `newtxmath' v1.754, 2024/09/22 Math macros based originally on txfonts (msharpe) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/oberdiek/centernot.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/kastrup/binhex.tex)
+amsthm NOT loaded
+) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/caption/caption-ams-smf.sto))) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/float/float.sty) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/comment/comment.sty Excluding comment 'comment') Excluding comment 'CCSXML' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty) Special comment 'acks' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxLibertineT-TLF.fd)) Excluding comment 'screenonly' Include comment 'printonly' Include comment 'anonsuppress' (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-pdftex.def) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/omlnxlmi.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxexa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmsntxsy.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/lmxntxexx.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/OT1LinuxLibertineT-TLF.fd)<<ot1.cmap>> (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxmia.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsym.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/newtx/untxsyc.fd) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.out) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.out) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+Package epstopdf Warning: Shell escape feature is not enabled.
+
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty) Excluding 'CCSXML' comment. (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/T1LinuxBiolinumT-TLF.fd) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msa.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/microtype/mt-msb.cfg) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd) (./sections/introduction.tex) (./sections/preliminaries.tex [1.1{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_ncsllp.enc}{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}]) (./sections/packing.tex [2.2]) (./sections/noninteractive.tex (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/latex/inconsolata/t1zi4.fd)) (./sections/gpu.tex [3.3{/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-4.enc}]) (./sections/evaluation.tex
+Underfull \vbox (badness 10000) has occurred while \output is active (./tables/rq1_ks.tex) (./tables/wallclock_same_cpu.tex) [4.4] (./figs/rq1_ratios.tex)
+Underfull \vbox (badness 10000) has occurred while \output is active
+Underfull \vbox (badness 10000) has occurred while \output is active [5.5] (./tables/accuracy_vs_reboot.tex) (./tables/plain_datasets.tex) (./tables/security.tex)
+Underfull \vbox (badness 3049) has occurred while \output is active (./tables/gpu_vs_cpu_ops.tex) (./tables/rq3_ablation.tex)) (./sections/discussion.tex [6.6]
+Underfull \vbox (badness 10000) has occurred while \output is active
+Underfull \vbox (badness 10000) has occurred while \output is active [7.7]
+Underfull \vbox (badness 10000) has occurred while \output is active [8.8]) (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 144--149
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) Kentaro Mi-hara, Ry-ohei Ya-m-aguchi, Miguel Mit-su-ishi, and Yusuke
+
+Underfull \hbox (badness 4832) in paragraph at lines 176--185
+[]\T1/LinuxLibertineT-TLF/m/n/7 (+20) WAHC Or-ga-niz-ers. 2026.  WAHC 2026: Call for Pa-pers.   []$https :
+
+Underfull \hbox (badness 10000) in paragraph at lines 176--185
+\T1/LinuxLibertineT-TLF/m/n/7 (+20) / / homomorphicencryption . org / wahc -[] 2026 -[] 14th -[] workshop -[] on -[] encrypted -[]
+
+Underfull \vbox (badness 1558) has occurred while \output is active) (./sections/appendix.tex [9.9]) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-pdfdoc.def) (/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/tex/generic/stringenc/se-utf8.def) [10.10] (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.aux) )
+(see the transcript file for additional information)</Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI5.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/LibertineMathRM.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/NewTXMI7.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexas.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txexs.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsym.pfb></Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
+Output written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf (10 pages, 528911 bytes).
+Transcript written on /Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log.
+Latexmk: Getting log file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.fls'
+Latexmk: Examining '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.log'
+Latexmk: Found input bbl file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl'
+Latexmk: Log file says output to '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf'
+  ===Source file '/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.bbl' for 'pdflatex'
+Latexmk: Found bibliography file(s):
+  ./refs.bib
+Latexmk: All targets (/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build/main.pdf) are up-to-date
+

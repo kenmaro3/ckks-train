@@ -1,0 +1,57 @@
+[
+  {
+    "path": "tools/paper_tables.py",
+    "bytes": 50240,
+    "sha256": "47468ae980ce082f99ea48daeb7c8d33cfedf3fa3255bef4a6f8a43ad5529741"
+  },
+  {
+    "path": "tools/test_paper_tables.py",
+    "bytes": 11705,
+    "sha256": "3009bbe3f32a72c83dc2ff5f7ac4c412839f07d829773ec58fc2f050979f336d"
+  },
+  {
+    "path": "paper/sections/noninteractive.tex",
+    "bytes": 5031,
+    "sha256": "ff680d5fbb65b6fb7bd3f4715593cd39b6c016fb8875651bee827848f5ff7d8f"
+  },
+  {
+    "path": "paper/sections/discussion.tex",
+    "bytes": 7011,
+    "sha256": "9654e8761c609e8a915aa1e4d94e7d41c11989e8b4f367da94ae82c690772681"
+  },
+  {
+    "path": "paper/sections/evaluation.tex",
+    "bytes": 10592,
+    "sha256": "e3e735afa94391127f07b86be352883505ccc269975869e97406e2762b98bae4"
+  },
+  {
+    "path": "paper/sections/appendix.tex",
+    "bytes": 6111,
+    "sha256": "6cd5c4f1d2c3b1b8e66fd5f215ed5fc4b17cfa86e13a8ec528f3dd1507675b57"
+  },
+  {
+    "path": "paper/tables/accuracy_vs_reboot.tex",
+    "bytes": 3502,
+    "sha256": "02c1b3694fde9fee2c3e7200a78d0d1f386b2cf5b1d0798e2b757dd7f8590a79"
+  },
+  {
+    "path": "results/tables/accuracy_vs_reboot.md",
+    "bytes": 3189,
+    "sha256": "b4c2474771934af41b6e47387983de9f9b0ea3e241ade763cc2d53c615df76d0"
+  },
+  {
+    "path": "results/tables/sources.tsv",
+    "bytes": 152189,
+    "sha256": "9f8104022e1968f76ff4844e9999b708dc2b87c9741a1b60079ddb51fe0c3c26"
+  },
+  {
+    "path": "paper/README.md",
+    "bytes": 12922,
+    "sha256": "e6dcbd197f88bccec3e0fd286c2fb3476cef06faa8016a50ac8b2d7dac61811e"
+  },
+  {
+    "path": "paper/arxiv-metadata.md",
+    "bytes": 5951,
+    "sha256": "bc8d0db46b50364a515c46aa9d7f94f874d779a1e2ea2bf239736777f1a8adc3"
+  }
+]

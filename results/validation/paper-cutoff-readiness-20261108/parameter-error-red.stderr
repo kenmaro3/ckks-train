@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate (test_paper_tables.PaperTablesTests.test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/marconi/Documents/research/hekit/tools/test_paper_tables.py", line 106, in test_full_parameter_error_is_sourced_diagnostic_not_accuracy_gate
+    self.assertEqual(len(notes), 1)  # Missing FULL-2 must not inherit FULL-1.
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 1 test in 0.075s
+
+FAILED (failures=1)

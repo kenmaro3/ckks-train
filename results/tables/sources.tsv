@@ -678,6 +678,7 @@ accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Reference (%)	94.61	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/quadruped/raw/reboot_emlp1_paper_setting/summary.json	per_schedule.sched.best_epoch_test_acc.mean	
 accuracy_vs_reboot	ReBoot released code, paper setting, ReBoot's scheduler, best epoch (test-selected)	Δ (pt)	+0.85	results/plain_mnist_emlp1_paper.json	target.test_acc_mean	
+accuracy_vs_reboot	note 1			results/quadruped/raw/R-41-FULL-1/mnist196_ni_when_needed_b64_full_seed0.json	twin.max_abs_diff	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Source	CPU smoke (insecure N = 2^12: counts only)	results/ablation_cpu_smoke_small.json	setup.params	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.device	
 rq3_ablation	CPU smoke (insecure N = 2^12: counts only)	Backend / level	cpu, level max	results/ablation_cpu_smoke_small.json	backend.options.top_level	

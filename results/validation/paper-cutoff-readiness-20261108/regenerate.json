@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "bash",
+    "scripts/run_all.sh",
+    "--tables-only"
+  ],
+  "cwd": ".",
+  "exit_code": 0
+}

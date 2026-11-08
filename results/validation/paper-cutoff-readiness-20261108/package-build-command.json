@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/bin/universal-darwin/latexmk",
+    "-pdf",
+    "-interaction=nonstopmode",
+    "-halt-on-error",
+    "-no-shell-escape",
+    "-outdir=/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/build",
+    "main.tex"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/arxiv-source-cutoff-readiness-20261108/source",
+  "toolchain_bin": "/Users/marconi/Documents/research/hekit/tools/latex/_ext/TinyTeX/bin/universal-darwin"
+}
