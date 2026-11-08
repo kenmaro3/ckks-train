@@ -1,0 +1,19 @@
+{
+  "kind": "operational_storage_migration_not_scientific_result",
+  "volume_uuid": "CAE1A977-C00C-3033-8605-069E26F8E6D2",
+  "started_utc": "2026-11-08T05:36:12.973406+00:00",
+  "deleted_sources": [
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-bundle-6fba46c",
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-bundle-0b2d17a",
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-bundle-cf58897",
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-bundle-90851d2",
+    "/Users/marconi/Documents/research/hekit/tools/release/_ext/package-current-2dc049a",
+    "/Users/marconi/Documents/research/hekit/.superpowers/sdd/2026-11-04-he-training-implementation-plan-m3-m5/linux-checkout-stage-20261107-v1",
+    "/var/folders/l9/j0s8_fkd3b53h97864_x2kq40000gn/T/ckks-train-renamed-packages-itehj5x0"
+  ],
+  "all_original_archives_rehashed_before_delete": true,
+  "free_bytes_before": 1782063104,
+  "complete": true,
+  "free_bytes_after": 2807615488,
+  "finished_utc": "2026-11-08T05:36:20.430811+00:00"
+}

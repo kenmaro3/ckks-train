@@ -1208,3 +1208,10 @@ a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcomp
 ## 2026-11-08 14:21 JST: Macのコンパイル中間ファイル整理
 
 本人の不要物削除指示に従い、`target/debug/deps` の古い単独 `.o` 9,070個を削除した。再生成可能な中間オブジェクトのみで、実行ファイル・rlib/rmeta・fingerprint・build・Linux cross cache・元結果は保持。実装担当の停止状態とown Cargo/rustc不在を確認し、保存した各pathのdevice/inode/size/mtime/ctimeを再照合してから削除した。約1.69GiBを解放、直後の空きは約2.23GiB。[対象一覧と実行記録](../results/validation/mac-stale-objects-cleanup-20261108/README.md)。担当はその後認証が復旧して作業を再開している。後続ビルドでは必要な中間オブジェクトが再生成される。
+
+
+## 2026-11-08 14:36 JST: MicroSDへの保管用データ移動
+
+本人の指示で、対象をckks-trainのみに限定し、完了済み配布bundle4世代・package検証用workspace2件・旧Linux checkout stageの計7フォルダーを `/Volumes/Untitled/ckks-train-storage/archives/2026-11-08-cold-local/` へ移した。exFATなのでtar内にmode/linkを保持し、全ファイル内容・entry一覧・mode/linkとtar全体のSHA256を照合してからMac側を削除。移動前後で本体の空きは約1.78GB→2.81GB（観測値）。[移動記録とarchive対応表](../results/validation/microsd-offload-20261108/README.md)。他プロジェクトやDownloadsは対象外。
+
+今後の大きな配布物・凍結snapshot・cold archiveは同カードの `exports/`・`snapshots/`・`archives/` へ直接出力する。ローカルhelper `python3 -B tools/release/_ext/storage_root.py exports`（またはsnapshots/archives）がvolume UUIDと外部・書込可能状態を確認し、未接続時はSSDへfallbackしない。作業中Git/source、target/Linux cross cache、現在のledger・入力・元結果はMacに保持する。SDへのsymlinkでactive build/custodyを置き換えない。具体的なローカル方針は当該ledgerの `microsd-storage-policy.md`。旧ログのパスは当時の実行場所として保存し、必要時のみカード上のtarから復元する。最新版の中間論文PDF/TeX ZIPのコピーはカードの `exports/2026-11-08-working-draft/` にある（最終版・投稿済みではない）。
