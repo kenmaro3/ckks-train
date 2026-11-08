@@ -1,0 +1,60 @@
+{
+  "source_commit": "90851d261b36b034d3b660ec4c95dd330eadc616",
+  "started_utc": "2026-11-07T23:56:39.051748+00:00",
+  "finished_utc": "2026-11-07T23:56:41.554958+00:00",
+  "blob_count": 5298,
+  "blob_bytes": 179731216,
+  "patterns": [
+    "private-key-header",
+    "github-classic-token",
+    "github-finegrained-token",
+    "aws-access-key-id",
+    "slack-token",
+    "openai-project-key"
+  ],
+  "findings": [],
+  "containers_requiring_separate_inspection": [
+    {
+      "object": "e85ec81bf6816c802bfb80b2b234c204dad699af",
+      "path": "results/validation/packed-blocks-n1024-20261107/interactive/stdout.txt.gz",
+      "bytes": 6703880,
+      "status": "container-content-not-inspected-by-this-pass"
+    },
+    {
+      "object": "4e38f6b89b9d525ea08ea85e29ecd9c68d93e168",
+      "path": "results/validation/packed-blocks-n1024-20261107/noninteractive/stdout.txt.gz",
+      "bytes": 32158222,
+      "status": "container-content-not-inspected-by-this-pass"
+    },
+    {
+      "object": "40bc6b31d3e0babad85dd3eaa0e21f7f3405be2a",
+      "path": "results/validation/task54-d7-full-linked-oracle/task-54-d7-full-linked-oracle/run1-archive.zip",
+      "bytes": 627137,
+      "status": "container-content-not-inspected-by-this-pass"
+    }
+  ],
+  "large_blobs_over_5000000_bytes": [
+    {
+      "object": "e85ec81bf6816c802bfb80b2b234c204dad699af",
+      "path": "results/validation/packed-blocks-n1024-20261107/interactive/stdout.txt.gz",
+      "bytes": 6703880
+    },
+    {
+      "object": "4e38f6b89b9d525ea08ea85e29ecd9c68d93e168",
+      "path": "results/validation/packed-blocks-n1024-20261107/noninteractive/stdout.txt.gz",
+      "bytes": 32158222
+    },
+    {
+      "object": "24918f55940c1671bc22e2674d506bed2cd74cc6",
+      "path": "results/validation/task54-p5-preflight/ledger/task-54-p5-pure-runtime1-validation/output.raw.txt",
+      "bytes": 5677785
+    },
+    {
+      "object": "1e08f998df7efd2654e81b789d04cb6ae2d88966",
+      "path": "results/validation/task54-p5-preflight/ledger/task-54-p5-pure-runtime2-validation/output.raw.txt",
+      "bytes": 5675618
+    }
+  ],
+  "external_directory_paths": [],
+  "scope": "Limited credential-signature scan of all reachable raw blobs at candidate HEAD. Not entropy detection, a comprehensive secret audit, source-license audit, archive-member inspection or public-release approval."
+}

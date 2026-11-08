@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "10",
+    "cargo",
+    "test",
+    "--offline",
+    "--locked",
+    "-p",
+    "ckks-train-bench",
+    "--test",
+    "study_admission",
+    "--",
+    "--test-threads=2",
+    "--nocapture"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix",
+  "selected_env": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RAYON_NUM_THREADS": "2",
+    "CARGO_TARGET_DIR": "/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "RUST_TEST_THREADS": null
+  },
+  "source_sha256": "94191ae23ca984dcc801f2efdf333da1b8ce8ac93eccdd6f4b1a8927dff6d8c0",
+  "started_utc": "2026-11-08T00:08:30.109808+00:00"
+}

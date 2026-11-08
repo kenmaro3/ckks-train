@@ -1,0 +1,12 @@
+   Compiling ckks-train-ckks v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix/crates/ckks-train-ckks)
+   Compiling ckks-train-core v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix/crates/ckks-train-core)
+   Compiling ckks-train-bench v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix/crates/ckks-train-bench)
+   Compiling ckks-train-nn v1.0.0 (/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix/crates/ckks-train-nn)
+    Finished `test` profile [optimized + debuginfo] target(s) in 53.67s
+     Running tests/study_admission.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_admission-a09c96cdecd97aa7)
+P3 filtered getter fixture: params=1 proof=1 metadata=2 geometry=1 initial=1; update/materialization/HE=0
+P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 canonical bundled Iris materializations=1; plaintext_training=0
+P3 canonical usage: PlanningUsage { geometries: 1, initial_states: 1, updates: 2, handoffs: 0, wrapper_calls: 3 }
+P3 inventory usage: PlanningUsage { geometries: 145, initial_states: 145, updates: 2, handoffs: 0, wrapper_calls: 3 }
+P3 fix1 late-finalization usage PlanningUsage { geometries: 147, initial_states: 147, updates: 6, handoffs: 0, wrapper_calls: 5 }; cap=1904016 completed=2 prefix_records=2

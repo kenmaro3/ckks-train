@@ -1,0 +1,15 @@
+
+running 5 tests
+test p3_bootstrap_configuration_binding ... ok
+test p3_case_projection_and_scope ... ok
+test p3_fix1_late_finalization_retains_complete_prefix ... ok
+test p3_canonical_quick_full_identity_and_revalidation ... FAILED
+test p3_inventory_and_candidate_separation ... ok
+
+failures:
+
+failures:
+    p3_canonical_quick_full_identity_and_revalidation
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+

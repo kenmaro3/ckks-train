@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "cwd": "/Users/marconi/Documents/research/hekit/tools/release/_ext/research-preview-testfix",
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "source_sha256": "94191ae23ca984dcc801f2efdf333da1b8ce8ac93eccdd6f4b1a8927dff6d8c0",
+  "only_changed_file": "crates/ckks-train-bench/tests/study_admission.rs"
+}

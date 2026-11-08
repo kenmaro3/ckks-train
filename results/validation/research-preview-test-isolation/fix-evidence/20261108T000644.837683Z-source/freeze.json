@@ -1,0 +1,7 @@
+{
+  "source_sha256": "94191ae23ca984dcc801f2efdf333da1b8ce8ac93eccdd6f4b1a8927dff6d8c0",
+  "patch_sha256": "241033f6a611505e8b76d317941e98d614dd9386d1e598702f7f960459751be7",
+  "head": "90851d261b36b034d3b660ec4c95dd330eadc616",
+  "status": " M crates/ckks-train-bench/tests/study_admission.rs\n",
+  "diff_stat": " crates/ckks-train-bench/tests/study_admission.rs | 16 ++++++++++++++--\n 1 file changed, 14 insertions(+), 2 deletions(-)\n"
+}

@@ -1,0 +1,26 @@
+{
+  "kind": "local-research-preview-preparation",
+  "created_utc": "2026-11-07T23:58:22.954221+00:00",
+  "source_commit": "90851d261b36b034d3b660ec4c95dd330eadc616",
+  "artifacts": [
+    {
+      "file": "ckks-train-90851d2-source.tar.gz",
+      "bytes": 56209245,
+      "sha256": "276e0e08b923e1a9eea285d434511cc854e3f6e41d1934b387f4a7444d57489c"
+    },
+    {
+      "file": "ckks-train-paper-draft.pdf",
+      "bytes": 529509,
+      "sha256": "57f0eb179a44ad8b9b0224c717bfa664ea8ddbc73bee2811d8e47ee1ebb99c75"
+    }
+  ],
+  "pdf_origin": "tools/latex/_ext/task56/full1-20261107/anonymous/main.pdf",
+  "pdf_status": "Existing reviewed FULL-1 draft copied byte-identically; not rebuilt for this candidate; 10 pages verified by pdfinfo.",
+  "validation_status": "in-progress; not a qualified stable v1.0 or published artifact",
+  "source_inventory": {
+    "file": "source-inventory.json",
+    "bytes": 1492528,
+    "sha256": "06952f3fb17d32c43028976d92c86d818b5874ff3f4e680799736e1956d88d6d",
+    "files_verified_against_git_objects_and_modes": 5071
+  }
+}

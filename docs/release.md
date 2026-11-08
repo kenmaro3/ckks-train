@@ -201,3 +201,29 @@ The [candidate and independent review](../results/validation/task55-rustix-notic
 ## 2026-11-08 07:09 JST: CI未起動の確認
 
 a29dcf6（run42416425934）と767fb52（run42418803177）は各6ジョブがcompleted/failureだったが、全ジョブのstepは0件だった。各checkのannotationは、支払い失敗または利用上限による未起動を示している。どちらの課金条件かはAPIから区別できない。[全ジョブの一次記録とSHA対応](../results/validation/ci-20261108-0709/README.md)を保存した。コードのテスト結果は得られておらず、以前のSHAのCI合格を引き継がない。課金設定・支払い・workflowの変更や再実行は行っていない。ローカルの実装・検証は継続できるが、最終公開候補のCI検証は未達として残す。
+
+## Research preview preparation (2026-11-08)
+
+The user has requested greater speed toward publication. Prepare a fixed research preview
+in parallel with the remaining v1.0 and research work. The initial source candidate is
+`90851d261b36b034d3b660ec4c95dd330eadc616`, isolated from uncommitted Task54 changes.
+This is a candidate selection, not a validation result or permission to publish. The
+1–3 day estimate is a planning target, subject to candidate validation.
+
+The preview will identify measured, unmet and unmeasured results, include the existing
+paper draft with its original build provenance, and distinguish table regeneration from
+full experiment execution. Its existing1.0.0 version fields do not mean a stable v1.0
+has been qualified or published. Final-candidate tests, license/package checks and public
+history review still apply. No scientific gate or original full-matrix obligation is removed.
+
+Waiting for every additional evaluation would delay access to existing work; including
+mutable, unreviewed source would prevent a meaningful qualification. A fixed preview is
+the intermediate deliverable. The cost is separate validation and explicit source/PDF
+provenance, followed by validation again for the eventual final version. The existing
+FULL-2 and post-full experiment sequence continues unchanged.
+
+The initial preview candidate failed one integration-test assertion caused by shared test
+counters. The minimal test-only correction has independent SPEC/QUALITY approval;
+full qualification of the updated candidate remains pending. See
+[preview preparation and evidence](research-preview.md). No initial archive is promoted
+to a validated release by this correction.

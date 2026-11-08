@@ -14,7 +14,7 @@ use ckks_train_ckks::{
 use std::{
     collections::BTreeSet,
     path::Path,
-    sync::{Arc, OnceLock},
+    sync::{Arc, Mutex, OnceLock},
 };
 
 struct Fixtures {
@@ -26,6 +26,8 @@ struct Fixtures {
     boot: BootstrapMetadata,
     iris: OnceLock<MaterializedProfile>,
     budget: Arc<PlanningBudget>,
+    // Hold for each test using the cumulative budget so usage deltas are isolated.
+    budget_test_lock: Mutex<()>,
 }
 fn fixtures() -> &'static Fixtures {
     static FIXTURES: OnceLock<Fixtures> = OnceLock::new();
@@ -55,6 +57,7 @@ fn fixtures() -> &'static Fixtures {
                 handoffs: 0,
                 wrapper_calls: 8,
             })),
+            budget_test_lock: Mutex::new(()),
         }
     })
 }
@@ -99,6 +102,7 @@ fn parameters(placement: CasePlacement) -> PlanningParameters<'static> {
 #[test]
 fn p3_inventory_and_candidate_separation() {
     let f = fixtures();
+    let _budget_guard = f.budget_test_lock.lock().unwrap();
     let before = f.budget.usage();
     assert_eq!(
         (
@@ -183,6 +187,8 @@ fn p3_inventory_and_candidate_separation() {
 #[test]
 fn p3_canonical_quick_full_identity_and_revalidation() {
     let f = fixtures();
+    let _budget_guard = f.budget_test_lock.lock().unwrap();
+    let before = f.budget.usage();
     let p = f.iris.get_or_init(|| {
         eprintln!("P3 canonical bundled Iris materializations=1; plaintext_training=0");
         materialize(&f.registry.resolve("iris__mlp2020", 0).unwrap()).unwrap()
@@ -276,13 +282,18 @@ fn p3_canonical_quick_full_identity_and_revalidation() {
             .contains(&UnprovedGate::PreKeyFactoryIntegration)
     );
     let stats = f.budget.usage();
-    assert!(stats.wrapper_calls <= 4 && stats.updates <= 8 && stats.handoffs == 0);
+    assert!(
+        stats.wrapper_calls - before.wrapper_calls <= 4
+            && stats.updates - before.updates <= 8
+            && stats.handoffs - before.handoffs == 0
+    );
     eprintln!("P3 canonical usage: {stats:?}");
 }
 
 #[test]
 fn p3_case_projection_and_scope() {
     let f = fixtures();
+    let _budget_guard = f.budget_test_lock.lock().unwrap();
     let quick = f.cases.quick_family_selectors();
     assert_eq!(quick.len(), 268);
     assert!(f.cases.select(&quick[0]).is_err());
@@ -400,6 +411,7 @@ fn p3_bootstrap_configuration_binding() {
 #[test]
 fn p3_fix1_late_finalization_retains_complete_prefix() {
     let f = fixtures();
+    let _budget_guard = f.budget_test_lock.lock().unwrap();
     let p = f.iris.get_or_init(|| {
         eprintln!("P3 fix1 canonical Iris materializations=1");
         materialize(&f.registry.resolve("iris__mlp2020", 0).unwrap()).unwrap()

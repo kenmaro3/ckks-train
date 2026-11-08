@@ -1,0 +1,6 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.71s
+     Running tests/study_admission.rs (/Users/marconi/Documents/research/hekit/tools/release/_ext/preview-target-90851d2/debug/deps/study_admission-a09c96cdecd97aa7)
+P3 integration fixture: params=2 proof=1 bootstrap_metadata=1; HE=0
+P3 canonical bundled Iris materializations=1; plaintext_training=0
+P3 canonical usage: PlanningUsage { geometries: 1, initial_states: 1, updates: 2, handoffs: 0, wrapper_calls: 3 }
